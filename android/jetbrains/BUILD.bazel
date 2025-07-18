@@ -1,11 +1,10 @@
 ### auto-generated section `build intellij.android.core.jetbrains` start
 load("//build:compiler-options.bzl", "create_kotlinc_options")
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_javac_options")
 
 create_kotlinc_options(
-  name = "custom",
+  name = "custom_jetbrains",
   opt_in = ["org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction"]
 )
 
@@ -27,7 +26,7 @@ jvm_library(
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   javac_opts = ":custom-javac-options",
-  kotlinc_opts = ":custom",
+  kotlinc_opts = ":custom_jetbrains",
   associates = ["//android/android:core"],
   deps = [
     "@lib//:studio-platform-provided",
@@ -129,9 +128,13 @@ jvm_library(
     "//java/openapi:java",
   ]
 )
+### auto-generated section `build intellij.android.core.jetbrains` end
+
+### auto-generated section `test intellij.android.core.jetbrains` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "jetbrains_test",
   runtime_deps = [":jetbrains_test_lib"]
 )
-### auto-generated section `build intellij.android.core.jetbrains` end
+### auto-generated section `test intellij.android.core.jetbrains` end

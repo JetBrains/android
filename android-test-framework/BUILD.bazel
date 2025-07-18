@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.testFramework` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_javac_options")
 
 kt_javac_options(
@@ -95,9 +94,13 @@ jvm_library(
     "//platform/workspace/jps",
   ]
 )
+### auto-generated section `build intellij.android.testFramework` end
+
+### auto-generated section `test intellij.android.testFramework` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "testFramework_test",
   runtime_deps = [":testFramework_test_lib"]
 )
-### auto-generated section `build intellij.android.testFramework` end
+### auto-generated section `test intellij.android.testFramework` end

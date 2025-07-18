@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.testutils` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "testutils",
@@ -32,9 +31,13 @@ jvm_library(
     "//android/android-common:common",
   ]
 )
+### auto-generated section `build intellij.android.testutils` end
+
+### auto-generated section `test intellij.android.testutils` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "testutils_test",
   runtime_deps = [":testutils_test_lib"]
 )
-### auto-generated section `build intellij.android.testutils` end
+### auto-generated section `test intellij.android.testutils` end

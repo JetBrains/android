@@ -3,7 +3,7 @@ load("//build:compiler-options.bzl", "create_kotlinc_options")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 create_kotlinc_options(
-  name = "custom",
+  name = "custom_testartifacts",
   context_receivers = True
 )
 
@@ -18,7 +18,7 @@ jvm_library(
   module_name = "intellij.android.testartifacts",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
-  kotlinc_opts = ":custom",
+  kotlinc_opts = ":custom_testartifacts",
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:guava",
@@ -53,10 +53,6 @@ jvm_library(
 ### auto-generated section `build intellij.android.testartifacts` end
 
 ### auto-generated section `build intellij.android.testartifacts.tests` start
-load("//build:compiler-options.bzl", "create_kotlinc_options")
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
-
 create_kotlinc_options(
   name = "custom_testartifacts-tests",
   context_receivers = True
@@ -128,9 +124,13 @@ jvm_library(
   ],
   plugins = ["@lib//:compose-plugin"]
 )
+### auto-generated section `build intellij.android.testartifacts.tests` end
+
+### auto-generated section `test intellij.android.testartifacts.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "testartifacts-tests_test",
   runtime_deps = [":testartifacts-tests_test_lib"]
 )
-### auto-generated section `build intellij.android.testartifacts.tests` end
+### auto-generated section `test intellij.android.testartifacts.tests` end

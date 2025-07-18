@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.studio.tests` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "tests",
@@ -21,9 +20,13 @@ jvm_library(
     "//android/intellij.android.testutils:testutils_test_lib",
   ]
 )
+### auto-generated section `build intellij.android.studio.tests` end
+
+### auto-generated section `test intellij.android.studio.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "tests_test",
   runtime_deps = [":tests_test_lib"]
 )
-### auto-generated section `build intellij.android.studio.tests` end
+### auto-generated section `test intellij.android.studio.tests` end

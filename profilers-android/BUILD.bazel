@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.profilersAndroid` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
   name = "profilers-android_resources",
@@ -157,9 +156,13 @@ jvm_library(
   ],
   runtime_deps = [":profilers-android_resources"]
 )
+### auto-generated section `build intellij.android.profilersAndroid` end
+
+### auto-generated section `test intellij.android.profilersAndroid` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "profilers-android_test",
   runtime_deps = [":profilers-android_test_lib"]
 )
-### auto-generated section `build intellij.android.profilersAndroid` end
+### auto-generated section `test intellij.android.profilersAndroid` end

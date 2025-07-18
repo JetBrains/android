@@ -3,7 +3,7 @@ load("//build:compiler-options.bzl", "create_kotlinc_options")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 create_kotlinc_options(
-  name = "custom",
+  name = "custom_common",
   opt_in = ["org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction"]
 )
 
@@ -18,7 +18,7 @@ jvm_library(
   module_name = "intellij.android.common",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
-  kotlinc_opts = ":custom",
+  kotlinc_opts = ":custom_common",
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:guava",
@@ -63,9 +63,6 @@ jvm_library(
 ### auto-generated section `build intellij.android.common` end
 
 ### auto-generated section `build intellij.android.common.tests` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
-
 jvm_library(
   name = "common-tests",
   visibility = ["//visibility:public"],
@@ -111,9 +108,13 @@ jvm_library(
     "@lib//:protobuf",
   ]
 )
+### auto-generated section `build intellij.android.common.tests` end
+
+### auto-generated section `test intellij.android.common.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "common-tests_test",
   runtime_deps = [":common-tests_test_lib"]
 )
-### auto-generated section `build intellij.android.common.tests` end
+### auto-generated section `test intellij.android.common.tests` end

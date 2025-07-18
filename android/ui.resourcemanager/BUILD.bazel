@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.core.ui.resourcemanager` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "ui.resourcemanager_test_lib",
@@ -61,9 +60,13 @@ jvm_library(
     "//android/layoutlib",
   ]
 )
+### auto-generated section `build intellij.android.core.ui.resourcemanager` end
+
+### auto-generated section `test intellij.android.core.ui.resourcemanager` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "ui.resourcemanager_test",
   runtime_deps = [":ui.resourcemanager_test_lib"]
 )
-### auto-generated section `build intellij.android.core.ui.resourcemanager` end
+### auto-generated section `test intellij.android.core.ui.resourcemanager` end

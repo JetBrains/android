@@ -77,9 +77,6 @@ jvm_library(
 ### auto-generated section `build intellij.android.projectSystem.gradle.psd` end
 
 ### auto-generated section `build intellij.android.projectSystem.gradle.psd.tests` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
-
 jvm_library(
   name = "projectSystem-gradle-psd-tests",
   visibility = ["//visibility:public"],
@@ -147,9 +144,13 @@ jvm_library(
     "//android/gradle-declarative-lang-flags",
   ]
 )
+### auto-generated section `build intellij.android.projectSystem.gradle.psd.tests` end
+
+### auto-generated section `test intellij.android.projectSystem.gradle.psd.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "projectSystem-gradle-psd-tests_test",
   runtime_deps = [":projectSystem-gradle-psd-tests_test_lib"]
 )
-### auto-generated section `build intellij.android.projectSystem.gradle.psd.tests` end
+### auto-generated section `test intellij.android.projectSystem.gradle.psd.tests` end

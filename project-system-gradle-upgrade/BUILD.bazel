@@ -64,9 +64,6 @@ jvm_library(
 ### auto-generated section `build intellij.android.projectSystem.gradle.upgrade` end
 
 ### auto-generated section `build intellij.android.projectSystem.gradle.upgrade.tests` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
-
 jvm_library(
   name = "projectSystem-gradle-upgrade-tests_test_lib",
   visibility = ["//visibility:public"],
@@ -135,9 +132,13 @@ jvm_library(
   ],
   runtime_deps = ["//android/gradle-dsl-kotlin"]
 )
+### auto-generated section `build intellij.android.projectSystem.gradle.upgrade.tests` end
+
+### auto-generated section `test intellij.android.projectSystem.gradle.upgrade.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "projectSystem-gradle-upgrade-tests_test",
   runtime_deps = [":projectSystem-gradle-upgrade-tests_test_lib"]
 )
-### auto-generated section `build intellij.android.projectSystem.gradle.upgrade.tests` end
+### auto-generated section `test intellij.android.projectSystem.gradle.upgrade.tests` end

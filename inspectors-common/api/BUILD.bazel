@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.inspectors-common.api` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "api",
@@ -45,9 +44,13 @@ jvm_library(
     "//android/codenavigation:codenavigation_test_lib",
   ]
 )
+### auto-generated section `build intellij.android.inspectors-common.api` end
+
+### auto-generated section `test intellij.android.inspectors-common.api` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "api_test",
   runtime_deps = [":api_test_lib"]
 )
-### auto-generated section `build intellij.android.inspectors-common.api` end
+### auto-generated section `test intellij.android.inspectors-common.api` end

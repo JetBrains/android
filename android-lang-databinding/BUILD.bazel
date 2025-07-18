@@ -56,9 +56,6 @@ jvm_library(
 ### auto-generated section `build intellij.android.lang-databinding` end
 
 ### auto-generated section `build intellij.android.lang-databinding.tests` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
-
 jvm_library(
   name = "lang-databinding-tests_test_lib",
   visibility = ["//visibility:public"],
@@ -94,9 +91,13 @@ jvm_library(
     "//xml/xml-psi-api:psi",
   ]
 )
+### auto-generated section `build intellij.android.lang-databinding.tests` end
+
+### auto-generated section `test intellij.android.lang-databinding.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "lang-databinding-tests_test",
   runtime_deps = [":lang-databinding-tests_test_lib"]
 )
-### auto-generated section `build intellij.android.lang-databinding.tests` end
+### auto-generated section `test intellij.android.lang-databinding.tests` end

@@ -68,9 +68,6 @@ jvm_library(
 ### auto-generated section `build intellij.android.databinding` end
 
 ### auto-generated section `build intellij.android.databinding.tests` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
-
 jvm_resources(
   name = "databinding-tests_test_resources",
   files = glob(["testResources/**/*"]),
@@ -149,9 +146,13 @@ jvm_library(
   ],
   runtime_deps = [":databinding-tests_test_resources"]
 )
+### auto-generated section `build intellij.android.databinding.tests` end
+
+### auto-generated section `test intellij.android.databinding.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "databinding-tests_test",
   runtime_deps = [":databinding-tests_test_lib"]
 )
-### auto-generated section `build intellij.android.databinding.tests` end
+### auto-generated section `test intellij.android.databinding.tests` end

@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.platform-performance-testing` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "platform-performance-testing",
@@ -18,9 +17,13 @@ jvm_library(
     "@lib//:studio-test-platform",
   ]
 )
+### auto-generated section `build intellij.android.platform-performance-testing` end
+
+### auto-generated section `test intellij.android.platform-performance-testing` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "platform-performance-testing_test",
   runtime_deps = [":platform-performance-testing_test_lib"]
 )
-### auto-generated section `build intellij.android.platform-performance-testing` end
+### auto-generated section `test intellij.android.platform-performance-testing` end

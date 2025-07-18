@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.projectStructureTests` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "projectStructureTests",
@@ -22,9 +21,13 @@ jvm_library(
     "//jps/model-serialization",
   ]
 )
+### auto-generated section `build intellij.android.projectStructureTests` end
+
+### auto-generated section `test intellij.android.projectStructureTests` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "projectStructureTests_test",
   runtime_deps = [":projectStructureTests_test_lib"]
 )
-### auto-generated section `build intellij.android.projectStructureTests` end
+### auto-generated section `test intellij.android.projectStructureTests` end

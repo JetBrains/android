@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.adt.swingp` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_javac_options")
 
 kt_javac_options(
@@ -48,9 +47,13 @@ jvm_library(
     "@lib//:jetbrains-annotations",
   ]
 )
+### auto-generated section `build intellij.android.adt.swingp` end
+
+### auto-generated section `test intellij.android.adt.swingp` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "swingp_test",
   runtime_deps = [":swingp_test_lib"]
 )
-### auto-generated section `build intellij.android.adt.swingp` end
+### auto-generated section `test intellij.android.adt.swingp` end

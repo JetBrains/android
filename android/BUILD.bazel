@@ -4,7 +4,7 @@ load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library", "jvm_resourc
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_javac_options")
 
 create_kotlinc_options(
-  name = "custom",
+  name = "custom_core",
   opt_in = [
     "org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction",
     "org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction",
@@ -39,7 +39,7 @@ jvm_library(
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   javac_opts = ":custom-javac-options",
-  kotlinc_opts = ":custom",
+  kotlinc_opts = ":custom_core",
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:jetbrains-annotations",
@@ -257,9 +257,6 @@ jvm_library(
 ### auto-generated section `build intellij.android.core` end
 
 ### auto-generated section `build intellij.android.core.agp-integration-tests` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
-
 jvm_library(
   name = "core-agp-integration-tests_test_lib",
   visibility = ["//visibility:public"],
@@ -338,17 +335,18 @@ jvm_library(
     "//android/gradle-dsl-declarative",
   ]
 )
+### auto-generated section `build intellij.android.core.agp-integration-tests` end
+
+### auto-generated section `test intellij.android.core.agp-integration-tests` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "core-agp-integration-tests_test",
   runtime_deps = [":core-agp-integration-tests_test_lib"]
 )
-### auto-generated section `build intellij.android.core.agp-integration-tests` end
+### auto-generated section `test intellij.android.core.agp-integration-tests` end
 
 ### auto-generated section `build intellij.android.core.tests` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
-
 jvm_resources(
   name = "core-tests_test_resources",
   files = glob(["testResources/**/*"]),
@@ -497,9 +495,13 @@ jvm_library(
     "//android/gradle-dsl-kotlin",
   ]
 )
+### auto-generated section `build intellij.android.core.tests` end
+
+### auto-generated section `test intellij.android.core.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "core-tests_test",
   runtime_deps = [":core-tests_test_lib"]
 )
-### auto-generated section `build intellij.android.core.tests` end
+### auto-generated section `test intellij.android.core.tests` end

@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.core.editors.strings` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "editors.strings_test_lib",
@@ -46,9 +45,13 @@ jvm_library(
     "@lib//:kotlinx-coroutines-test",
   ]
 )
+### auto-generated section `build intellij.android.core.editors.strings` end
+
+### auto-generated section `test intellij.android.core.editors.strings` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "editors.strings_test",
   runtime_deps = [":editors.strings_test_lib"]
 )
-### auto-generated section `build intellij.android.core.editors.strings` end
+### auto-generated section `test intellij.android.core.editors.strings` end

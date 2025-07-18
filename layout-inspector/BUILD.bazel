@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.layout-inspector` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
   name = "layout-inspector_resources",
@@ -196,17 +195,18 @@ jvm_library(
   ],
   runtime_deps = [":layout-inspector_resources"]
 )
+### auto-generated section `build intellij.android.layout-inspector` end
+
+### auto-generated section `test intellij.android.layout-inspector` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "layout-inspector_test",
   runtime_deps = [":layout-inspector_test_lib"]
 )
-### auto-generated section `build intellij.android.layout-inspector` end
+### auto-generated section `test intellij.android.layout-inspector` end
 
 ### auto-generated section `build intellij.android.layout-inspector.integration` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
-
 jvm_resources(
   name = "layout-inspector-integration_test_resources",
   files = glob(["integration/testData/**/*"]),
@@ -231,17 +231,18 @@ jvm_library(
   ],
   runtime_deps = [":layout-inspector-integration_test_resources"]
 )
+### auto-generated section `build intellij.android.layout-inspector.integration` end
+
+### auto-generated section `test intellij.android.layout-inspector.integration` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "layout-inspector-integration_test",
   runtime_deps = [":layout-inspector-integration_test_lib"]
 )
-### auto-generated section `build intellij.android.layout-inspector.integration` end
+### auto-generated section `test intellij.android.layout-inspector.integration` end
 
 ### auto-generated section `build intellij.android.layout-inspector.tests` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
-
 jvm_resources(
   name = "layout-inspector-tests_test_resources",
   files = glob(["testResources/**/*"]),
@@ -344,9 +345,13 @@ jvm_library(
   ],
   runtime_deps = [":layout-inspector-tests_test_resources"]
 )
+### auto-generated section `build intellij.android.layout-inspector.tests` end
+
+### auto-generated section `test intellij.android.layout-inspector.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "layout-inspector-tests_test",
   runtime_deps = [":layout-inspector-tests_test_lib"]
 )
-### auto-generated section `build intellij.android.layout-inspector.tests` end
+### auto-generated section `test intellij.android.layout-inspector.tests` end

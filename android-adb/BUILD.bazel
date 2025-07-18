@@ -3,7 +3,7 @@ load("//build:compiler-options.bzl", "create_kotlinc_options")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 create_kotlinc_options(
-  name = "custom",
+  name = "custom_adb",
   context_receivers = True
 )
 
@@ -18,7 +18,7 @@ jvm_library(
   module_name = "intellij.android.adb",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
-  kotlinc_opts = ":custom",
+  kotlinc_opts = ":custom_adb",
   deps = [
     "@lib//:studio-platform-provided",
     "//android/android-common:common",
@@ -61,9 +61,6 @@ jvm_library(
 ### auto-generated section `build intellij.android.adb` end
 
 ### auto-generated section `build intellij.android.adb.testUtil` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
-
 jvm_library(
   name = "adb-testUtil",
   visibility = ["//visibility:public"],
@@ -92,17 +89,18 @@ jvm_library(
     "//platform/util",
   ]
 )
+### auto-generated section `build intellij.android.adb.testUtil` end
+
+### auto-generated section `test intellij.android.adb.testUtil` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "adb-testUtil_test",
   runtime_deps = [":adb-testUtil_test_lib"]
 )
-### auto-generated section `build intellij.android.adb.testUtil` end
+### auto-generated section `test intellij.android.adb.testUtil` end
 
 ### auto-generated section `build intellij.android.adb.tests` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
-
 jvm_library(
   name = "adb-tests",
   visibility = ["//visibility:public"],
@@ -156,9 +154,13 @@ jvm_library(
     "//platform/util:util-ui",
   ]
 )
+### auto-generated section `build intellij.android.adb.tests` end
+
+### auto-generated section `test intellij.android.adb.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "adb-tests_test",
   runtime_deps = [":adb-tests_test_lib"]
 )
-### auto-generated section `build intellij.android.adb.tests` end
+### auto-generated section `test intellij.android.adb.tests` end

@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.analytics` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "analytics",
@@ -49,9 +48,13 @@ jvm_library(
     "//platform/util-ex",
   ]
 )
+### auto-generated section `build intellij.android.analytics` end
+
+### auto-generated section `test intellij.android.analytics` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "analytics_test",
   runtime_deps = [":analytics_test_lib"]
 )
-### auto-generated section `build intellij.android.analytics` end
+### auto-generated section `test intellij.android.analytics` end

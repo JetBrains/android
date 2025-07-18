@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.core.rendering` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_javac_options")
 
 kt_javac_options(
@@ -72,9 +71,13 @@ jvm_library(
     "//xml/dom-openapi:dom",
   ]
 )
+### auto-generated section `build intellij.android.core.rendering` end
+
+### auto-generated section `test intellij.android.core.rendering` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "rendering_test",
   runtime_deps = [":rendering_test_lib"]
 )
-### auto-generated section `build intellij.android.core.rendering` end
+### auto-generated section `test intellij.android.core.rendering` end

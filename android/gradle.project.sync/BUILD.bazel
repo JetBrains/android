@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.core.gradle.project.sync` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "gradle.project.sync_test_lib",
@@ -56,9 +55,13 @@ jvm_library(
     "//xml/dom-openapi:dom",
   ]
 )
+### auto-generated section `build intellij.android.core.gradle.project.sync` end
+
+### auto-generated section `test intellij.android.core.gradle.project.sync` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "gradle.project.sync_test",
   runtime_deps = [":gradle.project.sync_test_lib"]
 )
-### auto-generated section `build intellij.android.core.gradle.project.sync` end
+### auto-generated section `test intellij.android.core.gradle.project.sync` end

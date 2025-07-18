@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.adt.ui.model` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "adt-ui-model",
@@ -37,9 +36,13 @@ jvm_library(
     "//platform/util-rt:util-rt_test_lib",
   ]
 )
+### auto-generated section `build intellij.android.adt.ui.model` end
+
+### auto-generated section `test intellij.android.adt.ui.model` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "adt-ui-model_test",
   runtime_deps = [":adt-ui-model_test_lib"]
 )
-### auto-generated section `build intellij.android.adt.ui.model` end
+### auto-generated section `test intellij.android.adt.ui.model` end

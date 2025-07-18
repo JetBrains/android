@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.as-driver.integration` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "integration",
@@ -20,9 +19,13 @@ jvm_library(
     "//android/as-driver/utils:utils_test_lib",
   ]
 )
+### auto-generated section `build intellij.android.as-driver.integration` end
+
+### auto-generated section `test intellij.android.as-driver.integration` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "integration_test",
   runtime_deps = [":integration_test_lib"]
 )
-### auto-generated section `build intellij.android.as-driver.integration` end
+### auto-generated section `test intellij.android.as-driver.integration` end

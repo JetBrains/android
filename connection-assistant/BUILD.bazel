@@ -36,9 +36,6 @@ jvm_library(
 ### auto-generated section `build intellij.android.connection-assistant` end
 
 ### auto-generated section `build intellij.android.connection-assistant-test` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
-
 jvm_library(
   name = "connection-assistant-test_test_lib",
   visibility = ["//visibility:public"],
@@ -66,9 +63,13 @@ jvm_library(
     "//platform/testFramework:testFramework_test_lib",
   ]
 )
+### auto-generated section `build intellij.android.connection-assistant-test` end
+
+### auto-generated section `test intellij.android.connection-assistant-test` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "connection-assistant-test_test",
   runtime_deps = [":connection-assistant-test_test_lib"]
 )
-### auto-generated section `build intellij.android.connection-assistant-test` end
+### auto-generated section `test intellij.android.connection-assistant-test` end

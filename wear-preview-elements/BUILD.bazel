@@ -16,9 +16,6 @@ jvm_library(
 ### auto-generated section `build intellij.android.wear-preview-elements` end
 
 ### auto-generated section `build intellij.android.wear-preview-elements.tests` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
-
 jvm_library(
   name = "wear-preview-elements-tests_test_lib",
   visibility = ["//visibility:public"],
@@ -32,9 +29,13 @@ jvm_library(
     "//android/preview-elements",
   ]
 )
+### auto-generated section `build intellij.android.wear-preview-elements.tests` end
+
+### auto-generated section `test intellij.android.wear-preview-elements.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "wear-preview-elements-tests_test",
   runtime_deps = [":wear-preview-elements-tests_test_lib"]
 )
-### auto-generated section `build intellij.android.wear-preview-elements.tests` end
+### auto-generated section `test intellij.android.wear-preview-elements.tests` end

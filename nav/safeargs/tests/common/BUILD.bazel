@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.nav.safeargs.tests.common` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
   name = "common_test_resources",
@@ -61,9 +60,13 @@ jvm_library(
   ],
   runtime_deps = [":common_test_resources"]
 )
+### auto-generated section `build intellij.android.nav.safeargs.tests.common` end
+
+### auto-generated section `test intellij.android.nav.safeargs.tests.common` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "common_test",
   runtime_deps = [":common_test_lib"]
 )
-### auto-generated section `build intellij.android.nav.safeargs.tests.common` end
+### auto-generated section `test intellij.android.nav.safeargs.tests.common` end

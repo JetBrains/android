@@ -39,9 +39,6 @@ jvm_library(
 ### auto-generated section `build intellij.android.rendering` end
 
 ### auto-generated section `build intellij.android.rendering.tests` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
-
 jvm_library(
   name = "rendering-tests",
   visibility = ["//visibility:public"],
@@ -81,9 +78,13 @@ jvm_library(
     "@lib//:bouncy-castle-provider",
   ]
 )
+### auto-generated section `build intellij.android.rendering.tests` end
+
+### auto-generated section `test intellij.android.rendering.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "rendering-tests_test",
   runtime_deps = [":rendering-tests_test_lib"]
 )
-### auto-generated section `build intellij.android.rendering.tests` end
+### auto-generated section `test intellij.android.rendering.tests` end

@@ -48,9 +48,6 @@ jvm_library(
 ### auto-generated section `build intellij.android.device-explorer-files` end
 
 ### auto-generated section `build intellij.android.device-explorer-files.tests` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
-
 jvm_library(
   name = "device-explorer-files-tests_test_lib",
   visibility = ["//visibility:public"],
@@ -98,9 +95,13 @@ jvm_library(
     "//java/testFramework",
   ]
 )
+### auto-generated section `build intellij.android.device-explorer-files.tests` end
+
+### auto-generated section `test intellij.android.device-explorer-files.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "device-explorer-files-tests_test",
   runtime_deps = [":device-explorer-files-tests_test_lib"]
 )
-### auto-generated section `build intellij.android.device-explorer-files.tests` end
+### auto-generated section `test intellij.android.device-explorer-files.tests` end

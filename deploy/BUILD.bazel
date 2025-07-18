@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.deploy` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
   name = "deploy_resources",
@@ -88,9 +87,13 @@ jvm_library(
   ],
   runtime_deps = [":deploy_resources"]
 )
+### auto-generated section `build intellij.android.deploy` end
+
+### auto-generated section `test intellij.android.deploy` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "deploy_test",
   runtime_deps = [":deploy_test_lib"]
 )
-### auto-generated section `build intellij.android.deploy` end
+### auto-generated section `test intellij.android.deploy` end

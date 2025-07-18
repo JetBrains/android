@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.core.res` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "res",
@@ -84,9 +83,13 @@ jvm_library(
     "//plugins/kotlin/refactorings/kotlin.refactorings.k2:kotlin-refactorings-k2",
   ]
 )
+### auto-generated section `build intellij.android.core.res` end
+
+### auto-generated section `test intellij.android.core.res` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "res_test",
   runtime_deps = [":res_test_lib"]
 )
-### auto-generated section `build intellij.android.core.res` end
+### auto-generated section `test intellij.android.core.res` end

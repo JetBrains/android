@@ -47,9 +47,6 @@ jvm_library(
 ### auto-generated section `build intellij.android.app-inspection.inspectors.backgroundtask.view` end
 
 ### auto-generated section `build intellij.android.app-inspection.inspectors.backgroundtask.view.tests` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
-
 jvm_library(
   name = "android-app-inspection-inspectors-backgroundtask-view-tests",
   visibility = ["//visibility:public"],
@@ -108,9 +105,13 @@ jvm_library(
     "//platform/util:util-ui",
   ]
 )
+### auto-generated section `build intellij.android.app-inspection.inspectors.backgroundtask.view.tests` end
+
+### auto-generated section `test intellij.android.app-inspection.inspectors.backgroundtask.view.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "android-app-inspection-inspectors-backgroundtask-view-tests_test",
   runtime_deps = [":android-app-inspection-inspectors-backgroundtask-view-tests_test_lib"]
 )
-### auto-generated section `build intellij.android.app-inspection.inspectors.backgroundtask.view.tests` end
+### auto-generated section `test intellij.android.app-inspection.inspectors.backgroundtask.view.tests` end

@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.adt.testutils` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "adt-testutils",
@@ -48,9 +47,13 @@ jvm_library(
     "@lib//:opentest4j",
   ]
 )
+### auto-generated section `build intellij.android.adt.testutils` end
+
+### auto-generated section `test intellij.android.adt.testutils` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "adt-testutils_test",
   runtime_deps = [":adt-testutils_test_lib"]
 )
-### auto-generated section `build intellij.android.adt.testutils` end
+### auto-generated section `test intellij.android.adt.testutils` end

@@ -47,9 +47,6 @@ jvm_library(
 ### auto-generated section `build intellij.android.sdkUpdates` end
 
 ### auto-generated section `build intellij.android.sdkUpdates.tests` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
-
 jvm_resources(
   name = "sdkUpdates-tests_test_resources",
   files = glob(["testResources/**/*"]),
@@ -95,9 +92,13 @@ jvm_library(
   ],
   runtime_deps = [":sdkUpdates-tests_test_resources"]
 )
+### auto-generated section `build intellij.android.sdkUpdates.tests` end
+
+### auto-generated section `test intellij.android.sdkUpdates.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "sdkUpdates-tests_test",
   runtime_deps = [":sdkUpdates-tests_test_lib"]
 )
-### auto-generated section `build intellij.android.sdkUpdates.tests` end
+### auto-generated section `test intellij.android.sdkUpdates.tests` end

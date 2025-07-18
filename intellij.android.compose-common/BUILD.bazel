@@ -37,9 +37,6 @@ jvm_library(
 ### auto-generated section `build intellij.android.compose-common` end
 
 ### auto-generated section `build intellij.android.compose-common.tests` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
-
 jvm_library(
   name = "compose-common-tests_test_lib",
   visibility = ["//visibility:public"],
@@ -65,9 +62,13 @@ jvm_library(
     "//platform/util",
   ]
 )
+### auto-generated section `build intellij.android.compose-common.tests` end
+
+### auto-generated section `test intellij.android.compose-common.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "compose-common-tests_test",
   runtime_deps = [":compose-common-tests_test_lib"]
 )
-### auto-generated section `build intellij.android.compose-common.tests` end
+### auto-generated section `test intellij.android.compose-common.tests` end

@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.core.lang` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "lang",
@@ -45,9 +44,13 @@ jvm_library(
     "//java/java-impl-inspections:impl-inspections",
   ]
 )
+### auto-generated section `build intellij.android.core.lang` end
+
+### auto-generated section `test intellij.android.core.lang` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "lang_test",
   runtime_deps = [":lang_test_lib"]
 )
-### auto-generated section `build intellij.android.core.lang` end
+### auto-generated section `test intellij.android.core.lang` end

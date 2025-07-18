@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.profilers` start
-load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 
 jvm_provided_library(
   name = "artifactResolver-m31_provided",
@@ -98,9 +97,13 @@ jvm_library(
     "//platform/testFramework:testFramework_test_lib",
   ]
 )
+### auto-generated section `build intellij.android.profilers` end
+
+### auto-generated section `test intellij.android.profilers` start
+load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
   name = "profilers_test",
   runtime_deps = [":profilers_test_lib"]
 )
-### auto-generated section `build intellij.android.profilers` end
+### auto-generated section `test intellij.android.profilers` end
