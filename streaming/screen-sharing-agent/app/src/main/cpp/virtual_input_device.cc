@@ -31,7 +31,7 @@
 #include "log.h"
 #include "string_printf.h"
 
-#define LOG_IOCTL_CALLS false
+#define LOG_IOCTL_CALLS true
 #define HOVERING_ENABLED true
 
 namespace screensharing {
@@ -157,6 +157,16 @@ int OpenUInput(DeviceType device_type, const char* phys, int32_t screen_width, i
       ioctl(fd, UI_SET_KEYBIT, BTN_TOUCH);
       ioctl(fd, UI_SET_KEYBIT, BTN_TOOL_PEN);
       DefineAbsDimensions(fd);
+      ioctl(fd, UI_SET_EVBIT, EV_REL);
+      ioctl(fd, UI_SET_KEYBIT, BTN_LEFT);
+      ioctl(fd, UI_SET_KEYBIT, BTN_MIDDLE);
+      ioctl(fd, UI_SET_KEYBIT, BTN_RIGHT);
+      ioctl(fd, UI_SET_RELBIT, REL_X);
+      ioctl(fd, UI_SET_RELBIT, REL_Y);
+      ioctl(fd, UI_SET_RELBIT, REL_WHEEL);
+      ioctl(fd, UI_SET_RELBIT, REL_WHEEL_HI_RES);
+      ioctl(fd, UI_SET_RELBIT, REL_HWHEEL);
+      ioctl(fd, UI_SET_RELBIT, REL_HWHEEL_HI_RES);
       ioctl(fd, UI_SET_PROPBIT, INPUT_PROP_DIRECT);
       break;
 
@@ -690,6 +700,20 @@ bool VirtualTablet::StopHovering(nanoseconds event_time) {
   }
 #endif  // HOVERING_ENABLED
   return true;
+}
+
+bool VirtualTablet::WriteVerticalScrollEvent(float amount, std::chrono::nanoseconds event_time) {
+  Log::D("%s: WriteVerticalScrollEvent(%.3g, ...)", phys_.c_str(), amount);
+  return WriteInputEvent(EV_REL, REL_WHEEL, amount, event_time, true) &&
+         WriteInputEvent(EV_REL, REL_WHEEL_HI_RES, amount * HI_RES_WHEEL_UNITS_PER_TICK, event_time, true) &&
+         WriteInputEvent(EV_SYN, SYN_REPORT, 0, event_time, true);
+}
+
+bool VirtualTablet::WriteHorizontalScrollEvent(float amount, std::chrono::nanoseconds event_time) {
+  Log::D("%s: WriteHorizontalScrollEvent(%.3g, ...)", phys_.c_str(), amount);
+  return WriteInputEvent(EV_REL, REL_HWHEEL, amount, event_time, true) &&
+         WriteInputEvent(EV_REL, REL_HWHEEL_HI_RES, amount * HI_RES_WHEEL_UNITS_PER_TICK, event_time, true) &&
+         WriteInputEvent(EV_SYN, SYN_REPORT, 0, event_time, true);
 }
 
 bool VirtualTablet::WriteButtonTouchEvent(bool is_down, nanoseconds event_time) {

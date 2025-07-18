@@ -101,6 +101,8 @@ public:
   bool StartHovering(std::chrono::nanoseconds event_time);
   // Stops mouse hovering if it was in progress.
   bool StopHovering(std::chrono::nanoseconds event_time);
+  bool WriteVerticalScrollEvent(float amount, std::chrono::nanoseconds event_time);
+  bool WriteHorizontalScrollEvent(float amount, std::chrono::nanoseconds event_time);
 
   [[nodiscard]] int32_t screen_width() const { return screen_width_; }
   [[nodiscard]] int32_t screen_height() const { return screen_height_; }
@@ -113,6 +115,7 @@ private:
   bool WriteTouchEndEvent(int32_t pointer_id, std::chrono::nanoseconds event_time);
 
   static const std::map<int, int> TOOL_TYPE_MAPPING;
+  static constexpr int32_t HI_RES_WHEEL_UNITS_PER_TICK = 120;
 
   int32_t screen_width_;
   int32_t screen_height_;
