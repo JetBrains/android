@@ -72,16 +72,6 @@ public:
   static const std::map<int, UinputAction> KEY_ACTION_MAPPING;
 };
 
-class VirtualDpad : public VirtualInputDevice {
-public:
-  VirtualDpad();
-  ~VirtualDpad() override;
-
-  bool WriteDpadKeyEvent(int32_t android_key_code, int32_t android_action, std::chrono::nanoseconds event_time);
-
-  static const std::map<int, int> DPAD_KEY_CODE_MAPPING;
-};
-
 class VirtualMouse : public VirtualInputDevice {
 public:
   VirtualMouse();
@@ -93,8 +83,6 @@ public:
   bool WriteHorizontalScrollEvent(float amount, std::chrono::nanoseconds event_time);
 
 private:
-  friend class VirtualStylus;
-
   static const std::map<int, int> BUTTON_CODE_MAPPING;
   static const std::map<int, UinputAction> BUTTON_ACTION_MAPPING;
   static constexpr int32_t HI_RES_WHEEL_UNITS_PER_TICK = 120;
@@ -165,32 +153,6 @@ private:
   // touchscreen is set up with MAX_POINTERS. Note that in other cases Android allows pointer id
   // to go up to MAX_POINTERS_ID.
   std::bitset<MAX_POINTERS> active_pointers_ {};
-};
-
-class VirtualStylus : public VirtualInputDevice {
-public:
-  VirtualStylus(int32_t screen_width, int32_t screen_height);
-  ~VirtualStylus() override;
-
-  bool WriteMotionEvent(int32_t tool_type, int32_t action, int32_t location_x, int32_t location_y,
-                        int32_t pressure, int32_t tilt_x, int32_t tilt_y, std::chrono::nanoseconds event_time);
-  bool WriteButtonEvent(int32_t android_button_code, int32_t android_action, std::chrono::nanoseconds event_time);
-
-  [[nodiscard]] int32_t screen_width() const { return screen_width_; }
-  [[nodiscard]] int32_t screen_height() const { return screen_height_; }
-
-private:
-  bool HandleStylusDown(uint16_t tool, std::chrono::nanoseconds event_time);
-  bool HandleStylusUp(uint16_t tool, std::chrono::nanoseconds event_time);
-
-  static const std::map<int, int> TOOL_TYPE_MAPPING;
-  static const std::map<int, int> BUTTON_CODE_MAPPING;
-
-  int32_t screen_width_;
-  int32_t screen_height_;
-
-  // True if the stylus is touching or hovering on the screen.
-  bool is_stylus_down_ = false;
 };
 
 }  // namespace screensharing

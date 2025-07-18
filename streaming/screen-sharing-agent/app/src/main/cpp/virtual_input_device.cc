@@ -73,8 +73,8 @@ int logging_ioctl(int fd, unsigned op, const uinput_setup* value) {
 
 #endif // LOG_IOCTL_CALLS
 
-enum class DeviceType { DPAD, KEYBOARD, MOUSE, TABLET, TOUCHSCREEN, STYLUS };
-const char* const TYPE_NAMES[] = { "Dpad", "Keyboard", "Mouse", "Tablet", "Touchscreen", "Stylus" };
+enum class DeviceType { KEYBOARD, MOUSE, TABLET, TOUCHSCREEN };
+const char* const TYPE_NAMES[] = { "Keyboard", "Mouse", "Tablet", "Touchscreen" };
 
 constexpr int32_t INVALID_FD = -1;
 constexpr int32_t INVALID_TRACKING_ID = -1;
@@ -121,12 +121,6 @@ int OpenUInput(DeviceType device_type, const char* phys, int32_t screen_width, i
   ioctl(fd, UI_SET_EVBIT, EV_SYN);
 
   switch (device_type) {
-    case DeviceType::DPAD:
-      for (const auto& [_, keyCode] : VirtualDpad::DPAD_KEY_CODE_MAPPING) {
-        ioctl(fd, UI_SET_KEYBIT, keyCode);
-      }
-      break;
-
     case DeviceType::KEYBOARD:
       for (const auto& [_, keyCode] : VirtualKeyboard::KEY_CODE_MAPPING) {
         ioctl(fd, UI_SET_KEYBIT, keyCode);
@@ -170,21 +164,6 @@ int OpenUInput(DeviceType device_type, const char* phys, int32_t screen_width, i
       ioctl(fd, UI_SET_ABSBIT, ABS_MT_TOOL_TYPE);
       ioctl(fd, UI_SET_ABSBIT, ABS_MT_TOUCH_MAJOR);
       ioctl(fd, UI_SET_ABSBIT, ABS_MT_PRESSURE);
-      ioctl(fd, UI_SET_PROPBIT, INPUT_PROP_DIRECT);
-      break;
-
-    case DeviceType::STYLUS:
-      ioctl(fd, UI_SET_EVBIT, EV_ABS);
-      ioctl(fd, UI_SET_KEYBIT, BTN_TOUCH);
-      ioctl(fd, UI_SET_KEYBIT, BTN_STYLUS);
-      ioctl(fd, UI_SET_KEYBIT, BTN_STYLUS2);
-      ioctl(fd, UI_SET_KEYBIT, BTN_TOOL_PEN);
-      ioctl(fd, UI_SET_KEYBIT, BTN_TOOL_RUBBER);
-      ioctl(fd, UI_SET_ABSBIT, ABS_X);
-      ioctl(fd, UI_SET_ABSBIT, ABS_Y);
-      ioctl(fd, UI_SET_ABSBIT, ABS_TILT_X);
-      ioctl(fd, UI_SET_ABSBIT, ABS_TILT_Y);
-      ioctl(fd, UI_SET_ABSBIT, ABS_PRESSURE);
       ioctl(fd, UI_SET_PROPBIT, INPUT_PROP_DIRECT);
       break;
   }
@@ -278,42 +257,6 @@ int OpenUInput(DeviceType device_type, const char* phys, int32_t screen_width, i
     trackingIdAbsSetup.absinfo.maximum = VirtualInputDevice::MAX_POINTERS - 1;
     trackingIdAbsSetup.absinfo.minimum = 0;
     if (ioctl(fd, UI_ABS_SETUP, &trackingIdAbsSetup) != 0) {
-      CloseAndReportError(phys, fd);
-      return INVALID_FD;
-    }
-  } else if (device_type == DeviceType::STYLUS) {
-    uinput_abs_setup xAbsSetup {.code = ABS_X};
-    xAbsSetup.absinfo.maximum = screen_width - 1;
-    xAbsSetup.absinfo.minimum = 0;
-    if (ioctl(fd, UI_ABS_SETUP, &xAbsSetup) != 0) {
-      CloseAndReportError(phys, fd);
-      return INVALID_FD;
-    }
-    uinput_abs_setup yAbsSetup {.code = ABS_Y};
-    yAbsSetup.absinfo.maximum = screen_height - 1;
-    yAbsSetup.absinfo.minimum = 0;
-    if (ioctl(fd, UI_ABS_SETUP, &yAbsSetup) != 0) {
-      CloseAndReportError(phys, fd);
-      return INVALID_FD;
-    }
-    uinput_abs_setup tiltXAbsSetup {.code = ABS_TILT_X};
-    tiltXAbsSetup.absinfo.maximum = 90;
-    tiltXAbsSetup.absinfo.minimum = -90;
-    if (ioctl(fd, UI_ABS_SETUP, &tiltXAbsSetup) != 0) {
-      CloseAndReportError(phys, fd);
-      return INVALID_FD;
-    }
-    uinput_abs_setup tiltYAbsSetup {.code = ABS_TILT_Y};
-    tiltYAbsSetup.absinfo.maximum = 90;
-    tiltYAbsSetup.absinfo.minimum = -90;
-    if (ioctl(fd, UI_ABS_SETUP, &tiltYAbsSetup) != 0) {
-      CloseAndReportError(phys, fd);
-      return INVALID_FD;
-    }
-    uinput_abs_setup pressureAbsSetup {.code = ABS_PRESSURE};
-    pressureAbsSetup.absinfo.maximum = VirtualInputDevice::MAX_PRESSURE;
-    pressureAbsSetup.absinfo.minimum = 0;
-    if (ioctl(fd, UI_ABS_SETUP, &pressureAbsSetup) != 0) {
       CloseAndReportError(phys, fd);
       return INVALID_FD;
     }
@@ -596,29 +539,6 @@ const map<int, int> VirtualKeyboard::KEY_CODE_MAPPING = {
     {AKEYCODE_COPY, KEY_COPY},
     {AKEYCODE_PASTE, KEY_PASTE},
     {AKEYCODE_REFRESH, KEY_REFRESH},
-};
-
-// --- VirtualDpad ---
-
-VirtualDpad::VirtualDpad()
-    : VirtualInputDevice(GetPhysName(DeviceType::DPAD)) {
-  fd_ = OpenUInput(DeviceType::DPAD, phys_.c_str(), 0, 0);
-}
-
-VirtualDpad::~VirtualDpad() = default;
-
-bool VirtualDpad::WriteDpadKeyEvent(int32_t android_key_code, int32_t android_action, nanoseconds event_time) {
-  return WriteEvKeyEvent(android_key_code, android_action, DPAD_KEY_CODE_MAPPING, VirtualKeyboard::KEY_ACTION_MAPPING, event_time);
-}
-
-// Dpad keycode mapping from https://source.android.com/devices/input/keyboard-devices
-const map<int, int> VirtualDpad::DPAD_KEY_CODE_MAPPING = {
-    {AKEYCODE_DPAD_DOWN, KEY_DOWN},
-    {AKEYCODE_DPAD_UP, KEY_UP},
-    {AKEYCODE_DPAD_LEFT, KEY_LEFT},
-    {AKEYCODE_DPAD_RIGHT, KEY_RIGHT},
-    {AKEYCODE_DPAD_CENTER, KEY_SELECT},
-    {AKEYCODE_BACK, KEY_BACK},
 };
 
 // --- VirtualMouse ---
@@ -1005,114 +925,6 @@ bool VirtualTouchscreen::HandleTouchUp(int32_t pointer_id, nanoseconds event_tim
 const map<int, int> VirtualTouchscreen::TOOL_TYPE_MAPPING = {
     {AMOTION_EVENT_TOOL_TYPE_FINGER, MT_TOOL_FINGER},
     {AMOTION_EVENT_TOOL_TYPE_STYLUS, MT_TOOL_PEN}
-};
-
-// --- VirtualStylus ---
-
-VirtualStylus::VirtualStylus(int32_t screen_width, int32_t screen_height)
-    : VirtualInputDevice(GetPhysName(DeviceType::STYLUS)),
-      screen_width_(screen_width),
-      screen_height_(screen_height) {
-  fd_ = OpenUInput(DeviceType::STYLUS, phys_.c_str(), screen_width, screen_height);
-}
-
-VirtualStylus::~VirtualStylus() = default;
-
-bool VirtualStylus::WriteMotionEvent(int32_t tool_type, int32_t action, int32_t location_x,
-                                     int32_t location_y, int32_t pressure, int32_t tilt_x,
-                                     int32_t tilt_y, nanoseconds event_time) {
-  auto action_iterator = TOUCH_ACTION_MAPPING.find(action);
-  if (action_iterator == TOUCH_ACTION_MAPPING.end()) {
-    Log::E("%s: Unsupported action: %d.", phys_.c_str(), action);
-    return false;
-  }
-  UinputAction uinput_action = action_iterator->second;
-  auto tool_type_iterator = TOOL_TYPE_MAPPING.find(tool_type);
-  if (tool_type_iterator == TOOL_TYPE_MAPPING.end()) {
-    Log::E("%s: Unsupported tool type: %d.", phys_.c_str(), tool_type);
-    return false;
-  }
-  auto tool = static_cast<uint16_t>(tool_type_iterator->second);
-  if (uinput_action == UinputAction::PRESS && !HandleStylusDown(tool, event_time)) {
-    return false;
-  }
-  if (!is_stylus_down_) {
-    Log::E("%s: Action UP or MOVE received with no prior action DOWN.", phys_.c_str());
-    return false;
-  }
-  if (uinput_action == UinputAction::RELEASE && !HandleStylusUp(tool, event_time)) {
-    return false;
-  }
-  if (!WriteInputEvent(EV_ABS, ABS_X, location_x, event_time)) {
-    Log::E("%s: Unsupported x-axis location: %d.", phys_.c_str(), location_x);
-    return false;
-  }
-  if (!WriteInputEvent(EV_ABS, ABS_Y, location_y, event_time)) {
-    Log::E("%s: Unsupported y-axis location: %d.", phys_.c_str(), location_y);
-    return false;
-  }
-  if (!WriteInputEvent(EV_ABS, ABS_TILT_X, tilt_x, event_time)) {
-    Log::E("%s: Unsupported x-axis tilt: %d.", phys_.c_str(), tilt_x);
-    return false;
-  }
-  if (!WriteInputEvent(EV_ABS, ABS_TILT_Y, tilt_y, event_time)) {
-    Log::E("%s: Unsupported y-axis tilt: %d.", phys_.c_str(), tilt_y);
-    return false;
-  }
-  if (!WriteInputEvent(EV_ABS, ABS_PRESSURE, pressure, event_time)) {
-    Log::E("%s: Unsupported pressure: %d.", phys_.c_str(), pressure);
-    return false;
-  }
-  if (!WriteInputEvent(EV_SYN, SYN_REPORT, 0, event_time)) {
-    Log::E("%s: Failed to write SYN_REPORT.", phys_.c_str());
-    return false;
-  }
-  return true;
-}
-
-bool VirtualStylus::WriteButtonEvent(int32_t android_button_code, int32_t android_action, nanoseconds event_time) {
-  return WriteEvKeyEvent(android_button_code, android_action, BUTTON_CODE_MAPPING, VirtualMouse::BUTTON_ACTION_MAPPING, event_time);
-}
-
-bool VirtualStylus::HandleStylusDown(uint16_t tool, nanoseconds event_time) {
-  if (is_stylus_down_) {
-    Log::E("%s: Repetitive action DOWN event received for a stylus that is already down.", phys_.c_str());
-    return false;
-  }
-  if (!WriteInputEvent(EV_KEY, tool, static_cast<int32_t>(UinputAction::PRESS), event_time)) {
-    Log::E("%s: Failed to write EV_KEY for stylus press, tool type: %u.", phys_.c_str(), tool);
-    return false;
-  }
-  if (!WriteInputEvent(EV_KEY, BTN_TOUCH, static_cast<int32_t>(UinputAction::PRESS), event_time)) {
-    Log::E("%s: Failed to write BTN_TOUCH for stylus press.", phys_.c_str());
-    return false;
-  }
-  is_stylus_down_ = true;
-  return true;
-}
-
-bool VirtualStylus::HandleStylusUp(uint16_t tool, nanoseconds event_time) {
-  if (!WriteInputEvent(EV_KEY, tool, static_cast<int32_t>(UinputAction::RELEASE), event_time)) {
-    Log::E("%s: Failed to write EV_KEY for stylus release, tool type: %u.", phys_.c_str(), tool);
-    return false;
-  }
-  if (!WriteInputEvent(EV_KEY, BTN_TOUCH, static_cast<int32_t>(UinputAction::RELEASE), event_time)) {
-    Log::E("%s: Failed to write BTN_TOUCH for stylus release.", phys_.c_str());
-    return false;
-  }
-  is_stylus_down_ = false;
-  return true;
-}
-
-const map<int, int> VirtualStylus::TOOL_TYPE_MAPPING = {
-    {AMOTION_EVENT_TOOL_TYPE_STYLUS, BTN_TOOL_PEN},
-    {AMOTION_EVENT_TOOL_TYPE_ERASER, BTN_TOOL_RUBBER},
-};
-
-// Button code mapping from https://source.android.com/devices/input/touch-devices
-const map<int, int> VirtualStylus::BUTTON_CODE_MAPPING = {
-    {AMOTION_EVENT_BUTTON_STYLUS_PRIMARY, BTN_STYLUS},
-    {AMOTION_EVENT_BUTTON_STYLUS_SECONDARY, BTN_STYLUS2},
 };
 
 }  // namespace screensharing
