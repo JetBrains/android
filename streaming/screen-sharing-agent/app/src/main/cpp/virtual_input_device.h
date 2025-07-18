@@ -89,13 +89,15 @@ public:
 
   bool WriteButtonEvent(int32_t android_button_code, int32_t android_action, std::chrono::nanoseconds event_time);
   bool WriteRelativeEvent(int32_t relative_x, int32_t relative_y, std::chrono::nanoseconds event_time);
-  bool WriteScrollEvent(int32_t scroll_x, int32_t scroll_y, std::chrono::nanoseconds event_time);
+  bool WriteVerticalScrollEvent(float amount, std::chrono::nanoseconds event_time);
+  bool WriteHorizontalScrollEvent(float amount, std::chrono::nanoseconds event_time);
 
 private:
   friend class VirtualStylus;
 
   static const std::map<int, int> BUTTON_CODE_MAPPING;
   static const std::map<int, UinputAction> BUTTON_ACTION_MAPPING;
+  static constexpr int32_t HI_RES_WHEEL_UNITS_PER_TICK = 120;
 };
 
 class VirtualTablet : public VirtualInputDevice {

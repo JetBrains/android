@@ -412,10 +412,9 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
 
   int32_t tool = message.is_mouse() ? AMOTION_EVENT_TOOL_TYPE_STYLUS : AMOTION_EVENT_TOOL_TYPE_FINGER;
 
-  if ((Agent::flags() & USE_UINPUT || input_event_injection_disabled_) && Agent::feature_level() >= 35 &&
-      action != AMOTION_EVENT_ACTION_SCROLL) {
+  if ((Agent::flags() & USE_UINPUT || input_event_injection_disabled_) && Agent::feature_level() >= 35) {
     if (action == AMOTION_EVENT_ACTION_HOVER_MOVE || action == AMOTION_EVENT_ACTION_HOVER_ENTER ||
-        action == AMOTION_EVENT_ACTION_HOVER_EXIT) {
+        action == AMOTION_EVENT_ACTION_HOVER_EXIT || action == AMOTION_EVENT_ACTION_SCROLL) {
       if (action == AMOTION_EVENT_ACTION_HOVER_MOVE) {
         auto& tablet = GetVirtualTablet(display_id, display_info.logical_size.width, display_info.logical_size.height);
         for (auto& pointer : message.pointers()) {
@@ -431,6 +430,32 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
       } else if (action == AMOTION_EVENT_ACTION_HOVER_EXIT) {
         auto& tablet = GetVirtualTablet(display_id, display_info.logical_size.width, display_info.logical_size.height);
         tablet.StopHovering(event_time);
+      }
+
+      if (action == AMOTION_EVENT_ACTION_SCROLL) {
+        if (!message.pointers().empty()) {
+          auto& mouse = GetVirtualMouse(display_id);
+          auto& pointer = message.pointers()[0];
+          for (const auto& entry: pointer.axis_values) {
+            if (entry.first == AMOTION_EVENT_AXIS_VSCROLL) {
+              float amount = entry.second;
+              if (amount != 0) {
+                bool success = mouse.WriteVerticalScrollEvent(amount, event_time);
+                if (!success) {
+                  Log::E("Error writing mouse vertical scroll event");
+                }
+              }
+            } else if (entry.first == AMOTION_EVENT_AXIS_HSCROLL) {
+              float amount = entry.second;
+              if (amount != 0) {
+                bool success = mouse.WriteHorizontalScrollEvent(amount, event_time);
+                if (!success) {
+                  Log::E("Error writing mouse horizontal scroll event");
+                }
+              }
+            }
+          }
+        }
       }
     } else {
       auto& tablet = GetVirtualTablet(display_id, display_info.logical_size.width, display_info.logical_size.height);

@@ -31,12 +31,47 @@
 #include "log.h"
 #include "string_printf.h"
 
+#define LOG_IOCTL_CALLS true
+
 namespace screensharing {
 
 using namespace std;
 using namespace std::chrono;
 
 namespace {
+
+#if (LOG_IOCTL_CALLS)
+
+int logging_ioctl(int fd, unsigned op) {
+  Log::D("ioctl(%d, 0x%x)", fd, op);
+  return ioctl(fd, op);
+}
+
+int logging_ioctl(int fd, unsigned op, int value) {
+  Log::D("ioctl(%d, 0x%x, %d)", fd, op, value);
+  return ioctl(fd, op, value);
+}
+
+int logging_ioctl(int fd, unsigned op, const char* value) {
+  Log::D("ioctl(%d, 0x%x, \"%s\")", fd, op, value);
+  return ioctl(fd, op, value);
+}
+
+int logging_ioctl(int fd, unsigned op, const uinput_abs_setup* value) {
+  Log::D("ioctl(%d, 0x%x, uinput_abs_setup{ code=%d, absinfo={ minimum=%d, maximum=%d } })",
+         fd, op, value->code, value->absinfo.minimum, value->absinfo.minimum);
+  return ioctl(fd, op, value);
+}
+
+int logging_ioctl(int fd, unsigned op, const uinput_setup* value) {
+  Log::D("ioctl(%d, 0x%x, uinput_setup{ name=\"%s\", id={ version=%d, bustype=0x%x, vendor=0x%x product=%d } })",
+         fd, op, value->name, value->id.version, value->id.bustype, value->id.vendor, value->id.product);
+  return ioctl(fd, op, value);
+}
+
+#define ioctl logging_ioctl
+
+#endif // LOG_IOCTL_CALLS
 
 enum class DeviceType { DPAD, KEYBOARD, MOUSE, TABLET, TOUCHSCREEN, STYLUS };
 const char* const TYPE_NAMES[] = { "Dpad", "Keyboard", "Mouse", "Tablet", "Touchscreen", "Stylus" };
@@ -101,14 +136,14 @@ int OpenUInput(DeviceType device_type, const char* phys, int32_t screen_width, i
     case DeviceType::MOUSE:
       ioctl(fd, UI_SET_EVBIT, EV_REL);
       ioctl(fd, UI_SET_KEYBIT, BTN_LEFT);
-      ioctl(fd, UI_SET_KEYBIT, BTN_RIGHT);
       ioctl(fd, UI_SET_KEYBIT, BTN_MIDDLE);
-      ioctl(fd, UI_SET_KEYBIT, BTN_BACK);
-      ioctl(fd, UI_SET_KEYBIT, BTN_FORWARD);
+      ioctl(fd, UI_SET_KEYBIT, BTN_RIGHT);
       ioctl(fd, UI_SET_RELBIT, REL_X);
       ioctl(fd, UI_SET_RELBIT, REL_Y);
       ioctl(fd, UI_SET_RELBIT, REL_WHEEL);
+      ioctl(fd, UI_SET_RELBIT, REL_WHEEL_HI_RES);
       ioctl(fd, UI_SET_RELBIT, REL_HWHEEL);
+      ioctl(fd, UI_SET_RELBIT, REL_HWHEEL_HI_RES);
       break;
 
     case DeviceType::TABLET:
@@ -154,175 +189,138 @@ int OpenUInput(DeviceType device_type, const char* phys, int32_t screen_width, i
       break;
   }
 
-  int version;
-  if (ioctl(fd, UI_GET_VERSION, &version) == 0 && version >= 5) {
-    uinput_setup setup{};
-    strlcpy(setup.name, GetName(device_type), UINPUT_MAX_NAME_SIZE);
-    setup.id.version = 1;
-    setup.id.bustype = BUS_VIRTUAL;
-    setup.id.vendor = VENDOR_ID;
-    setup.id.product = GetProductId(device_type);
-    if (device_type == DeviceType::TABLET) {
-      uinput_abs_setup slotAbsSetup {.code = ABS_MT_SLOT};
-      slotAbsSetup.absinfo.maximum = VirtualInputDevice::MAX_POINTERS - 1;
-      slotAbsSetup.absinfo.minimum = 0;
-      if (ioctl(fd, UI_ABS_SETUP, &slotAbsSetup) != 0) {
-        CloseAndReportError(phys, fd);
-        return INVALID_FD;
-      }
-      uinput_abs_setup idAbsSetup {.code = ABS_MT_TRACKING_ID};
-      idAbsSetup.absinfo.maximum = VirtualInputDevice::MAX_POINTERS - 1;
-      idAbsSetup.absinfo.minimum = 0;
-      if (ioctl(fd, UI_ABS_SETUP, &idAbsSetup) != 0) {
-        CloseAndReportError(phys, fd);
-        return INVALID_FD;
-      }
-      uinput_abs_setup xAbsSetup {.code = ABS_MT_POSITION_X};
-      xAbsSetup.absinfo.maximum = screen_width - 1;
-      xAbsSetup.absinfo.minimum = 0;
-      if (ioctl(fd, UI_ABS_SETUP, &xAbsSetup) != 0) {
-        CloseAndReportError(phys, fd);
-        return INVALID_FD;
-      }
-      uinput_abs_setup yAbsSetup {.code = ABS_MT_POSITION_Y};
-      yAbsSetup.absinfo.maximum = screen_height - 1;
-      yAbsSetup.absinfo.minimum = 0;
-      if (ioctl(fd, UI_ABS_SETUP, &yAbsSetup) != 0) {
-        CloseAndReportError(phys, fd);
-        return INVALID_FD;
-      }
-      uinput_abs_setup majorAbsSetup {.code = ABS_MT_TOUCH_MAJOR};
-      majorAbsSetup.absinfo.maximum = screen_width - 1;
-      majorAbsSetup.absinfo.minimum = 0;
-      if (ioctl(fd, UI_ABS_SETUP, &majorAbsSetup) != 0) {
-        CloseAndReportError(phys, fd);
-        return INVALID_FD;
-      }
-      uinput_abs_setup pressureAbsSetup {.code = ABS_MT_PRESSURE};
-      pressureAbsSetup.absinfo.maximum = VirtualInputDevice::MAX_PRESSURE;
-      pressureAbsSetup.absinfo.minimum = 0;
-      if (ioctl(fd, UI_ABS_SETUP, &pressureAbsSetup) != 0) {
-        CloseAndReportError(phys, fd);
-        return INVALID_FD;
-      }
-    } else if (device_type == DeviceType::TOUCHSCREEN) {
-      uinput_abs_setup xAbsSetup {.code = ABS_MT_POSITION_X};
-      xAbsSetup.absinfo.maximum = screen_width - 1;
-      xAbsSetup.absinfo.minimum = 0;
-      if (ioctl(fd, UI_ABS_SETUP, &xAbsSetup) != 0) {
-        CloseAndReportError(phys, fd);
-        return INVALID_FD;
-      }
-      uinput_abs_setup yAbsSetup {.code = ABS_MT_POSITION_Y};
-      yAbsSetup.absinfo.maximum = screen_height - 1;
-      yAbsSetup.absinfo.minimum = 0;
-      if (ioctl(fd, UI_ABS_SETUP, &yAbsSetup) != 0) {
-        CloseAndReportError(phys, fd);
-        return INVALID_FD;
-      }
-      uinput_abs_setup majorAbsSetup {.code = ABS_MT_TOUCH_MAJOR};
-      majorAbsSetup.absinfo.maximum = screen_width - 1;
-      majorAbsSetup.absinfo.minimum = 0;
-      if (ioctl(fd, UI_ABS_SETUP, &majorAbsSetup) != 0) {
-        CloseAndReportError(phys, fd);
-        return INVALID_FD;
-      }
-      uinput_abs_setup pressureAbsSetup {.code = ABS_MT_PRESSURE};
-      pressureAbsSetup.absinfo.maximum = VirtualInputDevice::MAX_PRESSURE;
-      pressureAbsSetup.absinfo.minimum = 0;
-      if (ioctl(fd, UI_ABS_SETUP, &pressureAbsSetup) != 0) {
-        CloseAndReportError(phys, fd);
-        return INVALID_FD;
-      }
-      uinput_abs_setup slotAbsSetup {.code = ABS_MT_SLOT};
-      slotAbsSetup.absinfo.maximum = VirtualInputDevice::MAX_POINTERS - 1;
-      slotAbsSetup.absinfo.minimum = 0;
-      if (ioctl(fd, UI_ABS_SETUP, &slotAbsSetup) != 0) {
-        CloseAndReportError(phys, fd);
-        return INVALID_FD;
-      }
-      uinput_abs_setup trackingIdAbsSetup {.code = ABS_MT_TRACKING_ID};
-      trackingIdAbsSetup.absinfo.maximum = VirtualInputDevice::MAX_POINTERS - 1;
-      trackingIdAbsSetup.absinfo.minimum = 0;
-      if (ioctl(fd, UI_ABS_SETUP, &trackingIdAbsSetup) != 0) {
-        CloseAndReportError(phys, fd);
-        return INVALID_FD;
-      }
-    } else if (device_type == DeviceType::STYLUS) {
-      uinput_abs_setup xAbsSetup {.code = ABS_X};
-      xAbsSetup.absinfo.maximum = screen_width - 1;
-      xAbsSetup.absinfo.minimum = 0;
-      if (ioctl(fd, UI_ABS_SETUP, &xAbsSetup) != 0) {
-        CloseAndReportError(phys, fd);
-        return INVALID_FD;
-      }
-      uinput_abs_setup yAbsSetup {.code = ABS_Y};
-      yAbsSetup.absinfo.maximum = screen_height - 1;
-      yAbsSetup.absinfo.minimum = 0;
-      if (ioctl(fd, UI_ABS_SETUP, &yAbsSetup) != 0) {
-        CloseAndReportError(phys, fd);
-        return INVALID_FD;
-      }
-      uinput_abs_setup tiltXAbsSetup {.code = ABS_TILT_X};
-      tiltXAbsSetup.absinfo.maximum = 90;
-      tiltXAbsSetup.absinfo.minimum = -90;
-      if (ioctl(fd, UI_ABS_SETUP, &tiltXAbsSetup) != 0) {
-        CloseAndReportError(phys, fd);
-        return INVALID_FD;
-      }
-      uinput_abs_setup tiltYAbsSetup {.code = ABS_TILT_Y};
-      tiltYAbsSetup.absinfo.maximum = 90;
-      tiltYAbsSetup.absinfo.minimum = -90;
-      if (ioctl(fd, UI_ABS_SETUP, &tiltYAbsSetup) != 0) {
-        CloseAndReportError(phys, fd);
-        return INVALID_FD;
-      }
-      uinput_abs_setup pressureAbsSetup {.code = ABS_PRESSURE};
-      pressureAbsSetup.absinfo.maximum = VirtualInputDevice::MAX_PRESSURE;
-      pressureAbsSetup.absinfo.minimum = 0;
-      if (ioctl(fd, UI_ABS_SETUP, &pressureAbsSetup) != 0) {
-        CloseAndReportError(phys, fd);
-        return INVALID_FD;
-      }
-    }
-    if (ioctl(fd, UI_DEV_SETUP, &setup) != 0) {
+  uinput_setup setup{};
+  strlcpy(setup.name, GetName(device_type), UINPUT_MAX_NAME_SIZE);
+  setup.id.version = 1;
+  setup.id.bustype = BUS_VIRTUAL;
+  setup.id.vendor = VENDOR_ID;
+  setup.id.product = GetProductId(device_type);
+  if (device_type == DeviceType::TABLET) {
+    uinput_abs_setup slotAbsSetup {.code = ABS_MT_SLOT};
+    slotAbsSetup.absinfo.maximum = VirtualInputDevice::MAX_POINTERS - 1;
+    slotAbsSetup.absinfo.minimum = 0;
+    if (ioctl(fd, UI_ABS_SETUP, &slotAbsSetup) != 0) {
       CloseAndReportError(phys, fd);
       return INVALID_FD;
     }
-  } else {
-    // UI_DEV_SETUP was not introduced until version 5. Try setting up manually.
-    Log::I("%s: Falling back to version %d manual setup", phys, version);
-    uinput_user_dev fallback{};
-    strlcpy(fallback.name, GetName(device_type), UINPUT_MAX_NAME_SIZE);
-    fallback.id.version = 1;
-    fallback.id.bustype = BUS_VIRTUAL;
-    fallback.id.vendor = VENDOR_ID;
-    fallback.id.product = GetProductId(device_type);
-    if (device_type == DeviceType::TOUCHSCREEN) {
-      fallback.absmin[ABS_MT_POSITION_X] = 0;
-      fallback.absmax[ABS_MT_POSITION_X] = screen_width - 1;
-      fallback.absmin[ABS_MT_POSITION_Y] = 0;
-      fallback.absmax[ABS_MT_POSITION_Y] = screen_height - 1;
-      fallback.absmin[ABS_MT_TOUCH_MAJOR] = 0;
-      fallback.absmax[ABS_MT_TOUCH_MAJOR] = screen_width - 1;
-      fallback.absmin[ABS_MT_PRESSURE] = 0;
-      fallback.absmax[ABS_MT_PRESSURE] = VirtualInputDevice::MAX_PRESSURE;
-    } else if (device_type == DeviceType::STYLUS) {
-      fallback.absmin[ABS_X] = 0;
-      fallback.absmax[ABS_X] = screen_width - 1;
-      fallback.absmin[ABS_Y] = 0;
-      fallback.absmax[ABS_Y] = screen_height - 1;
-      fallback.absmin[ABS_TILT_X] = -90;
-      fallback.absmax[ABS_TILT_X] = 90;
-      fallback.absmin[ABS_TILT_Y] = -90;
-      fallback.absmax[ABS_TILT_Y] = 90;
-      fallback.absmin[ABS_PRESSURE] = 0;
-      fallback.absmax[ABS_PRESSURE] = VirtualInputDevice::MAX_PRESSURE;
-    }
-    if (TEMP_FAILURE_RETRY(write(fd, &fallback, sizeof(fallback))) != sizeof(fallback)) {
+    uinput_abs_setup idAbsSetup {.code = ABS_MT_TRACKING_ID};
+    idAbsSetup.absinfo.maximum = VirtualInputDevice::MAX_POINTERS - 1;
+    idAbsSetup.absinfo.minimum = 0;
+    if (ioctl(fd, UI_ABS_SETUP, &idAbsSetup) != 0) {
       CloseAndReportError(phys, fd);
       return INVALID_FD;
     }
+    uinput_abs_setup xAbsSetup {.code = ABS_MT_POSITION_X};
+    xAbsSetup.absinfo.maximum = screen_width - 1;
+    xAbsSetup.absinfo.minimum = 0;
+    if (ioctl(fd, UI_ABS_SETUP, &xAbsSetup) != 0) {
+      CloseAndReportError(phys, fd);
+      return INVALID_FD;
+    }
+    uinput_abs_setup yAbsSetup {.code = ABS_MT_POSITION_Y};
+    yAbsSetup.absinfo.maximum = screen_height - 1;
+    yAbsSetup.absinfo.minimum = 0;
+    if (ioctl(fd, UI_ABS_SETUP, &yAbsSetup) != 0) {
+      CloseAndReportError(phys, fd);
+      return INVALID_FD;
+    }
+    uinput_abs_setup majorAbsSetup {.code = ABS_MT_TOUCH_MAJOR};
+    majorAbsSetup.absinfo.maximum = screen_width - 1;
+    majorAbsSetup.absinfo.minimum = 0;
+    if (ioctl(fd, UI_ABS_SETUP, &majorAbsSetup) != 0) {
+      CloseAndReportError(phys, fd);
+      return INVALID_FD;
+    }
+    uinput_abs_setup pressureAbsSetup {.code = ABS_MT_PRESSURE};
+    pressureAbsSetup.absinfo.maximum = VirtualInputDevice::MAX_PRESSURE;
+    pressureAbsSetup.absinfo.minimum = 0;
+    if (ioctl(fd, UI_ABS_SETUP, &pressureAbsSetup) != 0) {
+      CloseAndReportError(phys, fd);
+      return INVALID_FD;
+    }
+  } else if (device_type == DeviceType::TOUCHSCREEN) {
+    uinput_abs_setup xAbsSetup {.code = ABS_MT_POSITION_X};
+    xAbsSetup.absinfo.maximum = screen_width - 1;
+    xAbsSetup.absinfo.minimum = 0;
+    if (ioctl(fd, UI_ABS_SETUP, &xAbsSetup) != 0) {
+      CloseAndReportError(phys, fd);
+      return INVALID_FD;
+    }
+    uinput_abs_setup yAbsSetup {.code = ABS_MT_POSITION_Y};
+    yAbsSetup.absinfo.maximum = screen_height - 1;
+    yAbsSetup.absinfo.minimum = 0;
+    if (ioctl(fd, UI_ABS_SETUP, &yAbsSetup) != 0) {
+      CloseAndReportError(phys, fd);
+      return INVALID_FD;
+    }
+    uinput_abs_setup majorAbsSetup {.code = ABS_MT_TOUCH_MAJOR};
+    majorAbsSetup.absinfo.maximum = screen_width - 1;
+    majorAbsSetup.absinfo.minimum = 0;
+    if (ioctl(fd, UI_ABS_SETUP, &majorAbsSetup) != 0) {
+      CloseAndReportError(phys, fd);
+      return INVALID_FD;
+    }
+    uinput_abs_setup pressureAbsSetup {.code = ABS_MT_PRESSURE};
+    pressureAbsSetup.absinfo.maximum = VirtualInputDevice::MAX_PRESSURE;
+    pressureAbsSetup.absinfo.minimum = 0;
+    if (ioctl(fd, UI_ABS_SETUP, &pressureAbsSetup) != 0) {
+      CloseAndReportError(phys, fd);
+      return INVALID_FD;
+    }
+    uinput_abs_setup slotAbsSetup {.code = ABS_MT_SLOT};
+    slotAbsSetup.absinfo.maximum = VirtualInputDevice::MAX_POINTERS - 1;
+    slotAbsSetup.absinfo.minimum = 0;
+    if (ioctl(fd, UI_ABS_SETUP, &slotAbsSetup) != 0) {
+      CloseAndReportError(phys, fd);
+      return INVALID_FD;
+    }
+    uinput_abs_setup trackingIdAbsSetup {.code = ABS_MT_TRACKING_ID};
+    trackingIdAbsSetup.absinfo.maximum = VirtualInputDevice::MAX_POINTERS - 1;
+    trackingIdAbsSetup.absinfo.minimum = 0;
+    if (ioctl(fd, UI_ABS_SETUP, &trackingIdAbsSetup) != 0) {
+      CloseAndReportError(phys, fd);
+      return INVALID_FD;
+    }
+  } else if (device_type == DeviceType::STYLUS) {
+    uinput_abs_setup xAbsSetup {.code = ABS_X};
+    xAbsSetup.absinfo.maximum = screen_width - 1;
+    xAbsSetup.absinfo.minimum = 0;
+    if (ioctl(fd, UI_ABS_SETUP, &xAbsSetup) != 0) {
+      CloseAndReportError(phys, fd);
+      return INVALID_FD;
+    }
+    uinput_abs_setup yAbsSetup {.code = ABS_Y};
+    yAbsSetup.absinfo.maximum = screen_height - 1;
+    yAbsSetup.absinfo.minimum = 0;
+    if (ioctl(fd, UI_ABS_SETUP, &yAbsSetup) != 0) {
+      CloseAndReportError(phys, fd);
+      return INVALID_FD;
+    }
+    uinput_abs_setup tiltXAbsSetup {.code = ABS_TILT_X};
+    tiltXAbsSetup.absinfo.maximum = 90;
+    tiltXAbsSetup.absinfo.minimum = -90;
+    if (ioctl(fd, UI_ABS_SETUP, &tiltXAbsSetup) != 0) {
+      CloseAndReportError(phys, fd);
+      return INVALID_FD;
+    }
+    uinput_abs_setup tiltYAbsSetup {.code = ABS_TILT_Y};
+    tiltYAbsSetup.absinfo.maximum = 90;
+    tiltYAbsSetup.absinfo.minimum = -90;
+    if (ioctl(fd, UI_ABS_SETUP, &tiltYAbsSetup) != 0) {
+      CloseAndReportError(phys, fd);
+      return INVALID_FD;
+    }
+    uinput_abs_setup pressureAbsSetup {.code = ABS_PRESSURE};
+    pressureAbsSetup.absinfo.maximum = VirtualInputDevice::MAX_PRESSURE;
+    pressureAbsSetup.absinfo.minimum = 0;
+    if (ioctl(fd, UI_ABS_SETUP, &pressureAbsSetup) != 0) {
+      CloseAndReportError(phys, fd);
+      return INVALID_FD;
+    }
+  }
+  if (ioctl(fd, UI_DEV_SETUP, &setup) != 0) {
+    CloseAndReportError(phys, fd);
+    return INVALID_FD;
   }
 
   if (ioctl(fd, UI_DEV_CREATE) != 0) {
@@ -330,6 +328,7 @@ int OpenUInput(DeviceType device_type, const char* phys, int32_t screen_width, i
     return INVALID_FD;
   }
 
+  // TODO: Replace with a more robust wait mechanism.
   this_thread::sleep_for(DEVICE_READINESS_DELAY);  // The events injected before the framework processes the new device can be ignored.
   return fd;
 }
@@ -641,11 +640,18 @@ bool VirtualMouse::WriteRelativeEvent(int32_t relative_x, int32_t relative_y, na
          ((relative_x == 0 && relative_y == 0) || WriteInputEvent(EV_SYN, SYN_REPORT, 0, event_time));
 }
 
-bool VirtualMouse::WriteScrollEvent(int32_t scroll_x, int32_t scroll_y, nanoseconds event_time) {
-  Log::D("%s: WriteScrollEvent(%d, %d,...)", phys_.c_str(), scroll_x, scroll_y);
-  return (scroll_x == 0 || WriteInputEvent(EV_REL, REL_HWHEEL, scroll_x, event_time, true)) &&
-         (scroll_y == 0 || WriteInputEvent(EV_REL, REL_WHEEL, scroll_y, event_time, true)) &&
-         ((scroll_x == 0 && scroll_y == 0) || WriteInputEvent(EV_SYN, SYN_REPORT, 0, event_time, true));
+bool VirtualMouse::WriteVerticalScrollEvent(float amount, std::chrono::nanoseconds event_time) {
+  Log::D("%s: WriteVerticalScrollEvent(%.3g, ...)", phys_.c_str(), amount);
+  return WriteInputEvent(EV_REL, REL_WHEEL, amount, event_time, true) &&
+         WriteInputEvent(EV_REL, REL_WHEEL_HI_RES, amount * HI_RES_WHEEL_UNITS_PER_TICK, event_time, true) &&
+         WriteInputEvent(EV_SYN, SYN_REPORT, 0, event_time, true);
+}
+
+bool VirtualMouse::WriteHorizontalScrollEvent(float amount, std::chrono::nanoseconds event_time) {
+  Log::D("%s: WriteHorizontalScrollEvent(%.3g, ...)", phys_.c_str(), amount);
+  return WriteInputEvent(EV_REL, REL_HWHEEL, amount, event_time, true) &&
+         WriteInputEvent(EV_REL, REL_HWHEEL_HI_RES, amount * HI_RES_WHEEL_UNITS_PER_TICK, event_time, true) &&
+         WriteInputEvent(EV_SYN, SYN_REPORT, 0, event_time, true);
 }
 
 const map<int, UinputAction> VirtualMouse::BUTTON_ACTION_MAPPING = {
