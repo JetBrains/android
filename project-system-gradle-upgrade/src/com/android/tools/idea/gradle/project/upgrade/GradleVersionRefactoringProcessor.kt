@@ -51,30 +51,36 @@ class GradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
 
   override val necessityInfo = AlwaysNeeded
 
+  private fun List<File?>.forEachGradleVersion(body: (GradleVersion, String, PsiElement) -> Unit) {
+    filterNotNull().forEach { ioRoot ->
+      val ioFile = GradleWrapper.getDefaultPropertiesFilePath(ioRoot)
+      // this is called from within a read action (via BaseRefactoringProcessor.doRun()); we must not trigger Vfs refreshes here.
+      // (which is also why we cannot simply call GradleWrapper.getGradleVersion() as implicitly that might trigger a Vfs
+      // refresh).
+      val virtualFile = VfsUtil.findFileByIoFile(ioFile, false) ?: return@forEach
+      if (!virtualFile.isValid) return@forEach
+      val propertiesFile = PsiManager.getInstance(project).findFile(virtualFile) as? PropertiesFile ?: return@forEach
+      // TODO(b/262527341): This line looks like it should use propertiesFile.findPropertyByKey().  However, that is implemented by
+      //  looking in indexes, which for some reason under some circumstances doesn't actually contain the keys in
+      //  gradle-wrapper.properties.  Filtering all the properties of the file ourselves is a workaround for this unexplained
+      //  behavior.
+      val property = propertiesFile.properties.firstOrNull { SdkConstants.GRADLE_DISTRIBUTION_URL_PROPERTY == it.key } ?: return@forEach
+      val currentUrl = property.value?.removeEscapingBackslashes() ?: return@forEach
+      val currentGradleVersion = GradleWrapper.getGradleVersion(currentUrl) ?: return@forEach
+      val parsedCurrentGradleVersion = runCatching { GradleVersion.version(currentGradleVersion) }.getOrNull() ?: return@forEach
+      body(parsedCurrentGradleVersion, currentUrl, property.psiElement)
+    }
+  }
+
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
     // check the project's wrapper(s) for references to no-longer-supported Gradle versions
     project.basePath?.let {
       val projectRootFolders = listOf(File(FileUtils.toSystemDependentPath(it))) + BuildFileProcessor.getCompositeBuildFolderPaths(project)
-      projectRootFolders.filterNotNull().forEach { ioRoot ->
-        val ioFile = GradleWrapper.getDefaultPropertiesFilePath(ioRoot)
-        // this is called from within a read action (via BaseRefactoringProcessor.doRun()); we must not trigger Vfs refreshes here.
-        // (which is also why we cannot simply call GradleWrapper.getGradleVersion() as implicitly that might trigger a Vfs
-        // refresh).
-        val virtualFile = VfsUtil.findFileByIoFile(ioFile, false) ?: return@forEach
-        if (!virtualFile.isValid) return@forEach
-        val propertiesFile = PsiManager.getInstance(project).findFile(virtualFile) as? PropertiesFile ?: return@forEach
-        // TODO(b/262527341): This line looks like it should use propertiesFile.findPropertyByKey().  However, that is implemented by
-        //  looking in indexes, which for some reason under some circumstances doesn't actually contain the keys in
-        //  gradle-wrapper.properties.  Filtering all the properties of the file ourselves is a workaround for this unexplained
-        //  behavior.
-        val property = propertiesFile.properties.firstOrNull { SdkConstants.GRADLE_DISTRIBUTION_URL_PROPERTY == it.key } ?: return@forEach
-        val currentUrl = property.value?.removeEscapingBackslashes() ?: return@forEach
-        val currentGradleVersion = GradleWrapper.getGradleVersion(currentUrl) ?: return@forEach
-        val parsedCurrentGradleVersion = runCatching { GradleVersion.version(currentGradleVersion) }.getOrNull() ?: return@forEach
+      projectRootFolders.forEachGradleVersion { parsedCurrentGradleVersion, currentUrl, psiElement ->
         if (compatibleGradleVersion.version > parsedCurrentGradleVersion) {
           val updatedUrl = GradleWrapper.getUpdatedDistributionUrl(currentUrl, compatibleGradleVersion.version, true)
-          val wrappedPsiElement = WrappedPsiElement(property.psiElement, this, GRADLE_URL_USAGE_TYPE)
+          val wrappedPsiElement = WrappedPsiElement(psiElement, this, GRADLE_URL_USAGE_TYPE)
           usages.add(GradleVersionUsageInfo(wrappedPsiElement, compatibleGradleVersion.version, updatedUrl))
         }
       }
