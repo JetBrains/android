@@ -432,26 +432,24 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
         tablet.StopHovering(event_time);
       }
 
-      if (action == AMOTION_EVENT_ACTION_SCROLL) {
-        if (!message.pointers().empty()) {
-          auto& mouse = GetVirtualMouse(display_id);
-          auto& pointer = message.pointers()[0];
-          for (const auto& entry: pointer.axis_values) {
-            if (entry.first == AMOTION_EVENT_AXIS_VSCROLL) {
-              float amount = entry.second;
-              if (amount != 0) {
-                bool success = mouse.WriteVerticalScrollEvent(amount, event_time);
-                if (!success) {
-                  Log::E("Error writing mouse vertical scroll event");
-                }
+      if (action == AMOTION_EVENT_ACTION_SCROLL && !message.pointers().empty()) {
+        auto& mouse = GetVirtualMouse(display_id);
+        auto& pointer = message.pointers()[0];
+        for (const auto& entry: pointer.axis_values) {
+          if (entry.first == AMOTION_EVENT_AXIS_VSCROLL) {
+            float amount = entry.second;
+            if (amount != 0) {
+              bool success = mouse.WriteVerticalScrollEvent(amount, event_time);
+              if (!success) {
+                Log::E("Error writing mouse vertical scroll event");
               }
-            } else if (entry.first == AMOTION_EVENT_AXIS_HSCROLL) {
-              float amount = entry.second;
-              if (amount != 0) {
-                bool success = mouse.WriteHorizontalScrollEvent(amount, event_time);
-                if (!success) {
-                  Log::E("Error writing mouse horizontal scroll event");
-                }
+            }
+          } else if (entry.first == AMOTION_EVENT_AXIS_HSCROLL) {
+            float amount = entry.second;
+            if (amount != 0) {
+              bool success = mouse.WriteHorizontalScrollEvent(amount, event_time);
+              if (!success) {
+                Log::E("Error writing mouse horizontal scroll event");
               }
             }
           }
