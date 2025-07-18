@@ -51,8 +51,9 @@ class ComposePositionManager(
 ) : MultiRequestPositionManager by kotlinPositionManager, PositionManagerWithMultipleStackFrames, PositionManagerAsync {
   override fun getAcceptedFileTypes(): Set<FileType> = KOTLIN_FILE_TYPES
 
-  override fun createStackFrames(descriptor: StackFrameDescriptorImpl): List<XStackFrame>? =
-    kotlinPositionManager.createStackFrames(descriptor)
+  override suspend fun createStackFramesAsync(descriptor: StackFrameDescriptorImpl): List<XStackFrame>? {
+    return kotlinPositionManager.createStackFramesAsync(descriptor)
+  }
 
   override fun evaluateCondition(
     context: EvaluationContext,
