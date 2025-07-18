@@ -31,7 +31,7 @@
 #include "log.h"
 #include "string_printf.h"
 
-#define LOG_IOCTL_CALLS true
+#define LOG_IOCTL_CALLS false
 #define HOVERING_ENABLED true
 
 namespace screensharing {
