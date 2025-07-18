@@ -29,6 +29,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.uibuilder.LayoutTestCase
+import com.android.tools.idea.uibuilder.getRoot
 import com.android.tools.idea.uibuilder.scene.TestSceneManager
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
@@ -455,6 +456,16 @@ class DesignSurfaceTest : LayoutTestCase() {
 
     // Scale is now zoom-to-fit.
     assertEquals(fitScaleValue, surface.zoomController.scale)
+  }
+
+  fun testRemoveModelRemovesOldSelections() {
+    val model = model("model1.xml", component(RELATIVE_LAYOUT)).build()
+    val surface = TestDesignSurface(project, testRootDisposable)
+    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model))
+    surface.selectionModel.setSelection(listOf(model.getRoot()))
+    assertEquals(model.getRoot(), surface.selectionModel.selection.first())
+    surface.removeModels(listOf(model))
+    assertTrue(surface.selectionModel.selection.isEmpty())
   }
 }
 

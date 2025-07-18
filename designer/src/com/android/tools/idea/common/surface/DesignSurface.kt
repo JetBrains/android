@@ -950,6 +950,10 @@ abstract class DesignSurface<T : SceneManager>(
    * Any model not present in the surface is ignored.
    */
   private fun removeModelsImpl(models: List<NlModel>) {
+    val modelSet = models.toSet()
+    // Remove any selection that belows to any of these models.
+    selectionModel.setSelection(selectionModel.selection.filter { !modelSet.contains(it.model) })
+
     val modelsToManagers =
       modelToSceneManagersLock.writeLock().withLock {
         models.map { it to modelToSceneManagers.remove(it) }
