@@ -167,6 +167,13 @@ class TypingEventWatcher(private val coroutineScope: CoroutineScope) : EventWatc
                                  ApplicationManagerEx.getApplicationEx().isWriteActionPending)
       if (lastTypingLatencySamplingInfo != null && lastTypingLatencySamplingInfo?.keyEventStartTimestampMs == keyEventStartTimestampMs) {
         lastTypingLatencySamplingInfo?.samples?.add(typingLatencyThreadsSample)
+        lastTypingLatencySamplingInfo?.samples?.size?.let {
+          if (it > 100) {
+            // Don't sample more the 100 samples for an individual typing event. 100 samples is already 10 seconds of typing processing.
+            // we won't re-emit another
+            return
+          }
+        }
       }
       else {
         lastTypingLatencySamplingInfo = TypingLatencySamplingInfo(Lists.newArrayList(freezeStartThreadsSample, typingLatencyThreadsSample),
