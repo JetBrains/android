@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
-import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 public class SubProjectsDslElement extends GradleDslBlockElement {
@@ -31,7 +31,7 @@ public class SubProjectsDslElement extends GradleDslBlockElement {
 
   @NotNull
   @Override
-  public ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
+  public Map<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
     @NotNull GradleDslNameConverter.Kind kind
   ) {
     return GradleBlockModelMap.getElementMap(GradleBuildFile.class, kind);

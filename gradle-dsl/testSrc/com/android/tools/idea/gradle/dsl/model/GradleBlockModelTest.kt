@@ -174,7 +174,7 @@ class MyTestDslElement(parent: GradleDslElement, name: GradleNameElement) : Grad
     const val ELEMENT_NAME = "stringVal"
   }
 
-  override fun getChildPropertiesElementsDescriptionMap(kind: GradleDslNameConverter.Kind): ImmutableMap<String, PropertiesElementDescription<*>> {
+  override fun getChildPropertiesElementsDescriptionMap(kind: GradleDslNameConverter.Kind): Map<String, PropertiesElementDescription<*>> {
     return GradleBlockModelMap.instance.getOrCreateElementMap(MyTestDslElement::class.java, kind)
   }
 }

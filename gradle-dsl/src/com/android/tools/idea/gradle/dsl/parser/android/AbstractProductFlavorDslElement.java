@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescripti
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint;
 import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
@@ -52,7 +53,7 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
 
   @Override
   @NotNull
-  public ImmutableMap<String,PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
+  public Map<String,PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
     @NotNull GradleDslNameConverter.Kind kind
   ) {
     return CHILD_PROPERTIES_ELEMENTS_MAP;

@@ -413,9 +413,6 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     }
   }
 
-  @NotNull
-  private static final ImmutableMap<String,PropertiesElementDescription<?>> NO_CHILD_PROPERTIES_ELEMENTS = ImmutableMap.of();
-
   /**
    * a helper for the default implementation for getChildPropertiesElementDescription: a common implementation will involve a Dsl element
    * maintaining a String-to-Description map, and looking up the given name.  This works for most blocks, but is not suitable for
@@ -429,7 +426,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
    */
   @SuppressWarnings("rawtypes")
   @NotNull
-  public ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
+  public Map<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
     @NotNull GradleDslNameConverter.Kind kind
   ) {
     return GradleBlockModelMap.getElementMap(this.getClass(), kind);

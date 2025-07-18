@@ -44,7 +44,7 @@ class DefaultsDslElement(parent: GradleDslElement, name: GradleNameElement): Gra
 
   override fun getChildPropertiesElementsDescriptionMap(
     kind: GradleDslNameConverter.Kind
-  ): ImmutableMap<String, PropertiesElementDescription<*>> {
+  ): Map<String, PropertiesElementDescription<*>> {
       return ImmutableMap.builder<String, PropertiesElementDescription<*>>()
         .putAll(CHILD_PROPERTIES_ELEMENT_MAP)
         .putAll(GradleBlockModelMap.getElementMap(DefaultsDslElement::class.java, kind))

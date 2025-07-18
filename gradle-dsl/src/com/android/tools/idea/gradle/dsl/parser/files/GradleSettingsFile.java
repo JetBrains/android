@@ -73,7 +73,7 @@ public class GradleSettingsFile extends GradleScriptFile {
 
   @Override
   @NotNull
-  public ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
+  public Map<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
     @NotNull GradleDslNameConverter.Kind kind
   ) {
     if(kind == GradleDslNameConverter.Kind.DECLARATIVE)

@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,7 +39,7 @@ public class JavaDslElement extends BaseCompileOptionsDslElement {
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
   @Override
-  public @NotNull ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(@NotNull Kind kind) {
+  public @NotNull Map<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(@NotNull Kind kind) {
     return CHILD_PROPERTIES_ELEMENTS_MAP;
   }
 

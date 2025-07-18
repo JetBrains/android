@@ -45,7 +45,7 @@ class KotlinSourceSetDslElement(
     super.addParsedElement(element)
   }
 
-  override fun getChildPropertiesElementsDescriptionMap(kind: GradleDslNameConverter.Kind): ImmutableMap<String, PropertiesElementDescription<*>> =
+  override fun getChildPropertiesElementsDescriptionMap(kind: GradleDslNameConverter.Kind): Map<String, PropertiesElementDescription<*>> =
     CHILD_PROPERTIES_ELEMENTS_MAP
 
 
