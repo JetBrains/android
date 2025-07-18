@@ -29,10 +29,10 @@ interface AssistantInvoker {
   fun performDeprecatedConfigurationsUpgrade(project: Project, element: PsiElement)
 
   /**
-   * If policy, preferences and available versions of the Android Gradle plugin allow, notify the user in some fashion to recommend
-   * that they use the Upgrade Assistant to update their build files.
+   * If policy, preferences and available versions of the Android Gradle plugin allow, notify the user in some fashion to
+   * force or recommend that they use the Upgrade Assistant to update their build files.
    */
-  fun maybeRecommendPluginUpgrade(project: Project, info: AndroidPluginInfo)
+  fun maybeForceOrRecommendPluginUpgrade(project: Project, info: AndroidPluginInfo)
 
   /**
    * Quietly expires all notifications related to Android Gradle plugin upgrade recommendations.

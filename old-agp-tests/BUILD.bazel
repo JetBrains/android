@@ -11,7 +11,11 @@ jvm_library(
     ),
     module_name = "intellij.android.old-agp-tests",
     visibility = ["//visibility:public"],
-    runtime_deps = ["@lib//:kotlin-stdlib"],
+    runtime_deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+        "//platform/refactoring",
+    ],
 )
 
 jvm_library(
@@ -78,6 +82,8 @@ jvm_library(
         "//platform/lang-core:lang-core_test_lib",
         "//platform/projectModel-api:projectModel",
         "//platform/projectModel-api:projectModel_test_lib",
+        "//platform/refactoring",
+        "//platform/refactoring:refactoring_test_lib",
         "//xml/xml-psi-api:psi",
         "//xml/xml-psi-api:psi_test_lib",
         "//android/android-test-framework:testFramework",
@@ -98,10 +104,13 @@ jvm_library(
         "//android/render-resources:render-resources_test_lib",
         "//android/rendering",
         "//android/rendering:rendering_test_lib",
+        "//android/project-system-gradle-upgrade:projectSystem-gradle-upgrade",
+        "//android/project-system-gradle-upgrade:projectSystem-gradle-upgrade_test_lib",
         "//platform/analysis-api:analysis",
         "//platform/analysis-api:analysis_test_lib",
         "//platform/util:util-ui",
         "//platform/util:util-ui_test_lib",
+        "@lib//:mockito-kotlin",
     ],
 )
 ### auto-generated section `build intellij.android.old-agp-tests` end

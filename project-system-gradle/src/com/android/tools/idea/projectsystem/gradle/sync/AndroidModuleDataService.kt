@@ -225,7 +225,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
         project.setProjectSyncRequest(projectData.linkedExternalProjectPath, null)
         if (trigger != TRIGGER_AGP_VERSION_UPDATED && trigger != TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER) {
           AndroidPluginInfo.findFromModel(project)?.let { info ->
-            project.getService(AssistantInvoker::class.java).maybeRecommendPluginUpgrade(project, info)
+            project.getService(AssistantInvoker::class.java).maybeForceOrRecommendPluginUpgrade(project, info)
           }
           GradleVersionCatalogDetector.getInstance(project).maybeSuggestToml(project)
         }
