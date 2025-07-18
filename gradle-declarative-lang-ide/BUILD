@@ -25,6 +25,7 @@ iml_module(
 iml_module(
     name = "intellij.android.gradle.declarative.lang.ide.tests",
     iml_files = ["intellij.android.gradle.declarative.lang.ide.tests.iml"],
+    test_class = "com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeGradleTestSuite",
     test_data = glob(["testData/**"]),
     # do not sort: must match IML order
     test_deps = [
@@ -38,6 +39,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
         "//tools/adt/idea/gradle-declarative-lang-sync:intellij.android.gradle.declarative.lang.sync",
         "//tools/adt/idea/gradle-declarative-lang-flags:intellij.android.gradle.declarative.lang.flags",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

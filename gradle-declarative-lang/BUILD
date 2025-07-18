@@ -24,6 +24,7 @@ iml_module(
 iml_module(
     name = "intellij.android.gradle.declarative.lang.tests",
     iml_files = ["intellij.android.gradle.declarative.lang.tests.iml"],
+    test_class = "com.android.tools.idea.gradle.dcl.lang.DeclarativeGradleTestSuite",
     test_data = glob(["testData/**"]),
     # do not sort: must match IML order
     test_deps = [
@@ -36,6 +37,7 @@ iml_module(
         "//tools/adt/idea/lint:intellij.lint",
         "//tools/base/lint:studio.android.sdktools.lint-api",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
