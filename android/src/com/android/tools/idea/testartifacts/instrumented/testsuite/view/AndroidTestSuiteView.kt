@@ -465,6 +465,14 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   }
 
   @AnyThread
+  override fun onTestStepUpdated(device: AndroidDevice, testCase: AndroidTestCase, testStep: AndroidTestStep) {
+    eventPublisher?.onTestStepStarted(device, testCase, testStep)
+    AppUIUtil.invokeOnEdt {
+      myDetailsView.reloadAndroidTestResults()
+    }
+  }
+
+  @AnyThread
   override fun onTestStepFinished(device: AndroidDevice, testCase: AndroidTestCase, testStep: AndroidTestStep) {
     eventPublisher?.onTestStepFinished(device, testCase, testStep)
     AppUIUtil.invokeOnEdt {

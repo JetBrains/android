@@ -22,6 +22,10 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
+import com.android.tools.journeys.proto.Artifact
+import com.android.tools.journeys.proto.ArtifactType
+import com.android.tools.journeys.proto.Step
+import com.android.tools.journeys.proto.Turn
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
 import com.intellij.execution.impl.ConsoleViewImpl
@@ -32,6 +36,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
+import java.util.Base64
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -326,10 +331,9 @@ class DetailsViewContentViewTest {
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getAdditionalTestArtifacts(testDevice)).thenReturn(
       mapOf(
-        "Journeys.ActionPerformed.action1.screenshotPath" to "/path/to/screenshot.png",
-        "Journeys.ActionPerformed.action1.description" to "The action taken",
-        "Journeys.ActionPerformed.action1.modelReasoning" to "The reasoning behind the action"
-      ))
+        "Journeys.Step" to createEncodedJourneyArtifact(),
+      )
+    )
 
     view.setResults(testDevice, mockTestResults)
 
@@ -385,10 +389,9 @@ class DetailsViewContentViewTest {
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getAdditionalTestArtifacts(testDevice)).thenReturn(
       mapOf(
-        "Journeys.ActionPerformed.action1.screenshotPath" to "/path/to/screenshot.png",
-        "Journeys.ActionPerformed.action1.description" to "The action taken",
-        "Journeys.ActionPerformed.action1.modelReasoning" to "The reasoning behind the action"
-      ))
+        "Journeys.Step" to createEncodedJourneyArtifact(),
+      )
+    )
     // The Journeys tab should be selected even though there is an error stack trace
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("error stack trace")
 
@@ -440,5 +443,24 @@ class DetailsViewContentViewTest {
 
     assertThat(view.myLogcat).isEmpty()
     assertThat(view.myErrorStackTrace).isEmpty()
+  }
+
+  private fun createEncodedJourneyArtifact(): String {
+    val step = Step.newBuilder()
+      .addTurns(
+        Turn.newBuilder()
+          .setDescription("The action taken")
+          .setReasoning("The reasoning behind the action")
+          .addArtifactsBefore(
+            Artifact.newBuilder()
+              .setType(ArtifactType.SCREENSHOT)
+              .setUri("/path/to/screenshot.png")
+              .build()
+          )
+          .build()
+      )
+      .build()
+
+    return Base64.getEncoder().encodeToString(step.toByteArray())
   }
 }

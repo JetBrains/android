@@ -87,6 +87,18 @@ interface AndroidTestResultListener {
   }
 
   /**
+   * Called when a test step execution is updated, e.g. test artifacts are added.
+
+   * @param device a device which a test suite to be executed on
+   * @param testCase a test case metadata
+   * @param testStep a test step metadata
+   */
+  @AnyThread
+  fun onTestStepUpdated(device: AndroidDevice, testCase: AndroidTestCase, testStep: AndroidTestStep) {
+    // no-op
+  }
+
+  /**
    * Called when a test case execution is finished.
    *
    * @param device a device which a test suite to be executed on
