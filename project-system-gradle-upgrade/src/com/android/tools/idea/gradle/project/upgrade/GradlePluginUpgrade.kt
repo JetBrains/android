@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.gradleModuleModel
+import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver
 import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT
@@ -33,6 +34,7 @@ import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatib
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.COMPATIBLE
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.DEPRECATED
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.DIFFERENT_PREVIEW
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.OBSOLETE
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.FORCE
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.NO_UPGRADE
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.RECOMMEND
@@ -200,6 +202,29 @@ fun versionsAreIncompatible(
   return !setOf(COMPATIBLE, DEPRECATED).contains(computeAndroidGradlePluginCompatibility(current, latestKnown))
 }
 
+@Slow
+fun shouldForcePluginUpgrade(project: Project): Boolean {
+  // If we don't know the current plugin version then we don't upgrade
+  val current = project.findPluginInfo()?.pluginVersion ?: return false
+  val latestKnown = AgpVersions.latestKnown
+  val published = IdeGoogleMavenRepository.getAgpVersions()
+  return shouldForcePluginUpgrade(project, current, latestKnown, published)
+}
+
+@JvmOverloads
+fun shouldForcePluginUpgrade(
+  project: Project,
+  current: AgpVersion,
+  latestKnown: AgpVersion,
+  published: Set<AgpVersion> = setOf()
+): Boolean {
+  // Needed internally for development of Android support lib.
+  if (SystemProperties.getBooleanProperty("studio.skip.agp.upgrade", false)) return false
+  if (AndroidGradleProjectResolver.shouldDisableForceUpgrades()) return false
+  val state = computeGradlePluginUpgradeState(current, latestKnown, published)
+  return state.importance == FORCE
+}
+
 /**
  * Called when the AGP and Android Studio versions are mutually incompatible (and the AGP version is not newer than the latest supported
  * version of AGP in this Android Studio).  Pops up a modal dialog to offer the user an upgrade (as minimal as possible) to the version
@@ -255,7 +280,7 @@ fun computeGradlePluginUpgradeState(
   if (supportFutureAgpVersions && current > latestKnown) return GradlePluginUpgradeState(NO_UPGRADE, current)
   val compatibility = computeAndroidGradlePluginCompatibility(current, latestKnown)
   when (compatibility) {
-    BEFORE_MINIMUM -> {
+    BEFORE_MINIMUM, OBSOLETE -> {
       val minimum = AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION)
       val earliestStable = published
         .filter { !it.isPreview }

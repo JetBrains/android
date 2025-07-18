@@ -20,6 +20,7 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.gradle.project.upgrade.RefactoringProcessorInstantiator
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_33_WITH_5_3_1
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -29,10 +30,16 @@ import com.google.common.truth.Truth
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.replaceService
 import org.jetbrains.plugins.gradle.internal.daemon.getDaemonsStatus
 import org.jetbrains.plugins.gradle.internal.daemon.stopDaemons
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doCallRealMethod
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /**
  * Integration test for Gradle Sync with old versions of Android plugin.
@@ -48,8 +55,21 @@ class GradleSyncWithOlderPluginTest {
    */
   @Test
   fun testDaemonStops5Dot3Dot1() {
+    val instantiator = mock<RefactoringProcessorInstantiator>()
+    doCallRealMethod().whenever(instantiator).createProcessor(any(), any(), any())
+    doReturn(false).whenever(instantiator).showAndGetAgpUpgradeDialog(any())
+    doReturn(false).whenever(instantiator).showAndGetAgpUpgradeDialog(any(), any(), any())
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AGP_33_WITH_5_3_1)
-    preparedProject.open(updateOptions = { it.copy(verifyOpened = { } ) }) { project ->
+    preparedProject.open(
+      updateOptions = {
+        it.copy(
+          verifyOpened = { },
+          onProjectCreated = {
+            this.replaceService(RefactoringProcessorInstantiator::class.java, instantiator, projectRule.testRootDisposable)
+          }
+        )
+      }
+    ) { project ->
       verifyDaemonStops(project)
     }
   }

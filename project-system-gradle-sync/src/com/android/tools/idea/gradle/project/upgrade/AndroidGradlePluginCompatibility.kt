@@ -22,11 +22,13 @@ import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatib
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.COMPATIBLE
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.DEPRECATED
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.DIFFERENT_PREVIEW
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.OBSOLETE
 
 enum class AndroidGradlePluginCompatibility {
   COMPATIBLE,
   BEFORE_MINIMUM,
   DEPRECATED,
+  OBSOLETE,
   DIFFERENT_PREVIEW,
   AFTER_MAXIMUM,
 }
@@ -67,6 +69,7 @@ enum class AndroidGradlePluginCompatibility {
 fun computeAndroidGradlePluginCompatibility(current: AgpVersion, latestKnown: AgpVersion): AndroidGradlePluginCompatibility =
   run {
     val compatibleOrDeprecated = when {
+      current < AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION).withPreview("alpha01") -> OBSOLETE
       latestKnown < AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION).withPreview("alpha01") -> COMPATIBLE
       current < AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION).withPreview("alpha01") -> DEPRECATED
       else -> COMPATIBLE
@@ -77,7 +80,7 @@ fun computeAndroidGradlePluginCompatibility(current: AgpVersion, latestKnown: Ag
       current == latestKnown -> compatibleOrDeprecated // actually always compatible
       // If the current is lower than our minimum supported version, incompatible.
       // e.g. current = 3.1.0, latestKnown = 7.1.0-alpha09
-      current < AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION).withPreview("alpha01") -> BEFORE_MINIMUM
+      current < AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_FORCED_UPGRADE_VERSION).withPreview("alpha01") -> BEFORE_MINIMUM
       // If the current/latestKnown are RC or releases, and of the same major/minor series, compatible. (2)
       // e.g. current = 7.1.0-rc01, latestKnown = 7.1.0
       //      current = 7.1.0, latestKnown = 7.1.0-rc01
