@@ -6,6 +6,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.core.editing.metrics.iml"],
     resources = ["resources"],
+    test_class = "com.android.tools.idea.editing.metrics.EditingMetricsTestSuite",
     # do not sort: must match IML order
     test_deps = [
         "//tools/adt/idea/.idea/libraries:junit4",
@@ -16,6 +17,7 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils",
         "//tools/adt/idea/.idea/libraries:mockito",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
