@@ -18,8 +18,12 @@ package com.example.jar_of_interface_and_implementation;
 import com.example.interface_and_implementation.LibChild;
 import com.example.interface_and_implementation.LibChildImpl;
 
-/** Class1 test class */
-public class Class1 {
+/**
+ * A test case to show that implementation functions not listed in function definition e.g. {@code
+ * LibChildImpl} should listed as library when it's a deps of in project view target no matter
+ * whether jdeps is used or not.
+ */
+public class LibShouldNotBeIgnoredByJdeps {
   public void run(LibChild lib) {
     ((LibChildImpl)lib).run();
   }
