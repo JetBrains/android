@@ -32,20 +32,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Map.Entry;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Executors;
 
 /** Implementation of {@link ArtifactFetcher} that copy file via file api. */
 public class FileApiArtifactFetcher implements ArtifactFetcher<LocalFileOutputArtifact> {
   public static final IntExperiment maxThreads = new IntExperiment("aswb.file.api.artifact.fetcher.max.threads", 128);
-  public static final ListeningExecutorService EXECUTOR =
-    MoreExecutors.listeningDecorator(
-      // Wrap into a bounded executor as it also allows to give it a name.
-      AppExecutorUtil.createBoundedApplicationPoolExecutor("FileApiArtifactFetcher",
-                                                           new ThreadPoolExecutor(1, maxThreads.getValue(),
-                                                                                  10L, TimeUnit.SECONDS,
-                                                                                  new LinkedBlockingQueue<>()), maxThreads.getValue()));
+  public static final ListeningExecutorService EXECUTOR = MoreExecutors.listeningDecorator(
+    // Wrap into a bounded executor as it also allows to give it a name.
+    AppExecutorUtil.createBoundedApplicationPoolExecutor("FileApiArtifactFetcher", Executors.newCachedThreadPool(), maxThreads.getValue()));
   @SuppressWarnings("NoNioFilesCopy")
   @Override
   public ListenableFuture<?> copy(
