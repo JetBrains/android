@@ -24,6 +24,7 @@ import com.google.idea.blaze.common.artifact.OutputArtifact
 import com.google.idea.blaze.qsync.java.JavaTargetInfo.JavaArtifacts
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcCompilationInfo
 import java.nio.file.Path
+import java.util.logging.Logger
 import org.jetbrains.annotations.TestOnly
 
 /** Build output artifacts and metadata. */
@@ -47,6 +48,7 @@ interface OutputInfo {
    * Get the dependencies of the given target as seen by the aspect.
    */
   fun getDependencies(target: Label): List<Label>
+  fun getJdeps(target: Label): Jdeps
 
   @VisibleForTesting
   data class Data(
@@ -58,7 +60,9 @@ interface OutputInfo {
     override val exitCode: Int,
     override val buildContext: DependencyBuildContext,
     override val targetsWithErrors: Set<Label>,
+    private val jarToTarget: Map<String, Label>,
   ) : OutputInfo {
+    val logger: Logger = Logger.getLogger(Data::class.java.getName())
     override val allJavaArtifacts: Collection<OutputArtifact>
       get() = OutputGroup.entries.filter { it.usedBySymbolResolution }.flatMap { artifacts[it].orEmpty() }
     override val jars: List<OutputArtifact>
@@ -76,6 +80,16 @@ interface OutputInfo {
         ?.map { infoFileToLabel[Path.of(it.getFile())] ?: error("Unknown info artifact: $it") }
         .orEmpty()
     }
+
+    override fun getJdeps(target: Label): Jdeps {
+      return compileJdeps[target]?.let {
+        val jdeps = it.dependencyList.map { jar -> jarToTarget[jar.path]?.let {label -> label} ?: run{
+          logger.severe( "Unknown jar: ${jar.path}" )
+          return@getJdeps JdepsUnavailable
+        }}
+        return JdepsAvailable(jdeps)
+      } ?: JdepsUnavailable
+    }
   }
 
   companion object {
@@ -90,6 +104,7 @@ interface OutputInfo {
         exitCode = 0,
         buildContext = DependencyBuildContext.NONE,
         targetsWithErrors = emptySet(),
+        jarToTarget = emptyMap(),
       )
 
     @JvmStatic
@@ -109,6 +124,20 @@ interface OutputInfo {
           }
           .toMap()
 
+      val outputJarToTarget: Map<String, Label> =
+        javaArtifacts.values
+          .flatMap { javaInfo ->
+            javaInfo.outputJarsList.map { outputJar -> outputJar.file to Label.of(javaInfo.target) }
+          }
+          .toMap()
+
+      val uniqueCompileJarToTarget: Map<String, Label> =
+        javaArtifacts.values
+          .flatMap { javaInfo ->
+            javaInfo.jarsList.filter { jar -> jar.file !in outputJarToTarget }.map { jar -> jar.file to Label.of(javaInfo.target) }
+          }
+          .toMap()
+
       return Data(
         javaArtifactInfo = javaArtifacts.values.associateBy { Label.of(it.target) },
         compileJdeps = compileJdeps.entries
@@ -118,7 +147,8 @@ interface OutputInfo {
         infoFileToLabel = javaArtifacts.mapValues { Label.of(it.value.target) },
         exitCode = exitCode,
         buildContext = buildContext,
-        targetsWithErrors = targetWithErrors
+        targetsWithErrors = targetWithErrors,
+        jarToTarget = outputJarToTarget+uniqueCompileJarToTarget
       )
     }
 
@@ -127,6 +157,10 @@ interface OutputInfo {
     fun builder(): TestOutputInfoBuilder = TestOutputInfoBuilder()
   }
 }
+
+sealed interface Jdeps
+data class JdepsAvailable(val jdeps: List<Label>): Jdeps
+object JdepsUnavailable: Jdeps
 
 @TestOnly
 class TestOutputInfoBuilder() {

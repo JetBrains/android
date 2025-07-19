@@ -7,6 +7,9 @@ java_test(
     size = "small",
     srcs = ["NewArtifactTrackerTest.java"],
     deps = [
+        "//tools/adt/idea/aswb/base:unit_test_utils",
+        "//tools/adt/idea/aswb/common/experiments",
+        "//tools/adt/idea/aswb/common/experiments:unit_test_utils",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps:artifact_tracker_state_java_proto",

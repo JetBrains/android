@@ -33,6 +33,7 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.idea.blaze.base.BlazeTestCase;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.NoopContext;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
@@ -45,6 +46,8 @@ import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.java.ArtifactTrackerProto.Metadata;
 import com.google.idea.blaze.qsync.java.JavaArtifactMetadata;
 import com.google.idea.blaze.qsync.java.JavaTargetInfo.JavaArtifacts;
+import com.google.idea.common.experiments.ExperimentService;
+import com.google.idea.common.experiments.MockExperimentService;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Map;
@@ -65,7 +68,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 @RunWith(JUnit4.class)
-public class NewArtifactTrackerTest {
+public class NewArtifactTrackerTest extends BlazeTestCase {
 
   @Rule public final MockitoRule mockito = MockitoJUnit.rule();
   @Rule public TemporaryFolder cacheDir = new TemporaryFolder();
@@ -78,8 +81,10 @@ public class NewArtifactTrackerTest {
 
   private NewArtifactTracker<NoopContext> artifactTracker;
 
-  @Before
-  public void createArtifactTracker() {
+  @Override
+  protected void initTest(Container applicationServices, Container projectServices) {
+    super.initTest(applicationServices, projectServices);
+    applicationServices.register(ExperimentService.class, new MockExperimentService());
     artifactTracker =
       new NewArtifactTracker<>(
         cacheDir.getRoot().toPath(),
