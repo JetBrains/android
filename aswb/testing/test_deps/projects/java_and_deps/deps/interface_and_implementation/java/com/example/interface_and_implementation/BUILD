@@ -23,5 +23,22 @@ java_library(
     visibility = ["//visibility:public"],
     deps = [
         ":lib",
+        ":libchilddep",
+    ],
+)
+
+java_library(
+    name = "libchilddep",
+    srcs = ["LibChildDep.java"],
+    visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "libuser",
+    srcs = ["LibUser.java"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":libchild",
+        ":libchildimpl",
     ],
 )

@@ -15,7 +15,4 @@
  */
 package com.example.interface_and_implementation;
 
-public interface LibChild extends Lib{
-  void apply();
-  LibChildDep call();
-}
+public class LibChildDep {}

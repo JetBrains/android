@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.interface_and_implementation;
+package com.example.jar_of_interface_and_implementation;
 
-public interface LibChild extends Lib{
-  void apply();
-  LibChildDep call();
-}
+/**
+ * A test case to show that implementation functions not listed in function definition e.g. {@code
+ * LibChildImpl}will not be listed as library of project when jdeps is used.
+ */
+public class LibShouldBeIgnoredByJdeps {}
