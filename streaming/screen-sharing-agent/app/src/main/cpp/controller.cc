@@ -138,7 +138,6 @@ Controller::~Controller() {
   delete pointer_helper_;
   delete key_character_map_;
   delete virtual_keyboard_;
-  delete virtual_mouse_;
 }
 
 void Controller::Stop() {
@@ -204,32 +203,6 @@ void Controller::InitializeVirtualKeyboard() {
       Log::E("Failed to create a virtual keyboard");
     }
   }
-}
-
-[[maybe_unused]] VirtualMouse& Controller::GetVirtualMouse(int32_t display_id) {
-  if (virtual_mouse_ == nullptr) {
-    virtual_mouse_ = new VirtualMouse();
-    if (!virtual_mouse_->IsValid()) {
-      Log::E("Failed to create a virtual mouse");
-    }
-  }
-  if (virtual_mouse_display_id_ != display_id) {
-    InputManager::AddPortAssociation(jni_, virtual_mouse_->phys(), display_id);
-    virtual_mouse_display_id_ = display_id;
-  }
-  return *virtual_mouse_;
-}
-
-VirtualTouchscreen& Controller::GetVirtualTouchscreen(int32_t display_id, int32_t width, int32_t height) {
-  auto iter = virtual_touchscreens_.find(display_id);
-  if (iter == virtual_touchscreens_.end() || iter->second->screen_width() != width || iter->second->screen_height() != height) {
-    if (iter != virtual_touchscreens_.end()) {
-      InputManager::RemovePortAssociation(jni_, iter->second->phys());
-    }
-    iter = virtual_touchscreens_.insert_or_assign(display_id, make_unique<VirtualTouchscreen>(width, height)).first;
-    InputManager::AddPortAssociation(jni_, iter->second->phys(), display_id);
-  }
-  return *iter->second;
 }
 
 VirtualTablet& Controller::GetVirtualTablet(int32_t display_id, int32_t width, int32_t height) {
@@ -990,7 +963,6 @@ void Controller::SendPendingDisplayEvents() {
       auto it = current_displays_.find(display_id);
       if (it != current_displays_.end()) {
         current_displays_.erase(display_id);
-        virtual_touchscreens_.erase(display_id);
         DisplayRemovedNotification notification(display_id);
         notification.Serialize(output_stream_);
         output_stream_.Flush();

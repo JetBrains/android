@@ -72,22 +72,6 @@ public:
   static const std::map<int, UinputAction> KEY_ACTION_MAPPING;
 };
 
-class VirtualMouse : public VirtualInputDevice {
-public:
-  VirtualMouse();
-  ~VirtualMouse() override;
-
-  bool WriteButtonEvent(int32_t android_button_code, int32_t android_action, std::chrono::nanoseconds event_time);
-  bool WriteRelativeEvent(int32_t relative_x, int32_t relative_y, std::chrono::nanoseconds event_time);
-  bool WriteVerticalScrollEvent(float amount, std::chrono::nanoseconds event_time);
-  bool WriteHorizontalScrollEvent(float amount, std::chrono::nanoseconds event_time);
-
-private:
-  static const std::map<int, int> BUTTON_CODE_MAPPING;
-  static const std::map<int, UinputAction> BUTTON_ACTION_MAPPING;
-  static constexpr int32_t HI_RES_WHEEL_UNITS_PER_TICK = 120;
-};
-
 class VirtualTablet : public VirtualInputDevice {
 public:
   VirtualTablet(int32_t screen_width, int32_t screen_height);
@@ -122,34 +106,6 @@ private:
 
   // True if the pen is hovering on the screen.
   bool is_hovering_ = false;
-
-  // The set of active touch pointers on this device.
-  // We only allow pointer id to go up to MAX_POINTERS because the maximum slots of virtual
-  // touchscreen is set up with MAX_POINTERS. Note that in other cases Android allows pointer id
-  // to go up to MAX_POINTERS_ID.
-  std::bitset<MAX_POINTERS> active_pointers_ {};
-};
-
-class VirtualTouchscreen : public VirtualInputDevice {
-public:
-  VirtualTouchscreen(int32_t screen_width, int32_t screen_height);
-  ~VirtualTouchscreen() override;
-
-  bool WriteTouchEvent(int32_t pointer_id, int32_t tool_type, int32_t action, int32_t location_x, int32_t location_y,
-                       int32_t pressure, int32_t major_axis_size, std::chrono::nanoseconds event_time);
-
-  [[nodiscard]] int32_t screen_width() const { return screen_width_; }
-  [[nodiscard]] int32_t screen_height() const { return screen_height_; }
-
-private:
-  bool IsValidPointerId(int32_t pointer_id, UinputAction uinput_action);
-  bool HandleTouchDown(int32_t pointer_id, std::chrono::nanoseconds event_time);
-  bool HandleTouchUp(int32_t pointer_id, std::chrono::nanoseconds event_time);
-
-  static const std::map<int, int> TOOL_TYPE_MAPPING;
-
-  int32_t screen_width_;
-  int32_t screen_height_;
 
   // The set of active touch pointers on this device.
   // We only allow pointer id to go up to MAX_POINTERS because the maximum slots of virtual
