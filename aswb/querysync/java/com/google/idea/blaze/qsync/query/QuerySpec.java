@@ -85,7 +85,7 @@ public abstract class QuerySpec implements TruncatingFormattable {
         baseQuery +
         "\n" +
         """
-    in $base - attr("tags", "[\\[,]no-ide[\\],]", $base)""");
+    in $base - attr("tags", "[\\[ ]no-ide[\\],]", $base)""");
       }
     },
 

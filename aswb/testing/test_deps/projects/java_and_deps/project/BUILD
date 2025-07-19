@@ -16,7 +16,10 @@ java_library(
 java_library(
     name = "sample_no_ide",
     srcs = glob(["java/com/example/sample/*.java"]),
-    tags = ["no-ide"],
+    tags = [
+        "a-tag-before-no-ide",
+        "no-ide",
+    ],
     visibility = ["//visibility:public"],
     deps = [
         ":lib",
