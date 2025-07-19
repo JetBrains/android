@@ -76,6 +76,7 @@ public class ArtifactTrackerStateSerializationTest {
             TargetBuildInfo.forJavaTarget(
                 JavaArtifactInfo.builder()
                     .setLabel(Label.of("//my/package:target"))
+                    .setIsExternalDependency(false)
                     .setJars(
                         ImmutableList.of(
                             BuildArtifact.create(

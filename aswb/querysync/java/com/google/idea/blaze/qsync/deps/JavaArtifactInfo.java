@@ -36,6 +36,9 @@ public abstract class JavaArtifactInfo {
   /** Build label for the dependency. */
   public abstract Label label();
 
+  /** Whether the target is in project view. */
+  public abstract boolean isExternalDependency();
+
   /**
    * The jar artifacts relative path (blaze-out/xxx) that can be used to retrieve local copy in the
    * cache.
@@ -91,6 +94,7 @@ public abstract class JavaArtifactInfo {
     Label target = Label.of(proto.getTarget());
     return builder()
         .setLabel(target)
+        .setIsExternalDependency(proto.getIsExternalDependency())
         .setJars(BuildArtifact.fromProtos(proto.getJarsList(), digestMap, target))
         .setOutputJars(BuildArtifact.fromProtos(proto.getOutputJarsList(), digestMap, target))
         .setIdeAars(BuildArtifact.fromProtos(proto.getIdeAarsList(), digestMap, target))
@@ -105,6 +109,7 @@ public abstract class JavaArtifactInfo {
   public static JavaArtifactInfo empty(Label target) {
     return builder()
         .setLabel(target)
+        .setIsExternalDependency(false)
         .setJars(ImmutableList.of())
         .setOutputJars(ImmutableList.of())
         .setIdeAars(ImmutableList.of())
@@ -120,6 +125,8 @@ public abstract class JavaArtifactInfo {
   public abstract static class Builder {
 
     public abstract Builder setLabel(Label value);
+
+    public abstract Builder setIsExternalDependency(boolean value);
 
     public abstract Builder setJars(ImmutableList<BuildArtifact> value);
 

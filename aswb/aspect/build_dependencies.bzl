@@ -281,6 +281,7 @@ def one_of(a, b):
 def _encode_target_info_proto(target_info):
     contents = struct(
         target = target_info.target,
+        is_external_dependency = target_info.is_external_dependency,
         dep_java_info_files = _encode_file_list(target_info.dep_java_info_files),
         jars = _encode_file_list(target_info.jars),
         compile_jdeps = _encode_file_list(target_info.compile_jdeps),
@@ -563,6 +564,7 @@ def _collect_own_java_artifacts(
         fail("Unexpected: " + str(own_jar_files) + " " + str(own_jar_depsets))
 
     return struct(
+        is_external_dependency = must_build_main_artifacts,
         jar_depset = own_jar_depset,
         compile_jdeps_depset = depset(own_compile_jdeps_files),
         output_jar_depset = depset(own_output_jar_files),
@@ -575,6 +577,7 @@ def _collect_own_java_artifacts(
 
 def _target_to_artifact_entry(
         label = "",
+        is_external_dependency = False,
         dep_java_info_files = [],
         jars = [],
         compile_jdeps = [],
@@ -586,6 +589,7 @@ def _target_to_artifact_entry(
         android_resources_package = ""):
     return struct(
         target = label,
+        is_external_dependency = is_external_dependency,
         dep_java_info_files = dep_java_info_files,
         jars = jars,
         compile_jdeps = compile_jdeps,
@@ -634,6 +638,7 @@ def _collect_own_and_dependency_java_artifacts(
     gen_srcs = own_files.gensrc_depset.to_list()  # Flattening is fine here (these are files from one target)
     java_info_file = _write_java_target_info(ctx, target.label, _target_to_artifact_entry(
         label = str(target.label),
+        is_external_dependency = own_files.is_external_dependency,
         dep_java_info_files = dep_java_info_files,  # No flattening here. This is a list of direct dependencies only.
         jars = jars,
         compile_jdeps = compile_jdeps,

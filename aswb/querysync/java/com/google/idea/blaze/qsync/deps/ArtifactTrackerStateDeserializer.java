@@ -114,6 +114,7 @@ public class ArtifactTrackerStateDeserializer {
       Label owner, ArtifactTrackerProto.JavaArtifacts proto) {
     return JavaArtifactInfo.builder()
         .setLabel(owner)
+        .setIsExternalDependency(proto.getIsExternalDependency())
         .setJars(toArtifactList(proto.getJarsList(), owner))
         .setOutputJars(toArtifactList(proto.getOutputJarsList(), owner))
         .setIdeAars(toArtifactList(proto.getIdeAarsList(), owner))

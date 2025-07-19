@@ -88,6 +88,7 @@ message JavaArtifacts {
   // Workspace relative paths of srcjars for the target
   repeated string src_jars = 5;
   string android_resources_package = 6;
+  bool is_external_dependency = 9;
 }
 
 message BuildContext {

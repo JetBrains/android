@@ -34,4 +34,5 @@ message JavaArtifacts {
   repeated string srcjars = 7;          // Workspace relative
   string android_resources_package = 8; // Package that this target places its Android R class in
   repeated OutputArtifact dep_java_info_files = 9;
+  bool is_external_dependency = 12;
 }
