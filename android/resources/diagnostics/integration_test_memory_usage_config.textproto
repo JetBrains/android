@@ -306,6 +306,7 @@ categories: {
     components: {
       label: "aiplugin_main"
       package_names: "com.android.studio.ml"
+      package_names: "com.google.aiplugin"
       package_names: "com.google.tools.intellij.aiplugin"
     }
   }
