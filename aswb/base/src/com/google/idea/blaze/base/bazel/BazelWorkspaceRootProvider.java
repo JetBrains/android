@@ -31,7 +31,8 @@ public class BazelWorkspaceRootProvider implements WorkspaceRootProvider {
   @Override
   public boolean isWorkspaceRoot(File file) {
     return FileOperationProvider.getInstance().isFile(new File(file, "WORKSPACE"))
-        || FileOperationProvider.getInstance().isFile(new File(file, "WORKSPACE.bazel"));
+        || FileOperationProvider.getInstance().isFile(new File(file, "WORKSPACE.bazel"))
+        || FileOperationProvider.getInstance().isFile(new File(file, "MODULE.bazel"));
   }
 
   @Nullable
