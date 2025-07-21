@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview.animation
 
 import androidx.compose.animation.tooling.ComposeAnimation
-import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationSubscriber.onAnimationSubscribed
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationSubscriber.onAnimationUnsubscribed
 import com.google.common.util.concurrent.MoreExecutors
@@ -38,14 +37,10 @@ object ComposeAnimationSubscriber {
   private val LOG = Logger.getInstance(ComposeAnimationSubscriber::class.java)
   private var animationHandler: ComposeAnimationHandler? = null
 
-  fun setHandler(handler: ComposeAnimationHandler?) {
-    synchronized(subscribedAnimationsLock) { subscribedAnimations.clear() }
+  suspend fun setHandler(handler: ComposeAnimationHandler?) {
+    animationHandler?.removeAllAnimations()?.join()
     animationHandler = handler
   }
-
-  @GuardedBy("subscribedAnimationsLock")
-  private val subscribedAnimations = mutableSetOf<ComposeAnimation>()
-  private val subscribedAnimationsLock = Any()
 
   private val onSubscribedUnsubscribedExecutor =
     if (ApplicationManager.getApplication().isUnitTestMode) MoreExecutors.directExecutor()
@@ -56,9 +51,22 @@ object ComposeAnimationSubscriber {
       )
 
   /**
-   * Sets the panel clock, adds the animation to the subscribed list, and creates the corresponding
-   * tab in the [ComposeAnimationPreview].
+   * [CoroutineScope] to use in tests, when it's null, [onSubscribedUnsubscribedExecutor] will be
+   * used instead.
    */
+  private var testScope: CoroutineScope? = null
+
+  private fun createScope(): CoroutineScope {
+    return testScope?.takeIf { ApplicationManager.getApplication().isUnitTestMode }
+      ?: CoroutineScope(onSubscribedUnsubscribedExecutor.asCoroutineDispatcher())
+  }
+
+  @TestOnly
+  fun setScopeForTests(scope: CoroutineScope?) {
+    testScope = scope
+  }
+
+  /** Sets the panel clock and creates the corresponding tab in the [ComposeAnimationPreview]. */
   suspend fun onAnimationSubscribed(clock: Any?, animation: ComposeAnimation) {
     if (clock == null) return
     val handler = animationHandler ?: return
@@ -74,29 +82,18 @@ object ComposeAnimationSubscriber {
     handler.animationClock?.let {
       if (it.clock != clock) {
         // Make a copy of the list to prevent ConcurrentModificationException
-        synchronized(subscribedAnimationsLock) { subscribedAnimations.toSet() }
-          .forEach { animationToUnsubscribe -> onAnimationUnsubscribed(animationToUnsubscribe) }
+        handler.removeAllAnimations().join()
         // After unsubscribing the old animations, update the clock
         handler.animationClock = AnimationClock(clock)
       }
     }
-
-    if (synchronized(subscribedAnimationsLock) { subscribedAnimations.add(animation) }) {
-      handler.addAnimation(animation).join()
-    }
+    handler.addAnimation(animation).join()
   }
 
-  /**
-   * Removes the animation from the subscribed list and removes the corresponding tab in the
-   * [ComposeAnimationPreview].
-   */
+  /** Removes the animation from the corresponding tab in the [ComposeAnimationPreview]. */
   suspend fun onAnimationUnsubscribed(animation: ComposeAnimation) {
-    if (synchronized(subscribedAnimationsLock) { subscribedAnimations.remove(animation) }) {
-      animationHandler?.removeAnimation(animation)?.join()
-    }
+    animationHandler?.removeAnimation(animation)?.join()
   }
-
-  @TestOnly fun hasNoAnimationsForTests() = subscribedAnimations.isEmpty()
 
   @TestOnly fun getHandlerForTests() = animationHandler
 
@@ -106,10 +103,8 @@ object ComposeAnimationSubscriber {
     if (LOG.isDebugEnabled) {
       LOG.debug("Animation subscribed: $animation")
     }
-    onSubscribedUnsubscribedExecutor.execute {
-      CoroutineScope(onSubscribedUnsubscribedExecutor.asCoroutineDispatcher()).launch {
-        (animation as? ComposeAnimation)?.let { onAnimationSubscribed(clock, it) }
-      }
+    createScope().launch {
+      (animation as? ComposeAnimation)?.let { onAnimationSubscribed(clock, it) }
     }
   }
 
@@ -120,10 +115,6 @@ object ComposeAnimationSubscriber {
       LOG.debug("Animation unsubscribed: $animation")
     }
     if (animation == null) return
-    onSubscribedUnsubscribedExecutor.execute {
-      CoroutineScope(onSubscribedUnsubscribedExecutor.asCoroutineDispatcher()).launch {
-        (animation as? ComposeAnimation)?.let { onAnimationUnsubscribed(it) }
-      }
-    }
+    createScope().launch { (animation as? ComposeAnimation)?.let { onAnimationUnsubscribed(it) } }
   }
 }

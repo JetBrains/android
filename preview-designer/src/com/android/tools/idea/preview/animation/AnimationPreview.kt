@@ -95,8 +95,10 @@ abstract class AnimationPreview<T : AnimationManager>(
     parentScope.createChildScope(
       context =
         CoroutineExceptionHandler { _, throwable ->
-          invokeLater { showErrorPanel(message("animation.inspector.error.panel.message")) }
-          logger.error("Error in Animation Inspector", throwable)
+          invokeLater {
+            showErrorPanel(message("animation.inspector.error.panel.message"))
+            logger.error("Error in Animation Inspector", throwable)
+          }
         },
       parentDisposable = parentScope.scopeDisposable(),
     )
@@ -381,7 +383,8 @@ abstract class AnimationPreview<T : AnimationManager>(
        * AllTabPanel, animationsMap, and tabs from tabbedPane. It will also show the
        * noAnimationsPanel when removing all tabs.
        */
-      animations.forEach { removeAnimationManager(it) }
+      val toRemove = animations.toList()
+      toRemove.forEach { removeAnimationManager(it) }
     }
 
   protected suspend fun removeAnimationManager(animationManager: T) {

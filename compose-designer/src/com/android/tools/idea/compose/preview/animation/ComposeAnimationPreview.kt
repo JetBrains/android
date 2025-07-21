@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.animation
 
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
+import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.compose.preview.animation.managers.AnimatedVisibilityAnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.ComposeAnimationManager
@@ -36,10 +37,13 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import javax.swing.JComponent
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.TestOnly
 
 /**
  * Displays details about animations belonging to a Compose Preview.
@@ -97,6 +101,12 @@ class ComposeAnimationPreview(
     }
   }
 
+  @GuardedBy("subscribedAnimationsLock")
+  private val subscribedAnimations = mutableSetOf<ComposeAnimation>()
+  private val subscribedAnimationsLock = Any()
+
+  @TestOnly fun hasNoAnimationsForTests() = subscribedAnimations.isEmpty()
+
   /**
    * Creates and adds [ComposeAnimationManager] for given [ComposeAnimation] to the panel.
    *
@@ -105,10 +115,24 @@ class ComposeAnimationPreview(
    */
   override fun addAnimation(animation: ComposeAnimation) =
     scope.launch {
-      removeAnimation(animation).join()
-      val tab = withContext(Dispatchers.EDT) { createAnimationManager(animation) }
-      tab.setup()
-      addAnimationManager(tab)
+      if (synchronized(subscribedAnimationsLock) { subscribedAnimations.add(animation) }) {
+        val tab = withContext(Dispatchers.EDT) { createAnimationManager(animation) }
+        tab.setup()
+        /**
+         * [ComposeAnimationManager.setup] can take a while, by the time we want to call
+         * [addAnimationManager] it might not be needed anymore. Example:
+         * * [addAnimation] is called and [animation] is added to [subscribedAnimations] list
+         * * [ComposeAnimationManager.setup] is taking a while
+         * * in meantime [removeAnimation] is called and [animation] is removed from
+         *   [subscribedAnimations]
+         * * [ComposeAnimationManager.setup] is finished
+         * * [addAnimationManager] will not be called as this [animation] should not be added
+         *   anymore
+         */
+        if (synchronized(subscribedAnimationsLock) { subscribedAnimations.contains(animation) }) {
+          addAnimationManager(tab)
+        }
+      }
     }
 
   override suspend fun updateMaxDuration(longTimeout: Boolean) {
@@ -196,7 +220,15 @@ class ComposeAnimationPreview(
    */
   override fun removeAnimation(animation: ComposeAnimation) =
     scope.launch {
+      synchronized(subscribedAnimationsLock) { subscribedAnimations.remove(animation) }
       animations.find { it.animation == animation }?.let { removeAnimationManager(it) }
+    }
+
+  override fun removeAllAnimations(): Job =
+    scope.launch {
+      synchronized(subscribedAnimationsLock) { subscribedAnimations.clear() }
+      val animationsToRemove = animations.toImmutableList()
+      animationsToRemove.forEach { removeAnimationManager(it) }
     }
 
   override fun invalidatePanel() =
