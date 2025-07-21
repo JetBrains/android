@@ -60,7 +60,7 @@ int logging_ioctl(int fd, unsigned op, const char* value) {
 
 int logging_ioctl(int fd, unsigned op, const uinput_abs_setup* value) {
   Log::D("ioctl(%d, 0x%x, uinput_abs_setup{ code=%d, absinfo={ minimum=%d, maximum=%d } })",
-         fd, op, value->code, value->absinfo.minimum, value->absinfo.minimum);
+         fd, op, value->code, value->absinfo.minimum, value->absinfo.maximum);
   return ioctl(fd, op, value);
 }
 
