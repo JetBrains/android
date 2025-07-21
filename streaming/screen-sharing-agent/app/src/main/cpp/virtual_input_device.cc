@@ -181,7 +181,7 @@ int OpenUInput(DeviceType device_type, const char* phys, int32_t screen_width, i
         return INVALID_FD;
       }
       uinput_abs_setup majorAbsSetup {.code = ABS_MT_TOUCH_MAJOR};
-      majorAbsSetup.absinfo.maximum = screen_width - 1;
+      majorAbsSetup.absinfo.maximum = min(screen_width, screen_height) - 1;
       majorAbsSetup.absinfo.minimum = 0;
       if (ioctl(fd, UI_ABS_SETUP, &majorAbsSetup) != 0) {
         CloseAndReportError(phys, fd);
