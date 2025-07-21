@@ -22,7 +22,7 @@ import com.android.testutils.TestUtils.getBinPath
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.asdriver.tests.AndroidSystem
-import com.android.tools.idea.adb.CreateAndroidDebugBridgeForAdblibRule
+import com.android.tools.idea.adb.InitAdbLibApplicationServiceRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.ANDROID_SCROLL_ADJUSTMENT_FACTOR
 import com.android.tools.idea.testing.flags.overrideForTest
@@ -392,7 +392,7 @@ class ScreenSharingAgentTest {
     @get:ClassRule
     @get:JvmStatic
     val ruleChain: RuleChain =
-      RuleChain(projectRule, disposableRule, CreateAndroidDebugBridgeForAdblibRule(), system, EdtRule())
+      RuleChain(projectRule, disposableRule, InitAdbLibApplicationServiceRule(), system, EdtRule())
 
     private lateinit var adb: Adb
     private lateinit var emulator: Emulator

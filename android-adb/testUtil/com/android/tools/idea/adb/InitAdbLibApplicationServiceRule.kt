@@ -22,16 +22,24 @@ import java.util.concurrent.TimeUnit
 import org.junit.rules.ExternalResource
 
 /**
- * In unit tests we need to setup `AndroidDebugBridge` through a call to `createBridge`. Usually
- * this is done through one of the FakeAdb rules. This rule is needed when a real adb server process
- * was started, and we need to make the rest of adblib use it.
+ * This test rule addresses two scenarios:
+ * 1. **Early `AndroidDebugBridge.preInit` Call:** When used with
+ *    `com.intellij.testFramework.ProjectRule`, this rule forces `AndroidDebugBridge.preInit` to be
+ *    called earlier in the test lifecycle. This is crucial because `AdbLibApplicationService` sets
+ *    up the correct `AndroidDebugBridgeDelegate` via `preInit`, and this setup must occur before
+ *    `FakeAdbRule` is used to establish fake test devices. Note that this rule is unnecessary when
+ *    using `com.android.tools.idea.testing.AndroidProjectRule`, as it initializes
+ *    `AdbLibApplicationService` early through `AdbLibApplicationService.MyStartupActivity`.
+ * 2. **`createBridge` for Real ADB Server:** In unit tests we need to setup `AndroidDebugBridge`
+ *    through a call to `createBridge`. Usually this is done by one of the FakeAdb rules, but you
+ *    need to use this rule when a real adb server process was started, and we need to make the rest
+ *    of adblib use it.
  */
-class CreateAndroidDebugBridgeForAdblibRule : ExternalResource() {
+class InitAdbLibApplicationServiceRule : ExternalResource() {
 
   override fun before() {
     // Instantiate `AdbLibApplicationService`, which initializes adblib's application-level
-    // components such as `AdbSession` and `ChannelProvider`. These components are static, so this
-    // TestRule should be instantiated only once per test target.
+    // components such as `AdbSession` and `ChannelProvider`.
     AdbLibApplicationService.instance
     AndroidDebugBridge.enableFakeAdbServerMode(5037)
 
@@ -40,5 +48,10 @@ class CreateAndroidDebugBridgeForAdblibRule : ExternalResource() {
 
     AndroidDebugBridge.createBridge(10, TimeUnit.SECONDS)
       ?: error("TestRule could not create ADB bridge ")
+  }
+
+  override fun after() {
+    AndroidDebugBridge.disconnectBridge()
+    AndroidDebugBridge.terminate()
   }
 }
