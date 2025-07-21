@@ -699,9 +699,9 @@ class NewStudioRendererPanelTest {
     deviceDisplayRectangle: Rectangle = this.deviceDisplayRectangle,
     displayOrientation: Int = 0,
     notificationModel: NotificationModel = NotificationModel(projectRule.project),
-  ): Pair<OnDeviceRendererModel, NewStudioRendererPanel> {
+  ): Pair<EmbeddedRendererModel, NewStudioRendererPanel> {
     val renderModel =
-      OnDeviceRendererModel(
+      EmbeddedRendererModel(
         parentDisposable = disposable,
         inspectorModel = inspectorModel,
         treeSettings = treeSettings,

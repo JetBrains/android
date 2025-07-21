@@ -67,12 +67,12 @@ class OnDeviceRendererPanelTest {
       .around(inspectorRule)
       .around(EdtRule())
 
-  private lateinit var renderModel: OnDeviceRendererModel
+  private lateinit var renderModel: EmbeddedRendererModel
 
   @Before
   fun setUp() {
     renderModel =
-      OnDeviceRendererModel(
+      EmbeddedRendererModel(
         parentDisposable = projectRule.testRootDisposable,
         inspectorModel = inspectorRule.inspectorModel,
         treeSettings = FakeTreeSettings(),

@@ -70,11 +70,11 @@ data class DrawInstruction(
  * [InspectorModel], which contains state about the inspector in general, like shared state between
  * bounds rendering and component tree (like selected and hovered nodes), client etc.
  *
- * This is a new render model, currently used only embedded Layout Inspector rendering. This render
+ * This is a new render model, currently used by embedded Layout Inspector rendering. This render
  * model is designed to be used by any [LayoutInspectorRenderer]. Once standalone Layout Inspector
  * and 3D view are removed, this should take over as the only render model.
  */
-class OnDeviceRendererModel(
+class EmbeddedRendererModel(
   parentDisposable: Disposable,
   val inspectorModel: InspectorModel,
   private val treeSettings: TreeSettings,

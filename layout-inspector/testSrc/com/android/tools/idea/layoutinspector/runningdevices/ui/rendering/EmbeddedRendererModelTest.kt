@@ -65,7 +65,7 @@ class EmbeddedRendererModelTest {
   @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var inspectorModel: InspectorModel
-  private lateinit var rendererModel: OnDeviceRendererModel
+  private lateinit var rendererModel: EmbeddedRendererModel
   private lateinit var treeSettings: FakeTreeSettings
   private lateinit var renderSettings: RenderSettings
 
@@ -94,7 +94,7 @@ class EmbeddedRendererModelTest {
     navigateToInvocations = 0
 
     rendererModel =
-      OnDeviceRendererModel(
+      EmbeddedRendererModel(
         parentDisposable = disposableRule.disposable,
         inspectorModel = inspectorModel,
         treeSettings = treeSettings,

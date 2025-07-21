@@ -24,9 +24,9 @@ import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisti
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.SelectedTabState
 import com.android.tools.idea.layoutinspector.runningdevices.ui.TabComponents
+import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.EmbeddedRendererModel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.LayoutInspectorRenderer
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.NewStudioRendererPanel
-import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.OnDeviceRendererModel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.OnDeviceRendererPanel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.StudioRendererPanel
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
@@ -362,7 +362,7 @@ fun createRendererPanel(
 
   return if (useOnDeviceRendering) {
     val renderModel =
-      OnDeviceRendererModel(
+      EmbeddedRendererModel(
         parentDisposable = tabComponents,
         inspectorModel = layoutInspector.inspectorModel,
         treeSettings = layoutInspector.treeSettings,
@@ -383,7 +383,7 @@ fun createRendererPanel(
   } else {
     if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_V2_RENDERING.get()) {
       val renderModel =
-        OnDeviceRendererModel(
+        EmbeddedRendererModel(
           parentDisposable = tabComponents,
           inspectorModel = layoutInspector.inspectorModel,
           treeSettings = layoutInspector.treeSettings,

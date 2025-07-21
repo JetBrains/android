@@ -44,7 +44,7 @@ import kotlinx.coroutines.launch
 private const val RENDERING_NOT_SUPPORTED_ID = "rendering.in.secondary.display.not.supported"
 
 /**
- * Panel responsible for rendering the [OnDeviceRendererModel] into a [Graphics] object and reacting
+ * Panel responsible for rendering the [EmbeddedRendererModel] into a [Graphics] object and reacting
  * to mouse and keyboard events. This is a replacement for [StudioRendererPanel], currently used
  * only in embedded Layout Inspector.
  *
@@ -61,7 +61,7 @@ private const val RENDERING_NOT_SUPPORTED_ID = "rendering.in.secondary.display.n
 class NewStudioRendererPanel(
   disposable: Disposable,
   private val scope: CoroutineScope,
-  private val renderModel: OnDeviceRendererModel,
+  private val renderModel: EmbeddedRendererModel,
   private val notificationModel: NotificationModel,
   private val displayRectangleProvider: () -> Rectangle?,
   private val screenScaleProvider: () -> Double,
@@ -319,7 +319,7 @@ class NewStudioRendererPanel(
     }
   }
 
-  private inner class LayoutInspectorMouseListener(private val renderModel: OnDeviceRendererModel) :
+  private inner class LayoutInspectorMouseListener(private val renderModel: EmbeddedRendererModel) :
     MouseAdapter() {
     override fun mouseClicked(e: MouseEvent) {
       if (e.isConsumed || !interceptClicks) return

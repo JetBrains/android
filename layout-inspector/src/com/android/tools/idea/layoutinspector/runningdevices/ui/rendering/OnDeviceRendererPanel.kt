@@ -46,7 +46,7 @@ import org.jetbrains.annotations.VisibleForTesting
 class OnDeviceRendererPanel(
   disposable: Disposable,
   private val scope: CoroutineScope,
-  private val renderModel: OnDeviceRendererModel,
+  private val renderModel: EmbeddedRendererModel,
   private val enableSendRightClicksToDevice: (enable: Boolean) -> Unit,
 ) : LayoutInspectorRenderer() {
   companion object {
@@ -132,7 +132,7 @@ class OnDeviceRendererPanelImpl(
   disposable: Disposable,
   scope: CoroutineScope,
   private val client: OnDeviceRenderingClient,
-  private val renderModel: OnDeviceRendererModel,
+  private val renderModel: EmbeddedRendererModel,
   private val enableSendRightClicksToDevice: (enable: Boolean) -> Unit,
 ) : BorderLayoutPanel(), Disposable {
 

@@ -72,7 +72,7 @@ class OnDeviceRendererPanelImplTest {
   @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var inspectorModel: InspectorModel
-  private lateinit var renderModel: OnDeviceRendererModel
+  private lateinit var renderModel: EmbeddedRendererModel
   private lateinit var treeSettings: FakeTreeSettings
 
   private var navigateToInvocations = 0
@@ -91,7 +91,7 @@ class OnDeviceRendererPanelImplTest {
     navigateToInvocations = 0
 
     renderModel =
-      OnDeviceRendererModel(
+      EmbeddedRendererModel(
         parentDisposable = disposableRule.disposable,
         inspectorModel = inspectorModel,
         treeSettings = treeSettings,
