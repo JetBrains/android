@@ -105,22 +105,6 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     return sdk;
   }
 
-  public static AndroidSystem testDebugStandard(Display display, AndroidStudioFlavor androidStudioFlavor) {
-    try {
-      AndroidSystem system = basic(display, Files.createTempDirectory("root"));
-
-      system.install = AndroidStudioInstallation.fromZip(system.fileSystem, androidStudioFlavor);
-      system.install.createFirstRunXml();
-      system.install.setNewUi();
-      system.install.createGeneralPropertiesXml();
-
-      return system;
-    }
-    catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
   /**
    * Creates a standard system with a default temp folder
    * that contains a preinstalled version of android studio
