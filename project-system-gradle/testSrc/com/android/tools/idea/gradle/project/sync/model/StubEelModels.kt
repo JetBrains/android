@@ -77,6 +77,6 @@ class StubEelDescriptor(private val eelApi: LocalPosixEelApi) : EelDescriptor {
     override val osFamily: EelOsFamily
       get() = EelOsFamily.Posix
 
-    override suspend fun toEelApi(): EelApi = eelApi
+    override suspend fun toEelApi(descriptor: EelDescriptor): EelApi = eelApi
   }
 }
