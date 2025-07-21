@@ -56,7 +56,6 @@ import com.intellij.openapi.progress.checkCanceled
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.util.getAndUpdateUserData
 import com.intellij.openapi.util.io.CanonicalPathPrefixTree
 import com.intellij.openapi.util.io.toCanonicalPath
 import com.intellij.openapi.vfs.VfsUtilCore.pathToUrl
@@ -110,9 +109,10 @@ internal typealias SourceSetData = Pair<IdeArtifactName, Map<out ExternalSystemS
 internal typealias ModuleAction = (Module) -> Unit
 
 /** This class is used to keep track of */
-private data class SourceSetUpdateResult(
+internal data class SourceSetUpdateResult(
   /** Represents list of module actions by name. Mutable because actions are removed as they are performed. */
-  val allModuleActions: Map<String, MutableList<ModuleAction>>,
+  val allModuleActions: Map<String, List<ModuleAction>>,
+  val allAndroidProjectContexts: List<SyncContributorAndroidProjectContext>,
 
   /** To be used with [MutableEntityStorage.replaceBySource], to make sure we only update relevant entities. */
   val updatedStorage: EntityStorage,
@@ -271,7 +271,7 @@ internal class SyncContributorAndroidProjectContext(
   }
 }
 
-private val USER_MODULE_ACTIONS: Key<Map<String, List<ModuleAction>>> = Key.create("moduleActionsMap")
+private val SOURCE_SET_UPDATE_RESULT_KEY: Key<SourceSetUpdateResult> = Key.create("SOURCE_SET_UPDATE_RESULT")
 
 internal class AndroidSourceRootSyncExtension : GradleSyncExtension {
 
@@ -279,7 +279,12 @@ internal class AndroidSourceRootSyncExtension : GradleSyncExtension {
     context: ProjectResolverContext,
     phase: GradleSyncPhase,
   ) {
-    performModuleActions(context)
+    if (phase == GradleSyncPhase.SOURCE_SET_MODEL_PHASE) {
+      val previousResult = checkNotNull(context.getUserData(SOURCE_SET_UPDATE_RESULT_KEY)) {
+        "No result from source set phase!"
+      }
+      performModuleActionsFromPreviousPhase(context.project, previousResult.allModuleActions)
+    }
   }
 
   /**
@@ -287,10 +292,9 @@ internal class AndroidSourceRootSyncExtension : GradleSyncExtension {
    *
    * This method performs any module operations registered earlier after the instances are created.
    */
-  private fun performModuleActions(context: ProjectResolverContext) {
-    val moduleActions = context.getAndUpdateUserData(USER_MODULE_ACTIONS, { null }) ?: return
-    val modulesByName = context.project.modules.associateBy { it.name }
-    moduleActions.forEach { (moduleName, actions) ->
+  private fun performModuleActionsFromPreviousPhase(project: Project, modulesActionsFromPreviousPhaseMap: Map<String, List<ModuleAction>>) {
+    val modulesByName = project.modules.associateBy { it.name }
+    modulesActionsFromPreviousPhaseMap.forEach { (moduleName, actions) ->
       val module = checkNotNull(modulesByName[moduleName]) { "No module found for module with registered actions!" }
       actions.forEach { it(module) }
     }
@@ -308,7 +312,7 @@ internal class AndroidSourceRootSyncContributor : GradleSyncContributor {
     val result = configureModulesForSourceSets(context, storage.toSnapshot())
     // Only replace the android related source sets
     storage.replaceBySource({ it in result.knownEntitySources }, result.updatedStorage)
-    context.putUserData(USER_MODULE_ACTIONS, result.allModuleActions)
+    context.putUserData(SOURCE_SET_UPDATE_RESULT_KEY, result)
   }
 
   /**
@@ -387,6 +391,7 @@ internal class AndroidSourceRootSyncContributor : GradleSyncContributor {
       allModuleActions = allAndroidContexts.flatMap { it.moduleActions.entries }.associate { it.key to it.value }.filterKeys {
         it !in removedModuleNames
       },
+      allAndroidContexts,
       updatedEntities,
       knownSourceSetEntitySources +
       removedModules.map { it.entitySource } +
