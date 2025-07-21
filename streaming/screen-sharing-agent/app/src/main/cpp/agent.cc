@@ -373,14 +373,6 @@ void Agent::Shutdown() {
   }
 }
 
-int64_t Agent::GetLastTouchEventTime() {
-  return last_touch_time_millis_;
-}
-
-void Agent::RecordTouchEvent() {
-  last_touch_time_millis_ = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
-}
-
 const string& Agent::device_manufacturer() {
   if (device_manufacturer_ == "<uninitialized>") {
     device_manufacturer_ = GetSystemProperty("ro.product.manufacturer");
@@ -407,7 +399,6 @@ AudioStreamer* Agent::audio_streamer_(nullptr);
 Controller* Agent::controller_(nullptr);
 mutex Agent::environment_mutex_;
 SessionEnvironment* Agent::session_environment_(nullptr);  // GUARDED_BY(environment_mutex_)
-atomic_int64_t Agent::last_touch_time_millis_(0);
 atomic_bool Agent::shutting_down_(false);
 
 }  // namespace screensharing

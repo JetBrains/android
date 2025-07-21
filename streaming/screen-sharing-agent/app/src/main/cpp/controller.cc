@@ -386,10 +386,10 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
   int32_t tool = message.is_mouse() ? AMOTION_EVENT_TOOL_TYPE_STYLUS : AMOTION_EVENT_TOOL_TYPE_FINGER;
 
   if ((Agent::flags() & USE_UINPUT || input_event_injection_disabled_) && Agent::feature_level() > 36) {
-    if (action == AMOTION_EVENT_ACTION_HOVER_MOVE || action == AMOTION_EVENT_ACTION_HOVER_ENTER ||
-        action == AMOTION_EVENT_ACTION_HOVER_EXIT || action == AMOTION_EVENT_ACTION_SCROLL) {
-      auto& tablet = GetVirtualTablet(display_id, display_info.logical_size.width, display_info.logical_size.height);
-      if (action == AMOTION_EVENT_ACTION_HOVER_MOVE) {
+    // Inject event using a virtual drawing tablet.
+    auto& tablet = GetVirtualTablet(display_id, display_info.logical_size.width, display_info.logical_size.height);
+    switch (action) {
+      case AMOTION_EVENT_ACTION_HOVER_MOVE:
         for (auto& pointer : message.pointers()) {
           bool success = tablet.WriteMotionEvent(
               pointer.pointer_id, AMOTION_EVENT_TOOL_TYPE_STYLUS, AMOTION_EVENT_ACTION_MOVE, pointer.x, pointer.y, event_time);
@@ -397,67 +397,76 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
             Log::E("Error writing hover move event");
           }
         }
-      } else if (action == AMOTION_EVENT_ACTION_HOVER_ENTER) {
+        break;
+      case AMOTION_EVENT_ACTION_HOVER_ENTER:
         tablet.StartHovering(event_time);
-      } else if (action == AMOTION_EVENT_ACTION_HOVER_EXIT) {
+        break;
+      case AMOTION_EVENT_ACTION_HOVER_EXIT:
         tablet.StopHovering(event_time);
-      }
-
-      if (action == AMOTION_EVENT_ACTION_SCROLL && !message.pointers().empty()) {
-        auto& pointer = message.pointers()[0];
-        for (const auto& entry: pointer.axis_values) {
-          if (entry.first == AMOTION_EVENT_AXIS_VSCROLL) {
-            float amount = entry.second;
-            if (amount != 0) {
-              bool success = tablet.WriteVerticalScrollEvent(amount, event_time);
-              if (!success) {
-                Log::E("Error writing tablet vertical scroll event");
-              }
-            }
-          } else if (entry.first == AMOTION_EVENT_AXIS_HSCROLL) {
-            float amount = entry.second;
-            if (amount != 0) {
-              bool success = tablet.WriteHorizontalScrollEvent(amount, event_time);
-              if (!success) {
-                Log::E("Error writing tablet horizontal scroll event");
-              }
-            }
-          }
-        }
-      }
-    } else {
-      auto& tablet = GetVirtualTablet(display_id, display_info.logical_size.width, display_info.logical_size.height);
-      if (action == AMOTION_EVENT_ACTION_DOWN || action == AMOTION_EVENT_ACTION_UP || action == AMOTION_EVENT_ACTION_MOVE) {
-        int32_t pressure = action == AMOTION_EVENT_ACTION_UP ? 0 : VirtualInputDevice::MAX_PRESSURE;
-        int32_t major_axis_size = pressure == 0 ? 0 : FINGER_TOUCH_SIZE;
-        for (auto& pointer : message.pointers()) {
-          bool success = tablet.WriteTouchEvent(pointer.pointer_id, AMOTION_EVENT_TOOL_TYPE_STYLUS, action, pointer.x, pointer.y,
-                                                pressure, major_axis_size, event_time);
-          if (!success) {
-            Log::E("Error writing touch event");
-          }
-        }
-      } else {
-        auto action_code = action & AMOTION_EVENT_ACTION_MASK;
-        if (action_code == AMOTION_EVENT_ACTION_POINTER_DOWN || action_code == AMOTION_EVENT_ACTION_POINTER_UP) {
-          auto pointer_id = action >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-          action = action_code == AMOTION_EVENT_ACTION_POINTER_DOWN ? AMOTION_EVENT_ACTION_DOWN : AMOTION_EVENT_ACTION_UP;
+        break;
+      case AMOTION_EVENT_ACTION_DOWN:
+      case AMOTION_EVENT_ACTION_UP:
+      case AMOTION_EVENT_ACTION_MOVE:
+        {
           int32_t pressure = action == AMOTION_EVENT_ACTION_UP ? 0 : VirtualInputDevice::MAX_PRESSURE;
           int32_t major_axis_size = pressure == 0 ? 0 : FINGER_TOUCH_SIZE;
-          for (auto& pointer : message.pointers()) {
-            if (pointer.pointer_id == pointer_id) {
-              bool success = tablet.WriteTouchEvent(pointer_id, AMOTION_EVENT_TOOL_TYPE_STYLUS, action, pointer.x, pointer.y,
-                                                    pressure, major_axis_size, event_time);
-              if (!success) {
-                Log::E("Error writing touch event");
-              }
-              break;
+          for (auto& pointer: message.pointers()) {
+            bool success = tablet.WriteTouchEvent(pointer.pointer_id, AMOTION_EVENT_TOOL_TYPE_STYLUS, action, pointer.x, pointer.y,
+                                                  pressure, major_axis_size, event_time);
+            if (!success) {
+              Log::E("Error writing touch event");
             }
           }
         }
-      }
+        break;
+      case AMOTION_EVENT_ACTION_SCROLL:
+        if (!message.pointers().empty()) {
+          auto& pointer = message.pointers()[0];
+          for (const auto& entry: pointer.axis_values) {
+            if (entry.first == AMOTION_EVENT_AXIS_VSCROLL) {
+              float amount = entry.second;
+              if (amount != 0) {
+                bool success = tablet.WriteVerticalScrollEvent(amount, event_time);
+                if (!success) {
+                  Log::E("Error writing tablet vertical scroll event");
+                }
+              }
+            } else if (entry.first == AMOTION_EVENT_AXIS_HSCROLL) {
+              float amount = entry.second;
+              if (amount != 0) {
+                bool success = tablet.WriteHorizontalScrollEvent(amount, event_time);
+                if (!success) {
+                  Log::E("Error writing tablet horizontal scroll event");
+                }
+              }
+            }
+          }
+        }
+        break;
+      default:
+        {
+          auto action_code = action & AMOTION_EVENT_ACTION_MASK;
+          if (action_code == AMOTION_EVENT_ACTION_POINTER_DOWN || action_code == AMOTION_EVENT_ACTION_POINTER_UP) {
+            auto pointer_id = action >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+            action = action_code == AMOTION_EVENT_ACTION_POINTER_DOWN ? AMOTION_EVENT_ACTION_DOWN : AMOTION_EVENT_ACTION_UP;
+            int32_t pressure = action == AMOTION_EVENT_ACTION_UP ? 0 : VirtualInputDevice::MAX_PRESSURE;
+            int32_t major_axis_size = pressure == 0 ? 0 : FINGER_TOUCH_SIZE;
+            for (auto& pointer : message.pointers()) {
+              if (pointer.pointer_id == pointer_id) {
+                bool success = tablet.WriteTouchEvent(pointer_id, AMOTION_EVENT_TOOL_TYPE_STYLUS, action, pointer.x, pointer.y,
+                                                      pressure, major_axis_size, event_time);
+                if (!success) {
+                  Log::E("Error writing touch event");
+                }
+                break;
+              }
+            }
+          }
+        }
+      break;
     }
   } else {
+    // Inject event using InputManager.
     MotionEvent event(jni_);
     event.display_id = display_id;
     event.action = action;
@@ -476,7 +485,6 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
       if (action == AMOTION_EVENT_ACTION_UP) {
         motion_event_start_time_ = 0;
       }
-      Agent::RecordTouchEvent();
     }
     if (message.is_mouse() || action == AMOTION_EVENT_ACTION_HOVER_MOVE || message.action_button() != 0 || message.button_state() != 0) {
       // AINPUT_SOURCE_MOUSE

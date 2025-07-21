@@ -71,11 +71,6 @@ public:
   // May be called on any thread. Safe to be called multiple times.
   [[nodiscard]] static SessionEnvironment& GetSessionEnvironment();
 
-  // Returns the timestamp of the end of last simulated touch event in milliseconds according to the monotonic clock.
-  [[nodiscard]] static int64_t GetLastTouchEventTime();
-  // Records the timestamp of the last simulated touch event in milliseconds according to the monotonic clock.
-  static void RecordTouchEvent();
-
   [[nodiscard]] static bool IsShuttingDown() { return shutting_down_; }
 
   [[nodiscard]] static DeviceType device_type() { return device_type_; }
@@ -113,7 +108,6 @@ private:
   static Controller* controller_;
   static std::mutex environment_mutex_;
   static SessionEnvironment* session_environment_;  // GUARDED_BY(environment_mutex_)
-  static std::atomic_int64_t last_touch_time_millis_;
   static std::atomic_bool shutting_down_;
 };
 
