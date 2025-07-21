@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
@@ -54,7 +53,10 @@ typealias IdeVariantFetcher = (
   configuration: ModuleConfiguration
 ) -> ModelResult<IdeVariantWithPostProcessor>
 
-sealed class GradleModule(val gradleProject: BasicGradleProject) {
+sealed interface HasBasicGradleProject {
+  val gradleProject: BasicGradleProject
+}
+sealed class GradleModule(override val gradleProject: BasicGradleProject): HasBasicGradleProject {
   val findModelRoot: Model get() = gradleProject
   val id = createUniqueModuleId(gradleProject)
   val moduleId: ModuleId = gradleProject.toModuleId()
@@ -91,6 +93,10 @@ class JavaModule(
   }
 }
 
+interface HasLintJar {
+  val lintJar: File?
+}
+
 /**
  * The container class for Android module, containing its Android model, Variant models, and dependency modules.
  */
@@ -99,17 +105,18 @@ sealed class AndroidModule constructor(
   val buildPathMap: Map<String, BuildId>,
   gradleProject: BasicGradleProject,
   val androidProject: IdeAndroidProjectImpl,
+  override val lintJar: File? = androidProject.lintJar,
   /** All configured variant names if supported by the AGP version. */
   val allVariantNames: Set<String>?,
   val defaultVariantName: String?,
   val variantFetcher: IdeVariantFetcher,
   /** Old V1 model. It's only set if [nativeModule] is not set. */
-  val androidVariantResolver: AndroidVariantResolver,
+  override val androidVariantResolver: AndroidVariantResolver,
   private val nativeAndroidProject: IdeNativeAndroidProject?,
   /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
   private val nativeModule: IdeNativeModule?,
   val legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
-) : GradleModule(gradleProject) {
+) : GradleModule(gradleProject), ResolvedAndroidProjectPath {
   val projectType: IdeAndroidProjectType get() = androidProject.projectType
 
   fun getVariantAbiNames(variantName: String): Collection<String>? {

@@ -15,14 +15,26 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import java.io.File
+/**
+ * Represents an Android project path which can resolve variant names given a build type and list of product flavours.
+ *
+ * Implements [HasLintJar] for compatibility purposes.
+ */
+interface ResolvedAndroidProjectPath: HasBasicGradleProject, HasAndroidVariantResolver, HasLintJar
 
 fun interface AndroidProjectPathResolver {
   /**
-   * Resolves a pair of [buildId] and [projectPath] into an Android project represented by [AndroidVariantResolver] or returns `null` if the
-   * given path does refer to an Android Gradle project.
+   * Resolves a pair of [buildId] and [projectPath] into an Android project represented by [ResolvedAndroidProjectPath] or returns `null`
+   * if the given path does not refer to an Android Gradle project.
+   *
+   * This exists as a functional interface to be able to resolve variants. This is not called on KMP projects (even if they have Android
+   * targets), as it's a single variant anyway.
    */
-  fun resolve(buildId: BuildId, projectPath: String): AndroidModule?
+  fun resolve(buildId: BuildId, projectPath: String): ResolvedAndroidProjectPath?
+}
+
+interface HasAndroidVariantResolver {
+  val androidVariantResolver: AndroidVariantResolver
 }
 
 interface AndroidVariantResolver {
