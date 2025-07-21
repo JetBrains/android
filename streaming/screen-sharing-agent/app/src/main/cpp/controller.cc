@@ -385,7 +385,7 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
 
   int32_t tool = message.is_mouse() ? AMOTION_EVENT_TOOL_TYPE_STYLUS : AMOTION_EVENT_TOOL_TYPE_FINGER;
 
-  if ((Agent::flags() & USE_UINPUT || input_event_injection_disabled_) && Agent::feature_level() >= 35) {
+  if ((Agent::flags() & USE_UINPUT || input_event_injection_disabled_) && Agent::feature_level() > 36) {
     if (action == AMOTION_EVENT_ACTION_HOVER_MOVE || action == AMOTION_EVENT_ACTION_HOVER_ENTER ||
         action == AMOTION_EVENT_ACTION_HOVER_EXIT || action == AMOTION_EVENT_ACTION_SCROLL) {
       auto& tablet = GetVirtualTablet(display_id, display_info.logical_size.width, display_info.logical_size.height);
