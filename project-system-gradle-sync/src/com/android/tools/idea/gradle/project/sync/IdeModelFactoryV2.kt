@@ -94,11 +94,11 @@ class IdeModelFactoryV2(
       if (projectInfo.isKmpAndroidComponent()) {
         KmpAndroidArtifactRef
       } else if (projectInfo.isAndroidComponent()) {
-        val androidModule: AndroidModule =
+        val resolvedProjectPath: ResolvedAndroidProjectPath =
           androidProjectPathResolver.resolve(buildId, projectInfo.projectPath)
           ?: error("Cannot find an Android module: ${projectInfo.displayName}")
-        val variantName = androidModule.resolveVariantName(projectInfo, buildId)
-        AndroidArtifactRef(variantName, projectInfo.isTestFixtures, androidModule.androidProject.lintJar)
+        val variantName = resolvedProjectPath.resolveVariantName(projectInfo, buildId)
+        AndroidArtifactRef(variantName, projectInfo.isTestFixtures, resolvedProjectPath.lintJar)
       } else {
         library.artifact?.let { NonAndroidAndroidArtifactRef(it) } ?: error(
           "Unresolved module dependency ${projectInfo.displayName} in " +
@@ -158,7 +158,7 @@ class IdeModelFactoryV2(
     return buildId ?: error("Unknown build name: '${projectInfo.displayName}'. Known names $this")
   }
 
-  fun AndroidModule.resolveVariantName(
+  fun ResolvedAndroidProjectPath.resolveVariantName(
     projectInfo: ProjectInfo,
     buildId: BuildId
   ): String {
