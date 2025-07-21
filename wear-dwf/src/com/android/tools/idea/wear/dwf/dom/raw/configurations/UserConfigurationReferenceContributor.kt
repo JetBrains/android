@@ -19,7 +19,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.wear.dwf.WFFConstants.ATTRIBUTE_SOURCE
 import com.android.tools.idea.wear.dwf.WFFConstants.COLOR_ATTRIBUTES
 import com.android.tools.idea.wear.dwf.WFFConstants.TAG_PHOTOS
-import com.intellij.codeInsight.completion.CompletionUtil
 import com.intellij.patterns.XmlAttributeValuePattern
 import com.intellij.patterns.XmlPatterns
 import com.intellij.psi.PsiElement
@@ -60,11 +59,11 @@ class UserConfigurationReferenceContributor : PsiReferenceContributor() {
           val attributeValue = element as XmlAttributeValue
           val value = attributeValue.value
           if (value.isEmpty()) return PsiReference.EMPTY_ARRAY
-          if (value != CompletionUtil.DUMMY_IDENTIFIER_TRIMMED && !value.startsWith("["))
-            return PsiReference.EMPTY_ARRAY
 
           val attributeName = XmlAttributeValuePattern.getLocalName(attributeValue)
           if (attributeName in COLOR_ATTRIBUTES) {
+            // in this case the user has entered a color directly
+            if (value.startsWith("#")) return PsiReference.EMPTY_ARRAY
             return arrayOf(
               UserConfigurationReference(
                 attributeValue,
@@ -79,6 +78,8 @@ class UserConfigurationReferenceContributor : PsiReferenceContributor() {
             attributeName == ATTRIBUTE_SOURCE &&
               attributeValue.parentOfType<XmlTag>()?.name == TAG_PHOTOS
           ) {
+            // in this case, it has to be a reference, as we don't expect other types in this
+            // attribute
             return arrayOf(
               UserConfigurationReference(
                 attributeValue,

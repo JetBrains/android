@@ -71,7 +71,6 @@ class UserConfigurationReferenceTest {
             <Stroke color="[CONFIGURATION.another_color_config]" />
             <Stroke notAColorAttribute="[CONFIGURATION.some_color_config]" />
             <Photos source="[CONFIGURATION.photo_config]" />
-            <Photos source="drawable_id" />
             <NotAPhotos source="[CONFIGURATION.photo_config]" />
           </Scene>
         </WatchFace>
@@ -132,9 +131,6 @@ class UserConfigurationReferenceTest {
         fixture.findElementByText("<PhotosConfiguration id=\"photo_config\" />", XmlTag::class.java)
       )
 
-    fixture.moveCaret("<Photos source=\"draw|able_id\" />")
-    assertThat(fixture.getReferenceAtCaretPosition()).isNull()
-
     fixture.moveCaret("<NotAPhotos source=\"[CONFIGURATION|.photo_config]\" />")
     assertThat(fixture.getReferenceAtCaretPosition()).isNull()
   }
@@ -169,6 +165,41 @@ class UserConfigurationReferenceTest {
         "[CONFIGURATION.color_config_2]",
         "[CONFIGURATION.color_config_3]",
       )
+  }
+
+  @Test
+  fun `xml attributes can autocomplete without starting with an open bracket`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <UserConfigurations>
+            <ColorConfiguration id="color_config_1" />
+            <ColorConfiguration id="color_config_2" />
+            <ColorConfiguration id="color_config_3" />
+            <PhotosConfiguration id="photo_config_1" />
+            <PhotosConfiguration id="photo_config_2" />
+          </UserConfigurations>
+          <Scene backgroundColor="color_$caret" />
+          <Photos source="photo_" />
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    assertThat(fixture.completeBasic().map { it.lookupString })
+      .containsExactly(
+        "[CONFIGURATION.color_config_1]",
+        "[CONFIGURATION.color_config_2]",
+        "[CONFIGURATION.color_config_3]",
+      )
+
+    fixture.moveCaret("<Photos source=\"photo_|\" />")
+    assertThat(fixture.completeBasic().map { it.lookupString })
+      .containsExactly("[CONFIGURATION.photo_config_1]", "[CONFIGURATION.photo_config_2]")
   }
 
   @Test
