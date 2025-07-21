@@ -140,10 +140,11 @@ import java.io.File
 // NOTE: The implementation is structured as a collection of nested functions to ensure no recursive dependencies are possible between
 //       models unless explicitly handled by nesting. The same structure expressed as classes allows recursive data structures and thus we
 //       cannot validate the structure at compile time.
-internal fun modelCacheV2Impl(
+fun modelCacheV2Impl(
   internedModels: InternedModels,
   modelVersions: ModelVersions,
   syncTestMode: SyncTestMode,
+  lenientModuleResolution: Boolean = false
 ): ModelCache.V2 {
   val modelFactory = IdeModelFactoryV2(modelVersions)
   fun String.deduplicate() = internedModels.intern(this)
@@ -487,6 +488,13 @@ internal fun modelCacheV2Impl(
     fun populateProjectDependencies(libraries: List<LibraryWithDependencies>, seenDependencies: MutableMap<LibraryIdentity, List<String>>) {
       libraries.forEach { (library, dependencies) ->
         val ideModel = modelFactory.moduleLibraryFrom(library, androidProjectPathResolver, buildPathMap)
+        if (ideModel == null)
+          if (lenientModuleResolution) {
+            return@forEach
+          }
+          else {
+            error("Cannot find project dependency: ${library.projectInfo?.displayName}")
+          }
         val identity = LibraryIdentity.fromIdeModel(ideModel)
         keyToIdentityMap[library.key] = identity
         if (!seenDependencies.contains(identity)) {
@@ -659,7 +667,11 @@ internal fun modelCacheV2Impl(
         }
 
         dependencyList.add(IdeDependencyCoreImpl(libraryReference, deps.mapNotNull {
-          indexed[checkNotNull(keyToIdentityMap[it]){
+          val identity = keyToIdentityMap[it]
+          if (identity == null && lenientModuleResolution) {
+            return@mapNotNull null
+          }
+          indexed[checkNotNull(identity){
             "Dependency ($it) not in known identities by key: $keyToIdentityMap"
           }]
         }))

@@ -73,13 +73,22 @@ fun getProjectSpecificIssues(testProject: TestProject) = when(testProject.templa
     "LINKED_ANDROID_MODULE_GROUP",
     // TODO(b/384022658): KMP projects are currently ignored by phased sync, except for when there is no Android target configured.
     "</>src</>jvmMain",
-    "</>src</>jvmTest"
+    "</>src</>jvmTest",
+    // TODO(b/384022658): Dependencies to kotlin multiplatform modules can't be set up as module set up is not supported by phased sync
+    "/ORDER_ENTRY (kotlinMultiPlatform.module2", // Close paranthesis left out deliberately to include all sub-modules
+    "/ORDER_ENTRY (NonStandardSourceSetDependencies.common", // Close paranthesis left out deliberately to include all sub-modules
+    "/ORDER_ENTRY (NonStandardSourceSetDependencies.feature-b"
   ) else -> when(testProject) {
     // TODO(b/384022658): Info from KaptGradleModel is missing for phased sync entities for now
     TestProject.KOTLIN_KAPT,
     TestProject.NEW_SYNC_KOTLIN_TEST -> setOf(
       "</>kaptKotlin</>",
-      "</>kapt</>"
+      "</>kapt</>",
+      // TODO(b/384022658): Generated class libraries aren't supported
+      "LIBRARY (Gradle: kaptGeneratedClasses [=])",
+      // TODO(b/384022658): Module level libraries are set up differently in some cases
+      "/LIBRARY (Gradle: org.jetbrains:annotations:13.0 [=])/LibraryLevel (module)",
+      "/LIBRARY (Gradle: org.jetbrains:annotations:13.0 [=])/IsModuleLevel (true)"
     )
 
     TestProject.MULTI_FLAVOR_SWITCH_VARIANT -> setOf(
@@ -108,11 +117,24 @@ fun getProjectSpecificIssues(testProject: TestProject) = when(testProject.templa
       "MODULE (AS36.features.dynamicfeature2)/CONENT_ENTRY",
       "MODULE (AS36.libs.android_library)/CONENT_ENTRY"
     )
+    TestProject.BUILD_CONFIG_AS_BYTECODE_ENABLED -> setOf(
+      // TODO(b/384022658): Generated class libraries aren't supported
+      "LIBRARY (Gradle: buildConfigGeneratedClasses [=])",
+    )
+
     else -> emptySet()
   }
 }
 
-private fun getProjectSpecificIdeModelIssues(testProject: TestProject) = when(testProject) {
+private fun getProjectSpecificIdeModelIssues(testProject: TestProject) = when(testProject.template) {
+  TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
+  TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES -> setOf(
+    // TODO(b/384022658): Dependencies to kotlin multiplatform modules can't be set up as module set up is not supported by phased sync
+    "Classpath/module (<PROJECT>-:module2",
+    "Classpath/module (<PROJECT>-:feature-b-MAIN)",
+    "Classpath/module (<PROJECT>-:common-commonMain)"
+  )
+  else -> when(testProject) {
   TestProject.PRIVACY_SANDBOX_SDK,
   TestProject.COMPATIBILITY_TESTS_AS_36,
   TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML -> setOf(
@@ -128,7 +150,13 @@ private fun getProjectSpecificIdeModelIssues(testProject: TestProject) = when(te
   TestProject.BASIC_WITH_EMPTY_SETTINGS_FILE -> setOf(
     "/BytecodeTransforms",
   )
+  TestProject.MULTI_FLAVOR_SWITCH_VARIANT -> setOf(
+      // TODO:(b/384022658): This is a quirk of this project where we have to capture the intermediate state switching variants (essentially
+      // a second sync). We don't normally expect the library table to be present but in this case it is because a full sync has completed.
+      "LIBRARY_TABLE"
+    )
   else -> emptySet()
+}
 }
 
 fun ModuleDumpWithType.filterOutKnownConsistencyIssues(testProject: TestProject): ModuleDumpWithType {
@@ -200,6 +228,8 @@ data class PhasedSyncSnapshotConsistencyTestDef(
   companion object {
     val tests = phasedSyncTestProjects.filterNot {
       setOf(
+      // TODO(b/384022658): Excluded for now as dependency resolution is disabled for this project
+      TestProject.PRIVACY_SANDBOX_SDK,
       // TODO(b/384022658): Handle spaces in the root project name (settings.gradle) correctly
       TestProject.TWO_JARS,
       TestProject.ANDROID_KOTLIN_MULTIPLATFORM,

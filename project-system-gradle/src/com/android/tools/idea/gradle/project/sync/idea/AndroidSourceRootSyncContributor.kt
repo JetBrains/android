@@ -23,6 +23,7 @@ import com.android.builder.model.v2.models.BasicAndroidProject
 import com.android.builder.model.v2.models.Versions
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.dependencies.DeclaredDependencies
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
@@ -35,6 +36,7 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.sync.ModelFeature
 import com.android.tools.idea.gradle.project.sync.ModelVersions
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions
+import com.android.tools.idea.gradle.project.sync.computeVariantNameToBeSynced
 import com.android.tools.idea.gradle.project.sync.convert
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.Companion.toIdeDeclaredDependencies
 import com.android.tools.idea.gradle.project.sync.idea.entities.AndroidGradleSourceSetEntitySource
@@ -109,6 +111,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 import java.nio.file.Path
 
+
 // Need the source type to be nullable because of how AndroidManifest is handled.
 internal typealias SourceSetData = Pair<IdeArtifactName, Map<out ExternalSystemSourceType?, Set<File>>>
 internal typealias ModuleAction = (Module) -> Unit
@@ -130,7 +133,7 @@ internal open class SyncContributorProjectContext(
   val buildModel: GradleLightBuild,
   val projectModel: GradleLightProject,
 ) {
-  private val virtualFileUrlManager = project.workspaceModel.getVirtualFileUrlManager()
+  val virtualFileUrlManager = project.workspaceModel.getVirtualFileUrlManager()
   // Create an entity source representing each project root
   val rootIdeaProjectEntitySource = GradleLinkedProjectEntitySource(File(context.projectPath).toVirtualFileUrl())
   // For each build, create an entity source representing the Gradle build, as the root project source as parent
@@ -177,7 +180,7 @@ internal class SyncContributorAndroidProjectContext(
     AndroidSdks.getInstance().findSuitableAndroidSdk(androidDsl.compileTarget)?.let {
       SdkDependency(SdkId(it.name, AndroidSdkType.SDK_NAME))
     }
-
+  val variantName: String = computeVariantNameToBeSynced(syncOptions, projectModel.moduleId(), basicAndroidProject, androidDsl)!!
 
   private val holderModuleEntityNullable: ModuleEntity? = storage.resolve(ModuleId(resolveModuleName()))
 
@@ -201,7 +204,7 @@ internal class SyncContributorAndroidProjectContext(
         ideAndroidProject,
         ideDeclaredDependencies,
         ideAndroidProject.coreVariants.map { it as IdeVariantCoreImpl },
-        getVariantName() ?: error("Unknown variant!")
+        variantName
       ) as GradleAndroidModelDataImpl
     }
   internal val gradleModuleModelFactory: (String) -> GradleModuleModel
@@ -277,6 +280,11 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
           "No result from source set phase!"
         }
         performModuleActionsFromPreviousPhase(context.project(), previousResult.allModuleActions)
+        if (StudioFlags.PHASED_SYNC_DEPENDENCY_RESOLUTION_ENABLED.get()) {
+          val result = setupAndroidDependenciesForAllProjects(context, context.getUserData(SOURCE_SET_UPDATE_RESULT_KEY)!!.allAndroidProjectContexts,
+                                                              storage.toSnapshot())
+          storage.replaceBySource({ it in result.knownEntitySources }, result.updatedStorage)
+        }
       }
     }
   }

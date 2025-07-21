@@ -27,9 +27,7 @@ import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.project.sync.ModelFeature
 import com.android.tools.idea.gradle.project.sync.ModelVersions
 import com.android.tools.idea.gradle.project.sync.Modules
-import com.android.tools.idea.gradle.project.sync.SingleVariantSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.convertArtifactName
-import com.android.tools.idea.gradle.project.sync.getDefaultVariant
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.isAaptGeneratedSourcesFolder
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.isDataBindingGeneratedBaseClassesFolder
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.isSafeArgGeneratedSourcesFolder
@@ -39,8 +37,6 @@ import java.io.File
 
 /** Returns all source sets (main and for a selected variant) for a given gradle project. */
 internal fun SyncContributorAndroidProjectContext.getAllSourceSetsFromModels(): List<SourceSetData> {
-  val variantName = getVariantName() ?: return emptyList()
-
   val (buildType, flavors) = basicAndroidProject.variants
     .singleOrNull { it.name == variantName }
     .let { (it?.buildType) to it?.productFlavors.orEmpty() }
@@ -153,20 +149,7 @@ internal fun SyncContributorAndroidProjectContext.getSourceSetDataForAndroidProj
   return sourceSets
 }
 
-internal fun SyncContributorAndroidProjectContext.getVariantName(): String? =
-  when (syncOptions) {
-    is SingleVariantSyncActionOptions ->
-      // newly user-selected variant
-      syncOptions.switchVariantRequest.takeIf { it?.moduleId == projectModel.moduleId() }?.variantName
-      // variants selected by the last sync, only if it still exists
-      ?: syncOptions.selectedVariants.getSelectedVariant(projectModel.moduleId()).takeIf { basicAndroidProject.variants.map { it.name }.contains(it) }
-    else -> null
-  } // default variant as specified by the build script
-  ?: basicAndroidProject.variants.toList().getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors) // default variant
-
 internal fun SyncContributorAndroidProjectContext.getSelectedVariantArtifact(sourceSetArtifactName: IdeArtifactName): AbstractArtifact? {
-  val variantName = getVariantName()
-
   val selectedVariant = androidProject.variants.singleOrNull { it.name == variantName } ?: error("Can't determine the selected variant")
   return when(sourceSetArtifactName) {
     IdeArtifactName.MAIN -> selectedVariant.mainArtifact
@@ -243,4 +226,4 @@ private fun AbstractArtifact.generatedSourceFoldersToUse(buildFolder: File) =
   }
 
 
-private fun GradleLightProject.moduleId() = Modules.createUniqueModuleId(projectIdentifier.buildIdentifier.rootDir, path)
+internal fun GradleLightProject.moduleId() = Modules.createUniqueModuleId(projectIdentifier.buildIdentifier.rootDir, path)

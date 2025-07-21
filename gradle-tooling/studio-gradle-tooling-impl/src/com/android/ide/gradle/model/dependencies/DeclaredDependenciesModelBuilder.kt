@@ -17,7 +17,9 @@ package com.android.ide.gradle.model.dependencies
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.tooling.provider.model.ToolingModelBuilder
+import org.gradle.util.GradleVersion
 import java.io.Serializable
 
 class DeclaredDependenciesModelBuilder : ToolingModelBuilder {
@@ -34,7 +36,19 @@ class DeclaredDependenciesModelBuilder : ToolingModelBuilder {
         }
       }
     }
-    return DeclaredDependenciesImpl(configurationsToCoordinates)
+    val allOutgoingProjectDependencies = project.configurations.flatMap {
+      it.dependencies.filterIsInstance<ProjectDependency>()
+        .map {
+          if (GradleVersion.version(project.gradle.gradleVersion) >= GradleVersion.version("8.11")) {
+            it.path
+          } else {
+            // Need to be backwards compatible, should use reflection to get this value in 9.0 tooling api as it's being removed completely
+            @Suppress("DEPRECATION")
+            it.dependencyProject.path
+          }
+      }
+    }
+    return DeclaredDependenciesImpl(configurationsToCoordinates, allOutgoingProjectDependencies)
   }
 
   companion object {
@@ -51,6 +65,7 @@ class DeclaredDependenciesModelBuilder : ToolingModelBuilder {
 
 interface DeclaredDependencies {
   val configurationsToCoordinates: Map<String, List<Coordinates>>
+  val allOutgoingProjectDependencies: List<String>
 }
 interface Coordinates {
   val group: String?
@@ -59,7 +74,8 @@ interface Coordinates {
 }
 
 data class DeclaredDependenciesImpl(
-  override val configurationsToCoordinates: Map<String, List<Coordinates>>
+  override val configurationsToCoordinates: Map<String, List<Coordinates>>,
+  override val allOutgoingProjectDependencies: List<String>
 ) : DeclaredDependencies, Serializable
 data class CoordinatesImpl(
   override val group: String?,

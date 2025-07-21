@@ -66,7 +66,7 @@ class ResolvedLibraryTableBuilder(
       yield(sourceSet)
       val targetSourceSetData = getModuleDataNode(sourceSet)
         ?: let {
-          logError("Resolved source set not found for: $sourceSet")
+          logWarn("Resolved source set not found for: $sourceSet")
           return@sequence
         }
       val kmpDependsOn = ExternalSystemApiUtil.find(targetSourceSetData, KotlinSourceSetData.KEY)?.data?.sourceSetInfo?.dependsOn.orEmpty()
@@ -79,8 +79,8 @@ class ResolvedLibraryTableBuilder(
 
   private val logger = Logger.getInstance(this.javaClass)
 
-  private fun logError(message: String) {
-    logger.error(message, Throwable())
+  private fun logWarn(message: String) {
+    logger.warn(message)
   }
 }
 

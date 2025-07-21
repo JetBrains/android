@@ -17,6 +17,7 @@
 
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.builder.model.v2.ide.AndroidGradlePluginProjectFlags
 import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.AndroidProject
 import com.android.builder.model.v2.models.BasicAndroidProject
@@ -32,11 +33,12 @@ import com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
 
-class PhasedSyncProjectModelProvider : ProjectImportModelProvider {
+class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cachedModels: ModelProviderCachedData) : ProjectImportModelProvider {
    /**
     * This is just indicating which phase the provider will  on. To match the names it can technically run on
     * [GradleModelFetchPhase.PROJECT_MODEL_PHASE] but we populate source sets with this information, so it's kept in the source set phase.
@@ -69,6 +71,10 @@ class PhasedSyncProjectModelProvider : ProjectImportModelProvider {
           val basicAndroidProject = controller.findModel(gradleProject, BasicAndroidProject::class.java)
           val androidProject = controller.findModel(gradleProject, AndroidProject::class.java)
           val androidDsl = controller.findModel(gradleProject, AndroidDsl::class.java)
+          val gradlePropertiesModel = controller.findModel(gradleProject, GradlePropertiesModel::class.java)
+
+          val selectedVariantName = computeVariantNameToBeSynced(syncOptions, gradleProject.moduleId(), basicAndroidProject, androidDsl) ?: return@BuildAction null
+
           val modelCache = modelCacheV2Impl(internedModels, modelVersions, syncTestMode = productionMode)
 
           val ideAndroidProject = modelCache.androidProjectFrom(
@@ -79,7 +85,7 @@ class PhasedSyncProjectModelProvider : ProjectImportModelProvider {
             modelVersions,
             androidDsl,
             legacyAndroidGradlePluginProperties = null, // Is this actually needed now?
-            controller.findModel(gradleProject, GradlePropertiesModel::class.java),
+            gradlePropertiesModel,
             defaultVariantName = null // Is this actually needed now?
           ).let { it.exceptions.takeIf { it.isNotEmpty() }?.first()?.let { throw it } ?: it.ignoreExceptionsAndGet()!! }
           gradleProject to AndroidProjectData(
@@ -89,12 +95,14 @@ class PhasedSyncProjectModelProvider : ProjectImportModelProvider {
             androidDsl,
             controller.findModel(gradleProject, DeclaredDependencies::class.java),
             controller.findModel(gradleProject, GradlePluginModel ::class.java),
-            ideAndroidProject
+            ideAndroidProject,
+            selectedVariantName,
+            shouldSkipRuntimeClasspathForLibraries(androidProject.flags, gradlePropertiesModel)
           )
         }
       }
-    }).filterNotNull()
-      .forEach { (gradleProject, data) ->
+    }).filterNotNull().forEach { (gradleProject, data) ->
+        modelConsumer.consumeProjectModel(gradleProject, gradleProject, BasicGradleProject::class.java)
         modelConsumer.consumeProjectModel(gradleProject, data.versions, Versions::class.java)
         modelConsumer.consumeProjectModel(gradleProject, data.basicAndroidProject, BasicAndroidProject::class.java)
         modelConsumer.consumeProjectModel(gradleProject, data.androidProject, AndroidProject::class.java)
@@ -102,6 +110,12 @@ class PhasedSyncProjectModelProvider : ProjectImportModelProvider {
         modelConsumer.consumeProjectModel(gradleProject, data.declaredDependencies, DeclaredDependencies::class.java)
         modelConsumer.consumeProjectModel(gradleProject, data.gradlePluginModel, GradlePluginModel::class.java)
         modelConsumer.consumeProjectModel(gradleProject, data.ideAndroidProject, IdeAndroidProject::class.java)
+        cachedModels.data[gradleProject] = CachedAndroidProjectData(
+          data.selectedVariantName,
+          data.ideAndroidProject.projectType,
+          data.shouldSkipRuntimeClassPathForLibraries,
+          data.declaredDependencies.allOutgoingProjectDependencies
+        )
       }
     buildModels.map { it.rootProject }.distinct().forEach { projectModel ->
       controller.findModel(projectModel, BuildMap::class.java)?.let {
@@ -118,7 +132,22 @@ class PhasedSyncProjectModelProvider : ProjectImportModelProvider {
   }
 }
 
+
+/** Use [Modules.createUniqueModuleId] to provide module id. */
+fun computeVariantNameToBeSynced(syncOptions: SyncActionOptions, moduleId: String, basicAndroidProject: BasicAndroidProject, androidDsl: AndroidDsl): String? =
+  when (syncOptions) {
+    is SingleVariantSyncActionOptions ->
+      // newly user-selected variant
+      syncOptions.switchVariantRequest.takeIf { it?.moduleId == moduleId }?.variantName
+      // variants selected by the last sync, only if it still exists
+      ?: syncOptions.selectedVariants.getSelectedVariant(moduleId).takeIf { basicAndroidProject.variants.map { it.name }.contains(it) }
+    else -> null
+  } // default variant as specified by the build script
+  ?: basicAndroidProject.variants.toList().getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors) // default variant
+
 private fun Versions.isAtLeastAgp8() = AgpVersion.parse(agp).isAtLeast(8, 0, 0)
+
+private fun BasicGradleProject.moduleId() = Modules.createUniqueModuleId(projectIdentifier.buildIdentifier.rootDir, path)
 
 private data class AndroidProjectData(
   val versions: Versions,
@@ -128,6 +157,8 @@ private data class AndroidProjectData(
   val declaredDependencies: DeclaredDependencies,
   val gradlePluginModel: GradlePluginModel,
   val ideAndroidProject: IdeAndroidProject,
+  val selectedVariantName: String,
+  val shouldSkipRuntimeClassPathForLibraries: Boolean
 )
 
 
@@ -142,3 +173,6 @@ private fun <T> T.getAllChildren(childrenFunction: (T) -> List<T>): List<T> {
   }
   return result
 }
+
+internal fun shouldSkipRuntimeClasspathForLibraries(flags: AndroidGradlePluginProjectFlags, gradlePropertiesModel: GradlePropertiesModel) =
+  AndroidGradlePluginProjectFlags.BooleanFlag.EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS.getValue(flags, gradlePropertiesModel.excludeLibraryComponentsFromConstraints)

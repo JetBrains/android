@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.builder.model.v2.ide.SyncIssue
 import com.android.testutils.AssumeUtil.assumeNotWindows
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
@@ -422,6 +423,13 @@ enum class TestProject(
   PRIVACY_SANDBOX_SDK(
     TestProjectToSnapshotPaths.PRIVACY_SANDBOX_SDK,
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    setup = {
+      // TODO(b/384022658): Disabling this because phased sync dependency resolution doesn't ensure the app dependencies are resolved before
+      // library dependencies, causing issues specifically for this project.
+      StudioFlags.PHASED_SYNC_DEPENDENCY_RESOLUTION_ENABLED.override(false)
+      val tearDown = { StudioFlags.PHASED_SYNC_DEPENDENCY_RESOLUTION_ENABLED.clearOverride() }
+      tearDown
+    }
   ),
   APP_WITH_BUILD_FEATURES_ENABLED(TestProjectToSnapshotPaths.APP_WITH_BUILD_FEATURES_ENABLED),
   DEPENDENT_MODULES_ONLY_APP_RUNTIME(

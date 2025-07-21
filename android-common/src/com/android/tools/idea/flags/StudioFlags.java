@@ -944,6 +944,13 @@ public final class StudioFlags {
     "However we've done extensive feasibility work to make sure we don't actually need this replacement behaviour, meaning we can disable " +
     "this behaviour completely. This flag is a fail-safe to make sure we can switch this behaviour back to platform's default, if needed."
   );
+
+  public static final Flag<Boolean> PHASED_SYNC_DEPENDENCY_RESOLUTION_ENABLED = new BooleanFlag(
+    PHASED_SYNC,
+    "dependency.resolution.enabled",
+    "Enables dependency resolution phase in phased sync",
+    "Enables dependency resolution phase in phased sync"
+  );
   //endregion
 
   //region Apk Project System
