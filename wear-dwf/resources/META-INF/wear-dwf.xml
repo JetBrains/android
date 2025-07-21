@@ -30,6 +30,18 @@
                      groupKey="android.inspections.group.name"
                      displayName="Unknown Watch Face Format version" />
 
+    <localInspection language="XML" bundle="messages.AndroidBundle"
+                     implementationClass="com.android.tools.idea.wear.dwf.inspections.InvalidColorIndexXmlInspection"
+                     enabledByDefault="true"
+                     groupKey="android.inspections.group.name"
+                     displayName="Invalid color index"/>
+
+    <localInspection language="WFFExpression" bundle="messages.AndroidBundle"
+                     implementationClass="com.android.tools.idea.wear.dwf.inspections.InvalidColorIndexWFFExpressionInspection"
+                     enabledByDefault="true"
+                     groupKey="android.inspections.group.name"
+                     displayName="Invalid color index"/>
+
     <fileType name="WFFExpressionFile"
               language="WFFExpression"
               implementationClass="com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionFileType"

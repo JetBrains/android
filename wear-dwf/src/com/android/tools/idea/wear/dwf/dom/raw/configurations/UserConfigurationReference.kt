@@ -47,8 +47,8 @@ import com.intellij.psi.xml.XmlFile
  * However, as the different options depends on whatever a Watch Face User selects on their watch,
  * the references will point to the parent `<ColorConfiguration>`.
  *
- *  The [filter] parameter is used to filter user configurations that can be resolved by the
- *  reference and that should appear in the variants.
+ * The [filter] parameter is used to filter user configurations that can be resolved by the
+ * reference and that should appear in the variants.
  *
  * @see <a
  *   href="https://developer.android.com/training/wearables/wff/personalization/user-configurations">WFF
@@ -60,19 +60,17 @@ class UserConfigurationReference(
   private val referenceValue: String = "",
   private val filter: (UserConfiguration) -> Boolean = { true },
 ) : PsiReferenceBase<PsiElement>(element) {
+
+  private val userConfigurationIdParts = extractUserConfigurationIdParts()
+  val userConfigurationId = userConfigurationIdParts?.firstOrNull()
+  val colorIndex = if (userConfigurationIdParts?.size == 2) userConfigurationIdParts[1] else null
+
   override fun resolve(): PsiElement? {
-    if (!referenceValue.startsWith("[$CONFIGURATION_PREFIX")) return null
-    if (!referenceValue.endsWith("]")) return null
-
-    val userConfiguration =
-      referenceValue.drop("[$CONFIGURATION_PREFIX".length).dropLast("]".length)
-
-    val parts = userConfiguration.split(".")
-    val userConfigurationId = parts.firstOrNull() ?: return null
+    if (userConfigurationIdParts == null) return null
+    if (userConfigurationId == null) return null
 
     // there can only be maximum 2 parts, one for the id and one for a color index
-    if (parts.size > 2) return null
-    val hasColorIndex = parts.size == 2
+    if (userConfigurationIdParts.size > 2) return null
 
     val resolvedConfiguration =
       watchFaceFile
@@ -80,6 +78,7 @@ class UserConfigurationReference(
         .filter { filter(it) }
         .find { it.id == userConfigurationId } ?: return null
 
+    val hasColorIndex = colorIndex != null
     if (hasColorIndex && resolvedConfiguration !is ColorConfiguration) return null
     return resolvedConfiguration.xmlTag
   }
@@ -104,5 +103,13 @@ class UserConfigurationReference(
       .map { "[$CONFIGURATION_PREFIX$it]" }
       .map { LookupElementBuilder.create(it).insertBracketsAroundIfNeeded() }
       .toTypedArray()
+  }
+
+  private fun extractUserConfigurationIdParts(): List<String>? {
+    if (!referenceValue.startsWith("[$CONFIGURATION_PREFIX")) return null
+    if (!referenceValue.endsWith("]")) return null
+    return referenceValue
+      .removeSurrounding(prefix = "[$CONFIGURATION_PREFIX", suffix = "]")
+      .split(".")
   }
 }
