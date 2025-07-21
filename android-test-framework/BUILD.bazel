@@ -80,18 +80,17 @@ jvm_library(
     "//plugins/kotlin/base/external-build-system",
     "//plugins/kotlin/base/plugin",
     "//plugins/kotlin/base/plugin:plugin_test_lib",
-    "//plugins/kotlin/base/scripting",
-    "//plugins/kotlin/base/scripting:scripting_test_lib",
     "//plugins/kotlin/highlighting/highlighting-k1:kotlin-highlighting-k1",
     "@lib//:mockito-kotlin",
     "@lib//:kotlinc-kotlin-scripting-compiler-impl",
-    "//plugins/kotlin/base/scripting.k1",
-    "//plugins/kotlin/base/scripting.k1:scripting.k1_test_lib",
+    "//plugins/kotlin/base/scripting/scripting.k1",
+    "//plugins/kotlin/base/scripting/scripting.k1:scripting.k1_test_lib",
     "//platform/diagnostic/telemetry",
     "//platform/diagnostic/telemetry:telemetry_test_lib",
     "//platform/backend/workspace",
     "//platform/workspace/storage",
     "//platform/workspace/jps",
+    "//plugins/kotlin/base/scripting/scripting.shared",
   ]
 )
 ### auto-generated section `build intellij.android.testFramework` end

@@ -33,8 +33,8 @@ import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.io.write
 import layoutinspector.snapshots.Metadata
-import org.jetbrains.kotlin.idea.core.util.readString
-import org.jetbrains.kotlin.idea.core.util.writeString
+import org.jetbrains.kotlin.idea.core.script.v1.readString
+import org.jetbrains.kotlin.idea.core.script.v1.writeString
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException

@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import static com.intellij.openapi.options.Configurable.PROJECT_CONFIGURABLE;
-import static org.jetbrains.kotlin.idea.core.script.ScriptUtilsKt.getAllDefinitions;
+import static org.jetbrains.kotlin.idea.core.script.shared.ScriptUtilsKt.getAllDefinitions;
 
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.openapi.application.ApplicationManager;

@@ -50,8 +50,8 @@ jvm_library(
     "//plugins/kotlin/base/indices",
     "//plugins/kotlin/base/plugin",
     "//plugins/kotlin/base/psi",
-    "//plugins/kotlin/base/scripting",
     "//plugins/kotlin/base/util",
+    "//plugins/kotlin/base/scripting/scripting.shared",
   ],
   runtime_deps = [":dagger_resources"]
 )

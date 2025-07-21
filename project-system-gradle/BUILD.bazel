@@ -144,7 +144,6 @@ jvm_library(
     "//plugins/kotlin/base/external-build-system",
     "//plugins/kotlin/base/facet",
     "//plugins/kotlin/base/project-model",
-    "//plugins/kotlin/base/scripting",
     "//plugins/kotlin/base/util",
     "//plugins/kotlin/gradle/gradle",
     "//plugins/kotlin/gradle/gradle-java",
@@ -169,7 +168,8 @@ jvm_library(
     "//android/gradle-declarative-lang-sync",
     "//android/testartifacts",
     "//android/gradle-declarative-lang-flags",
-    "//plugins/kotlin/base/scripting.k1",
+    "//plugins/kotlin/base/scripting/scripting.k1",
+    "//plugins/kotlin/base/scripting/scripting.shared",
   ],
   runtime_deps = [":projectSystem-gradle_resources"]
 )
@@ -306,8 +306,6 @@ jvm_library(
     "//plugins/kotlin/gradle/gradle-tooling/impl:impl_test_lib",
     "//plugins/kotlin/idea",
     "//plugins/kotlin/code-insight/inspections-k2:kotlin-code-insight-inspections-k2",
-    "//plugins/kotlin/base/scripting",
-    "//plugins/kotlin/base/scripting:scripting_test_lib",
     "//android/gradle-dsl:gradle-dsl-testutils_test_lib",
     "//plugins/kotlin/project-configuration",
     "//android/gradle-dsl-declarative",
