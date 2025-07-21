@@ -21,6 +21,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.preview.animation.DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS
 import com.android.tools.idea.preview.animation.SupportedAnimationManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
@@ -153,6 +154,7 @@ class WearTileAnimationPreviewTest {
 
     animationPreview =
       WearTileAnimationPreview(
+        projectRule.testRootDisposable.createCoroutineScope(),
         projectRule.project,
         surface,
         wearTilePreviewElement,
@@ -161,7 +163,6 @@ class WearTileAnimationPreviewTest {
 
     Disposer.register(projectRule.testRootDisposable, model)
     Disposer.register(projectRule.testRootDisposable, surface)
-    Disposer.register(projectRule.testRootDisposable, animationPreview)
   }
 
   @Test
