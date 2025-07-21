@@ -144,13 +144,8 @@ fun Sequence<String>.annotate(
 
 fun ModuleDumpWithType.filterOutExpectedInconsistencies() = copy(
   projectStructure = projectStructure.filter { line ->
-    DEPENDENCY_RELATED_PROPERTIES.none { line.contains(it) } && // We don't set up dependencies in phased sync
     !line.contains("BUILD_TASKS") // We don't set up tasks in phased sync
-  },
-  ideModels = ideModels.filter { line ->
-    IDE_MODEL_DEPENDENCY_RELATED_PROPERTIES.none { line.contains(it) } // We don't set up dependencies in phased sync
-  }
-)
+  })
 
 fun Project.dumpModules(knownAndroidPaths: Set<File>) =
   ModuleDumpWithType(
@@ -213,13 +208,6 @@ private fun Module.projectDirectory(): File? = ExternalSystemModulePropertyManag
 val DEPENDENCY_RELATED_PROPERTIES = setOf(
   "/ORDER_ENTRY",
   "/LIBRARY",
-)
-
-val IDE_MODEL_DEPENDENCY_RELATED_PROPERTIES = setOf(
-  "LIBRARY_TABLE",
-  "Artifact/Dependencies",
-  "/ProvidedDependencies",
-  "/RuntimeOnlyClasses"
 )
 
 

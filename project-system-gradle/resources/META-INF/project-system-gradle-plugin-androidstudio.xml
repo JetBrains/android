@@ -84,6 +84,7 @@
     <syncExtension implementation="com.android.tools.idea.projectsystem.gradle.FixSyncContributorIssues" />
     <syncExtension implementation="com.android.tools.idea.gradle.project.sync.idea.AndroidSourceRootSyncExtension"/>
     <syncContributor implementation="com.android.tools.idea.gradle.project.sync.idea.AndroidSourceRootSyncContributor"/>
+    <syncContributor implementation="com.android.tools.idea.gradle.project.sync.idea.AndroidDependencySyncContributor"/>
   </extensions>
   <applicationListeners>
     <listener class="com.android.tools.idea.startup.GradleSpecificInitializer"

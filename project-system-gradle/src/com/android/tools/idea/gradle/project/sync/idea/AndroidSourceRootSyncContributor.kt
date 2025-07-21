@@ -23,6 +23,7 @@ import com.android.builder.model.v2.models.BasicAndroidProject
 import com.android.builder.model.v2.models.Versions
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.dependencies.DeclaredDependencies
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
@@ -35,6 +36,7 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.sync.ModelFeature
 import com.android.tools.idea.gradle.project.sync.ModelVersions
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions
+import com.android.tools.idea.gradle.project.sync.computeVariantNameToBeSynced
 import com.android.tools.idea.gradle.project.sync.convert
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.Companion.toIdeDeclaredDependencies
 import com.android.tools.idea.model.AndroidModel
@@ -103,6 +105,7 @@ import org.jetbrains.plugins.gradle.service.syncAction.virtualFileUrl
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 import java.nio.file.Path
+
 
 // Need the source type to be nullable because of how AndroidManifest is handled.
 internal typealias SourceSetData = Pair<IdeArtifactName, Map<out ExternalSystemSourceType?, Set<File>>>
@@ -190,7 +193,7 @@ internal class SyncContributorAndroidProjectContext(
     AndroidSdks.getInstance().findSuitableAndroidSdk(androidDsl.compileTarget)?.let {
       SdkDependency(SdkId(it.name, AndroidSdkType.SDK_NAME))
     }
-
+  val variantName: String = computeVariantNameToBeSynced(syncOptions, projectModel.moduleId(), basicAndroidProject, androidDsl)!!
 
   private val holderModuleEntityNullable: ModuleEntity? = storage.resolve(ModuleId(resolveHolderModuleName()))
 
@@ -214,7 +217,7 @@ internal class SyncContributorAndroidProjectContext(
         ideAndroidProject,
         ideDeclaredDependencies,
         ideAndroidProject.coreVariants.map { it as IdeVariantCoreImpl },
-        getVariantName() ?: error("Unknown variant!")
+        variantName
       ) as GradleAndroidModelDataImpl
     }
   internal val gradleModuleModelFactory: (String) -> GradleModuleModel
@@ -272,6 +275,23 @@ internal class SyncContributorAndroidProjectContext(
 }
 
 private val SOURCE_SET_UPDATE_RESULT_KEY: Key<SourceSetUpdateResult> = Key.create("SOURCE_SET_UPDATE_RESULT")
+
+internal class AndroidDependencySyncContributor: GradleSyncContributor {
+
+  override val phase: GradleSyncPhase = GradleSyncPhase.DEPENDENCY_MODEL_PHASE
+
+  override suspend fun updateProjectModel(
+    context: ProjectResolverContext,
+    storage: MutableEntityStorage,
+  ) {
+    if (StudioFlags.PHASED_SYNC_DEPENDENCY_RESOLUTION_ENABLED.get()) {
+      val previousResult = checkNotNull(context.getUserData(SOURCE_SET_UPDATE_RESULT_KEY)) {
+        "No result from source set phase!"
+      }
+      setupAndroidDependenciesForAllProjects(context, phase, previousResult.allAndroidProjectContexts, storage.toSnapshot())
+    }
+  }
+}
 
 internal class AndroidSourceRootSyncExtension : GradleSyncExtension {
 

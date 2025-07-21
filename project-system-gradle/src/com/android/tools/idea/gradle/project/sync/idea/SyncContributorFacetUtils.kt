@@ -81,7 +81,7 @@ internal fun SyncContributorAndroidProjectContext.createOrUpdateAndroidFacet(
       MANIFEST_FILE_RELATIVE_PATH = sourceProvider?.manifestFile.relativizeOrEmpty()
       RES_FOLDER_RELATIVE_PATH = sourceProvider?.resDirectories?.firstOrNull().relativizeOrEmpty()
       ASSETS_FOLDER_RELATIVE_PATH = sourceProvider?.assetsDirectories?.firstOrNull().relativizeOrEmpty()
-      SELECTED_BUILD_VARIANT = getVariantName()
+      SELECTED_BUILD_VARIANT = variantName
     }
   }
 

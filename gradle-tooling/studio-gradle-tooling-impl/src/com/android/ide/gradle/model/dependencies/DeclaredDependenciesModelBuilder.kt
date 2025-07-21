@@ -17,7 +17,9 @@ package com.android.ide.gradle.model.dependencies
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.tooling.provider.model.ToolingModelBuilder
+import org.gradle.util.GradleVersion
 import java.io.Serializable
 
 class DeclaredDependenciesModelBuilder : ToolingModelBuilder {
@@ -34,8 +36,21 @@ class DeclaredDependenciesModelBuilder : ToolingModelBuilder {
         }
       }
     }
-    return DeclaredDependenciesImpl(configurationsToCoordinates)
+    val allOutgoingProjectDependencies = project.configurations.flatMap {
+      it.dependencies.filterIsInstance<ProjectDependency>()
+        .map {
+          if (GradleVersion.version(project.gradle.gradleVersion) >= GradleVersion.version("8.11")) {
+            it.path
+          } else {
+            it.dependencyProject.path
+          }
+      }
+    }
+    return DeclaredDependenciesImpl(configurationsToCoordinates, allOutgoingProjectDependencies)
   }
+
+  private val ProjectDependency.dependencyProject: Project
+    get() = javaClass.getMethod("getDependencyProject").invoke(this) as Project
 
   companion object {
     // FIXME(xof): it would be nice to be able to have a manifest constant shared between this and the
@@ -51,6 +66,7 @@ class DeclaredDependenciesModelBuilder : ToolingModelBuilder {
 
 interface DeclaredDependencies {
   val configurationsToCoordinates: Map<String, List<Coordinates>>
+  val allOutgoingProjectDependencies: List<String>
 }
 interface Coordinates {
   val group: String?
@@ -59,11 +75,12 @@ interface Coordinates {
 }
 
 data class DeclaredDependenciesImpl(
-  override val configurationsToCoordinates: Map<String, List<Coordinates>>
+  override val configurationsToCoordinates: Map<String, List<Coordinates>>,
+  override val allOutgoingProjectDependencies: List<String>,
 ) : DeclaredDependencies, Serializable
 data class CoordinatesImpl(
   override val group: String?,
   override val name: String,
-  override val version: String?
+  override val version: String?,
 ): Coordinates, Serializable
 fun Dependency.coordinates(): Coordinates = CoordinatesImpl(group, name, version)

@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.aggregateAndThrowIfAny
 import com.android.tools.idea.testing.requestSyncAndWait
 import com.android.tools.idea.testing.runCatchingAndRecord
@@ -54,29 +55,36 @@ private fun getProjectSpecificResyncIssues(testProject: TestProject) = when(test
   else -> emptySet()
 }
 
-private fun getProjectSpecificIdeModelResyncIssues(testProject: TestProject) = when(testProject) {
-  TestProject.PRIVACY_SANDBOX_SDK,
-  TestProject.COMPATIBILITY_TESTS_AS_36,
-  TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML -> setOf(
-    // TODO(b/384022658): Manifest index affects these values so they fail to populate correctly in some cases
-    "/CurrentVariantReportedVersions"
+private fun getProjectSpecificIdeModelResyncIssues(testProject: TestProject) = when(testProject.template) {
+  TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
+  TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES -> setOf(
+    // TODO(b/384022658): Dependencies to kotlin multiplatform modules can't be set up as module set up is not supported by phased sync
+    "Classpath/module (<PROJECT>-:module2",
+    "Classpath/module (<PROJECT>-:feature-b-MAIN)",
+    "Classpath/module (<PROJECT>-:common-commonMain)"
   )
-  // TODO(b/384022658): Info from KaptGradleModel is missing for phased sync entities for now
-  TestProject.KOTLIN_KAPT,
-  TestProject.NEW_SYNC_KOTLIN_TEST -> setOf(
-    "generated/source/kaptKotlin",
-  )
-  else -> emptySet()
+
+  else -> when (testProject) {
+    TestProject.PRIVACY_SANDBOX_SDK,
+    TestProject.COMPATIBILITY_TESTS_AS_36,
+    TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML -> setOf(
+      // TODO(b/384022658): Manifest index affects these values so they fail to populate correctly in some cases
+      "/CurrentVariantReportedVersions"
+    )
+    // TODO(b/384022658): Info from KaptGradleModel is missing for phased sync entities for now
+    TestProject.KOTLIN_KAPT,
+    TestProject.NEW_SYNC_KOTLIN_TEST -> setOf(
+      "generated/source/kaptKotlin",
+    )
+    // TODO(b/428221750) BytecodeTransforms is missing for phased sync entities
+    TestProject.BASIC_WITH_EMPTY_SETTINGS_FILE -> setOf(
+      "/BytecodeTransforms",
+    )
+
+    else -> emptySet()
+  }
 }
 
-fun ModuleDumpWithType.filterOutKnownConsistencyIssues(): ModuleDumpWithType {
-  return copy(
-    ideModels = ideModels
-      .filter { line ->
-        (IDE_MODEL_DEPENDENCY_RELATED_PROPERTIES).none { line.contains(it) }
-      }
-  )
-}
 
 fun ModuleDumpWithType.filterOutProjectSpecificIssues(testProject: TestProject) = copy(
   projectStructure = projectStructure.filter { line ->
@@ -119,8 +127,8 @@ class PhasedSyncResyncTests(val testProject: TestProject) : PhasedSyncSnapshotTe
         }
         runCatchingAndRecord {
           Truth.assertWithMessage("Comparing resync intermediate sync ide models to full state")
-            .that(secondIntermediateSync.filterOutKnownConsistencyIssues().filterOutProjectSpecificIssues(testProject).ideModels())
-            .isEqualTo(secondFullSync.filterOutKnownConsistencyIssues().filterOutProjectSpecificIssues(testProject).ideModels())
+            .that(secondIntermediateSync.filterOutProjectSpecificIssues(testProject).ideModels())
+            .isEqualTo(secondFullSync.filterOutProjectSpecificIssues(testProject).ideModels())
         }
       }
     }
@@ -132,6 +140,8 @@ class PhasedSyncResyncTests(val testProject: TestProject) : PhasedSyncSnapshotTe
     @Parameterized.Parameters(name = "{0}")
     fun testParameters(): Collection<*>  = phasedSyncTestProjects.filterNot {
       setOf(
+        // TODO(b/384022658): Excluded for now as dependency resolution is disabled for this project
+        TestProject.PRIVACY_SANDBOX_SDK,
         // TODO(b/384022658): There is an issue regarding the full sync regarding this project, it seems to create duplicate
         //  library dependencies for some modules. Probably has to do with module libraries.
         TestProject.KOTLIN_MULTIPLATFORM_WITHJS,

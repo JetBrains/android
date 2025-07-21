@@ -1060,6 +1060,14 @@ public final class StudioFlags {
     "this behaviour completely. This flag is a fail-safe to make sure we can switch this behaviour back to platform's default, if needed.",
     enabledUpTo(CANARY)
   );
+
+  public static final Flag<Boolean> PHASED_SYNC_DEPENDENCY_RESOLUTION_ENABLED = new BooleanFlag(
+    PHASED_SYNC,
+    "dependency.resolution.enabled",
+    "Enables dependency resolution phase in phased sync",
+    "Enables dependency resolution phase in phased sync",
+    true
+  );
   //endregion
 
   //region Apk Project System

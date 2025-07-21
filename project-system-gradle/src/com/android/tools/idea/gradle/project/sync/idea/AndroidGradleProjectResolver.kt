@@ -28,14 +28,12 @@ import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
-import com.android.tools.idea.gradle.model.impl.IdeDeclaredDependenciesImpl.IdeCoordinatesImpl
 import com.android.tools.idea.gradle.model.IdeDebugInfo
-import com.android.tools.idea.gradle.model.IdeDeclaredDependencies
-import com.android.tools.idea.gradle.model.IdeDeclaredDependencies.IdeCoordinates
-import com.android.tools.idea.gradle.model.impl.IdeDeclaredDependenciesImpl
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeVariantCore
+import com.android.tools.idea.gradle.model.impl.IdeDeclaredDependenciesImpl
+import com.android.tools.idea.gradle.model.impl.IdeDeclaredDependenciesImpl.IdeCoordinatesImpl
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl.Companion.fromLibraryTables
 import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
@@ -50,12 +48,14 @@ import com.android.tools.idea.gradle.project.model.V2NdkModel
 import com.android.tools.idea.gradle.project.sync.AndroidExtraModelProvider
 import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType
-import com.android.tools.idea.gradle.project.sync.PhasedSyncProjectModelProvider
+import com.android.tools.idea.gradle.project.sync.ModelProviderCachedData
 import com.android.tools.idea.gradle.project.sync.IdeAndroidModels
 import com.android.tools.idea.gradle.project.sync.IdeAndroidNativeVariantsModels
 import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncError
 import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncIssuesAndExceptions
 import com.android.tools.idea.gradle.project.sync.IdeSyncExecutionReport
+import com.android.tools.idea.gradle.project.sync.PhasedSyncDependencyModelProvider
+import com.android.tools.idea.gradle.project.sync.PhasedSyncProjectModelProvider
 import com.android.tools.idea.gradle.project.sync.SdkSync
 import com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs
@@ -692,7 +692,13 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
 
     return listOf<ProjectImportModelProvider>(AndroidExtraModelProvider(syncOptions)) +
            if (resolverCtx.isPhasedSyncEnabled) {
-             listOf(PhasedSyncProjectModelProvider())
+             val cachedModels = ModelProviderCachedData()
+             listOfNotNull(
+               PhasedSyncProjectModelProvider(syncOptions, cachedModels),
+               PhasedSyncDependencyModelProvider(syncOptions, cachedModels).takeIf {
+                 StudioFlags.PHASED_SYNC_DEPENDENCY_RESOLUTION_ENABLED.get()
+               }
+              )
            } else {
              emptyList()
            }

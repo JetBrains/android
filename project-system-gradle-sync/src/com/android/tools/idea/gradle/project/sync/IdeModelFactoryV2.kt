@@ -84,7 +84,7 @@ class IdeModelFactoryV2(
     library: Library,
     androidProjectPathResolver: AndroidProjectPathResolver,
     buildPathMap: Map<String, BuildId>
-  ) : IdeUnresolvedLibrary {
+  ) : IdeUnresolvedLibrary? {
     val projectInfo = library.projectInfo!!
     val projectPath = projectInfo.projectPath
     val libraryLintJar = library.lintJar
@@ -95,8 +95,7 @@ class IdeModelFactoryV2(
         KmpAndroidArtifactRef
       } else if (projectInfo.isAndroidComponent()) {
         val resolvedProjectPath: ResolvedAndroidProjectPath =
-          androidProjectPathResolver.resolve(buildId, projectInfo.projectPath)
-          ?: error("Cannot find an Android module: ${projectInfo.displayName}")
+          androidProjectPathResolver.resolve(buildId, projectInfo.projectPath) ?: return null
         val variantName = resolvedProjectPath.resolveVariantName(projectInfo, buildId)
         AndroidArtifactRef(variantName, projectInfo.isTestFixtures, resolvedProjectPath.lintJar)
       } else {
