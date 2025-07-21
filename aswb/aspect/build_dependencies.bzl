@@ -767,7 +767,8 @@ def _collect_cc_dependencies_core_impl(target, ctx):
     if not cc_info:
         return None
     cc_info_files = []
-    cc_info_files = [_write_cc_target_info(target.label, cc_info.compilation_info, ctx)] + ([cc_info.cc_toolchain_info.file] if cc_info.cc_toolchain_info else [])
+    cc_info_files = ([_write_cc_target_info(target.label, cc_info.compilation_info, ctx)] if cc_info.compilation_info else []) + \
+                    ([cc_info.cc_toolchain_info.file] if cc_info.cc_toolchain_info else [])
 
     return create_cc_dependencies_info(
         cc_info_files = depset(cc_info_files),
