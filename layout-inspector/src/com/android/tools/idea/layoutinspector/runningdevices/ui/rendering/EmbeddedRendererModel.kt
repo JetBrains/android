@@ -23,6 +23,7 @@ import com.android.tools.idea.layoutinspector.model.RenderingDimensions.NORMAL_B
 import com.android.tools.idea.layoutinspector.model.RenderingDimensions.RECOMPOSITION_BORDER_THICKNESS
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.runningdevices.OverlayHost
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.RenderSettings
 import com.intellij.openapi.Disposable
@@ -80,7 +81,7 @@ class EmbeddedRendererModel(
   private val treeSettings: TreeSettings,
   val renderSettings: RenderSettings,
   private val navigateToSelectedViewOnDoubleClick: () -> Unit,
-) : Disposable {
+) : Disposable, OverlayHost {
 
   private val _interceptClicks = MutableStateFlow<Boolean>(false)
   /** When true, prevents clicks from being dispatched to the app. */
@@ -99,6 +100,9 @@ class EmbeddedRendererModel(
   private val _recomposingNodes = MutableStateFlow<List<DrawInstruction>>(emptyList())
   /** All the nodes that had a recent recomposition count change. */
   val recomposingNodes = _recomposingNodes.asStateFlow()
+
+  private val _overlay = MutableStateFlow<ByteArray?>(null)
+  val overlay = _overlay.asStateFlow()
 
   private var renderSettingsState = renderSettings.toState()
 
@@ -183,6 +187,15 @@ class EmbeddedRendererModel(
   fun doubleClickNode(x: Double, y: Double, rootId: Long = inspectorModel.root.drawId) {
     selectNode(x, y, rootId)
     navigateToSelectedViewOnDoubleClick()
+  }
+
+  override fun setOverlay(image: ByteArray?) {
+    _overlay.value = image
+  }
+
+  // TODO(b/433223949): remove
+  override fun getOverlay(): ByteArray? {
+    return _overlay.value
   }
 
   /** Returns the node, at the provided coordinates, that the user most likely want to select. */

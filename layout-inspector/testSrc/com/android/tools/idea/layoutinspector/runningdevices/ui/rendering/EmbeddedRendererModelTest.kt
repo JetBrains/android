@@ -975,6 +975,15 @@ class EmbeddedRendererModelTest {
     assertThat(instructions8).isEqualTo(expectedInstructionsForColumn)
   }
 
+  @Test
+  fun testOverlay() = runTest {
+    rendererModel.setOverlay(ByteArray(1))
+    testScheduler.advanceUntilIdle()
+
+    val overlay = rendererModel.overlay.first()
+    assertThat(overlay).isEqualTo(ByteArray(1))
+  }
+
   private fun createWindowForDrawModifierTest(): ViewAndroidWindow {
     return viewWindow(ROOT, 0, 0, 100, 200) {
       view(VIEW1, 0, 0, 100, 200) {

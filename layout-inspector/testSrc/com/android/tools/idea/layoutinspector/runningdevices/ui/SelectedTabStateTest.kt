@@ -31,6 +31,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW4
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
+import com.android.tools.idea.layoutinspector.runningdevices.RenderingComponents
 import com.android.tools.idea.layoutinspector.runningdevices.actions.UiConfig
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.LayoutInspectorRenderer
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.StudioRendererPanel
@@ -205,7 +206,7 @@ class SelectedTabStateTest {
         deviceId = DeviceId.ofPhysicalDevice("tab"),
         tabComponents = tabsComponents1,
         layoutInspector = layoutInspector,
-        rendererPanel = FakeLayoutInspectorRenderer(),
+        renderingComponents = getRenderingComponents(),
       )
 
     selectedTabState1.enableLayoutInspector(UiConfig.VERTICAL)
@@ -233,7 +234,7 @@ class SelectedTabStateTest {
         deviceId = DeviceId.ofPhysicalDevice("tab"),
         tabComponents = tabsComponents2,
         layoutInspector = layoutInspector,
-        rendererPanel = FakeLayoutInspectorRenderer(),
+        renderingComponents = getRenderingComponents(),
       )
 
     selectedTabState2.enableLayoutInspector()
@@ -260,18 +261,18 @@ class SelectedTabStateTest {
         deviceId = DeviceId.ofPhysicalDevice("tab"),
         tabComponents = tabsComponents,
         layoutInspector = layoutInspector,
-        rendererPanel = FakeLayoutInspectorRenderer(),
+        renderingComponents = getRenderingComponents(),
       )
 
     val inspector1 =
-      DataManager.getDataProvider(selectedTabState.rendererPanel)
+      DataManager.getDataProvider(selectedTabState.renderingComponents.renderer)
         ?.getData(LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
     assertThat(inspector1).isNotNull()
 
     Disposer.dispose(selectedTabState.tabComponents)
 
     val inspector2 =
-      DataManager.getDataProvider(selectedTabState.rendererPanel)
+      DataManager.getDataProvider(selectedTabState.renderingComponents.renderer)
         ?.getData(LAYOUT_INSPECTOR_DATA_KEY.name) as? LayoutInspector
     assertThat(inspector2).isNull()
   }
@@ -308,7 +309,11 @@ class SelectedTabStateTest {
       deviceId = DeviceId.ofPhysicalDevice("tab"),
       tabComponents = tabsComponents,
       layoutInspector = layoutInspector,
-      rendererPanel = FakeLayoutInspectorRenderer(),
+      renderingComponents = getRenderingComponents(),
     )
+  }
+
+  private fun getRenderingComponents(): RenderingComponents {
+    return RenderingComponents(FakeLayoutInspectorRenderer(), layoutInspector.renderModel)
   }
 }
