@@ -27,11 +27,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import java.io.File
 
-private val IDE_MODELS_WITH_KNOWN_CONSISTENCY_ISSUES = setOf(
-  "/GradleModuleModel",
-)
-
-
 private val PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES = setOf(
   // TODO(b/384022658): Facet related
   "/FACET (Kotlin)",
@@ -148,10 +143,7 @@ fun ModuleDumpWithType.filterOutKnownConsistencyIssues(testProject: TestProject)
       (PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES_FOR_NON_ANDROID_MODULES +
        projectSpecificIssues).none { line.contains(it) }
     },
-    ideModels = ideModels
-      .filter { line ->
-        IDE_MODELS_WITH_KNOWN_CONSISTENCY_ISSUES.none { line.contains(it) }
-      }.filter {line ->
+    ideModels = ideModels.filter { line ->
         getProjectSpecificIdeModelIssues(testProject).none { line.contains(it) }
       }
   )

@@ -69,16 +69,11 @@ private fun getProjectSpecificIdeModelResyncIssues(testProject: TestProject) = w
   else -> emptySet()
 }
 
-private val IDE_MODELS_WITH_KNOWN_RESYNC_CONSISTENCY_ISSUES = setOf(
-  "/GradleModuleModel",
-)
-
 fun ModuleDumpWithType.filterOutKnownConsistencyIssues(): ModuleDumpWithType {
   return copy(
     ideModels = ideModels
       .filter { line ->
-        (IDE_MODEL_DEPENDENCY_RELATED_PROPERTIES + // This is expected as intermediate GradleAndroidModel won't have dependencies
-         IDE_MODELS_WITH_KNOWN_RESYNC_CONSISTENCY_ISSUES).none { line.contains(it) }
+        (IDE_MODEL_DEPENDENCY_RELATED_PROPERTIES).none { line.contains(it) }
       }
   )
 }
