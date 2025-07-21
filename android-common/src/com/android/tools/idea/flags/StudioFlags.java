@@ -577,7 +577,7 @@ public final class StudioFlags {
     "Use adblib version of `AndroidDebugBridgeDelegate`",
     "Use adblib version of `AndroidDebugBridgeDelegate` in `AndroidDebugBridge` class. " +
     "Note: Changing the value of this flag requires restarting Android Studio.",
-    enabledUpTo(DEV));
+    enabledUpTo(CANARY));
 
   public static final Flag<Boolean> ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE_USAGE_TRACKER = new BooleanFlag(
     RUNDEBUG,
