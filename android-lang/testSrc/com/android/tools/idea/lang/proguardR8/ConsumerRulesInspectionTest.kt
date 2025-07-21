@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestP
 import com.android.tools.idea.testing.highlightedAs
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
+import com.intellij.lang.annotation.HighlightSeverity.WARNING
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.junit.Before
@@ -109,7 +110,7 @@ class ConsumerRulesInspectionTest(val projectType: IdeAndroidProjectType) {
     rules.forEach { rule ->
       val highlightedRule = if (projectType == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY) {
         rule.highlightedAs(
-          level = ERROR,
+          level = WARNING,
           message =
             "Global flags should never be placed in library consumer rules, since they prevent optimizations in apps using the library"
         )
@@ -133,24 +134,24 @@ class ConsumerRulesInspectionTest(val projectType: IdeAndroidProjectType) {
   fun testKeepAttributes() {
     val rulesAndErrorHighlights = listOf(
       "-keepattributes RuntimeInvisibleAnnotations" to """
-        -keepattributes <error descr="Attribute RuntimeInvisibleAnnotations should never be placed in library consumer rules, since it prevents optimizations in apps using the library">RuntimeInvisibleAnnotations</error>
+        -keepattributes <warning descr="Attribute RuntimeInvisibleAnnotations should never be placed in library consumer rules, since it prevents optimizations in apps using the library">RuntimeInvisibleAnnotations</warning>
       """.trimIndent(),
       "-keepattributes LineNumberTable" to """
-        -keepattributes <error descr="Attribute LineNumberTable should never be placed in library consumer rules, since it prevents optimizations in apps using the library">LineNumberTable</error>
+        -keepattributes <warning descr="Attribute LineNumberTable should never be placed in library consumer rules, since it prevents optimizations in apps using the library">LineNumberTable</warning>
       """.trimIndent(),
       "-keepattributes SourceFile" to """
-        -keepattributes <error descr="Attribute SourceFile should never be placed in library consumer rules, since it prevents optimizations in apps using the library">SourceFile</error>
+        -keepattributes <warning descr="Attribute SourceFile should never be placed in library consumer rules, since it prevents optimizations in apps using the library">SourceFile</warning>
       """.trimIndent(),
       "-keepattributes *Annotations" to """
-        -keepattributes <error descr="Attribute *Annotations should never be placed in library consumer rules, since it prevents optimizations in apps using the library">*Annotations</error>
+        -keepattributes <warning descr="Attribute *Annotations should never be placed in library consumer rules, since it prevents optimizations in apps using the library">*Annotations</warning>
       """.trimIndent(),
       "-keepattributes RuntimeInvisibleAnnotations, RuntimeInvisibleTypeAnnotations" to """
-        -keepattributes <error descr="Attribute RuntimeInvisibleAnnotations should never be placed in library consumer rules, since it prevents optimizations in apps using the library">RuntimeInvisibleAnnotations</error>, <error descr="Attribute RuntimeInvisibleTypeAnnotations should never be placed in library consumer rules, since it prevents optimizations in apps using the library">RuntimeInvisibleTypeAnnotations</error>
+        -keepattributes <warning descr="Attribute RuntimeInvisibleAnnotations should never be placed in library consumer rules, since it prevents optimizations in apps using the library">RuntimeInvisibleAnnotations</warning>, <warning descr="Attribute RuntimeInvisibleTypeAnnotations should never be placed in library consumer rules, since it prevents optimizations in apps using the library">RuntimeInvisibleTypeAnnotations</warning>
       """.trimIndent(),
       "-keepattributes RuntimeInvisibleParameterAnnotations, RuntimeInvisibleTypeAnnotations" to """
-        -keepattributes <error descr="Attribute RuntimeInvisibleParameterAnnotations should never be placed in library consumer rules, since it prevents optimizations in apps using the library">RuntimeInvisibleParameterAnnotations</error>, <error descr="Attribute RuntimeInvisibleTypeAnnotations should never be placed in library consumer rules, since it prevents optimizations in apps using the library">RuntimeInvisibleTypeAnnotations</error>
+        -keepattributes <warning descr="Attribute RuntimeInvisibleParameterAnnotations should never be placed in library consumer rules, since it prevents optimizations in apps using the library">RuntimeInvisibleParameterAnnotations</warning>, <warning descr="Attribute RuntimeInvisibleTypeAnnotations should never be placed in library consumer rules, since it prevents optimizations in apps using the library">RuntimeInvisibleTypeAnnotations</warning>
       """.trimIndent(),
-      "-keepattributes Exceptions" to "-keepattributes Exceptions" // No error highlights expected
+      "-keepattributes Exceptions" to "-keepattributes Exceptions" // No warning highlights expected
     )
 
     rulesAndErrorHighlights.forEach { (rule, errorHighlight) ->

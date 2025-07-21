@@ -23,6 +23,8 @@ import com.android.tools.idea.lang.proguardR8.psi.ProguardR8Visitor
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.androidProjectType
 import com.intellij.codeInspection.LocalInspectionTool
+import com.intellij.codeInspection.ProblemDescriptor
+import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
@@ -87,9 +89,9 @@ class ConsumerRulesInspection : LocalInspectionTool() {
         val directive = flag.text
         if (directive in BANNED_DIRECTIVES_IN_CONSUMER_RULES) {
           holder.registerProblem(
-            /* psiElement = */ flag,
-            /* descriptionTemplate = */
-            "Global flags should never be placed in library consumer rules, since they prevent optimizations in apps using the library"
+            flag,
+            "Global flags should never be placed in library consumer rules, since they prevent optimizations in apps using the library",
+            ProblemHighlightType.WARNING
           )
           return
         }
@@ -103,7 +105,8 @@ class ConsumerRulesInspection : LocalInspectionTool() {
             if (BANNED_KEEP_ATTRIBUTES_VALUES.contains(argumentValue)) {
               // Fast check
               true
-            } else {
+            }
+            else {
               val regex = argumentValue.wildCardAsRegexOrNull() // Check for wildcard matches.
               regex?.matches(argumentValue) ?: false
             }
@@ -111,9 +114,9 @@ class ConsumerRulesInspection : LocalInspectionTool() {
           if (bannedArgumentValues.isNotEmpty()) {
             bannedArgumentValues.forEach { argument ->
               holder.registerProblem(
-                /* psiElement = */ argument,
-                /* descriptionTemplate = */
-                "Attribute ${argument.text} should never be placed in library consumer rules, since it prevents optimizations in apps using the library"
+                argument,
+                "Attribute ${argument.text} should never be placed in library consumer rules, since it prevents optimizations in apps using the library",
+                ProblemHighlightType.WARNING
               )
             }
             return
@@ -137,5 +140,6 @@ private fun fileLikelyHasConsumerRules(element: PsiElement): Boolean {
 private fun String.wildCardAsRegexOrNull(): Regex? {
   return if (contains(char = '*')) {
     Regex(pattern = replace(oldValue = "*", newValue = "(.*)?")) // Replace it with groups.
-  } else null
+  }
+  else null
 }

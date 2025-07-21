@@ -22,7 +22,7 @@ import com.android.tools.idea.lang.proguardR8.inspections.ExpensiveKeepRuleInspe
 import com.android.tools.idea.lang.proguardR8.inspections.ExpensiveKeepRuleInspection.Companion.TOO_MANY_AFFECTED_CLASSES_DESCRIPTION
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedName
 import com.android.tools.idea.testing.highlightedAs
-import com.intellij.lang.annotation.HighlightSeverity.ERROR
+import com.intellij.lang.annotation.HighlightSeverity.WARNING
 import com.intellij.testFramework.registerServiceInstance
 import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 import org.mockito.Mockito.mock
@@ -66,7 +66,7 @@ class ExpensiveKeepRuleInspectionTest : ExpensiveKeepRuleTestCase() {
 
     rules.forEach { rule ->
       val highlight = rule.highlightedAs(
-        level = ERROR,
+        level = WARNING,
         message = TOO_MANY_AFFECTED_CLASSES_DESCRIPTION
       )
 
@@ -86,7 +86,7 @@ class ExpensiveKeepRuleInspectionTest : ExpensiveKeepRuleTestCase() {
 
     rules.forEach { rule ->
       val highlight = rule.highlightedAs(
-        level = ERROR,
+        level = WARNING,
         message = RULE_USES_NEGATION_DESCRIPTION
       )
 

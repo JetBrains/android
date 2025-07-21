@@ -30,6 +30,7 @@ import com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedName
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8RuleWithClassSpecification
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8Visitor
 import com.intellij.codeInspection.LocalInspectionTool
+import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.components.service
 import com.intellij.psi.PsiElement
@@ -56,7 +57,8 @@ class ExpensiveKeepRuleInspection : LocalInspectionTool() {
           // Expand on this by using the qualified name to identify the blast radius.
           holder.registerProblem(
             expensiveKeepRule.elementToHighlight,
-            expensiveKeepRule.description
+            expensiveKeepRule.description,
+            ProblemHighlightType.WARNING
           )
         }
       }
