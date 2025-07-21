@@ -72,7 +72,7 @@ int logging_ioctl(int fd, unsigned op, const uinput_setup* value) {
 
 #define ioctl logging_ioctl
 
-#endif // LOG_IOCTL_CALLS
+#endif  // LOG_IOCTL_CALLS
 
 enum class DeviceType { KEYBOARD, TABLET };
 const char* const TYPE_NAMES[] = { "Keyboard", "Tablet" };
@@ -132,6 +132,9 @@ int OpenUInput(DeviceType device_type, const char* phys, int32_t screen_width, i
       ioctl(fd, UI_SET_EVBIT, EV_ABS);
       ioctl(fd, UI_SET_KEYBIT, BTN_TOUCH);
       ioctl(fd, UI_SET_KEYBIT, BTN_TOOL_PEN);
+      ioctl(fd, UI_SET_KEYBIT, BTN_LEFT);
+      ioctl(fd, UI_SET_KEYBIT, BTN_MIDDLE);
+      ioctl(fd, UI_SET_KEYBIT, BTN_RIGHT);
       ioctl(fd, UI_SET_ABSBIT, ABS_MT_TOOL_TYPE);
       ioctl(fd, UI_SET_ABSBIT, ABS_MT_SLOT);
       ioctl(fd, UI_SET_ABSBIT, ABS_MT_TRACKING_ID);
@@ -141,9 +144,6 @@ int OpenUInput(DeviceType device_type, const char* phys, int32_t screen_width, i
       ioctl(fd, UI_SET_ABSBIT, ABS_MT_PRESSURE);
       ioctl(fd, UI_SET_PROPBIT, INPUT_PROP_DIRECT);
       ioctl(fd, UI_SET_EVBIT, EV_REL);
-      ioctl(fd, UI_SET_KEYBIT, BTN_LEFT);
-      ioctl(fd, UI_SET_KEYBIT, BTN_MIDDLE);
-      ioctl(fd, UI_SET_KEYBIT, BTN_RIGHT);
       ioctl(fd, UI_SET_RELBIT, REL_X);
       ioctl(fd, UI_SET_RELBIT, REL_Y);
       ioctl(fd, UI_SET_RELBIT, REL_WHEEL);
@@ -151,6 +151,49 @@ int OpenUInput(DeviceType device_type, const char* phys, int32_t screen_width, i
       ioctl(fd, UI_SET_RELBIT, REL_HWHEEL);
       ioctl(fd, UI_SET_RELBIT, REL_HWHEEL_HI_RES);
       ioctl(fd, UI_SET_PROPBIT, INPUT_PROP_DIRECT);
+
+      uinput_abs_setup slotAbsSetup {.code = ABS_MT_SLOT};
+      slotAbsSetup.absinfo.maximum = VirtualInputDevice::MAX_POINTERS - 1;
+      slotAbsSetup.absinfo.minimum = 0;
+      if (ioctl(fd, UI_ABS_SETUP, &slotAbsSetup) != 0) {
+        CloseAndReportError(phys, fd);
+        return INVALID_FD;
+      }
+      uinput_abs_setup idAbsSetup {.code = ABS_MT_TRACKING_ID};
+      idAbsSetup.absinfo.maximum = VirtualInputDevice::MAX_POINTERS - 1;
+      idAbsSetup.absinfo.minimum = 0;
+      if (ioctl(fd, UI_ABS_SETUP, &idAbsSetup) != 0) {
+        CloseAndReportError(phys, fd);
+        return INVALID_FD;
+      }
+      uinput_abs_setup xAbsSetup {.code = ABS_MT_POSITION_X};
+      xAbsSetup.absinfo.maximum = screen_width - 1;
+      xAbsSetup.absinfo.minimum = 0;
+      if (ioctl(fd, UI_ABS_SETUP, &xAbsSetup) != 0) {
+        CloseAndReportError(phys, fd);
+        return INVALID_FD;
+      }
+      uinput_abs_setup yAbsSetup {.code = ABS_MT_POSITION_Y};
+      yAbsSetup.absinfo.maximum = screen_height - 1;
+      yAbsSetup.absinfo.minimum = 0;
+      if (ioctl(fd, UI_ABS_SETUP, &yAbsSetup) != 0) {
+        CloseAndReportError(phys, fd);
+        return INVALID_FD;
+      }
+      uinput_abs_setup majorAbsSetup {.code = ABS_MT_TOUCH_MAJOR};
+      majorAbsSetup.absinfo.maximum = screen_width - 1;
+      majorAbsSetup.absinfo.minimum = 0;
+      if (ioctl(fd, UI_ABS_SETUP, &majorAbsSetup) != 0) {
+        CloseAndReportError(phys, fd);
+        return INVALID_FD;
+      }
+      uinput_abs_setup pressureAbsSetup {.code = ABS_MT_PRESSURE};
+      pressureAbsSetup.absinfo.maximum = VirtualInputDevice::MAX_PRESSURE;
+      pressureAbsSetup.absinfo.minimum = 0;
+      if (ioctl(fd, UI_ABS_SETUP, &pressureAbsSetup) != 0) {
+        CloseAndReportError(phys, fd);
+        return INVALID_FD;
+      }
       break;
   }
 
@@ -160,50 +203,6 @@ int OpenUInput(DeviceType device_type, const char* phys, int32_t screen_width, i
   setup.id.bustype = BUS_VIRTUAL;
   setup.id.vendor = VENDOR_ID;
   setup.id.product = GetProductId(device_type);
-  if (device_type == DeviceType::TABLET) {
-    uinput_abs_setup slotAbsSetup {.code = ABS_MT_SLOT};
-    slotAbsSetup.absinfo.maximum = VirtualInputDevice::MAX_POINTERS - 1;
-    slotAbsSetup.absinfo.minimum = 0;
-    if (ioctl(fd, UI_ABS_SETUP, &slotAbsSetup) != 0) {
-      CloseAndReportError(phys, fd);
-      return INVALID_FD;
-    }
-    uinput_abs_setup idAbsSetup {.code = ABS_MT_TRACKING_ID};
-    idAbsSetup.absinfo.maximum = VirtualInputDevice::MAX_POINTERS - 1;
-    idAbsSetup.absinfo.minimum = 0;
-    if (ioctl(fd, UI_ABS_SETUP, &idAbsSetup) != 0) {
-      CloseAndReportError(phys, fd);
-      return INVALID_FD;
-    }
-    uinput_abs_setup xAbsSetup {.code = ABS_MT_POSITION_X};
-    xAbsSetup.absinfo.maximum = screen_width - 1;
-    xAbsSetup.absinfo.minimum = 0;
-    if (ioctl(fd, UI_ABS_SETUP, &xAbsSetup) != 0) {
-      CloseAndReportError(phys, fd);
-      return INVALID_FD;
-    }
-    uinput_abs_setup yAbsSetup {.code = ABS_MT_POSITION_Y};
-    yAbsSetup.absinfo.maximum = screen_height - 1;
-    yAbsSetup.absinfo.minimum = 0;
-    if (ioctl(fd, UI_ABS_SETUP, &yAbsSetup) != 0) {
-      CloseAndReportError(phys, fd);
-      return INVALID_FD;
-    }
-    uinput_abs_setup majorAbsSetup {.code = ABS_MT_TOUCH_MAJOR};
-    majorAbsSetup.absinfo.maximum = screen_width - 1;
-    majorAbsSetup.absinfo.minimum = 0;
-    if (ioctl(fd, UI_ABS_SETUP, &majorAbsSetup) != 0) {
-      CloseAndReportError(phys, fd);
-      return INVALID_FD;
-    }
-    uinput_abs_setup pressureAbsSetup {.code = ABS_MT_PRESSURE};
-    pressureAbsSetup.absinfo.maximum = VirtualInputDevice::MAX_PRESSURE;
-    pressureAbsSetup.absinfo.minimum = 0;
-    if (ioctl(fd, UI_ABS_SETUP, &pressureAbsSetup) != 0) {
-      CloseAndReportError(phys, fd);
-      return INVALID_FD;
-    }
-  }
   if (ioctl(fd, UI_DEV_SETUP, &setup) != 0) {
     CloseAndReportError(phys, fd);
     return INVALID_FD;
