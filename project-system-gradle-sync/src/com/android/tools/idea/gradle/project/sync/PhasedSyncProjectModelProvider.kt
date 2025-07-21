@@ -24,12 +24,14 @@ import com.android.builder.model.v2.models.Versions
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.GradlePropertiesModel
+import com.android.ide.gradle.model.composites.BuildMap
 import com.android.ide.gradle.model.dependencies.DeclaredDependencies
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.ignoreExceptionsAndGet
 import com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
+import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
@@ -86,6 +88,7 @@ class PhasedSyncProjectModelProvider : ProjectImportModelProvider {
             androidProject,
             androidDsl,
             controller.findModel(gradleProject, DeclaredDependencies::class.java),
+            controller.findModel(gradleProject, GradlePluginModel ::class.java),
             ideAndroidProject
           )
         }
@@ -97,8 +100,21 @@ class PhasedSyncProjectModelProvider : ProjectImportModelProvider {
         modelConsumer.consumeProjectModel(gradleProject, data.androidProject, AndroidProject::class.java)
         modelConsumer.consumeProjectModel(gradleProject, data.androidDsl, AndroidDsl::class.java)
         modelConsumer.consumeProjectModel(gradleProject, data.declaredDependencies, DeclaredDependencies::class.java)
+        modelConsumer.consumeProjectModel(gradleProject, data.gradlePluginModel, GradlePluginModel::class.java)
         modelConsumer.consumeProjectModel(gradleProject, data.ideAndroidProject, IdeAndroidProject::class.java)
       }
+    buildModels.map { it.rootProject }.distinct().forEach { projectModel ->
+      controller.findModel(projectModel, BuildMap::class.java)?.let {
+        modelConsumer.consumeProjectModel(projectModel, it, BuildMap::class.java)
+      }
+      val basicModelsMap = projectModel.getAllChildren { it.children.toList() }.associateBy { it.path }
+
+      controller.findModel(projectModel, GradleProject::class.java)?.let {
+        it.getAllChildren { it.children.toList() }.forEach {
+          modelConsumer.consumeProjectModel(basicModelsMap[it.path]!!, it, GradleProject::class.java)
+        }
+      }
+    }
   }
 }
 
@@ -110,5 +126,19 @@ private data class AndroidProjectData(
   val androidProject: AndroidProject,
   val androidDsl: AndroidDsl,
   val declaredDependencies: DeclaredDependencies,
+  val gradlePluginModel: GradlePluginModel,
   val ideAndroidProject: IdeAndroidProject,
 )
+
+
+private fun <T> T.getAllChildren(childrenFunction: (T) -> List<T>): List<T> {
+  val result = mutableListOf<T>(this)
+  val stack = ArrayDeque<T>(result)
+  while(stack.isNotEmpty()) {
+    val next = stack.removeLast()
+    val children  = childrenFunction(next)
+    result.addAll(children)
+    stack.addAll(children)
+  }
+  return result
+}

@@ -21,14 +21,17 @@ import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.AndroidProject
 import com.android.builder.model.v2.models.BasicAndroidProject
 import com.android.builder.model.v2.models.Versions
+import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.dependencies.DeclaredDependencies
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelDataImpl
+import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.sync.ModelFeature
 import com.android.tools.idea.gradle.project.sync.ModelVersions
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions
@@ -84,6 +87,7 @@ import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_RESOURCE_ROOT
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_SOURCE_ROOT_ENTITY_TYPE_ID
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_TEST_RESOURCE_ROOT_ENTITY_TYPE_ID
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_TEST_ROOT_ENTITY_TYPE_ID
+import org.gradle.tooling.model.GradleProject
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.AndroidSdkType
 import org.jetbrains.annotations.ApiStatus
@@ -154,13 +158,17 @@ internal class SyncContributorAndroidProjectContext(
     project,
     buildModel,
     projectModel,
-){
+) {
   val basicAndroidProject = context.getProjectModel(projectModel, BasicAndroidProject::class.java)!!
   val androidProject = context.getProjectModel(projectModel, AndroidProject::class.java)!!
   val androidDsl = context.getProjectModel(projectModel, AndroidDsl::class.java)!!
+  val gradlePluginModel = context.getProjectModel(projectModel, GradlePluginModel::class.java)!!
+  val gradleProject = context.getProjectModel(projectModel, GradleProject::class.java)!!
+
   // Need to use Impl version because GradleAndroidModelData expects an immutable implementation.
   val ideAndroidProject = context.getProjectModel(projectModel, IdeAndroidProject::class.java)!! as IdeAndroidProjectImpl
   val ideDeclaredDependencies = context.getProjectModel(projectModel, DeclaredDependencies::class.java)!!.toIdeDeclaredDependencies()
+
   // TODO(b/410774404): HAS_SCREENSHOT_TESTS_SUPPORT is not the best name for even though it's what indicates the availability in the
   // new fields. Consider renaming.
   val useContainer: Boolean = versions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]
@@ -171,6 +179,7 @@ internal class SyncContributorAndroidProjectContext(
 
 
   private val holderModuleEntityNullable: ModuleEntity? = storage.resolve(ModuleId(resolveModuleName()))
+
   // This is structured this way to make sure consumers don't have to worry about nullability.
   val holderModuleEntity: ModuleEntity by lazy { checkNotNull(holderModuleEntityNullable) { "Holder module can't be null!" } }
 
@@ -182,9 +191,37 @@ internal class SyncContributorAndroidProjectContext(
                        // handled separately in the platform
                        && holderModuleEntity.entitySource !is AndroidGradleSourceSetEntitySource
 
-  val contentRootIndex = GradleContentRootIndex()
+  internal val gradleAndroidModelFactory: (String) -> GradleAndroidModelDataImpl
+    get() = { moduleName ->
+      val ideAndroidProject = ideAndroidProject.copy(baseFeature = baseFeature)
+      GradleAndroidModelDataImpl.create(
+        moduleName = moduleName,
+        rootDirPath = File(externalProject.projectDir.path),
+        ideAndroidProject,
+        ideDeclaredDependencies,
+        ideAndroidProject.coreVariants.map { it as IdeVariantCoreImpl },
+        getVariantName() ?: error("Unknown variant!")
+      ) as GradleAndroidModelDataImpl
+    }
+  internal val gradleModuleModelFactory: (String) -> GradleModuleModel
+    get() = { moduleName ->
+      GradleModuleModel(
+        moduleName,
+        gradleProject,
+        gradleProject.buildScript.sourceFile,
+        context.projectGradleVersion,
+        versions.agpVersionAsString,
+        gradlePluginModel.hasSafeArgsJava(),
+        gradlePluginModel.hasSafeArgsKotlin()
+      )
+    }
 
+
+  // Mutable state
+  val contentRootIndex = GradleContentRootIndex()
   val moduleActions = mutableMapOf<String, MutableList<ModuleAction>>()
+  var baseFeature: String? = null
+
 
   fun registerModuleAction(moduleName: String, action: ModuleAction) {
     moduleActions.computeIfAbsent (moduleName) { mutableListOf() } += action
@@ -196,21 +233,23 @@ internal class SyncContributorAndroidProjectContext(
     }
   }
 
+
   companion object {
     internal fun create(context: ProjectResolverContext,
                         project: Project,
                         storage: EntityStorage,
                         syncOptions: SyncActionOptions,
                         buildModel: GradleLightBuild,
-                        projectModel: GradleLightProject): SyncContributorAndroidProjectContext? {
+                        projectModel: GradleLightProject
+    ): SyncContributorAndroidProjectContext? {
       return SyncContributorAndroidProjectContext(
-          context,
-          project,
-          storage,
-          buildModel,
-          projectModel,
-          syncOptions,
-          context.getProjectModel(projectModel, Versions::class.java)?.convert() ?: return null
+        context,
+        project,
+        storage,
+        buildModel,
+        projectModel,
+        syncOptions,
+        context.getProjectModel(projectModel, Versions::class.java)?.convert() ?: return null
         ).takeIf { it.isValidContext }
       }
   }
@@ -293,6 +332,10 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
           .takeIf { it.second != null }
       }
     }.toMap()
+    allAndroidContexts.forEach {
+      it.baseFeature = featureToAppMapping[it.ideAndroidProject.projectPath.projectPath]
+    }
+
     val newModuleEntities = allAndroidContexts.flatMap {
       with(it) {
         val sourceSetModuleEntitiesByArtifact = getAllSourceSetModuleEntities()
@@ -307,8 +350,7 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
           // There seems to be a bug in workspace model implementation that requires doing this to update list of changed props
           this.facets = facets
         }
-        linkModuleGroup(sourceSetModuleEntitiesByArtifact, featureToAppMapping)
-
+        linkModuleGroup(sourceSetModuleEntitiesByArtifact)
         sourceSetModules
       }
     }
@@ -381,34 +423,22 @@ private fun SyncContributorAndroidProjectContext.getAllSourceSetModuleEntities()
   }
 }
 
-private fun SyncContributorAndroidProjectContext.linkModuleGroup(
-  sourceSetModules: Map<IdeArtifactName, ModuleEntity.Builder>,
-  featureToAppMapping: Map<String, String?>
-) {
-  val projectDirectory = File (holderModuleEntity.exModuleOptions?.linkedProjectPath
-                               ?: error("Can't find external path for holder module"))
-
-
+private fun SyncContributorAndroidProjectContext.linkModuleGroup(sourceSetModules: Map<IdeArtifactName, ModuleEntity.Builder>) {
   val androidModuleGroup = getModuleGroup(sourceSetModules)
   val linkedModuleNames = sourceSetModules.values.map { it.name } + holderModuleEntity.name
   registerModuleActions(linkedModuleNames.associateWith {
     { moduleInstance ->
       moduleInstance.putUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP, androidModuleGroup)
+      val gradleAndroidModelData = gradleAndroidModelFactory(moduleInstance.name)
       AndroidFacet.getInstance(moduleInstance)?.let {
-        val gradleAndroidModelData = GradleAndroidModelDataImpl.create(
-          moduleInstance.name,
-          projectDirectory,
-          ideAndroidProject.copy(baseFeature = featureToAppMapping[ideAndroidProject.projectPath.projectPath]),
-          ideDeclaredDependencies,
-          ideAndroidProject.coreVariants.map { it as IdeVariantCoreImpl },
-          getVariantName() ?: error("Unknown variant!")
-        )
-
         AndroidModel.set(it, GradleAndroidModel.create(project, gradleAndroidModelData))
       }
+
+      val gradleModuleModel = gradleModuleModelFactory(moduleInstance.name)
+      GradleFacet.getInstance(moduleInstance)
+        ?.setGradleModuleModel(gradleModuleModel)
     }
-  }
-  )
+  })
 }
 
 
