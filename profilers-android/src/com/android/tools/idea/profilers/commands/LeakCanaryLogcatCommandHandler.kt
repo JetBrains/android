@@ -65,7 +65,7 @@ class LeakCanaryLogcatCommandHandler(
   private var capturedLogsForIncompleteTrace = StringBuilder()
   private val leakStartPattern: String = "bytes retained by leaking objects"
   private val lastFramePattern: String = "╰→"
-  private val initialTabSpace: String = "     "
+  private val initialTabSpace = "  "
   private val TWO_SECONDS = TimeUnit.SECONDS.toSeconds(2)
 
   companion object {
