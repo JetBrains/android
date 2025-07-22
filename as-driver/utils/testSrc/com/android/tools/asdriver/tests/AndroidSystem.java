@@ -36,7 +36,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,11 +48,6 @@ import org.junit.runners.model.Statement;
  * It has a display, environment variables, a file system etc.
  */
 public class AndroidSystem implements AutoCloseable, TestRule {
-  /**
-   * By default, we set the emulator to a system image that most integration tests should be
-   * using. This version corresponds to {@code INTEGRATION_TEST_SYSTEM_IMAGE} in Bazel.
-   */
-  private static final Emulator.SystemImage DEFAULT_EMULATOR_SYSTEM_IMAGE = Emulator.SystemImage.API_31;
 
   private final TestFileSystem fileSystem;
   private final HashMap<String, String> env;
@@ -257,7 +251,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
 
   /** Runs and returns an emulator using the default {@link Emulator.SystemImage}. */
   public Emulator runEmulator() throws IOException, InterruptedException {
-    return runEmulator(DEFAULT_EMULATOR_SYSTEM_IMAGE);
+    return runEmulator(Emulator.DEFAULT_EMULATOR_SYSTEM_IMAGE);
   }
 
   /**
@@ -265,12 +259,12 @@ public class AndroidSystem implements AutoCloseable, TestRule {
    * {@link Emulator#close()}.
    */
   public void runEmulator(Consumer<Emulator> callback) throws IOException, InterruptedException {
-    runEmulator(DEFAULT_EMULATOR_SYSTEM_IMAGE, callback);
+    runEmulator(Emulator.DEFAULT_EMULATOR_SYSTEM_IMAGE, callback);
   }
 
   /** Wraps {@code runEmulator} such that the default image is used with specifiable flags. */
   public void runEmulator(List<String> extraEmulatorFlags, Consumer<Emulator> callback) throws IOException, InterruptedException {
-    runEmulator(DEFAULT_EMULATOR_SYSTEM_IMAGE, extraEmulatorFlags, callback);
+    runEmulator(Emulator.DEFAULT_EMULATOR_SYSTEM_IMAGE, extraEmulatorFlags, callback);
   }
 
   /** Wraps {@code runEmulator} such that the default image is used with no extra emulator flags. */
@@ -307,19 +301,11 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   }
 
   public Adb runAdb() throws IOException {
-    return Adb.start(sdk, getAdbEnv());
+    return Adb.start(sdk, fileSystem);
   }
 
   public Adb runAdb(boolean startServer, String... args) throws IOException {
-    return Adb.start(sdk, getAdbEnv(), startServer, args);
-  }
-
-  private Map<String, String> getAdbEnv() throws IOException {
-    Map<String, String> env = new HashMap<>();
-    env.put("HOME", fileSystem.getHome().toString());
-    env.put("TMPDIR", Files.createTempDirectory(TestUtils.getTestOutputDir(), "adb_server_session_output").toString());
-    env.put("ADB_TRACE", "1");
-    return env;
+    return Adb.start(sdk, fileSystem, startServer, args);
   }
 
   public void runAdb(Consumer<Adb> callback) throws IOException {

@@ -15,20 +15,38 @@
  */
 package com.android.tools.idea;
 
+import com.android.testutils.TestUtils;
 import com.android.tools.asdriver.tests.AndroidSystem;
+import com.android.tools.asdriver.tests.Workspace;
 import com.android.tools.testlib.Adb;
+import com.android.tools.testlib.AndroidSdk;
+import com.android.tools.testlib.Display;
 import com.android.tools.testlib.Emulator;
+import com.android.tools.testlib.TestFileSystem;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class EmulatorTest {
   @Rule
   public AndroidSystem system = AndroidSystem.basic();
 
+  @Rule
+  public TemporaryFolder tempFolder = new TemporaryFolder();
+
   @Test
   public void runEmulatorTest() throws Exception {
-    try (Adb adb = system.runAdb();
-         Emulator emulator = system.runEmulator()) {
+    TestFileSystem fileSystem = new TestFileSystem(tempFolder.getRoot().toPath());
+    AndroidSdk sdk = new AndroidSdk(TestUtils.resolveWorkspacePath(TestUtils.getRelativeSdk()));
+
+    Path systemImageDir = Workspace.getRoot(Emulator.DEFAULT_EMULATOR_SYSTEM_IMAGE.path);
+    Emulator.createEmulator(fileSystem, "emu", systemImageDir);
+
+    try (Display display = Display.createDefault();
+         Adb adb = Adb.start(sdk, fileSystem);
+         Emulator emulator = Emulator.start(fileSystem, sdk, display, "emu", 8554, new ArrayList<>())) {
       emulator.waitForBoot();
       adb.waitForDevice(emulator);
     }
