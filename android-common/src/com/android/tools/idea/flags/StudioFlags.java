@@ -2195,10 +2195,10 @@ public final class StudioFlags {
                     enabledUpTo(CANARY));
 
   public static final Flag<Boolean> STUDIOBOT_AGENT_MD_FILES_CONTEXT =
-    new BooleanFlag(STUDIOBOT, "gemini.md.files.context",
+    new BooleanFlag(STUDIOBOT, "agent.md.files.context",
                     "Enable the AGENT.md Files macro in the context drawer",
                     "This macro attaches AGENT.md or GEMINI.md Files under directories of the current file and its recursive parents.",
-                    enabledUpTo(DEV));
+                    enabledUpTo(CANARY));
 
   public static final Flag<Boolean> STUDIOBOT_ASK_GEMINI_INCLUDE_BUILD_FILES_IN_CONTEXT =
     new BooleanFlag(STUDIOBOT, "askgemini.include.build.files.in.context",
