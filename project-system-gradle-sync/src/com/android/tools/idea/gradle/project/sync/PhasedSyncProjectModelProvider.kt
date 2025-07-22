@@ -30,6 +30,7 @@ import com.android.ide.gradle.model.dependencies.DeclaredDependencies
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.ignoreExceptionsAndGet
 import com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase
+import com.intellij.openapi.diagnostic.logger
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.GradleProject
@@ -133,17 +134,25 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
 }
 
 
+private val LOG = logger<PhasedSyncProjectModelProvider>()
+
 /** Use [Modules.createUniqueModuleId] to provide module id. */
 fun computeVariantNameToBeSynced(syncOptions: SyncActionOptions, moduleId: String, basicAndroidProject: BasicAndroidProject, androidDsl: AndroidDsl): String? =
   when (syncOptions) {
     is SingleVariantSyncActionOptions ->
       // newly user-selected variant
-      syncOptions.switchVariantRequest.takeIf { it?.moduleId == moduleId }?.variantName
+      syncOptions.switchVariantRequest.takeIf { it?.moduleId == moduleId }?.variantName?.also {
+        LOG.debug("Picked user-selected variant $it for $moduleId")
+      }
       // variants selected by the last sync, only if it still exists
-      ?: syncOptions.selectedVariants.getSelectedVariant(moduleId).takeIf { basicAndroidProject.variants.map { it.name }.contains(it) }
+      ?: syncOptions.selectedVariants.getSelectedVariant(moduleId).takeIf { basicAndroidProject.variants.map { it.name }.contains(it) }?.also {
+        LOG.debug("Picked selected variant from last sync $it for $moduleId")
+      }
     else -> null
-  } // default variant as specified by the build script
-  ?: basicAndroidProject.variants.toList().getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors) // default variant
+  } // default variant as specified by the build script (computation could still end up being null)
+  ?: basicAndroidProject.variants.toList().getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors).also {
+    LOG.debug("Picked the default variant $it for $moduleId")
+  }
 
 private fun Versions.isAtLeastAgp8() = AgpVersion.parse(agp).isAtLeast(8, 0, 0)
 
