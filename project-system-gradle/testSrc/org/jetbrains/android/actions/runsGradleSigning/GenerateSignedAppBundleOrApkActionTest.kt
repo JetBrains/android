@@ -21,7 +21,9 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.KOTLIN_LIB
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.disableKtsIndexing
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
 import org.jetbrains.android.actions.GenerateSignedAppBundleOrApkAction
 import org.junit.Rule
@@ -30,9 +32,10 @@ import org.junit.Test
 /**
  * Tests for [GenerateSignedAppBundleOrApkAction]
  */
+@RunsInEdt
 class GenerateSignedAppBundleOrApkActionTest {
   @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  val projectRule = AndroidGradleProjectRule().onEdt()
   val project by lazy { projectRule.project }
 
   @Test
