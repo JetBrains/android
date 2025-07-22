@@ -110,13 +110,17 @@ class RawWatchFaceDrawableReferenceContributorTest {
     fixture.addFileToProject("res/drawable/some_image.png", "")
     projectRule.waitForResourceRepositoryUpdates()
 
-    val nonDWFFile = fixture.addFileToProject("res/xml/non_dwf_file.xml",
-    // language=XML
-    """
+    val nonDWFFile =
+      fixture.addFileToProject(
+        "res/xml/non_dwf_file.xml",
+        // language=XML
+        """
       <resource>
         <someTag resource="some<caret>_image" />
       </resource>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(nonDWFFile.virtualFile)
 
     assertThat(fixture.getReferenceAtCaretPosition()).isNull()
@@ -147,6 +151,9 @@ class RawWatchFaceDrawableReferenceContributorTest {
 
     runInEdt { fixture.moveCaret("resource=\"|") }
     assertThat(fixture.complete(CompletionType.BASIC)).isEmpty()
+
+    runInEdt { fixture.moveCaret("defaultImageResource=\"|") }
+    assertThat(fixture.complete(CompletionType.BASIC)).isEmpty()
   }
 
   @Test
@@ -173,5 +180,10 @@ class RawWatchFaceDrawableReferenceContributorTest {
     val resourceAttributeCompletions =
       fixture.complete(CompletionType.BASIC).map { it.lookupString }
     assertThat(resourceAttributeCompletions).containsExactlyElementsIn(drawables)
+
+    runInEdt { fixture.moveCaret(" defaultImageResource=\"|") }
+    val defaultImageResourceAttributeCompletions =
+      fixture.complete(CompletionType.BASIC).map { it.lookupString }
+    assertThat(defaultImageResourceAttributeCompletions).containsExactlyElementsIn(drawables)
   }
 }

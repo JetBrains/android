@@ -68,6 +68,7 @@
           id="2"
           screenReaderText="ith_option_display_name" />
     </ColorConfiguration>
+    <PhotosConfiguration id="photos_config" configType="SINGLE"/>
   </UserConfigurations>
 
   <BitmapFonts>
@@ -293,6 +294,17 @@
         x="31"
         y="269">
       <Image resource="wfs_battery_index_14255200_2541_4cfb_be12_e203e0fd2ca0" />
+    </PartImage>
+    <PartImage
+        name="photo example"
+        alpha="255"
+        height="30"
+        pivotX="0.5"
+        pivotY="0.5"
+        width="30"
+        x="0"
+        y="0">
+      <Photos source="[CONFIGURATION.photos_config]" defaultImageResource="default_photo"/>
     </PartImage>
     <PartDraw
         name="battery indicator_1e67"

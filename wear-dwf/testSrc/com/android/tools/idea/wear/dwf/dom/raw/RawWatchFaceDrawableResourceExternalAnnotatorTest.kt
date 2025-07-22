@@ -84,7 +84,7 @@ class RawWatchFaceDrawableResourceExternalAnnotatorTest {
   }
 
   @Test
-  fun `resources and icons are annotated`() {
+  fun `resources, icons and default photo images are annotated`() {
     val drawables = setupSampleDrawableResourcesFromWatchFaceExample()
     val watchFaceFile = fixture.copyFileToProject("res/raw/watch_face_example.xml")
     fixture.configureFromExistingVirtualFile(watchFaceFile)
@@ -122,12 +122,15 @@ class RawWatchFaceDrawableResourceExternalAnnotatorTest {
         "wfs_basic_c6ee15b8_c624_45ad_a293_a9c89f15672a",
       )
 
+    val defaultImageResources = listOf("default_photo")
+
+    val drawables = icons + resources + defaultImageResources
     // add the references as drawables for them to be resolved
-    for (drawable in (icons + resources).distinct()) {
+    for (drawable in drawables.distinct()) {
       fixture.addFileToProject("res/drawable/$drawable.png", "")
     }
     projectRule.waitForResourceRepositoryUpdates()
 
-    return icons + resources
+    return drawables
   }
 }
