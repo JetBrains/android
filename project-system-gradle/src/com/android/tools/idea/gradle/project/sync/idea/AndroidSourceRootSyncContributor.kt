@@ -51,6 +51,7 @@ import com.intellij.java.workspace.entities.JavaSourceRootPropertiesEntity
 import com.intellij.java.workspace.entities.javaResourceRoots
 import com.intellij.java.workspace.entities.javaSettings
 import com.intellij.java.workspace.entities.javaSourceRoots
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
 import com.intellij.openapi.externalSystem.model.project.IExternalSystemSourceType
 import com.intellij.openapi.externalSystem.service.project.manage.SourceFolderManager
@@ -111,6 +112,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 import java.nio.file.Path
 
+private val LOG = logger<AndroidSourceRootSyncContributor>()
 
 // Need the source type to be nullable because of how AndroidManifest is handled.
 internal typealias SourceSetData = Pair<IdeArtifactName, Map<out ExternalSystemSourceType?, Set<File>>>
@@ -187,13 +189,19 @@ internal class SyncContributorAndroidProjectContext(
   // This is structured this way to make sure consumers don't have to worry about nullability.
   val holderModuleEntity: ModuleEntity by lazy { checkNotNull(holderModuleEntityNullable) { "Holder module can't be null!" } }
 
-  val isValidContext = holderModuleEntityNullable != null
-                       // TODO(b/384022658): Spaces in module names are causing issues, fix them to  be consistent with data services too.
-                       && !resolveModuleName().contains("\\s".toRegex())
-                       // TODO(b/384022658): We don't behave well in the unlikely event when there is a rename that ends up with a holder
-                       // module with the same name as one of the existing source set modules (i.e. from app to app.main). This needs to be
-                       // handled separately in the platform
-                       && holderModuleEntity.entitySource !is AndroidGradleSourceSetEntitySource
+  val isValidContext = (holderModuleEntityNullable != null).logDebugIfFalse {
+    "Holder module entity is null for ${projectModel.path}"
+   }
+   // TODO(b/384022658): Spaces in module names are causing issues, fix them to  be consistent with data services too.
+   && (!resolveModuleName().contains("\\s".toRegex())).logDebugIfFalse {
+     "Module name has spaces in it ${resolveModuleName()}"
+   }
+   // TODO(b/384022658): We don't behave well in the unlikely event when there is a rename that ends up with a holder
+   // module with the same name as one of the existing source set modules (i.e. from app to app.main). This needs to be
+   // handled separately in the platform
+   && (holderModuleEntity.entitySource !is AndroidGradleSourceSetEntitySource).logDebugIfFalse {
+     "Holder module is not populated via Android Gradle source sets for ${projectModel.path}"
+   }
 
   internal val gradleAndroidModelFactory: (String) -> GradleAndroidModelDataImpl
     get() = { moduleName ->
@@ -253,7 +261,9 @@ internal class SyncContributorAndroidProjectContext(
         buildModel,
         projectModel,
         syncOptions,
-        context.getProjectModel(projectModel, Versions::class.java)?.convert() ?: return null
+        context.getProjectModel(projectModel, Versions::class.java)?.convert() ?: return null.also {
+          LOG.debug("No Versions model found for ${projectModel.path}. Not an Android project!")
+        }
         ).takeIf { it.isValidContext }
       }
   }
@@ -270,6 +280,7 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
     phase: GradleModelFetchPhase,
   ) {
     if (context.isPhasedSyncEnabled) {
+      LOG.info("Processing phase $phase for Android.")
       if (phase == GradleModelFetchPhase.PROJECT_SOURCE_SET_PHASE) {
         val result = configureModulesForSourceSets(context, storage.toSnapshot())
         // Only replace the android related source sets
@@ -323,6 +334,7 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
     context: ProjectResolverContext,
     storage: ImmutableEntityStorage
   ): SourceSetUpdateResult {
+    LOG.debug("Configuring modules for source sets")
     val project = context.project()
     val syncOptions = context.getSyncOptions(project)
 
@@ -333,6 +345,11 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
         SyncContributorAndroidProjectContext.create(context, project, storage, syncOptions, buildModel, projectModel)
       }
     }
+
+    if (allAndroidContexts.isEmpty()) {
+      LOG.debug("Nothing to set up!")
+    }
+
     val featureToAppMapping = allAndroidContexts.flatMap {
       it.ideAndroidProject.dynamicFeatures.mapNotNull { feature ->
         (feature to it.holderModuleEntity.exModuleOptions?.linkedProjectId)
@@ -345,8 +362,11 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
 
     val newModuleEntities = allAndroidContexts.flatMap {
       with(it) {
+        LOG.debug("Setting up project ${projectModel.path}")
         val sourceSetModuleEntitiesByArtifact = getAllSourceSetModuleEntities()
-        if (sourceSetModuleEntitiesByArtifact.isEmpty()) return@flatMap emptyList()
+        if (sourceSetModuleEntitiesByArtifact.isEmpty()) (return@flatMap emptyList()).also {
+          LOG.debug("No source sets found for ${projectModel.path}")
+        }
         val sourceSetModules = sourceSetModuleEntitiesByArtifact.values
 
         updatedEntities.modifyModuleEntity(holderModuleEntity) {
@@ -411,12 +431,15 @@ private fun SyncContributorAndroidProjectContext.getAllSourceSetModuleEntities()
   val projectModuleName = resolveModuleName()
   val moduleEntitiesMap = mutableMapOf<String, ModuleEntity.Builder>()
   val mainSourceSetName = IdeArtifactName.MAIN.toWellKnownSourceSet().sourceSetName
+  LOG.debug("Configuring module $projectModuleName")
+
 
   return allSourceSets.associate  { (sourceSetArtifactName, typeToDirsMap) ->
     // For each source set in the project, create entity source and the actual entities.
     val sourceSetName = sourceSetArtifactName.toWellKnownSourceSet().sourceSetName
     val entitySource = AndroidGradleSourceSetEntitySource(projectEntitySource, sourceSetName)
     val moduleName = "$projectModuleName.$sourceSetName"
+    LOG.debug("Configuring source set for $moduleName: $typeToDirsMap")
     val newModuleEntity = findOrCreateModuleEntity(
       moduleName,
       entitySource,
@@ -706,5 +729,11 @@ private fun IExternalSystemSourceType.toSourceRootTypeId(): SourceRootTypeId {
     ExternalSystemSourceType.TEST_RESOURCE -> JAVA_TEST_RESOURCE_ROOT_ENTITY_TYPE_ID
     ExternalSystemSourceType.TEST_RESOURCE_GENERATED -> JAVA_TEST_RESOURCE_ROOT_ENTITY_TYPE_ID
     else -> throw NoWhenBranchMatchedException("Unexpected source type: $this")
+  }
+}
+
+private fun Boolean.logDebugIfFalse(msg: () -> String) = this.also {
+  if (!this) {
+    LOG.debug(msg())
   }
 }

@@ -48,6 +48,7 @@ import com.android.tools.idea.gradle.project.sync.idea.entities.AndroidGradleSou
 import com.android.tools.idea.gradle.project.sync.modelCacheV2Impl
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
+import com.intellij.openapi.diagnostic.currentClassLogger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
@@ -78,6 +79,8 @@ import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncProjectConfigurator.project
 import java.io.File
+
+private val LOG = currentClassLogger()
 
 /** Represents a source module. Used for setting up module to module dependencies. */
 private data class SourceSetModuleId(
@@ -143,10 +146,10 @@ private class SyncContributorAndroidProjectDependenciesContext(
     }.distinct().let { newDependencies: List<ModuleDependencyItem> ->
       val moduleEntity = moduleNameToEntityMap[moduleName]!!
       val existingDependencies = moduleEntity.dependencies
+      val dependenciesToAdd = newDependencies.filter { it !in existingDependencies }
+      LOG.trace("Adding dependencies for $moduleName: $dependenciesToAdd")
       updatedEntities.modifyModuleEntity(moduleEntity) {
-        dependencies.addAll(
-          newDependencies.filter { it !in existingDependencies }
-        )
+        dependencies.addAll(dependenciesToAdd)
       }
     }
   }
@@ -284,7 +287,9 @@ private fun SyncContributorAndroidProjectContext.fetchAndProcessAndroidDependenc
   androidProjectPathResolver: AndroidProjectPathResolver,
   buildPathMap: Map<String, BuildId>,
 ): ModelResult<IdeVariantWithPostProcessor>? {
-  val variantDependencies = context.getProjectModel(projectModel, VariantDependenciesAdjacencyList::class.java) ?: return null
+  val variantDependencies = context.getProjectModel(projectModel, VariantDependenciesAdjacencyList::class.java) ?: return null.also {
+    LOG.debug("No variant dependency model found for ${projectModel.path}")
+  }
 
   // We need to be lenient when modules are being resolved as some might not be set up yet if not supported by phased sync
   // - for instance, the KMP modules are not supported and not yet populated in this case
@@ -305,7 +310,9 @@ private fun SyncContributorAndroidProjectDependenciesContext.populateDependencie
   ideVariantWithPostProcessor: ModelResult<IdeVariantWithPostProcessor>
 ) : Set<EntitySource> {
   ideVariantWithPostProcessor.exceptions.firstOrNull()?.let { throw it }
-  val ideVariant = ideVariantWithPostProcessor.ignoreExceptionsAndGet()?.postProcess()  ?: return emptySet()
+  val ideVariant = ideVariantWithPostProcessor.ignoreExceptionsAndGet()?.postProcess()  ?: (return emptySet()).also {
+    LOG.debug("Variant processing encountered errors: ${ideVariantWithPostProcessor.exceptions}")
+  }
 
   ideVariant.mainArtifact.let { it.compileClasspathCore.populateDependenciesForModule(DependencyScope.COMPILE, it.name) }
   ideVariant.testFixturesArtifact?.let { it.compileClasspathCore.populateDependenciesForModule(DependencyScope.COMPILE, it.name) }
@@ -317,7 +324,9 @@ private fun SyncContributorAndroidProjectDependenciesContext.populateDependencie
   val allKnownModuleInstances = listOfNotNull(moduleNameToInstanceMap[androidProjectContext.resolveModuleName()]) + knownModuleNames.mapNotNull { moduleNameToInstanceMap[it] }
   val dependencyModelFactory = GradleAndroidDependencyModel.createFactory(androidProjectContext.project, libraryResolver = ideLibraryModelResolver)
   allKnownModuleInstances.forEach { module ->
-    val facet = AndroidFacet.getInstance(module) ?: return@forEach
+    val facet = AndroidFacet.getInstance(module) ?: return@forEach.also {
+      LOG.debug("No Android facet found for ${module.name}")
+    }
     AndroidModel.set(facet, dependencyModelFactory(androidProjectContext.gradleAndroidModelFactory(module.name).copy(
       variants = listOf(ideVariant) // Just pass the resolved variant and discard the rest.
     )))
@@ -385,7 +394,9 @@ private fun buildAndroidProjectPathResolver(
 ): AndroidProjectPathResolver {
   val projectIdentifierToResolvedProjectPathMap = allAndroidContexts.mapNotNull {
     with(it) {
-      val basicGradleProject = context.getProjectModel(projectModel, BasicGradleProject::class.java) ?: return@mapNotNull null
+      val basicGradleProject = context.getProjectModel(projectModel, BasicGradleProject::class.java) ?: return@mapNotNull null.also {
+        LOG.debug("No BasicGradleProject model found for ${projectModel.path}")
+      }
 
       BuildId(projectModel.projectIdentifier.buildIdentifier.rootDir) to projectModel.path to
         ResolvedAndroidProjectPathImpl(
@@ -400,7 +411,9 @@ private fun buildAndroidProjectPathResolver(
 
 /** Map from the Gradle path (composite aware, supports nested builds) to the Gradle build root directory. */
 private fun buildBuildPathMap(context: ProjectResolverContext): Map<String, BuildId> = context.allBuilds.flatMap { buildModel ->
-  val buildMapModel = context.getProjectModel(buildModel.rootProject, BuildMap::class.java) ?: return@flatMap emptyList()
+  val buildMapModel = context.getProjectModel(buildModel.rootProject, BuildMap::class.java) ?: (return@flatMap emptyList()).also {
+    LOG.debug("No BuildMap model found for ${buildModel.rootProject.path}")
+  }
   buildMapModel.buildIdMap.entries
 }.associate { it.key to BuildId(it.value) }
 
@@ -415,13 +428,16 @@ private fun buildSourceSetModuleIdToModuleEntityMap(
   // First build a map of all known source sets
   val allSourceSetModuleIdsMap: Map<String, SourceSetModuleId> = (
     buildAndroidSourceSetModuleIdsMap(allAndroidContexts, context) +
-    buildJavaSourceSetModuleIdsMap(context, project)
-                                                                 ).toMap()
+    buildJavaSourceSetModuleIdsMap(context, project)).toMap()
 
   // And associate them with existing entities
   return storage.entities(ModuleEntity::class.java).mapNotNull { entity ->
-    val exModuleOptions = entity.exModuleOptions ?: return@mapNotNull null
-    val sourceSetModuleId = allSourceSetModuleIdsMap[exModuleOptions.linkedProjectId] ?: return@mapNotNull null
+    val exModuleOptions = entity.exModuleOptions ?: return@mapNotNull null.also {
+      LOG.debug("External module options not found for module ${entity.name}")
+    }
+    val sourceSetModuleId = allSourceSetModuleIdsMap[exModuleOptions.linkedProjectId] ?: return@mapNotNull null.also {
+      LOG.debug("Source set mapping not found for ${exModuleOptions.linkedProjectId}")
+    }
     sourceSetModuleId to entity
   }.toMap()
 }
@@ -430,7 +446,9 @@ private fun buildSourceSetModuleIdToModuleEntityMap(
 private fun buildJavaSourceSetModuleIdsMap(context: ProjectResolverContext, project: Project): Map<String, SourceSetModuleId> = context.allBuilds.flatMap { buildModel ->
   buildModel.projects.flatMap { projectModel ->
     with(SyncContributorProjectContext(context, project, buildModel, projectModel)) {
-      val sourceSetModel = context.getProjectModel(projectModel, GradleSourceSetModel::class.java) ?: return@flatMap emptyList()
+      val sourceSetModel = context.getProjectModel(projectModel, GradleSourceSetModel::class.java) ?: (return@flatMap emptyList()).also {
+        LOG.debug("No GradleSourceSet model found for ${projectModel.path}")
+      }
       sourceSetModel.sourceSets.values.map {
         val linkedProjectId = GradleProjectResolverUtil.getModuleId(context, externalProject, it)
         linkedProjectId to SourceSetModuleId(
