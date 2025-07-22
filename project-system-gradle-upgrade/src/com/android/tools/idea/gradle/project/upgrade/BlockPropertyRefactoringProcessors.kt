@@ -314,6 +314,21 @@ class BlockR8IntegratedResourceShrinkingProcessor: AbstractBlockPropertyUnlessNo
 }
 
 /**
+ * Processor that blocks AGP upgrades if android.defaults.buildfeatures.buildconfig is used after AGP 9.0.0-alpha01
+ */
+class BlockBuildFeaturesBuildConfigProcessor: AbstractBlockPropertyWithPreviousDefaultProcessor {
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
+  override val featureName = "Default Build Features Buildconfig"
+  override val propertyKey = "android.defaults.buildfeatures.buildconfig"
+  override val propertyRemovedVersion = AgpVersion.parse("9.0.0-alpha01")
+  override val componentKind = UpgradeAssistantComponentKind.BLOCK_BUILD_FEATURE_BUILD_CONFIG_PRESENT
+  override val defaultChangedVersion = RenderScriptDefaultRefactoringProcessor.DEFAULT_CHANGED
+  override val noOpValue = true
+  override fun getRefactoringId() = "com.android.tools.agp.upgrade.renderScriptBlockProperty"
+}
+
+/**
  * Processor that blocks AGP upgrades if android.r8.optimizedResourceShrinking is used after AGP 10.0.0-alpha01
  */
 class BlockR8OptimizedResourceShrinkingProcessor: AbstractBlockPropertyUnlessNoOpProcessor {

@@ -206,6 +206,16 @@ class BlockR8IntegratedResourceShrinkingProcessorTest: AbstractBlockPropertyUnle
   }
 }
 
+class BlockBuildfeaturesBuildconfiProcessorTest: AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
+  override val removedVersion: AgpVersion = AgpVersion.parse("9.0.0-alpha01")
+  override val propertyKey: String = "android.defaults.buildfeatures.buildconfig"
+  override val defaultWhenRemoved = true
+
+  override fun createProcessor(currentVersion: AgpVersion, newVersion: AgpVersion): AbstractBlockPropertyUnlessNoOpProcessor {
+    return BlockBuildFeaturesBuildConfigProcessor(project, currentVersion, newVersion)
+  }
+}
+
 class BlockR8OptimizedResourceShrinkingProcessorTest: AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
   override val removedVersion: AgpVersion = AgpVersion.parse("10.0.0-alpha01")
   override val propertyKey: String = "android.r8.optimizedResourceShrinking"
