@@ -59,9 +59,6 @@ class FixSyncContributorIssues: GradleSyncContributor {
       // This is needed due to a bug in platform sync contributor implementation which marks the holder modules as source set modules.
       removeSourceSetMarkerFromHolderModules(storage)
 
-      // Keep the root module as an iml based entity, because many things go wrong if there isn't at least one .iml based module
-      removeGradleBasedEntitiesForRootModule(storage)
-
       reconcileExistingHolderModules(context, context.project(), storage)
     }
   }
@@ -112,26 +109,6 @@ class FixSyncContributorIssues: GradleSyncContributor {
       storage.entities<ModuleEntity>()
         .filter { it.entitySource is GradleEntitySource }
         .forEach { storage.removeEntity(it) }
-    }
-  }
-
-
-  /**
-   * We keep the root module as an iml based entity, because a lot of things go wrong if we don't. Specificially
-   * [com.intellij.workspaceModel.ide.impl.legacyBridge.module.ModuleBridgeLoaderService] currently disregards the entire workspace model if
-   * there are no iml based entities at all.
-   *
-   * Also see for more context: [com.intellij.workspaceModel.ide.impl.jps.serialization.JpsProjectModelSynchronizer.hasNoSerializedJpsModules]
-   *
-   * TODO(b/384022658): We should aim to delete this in the long term, but for now it should be fine to keep.
-   */
-  private fun removeGradleBasedEntitiesForRootModule(storage: MutableEntityStorage) {
-    storage.entities<ModuleEntity>().filter {
-      it.entitySource is GradleProjectEntitySource
-        && (it.entitySource as GradleProjectEntitySource).buildEntitySource.linkedProjectEntitySource.projectRootUrl ==
-           (it.entitySource as GradleProjectEntitySource).projectRootUrl
-    }.forEach {
-      storage.removeEntity(it)
     }
   }
 
