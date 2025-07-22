@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePathUnchecked
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.swing.FakeMouse
 import com.android.tools.adtui.swing.FakeUi
@@ -50,6 +51,9 @@ import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import java.nio.file.Path
 import kotlin.io.path.pathString
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -660,6 +664,41 @@ class NewStudioRendererPanelTest {
     assertThat(model.hoveredNode.value).isNull()
   }
 
+  @Test
+  fun testOverlayIsRendered() = runTest {
+    val file = resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile()
+    val imageBytes = file.readBytes()
+
+    val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
+
+    val (model, renderer) = createRenderer(scope = scope)
+    model.setOverlay(imageBytes)
+
+    testScheduler.advanceUntilIdle()
+
+    val renderImage = createRenderImage()
+    paint(renderImage, renderer)
+    assertSimilar(renderImage, testName.methodName)
+  }
+
+  @Test
+  fun testOverlayAlpha() = runTest {
+    val file = resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile()
+    val imageBytes = file.readBytes()
+
+    val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
+
+    val (model, renderer) = createRenderer(scope = scope)
+    model.setOverlay(imageBytes)
+    model.setOverlayTransparency(1f)
+
+    testScheduler.advanceUntilIdle()
+
+    val renderImage = createRenderImage()
+    paint(renderImage, renderer)
+    assertSimilar(renderImage, testName.methodName)
+  }
+
   private fun paint(
     image: BufferedImage,
     renderer: NewStudioRendererPanel,
@@ -699,6 +738,7 @@ class NewStudioRendererPanelTest {
     deviceDisplayRectangle: Rectangle = this.deviceDisplayRectangle,
     displayOrientation: Int = 0,
     notificationModel: NotificationModel = NotificationModel(projectRule.project),
+    scope: CoroutineScope = disposable.createCoroutineScope(),
   ): Pair<EmbeddedRendererModel, NewStudioRendererPanel> {
     val renderModel =
       EmbeddedRendererModel(
@@ -712,7 +752,7 @@ class NewStudioRendererPanelTest {
     val panel =
       NewStudioRendererPanel(
         disposable = disposable,
-        scope = disposable.createCoroutineScope(),
+        scope = scope,
         renderModel = renderModel,
         notificationModel = notificationModel,
         displayRectangleProvider = { deviceDisplayRectangle },

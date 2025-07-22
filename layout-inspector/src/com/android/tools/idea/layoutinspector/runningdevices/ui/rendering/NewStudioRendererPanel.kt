@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 
+import com.android.adblib.utils.createChildScope
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.model.NotificationModel
@@ -25,17 +26,21 @@ import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.scale.JBUIScale
+import java.awt.AlphaComposite
 import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Component
 import java.awt.Graphics
 import java.awt.Graphics2D
+import java.awt.Image
 import java.awt.Rectangle
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.geom.AffineTransform
 import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
+import java.io.ByteArrayInputStream
+import javax.imageio.ImageIO
 import kotlin.math.abs
 import kotlin.math.max
 import kotlinx.coroutines.CoroutineScope
@@ -60,7 +65,7 @@ private const val RENDERING_NOT_SUPPORTED_ID = "rendering.in.secondary.display.n
  */
 class NewStudioRendererPanel(
   disposable: Disposable,
-  private val scope: CoroutineScope,
+  scope: CoroutineScope,
   private val renderModel: EmbeddedRendererModel,
   private val notificationModel: NotificationModel,
   private val displayRectangleProvider: () -> Rectangle?,
@@ -68,11 +73,15 @@ class NewStudioRendererPanel(
   private val orientationQuadrantProvider: () -> Int,
 ) : LayoutInspectorRenderer() {
 
+  private val childScope = scope.createChildScope()
+
   override var interceptClicks: Boolean
     get() = renderModel.interceptClicks.value
     set(value) {
       renderModel.setInterceptClicks(value)
     }
+
+  private var overlay: Image? = null
 
   init {
     Disposer.register(disposable, this)
@@ -91,11 +100,13 @@ class NewStudioRendererPanel(
     }
     addMouseListener(LayoutInspectorPopupHandler())
 
-    scope.launch { renderModel.interceptClicks.collect { refresh() } }
-    scope.launch { renderModel.selectedNode.collect { refresh() } }
-    scope.launch { renderModel.hoveredNode.collect { refresh() } }
-    scope.launch { renderModel.visibleNodes.collect { refresh() } }
-    scope.launch { renderModel.recomposingNodes.collect { refresh() } }
+    childScope.launch { renderModel.overlay.collect { updateOverlay(it) } }
+    childScope.launch { renderModel.overlayAlpha.collect { refresh() } }
+    childScope.launch { renderModel.interceptClicks.collect { refresh() } }
+    childScope.launch { renderModel.selectedNode.collect { refresh() } }
+    childScope.launch { renderModel.hoveredNode.collect { refresh() } }
+    childScope.launch { renderModel.visibleNodes.collect { refresh() } }
+    childScope.launch { renderModel.recomposingNodes.collect { refresh() } }
   }
 
   override fun dispose() {}
@@ -127,6 +138,11 @@ class NewStudioRendererPanel(
     g2d.transform = g2d.transform.apply { concatenate(transform) }
 
     // The order of the draw operations matters.
+    if (overlay != null) {
+      val bounds = renderModel.inspectorModel.root.layoutBounds
+      g2d.composite = AlphaComposite.SrcOver.derive(renderModel.overlayAlpha.value)
+      g2d.drawImage(overlay, bounds.x, bounds.y, bounds.width, bounds.height, null)
+    }
     renderModel.recomposingNodes.value.forEach { it.paint(g2d, fill = true) }
     renderModel.visibleNodes.value.forEach { it.paint(g2d) }
     renderModel.hoveredNode.value?.paint(g2d)
@@ -301,6 +317,13 @@ class NewStudioRendererPanel(
     }
 
     return transform
+  }
+
+  private fun updateOverlay(byteArray: ByteArray?) {
+    if (byteArray != null) {
+      overlay = ImageIO.read(ByteArrayInputStream(byteArray))
+      refresh()
+    }
   }
 
   private inner class LayoutInspectorPopupHandler : PopupHandler() {
