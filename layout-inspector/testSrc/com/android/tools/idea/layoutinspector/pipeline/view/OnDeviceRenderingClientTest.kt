@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.enable
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.UserInputEvent
+import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
 import java.awt.Rectangle
 import kotlin.test.fail
@@ -380,6 +381,58 @@ class OnDeviceRenderingClientTest {
             LayoutInspectorViewProtocol.InterceptTouchEventsCommand.newBuilder()
               .setIntercept(true)
               .build()
+        }
+        .build()
+        .toByteArray()
+
+    assertThat(receivedCommands.size).isEqualTo(1)
+    assertThat(receivedCommands.first()).isEqualTo(expectedCommand)
+  }
+
+  @Test
+  fun testOverlay(): Unit = runTest {
+    onDeviceRenderingClient.drawOverlay(ByteArray(1))
+
+    val expectedCommand =
+      Command.newBuilder()
+        .apply {
+          val byteString = ByteString.copyFrom(ByteArray(1))
+          drawOverlayCommand =
+            LayoutInspectorViewProtocol.DrawOverlayCommand.newBuilder().setImage(byteString).build()
+        }
+        .build()
+        .toByteArray()
+
+    assertThat(receivedCommands.size).isEqualTo(1)
+    assertThat(receivedCommands.first()).isEqualTo(expectedCommand)
+  }
+
+  @Test
+  fun testNullOverlay(): Unit = runTest {
+    onDeviceRenderingClient.drawOverlay(null)
+
+    val expectedCommand =
+      Command.newBuilder()
+        .apply {
+          val byteString = ByteString.copyFrom(ByteArray(1))
+          drawOverlayCommand = LayoutInspectorViewProtocol.DrawOverlayCommand.newBuilder().build()
+        }
+        .build()
+        .toByteArray()
+
+    assertThat(receivedCommands.size).isEqualTo(1)
+    assertThat(receivedCommands.first()).isEqualTo(expectedCommand)
+  }
+
+  @Test
+  fun testOverlayAlpha(): Unit = runTest {
+    onDeviceRenderingClient.setOverlayAlpha(1f)
+
+    val expectedCommand =
+      Command.newBuilder()
+        .apply {
+          setOverlayAlphaCommand =
+            LayoutInspectorViewProtocol.SetOverlayAlphaCommand.newBuilder().setAlpha(1f).build()
         }
         .build()
         .toByteArray()

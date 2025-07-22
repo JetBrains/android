@@ -230,6 +230,11 @@ class OnDeviceRendererPanelImpl(
         }
       }
     }
+
+    childScope.launch { renderModel.overlay.collect { overlay -> client.drawOverlay(overlay) } }
+    childScope.launch {
+      renderModel.overlayAlpha.collect { alpha -> client.setOverlayAlpha(alpha) }
+    }
   }
 
   override fun dispose() {

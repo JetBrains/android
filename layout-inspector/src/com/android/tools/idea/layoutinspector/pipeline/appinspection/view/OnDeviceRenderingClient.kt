@@ -20,6 +20,7 @@ import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.DrawIn
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Event
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.UserInputEvent
+import com.android.tools.idea.protobuf.ByteString
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -111,6 +112,28 @@ class OnDeviceRenderingClient(private val messenger: AppInspectorMessenger) {
   /** Send a command to the agent to draw the recomposition highlights. */
   suspend fun drawRecomposingNodes(instructions: List<DrawInstruction>) {
     sendDrawCommand(instructions, LayoutInspectorViewProtocol.DrawCommand.Type.RECOMPOSING_NODES)
+  }
+
+  suspend fun drawOverlay(image: ByteArray?) {
+    val byteString = image?.let { ByteString.copyFrom(it) }
+
+    messenger.sendCommand {
+      drawOverlayCommand =
+        LayoutInspectorViewProtocol.DrawOverlayCommand.newBuilder()
+          .apply {
+            if (byteString != null) {
+              this.image = byteString
+            }
+          }
+          .build()
+    }
+  }
+
+  suspend fun setOverlayAlpha(alpha: Float) {
+    messenger.sendCommand {
+      setOverlayAlphaCommand =
+        LayoutInspectorViewProtocol.SetOverlayAlphaCommand.newBuilder().setAlpha(alpha).build()
+    }
   }
 
   private suspend fun sendDrawCommand(

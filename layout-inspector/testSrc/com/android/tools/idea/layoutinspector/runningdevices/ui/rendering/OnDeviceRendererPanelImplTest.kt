@@ -117,7 +117,7 @@ class OnDeviceRendererPanelImplTest {
 
     testScheduler.advanceUntilIdle()
 
-    assertThat(receivedMessages).hasSize(6)
+    assertThat(receivedMessages).hasSize(8)
     assertThat(receivedMessages[0]).isEqualTo(enableOnDeviceRenderingCommand)
   }
 
@@ -285,7 +285,7 @@ class OnDeviceRendererPanelImplTest {
           strokeThickness = NORMAL_BORDER_THICKNESS,
         )
         .toByteArray()
-    assertThat(receivedMessages).hasSize(6)
+    assertThat(receivedMessages).hasSize(8)
     assertThat(receivedMessages[4]).isEqualTo(expectedCommand)
   }
 
@@ -328,8 +328,8 @@ class OnDeviceRendererPanelImplTest {
           strokeThickness = RECOMPOSITION_BORDER_THICKNESS,
         )
         .toByteArray()
-    assertThat(receivedMessages).hasSize(8)
-    assertThat(receivedMessages[7]).isEqualTo(expectedCommand)
+    assertThat(receivedMessages).hasSize(10)
+    assertThat(receivedMessages[9]).isEqualTo(expectedCommand)
   }
 
   @Test
