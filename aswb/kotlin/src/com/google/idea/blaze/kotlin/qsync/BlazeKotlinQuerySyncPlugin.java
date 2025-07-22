@@ -23,6 +23,7 @@ import com.google.idea.blaze.base.sync.projectview.LanguageSupport;
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.java.projectview.JavaLanguageLevelSection;
+import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -43,6 +44,9 @@ import org.jetbrains.kotlin.idea.fir.extensions.KotlinK2BundledCompilerPlugins;
 
 /** Supports Kotlin. */
 public class BlazeKotlinQuerySyncPlugin implements BlazeQuerySyncPlugin {
+
+  private static final BoolExperiment qsyncDisableCompose =
+      new BoolExperiment("qsync.disable.compose", false);
 
   @Override
   public void updateProjectSettingsForQuerySync(
@@ -96,9 +100,11 @@ public class BlazeKotlinQuerySyncPlugin implements BlazeQuerySyncPlugin {
       commonArguments = new K2JVMCompilerArguments();
     }
 
-    if (KotlinPluginModeProvider.Companion.isK2Mode()) {
-      // Register the bundled directly, as KtCompilerPluginsProviderIdeImpl consistently replaces user's plugin class path with it.
-      // Note: This implementation may need updating if the Kotlin plugin alters its provider replacement logic.
+    if (KotlinPluginModeProvider.Companion.isK2Mode() && !qsyncDisableCompose.getValue()) {
+      // Register the bundled directly, as KtCompilerPluginsProviderIdeImpl consistently replaces
+      // user's plugin class path with it.
+      // Note: This implementation may need updating if the Kotlin plugin alters its provider
+      // replacement logic.
       commonArguments.setPluginClasspaths(
           new String[] {
             KotlinK2BundledCompilerPlugins.COMPOSE_COMPILER_PLUGIN
