@@ -80,6 +80,8 @@ class DefaultProjectSystem(override val project: Project) : AndroidProjectSystem
     return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
   }
 
+  override fun isAndroidProjectViewSupported(): Boolean = true
+
   override fun getBootClasspath(module: Module): Collection<String> {
     throw IllegalStateException("Not implemented")
   }

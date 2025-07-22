@@ -105,6 +105,8 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
     return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
   }
 
+  override fun isAndroidProjectViewSupported(): Boolean = true
+
   override fun getBootClasspath(module: Module): Collection<String> {
     return GradleAndroidModel.get(module)?.androidProject?.bootClasspath ?: emptyList()
   }

@@ -32,6 +32,7 @@ import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.FileGroupNode;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.util.CommonAndroidUtil;
 import com.intellij.facet.Facet;
 import com.intellij.facet.ProjectWideFacetAdapter;
@@ -155,7 +156,8 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
 
   @Override
   public boolean isInitiallyVisible() {
-    return CommonAndroidUtil.getInstance().isAndroidProject(myProject);
+    return CommonAndroidUtil.getInstance().isAndroidProject(myProject)
+           && ProjectSystemUtil.getProjectSystem(myProject).isAndroidProjectViewSupported();
   }
 
   @NotNull
@@ -364,6 +366,10 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
 
   @VisibleForTesting
   boolean isDefaultPane(@NotNull Project project, @NotNull IdeInfo ideInfo, @NotNull AndroidProjectViewSettings settings) {
+    if (!(ProjectSystemUtil.getProjectSystem(myProject).isAndroidProjectViewSupported() && CommonAndroidUtil.getInstance().isAndroidProject(myProject))) {
+      return false;
+    }
+
     if ((!ideInfo.isAndroidStudio()) && (!ideInfo.isGameTools())) {
       return super.isDefaultPane(project);
     }

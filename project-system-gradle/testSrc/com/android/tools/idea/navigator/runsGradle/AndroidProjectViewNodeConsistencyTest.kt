@@ -43,4 +43,7 @@ class AndroidProjectViewNodeConsistencyTest : AndroidProjectViewNodeConsistencyT
 
   @Test
   fun testCanRepresent() = super.testCanRepresentImpl()
+
+  @Test
+  fun testAndroidViewPaneIsVisible() = super.testAndroidViewPaneIsVisibleImpl()
 }

@@ -130,6 +130,8 @@ class ApkProjectSystem(override val project: Project) : AndroidProjectSystem {
   override fun validateRunConfiguration(runConfiguration: RunConfiguration, quickFixCallback: Runnable?): List<ValidationError> = listOf()
 
   override fun isAndroidProject() = true
+
+  override fun isAndroidProjectViewSupported(): Boolean = true
 }
 
 interface ApkToken : ProjectSystemToken {

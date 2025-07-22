@@ -54,6 +54,11 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
   fun isAndroidProject(): Boolean
 
   /**
+   * Indicates whether this project system supports the Android view
+   */
+  fun isAndroidProjectViewSupported(): Boolean = false
+
+  /**
    * Returns path to android.jar
    */
   fun getBootClasspath(module: Module): Collection<String>

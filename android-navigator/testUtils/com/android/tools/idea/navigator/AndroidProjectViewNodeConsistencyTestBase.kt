@@ -211,6 +211,14 @@ abstract class AndroidProjectViewNodeConsistencyTestBase {
       }
     }
   }
+
+
+  fun testAndroidViewPaneIsVisibleImpl() {
+    runTest {
+      assertThat(viewPane.isInitiallyVisible).isTrue()
+      assertThat(viewPane.isDefaultPane(project)).isTrue()
+    }
+  }
 }
 
 // NOTE: This test is required because this code needs to be in `testSrc` as it depends on `intellij.android.testFramework`

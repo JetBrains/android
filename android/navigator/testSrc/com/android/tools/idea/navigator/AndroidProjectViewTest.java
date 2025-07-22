@@ -21,6 +21,7 @@ import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static org.mockito.Mockito.when;
 
 import com.android.testutils.VirtualTimeScheduler;
+import com.android.tools.analytics.LoggedUsage;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
@@ -28,10 +29,14 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.projectView.AndroidProjectViewSettingsImpl;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.tools.idea.testing.TestProjectPaths;
+import com.android.tools.idea.util.CommonAndroidUtil;
 import com.android.utils.FileUtils;
 import com.google.common.io.Files;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -57,8 +62,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 // TODO: Test available actions for each node!
@@ -217,10 +222,20 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   }
 
   public void testAndroidViewIsDefault() {
-    myPane = createPane();
     IdeInfo ideInfo = Mockito.spy(IdeInfo.getInstance());
     AndroidProjectViewSettingsImpl settings = new AndroidProjectViewSettingsImpl();
     Project project = getProject();
+    GradleProjectSystem mockGradleProjectSystem = Mockito.mock(GradleProjectSystem.class);
+    CommonAndroidUtil commonAndroidUtil = Mockito.mock(CommonAndroidUtil.class);
+    MockedStatic<CommonAndroidUtil> commonAndroidUtilMockedStatic = Mockito.mockStatic(CommonAndroidUtil.class);
+    commonAndroidUtilMockedStatic.when(CommonAndroidUtil::getInstance).thenReturn(commonAndroidUtil);
+    MockedStatic<ProjectSystemUtil> projectSystemUtilMockedStatic = Mockito.mockStatic(ProjectSystemUtil.class);
+    projectSystemUtilMockedStatic.when(() -> ProjectSystemUtil.getProjectSystem(project)).thenReturn(mockGradleProjectSystem);
+    when(mockGradleProjectSystem.isAndroidProjectViewSupported()).thenReturn(true);
+    when(commonAndroidUtil.isAndroidProject(project)).thenReturn(true);
+    myPane = createPane();
+
+    assertThat(myPane.isInitiallyVisible()).isTrue();
 
     when(ideInfo.isAndroidStudio()).thenReturn(false);
     when(ideInfo.isGameTools()).thenReturn(false);
@@ -262,13 +277,66 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     when(ideInfo.isAndroidStudio()).thenReturn(false);
     when(ideInfo.isGameTools()).thenReturn(true);
     assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault(GameTools, settings)").isFalse();
+
+    commonAndroidUtilMockedStatic.close();
+    projectSystemUtilMockedStatic.close();
+  }
+
+  public void testAndroidViewNotVisibleInUnsupportedProjectSystem() {
+    IdeInfo ideInfo = Mockito.spy(IdeInfo.getInstance());
+    AndroidProjectViewSettingsImpl settings = new AndroidProjectViewSettingsImpl();
+    Project project = getProject();
+    AndroidProjectSystem mockProjectSystem = Mockito.mock(AndroidProjectSystem.class);
+    MockedStatic<ProjectSystemUtil> projectSystemUtilMockedStatic = Mockito.mockStatic(ProjectSystemUtil.class);
+    projectSystemUtilMockedStatic.when(() -> ProjectSystemUtil.getProjectSystem(project)).thenReturn(mockProjectSystem);
+    CommonAndroidUtil commonAndroidUtil = Mockito.mock(CommonAndroidUtil.class);
+    MockedStatic<CommonAndroidUtil> commonAndroidUtilMockedStatic = Mockito.mockStatic(CommonAndroidUtil.class);
+    commonAndroidUtilMockedStatic.when(CommonAndroidUtil::getInstance).thenReturn(commonAndroidUtil);
+    when(mockProjectSystem.isAndroidProjectViewSupported()).thenReturn(false);
+    when(commonAndroidUtil.isAndroidProject(project)).thenReturn(true);
+    myPane = createPane();
+
+    assertThat(myPane.isInitiallyVisible()).isFalse();
+    assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault").isFalse();
+
+    commonAndroidUtilMockedStatic.close();
+    projectSystemUtilMockedStatic.close();
+  }
+
+  public void testAndroidViewNotVisibleInNonAndroidProject() {
+    IdeInfo ideInfo = Mockito.spy(IdeInfo.getInstance());
+    AndroidProjectViewSettingsImpl settings = new AndroidProjectViewSettingsImpl();
+    Project project = getProject();
+    AndroidProjectSystem mockProjectSystem = Mockito.mock(AndroidProjectSystem.class);
+    MockedStatic<ProjectSystemUtil> projectSystemUtilMockedStatic = Mockito.mockStatic(ProjectSystemUtil.class);
+    projectSystemUtilMockedStatic.when(() -> ProjectSystemUtil.getProjectSystem(project)).thenReturn(mockProjectSystem);
+    CommonAndroidUtil commonAndroidUtil = Mockito.mock(CommonAndroidUtil.class);
+    MockedStatic<CommonAndroidUtil> commonAndroidUtilMockedStatic = Mockito.mockStatic(CommonAndroidUtil.class);
+    commonAndroidUtilMockedStatic.when(CommonAndroidUtil::getInstance).thenReturn(commonAndroidUtil);
+    when(mockProjectSystem.isAndroidProjectViewSupported()).thenReturn(true);
+    when(commonAndroidUtil.isAndroidProject(project)).thenReturn(false);
+    myPane = createPane();
+
+    assertThat(myPane.isInitiallyVisible()).isFalse();
+    assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault").isFalse();
+
+    commonAndroidUtilMockedStatic.close();
+    projectSystemUtilMockedStatic.close();
   }
 
   public void testAndroidViewIsDefaultMetrics() {
     myPane = createPane();
     IdeInfo ideInfo = Mockito.spy(IdeInfo.getInstance());
+    GradleProjectSystem mockGradleProjectSystem = Mockito.mock(GradleProjectSystem.class);
+    CommonAndroidUtil commonAndroidUtil = Mockito.mock(CommonAndroidUtil.class);
+    MockedStatic<CommonAndroidUtil> commonAndroidUtilMockedStatic = Mockito.mockStatic(CommonAndroidUtil.class);
+    MockedStatic<ProjectSystemUtil> projectSystemUtilMockedStatic = Mockito.mockStatic(ProjectSystemUtil.class);
+    commonAndroidUtilMockedStatic.when(CommonAndroidUtil::getInstance).thenReturn(commonAndroidUtil);
     AndroidProjectViewSettingsImpl settings = new AndroidProjectViewSettingsImpl();
     Project project = getProject();
+    projectSystemUtilMockedStatic.when(() -> ProjectSystemUtil.getProjectSystem(project)).thenReturn(mockGradleProjectSystem);
+    when(mockGradleProjectSystem.isAndroidProjectViewSupported()).thenReturn(true);
+    when(commonAndroidUtil.isAndroidProject(project)).thenReturn(true);
 
     System.setProperty("studio.projectview", "false");
     settings.setDefaultToProjectView(true);
@@ -292,9 +360,9 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     settings.setDefaultToProjectView(true);
 
     List<AndroidStudioEvent> statsEvents = testUsageTracker.getUsages().stream()
-      .map(usage -> usage.getStudioEvent())
+      .map(LoggedUsage::getStudioEvent)
       .filter(event -> event.getKind() == AndroidStudioEvent.EventKind.PROJECT_VIEW_DEFAULT_VIEW_EVENT)
-      .collect(Collectors.toList());
+      .toList();
     assertThat(statsEvents.size()).isEqualTo(2);
 
     AndroidStudioEvent disableDefaultProjectViewEvent = statsEvents.get(0);
@@ -308,6 +376,8 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       ProjectViewDefaultViewEvent.DefaultView.PROJECT_VIEW);
 
     UsageTracker.cleanAfterTesting();
+    commonAndroidUtilMockedStatic.close();
+    projectSystemUtilMockedStatic.close();
   }
 
   private static Set<List<String>> getAllNodes(TestAndroidTreeStructure structure) {
