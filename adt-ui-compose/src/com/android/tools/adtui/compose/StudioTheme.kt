@@ -36,16 +36,16 @@ import org.jetbrains.jewel.markdown.rendering.MarkdownBlockRenderer
 @Composable
 fun StudioTheme(content: @Composable () -> Unit) {
   SwingBridgeTheme {
-    val provider = StudioMarkdownStylingProvider
+    val provider = StudioMarkdownFactory
     val markdownStyling =
       remember(JewelTheme.name, provider) {
-        provider.createDefault(retrieveDefaultTextStyle(), retrieveEditorTextStyle())
+        provider.createDefaultStyling(retrieveDefaultTextStyle(), retrieveEditorTextStyle())
       }
     val markdownProcessor = remember { MarkdownProcessor() }
     val blockRenderer = remember(markdownStyling) { MarkdownBlockRenderer.create(markdownStyling) }
 
     CompositionLocalProvider(
-      LocalMarkdownStylingProvider provides provider,
+      LocalMarkdownFactory provides provider,
       LocalMarkdownStyling provides markdownStyling,
       LocalMarkdownProcessor provides markdownProcessor,
       LocalMarkdownBlockRenderer provides blockRenderer,

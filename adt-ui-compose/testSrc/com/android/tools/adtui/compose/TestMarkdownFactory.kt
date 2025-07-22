@@ -17,15 +17,23 @@ package com.android.tools.adtui.compose
 
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
+import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.intui.markdown.standalone.dark
+import org.jetbrains.jewel.intui.markdown.standalone.light
 import org.jetbrains.jewel.intui.markdown.standalone.styling.dark
 import org.jetbrains.jewel.intui.markdown.standalone.styling.light
 import org.jetbrains.jewel.intui.standalone.theme.createEditorTextStyle
+import org.jetbrains.jewel.markdown.extensions.MarkdownRendererExtension
+import org.jetbrains.jewel.markdown.rendering.DefaultInlineMarkdownRenderer
+import org.jetbrains.jewel.markdown.rendering.InlineMarkdownRenderer
 import org.jetbrains.jewel.markdown.rendering.InlinesStyling
+import org.jetbrains.jewel.markdown.rendering.MarkdownBlockRenderer
 import org.jetbrains.jewel.markdown.rendering.MarkdownStyling
 
-class TestMarkdownStylingProvider(private val isDark: Boolean) : MarkdownStylingProvider {
-  override fun create(
+@OptIn(ExperimentalJewelApi::class)
+class TestMarkdownFactory(private val isDark: Boolean) : MarkdownFactory {
+  override fun createStyling(
     baseTextStyle: TextStyle,
     editorTextStyle: TextStyle,
     inlinesStyling: InlinesStyling?,
@@ -40,7 +48,7 @@ class TestMarkdownStylingProvider(private val isDark: Boolean) : MarkdownStyling
     htmlBlock: MarkdownStyling.HtmlBlock?,
   ): MarkdownStyling {
     val defaults =
-      createDefault(defaultTextStyle = baseTextStyle, editorTextStyle = editorTextStyle)
+      createDefaultStyling(defaultTextStyle = baseTextStyle, editorTextStyle = editorTextStyle)
 
     val defaultInlinesStyling = defaults.paragraph.inlinesStyling
     val defaultTextSize = defaultInlinesStyling.textStyle.fontSize
@@ -102,7 +110,7 @@ class TestMarkdownStylingProvider(private val isDark: Boolean) : MarkdownStyling
     )
   }
 
-  override fun createDefault(
+  override fun createDefaultStyling(
     defaultTextStyle: TextStyle,
     editorTextStyle: TextStyle,
   ): MarkdownStyling =
@@ -110,5 +118,16 @@ class TestMarkdownStylingProvider(private val isDark: Boolean) : MarkdownStyling
       MarkdownStyling.dark(baseTextStyle = defaultTextStyle, editorTextStyle = editorTextStyle)
     } else {
       MarkdownStyling.light(baseTextStyle = defaultTextStyle, editorTextStyle = editorTextStyle)
+    }
+
+  override fun createBlockRenderer(
+    styling: MarkdownStyling,
+    extensions: List<MarkdownRendererExtension>,
+    inlineRenderer: InlineMarkdownRenderer,
+  ): MarkdownBlockRenderer =
+    if (isDark) {
+      MarkdownBlockRenderer.dark(styling, extensions, inlineRenderer)
+    } else {
+      MarkdownBlockRenderer.light(styling, extensions, inlineRenderer)
     }
 }

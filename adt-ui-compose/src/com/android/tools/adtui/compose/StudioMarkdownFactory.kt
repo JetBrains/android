@@ -20,14 +20,20 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.intellij.ui.JBColor
+import org.jetbrains.jewel.foundation.ExperimentalJewelApi
+import org.jetbrains.jewel.intui.markdown.bridge.create
 import org.jetbrains.jewel.intui.markdown.bridge.styling.create
 import org.jetbrains.jewel.intui.markdown.bridge.styling.default
+import org.jetbrains.jewel.markdown.extensions.MarkdownRendererExtension
+import org.jetbrains.jewel.markdown.rendering.InlineMarkdownRenderer
 import org.jetbrains.jewel.markdown.rendering.InlinesStyling
+import org.jetbrains.jewel.markdown.rendering.MarkdownBlockRenderer
 import org.jetbrains.jewel.markdown.rendering.MarkdownStyling
 
-internal object StudioMarkdownStylingProvider : MarkdownStylingProvider {
+@OptIn(ExperimentalJewelApi::class)
+internal object StudioMarkdownFactory : MarkdownFactory {
 
-  override fun create(
+  override fun createStyling(
     baseTextStyle: TextStyle,
     editorTextStyle: TextStyle,
     inlinesStyling: InlinesStyling?,
@@ -46,10 +52,7 @@ internal object StudioMarkdownStylingProvider : MarkdownStylingProvider {
         ?: InlinesStyling.create(
           baseTextStyle,
           editorTextStyle
-            .copy(
-              fontSize = baseTextStyle.fontSize * .85,
-              background = inlineCodeBackgroundColor,
-            )
+            .copy(fontSize = baseTextStyle.fontSize * .85, background = inlineCodeBackgroundColor)
             .toSpanStyle(),
         )
 
@@ -60,8 +63,7 @@ internal object StudioMarkdownStylingProvider : MarkdownStylingProvider {
       blockVerticalSpacing = blockVerticalSpacing ?: 16.dp,
       paragraph = paragraph ?: MarkdownStyling.Paragraph.create(actualInlinesStyling),
       heading = heading ?: MarkdownStyling.Heading.create(baseTextStyle),
-      blockQuote =
-      blockQuote ?: MarkdownStyling.BlockQuote.create(textColor = baseTextStyle.color),
+      blockQuote = blockQuote ?: MarkdownStyling.BlockQuote.create(textColor = baseTextStyle.color),
       code = code ?: MarkdownStyling.Code.create(editorTextStyle),
       list = list ?: MarkdownStyling.List.create(baseTextStyle),
       image = image ?: MarkdownStyling.Image.default(),
@@ -70,8 +72,16 @@ internal object StudioMarkdownStylingProvider : MarkdownStylingProvider {
     )
   }
 
-  override fun createDefault(defaultTextStyle: TextStyle, editorTextStyle: TextStyle): MarkdownStyling =
-    MarkdownStyling.create(defaultTextStyle, editorTextStyle)
+  override fun createDefaultStyling(
+    defaultTextStyle: TextStyle,
+    editorTextStyle: TextStyle,
+  ): MarkdownStyling = MarkdownStyling.create(defaultTextStyle, editorTextStyle)
+
+  override fun createBlockRenderer(
+    styling: MarkdownStyling,
+    extensions: List<MarkdownRendererExtension>,
+    inlineRenderer: InlineMarkdownRenderer,
+  ): MarkdownBlockRenderer = MarkdownBlockRenderer.create(styling, extensions, inlineRenderer)
 }
 
 // Copied from org.intellij.plugins.markdown.ui.preview.PreviewLAFThemeStyles#createStylesheet
