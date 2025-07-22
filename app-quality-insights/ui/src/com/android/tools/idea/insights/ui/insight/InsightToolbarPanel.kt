@@ -21,7 +21,6 @@ import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.android.tools.idea.insights.filterReady
 import com.android.tools.idea.insights.mapReadyOrDefault
-import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -29,6 +28,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.Toggleable
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons
 import java.awt.BorderLayout
@@ -36,6 +36,7 @@ import javax.swing.Icon
 import javax.swing.JPanel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -81,12 +82,11 @@ class InsightToolbarPanel(
     toolbar.targetComponent = this
     add(toolbar.component, BorderLayout.CENTER)
 
-    currentInsightFlow.filterReady().onEach { resetFeedback() }.launchIn(scope)
-  }
-
-  private fun resetFeedback() {
-    // This causes the actions to update/reset.
-    ActivityTracker.getInstance().inc()
+    currentInsightFlow
+      .filterReady()
+      .filterNotNull()
+      .onEach { runInEdt { toolbar.updateActionsAsync() } }
+      .launchIn(scope)
   }
 
   private fun createFeedbackAction(

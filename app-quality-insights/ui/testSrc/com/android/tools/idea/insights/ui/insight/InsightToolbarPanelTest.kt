@@ -24,9 +24,13 @@ import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.CopyProvider
+import com.intellij.ide.actions.CopyAction
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.impl.ActionButton
@@ -36,7 +40,10 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
+import com.intellij.testFramework.replaceService
+import com.intellij.util.application
 import icons.StudioIcons
+import javax.swing.JPanel
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.fail
 import kotlinx.coroutines.CoroutineScope
@@ -45,13 +52,20 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.timeout
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
-@RunsInEdt
 class InsightToolbarPanelTest {
   private val projectRule = ProjectRule()
   private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
@@ -70,7 +84,7 @@ class InsightToolbarPanelTest {
 
   @Before
   fun setup() {
-    submittedFeedback = mutableListOf<InsightFeedback>()
+    submittedFeedback = mutableListOf()
     copyProvider = FakeCopyProvider()
     currentInsightFlow.update { LoadingState.Ready(null) }
     testEvent =
@@ -87,6 +101,7 @@ class InsightToolbarPanelTest {
     scope.cancel()
   }
 
+  @RunsInEdt
   @Test
   fun `test upvote and downvote actions`() = runBlocking {
     createInsightBottomPanel()
@@ -120,6 +135,7 @@ class InsightToolbarPanelTest {
     assertThat(downvoteEvent.isSelected).isFalse()
   }
 
+  @RunsInEdt
   @Test
   fun `test sentiment tracked when feedback clicked`() = runBlocking {
     createInsightBottomPanel()
@@ -136,6 +152,7 @@ class InsightToolbarPanelTest {
       .inOrder()
   }
 
+  @RunsInEdt
   @Test
   fun `test copy action`() = runBlocking {
     val toolbarPanel = createInsightBottomPanel()
@@ -158,6 +175,35 @@ class InsightToolbarPanelTest {
     copyAction.update(testEvent)
     assertThat(testEvent.presentation.isEnabled).isTrue()
     assertThat(testEvent.presentation.isVisible).isTrue()
+  }
+
+  @Test
+  fun `test actions updated async when insight ready`(): Unit = runTest {
+    val fakeActionManager = mock<ActionManager>()
+    val mockToolbar = mock<ActionToolbar>()
+    doReturn(mockToolbar).whenever(fakeActionManager).createActionToolbar(any(), any(), any())
+    doReturn(CopyAction()).whenever(fakeActionManager).getAction(IdeActions.ACTION_COPY)
+    doReturn(JPanel()).whenever(mockToolbar).component
+
+    application.replaceService(ActionManager::class.java, fakeActionManager, projectRule.disposable)
+
+    createInsightBottomPanel()
+
+    verify(mockToolbar, never()).updateActionsAsync()
+
+    currentInsightFlow.update {
+      LoadingState.Ready(DEFAULT_AI_INSIGHT.copy(feedback = InsightFeedback.THUMBS_UP))
+    }
+    verify(mockToolbar, timeout(1000).times(1)).updateActionsAsync()
+
+    // Toolbar not updated when insight is loading
+    currentInsightFlow.update { LoadingState.Loading }
+    verify(mockToolbar, timeout(1000).times(1)).updateActionsAsync()
+
+    currentInsightFlow.update {
+      LoadingState.Ready(DEFAULT_AI_INSIGHT.copy(feedback = InsightFeedback.THUMBS_DOWN))
+    }
+    verify(mockToolbar, timeout(1000).times(2)).updateActionsAsync()
   }
 
   private val AnActionEvent.isSelected: Boolean
