@@ -2161,6 +2161,11 @@ public final class StudioFlags {
                     "Enable support for GCA Enterprise tier",
                     "Enable support for GCA Enterprise tier");
 
+  public static final Flag<Boolean> STUDIOBOT_USE_UNIFIED_ONBOARDER =
+    new BooleanFlag(STUDIOBOT, "use.unified.onboarder",
+                    "Use unified onboarder",
+                    "Use unified onboarder for login and model onboarding");
+
   public static Flag<Boolean> STUDIOBOT_SHIMMER_PLACEHOLDER =
     new BooleanFlag(STUDIOBOT, "show.shimmer.placeholder",
                     "Enable shimmering placeholder in chat timeline.",
