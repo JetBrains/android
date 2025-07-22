@@ -25,6 +25,10 @@ import com.android.tools.profiler.proto.Trace.TraceMode
  */
 
 class ArtInstrumentedConfiguration(name: String) : ProfilingConfiguration(name) {
+  @OptionsProperty(name = "Enable dual clock (warning: slower performance)", group = TRACE_CONFIG_GROUP, order = 100,
+                   description = "<html>When enabled, both thread-CPU and wall clock time are recorded, otherwise, only wall clock time is recorded. On Android 13 (API level 33) and below, this is always enabled regardless of selection.</html>")
+  var dualClock = DEFAULT_DUAL_CLOCK_VALUE
+
   @Slider(min = 1, max = 32, step = 1)
   @OptionsProperty(group = TRACE_CONFIG_GROUP, order = 101, name = "File size limit:", unit = "Mb",
                 description = "Maximum recording output file size. On Android 8.0 (API level 26) and higher, this value is ignored.")
@@ -34,6 +38,7 @@ class ArtInstrumentedConfiguration(name: String) : ProfilingConfiguration(name) 
     return Trace.ArtOptions.newBuilder()
       .setTraceMode(TraceMode.INSTRUMENTED)
       .setBufferSizeInMb(profilingBufferSizeInMb)
+      .setDualClock(dualClock)
       .build()
   }
 

@@ -57,11 +57,13 @@ public class CpuProfilerConfigConverter {
           cpuProfilerConfig = new CpuProfilerConfig(artSampledConfiguration.getName(), CpuProfilerConfig.Technology.SAMPLED_JAVA);
           cpuProfilerConfig.setSamplingIntervalUs(artSampledConfiguration.getProfilingSamplingIntervalUs());
           cpuProfilerConfig.setBufferSizeMb(artSampledConfiguration.getProfilingBufferSizeInMb());
+          cpuProfilerConfig.setDualClock(artSampledConfiguration.getDualClock());
         }
         else {
           ArtInstrumentedConfiguration artInstrumentedConfiguration = (ArtInstrumentedConfiguration)config;
           cpuProfilerConfig = new CpuProfilerConfig(artInstrumentedConfiguration.getName(), CpuProfilerConfig.Technology.INSTRUMENTED_JAVA);
           cpuProfilerConfig.setBufferSizeMb(artInstrumentedConfiguration.getProfilingBufferSizeInMb());
+          cpuProfilerConfig.setDualClock(artInstrumentedConfiguration.getDualClock());
         }
         break;
       case SIMPLEPERF:
@@ -109,10 +111,12 @@ public class CpuProfilerConfigConverter {
         configuration = new ArtSampledConfiguration(name);
         ((ArtSampledConfiguration)configuration).setProfilingBufferSizeInMb(config.getBufferSizeMb());
         ((ArtSampledConfiguration)configuration).setProfilingSamplingIntervalUs(config.getSamplingIntervalUs());
+        ((ArtSampledConfiguration)configuration).setDualClock(config.getDualClock());
         break;
       case INSTRUMENTED_JAVA:
         configuration = new ArtInstrumentedConfiguration(name);
         ((ArtInstrumentedConfiguration)configuration).setProfilingBufferSizeInMb(config.getBufferSizeMb());
+        ((ArtInstrumentedConfiguration)configuration).setDualClock(config.getDualClock());
         break;
       case SAMPLED_NATIVE:
         configuration = new SimpleperfConfiguration(name);

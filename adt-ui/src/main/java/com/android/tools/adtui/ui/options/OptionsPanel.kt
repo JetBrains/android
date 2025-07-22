@@ -230,6 +230,7 @@ private class SliderBinder(private val min: Int, private val max: Int, private v
       isEnabled = false
     }
     return JPanel(TabularLayout("120px,*,Fit", "*")).apply {
+      border = JBUI.Borders.emptyTop(12)
       add(JLabel(data.name), TabularLayout.Constraint(0, 0))
       add(JSlider(min, max, data.accessor?.invoke((data.provider)) as Int).apply {
         majorTickSpacing = step

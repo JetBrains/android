@@ -33,6 +33,8 @@ public class CpuProfilerConfig {
   private int mySamplingIntervalUs = 1000;
   private int myBufferSizeMb = DEFAULT_BUFFER_SIZE_MB;
   private int mySamplingRateBytes = 2048;
+  // Defaults to false, records only wall clock time if not set otherwise.
+  private boolean myDualClock = false;
 
   /**
    * Default constructor to be used by {@link CpuProfilerConfigsState}.
@@ -95,6 +97,13 @@ public class CpuProfilerConfig {
     return this;
   }
 
+  public boolean getDualClock() { return myDualClock; }
+
+  public CpuProfilerConfig setDualClock(boolean dualClock){
+    myDualClock = dualClock;
+    return this;
+  }
+
   public int getSamplingRateBytes() {
     return mySamplingRateBytes;
   }
@@ -113,7 +122,8 @@ public class CpuProfilerConfig {
            myBufferSizeMb == config.myBufferSizeMb &&
            Objects.equals(myName, config.myName) &&
            myTechnology == config.myTechnology &&
-           mySamplingRateBytes == config.mySamplingRateBytes;
+           mySamplingRateBytes == config.mySamplingRateBytes &&
+           myDualClock == config.myDualClock;
   }
 
   @Override

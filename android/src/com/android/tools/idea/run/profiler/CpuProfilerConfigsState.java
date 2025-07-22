@@ -135,7 +135,7 @@ public class CpuProfilerConfigsState implements PersistentStateComponent<CpuProf
 
   @NotNull
   public List<CpuProfilerConfig> getConfigs() {
-    return ImmutableList.<CpuProfilerConfig>builder().addAll(getDefaultConfigs()).addAll(getUserConfigs()).build();
+    return ImmutableList.<CpuProfilerConfig>builder().addAll(getSavedTaskConfigsIfPresentOrDefault()).addAll(getUserConfigs()).build();
   }
 
   @Nullable

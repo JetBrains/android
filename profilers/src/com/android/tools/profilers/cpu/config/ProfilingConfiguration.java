@@ -33,6 +33,7 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
   public static final int DEFAULT_SAMPLING_INTERVAL_US = 1000;
   public static final String TRACE_CONFIG_GROUP = "Trace config";
   public static final int DEFAULT_MEMORY_SAMPLING_INTERVAL_BYTES = 2048;
+  public static final boolean DEFAULT_DUAL_CLOCK_VALUE = false;
 
   public enum AdditionalOptions {
     SYMBOL_DIRS,
@@ -118,11 +119,13 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
           ArtSampledConfiguration artSampled = new ArtSampledConfiguration("");
           artSampled.setProfilingSamplingIntervalUs(proto.getArtOptions().getSamplingIntervalUs());
           artSampled.setProfilingBufferSizeInMb(proto.getArtOptions().getBufferSizeInMb());
+          artSampled.setDualClock(proto.getArtOptions().getDualClock());
           return artSampled;
         }
         else {
           ArtInstrumentedConfiguration artInstrumented = new ArtInstrumentedConfiguration("");
           artInstrumented.setProfilingBufferSizeInMb(proto.getArtOptions().getBufferSizeInMb());
+          artInstrumented.setDualClock(proto.getArtOptions().getDualClock());
           return artInstrumented;
         }
       case PERFETTO_OPTIONS:

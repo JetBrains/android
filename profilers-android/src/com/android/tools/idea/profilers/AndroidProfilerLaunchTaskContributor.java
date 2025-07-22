@@ -292,7 +292,9 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     if (startupConfig.getTechnology() == CpuProfilerConfig.Technology.SAMPLED_JAVA) {
       argsBuilder.append(" --sampling ").append(startupConfig.getSamplingIntervalUs());
     }
-
+    if (isAtLeast(device, AndroidVersion.VersionCodes.UPSIDE_DOWN_CAKE) && !startupConfig.getDualClock()) {
+      argsBuilder.append(" --clock-type wall");
+    }
     argsBuilder.append(" --streaming");
     return argsBuilder.toString();
   }

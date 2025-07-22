@@ -56,6 +56,7 @@ class CpuProfilerConfigConverterTest {
       technology = CpuProfilerConfig.Technology.SAMPLED_JAVA
       samplingIntervalUs = 1234
       bufferSizeMb = 5678
+      dualClock = true
     }
 
     val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.N)
@@ -65,6 +66,7 @@ class CpuProfilerConfigConverterTest {
     assertThat(profilingConfiguration.profilingSamplingIntervalUs).isEqualTo(config.samplingIntervalUs)
     assertThat(profilingConfiguration.profilingBufferSizeInMb).isEqualTo(5678)
     assertThat(profilingConfiguration.requiredDeviceLevel).isEqualTo(0)
+    assertThat(profilingConfiguration.dualClock).isEqualTo(config.dualClock)
   }
 
   @Test
@@ -74,6 +76,7 @@ class CpuProfilerConfigConverterTest {
       technology = CpuProfilerConfig.Technology.INSTRUMENTED_JAVA
       samplingIntervalUs = 1234
       bufferSizeMb = 5678
+      dualClock = false
     }
 
     val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.N)
@@ -82,6 +85,7 @@ class CpuProfilerConfigConverterTest {
     assertThat(profilingConfiguration.traceType).isEqualTo(TraceType.ART)
     assertThat(profilingConfiguration.profilingBufferSizeInMb).isEqualTo(5678)
     assertThat(profilingConfiguration.requiredDeviceLevel).isEqualTo(0)
+    assertThat(profilingConfiguration.dualClock).isEqualTo(config.dualClock)
   }
 
   @Test
@@ -269,6 +273,7 @@ class CpuProfilerConfigConverterTest {
     assertThat(profilingConfiguration.profilingSamplingIntervalUs).isEqualTo(1234)
     assertThat(profilingConfiguration.profilingBufferSizeInMb).isEqualTo(5678)
     assertThat(profilingConfiguration.requiredDeviceLevel).isEqualTo(0)
+    assertThat(profilingConfiguration.dualClock).isEqualTo(false)
   }
 
   @Test
@@ -304,6 +309,7 @@ class CpuProfilerConfigConverterTest {
     val configuration = ArtSampledConfiguration("MyConfiguration").apply {
       profilingSamplingIntervalUs = 1234
       profilingBufferSizeInMb = 5678
+      dualClock = true
     }
 
     val cpuProfilerConfig = CpuProfilerConfigConverter.fromProfilingConfiguration(configuration)
@@ -311,6 +317,7 @@ class CpuProfilerConfigConverterTest {
     assertThat(cpuProfilerConfig.technology).isEqualTo(CpuProfilerConfig.Technology.SAMPLED_JAVA)
     assertThat(cpuProfilerConfig.samplingIntervalUs).isEqualTo(1234)
     assertThat(cpuProfilerConfig.bufferSizeMb).isEqualTo(5678)
+    assertThat(cpuProfilerConfig.dualClock).isEqualTo(configuration.dualClock)
   }
 
   @Test
@@ -324,6 +331,7 @@ class CpuProfilerConfigConverterTest {
     assertThat(cpuProfilerConfig.technology).isEqualTo(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA)
     assertThat(cpuProfilerConfig.samplingIntervalUs).isEqualTo(ProfilingConfiguration.DEFAULT_SAMPLING_INTERVAL_US)
     assertThat(cpuProfilerConfig.bufferSizeMb).isEqualTo(1234)
+    assertThat(cpuProfilerConfig.dualClock).isEqualTo(ProfilingConfiguration.DEFAULT_DUAL_CLOCK_VALUE)
   }
 
   @Test
@@ -370,6 +378,7 @@ class CpuProfilerConfigConverterTest {
     assertThat(cpuProfilerConfig.technology).isEqualTo(CpuProfilerConfig.Technology.SAMPLED_JAVA)
     assertThat(cpuProfilerConfig.samplingIntervalUs).isEqualTo(ProfilingConfiguration.DEFAULT_SAMPLING_INTERVAL_US)
     assertThat(cpuProfilerConfig.bufferSizeMb).isEqualTo(ProfilingConfiguration.DEFAULT_BUFFER_SIZE_MB)
+    assertThat(cpuProfilerConfig.dualClock).isEqualTo(ProfilingConfiguration.DEFAULT_DUAL_CLOCK_VALUE)
   }
 
   @Test
@@ -381,6 +390,7 @@ class CpuProfilerConfigConverterTest {
     assertThat(cpuProfilerConfig.technology).isEqualTo(CpuProfilerConfig.Technology.SAMPLED_JAVA)
     assertThat(cpuProfilerConfig.samplingIntervalUs).isEqualTo(ProfilingConfiguration.DEFAULT_SAMPLING_INTERVAL_US)
     assertThat(cpuProfilerConfig.bufferSizeMb).isEqualTo(ProfilingConfiguration.DEFAULT_BUFFER_SIZE_MB)
+    assertThat(cpuProfilerConfig.dualClock).isEqualTo(ProfilingConfiguration.DEFAULT_DUAL_CLOCK_VALUE)
   }
 
   @Test

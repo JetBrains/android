@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu.art;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.perflib.vmtrace.VmClockType;
 import com.android.tools.perflib.vmtrace.VmTraceParser;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.android.tools.profilers.cpu.BaseCpuCapture;
@@ -30,6 +31,13 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ArtTraceParser implements TraceParser {
 
+  /**
+   * The message to surface to the user when dual clock information is not available in the trace.
+   */
+  private static final String DUAL_CLOCK_DISABLED_MESSAGE =
+    "This trace only supports Wall Clock Time.<p>" +
+    "To view Thread Time, take a new recording after enabling dual clock in Android Studio.";
+
   private final ArtTraceHandler myTraceHandler = new ArtTraceHandler();
 
   @Override
@@ -39,8 +47,8 @@ public class ArtTraceParser implements TraceParser {
     Range range = new Range(
       myTraceHandler.getStartTimeUs(),
       myTraceHandler.getStartTimeUs() + myTraceHandler.getElapsedTimeUs());
-    // ART traces always support dual clock mode.
-    return new BaseCpuCapture(traceId, TraceType.ART, true, null, range, myTraceHandler.getThreadsGraph());
+    boolean isDualClock = parser.getVmClockType() == VmClockType.DUAL;
+    return new BaseCpuCapture(traceId, TraceType.ART, isDualClock, isDualClock ? null : DUAL_CLOCK_DISABLED_MESSAGE, range, myTraceHandler.getThreadsGraph());
   }
 
   public static boolean verifyFileHasArtHeader(@NotNull File trace) {
