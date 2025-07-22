@@ -98,7 +98,6 @@ internal object ISystemImages {
           try {
             repoManager.loadRemotePackages(
               indicator,
-              1.days,
               StudioDownloader(),
               StudioSettingsController.getInstance(),
             )
