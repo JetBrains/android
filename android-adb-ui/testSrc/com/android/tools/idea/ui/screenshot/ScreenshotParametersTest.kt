@@ -44,7 +44,7 @@ import java.awt.image.BufferedImage
 import java.nio.file.Path
 
 /** Tests for [ScreenshotParameters]. */
-class ScreenshotOptionsTest {
+class ScreenshotParametersTest {
 
   private val serialNumber = "serial number"
 
@@ -59,102 +59,107 @@ class ScreenshotOptionsTest {
   @Test
   fun testGetFramingOptionsKnownPhone() {
     val deviceProperties = createDeviceProperties(mapOf(DevicePropertyNames.RO_PRODUCT_MODEL to "Pixel 4 XL"))
-    val screenshotOptions = ScreenshotParameters(serialNumber, HANDHELD, deviceProperties.model)
+    val screenshotParameters = ScreenshotParameters(serialNumber, HANDHELD, deviceProperties.model)
     val image = createImage(1440, 3040, WHITE)
-    val screenshotImage = ScreenshotImage(image, 0, screenshotOptions.deviceType, "Phone", PRIMARY_DISPLAY_ID, Dimension(1440, 3040), 560)
-    val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
+    val screenshotImage =
+        ScreenshotImage(image, 0, screenshotParameters.deviceType, "Phone", PRIMARY_DISPLAY_ID, Dimension(1440, 3040), 560)
+    val framingOptions = screenshotParameters.getFramingOptions(screenshotImage)
     assertThat(framingOptions).containsExactly(DeviceFramingOption("Pixel 4 XL", SKIN_FOLDER.resolve("pixel_4_xl")))
-    assertThat(screenshotOptions.getDefaultFramingOption()).isEqualTo(0)
+    assertThat(screenshotParameters.getDefaultFramingOption()).isEqualTo(0)
   }
 
   @Test
   fun testGetFramingOptionsUnknownPhone() {
     val deviceProperties = createDeviceProperties(mapOf(DevicePropertyNames.RO_PRODUCT_MODEL to "Samsung Galaxy S22"))
-    val screenshotOptions = ScreenshotParameters(serialNumber, HANDHELD, deviceProperties.model)
+    val screenshotParameters = ScreenshotParameters(serialNumber, HANDHELD, deviceProperties.model)
     val image = createImage(1080, 2340, WHITE)
-    val screenshotImage = ScreenshotImage(image, 0, screenshotOptions.deviceType, "Phone", PRIMARY_DISPLAY_ID, Dimension(1080, 2340), 420)
-    val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
+    val screenshotImage =
+        ScreenshotImage(image, 0, screenshotParameters.deviceType, "Phone", PRIMARY_DISPLAY_ID, Dimension(1080, 2340), 420)
+    val framingOptions = screenshotParameters.getFramingOptions(screenshotImage)
     assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Generic Phone")
-    assertThat(screenshotOptions.getDefaultFramingOption()).isEqualTo(0)
+    assertThat(screenshotParameters.getDefaultFramingOption()).isEqualTo(0)
   }
 
   @Test
   fun testGetFramingOptionsTablet() {
     val deviceProperties = createDeviceProperties(mapOf(DevicePropertyNames.RO_PRODUCT_MODEL to "Xiaomi Pad 5"))
-    val screenshotOptions = ScreenshotParameters(serialNumber, HANDHELD, deviceProperties.model)
+    val screenshotParameters = ScreenshotParameters(serialNumber, HANDHELD, deviceProperties.model)
     val image = createImage(1600, 2560, WHITE)
-    val screenshotImage = ScreenshotImage(image, 0, screenshotOptions.deviceType, "Phone", PRIMARY_DISPLAY_ID, Dimension(1600, 2560), 280)
-    val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
+    val screenshotImage =
+        ScreenshotImage(image, 0, screenshotParameters.deviceType, "Phone", PRIMARY_DISPLAY_ID, Dimension(1600, 2560), 280)
+    val framingOptions = screenshotParameters.getFramingOptions(screenshotImage)
     assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Generic Tablet")
-    assertThat(screenshotOptions.getDefaultFramingOption()).isEqualTo(0)
+    assertThat(screenshotParameters.getDefaultFramingOption()).isEqualTo(0)
   }
 
   @Test
   fun testFramingFoldable() {
     val deviceProperties = createDeviceProperties(mapOf(DevicePropertyNames.RO_PRODUCT_MODEL to "Pixel Fold"))
-    val screenshotOptions = ScreenshotParameters(serialNumber, HANDHELD, deviceProperties.model)
+    val screenshotParameters = ScreenshotParameters(serialNumber, HANDHELD, deviceProperties.model)
     val image = createImage(1080, 2092, WHITE)
-    val screenshotImage = ScreenshotImage(image, 0, screenshotOptions.deviceType, "Phone", PRIMARY_DISPLAY_ID, Dimension(1080, 2092), 420)
-    val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
+    val screenshotImage =
+        ScreenshotImage(image, 0, screenshotParameters.deviceType, "Phone", PRIMARY_DISPLAY_ID, Dimension(1080, 2092), 420)
+    val framingOptions = screenshotParameters.getFramingOptions(screenshotImage)
     assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Pixel Fold")
-    assertThat(screenshotOptions.getDefaultFramingOption()).isEqualTo(0)
-    val framingOption = framingOptions[screenshotOptions.getDefaultFramingOption()]
-    val decoratedImage = screenshotOptions.screenshotDecorator.decorate(screenshotImage, ScreenshotDecorationOption(framingOption))
+    assertThat(screenshotParameters.getDefaultFramingOption()).isEqualTo(0)
+    val framingOption = framingOptions[screenshotParameters.getDefaultFramingOption()]
+    val decoratedImage = screenshotParameters.screenshotDecorator.decorate(screenshotImage, ScreenshotDecorationOption(framingOption))
     assertImageSimilar(getGoldenFile("FramingFoldable"), scale(decoratedImage, 0.125))
   }
 
   @Test
   fun testGetFramingOptionsAutomotiveMatchingAspectRatio() {
     val deviceProperties = createDeviceProperties(mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "automotive"))
-    val screenshotOptions = ScreenshotParameters(serialNumber, DeviceType.AUTOMOTIVE, deviceProperties.model)
+    val screenshotParameters = ScreenshotParameters(serialNumber, DeviceType.AUTOMOTIVE, deviceProperties.model)
     val image = createImage(1280, 960, WHITE)
-    val screenshotImage = ScreenshotImage(image, 0, screenshotOptions.deviceType, "Phone", PRIMARY_DISPLAY_ID, Dimension(1280, 960), 180)
-    val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
+    val screenshotImage = ScreenshotImage(image, 0, screenshotParameters.deviceType, "Phone", PRIMARY_DISPLAY_ID, Dimension(1280, 960), 180)
+    val framingOptions = screenshotParameters.getFramingOptions(screenshotImage)
     assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Automotive Large Portrait", "Generic Tablet")
-    assertThat(screenshotOptions.getDefaultFramingOption()).isEqualTo(0)
+    assertThat(screenshotParameters.getDefaultFramingOption()).isEqualTo(0)
   }
 
   @Test
   fun testGetFramingOptionsAutomotiveGeneric() {
     val deviceProperties = createDeviceProperties(mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "automotive"))
-    val screenshotOptions = ScreenshotParameters(serialNumber, DeviceType.AUTOMOTIVE, deviceProperties.model)
+    val screenshotParameters = ScreenshotParameters(serialNumber, DeviceType.AUTOMOTIVE, deviceProperties.model)
     val image = createImage(1280, 768, WHITE)
-    val screenshotImage = ScreenshotImage(image, 0, screenshotOptions.deviceType, "Phone", PRIMARY_DISPLAY_ID, Dimension(1280, 768), 180)
-    val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
+    val screenshotImage = ScreenshotImage(image, 0, screenshotParameters.deviceType, "Phone", PRIMARY_DISPLAY_ID, Dimension(1280, 768), 180)
+    val framingOptions = screenshotParameters.getFramingOptions(screenshotImage)
     assertThat(framingOptions.map(FramingOption::displayName))
         .containsExactly("Automotive Large Portrait", "Automotive Ultrawide", "Generic Tablet")
-    assertThat(screenshotOptions.getDefaultFramingOption()).isEqualTo(0)
+    assertThat(screenshotParameters.getDefaultFramingOption()).isEqualTo(0)
   }
 
   @Test
   fun testGetFramingOptionsTv() {
-    val screenshotOptions = ScreenshotParameters(serialNumber, DeviceType.TV, emptyDeviceProperties.model)
+    val screenshotParameters = ScreenshotParameters(serialNumber, DeviceType.TV, emptyDeviceProperties.model)
     val image = createImage(1920, 1080, Color.GRAY)
-    val screenshotImage = ScreenshotImage(image, 0, screenshotOptions.deviceType, "Phone", PRIMARY_DISPLAY_ID, Dimension(1920, 1080), 480)
-    val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
+    val screenshotImage =
+        ScreenshotImage(image, 0, screenshotParameters.deviceType, "Phone", PRIMARY_DISPLAY_ID, Dimension(1920, 1080), 480)
+    val framingOptions = screenshotParameters.getFramingOptions(screenshotImage)
     assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Television (1080p)")
-    assertThat(screenshotOptions.getDefaultFramingOption()).isEqualTo(0)
+    assertThat(screenshotParameters.getDefaultFramingOption()).isEqualTo(0)
   }
 
   @Test
   fun testGetFramingOptionsWatch() {
     val deviceProperties = createDeviceProperties(mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
-    val screenshotOptions = ScreenshotParameters(serialNumber, DeviceType.WEAR, deviceProperties.model)
+    val screenshotParameters = ScreenshotParameters(serialNumber, DeviceType.WEAR, deviceProperties.model)
     val image = createImage(384, 384, Color.DARK_GRAY)
-    val screenshotImage = ScreenshotImage(image, 0, screenshotOptions.deviceType, "Watch", PRIMARY_DISPLAY_ID, Dimension(384, 384), 200,
+    val screenshotImage = ScreenshotImage(image, 0, screenshotParameters.deviceType, "Watch", PRIMARY_DISPLAY_ID, Dimension(384, 384), 200,
                                           isRoundDisplay = true)
-    val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
+    val framingOptions = screenshotParameters.getFramingOptions(screenshotImage)
     assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Wear OS Small Round")
-    assertThat(screenshotOptions.getDefaultFramingOption()).isEqualTo(0)
+    assertThat(screenshotParameters.getDefaultFramingOption()).isEqualTo(0)
   }
 
   @Test
   fun testGetFramingOptionsWatchSquare() {
     val deviceProperties = createDeviceProperties(mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
-    val screenshotOptions = ScreenshotParameters(serialNumber, DeviceType.WEAR, deviceProperties.model)
+    val screenshotParameters = ScreenshotParameters(serialNumber, DeviceType.WEAR, deviceProperties.model)
     val image = createImage(384, 384, Color.DARK_GRAY)
-    val screenshotImage = ScreenshotImage(image, 0, screenshotOptions.deviceType, "Watch", PRIMARY_DISPLAY_ID, Dimension(384, 384), 200)
-    val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
+    val screenshotImage = ScreenshotImage(image, 0, screenshotParameters.deviceType, "Watch", PRIMARY_DISPLAY_ID, Dimension(384, 384), 200)
+    val framingOptions = screenshotParameters.getFramingOptions(screenshotImage)
     assertThat(framingOptions).isEmpty()
   }
 
@@ -163,11 +168,11 @@ class ScreenshotOptionsTest {
     val avdFolder = Path.of("test.avd")
     val avdManager = TestAvdManagerConnection(null)
 
-    val screenshotOptions = ScreenshotParameters(serialNumber, HANDHELD, avdFolder, avdManager)
+    val screenshotParameters = ScreenshotParameters(serialNumber, HANDHELD, avdFolder, avdManager)
 
-    val framingOptions = screenshotOptions.getFramingOptions(createScreenshot())
+    val framingOptions = screenshotParameters.getFramingOptions(createScreenshot())
     assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Generic Phone")
-    assertThat(screenshotOptions.getDefaultFramingOption()).isEqualTo(0)
+    assertThat(screenshotParameters.getDefaultFramingOption()).isEqualTo(0)
   }
 
   @Test
@@ -179,9 +184,9 @@ class ScreenshotOptionsTest {
       )
     )
 
-    val screenshotOptions = ScreenshotParameters(serialNumber, HANDHELD, avdFolder, avdManager)
+    val screenshotParameters = ScreenshotParameters(serialNumber, HANDHELD, avdFolder, avdManager)
 
-    assertThat(screenshotOptions.deviceName).isEqualTo("Unknown")
+    assertThat(screenshotParameters.deviceName).isEqualTo("Unknown")
   }
 
   @Test
@@ -194,12 +199,12 @@ class ScreenshotOptionsTest {
       )
     )
 
-    val screenshotOptions = ScreenshotParameters(serialNumber, HANDHELD, avdFolder, avdManager)
+    val screenshotParameters = ScreenshotParameters(serialNumber, HANDHELD, avdFolder, avdManager)
 
-    assertThat(screenshotOptions.deviceName).isEqualTo("My Device")
-    val framingOptions = screenshotOptions.getFramingOptions(createScreenshot())
+    assertThat(screenshotParameters.deviceName).isEqualTo("My Device")
+    val framingOptions = screenshotParameters.getFramingOptions(createScreenshot())
     assertThat(framingOptions).containsExactly(DeviceFramingOption("Show Device Frame", Path.of("/skins/my-skin")))
-    assertThat(screenshotOptions.getDefaultFramingOption()).isEqualTo(0)
+    assertThat(screenshotParameters.getDefaultFramingOption()).isEqualTo(0)
   }
 
   private fun getGoldenFile(name: String): Path =
@@ -230,7 +235,7 @@ private val emptyDeviceProperties: DeviceProperties = createDeviceProperties(map
 
 private val SKIN_FOLDER = DeviceArtDescriptor.getBundledDescriptorsFolder()!!.toPath()
 
-private const val GOLDEN_FILE_PATH = "tools/adt/idea/android-adb-ui/testData/ScreenshotOptionsTest/golden"
+private const val GOLDEN_FILE_PATH = "tools/adt/idea/android-adb-ui/testData/ScreenshotParametersTest/golden"
 
 private fun createScreenshot(
   deviceName: String = "Phone",
