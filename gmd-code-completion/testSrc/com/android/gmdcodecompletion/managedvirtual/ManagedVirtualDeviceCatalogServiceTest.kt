@@ -15,92 +15,101 @@
  */
 package com.android.gmdcodecompletion.managedvirtual
 
-import com.android.gmdcodecompletion.managedVirtualDeviceCatalogTestHelper
-import com.android.repository.api.RemotePackage
-import com.android.repository.api.RepoManager
-import com.android.repository.api.UpdatablePackage
-import com.android.sdklib.devices.DeviceManager
-import com.android.sdklib.repository.generated.sysimg.v1.SysImgDetailsType
+import com.android.repository.impl.meta.RepositoryPackages
+import com.android.repository.impl.meta.TypeDetails
+import com.android.repository.testframework.FakePackage
+import com.android.repository.testframework.FakeRepoManager
+import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.testing.ApplicationServiceRule
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
-import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.LightPlatform4TestCase
 import com.intellij.testFramework.TestApplicationManager
-import org.mockito.Answers
-import org.mockito.kotlin.any
-import org.mockito.kotlin.clearInvocations
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.times
-import org.mockito.kotlin.verify
-import org.mockito.kotlin.whenever
 import java.util.Calendar
-import java.util.EnumSet
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.Answers
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.whenever
 
-class ManagedVirtualDeviceCatalogServiceTest : LightPlatformTestCase() {
+class ManagedVirtualDeviceCatalogServiceTest : LightPlatform4TestCase() {
   private val mockProject: Project = mock()
 
   private val mockProgressIndicator: ProgressIndicator = mock()
 
-  private val mockDeviceManager: DeviceManager = mock()
-
   private val mockAndroidSdks: AndroidSdks = mock(defaultAnswer = Answers.RETURNS_DEEP_STUBS)
 
-  private val mockRepoManager: RepoManager = mock(defaultAnswer = Answers.RETURNS_DEEP_STUBS)
+  private val packages = RepositoryPackages()
 
-  private val mockUpdatablePackage: UpdatablePackage = mock()
+  private lateinit var repoManager: FakeRepoManager
 
-  private val mockTypeDetail: SysImgDetailsType = mock()
-
-  private val mockRemotePackage: RemotePackage = mock()
-
+  @get:Rule val sdkServiceRule = ApplicationServiceRule(AndroidSdks::class.java, mockAndroidSdks)
 
   override fun setUp() {
     super.setUp()
-    whenever(mockAndroidSdks.tryToChooseSdkHandler().getRepoManager(any())).thenReturn(mockRepoManager)
-    whenever(mockAndroidSdks.tryToChooseSdkHandler().getRepoManagerAndLoadSynchronously(any())).thenReturn(mockRepoManager)
-    whenever(mockUpdatablePackage.getRepresentative()).thenReturn(mockRemotePackage)
-    whenever(mockRemotePackage.typeDetails).thenReturn(mockTypeDetail)
-    whenever(mockTypeDetail.apiLevel).thenReturn(23)
-    whenever(mockTypeDetail.androidVersion).thenReturn(mock())
-    whenever(mockTypeDetail.androidVersion.codename).thenReturn(null)
-    whenever(mockTypeDetail.getAbis()).thenReturn(listOf("armeabi-v7a"))
     TestApplicationManager.getInstance()
+    val pkg =
+      FakePackage.FakeRemotePackage("system-images;android-23;default;armeabi-v7a").apply {
+        typeDetails =
+          AndroidSdkHandler.getSysImgModule()
+            .createLatestFactory()
+            .createSysImgDetailsType()
+            .apply {
+              apiLevel = 23
+              abis.add("armeabi-v7a")
+            } as TypeDetails
+      }
+    packages.setRemotePkgInfos(listOf(pkg))
+    repoManager = spy(FakeRepoManager(packages))
+    whenever(mockAndroidSdks.tryToChooseSdkHandler()).thenReturn(AndroidSdkHandler(null, null, repoManager))
   }
 
-  private fun managedVirtualDeviceCatalogTestHelperWrapper(
-    deviceManager: DeviceManager? = mockDeviceManager,
-    androidSdks: AndroidSdks? = mockAndroidSdks,
-    callback: () -> Unit) = managedVirtualDeviceCatalogTestHelper(deviceManager, androidSdks) {
-    whenever(mockTypeDetail.apiLevel).thenReturn(23)
-    whenever(mockRepoManager.packages.consolidatedPkgs).thenReturn(mapOf(
-      "system-images;android-23;android;armeabi-v7a" to mockUpdatablePackage))
-    clearInvocations(mockRepoManager)
-    callback()
-  }
+  private fun managedVirtualDeviceCatalogTestHelperWrapper(callback: () -> Unit) =
+    ProgressManager.getInstance()
+      .runProcessWithProgressSynchronously({ callback() }, "", false, null)
 
+  @Test
   fun testObtainAndroidDeviceCatalog() {
     managedVirtualDeviceCatalogTestHelperWrapper {
       val managedVirtualDeviceCatalogService = ManagedVirtualDeviceCatalogService()
       assertFalse(managedVirtualDeviceCatalogService.state.isCacheFresh())
-      managedVirtualDeviceCatalogService.updateDeviceCatalogTaskAction(mockProject, mockProgressIndicator)
+      managedVirtualDeviceCatalogService.updateDeviceCatalogTaskAction(
+        mockProject,
+        mockProgressIndicator,
+      )
       assertTrue(managedVirtualDeviceCatalogService.state.isCacheFresh())
-      verify(mockDeviceManager).getDevices(EnumSet.of(DeviceManager.DeviceCategory.DEFAULT, DeviceManager.DeviceCategory.VENDOR))
-      verify(mockRepoManager).packages
+      val deviceCatalog = managedVirtualDeviceCatalogService.state.myDeviceCatalog
+      assertThat(deviceCatalog.devices.values).isNotEmpty()
+      assertThat(deviceCatalog.apiLevels)
+        .containsExactly(ManagedVirtualDeviceCatalog.ApiVersionInfo(23, imageSource = "google"))
+      assertThat(deviceCatalog.devices.values.first().supportedApis).containsExactly(23)
     }
   }
 
+  @Test
   fun testCacheIsFresh() {
     managedVirtualDeviceCatalogTestHelperWrapper {
       val calendar = Calendar.getInstance()
       calendar.add(Calendar.DATE, 1)
       val managedVirtualDeviceCatalogService = ManagedVirtualDeviceCatalogService()
-      managedVirtualDeviceCatalogService.loadState(ManagedVirtualDeviceCatalogState(calendar.time,
-                                                                                    ManagedVirtualDeviceCatalogService.syncDeviceCatalog()))
-      assertTrue(managedVirtualDeviceCatalogService.state.isCacheFresh())
-      managedVirtualDeviceCatalogService.updateDeviceCatalogTaskAction(mockProject, mockProgressIndicator)
-      // The only time we invoked mockDeviceManager and mockRepoManager is when freshManagedVirtualDeviceCatalogState is syncing
-      verify(mockDeviceManager).getDevices(EnumSet.of(DeviceManager.DeviceCategory.DEFAULT, DeviceManager.DeviceCategory.VENDOR))
-      verify(mockRepoManager, times(1)).packages
+      managedVirtualDeviceCatalogService.loadState(
+        ManagedVirtualDeviceCatalogState(
+          calendar.time,
+          ManagedVirtualDeviceCatalogService.syncDeviceCatalog(),
+        )
+      )
+      val state = managedVirtualDeviceCatalogService.state
+      assertTrue(state.isCacheFresh())
+      managedVirtualDeviceCatalogService.updateDeviceCatalogTaskAction(
+        mockProject,
+        mockProgressIndicator,
+      )
+      // We should not have updated the state with a new instance since the cache is fresh
+      assertThat(managedVirtualDeviceCatalogService.state).isSameAs(state)
     }
   }
 }

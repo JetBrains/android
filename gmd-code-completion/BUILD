@@ -19,6 +19,7 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
+        "//tools/adt/idea/.idea/libraries:truth",
     ],
     test_srcs = ["testSrc"],
     test_tags = [

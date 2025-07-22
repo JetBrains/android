@@ -18,20 +18,22 @@ package com.android.gmdcodecompletion.managedvirtual
 import com.android.gmdcodecompletion.AndroidDeviceInfo
 import com.android.gmdcodecompletion.GmdDeviceCatalogService
 import com.android.gmdcodecompletion.MANAGED_VIRTUAL_DEVICE_CATALOG_UPDATE_FREQUENCY
+import com.android.repository.api.CoroutineProgressIndicator
 import com.android.sdklib.devices.DeviceManager
-import com.android.sdklib.repository.LoggerProgressIndicatorWrapper
 import com.android.sdklib.repository.meta.DetailsTypes
-import com.android.tools.idea.log.LogWrapper
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.sdk.StudioSdkUtil
+import com.android.tools.idea.sdk.StudioDownloader
+import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.tools.sdk.DeviceManagers
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.RoamingType
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.VisibleForTesting
 import java.util.Calendar
@@ -61,20 +63,21 @@ class ManagedVirtualDeviceCatalogService
   companion object {
     @JvmStatic
     fun getInstance(): ManagedVirtualDeviceCatalogService =
-      ApplicationManager.getApplication().getService(ManagedVirtualDeviceCatalogService::class.java)!!
+      service<ManagedVirtualDeviceCatalogService>()
 
     @VisibleForTesting
     fun syncDeviceCatalog(): ManagedVirtualDeviceCatalog {
       val deviceCatalog = ManagedVirtualDeviceCatalog()
-      val iLogger = LogWrapper(LOGGER)
       try {
         // Sync with server to obtain latest SDK list
-        StudioSdkUtil.reloadRemoteSdk(false)
-        val progress: LoggerProgressIndicatorWrapper = object : LoggerProgressIndicatorWrapper(iLogger) {
-          override fun logVerbose(s: String) = iLogger.verbose(s)
-        }
+        val progress = StudioLoggerProgressIndicator(ManagedVirtualDeviceCatalogService::class.java)
         val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-        val repoManager = sdkHandler.getRepoManagerAndLoadSynchronously(progress)
+        val repoManager = sdkHandler.getRepoManager(progress)
+        runBlockingCancellable {
+          val cancellableProgress = CoroutineProgressIndicator(coroutineContext, progress)
+          repoManager.loadLocalPackages(cancellableProgress)
+          repoManager.loadRemotePackages(cancellableProgress, StudioDownloader(), StudioSettingsController.getInstance())
+        }
         val systemImages = repoManager.packages.consolidatedPkgs
         systemImages.filter {
           it.key.contains("system-images") &&
@@ -87,7 +90,7 @@ class ManagedVirtualDeviceCatalogService
             return@forEach
           }
           val apiLevel = typeDetails.apiLevel
-          val apiPreview = typeDetails.androidVersion.codename  ?: ""
+          val apiPreview = typeDetails.androidVersion.codename ?: ""
           val abiInfo = typeDetails.abis.firstOrNull() ?: ""
 
           val propertyList = installId.split(";")

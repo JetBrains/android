@@ -16,13 +16,22 @@
 package com.android.gmdcodecompletion.managedvirtual
 
 import com.android.gmdcodecompletion.freshFtlDeviceCatalogState
-import junit.framework.Assert.assertFalse
-import junit.framework.Assert.assertTrue
-import junit.framework.Assert.fail
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.testFramework.TestApplicationManager
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import java.util.Calendar
 
 class ManagedVirtualDeviceCatalogStateTest {
+  @Before
+  fun setUp() {
+    TestApplicationManager.getInstance()
+  }
+
   @Test
   fun testEmptyManagedVirtualDeviceCatalogState() {
     assertFalse(ManagedVirtualDeviceCatalogState().isCacheFresh())
@@ -30,8 +39,10 @@ class ManagedVirtualDeviceCatalogStateTest {
 
   @Test
   fun testManagedVirtualDeviceCatalogStateOutdated() {
-    assertFalse(ManagedVirtualDeviceCatalogState(Calendar.getInstance().time,
-                                                 ManagedVirtualDeviceCatalogService.syncDeviceCatalog()).isCacheFresh())
+    val catalog = ProgressManager.getInstance().runProcessWithProgressSynchronously(
+      ThrowableComputable { ManagedVirtualDeviceCatalogService.syncDeviceCatalog() }, "", false, null)
+
+    assertFalse(ManagedVirtualDeviceCatalogState(Calendar.getInstance().time, catalog).isCacheFresh())
   }
 
   @Test
@@ -49,17 +60,14 @@ class ManagedVirtualDeviceCatalogStateTest {
   @Test
   fun testManagedVirtualDeviceCatalogConverter() {
     val converter = ManagedVirtualDeviceCatalogState.ManagedVirtualDeviceCatalogConverter()
-    try {
-      val testManagedVirtualDeviceCatalog = ManagedVirtualDeviceCatalogService.syncDeviceCatalog()
-      val serializedString = converter.toString(testManagedVirtualDeviceCatalog)
-      val deserializedDeviceCatalog = converter.fromString(serializedString)
-      // If there are serialization issues it will throw error before reaching assertTrue
-      assertTrue(deserializedDeviceCatalog.isEmptyCatalog == testManagedVirtualDeviceCatalog.isEmptyCatalog)
-      assertTrue(deserializedDeviceCatalog.devices == testManagedVirtualDeviceCatalog.devices)
-      assertTrue(deserializedDeviceCatalog.apiLevels == testManagedVirtualDeviceCatalog.apiLevels)
-    }
-    catch (e: Exception) {
-      fail("ManagedVirtualDeviceCatalog fails to serialize / deserialize")
-    }
+    val testManagedVirtualDeviceCatalog =
+      ProgressManager.getInstance().runProcessWithProgressSynchronously(
+        ThrowableComputable { ManagedVirtualDeviceCatalogService.syncDeviceCatalog() }, "", false, null)
+    val serializedString = converter.toString(testManagedVirtualDeviceCatalog)
+    val deserializedDeviceCatalog = converter.fromString(serializedString)
+    // If there are serialization issues it will throw error before reaching assertTrue
+    assertEquals(deserializedDeviceCatalog.isEmptyCatalog, testManagedVirtualDeviceCatalog.isEmptyCatalog)
+    assertEquals(deserializedDeviceCatalog.devices, testManagedVirtualDeviceCatalog.devices)
+    assertEquals(deserializedDeviceCatalog.apiLevels, testManagedVirtualDeviceCatalog.apiLevels)
   }
 }

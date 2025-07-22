@@ -16,9 +16,10 @@
 package com.android.gmdcodecompletion.managedvirtual
 
 import com.android.gmdcodecompletion.managedVirtualDeviceCatalogTestHelper
-import com.android.repository.api.RemotePackage
-import com.android.repository.api.RepoManager
-import com.android.repository.api.UpdatablePackage
+import com.android.repository.impl.meta.RepositoryPackages
+import com.android.repository.impl.meta.TypeDetails
+import com.android.repository.testframework.FakePackage
+import com.android.repository.testframework.FakeRepoManager
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
@@ -26,7 +27,7 @@ import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
-import com.android.sdklib.repository.generated.sysimg.v1.SysImgDetailsType
+import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.sdk.AndroidSdks
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.TestApplicationManager
@@ -34,7 +35,6 @@ import org.mockito.Answers
 import org.mockito.Mock
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.openMocks
-import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
 import java.util.EnumSet
 
@@ -45,17 +45,9 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
   @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   private lateinit var mockAndroidSdks: AndroidSdks
 
-  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-  private lateinit var mockRepoManager: RepoManager
+  private val packages = RepositoryPackages()
 
-  @Mock
-  private lateinit var mockUpdatablePackage: UpdatablePackage
-
-  @Mock
-  private lateinit var mockTypeDetail: SysImgDetailsType
-
-  @Mock
-  private lateinit var mockRemotePackage: RemotePackage
+  private val repoManager = FakeRepoManager(packages)
 
   companion object {
     private val testDeviceState: () -> State = {
@@ -74,9 +66,7 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
   override fun setUp() {
     super.setUp()
     openMocks(this)
-    whenever(mockAndroidSdks.tryToChooseSdkHandler().getRepoManagerAndLoadSynchronously(any())).thenReturn(mockRepoManager)
-    whenever(mockRemotePackage.typeDetails).thenReturn(mockTypeDetail)
-    whenever(mockUpdatablePackage.representative).thenReturn(mockRemotePackage)
+    whenever(mockAndroidSdks.tryToChooseSdkHandler()).thenReturn(AndroidSdkHandler(null, null, repoManager))
     TestApplicationManager.getInstance()
   }
 
@@ -107,13 +97,21 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
     deviceManager: DeviceManager? = mockDeviceManager,
     androidSdks: AndroidSdks? = mockAndroidSdks,
     callback: () -> Unit) = managedVirtualDeviceCatalogTestHelper(deviceManager, androidSdks) {
-    whenever(mockTypeDetail.apiLevel).thenReturn(testAndroidVersion.apiLevel)
-    whenever(mockTypeDetail.androidVersion).thenReturn(testAndroidVersion)
-    whenever(mockTypeDetail.abis).thenReturn(listOf(testAbiInfo))
-    whenever(mockRepoManager.packages.consolidatedPkgs).thenReturn(
-      if (testSystemImageString.isNotEmpty()) mapOf(testSystemImageString to mockUpdatablePackage)
-      else emptyMap()
-    )
+    if (testSystemImageString.isNotEmpty()) {
+      repoManager.packages.setRemotePkgInfos(listOf(
+        FakePackage.FakeRemotePackage(testSystemImageString).apply {
+          typeDetails =
+            AndroidSdkHandler.getSysImgModule()
+              .createLatestFactory()
+              .createSysImgDetailsType()
+              .apply {
+                apiLevel = testAndroidVersion.androidApiLevel.majorVersion
+                codename = testAndroidVersion.codename
+                abis.add(testAbiInfo)
+              } as TypeDetails
+        }
+      ))
+    }
     callback()
   }
 
@@ -179,7 +177,6 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
     managedVirtualDeviceCatalogTestHelperWrapper("add-ons;addon-google_apis-google-19") {
       val deviceCatalog = ManagedVirtualDeviceCatalogService.syncDeviceCatalog()
       assertTrue(deviceCatalog.apiLevels.isEmpty())
-      verify(mockRepoManager.packages).consolidatedPkgs
     }
   }
 
