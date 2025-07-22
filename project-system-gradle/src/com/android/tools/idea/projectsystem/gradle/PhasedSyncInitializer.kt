@@ -20,17 +20,13 @@ import com.android.tools.idea.gradle.project.sync.idea.SyncContributorProjectCon
 import com.android.tools.idea.gradle.project.sync.idea.createModuleEntity
 import com.android.tools.idea.gradle.project.sync.idea.resolveHolderModuleName
 import com.intellij.platform.workspace.jps.entities.ContentRootEntity
-import com.intellij.platform.workspace.jps.entities.ModuleEntity
 import com.intellij.platform.workspace.jps.entities.ModuleId
 import com.intellij.platform.workspace.storage.ImmutableEntityStorage
 import com.intellij.platform.workspace.storage.MutableEntityStorage
-import com.intellij.platform.workspace.storage.entities
 import com.intellij.workspaceModel.ide.legacyBridge.findModule
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncExtension
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase
-import org.jetbrains.plugins.gradle.service.syncAction.impl.bridge.GradleBridgeEntitySource
-import org.jetbrains.plugins.gradle.service.syncAction.virtualFileUrl
 
 /**
  * This is a sync contributor that runs after the platform's content root contributor to fix-up any issues caused by it and makes sure
@@ -53,9 +49,6 @@ internal class FixSyncContributorIssues : GradleSyncExtension {
       return
     }
 
-    // Keep the root module as an iml based entity, because many things go wrong if there isn't at least one .iml based module
-    removeGradleBasedEntitiesForRootModule(context, syncStorage)
-
     reconcileExistingHolderModules(context, syncStorage, phase)
   }
 
@@ -75,27 +68,6 @@ internal class FixSyncContributorIssues : GradleSyncExtension {
         }
       }
     }
-  }
-
-  /**
-   * We keep the root module as an iml based entity, because a lot of things go wrong if we don't.
-   * Specifically [com.intellij.workspaceModel.ide.impl.legacyBridge.module.ModuleBridgeLoaderService] currently disregards
-   * the entire workspace model if there are no iml based entities at all.
-   *
-   * Also see for more context:
-   * [com.intellij.workspaceModel.ide.impl.jps.serialization.JpsProjectModelSynchronizer.hasNoSerializedJpsModules]
-   *
-   * TODO(b/384022658): We should aim to delete this in the long term, but for now it should be fine to keep.
-   */
-  private fun removeGradleBasedEntitiesForRootModule(
-    context: ProjectResolverContext,
-    storage: MutableEntityStorage,
-  ) {
-    val projectRootUrl = context.virtualFileUrl(context.projectPath)
-    storage.entities<ModuleEntity>()
-      .filter { module -> module.entitySource is GradleBridgeEntitySource }
-      .filter { module -> module.contentRoots.any { it.url == projectRootUrl } }
-      .toList().forEach { module -> storage.removeEntity(module) }
   }
 }
 
