@@ -63,6 +63,11 @@ object WFFConstants {
    *   Type</a>
    */
   object DataSources {
+    val WEATHER_DAYS_PATTERN = "WEATHER\\.DAYS\\.(\\d+)".toRegex()
+    val WEATHER_HOURS_PATTERN = "WEATHER\\.HOURS\\.(\\d+)".toRegex()
+    const val DAYS_TOKEN = "<days>"
+    const val HOURS_TOKEN = "<hours>"
+
     val TIME_UNIT =
       listOf(
         StaticDataSource(id = "MILLISECOND", requiredVersion = WFFVersion1),
@@ -200,57 +205,101 @@ object WFFConstants {
     val WEATHER_PATTERNS =
       listOf(
         PatternedDataSource(
-          pattern = "WEATHER\\.HOURS\\.\\d+\\.IS_AVAILABLE".toRegex(),
-          WFFVersion2,
-        ),
-        PatternedDataSource(pattern = "WEATHER\\.HOURS\\.\\d+\\.CONDITION".toRegex(), WFFVersion2),
-        PatternedDataSource(
-          pattern = "WEATHER\\.HOURS\\.\\d+\\.CONDITION_NAME".toRegex(),
-          WFFVersion2,
-        ),
-        PatternedDataSource(pattern = "WEATHER\\.HOURS\\.\\d+\\.IS_DAY".toRegex(), WFFVersion2),
-        PatternedDataSource(
-          pattern = "WEATHER\\.HOURS\\.\\d+\\.TEMPERATURE".toRegex(),
-          WFFVersion2,
-        ),
-        PatternedDataSource(pattern = "WEATHER\\.HOURS\\.\\d+\\.UV_INDEX".toRegex(), WFFVersion2),
-        PatternedDataSource(
-          pattern = "WEATHER\\.DAYS\\.\\d+\\.IS_AVAILABLE".toRegex(),
-          WFFVersion2,
+          pattern = "$WEATHER_HOURS_PATTERN\\.IS_AVAILABLE".toRegex(),
+          lookupString = "WEATHER.HOURS.$HOURS_TOKEN.IS_AVAILABLE",
+          lookupCursorToken = HOURS_TOKEN,
+          requiredVersion = WFFVersion2,
         ),
         PatternedDataSource(
-          pattern = "WEATHER\\.DAYS\\.\\d+\\.CONDITION_DAY".toRegex(),
-          WFFVersion2,
+          pattern = "$WEATHER_HOURS_PATTERN\\.CONDITION".toRegex(),
+          lookupString = "WEATHER.HOURS.$HOURS_TOKEN.CONDITION",
+          lookupCursorToken = HOURS_TOKEN,
+          requiredVersion = WFFVersion2,
         ),
         PatternedDataSource(
-          pattern = "WEATHER\\.DAYS\\.\\d+\\.CONDITION_DAY_NAME".toRegex(),
-          WFFVersion2,
+          pattern = "$WEATHER_HOURS_PATTERN\\.CONDITION_NAME".toRegex(),
+          lookupString = "WEATHER.HOURS.$HOURS_TOKEN.CONDITION_NAME",
+          lookupCursorToken = HOURS_TOKEN,
+          requiredVersion = WFFVersion2,
         ),
         PatternedDataSource(
-          pattern = "WEATHER\\.DAYS\\.\\d+\\.CONDITION_NIGHT".toRegex(),
-          WFFVersion2,
+          pattern = "$WEATHER_HOURS_PATTERN\\.IS_DAY".toRegex(),
+          lookupString = "WEATHER.HOURS.$HOURS_TOKEN.IS_DAY",
+          lookupCursorToken = HOURS_TOKEN,
+          requiredVersion = WFFVersion2,
         ),
         PatternedDataSource(
-          pattern = "WEATHER\\.DAYS\\.\\d+\\.CONDITION_NIGHT_NAME".toRegex(),
-          WFFVersion2,
+          pattern = "$WEATHER_HOURS_PATTERN\\.TEMPERATURE".toRegex(),
+          lookupString = "WEATHER.HOURS.$HOURS_TOKEN.TEMPERATURE",
+          lookupCursorToken = HOURS_TOKEN,
+          requiredVersion = WFFVersion2,
         ),
         PatternedDataSource(
-          pattern = "WEATHER\\.DAYS\\.\\d+\\.TEMPERATURE_LOW".toRegex(),
-          WFFVersion2,
+          pattern = "$WEATHER_HOURS_PATTERN\\.UV_INDEX".toRegex(),
+          lookupString = "WEATHER.HOURS.$HOURS_TOKEN.UV_INDEX",
+          lookupCursorToken = HOURS_TOKEN,
+          requiredVersion = WFFVersion2,
         ),
         PatternedDataSource(
-          pattern = "WEATHER\\.DAYS\\.\\d+\\.TEMPERATURE_HIGH".toRegex(),
-          WFFVersion2,
+          pattern = "$WEATHER_DAYS_PATTERN\\.IS_AVAILABLE".toRegex(),
+          lookupString = "WEATHER.DAYS.$DAYS_TOKEN.IS_AVAILABLE",
+          lookupCursorToken = DAYS_TOKEN,
+          requiredVersion = WFFVersion2,
         ),
         PatternedDataSource(
-          pattern = "WEATHER\\.DAYS\\.\\d+\\.CHANCE_OF_PRECIPITATION".toRegex(),
-          WFFVersion2,
+          pattern = "$WEATHER_DAYS_PATTERN\\.CONDITION_DAY".toRegex(),
+          lookupString = "WEATHER.DAYS.$DAYS_TOKEN.CONDITION_DAY",
+          lookupCursorToken = DAYS_TOKEN,
+          requiredVersion = WFFVersion2,
         ),
         PatternedDataSource(
-          pattern = "WEATHER\\.DAYS\\.\\d+\\.CHANCE_OF_PRECIPITATION_NIGHT".toRegex(),
-          WFFVersion2,
+          pattern = "$WEATHER_DAYS_PATTERN\\.CONDITION_DAY_NAME".toRegex(),
+          lookupString = "WEATHER.DAYS.$DAYS_TOKEN.CONDITION_DAY_NAME",
+          lookupCursorToken = DAYS_TOKEN,
+          requiredVersion = WFFVersion2,
         ),
-        PatternedDataSource(pattern = "WEATHER\\.DAYS\\.\\d+\\.UV_INDEX".toRegex(), WFFVersion2),
+        PatternedDataSource(
+          pattern = "$WEATHER_DAYS_PATTERN\\.CONDITION_NIGHT".toRegex(),
+          lookupString = "WEATHER.DAYS.$DAYS_TOKEN.CONDITION_NIGHT",
+          lookupCursorToken = DAYS_TOKEN,
+          requiredVersion = WFFVersion2,
+        ),
+        PatternedDataSource(
+          pattern = "$WEATHER_DAYS_PATTERN\\.CONDITION_NIGHT_NAME".toRegex(),
+          lookupString = "WEATHER.DAYS.$DAYS_TOKEN.CONDITION_NIGHT_NAME",
+          lookupCursorToken = DAYS_TOKEN,
+          requiredVersion = WFFVersion2,
+        ),
+        PatternedDataSource(
+          pattern = "$WEATHER_DAYS_PATTERN\\.TEMPERATURE_LOW".toRegex(),
+          lookupString = "WEATHER.DAYS.$DAYS_TOKEN.TEMPERATURE_LOW",
+          lookupCursorToken = DAYS_TOKEN,
+          requiredVersion = WFFVersion2,
+        ),
+        PatternedDataSource(
+          pattern = "$WEATHER_DAYS_PATTERN\\.TEMPERATURE_HIGH".toRegex(),
+          lookupString = "WEATHER.DAYS.$DAYS_TOKEN.TEMPERATURE_HIGH",
+          lookupCursorToken = DAYS_TOKEN,
+          requiredVersion = WFFVersion2,
+        ),
+        PatternedDataSource(
+          pattern = "$WEATHER_DAYS_PATTERN\\.CHANCE_OF_PRECIPITATION".toRegex(),
+          lookupString = "WEATHER.DAYS.$DAYS_TOKEN.CHANCE_OF_PRECIPITATION",
+          lookupCursorToken = DAYS_TOKEN,
+          requiredVersion = WFFVersion2,
+        ),
+        PatternedDataSource(
+          pattern = "$WEATHER_DAYS_PATTERN\\.CHANCE_OF_PRECIPITATION_NIGHT".toRegex(),
+          lookupString = "WEATHER.DAYS.$DAYS_TOKEN.CHANCE_OF_PRECIPITATION_NIGHT",
+          lookupCursorToken = DAYS_TOKEN,
+          requiredVersion = WFFVersion2,
+        ),
+        PatternedDataSource(
+          pattern = "$WEATHER_DAYS_PATTERN\\.UV_INDEX".toRegex(),
+          lookupString = "WEATHER.DAYS.$DAYS_TOKEN.UV_INDEX",
+          lookupCursorToken = DAYS_TOKEN,
+          requiredVersion = WFFVersion2,
+        ),
       )
 
     val ALL_STATIC =
@@ -266,7 +315,17 @@ object WFFConstants {
 
     val ALL_STATIC_BY_ID = ALL_STATIC.associateBy { it.id }
 
+    val ALL_AVAILABLE_STATIC_BY_VERSION =
+      WFFVersion.entries.associateWith { version ->
+        ALL_STATIC.filter { it.requiredVersion <= version }
+      }
+
     val ALL_PATTERNS = WEATHER_PATTERNS
+
+    val ALL_AVAILABLE_PATTERNS_BY_VERSION =
+      WFFVersion.entries.associateWith { version ->
+        ALL_PATTERNS.filter { it.requiredVersion <= version }
+      }
   }
 
   /**

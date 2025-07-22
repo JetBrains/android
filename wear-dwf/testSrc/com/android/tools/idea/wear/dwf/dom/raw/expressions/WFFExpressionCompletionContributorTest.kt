@@ -23,9 +23,9 @@ import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.wear.dwf.dom.raw.overrideCurrentWFFVersion
 import com.android.tools.wear.wff.WFFVersion.WFFVersion1
 import com.android.tools.wear.wff.WFFVersion.WFFVersion2
+import com.android.tools.wear.wff.WFFVersion.WFFVersion3
 import com.android.tools.wear.wff.WFFVersion.WFFVersion4
 import com.google.common.truth.Truth.assertThat
-import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
@@ -119,6 +119,137 @@ class WFFExpressionCompletionContributorTest {
     fixture.completeBasic()
 
     fixture.checkResult("textLength($caret\"some string\")")
+  }
+
+  @Test
+  fun `autocompletes data sources when a literal is expected`() {
+    fixture.configureByText(WFFExpressionFileType, caret)
+
+    assertThat(fixture.completeBasic().map { it.lookupString })
+      .containsAllIn(
+        arrayOf("WEATHER.IS_AVAILABLE", "STEP_COUNT", "WEATHER.DAYS.<days>.CHANCE_OF_PRECIPITATION")
+      )
+  }
+
+  @Test
+  fun `data source variants depend on the WFF version`() {
+    fixture.configureByText(WFFExpressionFileType, caret)
+
+    overrideCurrentWFFVersion(WFFVersion1, projectRule.testRootDisposable)
+    var variants = fixture.completeBasic().map { it.lookupString }
+    assertThat(variants).contains("SECOND_MILLISECOND") // version 1 required
+    assertThat(variants).doesNotContain("SECOND_UNITS_DIGIT") // version 2 required
+    assertThat(variants).doesNotContain("TIMEZONE_OFFSET_MINUTES") // version 3 required
+
+    overrideCurrentWFFVersion(WFFVersion2, projectRule.testRootDisposable)
+    variants = fixture.completeBasic().map { it.lookupString }
+    assertThat(variants).contains("SECOND_MILLISECOND") // version 1 required
+    assertThat(variants).contains("SECOND_UNITS_DIGIT") // version 2 required
+    assertThat(variants).doesNotContain("TIMEZONE_OFFSET_MINUTES") // version 3 required
+
+    for (version in listOf(WFFVersion3, WFFVersion4, null)) {
+      overrideCurrentWFFVersion(version, projectRule.testRootDisposable)
+      variants = fixture.completeBasic().map { it.lookupString }
+      assertThat(variants).contains("SECOND_MILLISECOND") // version 1 required
+      assertThat(variants).contains("SECOND_UNITS_DIGIT") // version 2 required
+      assertThat(variants).contains("TIMEZONE_OFFSET_MINUTES") // version 3 required
+    }
+  }
+
+  @Test
+  fun `all data source variants are returned when the WFF version can't be determined`() {
+    fixture.configureByText(WFFExpressionFileType, caret)
+    overrideCurrentWFFVersion(null, projectRule.testRootDisposable)
+
+    val variants = fixture.completeBasic().map { it.lookupString }
+
+    assertThat(variants).contains("SECOND_MILLISECOND") // version 1 required
+    assertThat(variants).contains("SECOND_UNITS_DIGIT") // version 2 required
+    assertThat(variants).contains("TIMEZONE_OFFSET_MINUTES") // version 3 required
+  }
+
+  @Test
+  fun `does not autocomplete data sources when a literal is not expected`() {
+    fixture.configureByText(WFFExpressionFileType, "[STEP_COUNT] $caret")
+
+    assertThat(fixture.completeBasic().map { it.lookupString }).isEmpty()
+  }
+
+  @Test
+  fun `autocompleted data sources add brackets if needed`() {
+    fixture.configureByText(WFFExpressionFileType, "STEP_C$caret")
+
+    fixture.completeBasic()
+
+    fixture.checkResult("[STEP_COUNT]")
+  }
+
+  @Test
+  fun `autocompleted data sources do not add brackets if not needed`() {
+    fixture.configureByText(WFFExpressionFileType, "[STEP_C$caret]")
+
+    fixture.completeBasic()
+
+    fixture.checkResult("[STEP_COUNT]")
+  }
+
+  @Test
+  fun `autocompletes weather data sources after the dot`() {
+    fixture.configureByText(WFFExpressionFileType, "[WEATHER.$caret")
+
+    assertThat(fixture.completeBasic().map { it.lookupString })
+      .containsAllIn(
+        arrayOf(
+          "WEATHER.IS_AVAILABLE",
+          "WEATHER.DAYS.<days>.IS_AVAILABLE",
+          "WEATHER.HOURS.<hours>.IS_AVAILABLE",
+        )
+      )
+  }
+
+  @Test
+  fun `autocompletes patterned weather data sources after the dot`() {
+    fixture.configureByText(WFFExpressionFileType, "[WEATHER.DAYS.$caret")
+
+    assertThat(fixture.completeBasic().map { it.lookupString })
+      .containsAllIn(
+        arrayOf("WEATHER.DAYS.<days>.IS_AVAILABLE", "WEATHER.DAYS.<days>.CHANCE_OF_PRECIPITATION")
+      )
+  }
+
+  @Test
+  fun `autocompletes patterned weather data sources after the specified days`() {
+    fixture.configureByText(WFFExpressionFileType, "[WEATHER.DAYS.3.$caret")
+
+    val lookupStrings = fixture.completeBasic().map { it.lookupString }
+    assertThat(lookupStrings)
+      .containsAllIn(arrayOf("WEATHER.DAYS.3.IS_AVAILABLE", "WEATHER.DAYS.3.CONDITION_DAY_NAME"))
+    assertThat(lookupStrings).doesNotContain("WEATHER.DAYS.<days>.IS_AVAILABLE")
+    assertThat(lookupStrings).doesNotContain("WEATHER.HOURS.<hours>.IS_AVAILABLE")
+    assertThat(lookupStrings).doesNotContain("WEATHER.IS_AVAILABLE")
+    assertThat(lookupStrings).doesNotContain("STEP_COUNT")
+  }
+
+  @Test
+  fun `autocompletes patterned weather data sources after the specified hours`() {
+    fixture.configureByText(WFFExpressionFileType, "[WEATHER.HOURS.2$caret")
+
+    val lookupStrings = fixture.completeBasic().map { it.lookupString }
+    assertThat(lookupStrings)
+      .containsAllIn(arrayOf("WEATHER.HOURS.2.IS_AVAILABLE", "WEATHER.HOURS.2.CONDITION_NAME"))
+    assertThat(lookupStrings).doesNotContain("WEATHER.HOURS.<hours>.IS_AVAILABLE")
+    assertThat(lookupStrings).doesNotContain("WEATHER.DAYS.<days>.IS_AVAILABLE")
+    assertThat(lookupStrings).doesNotContain("WEATHER.IS_AVAILABLE")
+    assertThat(lookupStrings).doesNotContain("STEP_COUNT")
+  }
+
+  @Test
+  fun `autocompleted patterned weather data sources add brackets, remove the cursor token, and move the cursor`() {
+    fixture.configureByText(WFFExpressionFileType, "[WEATHER.DAYS.is$caret")
+
+    fixture.completeBasic()
+
+    fixture.checkResult("[WEATHER.DAYS.$caret.IS_AVAILABLE]")
   }
 
   @Test

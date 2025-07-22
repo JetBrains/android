@@ -31,6 +31,8 @@ import com.android.tools.idea.wear.dwf.dom.raw.configurations.PhotosConfiguratio
 import com.android.tools.idea.wear.dwf.dom.raw.configurations.UnknownConfiguration
 import com.android.tools.idea.wear.dwf.dom.raw.configurations.UserConfiguration
 import com.intellij.codeInsight.completion.InsertHandler
+import com.intellij.codeInsight.completion.InsertionContext
+import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.concurrency.annotations.RequiresReadLock
@@ -43,26 +45,36 @@ import com.intellij.util.concurrency.annotations.RequiresReadLock
  */
 fun LookupElementBuilder.insertBracketsAroundIfNeeded() =
   withInsertHandler { context, lookupElement ->
-    val textWithBrackets = StringBuilder()
-    if (!lookupElement.lookupString.startsWith("[")) {
-      textWithBrackets.append("[")
-    }
-    textWithBrackets.append(lookupElement.lookupString)
-    if (!lookupElement.lookupString.endsWith("]")) {
-      textWithBrackets.append("]")
-    }
-
-    val hasExtraOpenBracket =
-      context.startOffset > 0 && context.document.charsSequence[context.startOffset - 1] == '['
-    val startOffset = if (hasExtraOpenBracket) context.startOffset - 1 else context.startOffset
-
-    val hasExtraCloseBracket =
-      context.tailOffset < context.document.textLength &&
-        context.document.charsSequence[context.tailOffset] == ']'
-    val tailOffset = if (hasExtraCloseBracket) context.tailOffset + 1 else context.tailOffset
-
-    context.document.replaceString(startOffset, tailOffset, textWithBrackets.toString())
+    insertBracketsAroundIfNeeded(context, lookupElement)
   }
+
+/**
+ * Inserts the `[` and `]` around a [LookupElementBuilder.getLookupString] after the auto-complete
+ * happens, if needed.
+ *
+ * This helps prevent having the brackets appear in double.
+ */
+fun insertBracketsAroundIfNeeded(context: InsertionContext, lookupElement: LookupElement) {
+  val textWithBrackets = StringBuilder()
+  if (!lookupElement.lookupString.startsWith("[")) {
+    textWithBrackets.append("[")
+  }
+  textWithBrackets.append(lookupElement.lookupString)
+  if (!lookupElement.lookupString.endsWith("]")) {
+    textWithBrackets.append("]")
+  }
+
+  val hasOpenBracket =
+    context.startOffset > 0 && context.document.charsSequence[context.startOffset - 1] == '['
+  val startOffset = if (hasOpenBracket) context.startOffset - 1 else context.startOffset
+
+  val hasExtraCloseBracket =
+    context.tailOffset < context.document.textLength &&
+      context.document.charsSequence[context.tailOffset] == ']'
+  val tailOffset = if (hasExtraCloseBracket) context.tailOffset + 1 else context.tailOffset
+
+  context.document.replaceString(startOffset, tailOffset, textWithBrackets.toString())
+}
 
 /** Extracts [UserConfiguration]s from a Declarative Watch Face file. */
 @RequiresReadLock

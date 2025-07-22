@@ -36,9 +36,19 @@ data class StaticDataSource(val id: String, override val requiredVersion: WFFVer
  * a [DataSource] that follows a specific pattern.
  *
  * For example `WEATHER.HOURS.<integer>.IS_AVAILABLE`, where <integer> is not pre-defined.
+ *
+ * The [lookupString] is the string that will be shown to the user when showing autocomplete
+ * variants. The [lookupCursorToken] is the token within the [lookupString] that will be removed and
+ * replaced by the cursor. For example `lookupString` can be `WEATHER.DAYS.<days>.IS_AVAILABLE` and
+ * the `lookupCursorToken` would be `<days.`. If the user autocompletes that value, they would have
+ * the following: `WEATHER.DAYS.$caret.IS_AVAILABLE.
  */
-data class PatternedDataSource(val pattern: Regex, override val requiredVersion: WFFVersion) :
-  DataSource(requiredVersion)
+data class PatternedDataSource(
+  val pattern: Regex,
+  val lookupString: String,
+  val lookupCursorToken: String,
+  override val requiredVersion: WFFVersion,
+) : DataSource(requiredVersion)
 
 /** Finds a [DataSource] by an ID or a pattern. */
 fun findDataSource(idOrPattern: String) =
