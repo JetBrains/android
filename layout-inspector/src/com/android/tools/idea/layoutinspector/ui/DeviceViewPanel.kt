@@ -30,8 +30,8 @@ import com.android.tools.idea.layoutinspector.model.toDimension
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
 import com.android.tools.idea.layoutinspector.ui.toolbar.FloatingToolbarProvider
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_LAYER_SPACING
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.OverlayActionGroup
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ToggleOverlayAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.createStandaloneLayoutInspectorToolbar
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
@@ -201,10 +201,11 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector, disposableParent: Di
       selectProcessAction = targetSelectedAction?.dropDownAction,
       firstGroupExtraActions =
         listOf(
-          ToggleOverlayAction(
+          OverlayActionGroup(
             inspectorModel = layoutInspector.inspectorModel,
             getImage = { layoutInspector.renderModel.overlayBytes },
             setImage = { layoutInspector.renderModel.overlayBytes = it },
+            setAlpha = { layoutInspector.renderModel.overlayAlpha = it },
           )
         ),
     )

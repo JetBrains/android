@@ -982,6 +982,10 @@ class EmbeddedRendererModelTest {
 
     val overlay = rendererModel.overlay.first()
     assertThat(overlay).isEqualTo(ByteArray(1))
+
+    rendererModel.setOverlayTransparency(1f)
+    val alpha = rendererModel.overlayAlpha.first()
+    assertThat(alpha).isEqualTo(1f)
   }
 
   private fun createWindowForDrawModifierTest(): ViewAndroidWindow {

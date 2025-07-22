@@ -39,8 +39,8 @@ import com.android.tools.idea.layoutinspector.runningdevices.actions.UiConfig
 import com.android.tools.idea.layoutinspector.runningdevices.actions.VerticalSplitAction
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.OverlayActionGroup
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ToggleOverlayAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.createEmbeddedLayoutInspectorToolbar
 import com.android.tools.idea.streaming.core.DeviceId
 import com.google.common.annotations.VisibleForTesting
@@ -245,10 +245,11 @@ data class SelectedTabState(
       selectProcessAction = processPicker,
       firstGroupExtraActions =
         listOf(
-          ToggleOverlayAction(
+          OverlayActionGroup(
             inspectorModel = layoutInspector.inspectorModel,
             getImage = { renderingComponents.model.getOverlay() },
             setImage = { renderingComponents.model.setOverlay(it) },
+            setAlpha = { renderingComponents.model.setOverlayTransparency(it) },
           )
         ),
       lastGroupExtraActions =

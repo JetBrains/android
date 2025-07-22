@@ -26,6 +26,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.runningdevices.OverlayHost
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.RenderSettings
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_ALPHA_VALUE
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import java.awt.Rectangle
@@ -103,6 +104,10 @@ class EmbeddedRendererModel(
 
   private val _overlay = MutableStateFlow<ByteArray?>(null)
   val overlay = _overlay.asStateFlow()
+
+  private val _overlayAlpha = MutableStateFlow<Float>(INITIAL_ALPHA_VALUE)
+  /** Value between 0 and 1 controlling the overlay transparency. */
+  val overlayAlpha = _overlayAlpha.asStateFlow()
 
   private var renderSettingsState = renderSettings.toState()
 
@@ -196,6 +201,15 @@ class EmbeddedRendererModel(
   // TODO(b/433223949): remove
   override fun getOverlay(): ByteArray? {
     return _overlay.value
+  }
+
+  /**
+   * Sets the overlay alpha.
+   *
+   * @param alpha A value between 0 and 1.
+   */
+  override fun setOverlayTransparency(alpha: Float) {
+    _overlayAlpha.value = alpha
   }
 
   /** Returns the node, at the provided coordinates, that the user most likely want to select. */

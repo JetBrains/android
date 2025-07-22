@@ -21,7 +21,6 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.snapshots.SnapshotAction
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.AlphaSliderAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.LayerSpacingSliderAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RefreshAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RenderSettingsAction
@@ -172,7 +171,6 @@ private class LayoutInspectorActionGroup(
     if (!layoutInspector.isSnapshot) {
       add(SnapshotAction)
     }
-    add(AlphaSliderAction { layoutInspector.renderModel })
     if (
       !layoutInspector.isSnapshot &&
         !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled

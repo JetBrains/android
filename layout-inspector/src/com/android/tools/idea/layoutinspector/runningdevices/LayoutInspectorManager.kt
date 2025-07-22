@@ -532,4 +532,6 @@ interface OverlayHost {
   fun setOverlay(image: ByteArray?)
 
   fun getOverlay(): ByteArray?
+
+  fun setOverlayTransparency(alpha: Float)
 }

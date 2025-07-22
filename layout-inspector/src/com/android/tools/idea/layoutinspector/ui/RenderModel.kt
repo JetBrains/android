@@ -23,7 +23,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.runningdevices.OverlayHost
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_ALPHA_PERCENT
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_ALPHA_VALUE
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_LAYER_SPACING
 import com.google.common.annotations.VisibleForTesting
 import java.awt.Image
@@ -113,7 +113,7 @@ class RenderModel(
   var overlayImage: Image? = null
     private set
 
-  var overlayAlpha: Float = INITIAL_ALPHA_PERCENT / 100f
+  var overlayAlpha: Float = INITIAL_ALPHA_VALUE
     set(value) {
       field = value
       modificationListeners.forEach { it() }
@@ -445,5 +445,10 @@ class RenderModel(
   // TODO(b/433223949): remove
   override fun getOverlay(): ByteArray? {
     return overlayBytes
+  }
+
+  // TODO(b/433223949): remove
+  override fun setOverlayTransparency(alpha: Float) {
+    overlayAlpha = alpha
   }
 }
