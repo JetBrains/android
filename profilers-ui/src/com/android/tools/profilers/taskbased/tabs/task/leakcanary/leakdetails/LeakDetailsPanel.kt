@@ -78,12 +78,17 @@ fun LeakDetailsPanel(selectedLeak: Leak?, gotoDeclaration: (Node) -> Unit, isRec
       Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState).padding(10.dp)) {
         // If displayedLeakTrace is empty, use empty list for the leak nodes.
         val traceNodes = if (selectedLeak.displayedLeakTrace.isNotEmpty()) selectedLeak.displayedLeakTrace[0].nodes else listOf()
+        var openStates by remember(selectedLeak) { mutableStateOf(List(traceNodes.size) { false }) }
         traceNodes.forEachIndexed { index, currNode ->
           LeakTraceNodeView(
             node = currNode,
             previousNode = if (index > 0) traceNodes[index - 1] else null,
             gotoDeclaration = gotoDeclaration,
-            nextNode = if (index + 1 < traceNodes.size) traceNodes[index + 1] else null
+            nextNode = if (index + 1 < traceNodes.size) traceNodes[index + 1] else null,
+            isOpen = openStates[index],
+            onClickNode = {
+              openStates = openStates.toMutableList().apply { this[index] = !this[index] }
+            }
           )
         }
       }
@@ -108,10 +113,11 @@ fun LeakDetailsPanel(selectedLeak: Leak?, gotoDeclaration: (Node) -> Unit, isRec
 fun LeakTraceNodeView(node: Node,
                       previousNode: Node?,
                       gotoDeclaration: (Node) -> Unit,
-                      nextNode: Node?) {
-  var isOpen by remember { mutableStateOf(false) }
+                      nextNode: Node?,
+                      isOpen: Boolean = false,
+                      onClickNode: () -> Unit) {
   val rowClickableModifier = Modifier
-    .clickable(onClick = { isOpen = !isOpen }, indication = null, interactionSource = remember { MutableInteractionSource() })
+    .clickable(onClick = { onClickNode() }, indication = null, interactionSource = remember { MutableInteractionSource() })
     .pointerHoverIcon(PointerIcon.Hand)
   Column(modifier = Modifier.height(IntrinsicSize.Min)) {
     Row {
