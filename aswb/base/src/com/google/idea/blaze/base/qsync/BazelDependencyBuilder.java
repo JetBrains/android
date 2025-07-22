@@ -112,7 +112,8 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
 
   private static final Logger logger = Logger.getInstance(BazelDependencyBuilder.class);
 
-  private static final BoolExperiment buildGeneratedSrcJars =
+  @VisibleForTesting
+  public static final BoolExperiment buildGeneratedSrcJars =
       new BoolExperiment("qsync.build.generated.src.jars", false);
 
   // Note, this is currently incompatible with the build API.
