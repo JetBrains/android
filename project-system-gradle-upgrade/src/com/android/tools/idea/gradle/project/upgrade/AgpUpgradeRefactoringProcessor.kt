@@ -321,6 +321,7 @@ class AgpUpgradeRefactoringProcessor(
     TargetSdkDefaultRefactoringProcessor(this),
     AppCompileTimeRClassDefaultRefactoringProcessor(this),
     BuildTypesUnitTestDefaultRefactoringProcessor(this),
+    DisallowUsesSdkInManifestDefaultRefactoringProcessor(this),
     AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor(this),
     AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(this),
     RemoveImplementationPropertiesRefactoringProcessor(this),
@@ -328,7 +329,8 @@ class AgpUpgradeRefactoringProcessor(
 
     // AGP 10.x
     BlockR8StrictFullModeForKeepRulesProcessor(this),
-    BlockR8OptimizedResourceShrinkingProcessor(this)
+    BlockR8OptimizedResourceShrinkingProcessor(this),
+    BlockUsesSdkInManifestProcessor(this),
   )
 
   val targets = mutableListOf<PsiElement>()

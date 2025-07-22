@@ -737,6 +737,25 @@ class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
     )
   }
 
+  @Test
+  fun testDisallowUsesSdkInManifestDefaultUsageTracker() {
+    val processor = DisallowUsesSdkInManifestDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
+    processor.run()
+
+    checkComponentEvents(
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("8.0.0").setNewAgpVersion("9.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(
+          UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.USES_SDK_IN_MANIFEST_DISALLOWED_DEFAULT).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(1).setFiles(2))
+        .build(),
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("8.0.0").setNewAgpVersion("9.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(
+          UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.USES_SDK_IN_MANIFEST_DISALLOWED_DEFAULT).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(1).setFiles(2))
+        .build(),
+    )
+  }
+
   private fun checkComponentEvents(vararg expectedEvents: UpgradeAssistantComponentEvent) {
     val events = tracker.usages
       .filter { it.studioEvent.kind == UPGRADE_ASSISTANT_COMPONENT_EVENT || it.studioEvent.kind == UPGRADE_ASSISTANT_PROCESSOR_EVENT }

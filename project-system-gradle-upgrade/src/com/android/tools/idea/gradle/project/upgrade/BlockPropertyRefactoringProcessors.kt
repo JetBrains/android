@@ -358,3 +358,19 @@ class BlockR8StrictFullModeForKeepRulesProcessor: AbstractBlockPropertyWithPrevi
   override val noOpValue = true
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.strictFullModeForKeepRulesBlockProperty"
 }
+
+/**
+ * Processor that blocks AGP upgrades if android.usesSdkInManifest.disallowed is used after AGP 10.0.0-alpha01
+ */
+class BlockUsesSdkInManifestProcessor: AbstractBlockPropertyWithPreviousDefaultProcessor {
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
+  override val defaultChangedVersion: AgpVersion
+    get() = DisallowUsesSdkInManifestDefaultRefactoringProcessor.DEFAULT_CHANGED
+  override val featureName = "Disallow <uses-sdk> in the main Android manifest"
+  override val propertyKey = "android.usesSdkInManifest.disallowed"
+  override val propertyRemovedVersion = AgpVersion.parse("10.0.0-alpha01")
+  override val componentKind = UpgradeAssistantComponentKind.BLOCK_DISALLOW_USES_SDK_IN_MANIFEST_PRESENT
+  override val noOpValue = true
+  override fun getRefactoringId() = "com.android.tools.agp.upgrade.blockDisallowUsesSdkInManifestPresent"
+}
