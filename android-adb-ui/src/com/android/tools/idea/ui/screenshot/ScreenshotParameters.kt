@@ -139,27 +139,25 @@ private constructor(
     val w = displaySize.width.toDouble()
     val h = displaySize.height.toDouble()
     val diagonalSize = hypot(w, h)
-    val isHandheld = screenshotImage.deviceType == DeviceType.HANDHELD
-    val isTv = screenshotImage.deviceType == DeviceType.TV
-    val isAutomotive = screenshotImage.deviceType == DeviceType.AUTOMOTIVE
-    val isWatch = screenshotImage.deviceType == DeviceType.WEAR
-    val isTablet = isHandheld && diagonalSize >= MIN_TABLET_DIAGONAL_SIZE
     val aspectRatio = h / w
     val matches = mutableListOf<MatchingSkin>()
     for (device in devices) {
       if (device.isDeprecated) {
         continue
       }
-      if (device.isAutomotive() != isAutomotive) {
+      if (device.isAutomotive() != (screenshotImage.deviceType == DeviceType.AUTOMOTIVE)) {
         continue
       }
-      if (device.isTv() != isTv) {
+      if (device.isTv() != (screenshotImage.deviceType == DeviceType.TV)) {
         continue
       }
-      if (device.isWatch() != isWatch) {
+      if (device.isWatch() != (screenshotImage.deviceType == DeviceType.WEAR)) {
         continue
       }
-      if (device.isTablet() != isTablet) {
+      if (device.isXrHeadset() != (screenshotImage.deviceType == DeviceType.XR_HEADSET)) {
+        continue
+      }
+      if (device.isTablet() != (screenshotImage.deviceType == DeviceType.HANDHELD && diagonalSize >= MIN_TABLET_DIAGONAL_SIZE)) {
         continue
       }
       val screen = device.defaultHardware.screen
@@ -212,8 +210,10 @@ private constructor(
 
   private fun Device.isWatch() = tagId?.contains("wear") ?: false
 
+  private fun Device.isXrHeadset() = tagId?.contains("android-xr") ?: false
+
   private fun Device.isTablet(): Boolean {
-    if (isAutomotive() || isTv() || !isWatch()) {
+    if (isAutomotive() || isTv() || !isWatch() || isXrHeadset()) {
       return false
     }
     val screen = defaultHardware.screen
