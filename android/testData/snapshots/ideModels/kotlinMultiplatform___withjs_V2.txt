@@ -949,7 +949,6 @@
                             allInstrumentedTestSourceSetsCompileDependenciesMetadata    : <empty>
                             allSourceSetsCompileDependenciesMetadata          : <empty>
                             allTestSourceSetsCompileDependenciesMetadata      : <empty>
-                            androidApis                   : <empty>
                             androidDebugAndroidTestCompilationApi   : <empty>
                             androidDebugAndroidTestCompilationCompileOnly     : <empty>
                             androidDebugAndroidTestCompilationImplementation  : <empty>

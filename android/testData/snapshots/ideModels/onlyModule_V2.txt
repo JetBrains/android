@@ -838,7 +838,6 @@ MODULE                        : project
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
-                        androidApis                   : <empty>
                         androidJdkImage               : <empty>
                         androidTestUtil               : <empty>
                         annotationProcessor           : <empty>
@@ -901,7 +900,6 @@ MODULE                        : project
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
-                        androidApis                   : <empty>
                         androidJdkImage               : <empty>
                         androidTestUtil               : <empty>
                         annotationProcessor           : <empty>
@@ -957,7 +955,6 @@ MODULE                        : project
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
-                        androidApis                   : <empty>
                         androidJdkImage               : <empty>
                         androidTestUtil               : <empty>
                         annotationProcessor           : <empty>
