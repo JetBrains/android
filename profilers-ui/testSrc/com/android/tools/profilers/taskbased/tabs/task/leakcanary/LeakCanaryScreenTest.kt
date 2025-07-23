@@ -60,25 +60,31 @@ class LeakCanaryScreenTest : WithFakeTimer {
   }
 
   @Test
-  fun  `test leak canary left and right panel data with the first selected leak`() {
+  fun `test leak canary left and right panel data with the first selected leak`() {
     val analysis = getMultipleLeaksAnalysis()
     leakCanaryModel.addLeaks((analysis as AnalysisSuccess).leaks)
     leakCanaryModel.onLeakSelection(leakCanaryModel.leaks.value[0])
-    composeTestRule.setContent {
-      LeakCanaryScreen(leakCanaryModel = leakCanaryModel)
-    }
+    composeTestRule.setContent { LeakCanaryScreen(leakCanaryModel = leakCanaryModel) }
     composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_LEAK_HEADER_TEXT).isDisplayed()
-    composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_OCCURRENCES_HEADER_TEXT).isDisplayed()
-    composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_TOTAL_LEAKED_HEADER_TEXT).isDisplayed()
-    composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_LEAK_LIST_EMPTY_INITIAL_MESSAGE).assertDoesNotExist()
+    composeTestRule
+      .onNodeWithText(TaskBasedUxStrings.LEAKCANARY_OCCURRENCES_HEADER_TEXT)
+      .isDisplayed()
+    composeTestRule
+      .onNodeWithText(TaskBasedUxStrings.LEAKCANARY_TOTAL_LEAKED_HEADER_TEXT)
+      .isDisplayed()
+    composeTestRule
+      .onNodeWithText(TaskBasedUxStrings.LEAKCANARY_LEAK_LIST_EMPTY_INITIAL_MESSAGE)
+      .assertDoesNotExist()
 
     // 2 leaks total in the Analysis
-    composeTestRule.onAllNodesWithTag("leakListRow").assertCountEquals(2)
+    composeTestRule.onAllNodesWithTag("leakListRow", useUnmergedTree = true).assertCountEquals(2)
 
     // By default, first leak will be displayed in the leak details panel
     composeTestRule.onNodeWithTag("dalvik.system.PathClassLoader").isDisplayed()
     composeTestRule.onNodeWithTag("com.amaze.filemanager.ui.fragments.TabFragment").isDisplayed()
-    composeTestRule.onNodeWithTag("↓ TabFragment.rootView").assertDoesNotExist() //doesn't exist till row is open
+    composeTestRule
+      .onNodeWithTag("↓ TabFragment.rootView")
+      .assertDoesNotExist() // doesn't exist till row is open
 
     composeTestRule.onNodeWithTag("com.amaze.filemanager.ui.fragments.TabFragment").performClick()
     composeTestRule.onNodeWithText("Leaking").isDisplayed()
@@ -88,9 +94,13 @@ class LeakCanaryScreenTest : WithFakeTimer {
     composeTestRule.onNodeWithTag("dalvik.system.PathClassLoader").performClick()
     composeTestRule.onAllNodesWithText("Leaking").assertCountEquals(2) // 2 are open now
     composeTestRule.onAllNodesWithText("No").assertCountEquals(2) // 2 are open now
-    composeTestRule.onNodeWithText("InternalLeakCanary↓ is not leaking and A ClassLoader is never leaking").isDisplayed()
+    composeTestRule
+      .onNodeWithText("InternalLeakCanary↓ is not leaking and A ClassLoader is never leaking")
+      .isDisplayed()
 
-    composeTestRule.onNodeWithTag("androidx.constraintlayout.widget.ConstraintLayout").performClick()
+    composeTestRule
+      .onNodeWithTag("androidx.constraintlayout.widget.ConstraintLayout")
+      .performClick()
     composeTestRule.onAllNodesWithText("Leaking").assertCountEquals(3) // 3 are open now
     composeTestRule.onNodeWithText("Yes").isDisplayed()
     composeTestRule.onNodeWithText("More info").isDisplayed()
@@ -98,41 +108,50 @@ class LeakCanaryScreenTest : WithFakeTimer {
   }
 
   @Test
-  fun  `test leak canary left and right panel data changes on the selected leak changes`() {
+  fun `test leak canary left and right panel data changes on the selected leak changes`() {
     val analysis = getMultipleLeaksAnalysis()
-    composeTestRule.setContent {
-      LeakCanaryScreen(leakCanaryModel = leakCanaryModel)
-    }
+    composeTestRule.setContent { LeakCanaryScreen(leakCanaryModel = leakCanaryModel) }
     // Initially, it's an empty leak list
     composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_LEAK_HEADER_TEXT).isDisplayed()
-    composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_OCCURRENCES_HEADER_TEXT).isDisplayed()
-    composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_TOTAL_LEAKED_HEADER_TEXT).isDisplayed()
+    composeTestRule
+      .onNodeWithText(TaskBasedUxStrings.LEAKCANARY_OCCURRENCES_HEADER_TEXT)
+      .isDisplayed()
+    composeTestRule
+      .onNodeWithText(TaskBasedUxStrings.LEAKCANARY_TOTAL_LEAKED_HEADER_TEXT)
+      .isDisplayed()
 
     // Adding leaks
     leakCanaryModel.addLeaks((analysis as AnalysisSuccess).leaks)
 
     // 2 leaks in the heap analysis
-    composeTestRule.onAllNodesWithTag("leakListRow").assertCountEquals(2)
+    composeTestRule.onAllNodesWithTag("leakListRow", useUnmergedTree = true).assertCountEquals(2)
 
     // Click on the 2nd leak to display its details in leak details panel
-    composeTestRule.onAllNodesWithTag("leakListRow")[1].performClick()
+    composeTestRule.onAllNodesWithTag("leakListRow", useUnmergedTree = true)[1].performClick()
 
     // By default, first leak will be displayed in the leak details panel
     composeTestRule.onNodeWithTag("com.amaze.filemanager.ui.activities.MainActivity").isDisplayed()
     composeTestRule.onNodeWithTag("androidx.constraintlayout.widget.ConstraintLayout").isDisplayed()
     // Doesn't exist till row is open
-    composeTestRule.onNodeWithText("TabFragment↓ is not leaking and Activity#mDestroyed is false").assertDoesNotExist()
+    composeTestRule
+      .onNodeWithText("TabFragment↓ is not leaking and Activity#mDestroyed is false")
+      .assertDoesNotExist()
 
     // Perform expand row in leak details
     composeTestRule.onNodeWithTag("com.amaze.filemanager.ui.activities.MainActivity").performClick()
-    composeTestRule.onNodeWithText("mainActivity instance of com.amaze.filemanager.ui.activities." +
-                                  "MainActivity with mDestroyed = false").isDisplayed()
+    composeTestRule
+      .onNodeWithText(
+        "mainActivity instance of com.amaze.filemanager.ui.activities." +
+          "MainActivity with mDestroyed = false"
+      )
+      .isDisplayed()
     composeTestRule.onNodeWithText("Leaking").isDisplayed()
     composeTestRule.onNodeWithText("No").isDisplayed()
   }
 
   private fun getMultipleLeaksAnalysis(): Analysis {
-    val analysis = """
+    val analysis =
+      """
         ====================================
         HEAP ANALYSIS RESULT
         ====================================
@@ -192,7 +211,8 @@ class LeakCanaryScreenTest : WithFakeTimer {
         Heap dump timestamp: 1710721509247
         Heap dump duration: Unknown
         ====================================
-    """.trimIndent()
+    """
+        .trimIndent()
 
     return Analysis.fromString(analysis)
   }
@@ -212,9 +232,9 @@ class LeakCanaryScreenTest : WithFakeTimer {
     leakCanaryModel.addLeaks((analysis as AnalysisSuccess).leaks)
 
     // 1 leak in the heap analysis
-    composeTestRule.onAllNodesWithTag("leakListRow").assertCountEquals(2)
+    composeTestRule.onAllNodesWithTag("leakListRow", useUnmergedTree = true).assertCountEquals(2)
 
-    composeTestRule.onAllNodesWithTag("leakListRow")[0].performClick()
+    composeTestRule.onAllNodesWithTag("leakListRow", useUnmergedTree = true)[0].performClick()
 
     // By default, first leak will be displayed in the leak details panel
     composeTestRule.onNodeWithTag("com.google.android.apps.chromecast.app.widget.recyclerview.BackgroundClickableRecyclerView").isDisplayed()

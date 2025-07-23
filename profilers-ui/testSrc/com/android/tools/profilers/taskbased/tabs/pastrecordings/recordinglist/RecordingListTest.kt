@@ -98,6 +98,6 @@ class RecordingListTest {
 
     // Assert both the data model and the UI reflect the past recording entry.
     assertThat(recordingListModel.recordingList.value).hasSize(1)
-    composeTestRule.onAllNodesWithTag("RecordingListRow").assertCountEquals(1)
+    composeTestRule.onAllNodesWithTag("RecordingListRow", useUnmergedTree = true).assertCountEquals(1)
   }
 }

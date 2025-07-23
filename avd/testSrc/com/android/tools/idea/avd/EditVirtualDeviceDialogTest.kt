@@ -193,6 +193,10 @@ class EditVirtualDeviceDialogTest {
       }
       composeTestRule.onNodeWithEditableText("Pixel 7 (2)").performTextReplacement("Pixel 7")
       composeTestRule.waitForIdle()
+      composeTestRule
+        .onNodeWithEditableText("Pixel 7")
+        .assertIsDisplayed()
+        .lingerMouseHover(composeTestRule)
       composeTestRule.onNodeWithText("already exists", substring = true).assertIsDisplayed()
       assertThat(wizard.finishAction.enabled).isFalse()
 

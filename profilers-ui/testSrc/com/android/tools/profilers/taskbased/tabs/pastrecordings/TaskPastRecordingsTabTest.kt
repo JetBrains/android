@@ -25,6 +25,7 @@ import androidx.compose.ui.test.performClick
 import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.adtui.compose.StudioTestTheme
 import com.android.tools.adtui.compose.standaloneSingleWindowApplication
+import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -46,7 +47,6 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 
 class TaskPastRecordingsTabTest {
   private val myTimer = FakeTimer()
@@ -126,15 +126,15 @@ class TaskPastRecordingsTabTest {
 
     // Assert both the data model and the UI reflect the past recording entry.
     assertThat(pastRecordingsTabModel.recordingListModel.recordingList.value).hasSize(1)
-    composeTestRule.onAllNodesWithTag("RecordingListRow").assertCountEquals(1)
+    composeTestRule.onAllNodesWithTag("RecordingListRow", useUnmergedTree = true).assertCountEquals(1)
 
     // Assert export button is disabled as no selection is made.
     assertThat(pastRecordingsTabModel.selectedRecording).isEqualTo(null)
     composeTestRule.onNodeWithTag("ExportRecordingButton").assertIsNotEnabled()
 
     // Select the recording.
-    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].assertExists()
-    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].performClick()
+    composeTestRule.onAllNodesWithTag("RecordingListRow", useUnmergedTree = true)[0].assertExists()
+    composeTestRule.onAllNodesWithTag("RecordingListRow", useUnmergedTree = true)[0].performClick()
 
     // Make sure process selection was registered in data model.
     assertThat(pastRecordingsTabModel.selectedRecording!!.name).isEqualTo("Recording 1")
@@ -161,15 +161,15 @@ class TaskPastRecordingsTabTest {
 
     // Assert both the data model and the UI reflect the past recording entry.
     assertThat(recordingListModel.recordingList.value).hasSize(1)
-    composeTestRule.onAllNodesWithTag("RecordingListRow").assertCountEquals(1)
+    composeTestRule.onAllNodesWithTag("RecordingListRow", useUnmergedTree = true).assertCountEquals(1)
 
     // Assert export button is disabled as no selection is made.
     assertThat(recordingListModel.selectedRecording.value).isEqualTo(null)
     composeTestRule.onNodeWithTag("ExportRecordingButton").assertIsNotEnabled()
 
     // Select the recording.
-    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].assertExists()
-    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].performClick()
+    composeTestRule.onAllNodesWithTag("RecordingListRow", useUnmergedTree = true)[0].assertExists()
+    composeTestRule.onAllNodesWithTag("RecordingListRow", useUnmergedTree = true)[0].performClick()
 
     // Assert the recording selection was registered.
     assertThat(pastRecordingsTabModel.recordingListModel.selectedRecording.value).isEqualTo(recording)
@@ -192,15 +192,15 @@ class TaskPastRecordingsTabTest {
 
     // Assert both the data model and the UI reflect the past recording entry.
     assertThat(recordingListModel.recordingList.value).hasSize(1)
-    composeTestRule.onAllNodesWithTag("RecordingListRow").assertCountEquals(1)
+    composeTestRule.onAllNodesWithTag("RecordingListRow", useUnmergedTree = true).assertCountEquals(1)
 
     // Assert export button is disabled as no selection is made.
     assertThat(recordingListModel.selectedRecording.value).isEqualTo(null)
     composeTestRule.onNodeWithTag("ExportRecordingButton").assertIsNotEnabled()
 
     // Select the recording.
-    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].assertExists()
-    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].performClick()
+    composeTestRule.onAllNodesWithTag("RecordingListRow", useUnmergedTree = true)[0].assertExists()
+    composeTestRule.onAllNodesWithTag("RecordingListRow", useUnmergedTree = true)[0].performClick()
 
     // Assert the recording selection was registered.
     assertThat(pastRecordingsTabModel.recordingListModel.selectedRecording.value).isEqualTo(recording)
@@ -223,15 +223,15 @@ class TaskPastRecordingsTabTest {
 
     // Assert both the data model and the UI reflect the past recording entry.
     assertThat(recordingListModel.recordingList.value).hasSize(1)
-    composeTestRule.onAllNodesWithTag("RecordingListRow").assertCountEquals(1)
+    composeTestRule.onAllNodesWithTag("RecordingListRow", useUnmergedTree = true).assertCountEquals(1)
 
     // Assert delete button is disabled as no selection is made.
     assertThat(recordingListModel.selectedRecording.value).isEqualTo(null)
     composeTestRule.onNodeWithTag("DeleteRecordingButton").assertIsNotEnabled()
 
     // Select the recording.
-    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].assertExists()
-    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].performClick()
+    composeTestRule.onAllNodesWithTag("RecordingListRow", useUnmergedTree = true)[0].assertExists()
+    composeTestRule.onAllNodesWithTag("RecordingListRow", useUnmergedTree = true)[0].performClick()
 
     // Assert delete button is enabled as a selection of a deletable recording is made.
     composeTestRule.onNodeWithTag("DeleteRecordingButton").assertIsEnabled()
@@ -250,11 +250,11 @@ class TaskPastRecordingsTabTest {
 
     // Assert both the data model and the UI reflect the past recording entry.
     assertThat(recordingListModel.recordingList.value).hasSize(1)
-    composeTestRule.onAllNodesWithTag("RecordingListRow").assertCountEquals(1)
+    composeTestRule.onAllNodesWithTag("RecordingListRow", useUnmergedTree = true).assertCountEquals(1)
 
     // Select Recording 1.
-    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].assertExists()
-    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].performClick()
+    composeTestRule.onAllNodesWithTag("RecordingListRow", useUnmergedTree = true)[0].assertExists()
+    composeTestRule.onAllNodesWithTag("RecordingListRow", useUnmergedTree = true)[0].performClick()
 
     // Invoke delete button is enabled as a selection of a deletable recording is made.
     composeTestRule.onNodeWithTag("DeleteRecordingButton").assertIsEnabled().assertHasClickAction()
@@ -264,8 +264,8 @@ class TaskPastRecordingsTabTest {
 
     // Assert both the data model and the UI reflect the deletion of Recording 1.
     assertThat(recordingListModel.recordingList.value).hasSize(0)
-    composeTestRule.onAllNodesWithTag("RecordingListRow").assertCountEquals(0)
-    composeTestRule.onNodeWithTag("RecordingListRow").assertDoesNotExist()
+    composeTestRule.onAllNodesWithTag("RecordingListRow", useUnmergedTree = true).assertCountEquals(0)
+    composeTestRule.onNodeWithTag("RecordingListRow", useUnmergedTree = true).assertDoesNotExist()
 
     // Because the selecting recording was deleted, the selection was revoked and thus the export and delete button should be disabled.
     composeTestRule.onNodeWithTag("ExportRecordingButton").assertIsNotEnabled()

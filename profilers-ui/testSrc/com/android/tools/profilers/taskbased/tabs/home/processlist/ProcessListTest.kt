@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.taskbased.tabs.home.processlist
 
-
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -24,6 +23,7 @@ import androidx.compose.ui.test.performClick
 import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.adtui.compose.StudioTestTheme
 import com.android.tools.adtui.compose.standaloneSingleWindowApplication
+import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -41,7 +41,6 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 
 class ProcessListTest {
   private val myTimer = FakeTimer()
@@ -123,7 +122,7 @@ class ProcessListTest {
     assertThat(processListModel.selectedDevice.value).isNull()
 
     // Assert that no processes are present for the selected device in data model or in UI (as there is no device selection yet).
-    composeTestRule.onAllNodesWithTag("ProcessListRow").assertCountEquals(0)
+    composeTestRule.onAllNodesWithTag("ProcessListRow", useUnmergedTree = true).assertCountEquals(0)
     assertThat(processListModel.getSelectedDeviceProcesses()).hasSize(0)
 
     // FakeDevice1 is added first and will this be auto-selected.
@@ -137,7 +136,7 @@ class ProcessListTest {
     assertThat(processListModel.selectedDevice.value).isNotNull()
     assertThat(processListModel.selectedDevice.value!!.device).isEqualTo(device1)
     // Selecting FakeDevice1 should populate the process list with 1 processes both in UI and in data model.
-    composeTestRule.onAllNodesWithTag("ProcessListRow").assertCountEquals(1)
+    composeTestRule.onAllNodesWithTag("ProcessListRow", useUnmergedTree = true).assertCountEquals(1)
     assertThat(processListModel.getSelectedDeviceProcesses()).hasSize(1)
   }
 
@@ -156,15 +155,15 @@ class ProcessListTest {
     processListModel.onDeviceSelection(device)
 
     // Selection of FakeDevice should populate the process list with 2 processes both in UI and in data model.
-    composeTestRule.onAllNodesWithTag("ProcessListRow").assertCountEquals(2)
+    composeTestRule.onAllNodesWithTag("ProcessListRow", useUnmergedTree = true).assertCountEquals(2)
     assertThat(processListModel.getSelectedDeviceProcesses()).hasSize(2)
 
     // Assert no process is selected in data model.
     assertThat(processListModel.selectedProcess.value).isEqualTo(Common.Process.getDefaultInstance())
 
     // Select first process in dropdown.
-    composeTestRule.onAllNodesWithTag("ProcessListRow")[0].assertExists()
-    composeTestRule.onAllNodesWithTag("ProcessListRow")[0].performClick()
+    composeTestRule.onAllNodesWithTag("ProcessListRow", useUnmergedTree = true)[0].assertExists()
+    composeTestRule.onAllNodesWithTag("ProcessListRow", useUnmergedTree = true)[0].performClick()
 
     // Assert process selection is registered in data model.
     assertThat(processListModel.selectedProcess.value.name).isEqualTo("FakeProcess1")

@@ -331,8 +331,6 @@ class LocalVirtualDeviceSourceTest {
 
       repoPackages.setLocalPkgInfos(listOf(api34Image))
 
-      composeTestRule.mainClock.autoAdvance = false
-
       with(ConfigurationPageFixture(this, SystemImageState.INITIAL)) {
         composeTestRule.onNodeWithText("Loading system images...").assertIsDisplayed()
         composeTestRule.onNodeWithText(api34Image.displayName).assertDoesNotExist()
@@ -371,8 +369,6 @@ class LocalVirtualDeviceSourceTest {
     with(SdkFixture()) {
       val api34Image = api34()
       repoPackages.setLocalPkgInfos(listOf(api34Image))
-
-      composeTestRule.mainClock.autoAdvance = false
 
       with(ConfigurationPageFixture(this, SystemImageState.INITIAL)) {
         composeTestRule.onNodeWithText("Loading system images...").assertIsDisplayed()
