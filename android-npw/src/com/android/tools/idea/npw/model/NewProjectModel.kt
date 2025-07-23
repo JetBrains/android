@@ -74,6 +74,7 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.pom.java.LanguageLevel
 import java.io.File
 import java.io.IOException
@@ -154,7 +155,11 @@ class NewProjectModel : WizardModel(), ProjectModelData {
               NonProjectFileWritingAccessProvider.disableChecksDuring { renderer(newProject) }
 
               if (StudioFlags.GEMINI_NEW_PROJECT_AGENT.get() && !prompt.isEmpty.get()) {
-                ApplicationManager.getApplication().invokeLater {
+                // When the Gradle project is linked to the IDE project, the Gradle tool window is
+                // shown, and any existing tool window in the same area is hidden (see
+                // ExternalToolWindowManager). We want the Gemini window to be shown instead, so
+                // delay opening the Gemini window until after Gradle has finished.
+                ToolWindowManager.getInstance(newProject).invokeLater {
                   GeminiPluginApi.getInstance().launchNewProjectAgent(newProject, prompt.get())
                 }
               }
