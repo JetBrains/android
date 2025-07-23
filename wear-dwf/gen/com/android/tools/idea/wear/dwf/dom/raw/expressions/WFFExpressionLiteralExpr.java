@@ -22,22 +22,22 @@ package com.android.tools.idea.wear.dwf.dom.raw.expressions;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiReference;
 
 public interface WFFExpressionLiteralExpr extends WFFExpressionExpr {
 
   @Nullable
-  WFFExpressionConfiguration getConfiguration();
-
-  @Nullable
-  WFFExpressionDataSource getDataSource();
-
-  @Nullable
-  WFFExpressionNumber getNumber();
+  WFFExpressionDataSourceOrConfiguration getDataSourceOrConfiguration();
 
   @Nullable
   PsiElement getId();
 
   @Nullable
+  PsiElement getNumber();
+
+  @Nullable
   PsiElement getQuotedString();
+
+  @Nullable PsiReference getReference();
 
 }

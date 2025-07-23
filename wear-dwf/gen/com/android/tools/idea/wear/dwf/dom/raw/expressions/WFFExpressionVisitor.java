@@ -41,10 +41,6 @@ public class WFFExpressionVisitor extends PsiElementVisitor {
     visitExpr(o);
   }
 
-  public void visitColorIndex(@NotNull WFFExpressionColorIndex o) {
-    visitPsiElement(o);
-  }
-
   public void visitConditionalExpr(@NotNull WFFExpressionConditionalExpr o) {
     visitExpr(o);
   }
@@ -53,19 +49,7 @@ public class WFFExpressionVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
-  public void visitConfiguration(@NotNull WFFExpressionConfiguration o) {
-    visitPsiElement(o);
-  }
-
-  public void visitConfigurationId(@NotNull WFFExpressionConfigurationId o) {
-    visitPsiElement(o);
-  }
-
-  public void visitDataSource(@NotNull WFFExpressionDataSource o) {
-    visitPsiElement(o);
-  }
-
-  public void visitDataSourceId(@NotNull WFFExpressionDataSourceId o) {
+  public void visitDataSourceOrConfiguration(@NotNull WFFExpressionDataSourceOrConfiguration o) {
     visitPsiElement(o);
   }
 
@@ -101,10 +85,6 @@ public class WFFExpressionVisitor extends PsiElementVisitor {
     visitExpr(o);
   }
 
-  public void visitNumber(@NotNull WFFExpressionNumber o) {
-    visitPsiElement(o);
-  }
-
   public void visitOrExpr(@NotNull WFFExpressionOrExpr o) {
     visitExpr(o);
   }
@@ -127,14 +107,6 @@ public class WFFExpressionVisitor extends PsiElementVisitor {
 
   public void visitUnaryPlusExpr(@NotNull WFFExpressionUnaryPlusExpr o) {
     visitExpr(o);
-  }
-
-  public void visitUserString(@NotNull WFFExpressionUserString o) {
-    visitPsiElement(o);
-  }
-
-  public void visitWeatherSourceId(@NotNull WFFExpressionWeatherSourceId o) {
-    visitPsiElement(o);
   }
 
   public void visitPsiElement(@NotNull PsiElement o) {

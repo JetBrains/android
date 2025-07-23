@@ -16,7 +16,6 @@
 package com.android.tools.idea.wear.dwf.dom.raw.expressions
 
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionTypes.COMMA
-import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionTypes.DOT
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionTypes.ID
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionTypes.NULL
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionTypes.NUMBER
@@ -50,7 +49,6 @@ enum class WFFExpressionTextAttributes(fallback: TextAttributesKey) {
   FUNCTION_ID(DefaultLanguageHighlighterColors.STATIC_METHOD),
   ID(DefaultLanguageHighlighterColors.IDENTIFIER),
   COMMA(DefaultLanguageHighlighterColors.COMMA),
-  DOT(DefaultLanguageHighlighterColors.DOT),
   NULL(DefaultLanguageHighlighterColors.KEYWORD),
   OPERATORS(DefaultLanguageHighlighterColors.OPERATION_SIGN),
   NUMBER(DefaultLanguageHighlighterColors.NUMBER);
@@ -76,7 +74,6 @@ class WFFExpressionSyntaxHighlighter : SyntaxHighlighterBase() {
       ID -> WFFExpressionTextAttributes.ID.keys
       OPERATORS -> WFFExpressionTextAttributes.OPERATORS.keys
       COMMA -> WFFExpressionTextAttributes.COMMA.keys
-      DOT -> WFFExpressionTextAttributes.DOT.keys
       NULL -> WFFExpressionTextAttributes.NULL.keys
       BAD_CHARACTER -> WFFExpressionTextAttributes.BAD_CHARACTER.keys
       else -> TextAttributesKey.EMPTY_ARRAY

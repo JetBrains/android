@@ -30,13 +30,9 @@ public interface WFFExpressionTypes {
   IElementType ARG_LIST = new WFFExpressionElementType("ARG_LIST");
   IElementType BIT_COMPL_EXPR = new WFFExpressionElementType("BIT_COMPL_EXPR");
   IElementType CALL_EXPR = new WFFExpressionElementType("CALL_EXPR");
-  IElementType COLOR_INDEX = new WFFExpressionElementType("COLOR_INDEX");
   IElementType CONDITIONAL_EXPR = new WFFExpressionElementType("CONDITIONAL_EXPR");
   IElementType CONDITIONAL_OP = new WFFExpressionElementType("CONDITIONAL_OP");
-  IElementType CONFIGURATION = new WFFExpressionElementType("CONFIGURATION");
-  IElementType CONFIGURATION_ID = new WFFExpressionElementType("CONFIGURATION_ID");
-  IElementType DATA_SOURCE = new WFFExpressionElementType("DATA_SOURCE");
-  IElementType DATA_SOURCE_ID = new WFFExpressionElementType("DATA_SOURCE_ID");
+  IElementType DATA_SOURCE_OR_CONFIGURATION = new WFFExpressionElementType("DATA_SOURCE_OR_CONFIGURATION");
   IElementType DIV_EXPR = new WFFExpressionElementType("DIV_EXPR");
   IElementType ELVIS_EXPR = new WFFExpressionElementType("ELVIS_EXPR");
   IElementType EXPR = new WFFExpressionElementType("EXPR");
@@ -45,23 +41,19 @@ public interface WFFExpressionTypes {
   IElementType MINUS_EXPR = new WFFExpressionElementType("MINUS_EXPR");
   IElementType MOD_EXPR = new WFFExpressionElementType("MOD_EXPR");
   IElementType MUL_EXPR = new WFFExpressionElementType("MUL_EXPR");
-  IElementType NUMBER = new WFFExpressionElementType("NUMBER");
   IElementType OR_EXPR = new WFFExpressionElementType("OR_EXPR");
   IElementType PAREN_EXPR = new WFFExpressionElementType("PAREN_EXPR");
   IElementType PLUS_EXPR = new WFFExpressionElementType("PLUS_EXPR");
   IElementType UNARY_MIN_EXPR = new WFFExpressionElementType("UNARY_MIN_EXPR");
   IElementType UNARY_NOT_EXPR = new WFFExpressionElementType("UNARY_NOT_EXPR");
   IElementType UNARY_PLUS_EXPR = new WFFExpressionElementType("UNARY_PLUS_EXPR");
-  IElementType USER_STRING = new WFFExpressionElementType("USER_STRING");
-  IElementType WEATHER_SOURCE_ID = new WFFExpressionElementType("WEATHER_SOURCE_ID");
 
   IElementType CLOSE_BRACKET = new WFFExpressionTokenType("]");
   IElementType CLOSE_PAREN = new WFFExpressionTokenType(")");
   IElementType COMMA = new WFFExpressionTokenType(",");
-  IElementType DOT = new WFFExpressionTokenType(".");
   IElementType ID = new WFFExpressionTokenType("ID");
-  IElementType INTEGER = new WFFExpressionTokenType("INTEGER");
   IElementType NULL = new WFFExpressionTokenType("null");
+  IElementType NUMBER = new WFFExpressionTokenType("NUMBER");
   IElementType OPEN_BRACKET = new WFFExpressionTokenType("[");
   IElementType OPEN_PAREN = new WFFExpressionTokenType("(");
   IElementType OPERATORS = new WFFExpressionTokenType("OPERATORS");
@@ -82,26 +74,14 @@ public interface WFFExpressionTypes {
       else if (type == CALL_EXPR) {
         return new WFFExpressionCallExprImpl(node);
       }
-      else if (type == COLOR_INDEX) {
-        return new WFFExpressionColorIndexImpl(node);
-      }
       else if (type == CONDITIONAL_EXPR) {
         return new WFFExpressionConditionalExprImpl(node);
       }
       else if (type == CONDITIONAL_OP) {
         return new WFFExpressionConditionalOpImpl(node);
       }
-      else if (type == CONFIGURATION) {
-        return new WFFExpressionConfigurationImpl(node);
-      }
-      else if (type == CONFIGURATION_ID) {
-        return new WFFExpressionConfigurationIdImpl(node);
-      }
-      else if (type == DATA_SOURCE) {
-        return new WFFExpressionDataSourceImpl(node);
-      }
-      else if (type == DATA_SOURCE_ID) {
-        return new WFFExpressionDataSourceIdImpl(node);
+      else if (type == DATA_SOURCE_OR_CONFIGURATION) {
+        return new WFFExpressionDataSourceOrConfigurationImpl(node);
       }
       else if (type == DIV_EXPR) {
         return new WFFExpressionDivExprImpl(node);
@@ -124,9 +104,6 @@ public interface WFFExpressionTypes {
       else if (type == MUL_EXPR) {
         return new WFFExpressionMulExprImpl(node);
       }
-      else if (type == NUMBER) {
-        return new WFFExpressionNumberImpl(node);
-      }
       else if (type == OR_EXPR) {
         return new WFFExpressionOrExprImpl(node);
       }
@@ -144,12 +121,6 @@ public interface WFFExpressionTypes {
       }
       else if (type == UNARY_PLUS_EXPR) {
         return new WFFExpressionUnaryPlusExprImpl(node);
-      }
-      else if (type == USER_STRING) {
-        return new WFFExpressionUserStringImpl(node);
-      }
-      else if (type == WEATHER_SOURCE_ID) {
-        return new WFFExpressionWeatherSourceIdImpl(node);
       }
       throw new AssertionError("Unknown element type: " + type);
     }

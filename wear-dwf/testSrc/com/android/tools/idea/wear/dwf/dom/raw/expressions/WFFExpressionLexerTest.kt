@@ -22,11 +22,11 @@ class WFFExpressionLexerTest : AndroidLexerTestCase(WFFExpressionLexer()) {
   fun testSimpleExpression() {
     assertTokenTypes(
       "1 + 2",
-      "1" to WFFExpressionTypes.INTEGER,
+      "1" to WFFExpressionTypes.NUMBER,
       " " to TokenType.WHITE_SPACE,
       "+" to WFFExpressionTypes.OPERATORS,
       " " to TokenType.WHITE_SPACE,
-      "2" to WFFExpressionTypes.INTEGER,
+      "2" to WFFExpressionTypes.NUMBER,
     )
   }
 
@@ -34,11 +34,11 @@ class WFFExpressionLexerTest : AndroidLexerTestCase(WFFExpressionLexer()) {
     assertTokenTypes(
       "(1 + 2)",
       "(" to WFFExpressionTypes.OPEN_PAREN,
-      "1" to WFFExpressionTypes.INTEGER,
+      "1" to WFFExpressionTypes.NUMBER,
       " " to TokenType.WHITE_SPACE,
       "+" to WFFExpressionTypes.OPERATORS,
       " " to TokenType.WHITE_SPACE,
-      "2" to WFFExpressionTypes.INTEGER,
+      "2" to WFFExpressionTypes.NUMBER,
       ")" to WFFExpressionTypes.CLOSE_PAREN,
     )
   }
@@ -56,20 +56,14 @@ class WFFExpressionLexerTest : AndroidLexerTestCase(WFFExpressionLexer()) {
     assertTokenTypes(
       "[CONFIGURATION.showBackgroundInAfternoon]",
       "[" to WFFExpressionTypes.OPEN_BRACKET,
-      "CONFIGURATION" to WFFExpressionTypes.ID,
-      "." to WFFExpressionTypes.DOT,
-      "showBackgroundInAfternoon" to WFFExpressionTypes.ID,
+      "CONFIGURATION.showBackgroundInAfternoon" to WFFExpressionTypes.ID,
       "]" to WFFExpressionTypes.CLOSE_BRACKET,
     )
 
     assertTokenTypes(
       "[CONFIGURATION.themeColor.1]",
       "[" to WFFExpressionTypes.OPEN_BRACKET,
-      "CONFIGURATION" to WFFExpressionTypes.ID,
-      "." to WFFExpressionTypes.DOT,
-      "themeColor" to WFFExpressionTypes.ID,
-      "." to WFFExpressionTypes.DOT,
-      "1" to WFFExpressionTypes.INTEGER,
+      "CONFIGURATION.themeColor.1" to WFFExpressionTypes.ID,
       "]" to WFFExpressionTypes.CLOSE_BRACKET,
     )
   }
@@ -79,13 +73,13 @@ class WFFExpressionLexerTest : AndroidLexerTestCase(WFFExpressionLexer()) {
       "log10(10, 2, 3)",
       "log10" to WFFExpressionTypes.ID,
       "(" to WFFExpressionTypes.OPEN_PAREN,
-      "10" to WFFExpressionTypes.INTEGER,
+      "10" to WFFExpressionTypes.NUMBER,
       "," to WFFExpressionTypes.COMMA,
       " " to TokenType.WHITE_SPACE,
-      "2" to WFFExpressionTypes.INTEGER,
+      "2" to WFFExpressionTypes.NUMBER,
       "," to WFFExpressionTypes.COMMA,
       " " to TokenType.WHITE_SPACE,
-      "3" to WFFExpressionTypes.INTEGER,
+      "3" to WFFExpressionTypes.NUMBER,
       ")" to WFFExpressionTypes.CLOSE_PAREN,
     )
   }
@@ -102,13 +96,15 @@ class WFFExpressionLexerTest : AndroidLexerTestCase(WFFExpressionLexer()) {
     assertTokenTypes("null", "null" to WFFExpressionTypes.NULL)
   }
 
+  fun testDecimalNumber() {
+    assertTokenTypes("32.6", "32.6" to WFFExpressionTypes.NUMBER)
+  }
+
   fun testComplexExpression() {
     assertTokenTypes(
       "[CONFIGURATION.showBackgroundInAfternoon] == \"TRUE\" && [SECONDS_IN_DAY] < (log10(10, 2, 3) * 50.0)",
       "[" to WFFExpressionTypes.OPEN_BRACKET,
-      "CONFIGURATION" to WFFExpressionTypes.ID,
-      "." to WFFExpressionTypes.DOT,
-      "showBackgroundInAfternoon" to WFFExpressionTypes.ID,
+      "CONFIGURATION.showBackgroundInAfternoon" to WFFExpressionTypes.ID,
       "]" to WFFExpressionTypes.CLOSE_BRACKET,
       " " to TokenType.WHITE_SPACE,
       "==" to WFFExpressionTypes.OPERATORS,
@@ -126,20 +122,18 @@ class WFFExpressionLexerTest : AndroidLexerTestCase(WFFExpressionLexer()) {
       "(" to WFFExpressionTypes.OPEN_PAREN,
       "log10" to WFFExpressionTypes.ID,
       "(" to WFFExpressionTypes.OPEN_PAREN,
-      "10" to WFFExpressionTypes.INTEGER,
+      "10" to WFFExpressionTypes.NUMBER,
       "," to WFFExpressionTypes.COMMA,
       " " to TokenType.WHITE_SPACE,
-      "2" to WFFExpressionTypes.INTEGER,
+      "2" to WFFExpressionTypes.NUMBER,
       "," to WFFExpressionTypes.COMMA,
       " " to TokenType.WHITE_SPACE,
-      "3" to WFFExpressionTypes.INTEGER,
+      "3" to WFFExpressionTypes.NUMBER,
       ")" to WFFExpressionTypes.CLOSE_PAREN,
       " " to TokenType.WHITE_SPACE,
       "*" to WFFExpressionTypes.OPERATORS,
       " " to TokenType.WHITE_SPACE,
-      "50" to WFFExpressionTypes.INTEGER,
-      "." to WFFExpressionTypes.DOT,
-      "0" to WFFExpressionTypes.INTEGER,
+      "50.0" to WFFExpressionTypes.NUMBER,
       ")" to WFFExpressionTypes.CLOSE_PAREN,
     )
   }
@@ -148,21 +142,13 @@ class WFFExpressionLexerTest : AndroidLexerTestCase(WFFExpressionLexer()) {
     assertTokenTypes(
       "[WEATHER.IS_AVAILABLE]",
       "[" to WFFExpressionTypes.OPEN_BRACKET,
-      "WEATHER" to WFFExpressionTypes.ID,
-      "." to WFFExpressionTypes.DOT,
-      "IS_AVAILABLE" to WFFExpressionTypes.ID,
+      "WEATHER.IS_AVAILABLE" to WFFExpressionTypes.ID,
       "]" to WFFExpressionTypes.CLOSE_BRACKET,
     )
     assertTokenTypes(
       "[WEATHER.HOURS.0.CONDITION]",
       "[" to WFFExpressionTypes.OPEN_BRACKET,
-      "WEATHER" to WFFExpressionTypes.ID,
-      "." to WFFExpressionTypes.DOT,
-      "HOURS" to WFFExpressionTypes.ID,
-      "." to WFFExpressionTypes.DOT,
-      "0" to WFFExpressionTypes.INTEGER,
-      "." to WFFExpressionTypes.DOT,
-      "CONDITION" to WFFExpressionTypes.ID,
+      "WEATHER.HOURS.0.CONDITION" to WFFExpressionTypes.ID,
       "]" to WFFExpressionTypes.CLOSE_BRACKET,
     )
   }

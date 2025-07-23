@@ -41,8 +41,8 @@ EOL=\R
 WHITE_SPACE=\s+
 
 SPACE=[ \t\n\x0B\f\r]+
-INTEGER=[0-9]+
-ID=[:letter:][a-zA-Z_0-9]*
+NUMBER=[0-9]+(\.[0-9]+)?
+ID=[:letter:][\w\\.]*
 OPERATORS=\+|-|%|\*|==|=|>=|<=|>|<|\||\|\||&&|&|\~|\!|\!=|"/"
 QUOTED_STRING=('([^'\\]|\\.)*'|\"([^\"\\]|\\.)*\")
 
@@ -55,11 +55,10 @@ QUOTED_STRING=('([^'\\]|\\.)*'|\"([^\"\\]|\\.)*\")
   "["                   { return OPEN_BRACKET; }
   "]"                   { return CLOSE_BRACKET; }
   ","                   { return COMMA; }
-  "."                   { return DOT; }
   "null"                { return NULL; }
 
   {SPACE}               { return SPACE; }
-  {INTEGER}             { return INTEGER; }
+  {NUMBER}              { return NUMBER; }
   {ID}                  { return ID; }
   {OPERATORS}           { return OPERATORS; }
   {QUOTED_STRING}       { return QUOTED_STRING; }

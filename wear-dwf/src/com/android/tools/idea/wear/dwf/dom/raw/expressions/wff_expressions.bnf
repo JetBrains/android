@@ -33,15 +33,14 @@
   extends(".*expr")=expr
   tokens = [
     SPACE='regexp:\s+'
-    INTEGER='regexp:\d+'
-    ID='regexp:\p{Alpha}\w*'
+    NUMBER='regexp:\d+(\.\d+)?'
+    ID='regexp:\p{Alpha}[\w\\.]*'
     OPERATORS='regexp:\+|-|%|\*|==|=|>=|<=|>|<|\||\|\||&&|&|\~|\!|\!=|/'
     OPEN_PAREN='('
     CLOSE_PAREN=')'
     OPEN_BRACKET='['
     CLOSE_BRACKET=']'
     COMMA = ','
-    DOT = '.'
     NULL = 'null'
     QUOTED_STRING="regexp:('([^'\\]|\\.)*'|\"([^\"\\]|\\.)*\")"
   ]
@@ -49,7 +48,7 @@
 
 root ::= element
 private element ::= expr {recoverWhile=element_recover}
-private element_recover ::= !(OPEN_PAREN | OPEN_BRACKET | '+' | '-' | '!' | '~' | ID | number | QUOTED_STRING)
+private element_recover ::= !(OPEN_PAREN | OPEN_BRACKET | '+' | '-' | '!' | '~' | ID | NUMBER | QUOTED_STRING)
 
 expr ::= add_group
   | conditional_group
@@ -67,11 +66,12 @@ private mul_group ::= mul_expr | div_expr | mod_expr
 private add_group ::= plus_expr | minus_expr
 private primary_group ::= literal_expr | paren_expr
 
-number ::= INTEGER (DOT INTEGER)?
 function_id ::= ID &OPEN_PAREN
 call_expr ::= function_id arg_list
 arg_list ::= OPEN_PAREN [ !CLOSE_PAREN expr  (',' expr) * ] CLOSE_PAREN
-literal_expr ::= number | QUOTED_STRING | ID | configuration | data_source | NULL
+literal_expr ::= NUMBER | QUOTED_STRING | ID | data_source_or_configuration | NULL {
+  methods=[getReference]
+}
 unary_min_expr ::= '-' expr
 unary_plus_expr ::= '+' expr
 unary_not_expr ::= '!' expr
@@ -88,28 +88,6 @@ mod_expr ::= expr '%' expr
 paren_expr ::= OPEN_PAREN expr CLOSE_PAREN
 elvis_expr ::= conditional_expr '?' expr ':' expr
 
-weather_source_id ::= 'WEATHER' DOT ID [DOT (ID | INTEGER) DOT ID] {
-  pin=1
-}
-data_source_id ::= weather_source_id | ID
-data_source ::= OPEN_BRACKET data_source_id CLOSE_BRACKET {
-  pin=2
-}
-
-color_index ::= DOT INTEGER {
-  pin=1
-}
-// can be a number by itself, a number followed by an id, or an id by itself
-user_string ::= INTEGER ID?| INTEGER? ID
-configuration_id ::= 'CONFIGURATION' DOT user_string color_index? {
-  pin=2
-}
-
-// The ID at the end is to allow auto-complete to occur. Intellij adds a dummy identifier at the
-// caret location when auto-completing. By adding that, the grammar doesn't evaluate the
-// configuration_id as being valid, and then doesn't create the reference which means it can't get
-// the variants
-configuration ::= OPEN_BRACKET configuration_id [ID] CLOSE_BRACKET {
- methods=[getReference]
+data_source_or_configuration ::= OPEN_BRACKET ID CLOSE_BRACKET {
  pin=2
 }

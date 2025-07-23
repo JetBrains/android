@@ -134,19 +134,6 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // DOT INTEGER
-  public static boolean color_index(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "color_index")) return false;
-    if (!nextTokenIs(b, DOT)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, COLOR_INDEX, null);
-    r = consumeTokens(b, 1, DOT, INTEGER);
-    p = r; // pin = 1
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
-  }
-
-  /* ********************************************************** */
   // '<=' | '>=' | '==' | '!=' | '&&' | '||' | '<' | '>'
   public static boolean conditional_op(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "conditional_op")) return false;
@@ -165,75 +152,16 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // OPEN_BRACKET configuration_id [ID] CLOSE_BRACKET
-  public static boolean configuration(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "configuration")) return false;
+  // OPEN_BRACKET ID CLOSE_BRACKET
+  public static boolean data_source_or_configuration(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "data_source_or_configuration")) return false;
     if (!nextTokenIs(b, OPEN_BRACKET)) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, CONFIGURATION, null);
-    r = consumeToken(b, OPEN_BRACKET);
-    r = r && configuration_id(b, l + 1);
+    Marker m = enter_section_(b, l, _NONE_, DATA_SOURCE_OR_CONFIGURATION, null);
+    r = consumeTokens(b, 2, OPEN_BRACKET, ID, CLOSE_BRACKET);
     p = r; // pin = 2
-    r = r && report_error_(b, configuration_2(b, l + 1));
-    r = p && consumeToken(b, CLOSE_BRACKET) && r;
     exit_section_(b, l, m, r, p, null);
     return r || p;
-  }
-
-  // [ID]
-  private static boolean configuration_2(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "configuration_2")) return false;
-    consumeToken(b, ID);
-    return true;
-  }
-
-  /* ********************************************************** */
-  // 'CONFIGURATION' DOT user_string color_index?
-  public static boolean configuration_id(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "configuration_id")) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, CONFIGURATION_ID, "<configuration id>");
-    r = consumeToken(b, "CONFIGURATION");
-    r = r && consumeToken(b, DOT);
-    p = r; // pin = 2
-    r = r && report_error_(b, user_string(b, l + 1));
-    r = p && configuration_id_3(b, l + 1) && r;
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
-  }
-
-  // color_index?
-  private static boolean configuration_id_3(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "configuration_id_3")) return false;
-    color_index(b, l + 1);
-    return true;
-  }
-
-  /* ********************************************************** */
-  // OPEN_BRACKET data_source_id CLOSE_BRACKET
-  public static boolean data_source(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "data_source")) return false;
-    if (!nextTokenIs(b, OPEN_BRACKET)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, DATA_SOURCE, null);
-    r = consumeToken(b, OPEN_BRACKET);
-    r = r && data_source_id(b, l + 1);
-    p = r; // pin = 2
-    r = r && consumeToken(b, CLOSE_BRACKET);
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
-  }
-
-  /* ********************************************************** */
-  // weather_source_id | ID
-  public static boolean data_source_id(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "data_source_id")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NONE_, DATA_SOURCE_ID, "<data source id>");
-    r = weather_source_id(b, l + 1);
-    if (!r) r = consumeToken(b, ID);
-    exit_section_(b, l, m, r, false, null);
-    return r;
   }
 
   /* ********************************************************** */
@@ -248,7 +176,7 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // !(OPEN_PAREN | OPEN_BRACKET | '+' | '-' | '!' | '~' | ID | number | QUOTED_STRING)
+  // !(OPEN_PAREN | OPEN_BRACKET | '+' | '-' | '!' | '~' | ID | NUMBER | QUOTED_STRING)
   static boolean element_recover(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "element_recover")) return false;
     boolean r;
@@ -258,7 +186,7 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // OPEN_PAREN | OPEN_BRACKET | '+' | '-' | '!' | '~' | ID | number | QUOTED_STRING
+  // OPEN_PAREN | OPEN_BRACKET | '+' | '-' | '!' | '~' | ID | NUMBER | QUOTED_STRING
   private static boolean element_recover_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "element_recover_0")) return false;
     boolean r;
@@ -269,7 +197,7 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
     if (!r) r = consumeToken(b, "!");
     if (!r) r = consumeToken(b, "~");
     if (!r) r = consumeToken(b, ID);
-    if (!r) r = number(b, l + 1);
+    if (!r) r = consumeToken(b, NUMBER);
     if (!r) r = consumeToken(b, QUOTED_STRING);
     return r;
   }
@@ -298,130 +226,9 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // INTEGER (DOT INTEGER)?
-  public static boolean number(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "number")) return false;
-    if (!nextTokenIs(b, INTEGER)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, INTEGER);
-    r = r && number_1(b, l + 1);
-    exit_section_(b, m, NUMBER, r);
-    return r;
-  }
-
-  // (DOT INTEGER)?
-  private static boolean number_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "number_1")) return false;
-    number_1_0(b, l + 1);
-    return true;
-  }
-
-  // DOT INTEGER
-  private static boolean number_1_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "number_1_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeTokens(b, 0, DOT, INTEGER);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  /* ********************************************************** */
   // element
   static boolean root(PsiBuilder b, int l) {
     return element(b, l + 1);
-  }
-
-  /* ********************************************************** */
-  // INTEGER ID?| INTEGER? ID
-  public static boolean user_string(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "user_string")) return false;
-    if (!nextTokenIs(b, "<user string>", ID, INTEGER)) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NONE_, USER_STRING, "<user string>");
-    r = user_string_0(b, l + 1);
-    if (!r) r = user_string_1(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
-  }
-
-  // INTEGER ID?
-  private static boolean user_string_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "user_string_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, INTEGER);
-    r = r && user_string_0_1(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // ID?
-  private static boolean user_string_0_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "user_string_0_1")) return false;
-    consumeToken(b, ID);
-    return true;
-  }
-
-  // INTEGER? ID
-  private static boolean user_string_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "user_string_1")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = user_string_1_0(b, l + 1);
-    r = r && consumeToken(b, ID);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // INTEGER?
-  private static boolean user_string_1_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "user_string_1_0")) return false;
-    consumeToken(b, INTEGER);
-    return true;
-  }
-
-  /* ********************************************************** */
-  // 'WEATHER' DOT ID [DOT (ID | INTEGER) DOT ID]
-  public static boolean weather_source_id(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "weather_source_id")) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, WEATHER_SOURCE_ID, "<weather source id>");
-    r = consumeToken(b, "WEATHER");
-    p = r; // pin = 1
-    r = r && report_error_(b, consumeTokens(b, -1, DOT, ID));
-    r = p && weather_source_id_3(b, l + 1) && r;
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
-  }
-
-  // [DOT (ID | INTEGER) DOT ID]
-  private static boolean weather_source_id_3(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "weather_source_id_3")) return false;
-    weather_source_id_3_0(b, l + 1);
-    return true;
-  }
-
-  // DOT (ID | INTEGER) DOT ID
-  private static boolean weather_source_id_3_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "weather_source_id_3_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, DOT);
-    r = r && weather_source_id_3_0_1(b, l + 1);
-    r = r && consumeTokens(b, 0, DOT, ID);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // ID | INTEGER
-  private static boolean weather_source_id_3_0_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "weather_source_id_3_0_1")) return false;
-    boolean r;
-    r = consumeToken(b, ID);
-    if (!r) r = consumeToken(b, INTEGER);
-    return r;
   }
 
   /* ********************************************************** */
@@ -587,16 +394,15 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // number | QUOTED_STRING | ID | configuration | data_source | NULL
+  // NUMBER | QUOTED_STRING | ID | data_source_or_configuration | NULL
   public static boolean literal_expr(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "literal_expr")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, LITERAL_EXPR, "<literal expr>");
-    r = number(b, l + 1);
+    r = consumeTokenSmart(b, NUMBER);
     if (!r) r = consumeTokenSmart(b, QUOTED_STRING);
     if (!r) r = consumeTokenSmart(b, ID);
-    if (!r) r = configuration(b, l + 1);
-    if (!r) r = data_source(b, l + 1);
+    if (!r) r = data_source_or_configuration(b, l + 1);
     if (!r) r = consumeTokenSmart(b, NULL);
     exit_section_(b, l, m, r, false, null);
     return r;

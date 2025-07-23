@@ -157,7 +157,7 @@ class WFFExpressionAnnotatorTest {
   }
 
   @Test
-  fun `configuration are annotated`() {
+  fun `configurations are annotated`() {
     // wrap in a watch face file for the configuration references to resolve
     val watchFaceFile =
       fixture.addFileToProject(

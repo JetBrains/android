@@ -33,13 +33,9 @@ FILE
       PsiElement(()('(')
       WFFExpressionConditionalExprImpl(CONDITIONAL_EXPR)
         WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-          WFFExpressionConfigurationImpl(CONFIGURATION)
+          WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
             PsiElement([)('[')
-            WFFExpressionConfigurationIdImpl(CONFIGURATION_ID)
-              PsiElement(ID)('CONFIGURATION')
-              PsiElement(.)('.')
-              WFFExpressionUserStringImpl(USER_STRING)
-                PsiElement(ID)('showBackgroundInAfternoon')
+            PsiElement(ID)('CONFIGURATION.showBackgroundInAfternoon')
             PsiElement(])(']')
         WFFExpressionConditionalOpImpl(CONDITIONAL_OP)
           PsiElement(OPERATORS)('==')
@@ -52,10 +48,9 @@ FILE
       PsiElement(()('(')
       WFFExpressionConditionalExprImpl(CONDITIONAL_EXPR)
         WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-          WFFExpressionDataSourceImpl(DATA_SOURCE)
+          WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
             PsiElement([)('[')
-            WFFExpressionDataSourceIdImpl(DATA_SOURCE_ID)
-              PsiElement(ID)('SECONDS_IN_DAY')
+            PsiElement(ID)('SECONDS_IN_DAY')
             PsiElement(])(']')
         WFFExpressionConditionalOpImpl(CONDITIONAL_OP)
           PsiElement(OPERATORS)('<')
@@ -65,16 +60,13 @@ FILE
           WFFExpressionArgListImpl(ARG_LIST)
             PsiElement(()('(')
             WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-              WFFExpressionNumberImpl(NUMBER)
-                PsiElement(INTEGER)('10')
+              PsiElement(NUMBER)('10')
             PsiElement(,)(',')
             WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-              WFFExpressionNumberImpl(NUMBER)
-                PsiElement(INTEGER)('2')
+              PsiElement(NUMBER)('2')
             PsiElement(,)(',')
             WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-              WFFExpressionNumberImpl(NUMBER)
-                PsiElement(INTEGER)('3')
+              PsiElement(NUMBER)('3')
             PsiElement())(')')
       PsiElement())(')')
           """
@@ -90,8 +82,7 @@ FILE
       """
 FILE
   WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionNumberImpl(NUMBER)
-      PsiElement(INTEGER)('1')
+    PsiElement(NUMBER)('1')
           """
         .trimIndent(),
       toParseTreeText("1"),
@@ -102,11 +93,9 @@ FILE
       """
 FILE
   WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionNumberImpl(NUMBER)
-      PsiElement(INTEGER)('1')
-  PsiElement(.)('.')
-  PsiErrorElement:INTEGER expected
-    <empty list>
+    PsiElement(NUMBER)('1')
+  PsiErrorElement:<conditional op> expected, got '.'
+    PsiElement(BAD_CHARACTER)('.')
           """
         .trimIndent(),
       toParseTreeText("1."),
@@ -117,10 +106,7 @@ FILE
       """
 FILE
   WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionNumberImpl(NUMBER)
-      PsiElement(INTEGER)('1')
-      PsiElement(.)('.')
-      PsiElement(INTEGER)('2')
+    PsiElement(NUMBER)('1.2')
           """
         .trimIndent(),
       toParseTreeText("1.2"),
@@ -131,13 +117,10 @@ FILE
       """
 FILE
   WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionNumberImpl(NUMBER)
-      PsiElement(INTEGER)('1')
-      PsiElement(.)('.')
-      PsiElement(INTEGER)('2')
+    PsiElement(NUMBER)('1.2')
   PsiErrorElement:<conditional op> expected, got '.'
-    PsiElement(.)('.')
-  PsiElement(INTEGER)('3')
+    PsiElement(BAD_CHARACTER)('.')
+  PsiElement(NUMBER)('3')
           """
         .trimIndent(),
       toParseTreeText("1.2.3"),
@@ -149,13 +132,9 @@ FILE
       """
 FILE
   WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionConfigurationImpl(CONFIGURATION)
+    WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
       PsiElement([)('[')
-      WFFExpressionConfigurationIdImpl(CONFIGURATION_ID)
-        PsiElement(ID)('CONFIGURATION')
-        PsiElement(.)('.')
-        WFFExpressionUserStringImpl(USER_STRING)
-          PsiElement(ID)('themeColor')
+      PsiElement(ID)('CONFIGURATION.themeColor')
       PsiElement(])(']')
           """
         .trimIndent(),
@@ -166,34 +145,25 @@ FILE
       """
 FILE
   WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionConfigurationImpl(CONFIGURATION)
+    WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
       PsiElement([)('[')
-      WFFExpressionConfigurationIdImpl(CONFIGURATION_ID)
-        PsiElement(ID)('CONFIGURATION')
-        PsiElement(.)('.')
-        WFFExpressionUserStringImpl(USER_STRING)
-          PsiElement(ID)('themeColor')
-        WFFExpressionColorIndexImpl(COLOR_INDEX)
-          PsiElement(.)('.')
-          PsiElement(INTEGER)('1')
+      PsiElement(ID)('CONFIGURATION.themeColor.1')
       PsiElement(])(']')
           """
         .trimIndent(),
       toParseTreeText("[CONFIGURATION.themeColor.1]"),
     )
 
-    // An incomplete configuration should be considered as a configuration
+    // An incomplete configuration should be considered as a source type
     assertEquals(
       """
 FILE
   WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionConfigurationImpl(CONFIGURATION)
+    WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
       PsiElement([)('[')
-      WFFExpressionConfigurationIdImpl(CONFIGURATION_ID)
-        PsiElement(ID)('CONFIGURATION')
-        PsiElement(.)('.')
-        PsiErrorElement:<user string> expected
-          <empty list>
+      PsiElement(ID)('CONFIGURATION.')
+      PsiErrorElement:']' expected
+        <empty list>
           """
         .trimIndent(),
       // missing everything after the configuration prefix
@@ -204,17 +174,10 @@ FILE
       """
 FILE
   WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionConfigurationImpl(CONFIGURATION)
+    WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
       PsiElement([)('[')
-      WFFExpressionConfigurationIdImpl(CONFIGURATION_ID)
-        PsiElement(ID)('CONFIGURATION')
-        PsiElement(.)('.')
-        WFFExpressionUserStringImpl(USER_STRING)
-          PsiElement(ID)('themeColor')
-        WFFExpressionColorIndexImpl(COLOR_INDEX)
-          PsiElement(.)('.')
-          PsiElement(INTEGER)('1')
-      PsiErrorElement:ID or ']' expected
+      PsiElement(ID)('CONFIGURATION.themeColor.1')
+      PsiErrorElement:']' expected
         <empty list>
           """
         .trimIndent(),
@@ -228,14 +191,9 @@ FILE
       """
 FILE
   WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionConfigurationImpl(CONFIGURATION)
+    WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
       PsiElement([)('[')
-      WFFExpressionConfigurationIdImpl(CONFIGURATION_ID)
-        PsiElement(ID)('CONFIGURATION')
-        PsiElement(.)('.')
-        WFFExpressionUserStringImpl(USER_STRING)
-          PsiElement(INTEGER)('40')
-          PsiElement(ID)('fc6b01_0756_400d_8903_20a8808c8115')
+      PsiElement(ID)('CONFIGURATION.40fc6b01_0756_400d_8903_20a8808c8115')
       PsiElement(])(']')
           """
         .trimIndent(),
@@ -244,18 +202,14 @@ FILE
     )
   }
 
-  fun testConfigurationsCanBeAnInteger() {
+  fun testConfigurationsIdsCanBeAnInteger() {
     assertEquals(
       """
 FILE
   WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionConfigurationImpl(CONFIGURATION)
+    WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
       PsiElement([)('[')
-      WFFExpressionConfigurationIdImpl(CONFIGURATION_ID)
-        PsiElement(ID)('CONFIGURATION')
-        PsiElement(.)('.')
-        WFFExpressionUserStringImpl(USER_STRING)
-          PsiElement(INTEGER)('0')
+      PsiElement(ID)('CONFIGURATION.0')
       PsiElement(])(']')
           """
         .trimIndent(),
@@ -269,10 +223,9 @@ FILE
       """
 FILE
   WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionNumberImpl(NUMBER)
-      PsiElement(INTEGER)('1')
+    PsiElement(NUMBER)('1')
   PsiErrorElement:'1' unexpected
-    PsiElement(INTEGER)('1')
+    PsiElement(NUMBER)('1')
           """
         .trimIndent(),
       toParseTreeText("1 1"),
@@ -284,13 +237,9 @@ FILE
       """
 FILE
   WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionDataSourceImpl(DATA_SOURCE)
+    WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
       PsiElement([)('[')
-      WFFExpressionDataSourceIdImpl(DATA_SOURCE_ID)
-        WFFExpressionWeatherSourceIdImpl(WEATHER_SOURCE_ID)
-          PsiElement(ID)('WEATHER')
-          PsiElement(.)('.')
-          PsiElement(ID)('IS_AVAILABLE')
+      PsiElement(ID)('WEATHER.IS_AVAILABLE')
       PsiElement(])(']')
           """
         .trimIndent(),
@@ -301,42 +250,13 @@ FILE
       """
 FILE
   WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionDataSourceImpl(DATA_SOURCE)
+    WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
       PsiElement([)('[')
-      WFFExpressionDataSourceIdImpl(DATA_SOURCE_ID)
-        WFFExpressionWeatherSourceIdImpl(WEATHER_SOURCE_ID)
-          PsiElement(ID)('WEATHER')
-          PsiElement(.)('.')
-          PsiElement(ID)('HOURS')
-          PsiElement(.)('.')
-          PsiElement(INTEGER)('0')
-          PsiElement(.)('.')
-          PsiElement(ID)('CONDITION')
+      PsiElement(ID)('WEATHER.HOURS.0.CONDITION')
       PsiElement(])(']')
           """
         .trimIndent(),
       toParseTreeText("[WEATHER.HOURS.0.CONDITION]"),
-    )
-  }
-
-  fun testParseInvalidDataSource() {
-    assertEquals(
-      """
-FILE
-  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionDataSourceImpl(DATA_SOURCE)
-      PsiElement([)('[')
-      WFFExpressionDataSourceIdImpl(DATA_SOURCE_ID)
-        PsiElement(ID)('INVALID')
-      PsiErrorElement:']' expected, got '.'
-        <empty list>
-  PsiElement(.)('.')
-  PsiErrorElement:'DATA_SOURCE' unexpected
-    PsiElement(ID)('DATA_SOURCE')
-  PsiElement(])(']')
-          """
-        .trimIndent(),
-      toParseTreeText("[INVALID.DATA_SOURCE]"),
     )
   }
 }

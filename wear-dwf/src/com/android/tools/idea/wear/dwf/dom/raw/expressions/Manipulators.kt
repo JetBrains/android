@@ -20,33 +20,31 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.AbstractElementManipulator
 import com.intellij.psi.impl.source.DummyHolderFactory
 
-class WFFExpressionConfigurationManipulator :
-  AbstractElementManipulator<WFFExpressionConfiguration>() {
+class WFFExpressionLiteralExprManipulator : AbstractElementManipulator<WFFExpressionLiteralExpr>() {
   override fun handleContentChange(
-    element: WFFExpressionConfiguration,
+    element: WFFExpressionLiteralExpr,
     range: TextRange,
     newContent: String,
-  ): WFFExpressionConfiguration? {
-
-    val newConfiguration =
+  ): WFFExpressionLiteralExpr? {
+    val textWithNewContent =
       element.node.text.replaceRange(IntRange(range.startOffset, range.endOffset - 1), newContent)
-    val newElement = createConfigurationIdFromText(newConfiguration, element)
-    return if (newElement != null) element.replace(newElement) as WFFExpressionConfiguration
+    val newElement = createElementFromText(textWithNewContent, element)
+    return if (newElement != null) element.replace(newElement) as WFFExpressionLiteralExpr
     else element
   }
 
-  private fun createConfigurationIdFromText(
+  private fun createElementFromText(
     text: String,
-    element: WFFExpressionConfiguration,
-  ): WFFExpressionConfiguration? {
+    element: WFFExpressionLiteralExpr,
+  ): WFFExpressionLiteralExpr? {
     val builder =
       PsiBuilderFactory.getInstance()
         .createBuilder(WFFExpressionParserDefinition(), WFFExpressionLexer(), text)
-    val ast = WFFExpressionParser().parse(WFFExpressionTypes.CONFIGURATION, builder)
-    val configuration = ast.psi as? WFFExpressionConfiguration ?: return null
+    val ast = WFFExpressionParser().parse(WFFExpressionTypes.DATA_SOURCE_OR_CONFIGURATION, builder)
+    val newElement = ast.psi as? WFFExpressionLiteralExpr ?: return null
     // Give the new PSI element a parent, otherwise it will be invalid.
     val holder = DummyHolderFactory.createHolder(element.manager, element.language, element)
     holder.treeElement.addChild(ast)
-    return configuration
+    return newElement
   }
 }

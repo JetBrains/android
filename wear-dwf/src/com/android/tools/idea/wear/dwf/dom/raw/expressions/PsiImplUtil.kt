@@ -21,9 +21,9 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
 import com.intellij.psi.xml.XmlFile
 
-fun getReference(configuration: WFFExpressionConfiguration): PsiReference? {
-  val watchFaceFile = getWatchFaceFile(configuration) ?: return null
-  return UserConfigurationReference(configuration, watchFaceFile, configuration.text)
+fun getReference(literalExpr: WFFExpressionLiteralExpr): PsiReference? {
+  val watchFaceFile = getWatchFaceFile(literalExpr) ?: return null
+  return UserConfigurationReference(literalExpr, watchFaceFile, literalExpr.text)
 }
 
 /**

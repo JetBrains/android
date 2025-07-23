@@ -27,6 +27,7 @@ import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionTypes.*;
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.*;
+import com.intellij.psi.PsiReference;
 
 public class WFFExpressionLiteralExprImpl extends WFFExpressionExprImpl implements WFFExpressionLiteralExpr {
 
@@ -47,20 +48,8 @@ public class WFFExpressionLiteralExprImpl extends WFFExpressionExprImpl implemen
 
   @Override
   @Nullable
-  public WFFExpressionConfiguration getConfiguration() {
-    return findChildByClass(WFFExpressionConfiguration.class);
-  }
-
-  @Override
-  @Nullable
-  public WFFExpressionDataSource getDataSource() {
-    return findChildByClass(WFFExpressionDataSource.class);
-  }
-
-  @Override
-  @Nullable
-  public WFFExpressionNumber getNumber() {
-    return findChildByClass(WFFExpressionNumber.class);
+  public WFFExpressionDataSourceOrConfiguration getDataSourceOrConfiguration() {
+    return findChildByClass(WFFExpressionDataSourceOrConfiguration.class);
   }
 
   @Override
@@ -71,8 +60,19 @@ public class WFFExpressionLiteralExprImpl extends WFFExpressionExprImpl implemen
 
   @Override
   @Nullable
+  public PsiElement getNumber() {
+    return findChildByType(NUMBER);
+  }
+
+  @Override
+  @Nullable
   public PsiElement getQuotedString() {
     return findChildByType(QUOTED_STRING);
+  }
+
+  @Override
+  public @Nullable PsiReference getReference() {
+    return PsiImplUtilKt.getReference(this);
   }
 
 }

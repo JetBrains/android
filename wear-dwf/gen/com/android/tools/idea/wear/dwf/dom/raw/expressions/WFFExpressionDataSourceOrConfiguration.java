@@ -23,9 +23,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface WFFExpressionColorIndex extends PsiElement {
+public interface WFFExpressionDataSourceOrConfiguration extends PsiElement {
 
-  @Nullable
-  PsiElement getInteger();
+  @NotNull
+  PsiElement getId();
 
 }

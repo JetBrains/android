@@ -16,14 +16,17 @@
 package com.android.tools.idea.wear.dwf.dom.raw.expressions
 
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.wear.dwf.WFFConstants
 import com.android.tools.idea.wear.dwf.WearDwfBundle.message
 import com.android.tools.idea.wear.dwf.dom.raw.CurrentWFFVersionService
+import com.android.tools.idea.wear.dwf.dom.raw.configurations.UserConfigurationReference
 import com.android.tools.wear.wff.WFFVersion
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.psi.PsiElement
+import com.intellij.psi.util.parentOfType
 
 /**
  * An [Annotator] that applies highlighting based on the PSI structure, not just lexer tokens. The
@@ -37,14 +40,26 @@ class WFFExpressionAnnotator() : Annotator {
       }
     when (element) {
       is WFFExpressionFunctionId -> annotateFunctionId(wffVersion, element, holder)
-      is WFFExpressionDataSourceId -> annotateDataSourceId(wffVersion, element, holder)
-      is WFFExpressionConfiguration -> annotateConfiguration(element, holder)
+      is WFFExpressionDataSourceOrConfiguration ->
+        annotateDataSourceOrConfiguration(wffVersion, element, holder)
+    }
+  }
+
+  private fun annotateDataSourceOrConfiguration(
+    wffVersion: WFFVersion?,
+    sourceType: WFFExpressionDataSourceOrConfiguration,
+    holder: AnnotationHolder,
+  ) {
+    when {
+      sourceType.id.text.startsWith(WFFConstants.CONFIGURATION_PREFIX) ->
+        annotateConfiguration(sourceType, holder)
+      else -> annotateDataSourceId(wffVersion, sourceType.id, holder)
     }
   }
 
   private fun annotateDataSourceId(
     wffVersion: WFFVersion?,
-    dataSourceId: WFFExpressionDataSourceId,
+    dataSourceId: PsiElement,
     holder: AnnotationHolder,
   ) {
     val dataSource = findDataSource(dataSourceId.text)
@@ -108,23 +123,25 @@ class WFFExpressionAnnotator() : Annotator {
   }
 
   private fun annotateConfiguration(
-    configuration: WFFExpressionConfiguration,
+    configuration: WFFExpressionDataSourceOrConfiguration,
     holder: AnnotationHolder,
   ) {
-    val resolvedConfiguration = configuration.reference?.resolve()
-    if (resolvedConfiguration == null) {
+    val reference =
+      configuration.parentOfType<WFFExpressionLiteralExpr>(withSelf = true)?.reference
+        as? UserConfigurationReference
+    if (reference?.resolve() == null) {
       holder
         .newAnnotation(
           HighlightSeverity.ERROR,
           message("wff.expression.annotator.unknown.configuration"),
         )
         .highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL)
-        .range(configuration.configurationId)
+        .range(configuration.id)
         .create()
     }
     holder
       .newSilentAnnotation(HighlightSeverity.INFORMATION)
-      .range(configuration.configurationId)
+      .range(configuration.id)
       .textAttributes(WFFExpressionTextAttributes.CONFIGURATION.key)
       .create()
   }
