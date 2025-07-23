@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.base.qsync;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.util.concurrent.Futures.immediateFuture;
@@ -23,7 +22,6 @@ import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 import static com.intellij.openapi.util.text.StringUtil.sanitizeJavaIdentifier;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
@@ -73,27 +71,19 @@ import com.google.idea.blaze.qsync.java.JavaTargetInfo.JavaArtifacts;
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcCompilationInfo;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.common.experiments.BoolExperiment;
-import com.google.idea.common.experiments.StringExperiment;
 import com.google.protobuf.Message;
 import com.google.protobuf.TextFormat;
-import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.PluginDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtilRt;
-import com.jgoodies.common.base.Strings;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.AbstractMap;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -110,8 +100,6 @@ import org.jetbrains.annotations.VisibleForTesting;
 /** An object that knows how to build dependencies for given targets */
 public class BazelDependencyBuilder implements DependencyBuilder, BazelDependencyBuilderPublicForTests {
 
-  private static final Logger logger = Logger.getInstance(BazelDependencyBuilder.class);
-
   @VisibleForTesting
   public static final BoolExperiment buildGeneratedSrcJars =
       new BoolExperiment("qsync.build.generated.src.jars", false);
@@ -122,8 +110,6 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
   public static final BoolExperiment buildEnforceProjectConfigs =
     new BoolExperiment("qsync.build.enforce.project.configs", false);
 
-  public static final StringExperiment aspectLocation =
-      new StringExperiment("qsync.build.aspect.location");
   public static final String INVOCATION_FILES_DIR = ".aswb";
 
   public static final Label RULES_ANDROID_RULES_BZL1 = Label.of("@@rules_android~//android:rules.bzl");
@@ -156,6 +142,7 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
   protected final Optional<BlazeVcsHandler> vcsHandler;
   protected final ImmutableSet<String> handledRuleKinds;
   protected final BuildArtifactCache buildArtifactCache;
+  private final AspectFiles aspectFiles;
 
   /**
    * @param argsAndFlags arguments and flags to be passed to `bazel build` command to build
@@ -184,6 +171,7 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
     this.vcsHandler = vcsHandler;
     this.handledRuleKinds = handledRuleKinds;
     this.buildArtifactCache = buildArtifactCache;
+    this.aspectFiles = new AspectFiles(workspaceRoot);
   }
 
   @Override
@@ -408,43 +396,10 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
     return sanitizeJavaIdentifier(project.getName() + project.getLocationHash());
   }
 
-  protected Path getBundledAspectPath(String dir, String filename) {
-    String aspectPath = System.getProperty(String.format("qsync.aspect.%s.file", filename));
-    if (aspectPath != null) {
-      return Path.of(aspectPath);
-    }
-    if (Strings.isNotEmpty(aspectLocation.getValue())) {
-      Path workspaceAbsolutePath = workspaceRoot.absolutePathFor("");
-      // NOTE: aspectLocation allows both relative and absolute paths.
-      ImmutableList<Path> candidates = Splitter.on(":")
-        .splitToStream(aspectLocation.getValue())
-        .map(workspaceAbsolutePath::resolve)
-        .map(it -> it.resolve(dir).resolve(filename))
-        .collect(toImmutableList());
-
-      final var result =
-        candidates
-          .stream()
-          .filter(Files::exists)
-          .findFirst()
-          .orElseThrow(() ->
-                         new IllegalStateException(
-                           String.format(
-                             Locale.ROOT,
-                             "None of %s exists",
-                             candidates)));
-      logger.info("Using build aspect file: " + result);
-      return result;
-    } else {
-      PluginDescriptor plugin = checkNotNull(PluginManager.getPluginByClass(getClass()));
-      return plugin.getPluginPath().resolve(dir).resolve(filename);
-    }
-  }
-
   @VisibleForTesting
   @Override
   public Path getBundledAspectPath(String filename) {
-    return getBundledAspectPath("aspect", filename);
+    return aspectFiles.getBundledAspectPath(filename);
   }
 
   /**
@@ -459,58 +414,7 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
     BlazeContext context, ImmutableMap<Path, ByteSource> invocationFiles)
       throws IOException, BuildException {
     for (Map.Entry<Path, ByteSource> e : invocationFiles.entrySet()) {
-      copyInvocationFile(e.getKey(), e.getValue());
-    }
-  }
-
-  private void copyInvocationFile(Path path, ByteSource content) throws IOException, BuildException {
-    IOException lastException = null;
-    for (var attempt = 0; attempt < 3; attempt++) {
-      lastException = null;
-      Path absolutePath = workspaceRoot.path().resolve(path);
-      try {
-        Files.createDirectories(absolutePath.getParent());
-      }
-      catch (IOException ex) {
-        logger.warn("Failed to create directory " + absolutePath.getParent(), ex);
-        continue;
-      }
-      try {
-        if (Files.exists(absolutePath) && Arrays.equals(Files.readAllBytes(absolutePath), content.read())) {
-          continue;
-        }
-      }
-      catch (IOException ex) {
-        logger.warn("Failed to read " + absolutePath, ex);
-      }
-      try {
-        Files.deleteIfExists(absolutePath);
-      }
-      catch (IOException ex) {
-        logger.warn("Failed to delete " + absolutePath, ex);
-      }
-      try {
-        // Wait a little after deleting if not the first attempt.
-        Thread.sleep(100 * attempt);
-      }
-      catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
-      if (Files.exists(absolutePath)) {
-        logger.warn("File %s still exists".formatted(absolutePath));
-      }
-      try {
-        Files.copy(content.openStream(), absolutePath, StandardCopyOption.REPLACE_EXISTING);
-      }
-      catch (IOException ex) {
-        logger.warn("Failed to copy to " + absolutePath, ex);
-        lastException = ex;
-        continue;
-      }
-      return; // success
-    }
-    if (lastException != null) {
-      throw new BuildException(lastException);
+      aspectFiles.copyInvocationFile(e.getKey(), e.getValue());
     }
   }
 
