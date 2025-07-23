@@ -31,10 +31,10 @@ import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.testFramework.TestActionEvent
+import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -42,7 +42,6 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import kotlin.test.assertEquals
 
 /** Tests for [LiveEditIssueNotificationAction]. */
 internal class LiveEditIssueNotificationActionTest {
@@ -83,24 +82,10 @@ internal class LiveEditIssueNotificationActionTest {
     }
     service.getDeployMonitor().liveEditDevices.addDevice(device, LiveEditStatus.UpToDate)
 
-    // Event one. Pretending we are not the running device. We get full "Up-to-date"
     val action = LiveEditIssueNotificationAction()
     val event = TestActionEvent.createTestEvent(context)
     action.update(event)
     assertEquals("Up-to-date", event.presentation.text)
-
-    // Event two. Pretending we are running device window. We should have the shorten status.
-    val toolWindow: ToolWindow = mock()
-    whenever(toolWindow.id).thenReturn(RUNNING_DEVICES_TOOL_WINDOW_ID)
-    val context2 = SimpleDataContext.builder()
-      .add(CommonDataKeys.EDITOR, projectRule.fixture.editor)
-      .add(CommonDataKeys.PROJECT, projectRule.project)
-      .add(PlatformDataKeys.TOOL_WINDOW, toolWindow)
-      .build()
-    val action2 = LiveEditIssueNotificationAction()
-    val event2 = TestActionEvent.createTestEvent(context2)
-    action2.update(event2)
-    assertEquals(event2.presentation.text, "")
   }
 
   @Test

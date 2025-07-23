@@ -43,7 +43,6 @@ open class LiveEditStatus(
   val descriptionManualMode: String? = null,
   val redeployMode: RedeployMode = RedeployMode.NONE,
   val actionId: String? = null,
-  override val shouldSimplify: Boolean = false,
   ) : IdeStatus {
   companion object {
     // A simple priority system that is used when multiple LiveEditStatus need to be merged.
@@ -158,7 +157,6 @@ open class LiveEditStatus(
       message("le.status.error.debugger_attached.title"),
       message("le.status.error.debugger_attached.description"),
       UNRECOVERABLE_ERROR,
-      shouldSimplify = true,
       actionId = REFRESH_ACTION_ID,
     )
 
@@ -186,7 +184,6 @@ open class LiveEditStatus(
       message("le.status.loading.title"),
       message("le.status.loading.description"),
       REFRESHING,
-      shouldSimplify = true
     )
 
   object InProgress :
@@ -195,7 +192,6 @@ open class LiveEditStatus(
       message("le.status.in_progress.title"),
       message("le.status.in_progress.description"),
       REFRESHING,
-      shouldSimplify = true
     )
 
   object CopyingPsi :
@@ -204,7 +200,6 @@ open class LiveEditStatus(
       message("le.status.pre_compiling.title"),
       message("le.status.pre_compiling.description"),
       REFRESHING,
-      shouldSimplify = true
     )
 
   object UpToDate :
@@ -214,7 +209,6 @@ open class LiveEditStatus(
       message("le.status.up_to_date.description_auto"),
       DEFAULT,
       descriptionManualMode = "App is up to date. Code changes will be applied to the running app on Refresh.",
-      shouldSimplify = true
     ) {
       override val description
         get() = if (LiveEditApplicationConfiguration.getInstance().leTriggerMode ==
