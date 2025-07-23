@@ -76,7 +76,7 @@ class ScreenshotParametersTest {
     val screenshotImage =
         ScreenshotImage(image, 0, screenshotParameters.deviceType, "Phone", PRIMARY_DISPLAY_ID, Dimension(1080, 2340), 420)
     val framingOptions = screenshotParameters.getFramingOptions(screenshotImage)
-    assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Generic Phone")
+    assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Pixel 4a", "Pixel 5", "Generic Phone")
     assertThat(screenshotParameters.getDefaultFramingOption()).isEqualTo(0)
   }
 
@@ -111,8 +111,8 @@ class ScreenshotParametersTest {
   fun testGetFramingOptionsAutomotiveMatchingAspectRatio() {
     val deviceProperties = createDeviceProperties(mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "automotive"))
     val screenshotParameters = ScreenshotParameters(serialNumber, DeviceType.AUTOMOTIVE, deviceProperties.model)
-    val image = createImage(1280, 960, WHITE)
-    val screenshotImage = ScreenshotImage(image, 0, screenshotParameters.deviceType, "Phone", PRIMARY_DISPLAY_ID, Dimension(1280, 960), 180)
+    val image = createImage(960, 1280, WHITE)
+    val screenshotImage = ScreenshotImage(image, 0, screenshotParameters.deviceType, "Supercar", PRIMARY_DISPLAY_ID, Dimension(960, 1280), 180)
     val framingOptions = screenshotParameters.getFramingOptions(screenshotImage)
     assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Automotive Large Portrait", "Generic Tablet")
     assertThat(screenshotParameters.getDefaultFramingOption()).isEqualTo(0)
@@ -123,10 +123,10 @@ class ScreenshotParametersTest {
     val deviceProperties = createDeviceProperties(mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "automotive"))
     val screenshotParameters = ScreenshotParameters(serialNumber, DeviceType.AUTOMOTIVE, deviceProperties.model)
     val image = createImage(1280, 768, WHITE)
-    val screenshotImage = ScreenshotImage(image, 0, screenshotParameters.deviceType, "Phone", PRIMARY_DISPLAY_ID, Dimension(1280, 768), 180)
+    val screenshotImage = ScreenshotImage(image, 0, screenshotParameters.deviceType, "Supercar", PRIMARY_DISPLAY_ID, Dimension(1280, 768), 180)
     val framingOptions = screenshotParameters.getFramingOptions(screenshotImage)
     assertThat(framingOptions.map(FramingOption::displayName))
-        .containsExactly("Automotive Large Portrait", "Automotive Ultrawide", "Generic Tablet")
+        .containsExactly("Generic Tablet")
     assertThat(screenshotParameters.getDefaultFramingOption()).isEqualTo(0)
   }
 
@@ -135,7 +135,7 @@ class ScreenshotParametersTest {
     val screenshotParameters = ScreenshotParameters(serialNumber, DeviceType.TV, emptyDeviceProperties.model)
     val image = createImage(1920, 1080, Color.GRAY)
     val screenshotImage =
-        ScreenshotImage(image, 0, screenshotParameters.deviceType, "Phone", PRIMARY_DISPLAY_ID, Dimension(1920, 1080), 480)
+        ScreenshotImage(image, 0, screenshotParameters.deviceType, "TV", PRIMARY_DISPLAY_ID, Dimension(1920, 1080), 480)
     val framingOptions = screenshotParameters.getFramingOptions(screenshotImage)
     assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Television (1080p)")
     assertThat(screenshotParameters.getDefaultFramingOption()).isEqualTo(0)
@@ -170,7 +170,7 @@ class ScreenshotParametersTest {
 
     val screenshotParameters = ScreenshotParameters(serialNumber, HANDHELD, avdFolder, avdManager)
 
-    val framingOptions = screenshotParameters.getFramingOptions(createScreenshot())
+    val framingOptions = screenshotParameters.getFramingOptions(createScreenshot(width = 1080, height = 2600))
     assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Generic Phone")
     assertThat(screenshotParameters.getDefaultFramingOption()).isEqualTo(0)
   }

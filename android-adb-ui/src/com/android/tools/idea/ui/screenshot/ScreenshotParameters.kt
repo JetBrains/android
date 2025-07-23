@@ -16,7 +16,6 @@
 package com.android.tools.idea.ui.screenshot
 
 import com.android.prefs.AndroidLocationsSingleton
-import com.android.resources.ScreenOrientation
 import com.android.resources.ScreenRound
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.devices.Device
@@ -37,6 +36,8 @@ import kotlin.math.abs
 import kotlin.math.hypot
 import kotlin.math.log2
 
+/** Max allowed value of `abs(log2(skin_aspect_ratio/device_aspect_ratio))`. */
+private const val MAX_ASPECT_RATIO_DIFFERENCE = 0.1
 /** The ratio between distances of the worst and the best skin match. */
 private const val MAX_MATCH_DISTANCE_RATIO = 2.0
 private const val MIN_TABLET_DIAGONAL_SIZE = 7.0 // In inches.
@@ -104,20 +105,12 @@ private constructor(
     if (deviceType == DeviceType.HANDHELD || deviceType == DeviceType.AUTOMOTIVE) {
       val displaySize = screenshotImage.displaySize
       val descriptors = DeviceArtDescriptor.getDescriptors(null).associateBy { it.id }
-      if (deviceType == DeviceType.AUTOMOTIVE) {
-        val automotive = descriptors["automotive_1024"]
-        val screenSize = automotive?.getScreenSize(ScreenOrientation.LANDSCAPE)
-        if (screenSize != null &&
-            abs(screenSize.height.toDouble() / screenSize.width - displaySize.height.toDouble() / displaySize.width) < 0.01) {
-          framingOptions.add(DeviceFramingOption(automotive))
-        }
-      }
       val displayDensity = screenshotImage.displayDensity
-      val diagonalSize =
+      val diagonalSizeInches =
           if (displayDensity == 0) Double.NaN else hypot(displaySize.width.toDouble(), displaySize.height.toDouble()) / displayDensity
       val deviceArtId =
         when {
-          deviceType == DeviceType.HANDHELD && (diagonalSize.isNaN() || diagonalSize < MIN_TABLET_DIAGONAL_SIZE) -> "phone"
+          deviceType == DeviceType.HANDHELD && (diagonalSizeInches.isNaN() || diagonalSizeInches < MIN_TABLET_DIAGONAL_SIZE) -> "phone"
           else -> "tablet"
         }
       descriptors[deviceArtId]?.let { framingOptions.add(DeviceFramingOption(it)) }
@@ -139,6 +132,7 @@ private constructor(
     val w = displaySize.width.toDouble()
     val h = displaySize.height.toDouble()
     val diagonalSize = hypot(w, h)
+    val diagonalSizeInches = diagonalSize / screenshotImage.displayDensity
     val aspectRatio = h / w
     val matches = mutableListOf<MatchingSkin>()
     for (device in devices) {
@@ -157,7 +151,7 @@ private constructor(
       if (device.isXrHeadset() != (screenshotImage.deviceType == DeviceType.XR_HEADSET)) {
         continue
       }
-      if (device.isTablet() != (screenshotImage.deviceType == DeviceType.HANDHELD && diagonalSize >= MIN_TABLET_DIAGONAL_SIZE)) {
+      if (device.isTablet() != (screenshotImage.deviceType == DeviceType.HANDHELD && diagonalSizeInches >= MIN_TABLET_DIAGONAL_SIZE)) {
         continue
       }
       val screen = device.defaultHardware.screen
@@ -171,8 +165,10 @@ private constructor(
       val deviceAspectRatio = height.toDouble() / width.toDouble()
       val sizeDifference = abs(log2(deviceDiagonal / diagonalSize))
       val aspectRatioDifference = abs(log2(deviceAspectRatio / aspectRatio))
-      val distance = hypot(sizeDifference, aspectRatioDifference)
-      matches.addMatch(device.displayName, skinFolder, distance)
+      if (aspectRatioDifference <= MAX_ASPECT_RATIO_DIFFERENCE) {
+        val distance = hypot(sizeDifference, aspectRatioDifference)
+        matches.addMatch(device.displayName, skinFolder, distance)
+      }
     }
     return matches
   }
@@ -213,7 +209,7 @@ private constructor(
   private fun Device.isXrHeadset() = tagId?.contains("android-xr") ?: false
 
   private fun Device.isTablet(): Boolean {
-    if (isAutomotive() || isTv() || !isWatch() || isXrHeadset()) {
+    if (isAutomotive() || isTv() || isWatch() || isXrHeadset()) {
       return false
     }
     val screen = defaultHardware.screen
