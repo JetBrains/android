@@ -120,7 +120,6 @@ class AdbLibApplicationService : Disposable {
     host: AndroidAdbSessionHost,
     private val adbFileLocationTracker: AdbFileLocationTracker,
   ) : Disposable {
-    private val logger = thisLogger()
 
     val adbServerConfiguration =
       MutableStateFlow(
@@ -148,20 +147,7 @@ class AdbLibApplicationService : Disposable {
      */
     val channelProvider =
       adbServerController?.let { controller ->
-        object : AdbServerChannelProvider {
-          override suspend fun createChannel(timeout: Long, unit: TimeUnit): AdbChannel {
-            return host.timeProvider.withErrorTimeout(timeout, unit) {
-              if (!ApplicationManager.getApplication().isUnitTestMode) {
-                // Note that ADB creation is not forced in unit tests as it's typically
-                // managed by test rules like `FakeAdbRule`, which configure ADB on
-                // a non-default port.
-                ensureAndroidDebugBridgeStarted(adbFileLocationTracker)
-                controller.waitIsStarted()
-              }
-              controller.channelProvider.createChannel(timeout, unit)
-            }
-          }
-        }
+        AdbLibAdbServerChannelProvider(host, controller, adbFileLocationTracker)
       } ?: AndroidAdbServerChannelProvider(host, adbFileLocationTracker)
 
     /** A [AdbSession] customized to work in the Android plugin. */
@@ -214,24 +200,52 @@ class AdbLibApplicationService : Disposable {
       session.scope.coroutineContext[Job]?.join()
     }
 
-    private fun ensureAndroidDebugBridgeStarted(adbFileLocationTracker: AdbFileLocationTracker) {
-      val bridge = AndroidDebugBridge.getBridge()
-      if (bridge == null || !bridge.isConnected()) {
-        // If android `AndroidDebugBridge` is not connected call
-        // `AdbService.getInstance().getDebugBridge` which will trigger createBridge call.
-        // Start asynchronously to prevent circular dependency between `AdbLibAndroidDebugBridge`
-        // and `AdbServerController`
-        session.scope.launch {
-          val adbLibFile =
-            try {
-              adbFileLocationTracker.get()
-            } catch (e: Exception) {
-              // Suppress exceptions caused by a missing adb file.
-              logger.warn("Failed to retrieve adb file location", e)
-              null
-            }
+    /**
+     * An [AdbServerChannelProvider] that ensures the ADB server is running before creating an
+     * [AdbChannel].
+     *
+     * This provider is active when the `StudioFlags.ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE` flag is
+     * enabled.
+     */
+    private inner class AdbLibAdbServerChannelProvider(
+      private val host: AdbSessionHost,
+      private val controller: AdbServerController,
+      private val adbFileLocationTracker: AdbFileLocationTracker,
+    ) : AdbServerChannelProvider {
+      private val logger = thisLogger()
 
-          adbLibFile?.let { AdbService.getInstance().getDebugBridge(it).await() }
+      override suspend fun createChannel(timeout: Long, unit: TimeUnit): AdbChannel {
+        return host.timeProvider.withErrorTimeout(timeout, unit) {
+          if (!ApplicationManager.getApplication().isUnitTestMode) {
+            // Note that ADB creation is not forced in unit tests as it's typically
+            // managed by test rules like `FakeAdbRule`, which configure ADB on
+            // a non-default port.
+            ensureAndroidDebugBridgeStarted(adbFileLocationTracker)
+            controller.waitIsStarted()
+          }
+          controller.channelProvider.createChannel(timeout, unit)
+        }
+      }
+
+      private fun ensureAndroidDebugBridgeStarted(adbFileLocationTracker: AdbFileLocationTracker) {
+        val bridge = AndroidDebugBridge.getBridge()
+        if (bridge == null || !bridge.isConnected()) {
+          // If android `AndroidDebugBridge` is not connected call
+          // `AdbService.getInstance().getDebugBridge` which will trigger createBridge call.
+          // Start asynchronously to prevent circular dependency between `AdbLibAndroidDebugBridge`
+          // and `AdbServerController`
+          session.scope.launch {
+            val adbLibFile =
+              try {
+                adbFileLocationTracker.get()
+              } catch (e: Exception) {
+                // Suppress exceptions caused by a missing adb file.
+                logger.warn("Failed to retrieve adb file location", e)
+                null
+              }
+
+            adbLibFile?.let { AdbService.getInstance().getDebugBridge(it).await() }
+          }
         }
       }
     }
@@ -290,7 +304,7 @@ class AdbLibApplicationService : Disposable {
           AndroidDebugBridge.resetForTests()
         }
 
-        // Create new configuration
+        // Create a new configuration
         instance.configuration = Configuration(instance.host, instance.adbFileLocationTracker)
       }
     }
