@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.lint
 
+import com.android.ide.common.gradle.Version
+import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.repository.api.Checksum
 import com.android.repository.api.Downloader
 import com.android.repository.api.ProgressIndicator
@@ -41,6 +43,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
@@ -62,6 +65,7 @@ class PlayPolicyInsightsJarCacheTest {
   private lateinit var downloader: Downloader
   private val temporaryFolder = TemporaryFolder()
   private lateinit var mockDeprecationService: DevServicesDeprecationDataProvider
+  private lateinit var mockRepository: GoogleMavenRepository
 
   @Before
   fun setUp() {
@@ -86,6 +90,24 @@ class PlayPolicyInsightsJarCacheTest {
           target.toFile().writeBytes(data.toByteArray())
         }
       }
+    mockRepository = mock<GoogleMavenRepository>()
+    doAnswer {
+        assertThat(it.arguments[0]).isEqualTo("com.google.play.policy.insights")
+        assertThat(it.arguments[1]).isEqualTo("insights-lint")
+        val allowPreview = it.arguments[3] as Boolean
+        if (allowPreview) {
+          Version.parse("7.7.7-alpha1")
+        } else {
+          Version.parse("7.7.7")
+        }
+      }
+      .whenever(mockRepository)
+      .findVersion(
+        any<String>(),
+        any<String>(),
+        anyOrNull<((Version) -> Boolean)>(),
+        any<Boolean>(),
+      )
   }
 
   @After
@@ -94,9 +116,9 @@ class PlayPolicyInsightsJarCacheTest {
     StudioFlags.PLAY_POLICY_INSIGHTS_TARGET_LIBRARY_VERSION.clearOverride()
   }
 
-  private fun configureDeprecationService() {
+  private fun configureDeprecationService(isUnsupported: Boolean = true) {
     mockDeprecationService = mock()
-    doAnswer { unsupportedData }
+    doAnswer { if (isUnsupported) unsupportedData else DevServicesDeprecationData.EMPTY }
       .whenever(mockDeprecationService)
       .getCurrentDeprecationData(any(), any())
     ApplicationManager.getApplication()
@@ -120,6 +142,40 @@ class PlayPolicyInsightsJarCacheTest {
     // No more updates after downloading target version of library.
     cache.getCustomRuleJars()
     assertThat(cache.isUpdating.value).isFalse()
+  }
+
+  @Test
+  fun testPlayPolicyInsightsInCanary() = runBlocking {
+    configureDeprecationService(false)
+    val cache =
+      PlayPolicyInsightsJarCache(
+        client,
+        temporaryFolder.root.toPath(),
+        downloader,
+        mockRepository,
+        true,
+      )
+    cache.getCustomRuleJars()
+    cache.isUpdating.takeWhile { it }.collect()
+    val updatedResult = cache.getCustomRuleJars().last()
+    assertThat(updatedResult.name).isEqualTo("insights-lint-7.7.7-alpha1.jar")
+  }
+
+  @Test
+  fun testPlayPolicyInsightsInStable() = runBlocking {
+    configureDeprecationService(false)
+    val cache =
+      PlayPolicyInsightsJarCache(
+        client,
+        temporaryFolder.root.toPath(),
+        downloader,
+        mockRepository,
+        false,
+      )
+    cache.getCustomRuleJars()
+    cache.isUpdating.takeWhile { it }.collect()
+    val updatedResult = cache.getCustomRuleJars().last()
+    assertThat(updatedResult.name).isEqualTo("insights-lint-7.7.7.jar")
   }
 
   @Test

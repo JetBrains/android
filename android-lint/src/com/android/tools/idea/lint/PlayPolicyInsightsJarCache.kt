@@ -24,6 +24,7 @@ import com.android.repository.api.Downloader
 import com.android.repository.api.ProgressIndicatorAdapter
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.createChildScope
+import com.android.tools.idea.flags.FeatureConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
 import com.android.tools.idea.sdk.StudioDownloader
@@ -66,6 +67,9 @@ class PlayPolicyInsightsJarCache(
   private val client: AndroidLintIdeClient,
   private val cachedDir: Path?,
   private val downloader: Downloader,
+  private var googleMavenRepository: GoogleMavenRepository? = null,
+  private val allowPreview: Boolean =
+    FeatureConfiguration.current.stabilityLevel <= FeatureConfiguration.PREVIEW.stabilityLevel,
 ) {
   constructor(client: AndroidLintIdeClient) : this(client, getCacheDir(), StudioDownloader())
 
@@ -73,7 +77,6 @@ class PlayPolicyInsightsJarCache(
   @kotlin.concurrent.Volatile private var cachedFile: File? = null
 
   private val bundledJar: File? = getBundledJar()
-  private var googleMavenRepository: GoogleMavenRepository? = null
   @VisibleForTesting val isUpdating = MutableStateFlow(false)
   @kotlin.concurrent.Volatile private var nextUpdatingTimeMs = 0L
   private val targetLibraryVersion =
@@ -200,7 +203,7 @@ class PlayPolicyInsightsJarCache(
             val repository = getGoogleMavenRepository()
             val version =
               targetLibraryVersion.takeIf { it.isNotEmpty() }
-                ?: repository.getVersions(GROUP_ID, ARTIFACT_ID).maxOrNull()
+                ?: repository.findVersion(GROUP_ID, ARTIFACT_ID, allowPreview = allowPreview)
                 ?: return@launch
             val jarName = "${ARTIFACT_ID}-${version}.jar"
             val urlResolver: (String) -> URL = { fileName ->
