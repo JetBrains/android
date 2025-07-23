@@ -28,7 +28,6 @@ import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE
 import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.PIGGYBACK_ACTION_ID
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.STUDIOBOT_DEPLOY_VIBE_EDIT_AGENT
 import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
@@ -52,8 +51,8 @@ import com.intellij.openapi.ui.putUserData
 import com.intellij.ui.components.AnActionLink
 import com.intellij.util.containers.CollectionFactory.createWeakIdentityMap
 import com.intellij.util.ui.JBUI
-import org.jetbrains.android.refactoring.project
 import java.awt.Insets
+import org.jetbrains.android.refactoring.project
 
 /**
  * Action that reports the current state of Live Edit.
@@ -66,26 +65,21 @@ class LiveEditNotificationAction : IssueNotificationAction(::getStatusInfo, ::cr
 
   override fun update(e: AnActionEvent) {
     val presentation = e.presentation
-    if (StudioFlags.LIVE_EDIT_COMPACT_STATUS_BUTTON.get()) {
-      val project = e.project ?: return
-      val status = getStatusInfo(project, e.dataContext)
-      if (shouldHide(status, e.dataContext)) {
-        presentation.isEnabledAndVisible = false
-        return
-      }
-      presentation.icon = when (status.redeployMode) {
-        LiveEditStatus.RedeployMode.REFRESH -> REFRESH_BUTTON
-        LiveEditStatus.RedeployMode.RERUN -> AllIcons.Actions.Restart
-        LiveEditStatus.RedeployMode.NONE -> status.icon
-      }
-      presentation.description = status.description
-      val notificationPanel = NotificationHolderPanel.fromDataContext(e)
-      if (notificationPanel != null) {
-        project.service<NotificationPresenter>().showNotification(notificationPanel, status.notificationText)
-      }
-      presentation.isEnabledAndVisible = true
-    } else {
+    val project = e.project ?: return
+    val status = getStatusInfo(project, e.dataContext)
+    if (shouldHide(status, e.dataContext)) {
       presentation.isEnabledAndVisible = false
+      return
+    }
+    presentation.icon = when (status.redeployMode) {
+      LiveEditStatus.RedeployMode.REFRESH -> REFRESH_BUTTON
+      LiveEditStatus.RedeployMode.RERUN -> AllIcons.Actions.Restart
+      LiveEditStatus.RedeployMode.NONE -> status.icon
+    }
+    presentation.description = status.description
+    val notificationPanel = NotificationHolderPanel.fromDataContext(e)
+    if (notificationPanel != null) {
+      project.service<NotificationPresenter>().showNotification(notificationPanel, status.notificationText)
     }
   }
 

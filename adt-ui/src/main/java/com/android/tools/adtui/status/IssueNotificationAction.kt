@@ -34,7 +34,6 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.RoundedLineBorder
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.Insets
 import java.awt.event.MouseEvent
@@ -42,6 +41,7 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.SwingConstants
 import javax.swing.border.Border
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val ACTION_BACKGROUND_ALPHA = 0x1A
 private const val ACTION_BORDER_ALPHA = 0xBF
@@ -161,7 +161,7 @@ open class IssueNotificationAction(
         }
         isEnabledAndVisible = true
         icon = it.icon
-        text = if (shouldSimplify(it, e.dataContext)) "" else it.title
+        text = it.title
         description = it.description
         putClientProperty(IdeStatus.PRESENTATION, it.presentation)
         val isErrorOrWarningIcon = it.icon == AllIcons.General.Error || it.icon == AllIcons.General.Warning

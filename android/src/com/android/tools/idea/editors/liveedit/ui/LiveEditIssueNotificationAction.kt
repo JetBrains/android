@@ -27,7 +27,6 @@ import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
@@ -54,9 +53,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.putUserData
 import com.intellij.ui.components.AnActionLink
 import com.intellij.util.ui.JBUI
-import org.jetbrains.android.refactoring.project
 import java.awt.Insets
 import java.util.Collections
+import org.jetbrains.android.refactoring.project
 
 internal fun getStatusInfo(project: Project, dataContext: DataContext): LiveEditStatus {
   val liveEditService = LiveEditService.getInstance(project)
@@ -237,9 +236,9 @@ class LiveEditNotificationGroup :
   ), RightAlignedToolbarAction {
 
   override fun update(event: AnActionEvent) {
-    val toolWindow = event.getData(PlatformDataKeys.TOOL_WINDOW)
-    event.presentation.isEnabledAndVisible =
-        toolWindow?.id != RUNNING_DEVICES_TOOL_WINDOW_ID || !StudioFlags.LIVE_EDIT_COMPACT_STATUS_BUTTON.get()
+    // This check is not strictly necessary because this action group is not used with
+    // the Running Devices window, but left in place for safety.
+    event.presentation.isEnabledAndVisible = event.getData(PlatformDataKeys.TOOL_WINDOW)?.id != RUNNING_DEVICES_TOOL_WINDOW_ID
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
