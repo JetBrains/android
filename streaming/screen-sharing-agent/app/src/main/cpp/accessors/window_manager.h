@@ -30,6 +30,7 @@ class WindowManager {
 public:
   struct RotationWatcher {
     virtual void OnRotationChanged(int rotation) = 0;
+    virtual ~RotationWatcher() = default;
   };
 
   static void FreezeRotation(Jni jni, int32_t display_id, int32_t rotation);

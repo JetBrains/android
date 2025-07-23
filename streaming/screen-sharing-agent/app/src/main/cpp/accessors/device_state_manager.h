@@ -33,6 +33,7 @@ public:
 
   struct DeviceStateListener {
     virtual void OnDeviceStateChanged(int32_t device_state) = 0;
+    virtual ~DeviceStateListener() = default;
   };
 
   [[nodiscard]] static const std::vector<DeviceState>& GetSupportedDeviceStates(Jni jni);

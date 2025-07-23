@@ -32,10 +32,9 @@ class DisplayManager {
 public:
   struct DisplayListener {
     virtual void OnDisplayAdded(int32_t display_id) = 0;
-
     virtual void OnDisplayRemoved(int32_t display_id) = 0;
-
     virtual void OnDisplayChanged(int32_t display_id) = 0;
+    virtual ~DisplayListener() = default;
   };
 
   // If the requested display does not exist, returns a DisplayInfo structure with zero logical_size.

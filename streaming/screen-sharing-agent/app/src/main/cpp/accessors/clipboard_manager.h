@@ -29,6 +29,7 @@ class ClipboardManager {
 public:
   struct ClipboardListener {
     virtual void OnPrimaryClipChanged() = 0;
+    virtual ~ClipboardListener() = default;
   };
 
   static ClipboardManager* GetInstance(Jni jni);
