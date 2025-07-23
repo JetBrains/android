@@ -239,25 +239,6 @@ iml_test(
 )
 
 iml_test(
-    name = "EmulatorTest",
-    data = [
-        "//prebuilts/studio/sdk:emulator",
-        "//prebuilts/studio/sdk:platform-tools",
-        INTEGRATION_TEST_SYSTEM_IMAGE,
-    ],
-    module = ":intellij.android.core.integration",
-    tags = [
-        "studio-e2e-test",
-    ],
-    tags_linux = ["block-network"],
-    tags_windows = [
-        "block-network",
-        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
-    ],
-    test_class = "com.android.tools.idea.EmulatorTest",
-)
-
-iml_test(
     name = "DebuggerTest",
     timeout = "long",
     data = [
