@@ -2591,7 +2591,7 @@ android-studio/plugins/android/resources/device-art-resources/xoom/thumb.png
 android-studio/plugins/android/resources/images/asset_studio/ic_banner_image.xml
 android-studio/plugins/android/resources/images/asset_studio/ic_launcher_background.xml
 android-studio/plugins/android/resources/images/asset_studio/ic_launcher_foreground.xml
-android-studio/plugins/android/resources/insights-lint-0.1.2.jar
+android-studio/plugins/android/resources/insights-lint-bundled.jar
 android-studio/plugins/android/resources/installer/arm64-v8a/installer
 android-studio/plugins/android/resources/installer/armeabi-v7a/installer
 android-studio/plugins/android/resources/installer/x86/installer

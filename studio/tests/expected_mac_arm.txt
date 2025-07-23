@@ -2602,7 +2602,7 @@ Android Studio Preview.app/Contents/plugins/android/resources/device-art-resourc
 Android Studio Preview.app/Contents/plugins/android/resources/images/asset_studio/ic_banner_image.xml
 Android Studio Preview.app/Contents/plugins/android/resources/images/asset_studio/ic_launcher_background.xml
 Android Studio Preview.app/Contents/plugins/android/resources/images/asset_studio/ic_launcher_foreground.xml
-Android Studio Preview.app/Contents/plugins/android/resources/insights-lint-0.1.2.jar
+Android Studio Preview.app/Contents/plugins/android/resources/insights-lint-bundled.jar
 Android Studio Preview.app/Contents/plugins/android/resources/installer/arm64-v8a/installer
 Android Studio Preview.app/Contents/plugins/android/resources/installer/armeabi-v7a/installer
 Android Studio Preview.app/Contents/plugins/android/resources/installer/x86/installer

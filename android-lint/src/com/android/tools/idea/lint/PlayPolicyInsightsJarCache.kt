@@ -53,7 +53,7 @@ import kotlinx.coroutines.launch
 private const val GOOGLE_PLAY_POLICY_INSIGHTS_KEY = "play_policy_insights"
 private const val GROUP_ID = "com.google.play.policy.insights"
 private const val ARTIFACT_ID = "insights-lint"
-private const val BUNDLED_JAR_PATH = "insights-lint-0.1.2.jar"
+private const val BUNDLED_JAR_PATH = "insights-lint-bundled.jar"
 private const val MIN_UPDATE_BACKOFF_MINUTES = 10L
 private const val CACHE_EXPIRY_DAYS = 7L
 
