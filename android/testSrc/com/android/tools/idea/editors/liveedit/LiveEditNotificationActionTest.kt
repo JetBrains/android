@@ -18,10 +18,12 @@ package com.android.tools.idea.editors.liveedit
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.FakeAdbTestRule
+import com.android.flags.junit.FlagRule
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.editors.liveedit.ui.DeviceGetter
 import com.android.tools.idea.editors.liveedit.ui.LiveEditDeviceMap
 import com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationAction
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
@@ -51,7 +53,7 @@ internal class LiveEditNotificationActionTest {
   private val fakeAdb: FakeAdbTestRule = FakeAdbTestRule("30")
 
   @get:Rule
-  val rule = RuleChain(projectRule, fakeAdb)
+  val rule = RuleChain(projectRule, fakeAdb, FlagRule(StudioFlags.LIVE_EDIT_COMPACT_STATUS_BUTTON, true))
 
   private val project
     get() = projectRule.project

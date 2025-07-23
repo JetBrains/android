@@ -180,6 +180,9 @@
   </extensions>
 
   <actions>
+    <group id="android.device.liveedit.status.group" class="com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationGroup">
+      <add-to-group group-id="StreamingToolbarSecondary" anchor="last"/>
+    </group>
     <action id="android.device.liveedit.status" class="com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationAction">
       <add-to-group group-id="StreamingToolbarSecondary" anchor="last"/>
     </action>
