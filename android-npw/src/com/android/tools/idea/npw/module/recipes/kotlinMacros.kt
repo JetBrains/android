@@ -40,11 +40,13 @@ fun RecipeExecutor.addKotlinIfNeeded(
 ) {
   if (data.language == Language.Kotlin) {
     setKotlinVersion(data.kotlinVersion)
-    addPlugin(
-      "org.jetbrains.kotlin.android",
-      "org.jetbrains.kotlin:kotlin-gradle-plugin",
-      data.kotlinVersion,
-    )
+    if (!data.agpVersion.isAtLeastIncludingPreviews(9, 0, 0)) {
+      addPlugin(
+        "org.jetbrains.kotlin.android",
+        "org.jetbrains.kotlin:kotlin-gradle-plugin",
+        data.kotlinVersion,
+      )
+    }
     addKotlinDependencies(data.androidXSupport && !noKtx, targetApi)
 
     val kotlinVersion = ApiVersion.parse(data.kotlinVersion)
