@@ -41,6 +41,10 @@ internal class BackupAppAction(
       // For now, the only place this is shown is the main toolbar
       return
     }
+    val ok = DeviceChecker.checkEventDeviceType(this, e)
+    if (!ok) {
+      return
+    }
     e.presentation.isVisible = true
     val project = e.project ?: return
     if (actionHelper.getApplicationId(project) == null) {

@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.backup
 
+import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.tools.idea.streaming.DEVICE_TYPE_KEY
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+
 /** Checks if device supports Backup/Restore. */
 internal interface DeviceChecker {
   /**
@@ -23,4 +28,11 @@ internal interface DeviceChecker {
    * Returns a string describing the reason why not supported or null if supported
    */
   suspend fun checkDevice(serialNumber: String): String?
+
+  companion object {
+    fun checkEventDeviceType(action: AnAction, event: AnActionEvent): Boolean {
+      val deviceType = event.getData(DEVICE_TYPE_KEY) ?: return true
+      return deviceType == DeviceType.HANDHELD
+    }
+  }
 }

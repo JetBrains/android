@@ -39,6 +39,10 @@ internal class RestoreAppActionGroup(private val actionHelper: ActionHelper = Ac
     if (!StudioFlags.BACKUP_ENABLED.get()) {
       return
     }
+    val ok = DeviceChecker.checkEventDeviceType(this, e)
+    if (!ok) {
+      return
+    }
     val project = e.project ?: return
     e.presentation.isPopupGroup = true
     e.presentation.isVisible = showGroup(project)

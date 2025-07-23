@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.backup
 
+import com.android.tools.idea.actions.disableRichTooltip
 import com.android.tools.idea.backup.BackupBundle.message
 import com.android.tools.idea.backup.BackupManager.Source.PROJECT_VIEW
 import com.android.tools.idea.backup.RestoreFileAction.RestoreInfo.Invalid
@@ -49,7 +50,13 @@ internal class RestoreFileAction(
     if (virtualFile.fileType != BackupFileType) {
       return
     }
-    e.presentation.isEnabledAndVisible = true
+    val ok = DeviceChecker.checkEventDeviceType(this, e)
+    if (!ok) {
+      return
+    }
+    e.presentation.isVisible = true
+    e.presentation.disableRichTooltip()
+    e.presentation.isEnabled = true
   }
 
   override fun actionPerformed(e: AnActionEvent) {

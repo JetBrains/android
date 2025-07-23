@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.backup
 
+import com.android.tools.idea.actions.disableRichTooltip
 import com.android.tools.idea.backup.BackupBundle.message
 import com.android.tools.idea.backup.BackupManager.Source.BACKUP_FOREGROUND_APP_ACTION
 import com.android.tools.idea.flags.StudioFlags
@@ -37,7 +38,13 @@ internal class BackupForegroundAppAction(
     if (!StudioFlags.BACKUP_ENABLED.get()) {
       return
     }
-    e.presentation.isEnabledAndVisible = true
+    val ok = DeviceChecker.checkEventDeviceType(this, e)
+    if (!ok) {
+      return
+    }
+    e.presentation.isVisible = true
+    e.presentation.disableRichTooltip()
+    e.presentation.isEnabled = true
   }
 
   override fun actionPerformed(e: AnActionEvent) {

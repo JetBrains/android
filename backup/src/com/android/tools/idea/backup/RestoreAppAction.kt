@@ -55,7 +55,10 @@ internal class RestoreAppAction(
     if (config == Standalone && RestoreAppActionGroup.showGroup(project)) {
       return
     }
-
+    val ok = DeviceChecker.checkEventDeviceType(this, e)
+    if (!ok) {
+      return
+    }
     e.presentation.isVisible = true
     e.presentation.icon = config.presentation.icon
     e.presentation.text = config.presentation.text
