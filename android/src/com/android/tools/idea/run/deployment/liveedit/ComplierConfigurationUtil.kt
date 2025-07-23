@@ -71,7 +71,11 @@ fun getCompilerConfiguration(
       }
     }
 
-    if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_COMPILER_FLAGS.isOverridden) {
+    // This flag was created mostly for experimental Live Edit for ASwB. We should no longer be relying it
+    // once we can fetch flags from QuerySync
+    //
+    // see ApplicationLiveEditServices.getKotlinCompilerConfiguration which current not implemented on the Blaze side.
+    if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_COMPILER_FLAGS.get().isNotEmpty()) {
       val flags = StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_COMPILER_FLAGS.get().split(" ")
       val mainKotlinCompilerOptions = parseCommandLineArguments<K2JVMCompilerArguments>(flags)
       val languageSettings = mainKotlinCompilerOptions.toLanguageVersionSettings(MessageCollector.NONE)
