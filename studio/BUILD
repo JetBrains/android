@@ -84,6 +84,7 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:libam-instrumentation-data-proto",
         "//tools/adt/idea/.idea/libraries:network_inspector_java_proto",
         "//tools/adt/idea/.idea/libraries:perfetto-proto",
+        "//tools/adt/idea/.idea/libraries:protobuf-kotlin",
         "//tools/adt/idea/.idea/libraries:sqlite-inspector-proto",
         "//tools/adt/idea/.idea/libraries:sqlite",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",

@@ -344,3 +344,10 @@ jvm_import(
     jars = ["//prebuilts/tools/common/m2:kotlinx-serialization_files"],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "protobuf-kotlin",
+    jars = ["//prebuilts/tools/common/m2:protobuf-kotlin_files"],
+    visibility = ["//visibility:public"],
+)
