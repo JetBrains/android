@@ -224,7 +224,7 @@ class BlockEmulatorControlProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
 }
 
 /**
- * Processor that blocks AGP upgrades if android.disableMinifyLocalDependenciesForLibraries is used after AGP 10.0.0-alpha01
+ * Processor that blocks AGP upgrades if android.disableMinifyLocalDependenciesForLibraries is used after AGP 9.0.0-alpha01
  */
 class BlockMinifyLocalDependenciesLibrariesProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
@@ -232,14 +232,14 @@ class BlockMinifyLocalDependenciesLibrariesProcessor: AbstractBlockPropertyUnles
 
   override val featureName = "Disable Minify Local Dependencies For Libraries"
   override val propertyKey = "android.disableMinifyLocalDependenciesForLibraries"
-  override val propertyRemovedVersion = AgpVersion.parse("10.0.0-alpha01")
+  override val propertyRemovedVersion = AgpVersion.parse("9.0.0-alpha01")
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_MINIFY_LOCAL_DEPENDENCIES_LIBRARY_PRESENT
   override val noOpValue = true
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.minifyLocalDependenciesLibrariesBlockProperty"
 }
 
 /**
- * Processor that blocks AGP upgrades if android.enableNewResourceShrinker.preciseShrinking is used after AGP 9.1.0-alpha01
+ * Processor that blocks AGP upgrades if android.enableNewResourceShrinker.preciseShrinking is used after AGP 9.0.0-alpha01
  */
 class BlockPreciseShrinkingProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
@@ -247,7 +247,7 @@ class BlockPreciseShrinkingProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
 
   override val featureName = "Precise Shrinking"
   override val propertyKey = "android.enableNewResourceShrinker.preciseShrinking"
-  override val propertyRemovedVersion = AgpVersion.parse("9.1.0-alpha01")
+  override val propertyRemovedVersion = AgpVersion.parse("9.0.0-alpha01")
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_PRECISE_SHRINKING_PRESENT
   override val noOpValue = true
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.preciseShrinkingBlockProperty"
@@ -270,7 +270,7 @@ class BlockRenderScriptProcessor: AbstractBlockPropertyWithPreviousDefaultProces
 }
 
 /**
- * Processor that blocks AGP upgrades if android.enableResourceOptimizations is used after AGP 9.1.0-alpha01
+ * Processor that blocks AGP upgrades if android.enableResourceOptimizations is used after AGP 9.0.0-alpha01
  */
 class BlockResourceOptimizationsProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
@@ -278,7 +278,7 @@ class BlockResourceOptimizationsProcessor: AbstractBlockPropertyUnlessNoOpProces
 
   override val featureName = "Resource Optimizations"
   override val propertyKey = "android.enableResourceOptimizations"
-  override val propertyRemovedVersion = AgpVersion.parse("9.1.0-alpha01")
+  override val propertyRemovedVersion = AgpVersion.parse("9.0.0-alpha01")
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_RESOURCE_OPTIMIZATIONS_PRESENT
   override val noOpValue = true
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.resourceOptimizationsBlockProperty"

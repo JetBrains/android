@@ -145,7 +145,7 @@ class BlockEmulatorControlProcessorTest: AbstractBlockPropertyUnlessNoOpProcesso
 }
 
 class BlockMinifyLocalDependenciesLibrariesProcessorTest: AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
-  override val removedVersion: AgpVersion = AgpVersion.parse("10.0.0-alpha01")
+  override val removedVersion: AgpVersion = AgpVersion.parse("9.0.0-alpha01")
   override val propertyKey: String = "android.disableMinifyLocalDependenciesForLibraries"
   override val defaultWhenRemoved = true
 
@@ -155,7 +155,7 @@ class BlockMinifyLocalDependenciesLibrariesProcessorTest: AbstractBlockPropertyU
 }
 
 class BlockPreciseShrinkingProcessorTest: AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
-  override val removedVersion: AgpVersion = AgpVersion.parse("9.1.0-alpha01")
+  override val removedVersion: AgpVersion = AgpVersion.parse("9.0.0-alpha01")
   override val propertyKey: String = "android.enableNewResourceShrinker.preciseShrinking"
   override val defaultWhenRemoved = true
 
@@ -177,7 +177,7 @@ class BlockRenderScriptProcessorTest: AbstractBlockPropertyWithPreviousDefaultPr
 }
 
 class BlockResourceOptimizationsProcessorTest: AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
-  override val removedVersion: AgpVersion = AgpVersion.parse("9.1.0-alpha01")
+  override val removedVersion: AgpVersion = AgpVersion.parse("9.0.0-alpha01")
   override val propertyKey: String = "android.enableResourceOptimizations"
   override val defaultWhenRemoved = true
 

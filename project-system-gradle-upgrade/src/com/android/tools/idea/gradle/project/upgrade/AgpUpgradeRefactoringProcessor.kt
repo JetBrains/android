@@ -311,17 +311,17 @@ class AgpUpgradeRefactoringProcessor(
     BlockUnifiedTestPlatformProcessor(this),
     R8StrictFullModeForKeepRulesDefaultRefactoringProcessor(this),
     BlockR8IntegratedResourceShrinkingProcessor(this),
+    BlockMinifyLocalDependenciesLibrariesProcessor(this),
+    BlockPreciseShrinkingProcessor(this),
+    BlockResourceOptimizationsProcessor(this),
     R8OptimizedResourceShrinkingDefaultRefactoringProcessor(this),
     TargetSdkDefaultRefactoringProcessor(this),
     AppCompileTimeRClassDefaultRefactoringProcessor(this),
     AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor(this),
     AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(this),
     RemoveImplementationPropertiesRefactoringProcessor(this),
-    BlockPreciseShrinkingProcessor(this),
-    BlockResourceOptimizationsProcessor(this),
     GradleDaemonJvmCriteriaRefactoringProcessor(this),
     // AGP 10.x
-    BlockMinifyLocalDependenciesLibrariesProcessor(this),
     BlockR8StrictFullModeForKeepRulesProcessor(this),
     BlockR8OptimizedResourceShrinkingProcessor(this)
   )
