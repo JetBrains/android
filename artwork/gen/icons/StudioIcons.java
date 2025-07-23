@@ -51,6 +51,8 @@ public final class StudioIcons {
 
   public static final class Assistant {
     public static final class AppLinks {
+      /** 16x16 */ public static final @NotNull Icon ALL_LINKS = load("studio/icons/assistant/app-links/all-links.svg", -772204729, 2);
+      /** 16x16 */ public static final @NotNull Icon MISSING_LINKS = load("studio/icons/assistant/app-links/missing-links.svg", 147463810, 2);
       /** 50x50 */ public static final @NotNull Icon STEP_1_LARGE = load("studio/icons/assistant/app-links/step-1-large.svg", 715030572, 2);
       /** 50x50 */ public static final @NotNull Icon STEP_2_LARGE = load("studio/icons/assistant/app-links/step-2-large.svg", 1385918057, 2);
       /** 50x50 */ public static final @NotNull Icon STEP_3_LARGE = load("studio/icons/assistant/app-links/step-3-large.svg", -1595805167, 2);
@@ -153,6 +155,7 @@ public final class StudioIcons {
   public static final class Compose {
     public static final class Editor {
       /** 16x16 */ public static final @NotNull Icon COMPOSABLE_FUNCTION = load("studio/icons/compose/editor/composable-function.svg", -1175725444, 2);
+      /** 16x16 */ public static final @NotNull Icon PREVIEW_USAGE = load("studio/icons/compose/editor/preview-usage.svg", 871171091, 2);
     }
 
     public static final class Toolbar {

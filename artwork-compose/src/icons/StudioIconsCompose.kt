@@ -45,6 +45,8 @@ object StudioIconsCompose {
 
   object Assistant {
     object AppLinks {
+      val AllLinks: IntelliJIconKey = IntelliJIconKey("/studio/icons/assistant/app-links/all-links.svg", "/studio/icons/assistant/app-links/all-links.svg", StudioIconsCompose.javaClass) // 16x16
+      val MissingLinks: IntelliJIconKey = IntelliJIconKey("/studio/icons/assistant/app-links/missing-links.svg", "/studio/icons/assistant/app-links/missing-links.svg", StudioIconsCompose.javaClass) // 16x16
       val Step1Large: IntelliJIconKey = IntelliJIconKey("/studio/icons/assistant/app-links/step-1-large.svg", "/studio/icons/assistant/app-links/step-1-large.svg", StudioIconsCompose.javaClass) // 50x50
       val Step2Large: IntelliJIconKey = IntelliJIconKey("/studio/icons/assistant/app-links/step-2-large.svg", "/studio/icons/assistant/app-links/step-2-large.svg", StudioIconsCompose.javaClass) // 50x50
       val Step3Large: IntelliJIconKey = IntelliJIconKey("/studio/icons/assistant/app-links/step-3-large.svg", "/studio/icons/assistant/app-links/step-3-large.svg", StudioIconsCompose.javaClass) // 50x50
@@ -147,6 +149,7 @@ object StudioIconsCompose {
   object Compose {
     object Editor {
       val ComposableFunction: IntelliJIconKey = IntelliJIconKey("/studio/icons/compose/editor/composable-function.svg", "/studio/icons/compose/editor/composable-function.svg", StudioIconsCompose.javaClass) // 16x16
+      val PreviewUsage: IntelliJIconKey = IntelliJIconKey("/studio/icons/compose/editor/preview-usage.svg", "/studio/icons/compose/editor/preview-usage.svg", StudioIconsCompose.javaClass) // 16x16
     }
 
     object Toolbar {
