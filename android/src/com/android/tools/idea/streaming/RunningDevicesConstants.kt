@@ -16,6 +16,7 @@
 @file:JvmName("RunningDevicesConstants")
 package com.android.tools.idea.streaming
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.intellij.openapi.actionSystem.DataKey
 
 /** Constants for the Running Devices tool window. */
@@ -23,3 +24,5 @@ import com.intellij.openapi.actionSystem.DataKey
 const val RUNNING_DEVICES_TOOL_WINDOW_ID = "Running Devices"
 
 @JvmField val SERIAL_NUMBER_KEY = DataKey.create<String>("SerialNumber")
+
+@JvmField val DEVICE_TYPE_KEY = DataKey.create<DeviceType>("DeviceType")

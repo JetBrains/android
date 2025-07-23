@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.actions
 
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.ui.NotificationHolderPanel
+import com.android.tools.idea.streaming.DEVICE_TYPE_KEY
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.device.actions.getDeviceClient
@@ -46,7 +47,7 @@ internal fun getDisplayView(event: AnActionEvent): AbstractDisplayView? =
     event.getData(DISPLAY_VIEW_KEY)
 
 internal fun getDeviceType(event: AnActionEvent): DeviceType? =
-    getDisplayView(event)?.deviceType
+    event.getData(DEVICE_TYPE_KEY)
 
 internal fun getXrInputController(event: AnActionEvent): AbstractXrInputController? {
   if (getDeviceType(event) != DeviceType.XR_HEADSET) {

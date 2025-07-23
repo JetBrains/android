@@ -22,6 +22,7 @@ import com.android.tools.adtui.device.SkinDefinition
 import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.DEVICE_TYPE_KEY
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorView
@@ -155,6 +156,7 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
     sink[DISPLAY_VIEW_KEY] = primaryDisplayView
     sink[ZOOMABLE_KEY] = primaryDisplayView
     sink[SERIAL_NUMBER_KEY] = id.serialNumber
+    sink[DEVICE_TYPE_KEY] = primaryDisplayView?.deviceType
     sink[STREAMING_CONTENT_PANEL_KEY] = centerPanel
     sink[DEVICE_ID_KEY] = id
     sink[DISPLAY_INFO_PROVIDER_KEY] = displayInfoProvider
