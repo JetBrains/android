@@ -1671,7 +1671,12 @@ class ComposePreviewRepresentation(
 
     override fun onCaretPositionChanged(event: CaretEvent, isModificationTriggered: Boolean) {
       if (StudioFlags.COMPOSE_PREVIEW_CODE_TO_PREVIEW_NAVIGATION.get() && !isNavigatingToCode) {
-        staticNavHandler.onCaretMoved(event.newPosition.line + 1)
+        if (isModificationTriggered) {
+          // if the user is typing clear the highlight
+          staticNavHandler.clearHighlight();
+        } else {
+          staticNavHandler.onCaretMoved(event.newPosition.line + 1)
+        }
       }
 
       // If isNavigatingToCode was true it was correctly handled above so we should reset it

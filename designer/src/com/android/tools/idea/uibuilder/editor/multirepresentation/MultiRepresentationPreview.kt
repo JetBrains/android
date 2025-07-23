@@ -54,6 +54,8 @@ import com.intellij.util.xmlb.annotations.Tag
 import com.jetbrains.rd.util.first
 import icons.StudioIcons
 import java.awt.BorderLayout
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
 import java.util.concurrent.CancellationException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
@@ -181,6 +183,26 @@ open class MultiRepresentationPreview(
   val previewIsActive
     get() = _previewIsActive.get()
 
+  private val keyListener =
+    object : KeyAdapter() {
+      override fun keyReleased(e: KeyEvent?) {
+        caretListener.isReset = true
+        // When the user presses backspace, a caret event isn't created, so we cannot remove the
+        // highlight in the preview. Here we create an artificial caret event so we can react to it
+        // later.
+        if (e?.keyCode == KeyEvent.VK_BACK_SPACE || e?.keyCode == KeyEvent.VK_DELETE) {
+          caretListener.caretPositionChanged(
+            CaretEvent(
+              editor.caretModel.currentCaret,
+              editor.caretModel.logicalPosition,
+              editor.caretModel.logicalPosition,
+            )
+          )
+        }
+        super.keyReleased(e)
+      }
+    }
+
   private val caretListener =
     object : CaretListener {
       /**
@@ -188,6 +210,11 @@ open class MultiRepresentationPreview(
        * because the user was typing or just moving around.
        */
       var lastEditorModificationStamp = -1L
+      /**
+       * This is needed to force a caret event to trigger with isModificationTriggered true even
+       * though the timestamp is the same.
+       */
+      var isReset = false
 
       override fun caretPositionChanged(event: CaretEvent) {
         val newStamp = event.editor.document.modificationStamp
@@ -199,8 +226,9 @@ open class MultiRepresentationPreview(
           } else false
 
         currentRepresentation?.caretNavigationHandler?.let {
-          it.onCaretPositionChanged(event, isModificationTriggered)
+          it.onCaretPositionChanged(event, isModificationTriggered || isReset)
         }
+        isReset = false
       }
     }
 
@@ -506,6 +534,7 @@ open class MultiRepresentationPreview(
 
     caretListener.lastEditorModificationStamp = editor.document.modificationStamp
     editor.caretModel.addCaretListener(caretListener, this)
+    editor.contentComponent.addKeyListener(keyListener)
   }
 
   /**
@@ -518,6 +547,7 @@ open class MultiRepresentationPreview(
     LOG.debug { "[$instanceId] Deactivating '$currentRepresentationName'" }
     editor.caretModel.removeCaretListener(caretListener)
     currentRepresentation?.onDeactivate()
+    editor.component.removeKeyListener(keyListener)
   }
 
   override fun dispose() {

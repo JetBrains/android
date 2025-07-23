@@ -214,17 +214,21 @@ class NavigatingInteractionHandler(
     }
   }
 
+  fun clearHighlight() {
+    surface.sceneViews.forEach { it.clearHighlight() }
+  }
+
   override fun onCaretMoved(lineNumber: Int) {
     for (sceneView in surface.sceneViews) {
       scope.launch(Dispatchers.Default) {
-        sceneView!!.clearHighlight()
+        sceneView.clearHighlight()
         var rectanglesToHightlight = navigationHandler.findBoundsOfComponents(sceneView, lineNumber)
         rectanglesToHightlight.forEach({
           val x = Coordinates.getSwingX(sceneView, it.x)
           val y = Coordinates.getSwingY(sceneView, it.y)
           val width = Coordinates.getSwingDimension(sceneView, it.width)
           val height = Coordinates.getSwingDimension(sceneView, it.height)
-          sceneView!!.highlighBox(x, y, width, height)
+          sceneView.highlighBox(x, y, width, height)
         })
       }
     }
