@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.flags
 
-import com.android.flags.BooleanFlag
-import com.android.flags.Flag
-import com.android.flags.StaticFlagDefault
-import com.android.tools.idea.IdeChannel
+import com.android.tools.idea.flags.overrides.ConfigurationOverrides
+import com.android.utils.associateNotNull
 import com.google.common.truth.Truth
 import org.junit.Test
-import java.lang.reflect.Modifier
 
 /**
  * This test is temporary and meant to help with an upcoming flag
@@ -40,56 +37,36 @@ import java.lang.reflect.Modifier
 class FlagMigrationTest {
 
   @Test
-  fun validateMigrationFile() {
-    val booleanFlags = getFlags()
-
-    // we are going to create the content of the file automatically, and then compare to the
-    // checked-in file.
-    // we want to ignore
-
-    val computedContent = buildList {
-      for (flag in booleanFlags) {
-        // the goal of the future storage is to only declare non-false flags in the file,
-        // so we can skip flags that have a static false default value.
-        if (flag.default !is StaticFlagDefault<Boolean> || flag.default.get()) {
-          add(flag.convertToString())
-        } else {
-          // let's make sure we're not ignoring unexpected flags
-          if (flag.default !is StaticFlagDefault<Boolean>) {
-            throw RuntimeException("Unexpected type of FlagDefault (${flag.default.javaClass}) for flag: ${flag.id}")
-          }
-        }
+  fun validateNewStorageFile() {
+    val migrationFlags = readFile()
+      .associateNotNull {
+        ConfigurationOverrides.parseLine(it, throwOnInvalidValue = true)
       }
-    }.sorted()
+    val newFlags = FeatureValidationTest.readFile()
+      .filter { !it.startsWith("#") }
+      .associateNotNull {
+        ConfigurationOverrides.parseLine(it, removeDate = true, throwOnInvalidValue = true)
+      }
 
-    // make sure the content of the file matches this exactly, in order
-    Truth.assertThat(readFile()).containsExactlyElementsIn(computedContent).inOrder()
-  }
+    // first compare only the ids
+    Truth.assertThat(newFlags.keys).containsExactlyElementsIn(migrationFlags.keys)
 
-  private fun BooleanFlag.staticValue(): Boolean? {
-    val staticFlagDefault = default as? StaticFlagDefault<Boolean> ?: return null
+    // because the files use different values (IdeChannel vs IdeConfiguration) we need a conversion
+    // mechanism to be able to compare them
+    for (key in newFlags.keys) {
+      val oldValue = migrationFlags[key]!!
+      val newValue = newFlags[key]!!
 
-    return staticFlagDefault.get()
-  }
+      val expected = when (oldValue) {
+        "true", "STABLE" -> "STABLE"
+        "CANARY" -> "PREVIEW"
+        "DEV" -> "INTERNAL"
+        "NIGHTLY" -> "NIGHTLY"
+        else -> throw RuntimeException("Unexpected value in flag_migration.txt: $oldValue")
+      }
 
-  private fun BooleanFlag.channelValue(): IdeChannel.Channel? {
-    val channelDefault = default as? ChannelDefault ?: return null
-
-    return channelDefault.leastStableChannel
-  }
-
-  private fun BooleanFlag.convertToString(): String {
-    val staticValue = staticValue()
-    if (staticValue == true) {
-      return "$id=true"
+      Truth.assertWithMessage("Value of $key").that(newValue).isEqualTo(expected)
     }
-
-    val channelValue = channelValue()
-    if (channelValue != null) {
-      return "$id=$channelValue"
-    }
-
-    throw RuntimeException("Unexpected type of FlagDefault (${default.javaClass}) for flag: ${id}")
   }
 
   private fun readFile(): List<String> {
@@ -101,23 +78,6 @@ class FlagMigrationTest {
     return flagsStream.use { stream ->
       stream.reader(Charsets.UTF_8).use { reader ->
         reader.readLines().filter { !it.startsWith("#") }
-      }
-    }
-  }
-
-  private fun getFlags(): List<BooleanFlag> {
-    val clazz = StudioFlags::class.java
-    val fields = clazz.declaredFields
-
-    return buildList {
-      for (field in fields) {
-        if (Modifier.isStatic(field.modifiers) && field.type == Flag::class.java) {
-          val instance = field.get(null) as Flag<*>
-          if (instance::class.java == BooleanFlag::class.java) {
-            instance as BooleanFlag
-            add(instance)
-          }
-        }
       }
     }
   }

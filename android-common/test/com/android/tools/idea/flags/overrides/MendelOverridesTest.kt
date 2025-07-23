@@ -57,7 +57,7 @@ class MendelOverridesTest {
     val group = FlagGroup(flags, TEST_GROUP, "display")
     val flagA = MendelFlag(group, "a", 1, "name_a", "description_a", false)
     val flagB = MendelFlag(group, "b", 2, "name_b", "description_b", true)
-    val flagC = BooleanFlag(group, "c", "name_c", "description_c", true)
+    val flagC = BooleanFlag(group, "c", "name_c", "description_c")
     assertThat(overrides.get(flagA)).isEqualTo("false")
     assertThat(overrides.get(flagB)).isEqualTo("false")
     assertThat(overrides.get(flagC)).isNull()

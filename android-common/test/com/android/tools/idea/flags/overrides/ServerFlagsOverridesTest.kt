@@ -44,9 +44,9 @@ class ServerFlagOverridesTest {
     val overrides: ImmutableFlagOverrides = ServerFlagOverrides()
     val flags = Flags(overrides)
     val group = FlagGroup(flags, TEST_GROUP, "display")
-    val flagA = BooleanFlag(group, "a", "name_a", "description_a", false)
-    val flagB = BooleanFlag(group, "b", "name_b", "description_b", true)
-    val flagC = BooleanFlag(group, "c", "name_c", "description_c", false)
+    val flagA = BooleanFlag(group, "a", "name_a", "description_a")
+    val flagB = BooleanFlag(group, "b", "name_b", "description_b")
+    val flagC = BooleanFlag(group, "c", "name_c", "description_c")
 
     assertThat(overrides.get(flagA)).isNull()
     assertThat(overrides.get(flagB)).isNull()
