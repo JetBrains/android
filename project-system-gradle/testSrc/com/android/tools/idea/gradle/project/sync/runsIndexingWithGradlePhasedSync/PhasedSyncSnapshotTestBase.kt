@@ -204,7 +204,8 @@ private fun Project.dumpAllIdeModels() : Sequence<String> {
 private fun Project.createDumper() = ProjectDumper(
   androidSdk = getSdk().toFile(),
   devBuildHome = TestUtils.getWorkspaceRoot().toFile(),
-  projectJdk = ProjectRootManager.getInstance(this).projectSdk
+  projectJdk = ProjectRootManager.getInstance(this).projectSdk,
+  alwaysExpandLibraries = true
 )
 
 private fun Module.projectDirectory(): File? = ExternalSystemModulePropertyManager.getInstance(this).getLinkedProjectPath()?.let { File(it) }
@@ -259,7 +260,7 @@ internal class ModelDumpSyncContributor: GradleSyncListener {
   override fun onModelFetchCompleted(context: ProjectResolverContext) {
     // Multiple composite builds can invoke this method, so keeping track of all android projects
     knownAndroidPaths += context.allBuilds.flatMap { buildModel ->
-      buildModel.projects.filter { projectModel ->
+      buildModel.projects.sortedBy{ it.path }.filter { projectModel ->
         context.getProjectModel(projectModel, Versions::class.java) != null
       }.map {
         it.projectDirectory

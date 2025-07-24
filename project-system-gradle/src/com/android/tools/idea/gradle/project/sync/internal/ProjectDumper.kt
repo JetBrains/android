@@ -46,7 +46,8 @@ class ProjectDumper(
   private val kotlinPlugin: File? = KotlinArtifacts.instance.kotlincDirectory,
   private val additionalRoots: Map<String, File> = emptyMap(),
   private val projectJdk: Sdk? = null,
-  internal val ignoreModuleFileAndType : Boolean = false,
+  internal val ignoreModuleFileAndType: Boolean = false,
+  internal val alwaysExpandLibraries: Boolean = false
 ) {
   private val gradleCache: File = getGradleCacheLocation()
   private val userM2: File = getUserM2Location()
