@@ -37,7 +37,6 @@ import com.android.tools.idea.uibuilder.surface.TestSceneView
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import java.util.concurrent.CompletableFuture
 import org.junit.Assert.assertEquals
@@ -103,7 +102,7 @@ class SceneManagerTest {
         )
         .build()
     val surface = TestDesignSurface(projectRule.project, projectRule.fixture.testRootDisposable)
-    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model))
+    surface.addModelsWithoutRender(listOf(model))
     val scene = surface.sceneManagers.first().scene
     val rootNlComponent = model.getRoot()
     val hitProvider = DefaultHitProvider()
@@ -147,7 +146,7 @@ class SceneManagerTest {
       model(projectRule, "layout", "layout.xml", ComponentDescriptor(SdkConstants.FRAME_LAYOUT))
         .build()
     val surface = TestDesignSurface(projectRule.project, projectRule.fixture.testRootDisposable)
-    surface.addModelWithoutRender(model)
+    surface.addModelsWithoutRender(listOf(model))
     val sceneManager = TestSceneManager(model, surface)
     sceneManager.updateSceneViews()
     sceneManager.update()
@@ -173,7 +172,7 @@ class SceneManagerTest {
       model(projectRule, "layout", "layout.xml", ComponentDescriptor(SdkConstants.FRAME_LAYOUT))
         .build()
     val surface = TestDesignSurface(projectRule.project, projectRule.fixture.testRootDisposable)
-    surface.addModelWithoutRender(model)
+    surface.addModelsWithoutRender(listOf(model))
     val sceneManager = TestSceneManager(model, surface)
     sceneManager.updateSceneViews()
     sceneManager.update()

@@ -244,7 +244,7 @@ class NavDesignSurfaceZoomControlsTest {
         .withComponentRegistrar(NavComponentRegistrar)
         .build()
 
-    surface.addModelWithoutRender(model).join()
+    surface.addModelsWithoutRender(listOf(model))
     surface.setCurrentNavigation(surface.model?.treeReader?.find("FirstFragment")!!).join()
 
     val fakeUi =
@@ -320,7 +320,7 @@ class NavDesignSurfaceZoomControlsTest {
         .withComponentRegistrar(NavComponentRegistrar)
         .build()
 
-    surface.addModelWithoutRender(model).join()
+    surface.addModelsWithoutRender(listOf(model))
     surface.setCurrentNavigation(surface.model?.treeReader?.find("FirstFragment")!!).join()
 
     val fakeUi =
@@ -385,7 +385,7 @@ class NavDesignSurfaceZoomControlsTest {
         .withComponentRegistrar(NavComponentRegistrar)
         .build()
 
-    surface.addModelWithoutRender(model).join()
+    surface.addModelsWithoutRender(listOf(model))
     surface.setCurrentNavigation(surface.model?.treeReader?.find("FirstFragment")!!).join()
 
     val fakeUi =

@@ -73,8 +73,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.EditorNotifications
-import com.intellij.util.concurrency.AppExecutorUtil
-import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.containers.toArray
 import com.intellij.util.ui.JBUI
@@ -1119,34 +1117,10 @@ abstract class DesignSurface<T : SceneManager>(
   }
 
   /**
-   * Add an [NlModel] to DesignSurface and return the created [SceneManager]. If it is added before
-   * then it just returns the associated [SceneManager] which created before. In this function, the
-   * scene views are not updated and [DesignSurfaceListener.modelsChanged] callback is triggered
-   * immediately.
-   *
-   * Note that the order of the addition might be important for the rendering order.
-   * [PositionableContentLayoutManager] will receive the models in the order they are added.
-   *
-   * @param model the added [NlModel]
-   * @see [addModel]
-   */
-  fun addModelWithoutRender(modelToAdd: NlModel): CompletableFuture<T> {
-    return CompletableFuture.supplyAsync(
-        { addModel(modelToAdd) },
-        AppExecutorUtil.getAppExecutorService(),
-      )
-      .whenCompleteAsync(
-        { _, _ ->
-          if (project.isDisposed || modelToAdd.isDisposed) return@whenCompleteAsync
-          notifyModelsChanged(listOf(modelToAdd))
-          reactivateGuiInputHandler()
-        },
-        EdtExecutorService.getInstance(),
-      )
-  }
-
-  /**
-   * Bulk version of [addModelWithoutRender].
+   * Adds the [models] to this surface and returns their associated [SceneManager]s. A new
+   * [SceneManager] is created for each new model, but if a model was already present in the
+   * surface, then its already associated manager is reused, and it is simply moved to the
+   * corresponding position.
    *
    * This method is expected to be called in the background thread, and it will schedule the
    * corresponding call to [DesignSurfaceListener.modelsChanged] in EDT for later.

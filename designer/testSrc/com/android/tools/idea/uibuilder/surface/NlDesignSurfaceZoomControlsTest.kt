@@ -62,7 +62,6 @@ import javax.swing.JPanel
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
@@ -138,7 +137,7 @@ class NlDesignSurfaceZoomControlsTest {
         .withComponentRegistrar(NlComponentRegistrar)
         .build()
 
-    val newSceneManager = surface.addModelWithoutRender(model).await()
+    val newSceneManager = surface.addModelsWithoutRender(listOf(model)).single()
     newSceneManager.requestRenderAndWait()
 
     // Verify successful render

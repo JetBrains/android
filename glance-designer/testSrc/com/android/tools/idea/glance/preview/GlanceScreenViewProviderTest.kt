@@ -47,7 +47,7 @@ class GlanceScreenViewProviderTest {
         .build()
     }
     surface = NlSurfaceBuilder.build(projectRule.project, projectRule.testRootDisposable)
-    surface.addModelWithoutRender(model).join()
+    surface.addModelsWithoutRender(listOf(model))
   }
 
   @Test

@@ -26,7 +26,6 @@ import com.android.tools.idea.uibuilder.actions.SelectPreviousAction
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.TestActionEvent
 import org.jetbrains.android.AndroidTestCase
 
@@ -50,7 +49,7 @@ class SelectActionsTest : LayoutTestCase() {
         .build()
 
     val surface = NlSurfaceBuilder.build(project, project)
-    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model))
+    surface.addModelsWithoutRender(listOf(model))
     surface.selectionModel.setSelection(ImmutableList.of())
 
     val action = SelectNextAction()
@@ -82,7 +81,7 @@ class SelectActionsTest : LayoutTestCase() {
         .build()
 
     val surface = NlSurfaceBuilder.build(project, project)
-    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model))
+    surface.addModelsWithoutRender(listOf(model))
     surface.selectionModel.setSelection(ImmutableList.of())
 
     val action = SelectPreviousAction()
@@ -114,7 +113,7 @@ class SelectActionsTest : LayoutTestCase() {
         .build()
 
     val surface = NlSurfaceBuilder.build(project, project)
-    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model))
+    surface.addModelsWithoutRender(listOf(model))
     surface.selectionModel.setSelection(ImmutableList.of())
 
     val outer = model.treeReader.find("outer")!!

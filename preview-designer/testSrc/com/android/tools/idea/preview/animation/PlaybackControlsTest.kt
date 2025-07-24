@@ -61,7 +61,7 @@ class PlaybackControlsTest {
           parentDisposable,
         )
         .build()
-    surface.addModelWithoutRender(model)
+    surface.addModelsWithoutRender(listOf(model))
   }
 
   private val minimumSize = Dimension(10, 10)

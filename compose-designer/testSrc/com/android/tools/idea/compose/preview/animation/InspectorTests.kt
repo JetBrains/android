@@ -62,7 +62,7 @@ open class InspectorTests {
         .build()
     }
     surface = NlSurfaceBuilder.builder(projectRule.project, parentDisposable).build()
-    surface.addModelWithoutRender(model)
+    surface.addModelsWithoutRender(listOf(model))
 
     val psiFile =
       projectRule.fixture.addFileToProject(

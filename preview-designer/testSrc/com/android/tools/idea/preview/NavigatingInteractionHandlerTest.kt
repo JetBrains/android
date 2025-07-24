@@ -63,7 +63,7 @@ class NavigatingInteractionHandlerTest {
           previewModeManager.takeIf { dataId == PreviewModeManager.KEY.name }
       }
     surface = NlSurfaceBuilder.builder(projectRule.project, projectRule.testRootDisposable).build()
-    surface.addModelWithoutRender(model).join()
+    surface.addModelsWithoutRender(listOf(model))
     previewModeManager = CommonPreviewModeManager()
   }
 

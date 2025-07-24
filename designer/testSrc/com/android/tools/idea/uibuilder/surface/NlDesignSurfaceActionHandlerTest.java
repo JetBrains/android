@@ -50,7 +50,6 @@ import java.awt.datatransfer.Transferable;
 import java.util.List;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -85,7 +84,7 @@ public class NlDesignSurfaceActionHandlerTest {
         return manager;
       })
     .build();
-    PlatformTestUtil.waitForFuture(mySurface.addModelWithoutRender(myModel));
+    mySurface.addModelsWithoutRender(List.of(myModel));
     myCopyPasteManager = new MockCopyPasteManager();
     mySurfaceActionHandler = new NlDesignSurfaceActionHandler(mySurface, myCopyPasteManager);
 

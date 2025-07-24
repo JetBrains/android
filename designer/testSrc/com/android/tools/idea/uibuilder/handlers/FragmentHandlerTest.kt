@@ -28,7 +28,6 @@ import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.psi.XmlElementFactory
-import com.intellij.testFramework.PlatformTestUtil.waitForFuture
 import java.util.EnumSet
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.ArgumentMatchers.eq
@@ -54,7 +53,7 @@ class FragmentHandlerTest : LayoutTestCase() {
         .build()
 
     val surface = NlSurfaceBuilder.build(project, project)
-    waitForFuture(surface.addModelWithoutRender(model))
+    surface.addModelsWithoutRender(listOf(model))
     val editorManager = FileEditorManager.getInstance(project)
 
     surface.notifyComponentActivate(model.treeReader.find("regular")!!, 10, 60)

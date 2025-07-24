@@ -60,7 +60,7 @@ class AllTabPanelTest {
         .build()
     }
     surface = NlSurfaceBuilder.builder(projectRule.project, projectRule.testRootDisposable).build()
-    surface.addModelWithoutRender(model)
+    surface.addModelsWithoutRender(listOf(model))
     panel = AllTabPanel(projectRule.testRootDisposable)
   }
 

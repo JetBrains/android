@@ -55,7 +55,7 @@ class BottomPanelTest {
     }
     surface =
       NlSurfaceBuilder.builder(projectRule.project, projectRule.fixture.testRootDisposable).build()
-    surface.addModelWithoutRender(model)
+    surface.addModelsWithoutRender(listOf(model))
   }
 
   private val minimumSize = Dimension(10, 10)

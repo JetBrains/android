@@ -63,7 +63,7 @@ class ComposeResizeToolingUsageTrackerTest {
           }
       }
     surface = NlSurfaceBuilder.builder(projectRule.project, projectRule.testRootDisposable).build()
-    surface.addModelWithoutRender(model).join()
+    surface.addModelsWithoutRender(listOf(model))
 
     ComposeResizeToolingUsageTracker.forceEnableForUnitTests = true
   }

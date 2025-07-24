@@ -77,14 +77,12 @@ import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Container
 import java.awt.DefaultFocusTraversalPolicy
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
@@ -391,10 +389,7 @@ class VisualizationForm(
           surface.registerIndicator(myProgressIndicator)
         }
         // In visualization tool, we add model and layout the scroll pane before rendering
-        CompletableFuture.allOf(
-            *models.map { model -> surface.addModelWithoutRender(model) }.toTypedArray()
-          )
-          .await()
+        surface.addModelsWithoutRender(models)
       }
 
       renderCurrentModels()

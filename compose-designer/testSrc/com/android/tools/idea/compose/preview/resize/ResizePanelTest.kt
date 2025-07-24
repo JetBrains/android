@@ -51,7 +51,6 @@ import java.awt.event.FocusEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTextField
-import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -92,7 +91,7 @@ class ResizePanelTest {
     configuration = model.configuration
 
     surface = NlSurfaceBuilder.builder(projectRule.project, projectRule.testRootDisposable).build()
-    sceneManager = surface.addModelWithoutRender(model).await()
+    sceneManager = surface.addModelsWithoutRender(listOf(model)).single()
     resizePanel = ResizePanel(projectRule.fixture.testRootDisposable)
 
     val provider = EdtNoGetDataProvider { sink -> DataSink.uiDataSnapshot(sink, resizePanel) }

@@ -30,11 +30,9 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil;
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.testFramework.PlatformTestUtil;
 import java.util.concurrent.ExecutionException;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.InOrder;
@@ -112,7 +110,7 @@ public class SceneCreationTest extends SceneTest {
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("sceneDisposedModel.xml", "<LinearLayout/>");
     SyncNlModel model = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE, myBuildTarget, xmlFile.getVirtualFile());
 
-    SceneManager manager = PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model));
+    SceneManager manager = surface.addModelsWithoutRender(List.of(model)).get(0);
     Scene scene = manager.getScene();
     InOrder inOrder = inOrder(selectionModel);
     inOrder.verify(selectionModel).addListener(scene);

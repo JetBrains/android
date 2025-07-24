@@ -64,7 +64,6 @@ import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.JComponent
-import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
@@ -436,7 +435,7 @@ class CustomViewPreviewRepresentation(
         )
       }
 
-      val newSceneManager = surface.addModelWithoutRender(model).await()
+      val newSceneManager = surface.addModelsWithoutRender(listOf(model)).single()
       newSceneManager.requestRenderAndWait()
       surface.activate()
 

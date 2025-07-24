@@ -48,7 +48,7 @@ class SetColorBlindModeActionTest {
         .build()
     }
     val surface = NlSurfaceBuilder.build(projectRule.project, projectRule.testRootDisposable)
-    surface.addModelWithoutRender(model).join()
+    surface.addModelsWithoutRender(listOf(model))
 
     val setColorBlindModeAction = SetColorBlindModeAction(ColorBlindMode.PROTANOPES)
     val event =

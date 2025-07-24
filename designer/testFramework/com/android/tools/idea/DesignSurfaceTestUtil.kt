@@ -41,7 +41,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
-import java.util.concurrent.CompletableFuture
 import javax.swing.JLayeredPane
 import javax.swing.JPanel
 import kotlinx.coroutines.delay
@@ -117,8 +116,7 @@ object DesignSurfaceTestUtil {
 
     whenever(surface.model).thenReturn(model)
     whenever(surface.models).thenReturn(ImmutableList.of(model))
-    whenever(surface.addModelWithoutRender(any()))
-      .thenReturn(CompletableFuture.completedFuture<Nothing?>(null))
+    whenever(surface.addModelsWithoutRender(any())).thenReturn(emptyList())
     whenever(surface.configurations).thenReturn(ImmutableList.of(model.configuration))
 
     // TODO: NlDesignSurface should not be referenced from here.
