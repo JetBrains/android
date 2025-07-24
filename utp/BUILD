@@ -30,12 +30,8 @@ iml_module(
 )
 
 # Export addGradleAndroidTestListener.gradle init script for integration tests.
-genrule(
-    name = "addGradleAndroidTestListener",
-    testonly = 1,
-    srcs = ["resources/utp/addGradleAndroidTestListener.gradle"],
-    outs = ["addGradleAndroidTestListener.gradle"],
-    cmd = "cp $< $@",
+exports_files(
+    ["resources/utp/addGradleAndroidTestListener.gradle"],
     visibility = ["//visibility:public"],
 )
 
