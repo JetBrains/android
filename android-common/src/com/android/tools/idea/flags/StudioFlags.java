@@ -2067,9 +2067,6 @@ public final class StudioFlags {
 
   // region STUDIO_BOT
   private static final FlagGroup STUDIOBOT = new FlagGroup(FLAGS, "studiobot", "Gemini");
-  public static final Flag<Boolean> STUDIOBOT_ENABLED =
-    new BooleanFlag(STUDIOBOT, "enabled", "Enable Gemini", "Enable Gemini Tool Window", true);
-
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_CES_TELEMETRY_ENABLED =
     new BooleanFlag(STUDIOBOT, "inline.code.completion.ces.telemetry.enabled",
                     "Enable sending inline code completion metrics to the AIDA CES service",
