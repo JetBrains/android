@@ -318,7 +318,7 @@ class LiveEditServiceImpl(val project: Project,
    * Adds content listeners, so we know when a device is added/removed to the running devices tool window.
    */
   private fun addListenersToRunningDevices(adapter: EmulatorLiveEditAdapter, runningDevicesWindow: ToolWindow) {
-    object : ContentManagerHierarchyAdapter(runningDevicesWindow) {
+    Disposer.register(this, object : ContentManagerHierarchyAdapter(runningDevicesWindow) {
       override fun contentAdded(event: ContentManagerEvent) {
         val dataContext = IdeUiService.getInstance().createCustomizedDataContext(DataContext.EMPTY_CONTEXT, EdtNoGetDataProvider { sink ->
           DataSink.Companion.uiDataSnapshot(sink, event.content.component)
@@ -338,7 +338,7 @@ class LiveEditServiceImpl(val project: Project,
         val serial = dataContext.getData(SERIAL_NUMBER_KEY)
         serial?.let { adapter.unregister(it) }
       }
-    }
+    })
 
     runningDevicesWindow.contentManagerIfCreated?.contentsRecursively?.forEach { content ->
       val dataContext = IdeUiService.getInstance().createCustomizedDataContext(DataContext.EMPTY_CONTEXT, EdtNoGetDataProvider { sink ->
