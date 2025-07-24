@@ -75,7 +75,7 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
       )
       .isNull()
 
-    val deprecationData = provider.getCurrentDeprecationData("service")
+    val deprecationData = provider.getCurrentDeprecationData("service", "")
     assertThat(deprecationData.status).isEqualTo(DevServicesDeprecationStatus.SUPPORTED)
   }
 
@@ -93,7 +93,7 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
       )
       .isNotNull()
 
-    val deprecationData = provider.getCurrentDeprecationData("service")
+    val deprecationData = provider.getCurrentDeprecationData("service", "")
     assertThat(deprecationData.status).isEqualTo(DevServicesDeprecationStatus.UNSUPPORTED)
   }
 
@@ -112,7 +112,7 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
       DevServicesDeprecationMetadata.newBuilder().apply { header = "header" }.build()
     )
 
-    val deprecationData = provider.getCurrentDeprecationData("service")
+    val deprecationData = provider.getCurrentDeprecationData("service", "")
     assertThat(deprecationData.status).isEqualTo(DevServicesDeprecationStatus.UNSUPPORTED)
   }
 
@@ -134,9 +134,9 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
         .build()
     registerServiceProto(serviceProto)
 
-    var deprecationData = provider.getCurrentDeprecationData("service")
+    var deprecationData = provider.getCurrentDeprecationData("service", "UserFriendlyName")
     assertThat(deprecationData.description)
-      .isEqualTo("This service will be substituted. So will ${deprecationData.formattedDate()}")
+      .isEqualTo("UserFriendlyName will be substituted. So will ${deprecationData.formattedDate()}")
 
     deprecationData = provider.getCurrentDeprecationData("service", "UserFriendlyName")
     assertThat(deprecationData.description)
@@ -148,8 +148,8 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
         .build()
     )
 
-    deprecationData = provider.getCurrentDeprecationData("service")
-    assertThat(deprecationData.description).isEqualTo("This service will be substituted. So will ")
+    deprecationData = provider.getCurrentDeprecationData("service", "UserFriendlyName")
+    assertThat(deprecationData.description).isEqualTo("UserFriendlyName will be substituted. So will ")
   }
 
   @Test
@@ -170,9 +170,9 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
         .build()
     registerServiceProto(serviceProto)
 
-    var deprecationData = provider.getCurrentDeprecationData("service")
+    var deprecationData = provider.getCurrentDeprecationData("service", "UserFriendlyName")
     assertThat(deprecationData.header)
-      .isEqualTo("This service will be substituted. So will ${deprecationData.formattedDate()}")
+      .isEqualTo("UserFriendlyName will be substituted. So will ${deprecationData.formattedDate()}")
 
     deprecationData = provider.getCurrentDeprecationData("service", "UserFriendlyName")
     assertThat(deprecationData.header)
@@ -184,8 +184,8 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
         .build()
     )
 
-    deprecationData = provider.getCurrentDeprecationData("service")
-    assertThat(deprecationData.header).isEqualTo("This service will be substituted. So will ")
+    deprecationData = provider.getCurrentDeprecationData("service", "UserFriendlyName")
+    assertThat(deprecationData.header).isEqualTo("UserFriendlyName will be substituted. So will ")
   }
 
   @Test
@@ -197,7 +197,7 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
       DevServicesDeprecationMetadata.newBuilder().apply { header = "StudioProto" }.build()
     )
 
-    val deprecationData = provider.getCurrentDeprecationData("service")
+    val deprecationData = provider.getCurrentDeprecationData("service", "")
     assertThat(deprecationData.header).isEqualTo("ServiceProto")
   }
 
@@ -207,7 +207,7 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
       DevServicesDeprecationMetadata.newBuilder().apply { header = "StudioProto" }.build()
     )
 
-    val deprecationData = provider.getCurrentDeprecationData("service")
+    val deprecationData = provider.getCurrentDeprecationData("service", "")
     assertThat(deprecationData.header).isEqualTo("StudioProto")
   }
 
@@ -230,19 +230,19 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
 
     withDateFormatOverride("dd MMM yyyy").use {
       registerStudioProto(studioProto)
-      val deprecationData = provider.getCurrentDeprecationData("service")
+      val deprecationData = provider.getCurrentDeprecationData("service", "")
       assertThat(deprecationData.description).isEqualTo("15 Jan 2025")
     }
 
     withDateFormatOverride("dd/MM/yyyy").use {
       registerStudioProto(studioProto)
-      val deprecationData = provider.getCurrentDeprecationData("service")
+      val deprecationData = provider.getCurrentDeprecationData("service", "")
       assertThat(deprecationData.description).isEqualTo("15/01/2025")
     }
 
     withDateFormatOverride("MM/dd/yy").use {
       registerStudioProto(studioProto)
-      val deprecationData = provider.getCurrentDeprecationData("service")
+      val deprecationData = provider.getCurrentDeprecationData("service", "")
       assertThat(deprecationData.description).isEqualTo("01/15/25")
     }
   }
@@ -253,7 +253,7 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
       DevServicesDeprecationMetadata.newBuilder().apply { header = "StudioProto" }.build()
     )
 
-    val deprecationData = provider.getCurrentDeprecationData("service")
+    val deprecationData = provider.getCurrentDeprecationData("service", "")
     assertThat(deprecationData.moreInfoUrl).isEqualTo(StudioFlags.DEFAULT_MORE_INFO_URL.get())
   }
 
@@ -263,7 +263,7 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
       DevServicesDeprecationMetadata.newBuilder().apply { header = "StudioProto" }.build()
     )
 
-    val stateFlow = provider.registerServiceForChange("service", disposable = testRootDisposable)
+    val stateFlow = provider.registerServiceForChange("service", "", testRootDisposable)
     assertThat(stateFlow.value).isEqualTo(DevServicesDeprecationData.EMPTY)
     delayUntilCondition(200) { stateFlow.value.header == "StudioProto" }
   }
@@ -277,7 +277,7 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
       DevServicesDeprecationMetadata.newBuilder().apply { header = "StudioProto" }.build()
     )
 
-    val stateFlow = provider.registerServiceForChange("service", disposable = disposable)
+    val stateFlow = provider.registerServiceForChange("service", "", disposable)
 
     delayUntilCondition(200) { stateFlow.value != DevServicesDeprecationData.EMPTY }
     assertThat(stateFlow.value.header).isEqualTo("StudioProto")
@@ -300,7 +300,7 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
       DevServicesDeprecationMetadata.newBuilder().apply { header = "StudioProto" }.build()
     )
 
-    val stateFlow = provider.registerServiceForChange("service", disposable = disposable)
+    val stateFlow = provider.registerServiceForChange("service", "", disposable)
     delayUntilCondition(200) { stateFlow.value.header == "StudioProto" }
 
     Disposer.dispose(disposable)

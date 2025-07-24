@@ -19,8 +19,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.service
 import kotlinx.coroutines.flow.StateFlow
 
-internal const val DEFAULT_SERVICE_NAME = "This service"
-
 interface DevServicesDeprecationDataProvider {
   /**
    * Returns the current deprecation policy data for a service of the given name.
@@ -31,7 +29,7 @@ interface DevServicesDeprecationDataProvider {
    */
   fun getCurrentDeprecationData(
     serviceName: String,
-    userFriendlyServiceName: String = DEFAULT_SERVICE_NAME,
+    userFriendlyServiceName: String,
   ): DevServicesDeprecationData
 
   /**
@@ -40,7 +38,7 @@ interface DevServicesDeprecationDataProvider {
    */
   fun registerServiceForChange(
     serviceName: String,
-    userFriendlyServiceName: String = DEFAULT_SERVICE_NAME,
+    userFriendlyServiceName: String,
     disposable: Disposable,
   ): StateFlow<DevServicesDeprecationData>
 

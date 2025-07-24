@@ -162,7 +162,7 @@ class ServerFlagBasedDevServicesDeprecationDataProvider(private val scope: Corou
       ""
     }
 
-  private fun String.substituteValues(serviceName: String = DEFAULT_SERVICE_NAME, date: String) =
+  private fun String.substituteValues(serviceName: String, date: String) =
     replace(SERVICE_NAME_PLACEHOLDER, serviceName).replace(DATE_PLACEHOLDER, date)
 
   private fun Date.formatLocalized(): String {

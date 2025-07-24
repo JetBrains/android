@@ -58,7 +58,7 @@ class StudioDeprecationChecker : ProjectActivity {
 
   override suspend fun execute(project: Project) {
     val deprecationData =
-      service<DevServicesDeprecationDataProvider>().getCurrentDeprecationData(STUDIO_FLAG_NAME)
+      service<DevServicesDeprecationDataProvider>().getCurrentDeprecationData(STUDIO_FLAG_NAME, "")
     if (deprecationData.isSupported()) return
 
     if (deprecationData.isDeprecated()) {
