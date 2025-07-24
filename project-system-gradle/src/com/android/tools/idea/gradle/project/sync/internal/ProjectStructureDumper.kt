@@ -297,7 +297,7 @@ private fun ProjectDumper.dumpLibrary(library: LibraryOrderEntry) {
     prop("IsModuleLevel") { library.isModuleLevel.takeIf { it }?.toString() }
     prop("Scope") { library.scope.takeIf {it != COMPILE }?.toString () }
     prop("IsExported") { library.isExported.takeIf{ it}?.toString() }
-    if (library.libraryLevel != "project" ) {
+    if (alwaysExpandLibraries || library.libraryLevel != "project" ) {
       library.library?.let { dump(it) }
     }
   }
@@ -310,18 +310,22 @@ private fun ProjectDumper.dump(library: Library) {
     val orderRootTypes = OrderRootType.getAllPersistentTypes().toList() + OrderRootType.DOCUMENTATION
     orderRootTypes.forEach { type ->
       library
-        .getUrls(type)
-        .filterNot { file ->
-          // Do not allow sources and java docs coming from cache sources as their content may change.
-          (file.toPrintablePath().contains("<KONAN>") || file.toPrintablePath().contains("<M2>") || file.toPrintablePath().contains("<GRADLE>")) &&
-          (type == OrderRootType.DOCUMENTATION ||
-           type == OrderRootType.SOURCES ||
-           type == JavadocOrderRootType.getInstance())
-        }
-        .filter { file ->
-          !file.toPrintablePath().contains("<USER_M2>") || type != AnnotationOrderRootType.getInstance()
-        }
-        .map { file ->
+        .getUrls(type).toList().let {
+          if(alwaysExpandLibraries) {
+            it
+          } else {
+            it.filterNot { file ->
+              // Do not allow sources and java docs coming from cache sources as their content may change.
+              (file.toPrintablePath().contains("<KONAN>") || file.toPrintablePath().contains("<M2>") || file.toPrintablePath().contains("<GRADLE>")) &&
+              (type == OrderRootType.DOCUMENTATION ||
+               type == OrderRootType.SOURCES ||
+               type == JavadocOrderRootType.getInstance())
+            }
+            .filter { file ->
+              !file.toPrintablePath().contains("<USER_M2>") || type != AnnotationOrderRootType.getInstance()
+            }
+          }
+        }.map { file ->
           file.toPrintablePath().replaceMatchingVersion(androidVersion).also {
             if (type == OrderRootType.SOURCES || type == OrderRootType.DOCUMENTATION || type == JavadocOrderRootType.getInstance()) {
               println("$file -> $it")
