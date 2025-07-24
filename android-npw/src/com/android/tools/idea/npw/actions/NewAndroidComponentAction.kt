@@ -51,7 +51,7 @@ import org.jetbrains.android.util.AndroidBundle
 
 // These categories will be using a new wizard
 val NEW_WIZARD_CATEGORIES =
-  setOf(Category.Activity, Category.Google, Category.Automotive, Category.Compose)
+  setOf(Category.Activity, Category.Google, Category.Car, Category.Compose)
 @JvmField val CREATED_FILES = DataKey.create<MutableList<File>>("CreatedFiles")
 
 private fun defaultShowWizardDialog(

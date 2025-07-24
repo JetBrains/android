@@ -314,7 +314,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     getModel().hasCompanionApp.set(
       (myWearCheck.isVisible() && myWearCheck.isSelected()) ||
       (myTvCheck.isVisible() && myTvCheck.isSelected()) ||
-      getModel().formFactor.get() == FormFactor.Automotive // Automotive projects include a mobile module for Android Auto by default
+      getModel().formFactor.get() == FormFactor.Car // Automotive projects include a mobile module for Android Auto by default
     );
 
     myInstallRequests.clear();

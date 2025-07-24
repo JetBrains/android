@@ -101,7 +101,7 @@ abstract class ProjectRenderer(protected val template: Template, val goldenDirNa
         FormFactor.Tv -> { data: TemplateData ->
             this.generateTvModule(data as ModuleTemplateData, appTitle, false)
           }
-        FormFactor.Automotive -> { data: TemplateData ->
+        FormFactor.Car -> { data: TemplateData ->
             this.generateAutomotiveModule(data as ModuleTemplateData, appTitle, false)
           }
         FormFactor.Generic -> { data: TemplateData ->

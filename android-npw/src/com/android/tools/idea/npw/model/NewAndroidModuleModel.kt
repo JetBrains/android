@@ -207,7 +207,7 @@ class NewAndroidModuleModel(
                 useVersionCatalog = useVersionCatalog.get(),
               )
             }
-          FormFactor.Automotive -> { data: TemplateData ->
+          FormFactor.Car -> { data: TemplateData ->
               generateAutomotiveModule(
                 data = data as ModuleTemplateData,
                 appTitle = applicationName.get(),
@@ -303,7 +303,7 @@ private fun FormFactor.toModuleRenderingLoggingEvent() =
     FormFactor.Mobile,
     FormFactor.XR -> RenderLoggingEvent.ANDROID_MODULE
     FormFactor.Tv -> RenderLoggingEvent.ANDROID_TV_MODULE
-    FormFactor.Automotive -> RenderLoggingEvent.AUTOMOTIVE_MODULE
+    FormFactor.Car -> RenderLoggingEvent.AUTOMOTIVE_MODULE
     FormFactor.Wear -> RenderLoggingEvent.ANDROID_WEAR_MODULE
     FormFactor.Generic -> RenderLoggingEvent.ANDROID_MODULE // TODO(b/145975555)
   }

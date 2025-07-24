@@ -86,8 +86,8 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
       message("android.wizard.module.new.automotive"),
       message("android.wizard.module.new.automotive.description"),
       StudioIcons.Wizards.Modules.AUTOMOTIVE,
-      FormFactor.Automotive,
-      Category.Automotive,
+      FormFactor.Car,
+      Category.Car,
     )
 
   private class TvModuleTemplateGalleryEntry :
