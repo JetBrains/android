@@ -18,6 +18,7 @@ package com.android.tools.idea.avd
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasParent
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasTestTag
@@ -32,6 +33,7 @@ import com.android.repository.testframework.FakeProgressIndicator
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.PathFileWrapper
 import com.android.sdklib.SystemImageTags
+import com.android.sdklib.devices.Device
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.ConfigKey
 import com.android.sdklib.repository.IdDisplay
@@ -43,6 +45,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.io.File
 import java.nio.file.Files
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,12 +55,15 @@ import org.junit.Test
 @RunsInEdt
 class EditVirtualDeviceDialogTest {
   @get:Rule val edtRule = EdtRule()
+
   @get:Rule val applicationRule = ApplicationRule()
+
   @get:Rule val composeTestRule = createStudioComposeTestRule()
 
   @OptIn(ExperimentalTestApi::class)
   private inner class EditAvdFixture(
     val sdkFixture: SdkFixture,
+    val device: Device = sdkFixture.deviceManager.getDevice("pixel_7", "Google")!!,
     localPackages: List<LocalPackage> = emptyList<LocalPackage>(),
     remotePackages: List<RemotePackage> = emptyList<RemotePackage>(),
   ) {
@@ -74,10 +80,9 @@ class EditVirtualDeviceDialogTest {
     val systemImageManager = sdkHandler.getSystemImageManager(FakeProgressIndicator())
     val api34Image = systemImageManager.getImageAt(localPackages.first().location)
 
-    val pixel7 = sdkFixture.deviceManager.getDevice("pixel_7", "Google")!!
-    val pixel7AvdInfo =
+    val avdInfo =
       avdManager.createAvd(
-        avdManager.createAvdBuilder(pixel7).apply {
+        avdManager.createAvdBuilder(device).apply {
           systemImage = api34Image
           skin = null
         }
@@ -85,8 +90,8 @@ class EditVirtualDeviceDialogTest {
 
     val editDialog =
       EditVirtualDeviceDialog(
-        pixel7AvdInfo,
-        pixel7,
+        avdInfo,
+        device,
         EditVirtualDeviceDialog.Mode.EDIT,
         MutableStateFlow(sdkFixture.systemImageState()),
         persistentListOf(NoSkin.INSTANCE),
@@ -149,6 +154,51 @@ class EditVirtualDeviceDialogTest {
 
         val properties = parseIniFile()
         assertThat(properties[ConfigKey.RAM_SIZE]).contains("5120")
+      }
+    }
+  }
+
+  /**
+   * Create a device that has a skin that is only present in a particular system image. When that
+   * system image is selected, the skin should be set to that custom skin; when a different image
+   * that doesn't contain the skin is selected, the skin should be set to None.
+   */
+  @Test
+  fun specialDeviceWithCustomSkin() {
+    with(SdkFixture()) {
+      val baseDevice = deviceManager.getDevice("pixel_7", "Google")!!
+      val specialDevice =
+        Device.Builder(baseDevice)
+          .apply {
+            baseDevice.allStates.forEach { removeState(it.name) }
+            addState(
+              baseDevice.defaultState.deepCopy().apply { hardware.skinFile = File("special_skin") }
+            )
+          }
+          .build()
+      val api34Image = api34()
+      with(
+        EditAvdFixture(
+          sdkFixture = this,
+          device = specialDevice,
+          localPackages = listOf(api34Image, specialDeviceImage()),
+        )
+      ) {
+        // Switch to special system image
+        composeTestRule.onNodeWithText("Special Device").performClick()
+
+        // Special skin is selected
+        composeTestRule.onNodeWithText("Additional settings").performClick()
+        composeTestRule.onNodeWithText("special_skin").assertIsDisplayed()
+
+        // Switch to regular system image
+        composeTestRule.onNode(hasText("Device") and hasClickAction()).performClick()
+        composeTestRule.onNodeWithText(api34Image.displayName).performClick()
+
+        // No skin is selected
+        composeTestRule.onNodeWithText("Additional settings").performClick()
+        composeTestRule.onNodeWithText("special_skin").assertDoesNotExist()
+        composeTestRule.onNodeWithText("[None]").assertIsDisplayed()
       }
     }
   }
@@ -221,6 +271,15 @@ private fun SdkFixture.api34Play() =
     "google_apis_playstore",
     listOf(SystemImageTags.PLAY_STORE_TAG),
     AndroidVersion(34),
+  )
+
+private fun SdkFixture.specialDeviceImage() =
+  createLocalSystemImage(
+    "special_device",
+    listOf(SystemImageTags.GOOGLE_APIS_TAG),
+    AndroidVersion(34, 0),
+    displayName = "Special Device",
+    skins = listOf("special_skin"),
   )
 
 private fun SdkFixture.api34ps16kbPackage() =

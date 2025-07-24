@@ -18,6 +18,7 @@ package com.android.tools.idea.avd
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
+import com.android.SdkConstants
 import com.android.repository.impl.meta.RepositoryPackages
 import com.android.repository.impl.meta.TypeDetails
 import com.android.repository.testframework.FakePackage
@@ -85,8 +86,18 @@ class SdkFixture {
     abi: String = recommendedAbiForHost(),
     displayName: String = (tags.map { it.display } + abi + "System Image").joinToString(" "),
     vendor: IdDisplay = IdDisplay.create("google", "Google"),
+    skins: List<String> = emptyList(),
   ): FakeLocalPackage =
-    createSystemImage(false, path, tags, androidVersion, displayName, listOf(abi), vendor = vendor)
+    createSystemImage(
+      false,
+      path,
+      tags,
+      androidVersion,
+      displayName,
+      listOf(abi),
+      vendor = vendor,
+      skins = skins,
+    )
       as FakeLocalPackage
 
   fun createRemoteSystemImage(
@@ -109,6 +120,7 @@ class SdkFixture {
     abis: List<String>,
     translatedAbis: List<String> = emptyList(),
     vendor: IdDisplay = IdDisplay.create("google", "Google"),
+    skins: List<String> = emptyList(),
   ): FakePackage {
     val fullPath = "system-images;android-${androidVersion.apiStringWithExtension};$path;${abis[0]}"
     val pkg =
@@ -118,7 +130,12 @@ class SdkFixture {
         val location = sdkRoot.resolve(fullPath.replace(";", "/"))
         location.resolve(SystemImageManager.SYS_IMG_NAME).recordExistingFile()
         location.resolve("data").createDirectories()
-
+        if (skins.isNotEmpty()) {
+          val skinsFolder = location.resolve(SdkConstants.FD_SKINS).createDirectories()
+          for (skin in skins) {
+            skinsFolder.resolve(skin).resolve(SdkConstants.FN_SKIN_LAYOUT).recordExistingFile()
+          }
+        }
         FakeLocalPackage(fullPath, location)
       }
     pkg.displayName = displayName

@@ -31,6 +31,7 @@ import com.android.sdklib.DeviceSystemImageMatcher
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.RemoteSystemImage
 import com.android.sdklib.SdkVersionInfo
+import com.android.sdklib.devices.Device
 import com.android.sdklib.internal.avd.AvdManagerException
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.targets.SystemImage
@@ -162,7 +163,9 @@ internal fun WizardPageScope.ConfigurationPage(
       onDownloadButtonClick = { coroutineScope.launch { downloadSystemImage(parent, it) } },
       onSystemImageTableRowClick = {
         state.setSystemImageSelection(it)
-        state.setSkin(resolve(sdkHandler, state.device.skin.path(), it.skins))
+        state.setSkin(
+          resolve(sdkHandler, defaultDeviceSkin(state.device.deviceProfile, fileSystem), it.skins)
+        )
       },
     )
   }
@@ -208,13 +211,14 @@ private fun resolveDefaultSkin(
   sdkHandler: AndroidSdkHandler,
   fileSystem: FileSystem,
 ): Path {
-  val skin = device.deviceProfile.defaultHardware.skinFile
+  return resolve(sdkHandler, defaultDeviceSkin(device.deviceProfile, fileSystem), emptyList())
+}
 
-  return resolve(
-    sdkHandler,
-    if (skin == null) SkinUtils.noSkin(fileSystem) else fileSystem.getPath(skin.path),
-    emptyList(),
-  )
+private fun defaultDeviceSkin(device: Device, fileSystem: FileSystem): Path {
+  return when (val skin = device.defaultHardware.skinFile) {
+    null -> SkinUtils.noSkin(fileSystem)
+    else -> fileSystem.getPath(skin.path)
+  }
 }
 
 private suspend fun WizardDialogScope.finish(
