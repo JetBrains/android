@@ -61,7 +61,7 @@ internal class PreviewSurfaceActionManager(
     // Jump to Definition
     actionGroup.add(JumpToDefinitionAction(mousePosition.x, mousePosition.y, navigationHandler))
     // View in Focus mode
-    actionGroup.add(ViewInFocusModeAction(mousePosition.x, mousePosition.y))
+    actionGroup.add(ViewInFocusModeAction())
     // Toggle Resize Panel (only in focus mode)
     actionGroup.add(ToggleResizePanelVisibilityAction().visibleOnlyInFocus())
     // Add toolbar actions in the context-menu as a redundant entry point

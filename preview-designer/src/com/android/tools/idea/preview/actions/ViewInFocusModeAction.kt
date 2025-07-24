@@ -15,37 +15,29 @@
  */
 package com.android.tools.idea.preview.actions
 
-import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
 
 /**
- * [AnAction] that open the selected sceneView in Focus Mode. The current mouse position determines
- * the selected sceneView when the action is created. The action is not enabled if the current mode
- * is Focus already.
+ * [AnAction] that open the selected scene view in Focus Mode. The action is not enabled if the
+ * current [PreviewMode] is Focus already.
  */
-class ViewInFocusModeAction(
-  @SwingCoordinate private val x: Int,
-  @SwingCoordinate private val y: Int,
-) : AnAction(message("action.view.in.focus.mode")) {
+class ViewInFocusModeAction : AnAction(message("action.view.in.focus.mode")) {
 
   private val logger = Logger.getInstance(ViewInFocusModeAction::class.java)
 
   override fun update(e: AnActionEvent) {
-    val surface = e.getData(DESIGN_SURFACE) as? NlDesignSurface
     val modeManager = e.dataContext.findPreviewManager(PreviewModeManager.KEY)
 
-    val sceneView = surface?.getSceneViewAt(x, y)
     val isFocusMode: Boolean = modeManager?.mode?.value is PreviewMode.Focus
     val isDefault: Boolean = modeManager?.mode?.value is PreviewMode.Default
 
@@ -56,7 +48,7 @@ class ViewInFocusModeAction(
     e.presentation.isVisible = StudioFlags.VIEW_IN_FOCUS_MODE.get() && (isDefault || isFocusMode)
 
     val hasRendered: Boolean =
-      (sceneView?.sceneManager as? LayoutlibSceneManager)?.renderResult != null
+      (e.getData(SCENE_VIEW)?.sceneManager as? LayoutlibSceneManager)?.renderResult != null
 
     // Disable the button if:
     // * SceneView has not finished to render yet.
@@ -69,14 +61,7 @@ class ViewInFocusModeAction(
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val surface = e.getData(DESIGN_SURFACE) as NlDesignSurface
-    val previewElementInstance =
-      surface
-        .getSceneViewAt(x, y)
-        ?.sceneManager
-        ?.model
-        ?.dataProvider
-        ?.getData(PREVIEW_ELEMENT_INSTANCE)
+    val previewElementInstance = e.getData(PREVIEW_ELEMENT_INSTANCE)
 
     if (previewElementInstance == null) {
       logger.error("Cannot find any preview element instance")

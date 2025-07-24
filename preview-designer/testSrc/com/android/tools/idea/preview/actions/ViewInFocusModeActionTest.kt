@@ -16,6 +16,7 @@
 package com.android.tools.idea.preview.actions
 
 import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.flags.StudioFlags
@@ -32,7 +33,6 @@ import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.rendering.RenderResult
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiElement
@@ -53,18 +53,17 @@ class ViewInFocusModeActionTest {
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  private lateinit var dataContext: DataContext
+  private lateinit var dataContextBuilder: SimpleDataContext.Builder
   private val designSurface: NlDesignSurface = mock()
   private val modeManager: PreviewModeManager = mock()
 
   @Before
   fun setUp() {
     StudioFlags.VIEW_IN_FOCUS_MODE.override(true)
-    dataContext =
+    dataContextBuilder =
       SimpleDataContext.builder()
         .add(DESIGN_SURFACE, designSurface)
         .add(PreviewModeManager.KEY, modeManager)
-        .build()
   }
 
   @After
@@ -79,9 +78,11 @@ class ViewInFocusModeActionTest {
 
     // We are focussing a scene view
     val sceneManagerMock = createSceneManagerMock()
-    whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(TestSceneView(3, 4, sceneManagerMock))
 
-    val viewInFocusModeAction = ViewInFocusModeAction(3, 4)
+    val dataContext =
+      dataContextBuilder.add(SCENE_VIEW, TestSceneView(3, 4, sceneManagerMock)).build()
+
+    val viewInFocusModeAction = ViewInFocusModeAction()
     val event = TestActionEvent.createTestEvent(viewInFocusModeAction, dataContext)
 
     viewInFocusModeAction.update(event)
@@ -99,12 +100,9 @@ class ViewInFocusModeActionTest {
     // We are in Focus Mode.
     whenever(modeManager.mode).thenReturn(MutableStateFlow(mock<PreviewMode.Focus>()))
 
-    // We are focussing a scene view
-    val sceneManagerMock = createSceneManagerMock()
-    whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(TestSceneView(3, 4, sceneManagerMock))
-
-    val viewInFocusModeAction = ViewInFocusModeAction(3, 4)
-    val event = TestActionEvent.createTestEvent(viewInFocusModeAction, dataContext)
+    // We are focusing a scene view
+    val viewInFocusModeAction = ViewInFocusModeAction()
+    val event = TestActionEvent.createTestEvent(viewInFocusModeAction, dataContextBuilder.build())
 
     viewInFocusModeAction.update(event)
 
@@ -112,8 +110,6 @@ class ViewInFocusModeActionTest {
     assertTrue(event.presentation.isVisible)
     // Action should be disabled.
     assertFalse(event.presentation.isEnabled)
-
-    Disposer.register(projectRule.testRootDisposable, sceneManagerMock)
   }
 
   @Test
@@ -122,9 +118,9 @@ class ViewInFocusModeActionTest {
     whenever(modeManager.mode).thenReturn(MutableStateFlow(mock<PreviewMode.Default>()))
 
     // We aren't clicking on any screen view.
-    whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(null)
+    val dataContext = dataContextBuilder.add(SCENE_VIEW, null).build()
 
-    val viewInFocusModeAction = ViewInFocusModeAction(3, 4)
+    val viewInFocusModeAction = ViewInFocusModeAction()
     val event = TestActionEvent.createTestEvent(viewInFocusModeAction, dataContext)
 
     viewInFocusModeAction.update(event)
@@ -140,9 +136,9 @@ class ViewInFocusModeActionTest {
     StudioFlags.VIEW_IN_FOCUS_MODE.override(false)
 
     // We aren't focussing any screen view.
-    whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(null)
+    val dataContext = dataContextBuilder.add(SCENE_VIEW, null).build()
 
-    val viewInFocusModeAction = ViewInFocusModeAction(3, 4)
+    val viewInFocusModeAction = ViewInFocusModeAction()
     val event = TestActionEvent.createTestEvent(viewInFocusModeAction, dataContext)
 
     viewInFocusModeAction.update(event)
@@ -160,9 +156,9 @@ class ViewInFocusModeActionTest {
     whenever(modeManager.mode).thenReturn(MutableStateFlow(mock<PreviewMode.UiCheck>()))
 
     // We aren't focussing any screen view.
-    whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(null)
+    val dataContext = dataContextBuilder.add(SCENE_VIEW, null).build()
 
-    val viewInFocusModeAction = ViewInFocusModeAction(3, 4)
+    val viewInFocusModeAction = ViewInFocusModeAction()
     val event = TestActionEvent.createTestEvent(viewInFocusModeAction, dataContext)
 
     viewInFocusModeAction.update(event)
@@ -179,10 +175,8 @@ class ViewInFocusModeActionTest {
     val sceneManagerMock = createSceneManagerMock(hasRendered = false)
 
     // We are focussing a scene view, but hasn't rendered yet.
-    whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(TestSceneView(3, 4, sceneManagerMock))
-
-    val viewInFocusModeAction = ViewInFocusModeAction(3, 4)
-    val event = TestActionEvent.createTestEvent(viewInFocusModeAction, dataContext)
+    val viewInFocusModeAction = ViewInFocusModeAction()
+    val event = TestActionEvent.createTestEvent(viewInFocusModeAction, dataContextBuilder.build())
 
     viewInFocusModeAction.update(event)
 
@@ -196,14 +190,21 @@ class ViewInFocusModeActionTest {
 
   @Test
   fun `selected preview opens to focus correctly`() {
+    // We are right-clicking a scene view.
     val previewInstanceOfClickedSceneView = createSingleElementInstance("Right Clicked")
     val sceneManagerMock =
       createSceneManagerMock(previewElement = previewInstanceOfClickedSceneView)
 
-    // We are right-clicking a scene view.
-    whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(TestSceneView(3, 4, sceneManagerMock))
+    val dataContext =
+      dataContextBuilder
+        .add(SCENE_VIEW, TestSceneView(3, 4, sceneManagerMock))
+        .add(
+          PREVIEW_ELEMENT_INSTANCE,
+          sceneManagerMock.model.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE),
+        )
+        .build()
 
-    val viewInFocusModeAction = ViewInFocusModeAction(3, 4)
+    val viewInFocusModeAction = ViewInFocusModeAction()
     val event = TestActionEvent.createTestEvent(viewInFocusModeAction, dataContext)
 
     viewInFocusModeAction.actionPerformed(event)
@@ -229,9 +230,16 @@ class ViewInFocusModeActionTest {
 
     // We are right-clicking a scene view.
     val rightClickedSceneView = TestSceneView(3, 4, sceneManagerMock)
-    whenever(designSurface.getSceneViewAt(3, 4)).thenReturn(rightClickedSceneView)
+    val dataContext =
+      dataContextBuilder
+        .add(SCENE_VIEW, rightClickedSceneView)
+        .add(
+          PREVIEW_ELEMENT_INSTANCE,
+          sceneManagerMock.model.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE),
+        )
+        .build()
 
-    val viewInFocusModeAction = ViewInFocusModeAction(3, 4)
+    val viewInFocusModeAction = ViewInFocusModeAction()
     val event = TestActionEvent.createTestEvent(viewInFocusModeAction, dataContext)
 
     viewInFocusModeAction.actionPerformed(event)
