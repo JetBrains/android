@@ -38,6 +38,18 @@ enum class DisplayPowerMode : int32_t {
 // Can only be used by the thread that created the object.
 class SurfaceControl {
 private:
+  struct Transaction {
+    explicit Transaction(Jni jni)
+        : jni_(jni) {
+      OpenTransaction(jni_);
+    }
+    ~Transaction() {
+      CloseTransaction(jni_);
+    }
+
+    Jni jni_;
+  };
+
   static void InitializeStatics(Jni jni);
 
   static void OpenTransaction(Jni jni);
@@ -58,6 +70,7 @@ public:
   // The display area defined by display_info.logical_size is mapped to projection rectangle.
   static void ConfigureProjection(
       Jni jni, jobject display_token, ANativeWindow* surface, const DisplayInfo& display_info, ARect projection_rect);
+  static void SetSurface(Jni jni, jobject display_token, ANativeWindow* surface);
 
 private:
   // SurfaceControl class.
