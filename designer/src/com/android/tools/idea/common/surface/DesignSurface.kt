@@ -896,43 +896,24 @@ abstract class DesignSurface<T : SceneManager>(
    * @param model the added [NlModel]
    */
   @Slow
-  private fun addModel(model: NlModel): T {
-    var manager = getSceneManager(model)
-    manager?.let {
-      modelToSceneManagersLock.writeLock().withLock {
-        // No need to add same model twice. We just move it to the bottom of the model list since
-        // order is important.
+  private fun addModel(model: NlModel): T =
+    modelToSceneManagersLock.writeLock().withLock {
+      // If model already present, simply move it to the bottom of the list since order is important
+      getSceneManager(model)?.let {
         val managerToMove: T? = modelToSceneManagers.remove(model)
         if (managerToMove != null) {
           modelToSceneManagers[model] = managerToMove
         }
         return it
       }
-    }
 
-    model.addListener(modelListener)
-    // SceneManager creation is a slow operation. Multiple can happen in parallel.
-    // We optimistically create a new scene manager for the given model and then, with the mapping
-    // locked we checked if a different one has been added.
-    val newManager = createSceneManager(model)
-
-    modelToSceneManagersLock.writeLock().withLock {
-      manager = modelToSceneManagers.putIfAbsent(model, newManager)
-      if (manager == null) {
-        // The new SceneManager was correctly added
-        manager = newManager
+      // Otherwise, create a new SceneManager for the model
+      model.addListener(modelListener)
+      return createSceneManager(model).also {
+        modelToSceneManagers[model] = it
+        if (isActive) it.activate(this)
       }
     }
-
-    if (manager !== newManager) {
-      // There was already a manager assigned to the model so discard this one.
-      Disposer.dispose(newManager)
-    }
-    if (isActive) {
-      manager?.activate(this)
-    }
-    return manager!!
-  }
 
   /**
    * Remove the [NlModel]s in [models] from DesignSurface.
@@ -942,6 +923,8 @@ abstract class DesignSurface<T : SceneManager>(
   fun removeModels(models: List<NlModel>) {
     removeModelsImpl(models)
     reactivateGuiInputHandler()
+    // Mark the scene view panel as invalid to force the scene views to be updated
+    UIUtil.invokeLaterIfNeeded { this.revalidateScrollArea() }
   }
 
   /**
@@ -949,26 +932,22 @@ abstract class DesignSurface<T : SceneManager>(
    *
    * Any model not present in the surface is ignored.
    */
-  private fun removeModelsImpl(models: List<NlModel>) {
-    val modelSet = models.toSet()
-    // Remove any selection that belows to any of these models.
-    selectionModel.setSelection(selectionModel.selection.filter { !modelSet.contains(it.model) })
+  private fun removeModelsImpl(models: List<NlModel>) =
+    modelToSceneManagersLock.writeLock().withLock {
+      val modelSet = models.toSet()
+      // Remove any selection that belows to any of these models.
+      selectionModel.setSelection(selectionModel.selection.filter { !modelSet.contains(it.model) })
 
-    val modelsToManagers =
-      modelToSceneManagersLock.writeLock().withLock {
-        models.map { it to modelToSceneManagers.remove(it) }
+      val modelsToManagers = models.map { it to modelToSceneManagers.remove(it) }
+      modelsToManagers.forEach { (model, manager) ->
+        // Ignore model if not manager associated with it (i.e. model not present in this surface)
+        if (manager == null) return@forEach
+        model.deactivate(this)
+        model.removeListener(modelListener)
+        Disposer.dispose(model)
+        Disposer.dispose(manager)
       }
-    modelsToManagers.forEach { (model, manager) ->
-      // Ignore model if not manager associated with it (i.e. model not present in this surface)
-      if (manager == null) return@forEach
-      model.deactivate(this)
-      model.removeListener(modelListener)
-      Disposer.dispose(model)
-      Disposer.dispose(manager)
     }
-    // Mark the scene view panel as invalid to force the scene views to be updated
-    UIUtil.invokeLaterIfNeeded { this.revalidateScrollArea() }
-  }
 
   override val focusedSceneView: SceneView?
     get() {
@@ -1120,21 +1099,11 @@ abstract class DesignSurface<T : SceneManager>(
    * @see [removeModels]
    */
   open fun setModel(newModel: NlModel?) {
-    val oldModel = model
-    if (newModel === oldModel) {
-      return
-    }
-
-    if (oldModel != null) {
-      removeModelsImpl(listOf(oldModel))
-    }
-
-    if (newModel == null) {
-      return
-    }
-
     scope.launch {
-      addModel(newModel)
+      modelToSceneManagersLock.writeLock().withLock {
+        removeModelsImpl(models.filter { it !== newModel })
+        newModel?.let { addModel(it) }
+      }
       sceneManagers.forEach { it.requestRenderAndWait() }
       // Mark the scene view panel as invalid to force the scene views to be updated
       sceneViewPanel.invalidate()
