@@ -137,7 +137,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_SHOW_AGP_VERSION_COMBO_BOX = new BooleanFlag(
     NPW, "show.agp.version.combobox", "Show AGP version combobox",
     "Show a combobox to select the version of Android Gradle plugin used for the new project",
-    IdeaIsInternalDefault.INSTANCE);
+    enabledUpTo(DEV));
 
   public static final Flag<Boolean> NPW_SHOW_AGP_VERSION_COMBO_BOX_EXPERIMENTAL_SETTING = new BooleanFlag(
     NPW, "show.agp.version.combobox.experimental.option", "Show experimental setting allowing enabling AGP version combobox",
@@ -829,7 +829,7 @@ public final class StudioFlags {
     "(which can come from STUDIO_CUSTOM_REPO or from a local build of AGP when running studio from IDEA) " +
     "in the new project templates and for determining which versions of AGP are available for the upgrade assistant.\n" +
     "Note: repositories set in gradle.ide.development.offline.repo.location are always respected, even if this flag is disabled.",
-    StudioPathManager.isRunningFromSources());
+    false);
 
   public static final Flag<String> DEVELOPMENT_OFFLINE_REPO_LOCATION = new StringFlag(
     GRADLE_IDE, "development.offline.repo.location", "Development offline repository location",
@@ -929,7 +929,12 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> RESTORE_INVALID_GRADLE_JDK_CONFIGURATION = new BooleanFlag(
     GRADLE_IDE, "restore.invalid.gradle.jdk.configuration", "Restore invalid Gradle JDK configuration",
-    "Restore project from invalid Gradle JDK configuration during opening.", !isUnitTestMode());
+    "Restore project from invalid Gradle JDK configuration during opening.", true);
+
+  public static final Flag<Boolean> RESTORE_INVALID_GRADLE_JDK_CONFIGURATION_TEST_OVERRIDE = new BooleanFlag(
+    GRADLE_IDE, "restore.invalid.gradle.jdk.configuration.test.override", "Restore invalid Gradle JDK configuration",
+    "Restore action protected by RESTORE_INVALID_GRADLE_JDK_CONFIGURATION is automatically disable during most testing. This allows overriding this disabling",
+    false);
 
   public static final Flag<Boolean> GRADLE_SAVE_LOG_TO_FILE = new BooleanFlag(
     GRADLE_IDE, "save.log.to.file", "Save log to file", "Appends the build log to the given file", false);
@@ -1101,7 +1106,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_THROW_UNEXPECTED_ERROR = new BooleanFlag(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.throw.unexpected.error", "Throw exception when encountering an unexpected error",
     "When this flag is enabled, LayoutInspector will throw an exception when an unexpected error is being logged to the metrics.",
-    StudioPathManager.isRunningFromSources());
+    false);
 
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_IGNORE_RECOMPOSITIONS_IN_FRAMEWORK = new BooleanFlag(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.ignore.framework.recompositions", "Ignore recompositions in compose framework",

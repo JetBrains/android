@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.project.sync.utils.EnvironmentUtils
 import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils
 import com.android.tools.idea.gradle.project.sync.utils.ProjectJdkUtils
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Expect
 import com.intellij.build.events.FailureResult
 import com.intellij.build.events.FinishBuildEvent
@@ -91,6 +92,7 @@ class JdkIntegrationTest(
         ProjectJdkUtils.setUserHomeGradlePropertiesJdk(it, disposable)
       }
       StudioFlags.RESTORE_INVALID_GRADLE_JDK_CONFIGURATION.override(studioFlags.restoreInvalidGradleJdkConfiguration)
+      StudioFlags.RESTORE_INVALID_GRADLE_JDK_CONFIGURATION_TEST_OVERRIDE.override(true)
       StudioFlags.MIGRATE_PROJECT_TO_GRADLE_LOCAL_JAVA_HOME.override(studioFlags.migrateToGradleLocalJavaHome)
       JdkTableUtils.populateJdkTableWith(jdkTable, tempDir)
       EnvironmentUtils.overrideEnvironmentVariables(environmentVariables, disposable)

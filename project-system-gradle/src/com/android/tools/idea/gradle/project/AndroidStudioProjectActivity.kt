@@ -24,6 +24,7 @@ import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.project.AndroidProjectInfo
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.notification.NotificationType
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.Service
@@ -55,7 +56,8 @@ class AndroidStudioProjectActivity : ProjectActivity {
         notifyOnLegacyAndroidProject(project)
         notifyOnInvalidGradleJDKEnv(project)
 
-        if (StudioFlags.RESTORE_INVALID_GRADLE_JDK_CONFIGURATION.get()) {
+        if (StudioFlags.RESTORE_INVALID_GRADLE_JDK_CONFIGURATION.get() &&
+            (StudioFlags.RESTORE_INVALID_GRADLE_JDK_CONFIGURATION_TEST_OVERRIDE.get() || !ApplicationManager.getApplication().isUnitTestMode)) {
           checkForInvalidGradleJvmConfigurationAndAttemptToRecover(project)
         }
       }

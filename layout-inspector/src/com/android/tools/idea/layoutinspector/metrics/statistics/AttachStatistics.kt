@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.metrics.statistics
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.util.StudioPathManager
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
@@ -130,7 +131,10 @@ class AttachStatistics(
   }
 
   private fun assertErrorNotGeneric(errorCode: AttachErrorCode) {
-    if (!StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_THROW_UNEXPECTED_ERROR.get()) {
+    if (
+      !StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_THROW_UNEXPECTED_ERROR.get() &&
+        !StudioPathManager.isRunningFromSources()
+    ) {
       return
     }
 

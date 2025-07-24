@@ -315,7 +315,7 @@ public class GradleProjectSystemUtil {
   }
 
   public static void attemptToUseEmbeddedGradle(@NotNull Project project) {
-    if (!StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get()) {
+    if (!StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() && !StudioPathManager.isRunningFromSources()) {
       return;
     }
     if (IdeInfo.getInstance().isAndroidStudio()) {
@@ -789,7 +789,11 @@ public class GradleProjectSystemUtil {
 
   @NotNull
   public static List<File> findAndroidStudioLocalMavenRepoPaths() {
-    if (!StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() && !isInTestingMode() && StudioFlags.DEVELOPMENT_OFFLINE_REPO_LOCATION.get().isBlank()) {
+    if (!StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() &&
+        !StudioPathManager.isRunningFromSources() &&
+        !isInTestingMode() &&
+        StudioFlags.DEVELOPMENT_OFFLINE_REPO_LOCATION.get().isBlank()
+    ) {
       return ImmutableList.of();
     }
     return doFindAndroidStudioLocalMavenRepoPaths();
@@ -805,7 +809,7 @@ public class GradleProjectSystemUtil {
       validateAndAdd(offlineRepo, repoPaths);
     }
 
-    if (!StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() && !isInTestingMode()) {
+    if (!StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() && !StudioPathManager.isRunningFromSources() && !isInTestingMode()) {
       return repoPaths;
     }
 

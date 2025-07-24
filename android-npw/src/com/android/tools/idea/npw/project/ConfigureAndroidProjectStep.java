@@ -75,6 +75,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.intellij.ide.BrowserUtil;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.util.BackgroundTaskUtil;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -214,8 +215,11 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       myBuildConfigurationLanguageCombo.setVisible(false);
     }
 
-    if (StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX.get() || (StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX_EXPERIMENTAL_SETTING.get() &&
-                                                             GradleExperimentalSettings.getInstance().SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD)) {
+    if ((StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX.get() && !ApplicationManager.getApplication().isUnitTestMode()) ||
+        (StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX_EXPERIMENTAL_SETTING.get() &&
+         GradleExperimentalSettings.getInstance().SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD
+        )
+    ) {
       AgpVersions.NewProjectWizardAgpVersion
         placeholderCurrentVersion = new AgpVersions.NewProjectWizardAgpVersion(
           /* Resolve as if IdeGoogleMavenRepository.getAgpVersions() is not available as a placeholder */
