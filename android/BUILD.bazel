@@ -226,6 +226,7 @@ jvm_library(
     "//plugins/kotlin/frontend-independent",
     "//plugins/kotlin/formatter/minimal",
     "//plugins/kotlin/idea",
+    "//idea/customization/min",
     "//idea/customization/base",
     "//android/preview-fast-compile",
     "@lib//:kotlinc-analysis-api-platform-interface-provided",
