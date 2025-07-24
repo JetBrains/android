@@ -31,6 +31,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import kotlin.time.Duration.Companion.milliseconds
 
 @RunWith(JUnit4::class)
 class ManifestMergerStatsTrackerTest {
@@ -65,17 +66,17 @@ class ManifestMergerStatsTrackerTest {
   fun reportMergerStats_onlySuccessRunTimes() {
     val tokens = listOf(Object(), Object(), Object(), Object(), Object())
 
-    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[0], 0)
-    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[1], 10)
-    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[2], 20)
-    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[3], 30)
-    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[4], 40)
+    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[0])
+    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[1])
+    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[2])
+    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[3])
+    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[4])
 
-    ManifestMergerStatsTracker.snapshotCreationEnded(tokens[0], 0, 20, SUCCESS)
-    ManifestMergerStatsTracker.snapshotCreationEnded(tokens[1], 10, 30, SUCCESS)
-    ManifestMergerStatsTracker.snapshotCreationEnded(tokens[2], 20, 40, SUCCESS)
-    ManifestMergerStatsTracker.snapshotCreationEnded(tokens[3], 30, 50, SUCCESS)
-    ManifestMergerStatsTracker.snapshotCreationEnded(tokens[4], 40, 60, SUCCESS)
+    ManifestMergerStatsTracker.snapshotCreationEnded(tokens[0], 20.milliseconds, SUCCESS)
+    ManifestMergerStatsTracker.snapshotCreationEnded(tokens[1], 20.milliseconds, SUCCESS)
+    ManifestMergerStatsTracker.snapshotCreationEnded(tokens[2], 20.milliseconds, SUCCESS)
+    ManifestMergerStatsTracker.snapshotCreationEnded(tokens[3], 20.milliseconds, SUCCESS)
+    ManifestMergerStatsTracker.snapshotCreationEnded(tokens[4], 20.milliseconds, SUCCESS)
 
     // Flush any remaining runnables on the event thread, since recording events happens asynchronously there.
     ApplicationManager.getApplication().invokeAndWait {}
@@ -103,19 +104,19 @@ class ManifestMergerStatsTrackerTest {
   fun reportMergerStats_allThreeResultTypes() {
     val tokens = listOf(Object(), Object(), Object(), Object(), Object(), Object())
 
-    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[0], 0)
-    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[1], 10)
-    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[2], 20)
-    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[3], 30)
-    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[4], 40)
-    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[5], 50)
+    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[0])
+    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[1])
+    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[2])
+    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[3])
+    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[4])
+    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[5])
 
-    ManifestMergerStatsTracker.snapshotCreationEnded(tokens[0], 0, 40, SUCCESS)
-    ManifestMergerStatsTracker.snapshotCreationEnded(tokens[1], 10, 50, SUCCESS)
-    ManifestMergerStatsTracker.snapshotCreationEnded(tokens[2], 20, 50, CANCELED)
-    ManifestMergerStatsTracker.snapshotCreationEnded(tokens[3], 30, 60, CANCELED)
-    ManifestMergerStatsTracker.snapshotCreationEnded(tokens[4], 40, 60, FAILED)
-    ManifestMergerStatsTracker.snapshotCreationEnded(tokens[5], 50, 70, FAILED)
+    ManifestMergerStatsTracker.snapshotCreationEnded(tokens[0], 40.milliseconds, SUCCESS)
+    ManifestMergerStatsTracker.snapshotCreationEnded(tokens[1], 40.milliseconds, SUCCESS)
+    ManifestMergerStatsTracker.snapshotCreationEnded(tokens[2], 30.milliseconds, CANCELED)
+    ManifestMergerStatsTracker.snapshotCreationEnded(tokens[3], 30.milliseconds, CANCELED)
+    ManifestMergerStatsTracker.snapshotCreationEnded(tokens[4], 20.milliseconds, FAILED)
+    ManifestMergerStatsTracker.snapshotCreationEnded(tokens[5], 20.milliseconds, FAILED)
 
     // Flush any remaining runnables on the event thread, since recording events happens asynchronously there.
     ApplicationManager.getApplication().invokeAndWait {}
@@ -157,19 +158,19 @@ class ManifestMergerStatsTrackerTest {
   fun reportMergerStats_statsClearedAfterReporting() {
     val tokens = listOf(Object(), Object(), Object(), Object(), Object(), Object())
 
-    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[0], 0)
-    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[1], 10)
-    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[2], 20)
-    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[3], 30)
-    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[4], 40)
-    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[5], 50)
+    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[0])
+    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[1])
+    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[2])
+    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[3])
+    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[4])
+    ManifestMergerStatsTracker.snapshotCreationStarted(tokens[5])
 
-    ManifestMergerStatsTracker.snapshotCreationEnded(Object(), 0, 40, SUCCESS)
-    ManifestMergerStatsTracker.snapshotCreationEnded(Object(), 10, 50, SUCCESS)
-    ManifestMergerStatsTracker.snapshotCreationEnded(Object(), 20, 50, CANCELED)
-    ManifestMergerStatsTracker.snapshotCreationEnded(Object(), 30, 60, CANCELED)
-    ManifestMergerStatsTracker.snapshotCreationEnded(Object(), 40, 60, FAILED)
-    ManifestMergerStatsTracker.snapshotCreationEnded(Object(), 50, 70, FAILED)
+    ManifestMergerStatsTracker.snapshotCreationEnded(Object(), 40.milliseconds, SUCCESS)
+    ManifestMergerStatsTracker.snapshotCreationEnded(Object(), 40.milliseconds, SUCCESS)
+    ManifestMergerStatsTracker.snapshotCreationEnded(Object(), 30.milliseconds, CANCELED)
+    ManifestMergerStatsTracker.snapshotCreationEnded(Object(), 30.milliseconds, CANCELED)
+    ManifestMergerStatsTracker.snapshotCreationEnded(Object(), 20.milliseconds, FAILED)
+    ManifestMergerStatsTracker.snapshotCreationEnded(Object(), 20.milliseconds, FAILED)
 
     // Flush any remaining runnables on the event thread, since recording events happens asynchronously there.
     ApplicationManager.getApplication().invokeAndWait {}

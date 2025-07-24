@@ -46,16 +46,16 @@ class JfrManifestMergerReportsTest {
   fun snapshotComputeListener_computeEndsBeforeThreshold() {
     // Start the merge
     val token = Any()
-    val startTimeMillis = scheduler.currentTime
-    listener.snapshotCreationStarted(token, startTimeMillis)
+    listener.snapshotCreationStarted(token)
     scheduler.runCurrent()
 
     assertThat(startCaptureCalls).isEqualTo(0)
     assertThat(stopCaptureCalls).isEqualTo(0)
 
     // End the merge just before the threshold
-    scheduler.advanceTimeBy(REPORTING_THRESHOLD - 1.milliseconds)
-    listener.snapshotCreationEnded(token, startTimeMillis, scheduler.currentTime, MergeResult.SUCCESS)
+    val advanceBy = REPORTING_THRESHOLD - 1.milliseconds
+    scheduler.advanceTimeBy(advanceBy)
+    listener.snapshotCreationEnded(token, advanceBy, MergeResult.SUCCESS)
 
     assertThat(startCaptureCalls).isEqualTo(0)
     assertThat(stopCaptureCalls).isEqualTo(0)
@@ -71,22 +71,22 @@ class JfrManifestMergerReportsTest {
   fun snapshotComputeListener_computeEndsAfterThreshold() {
     // Start the merge
     val token = Any()
-    val startTimeMillis = scheduler.currentTime
-    listener.snapshotCreationStarted(token, startTimeMillis)
+    listener.snapshotCreationStarted(token)
     scheduler.runCurrent()
 
     assertThat(startCaptureCalls).isEqualTo(0)
     assertThat(stopCaptureCalls).isEqualTo(0)
 
     // Advance to the threshold
-    scheduler.advanceTimeBy(REPORTING_THRESHOLD)
+    val advanceBy = REPORTING_THRESHOLD
+    scheduler.advanceTimeBy(advanceBy)
     scheduler.runCurrent()
 
     assertThat(startCaptureCalls).isEqualTo(1)
     assertThat(stopCaptureCalls).isEqualTo(0)
 
     // End the merge
-    listener.snapshotCreationEnded(token, startTimeMillis, scheduler.currentTime, MergeResult.SUCCESS)
+    listener.snapshotCreationEnded(token, advanceBy, MergeResult.SUCCESS)
     scheduler.runCurrent()
 
     assertThat(startCaptureCalls).isEqualTo(1)
@@ -97,10 +97,9 @@ class JfrManifestMergerReportsTest {
   fun snapshotComputeListener_multipleSequentialComputes() {
     // Merge 0: below threshold
     val token0 = Any()
-    val startTimeMillis0 = scheduler.currentTime
-    listener.snapshotCreationStarted(token0, startTimeMillis0)
+    listener.snapshotCreationStarted(token0,)
     scheduler.advanceTimeBy(REPORTING_THRESHOLD - 1.milliseconds)
-    listener.snapshotCreationEnded(token0, startTimeMillis0, scheduler.currentTime, MergeResult.SUCCESS)
+    listener.snapshotCreationEnded(token0, REPORTING_THRESHOLD - 1.milliseconds, MergeResult.SUCCESS)
     scheduler.advanceTimeBy(1.seconds)
 
     assertThat(startCaptureCalls).isEqualTo(0)
@@ -108,10 +107,9 @@ class JfrManifestMergerReportsTest {
 
     // Merge 1: above threshold
     val token1 = Any()
-    val startTimeMillis1 = scheduler.currentTime
-    listener.snapshotCreationStarted(token1, startTimeMillis1)
+    listener.snapshotCreationStarted(token1)
     scheduler.advanceTimeBy(REPORTING_THRESHOLD + 1.milliseconds)
-    listener.snapshotCreationEnded(token1, startTimeMillis1, scheduler.currentTime, MergeResult.SUCCESS)
+    listener.snapshotCreationEnded(token1, REPORTING_THRESHOLD + 1.milliseconds, MergeResult.SUCCESS)
     scheduler.advanceTimeBy(1.seconds)
 
     assertThat(startCaptureCalls).isEqualTo(1)
@@ -119,10 +117,9 @@ class JfrManifestMergerReportsTest {
 
     // Merge 2: above threshold
     val token2 = Any()
-    val startTimeMillis2 = scheduler.currentTime
-    listener.snapshotCreationStarted(token2, startTimeMillis2)
+    listener.snapshotCreationStarted(token2)
     scheduler.advanceTimeBy(REPORTING_THRESHOLD + 1.milliseconds)
-    listener.snapshotCreationEnded(token2, startTimeMillis2, scheduler.currentTime, MergeResult.SUCCESS)
+    listener.snapshotCreationEnded(token2, REPORTING_THRESHOLD + 1.milliseconds, MergeResult.SUCCESS)
     scheduler.advanceTimeBy(1.seconds)
 
     assertThat(startCaptureCalls).isEqualTo(2)
@@ -130,10 +127,9 @@ class JfrManifestMergerReportsTest {
 
     // Merge 3: below threshold
     val token3 = Any()
-    val startTimeMillis3 = scheduler.currentTime
-    listener.snapshotCreationStarted(token3, startTimeMillis3)
+    listener.snapshotCreationStarted(token3)
     scheduler.advanceTimeBy(REPORTING_THRESHOLD - 1.milliseconds)
-    listener.snapshotCreationEnded(token3, startTimeMillis3, scheduler.currentTime, MergeResult.SUCCESS)
+    listener.snapshotCreationEnded(token3, REPORTING_THRESHOLD - 1.milliseconds, MergeResult.SUCCESS)
     scheduler.advanceTimeBy(1.seconds)
 
     assertThat(startCaptureCalls).isEqualTo(2)
@@ -144,18 +140,17 @@ class JfrManifestMergerReportsTest {
   fun snapshotComputeListener_multipleParallelComputesBelowThreshold() {
     // Start 4 merges at the same time.
     val tokens = List(4) { Any() }
-    val startTimeMillis = scheduler.currentTime
-    tokens.forEach { listener.snapshotCreationStarted(it, startTimeMillis) }
+    tokens.forEach { listener.snapshotCreationStarted(it) }
 
     // End the merges out of order, all before the reporting threshold.
     scheduler.advanceTimeBy(REPORTING_THRESHOLD - 10.milliseconds)
-    listener.snapshotCreationEnded(tokens[3], startTimeMillis, scheduler.currentTime, MergeResult.SUCCESS)
+    listener.snapshotCreationEnded(tokens[3], REPORTING_THRESHOLD - 10.milliseconds, MergeResult.SUCCESS)
     scheduler.advanceTimeBy(1.milliseconds)
-    listener.snapshotCreationEnded(tokens[0], startTimeMillis, scheduler.currentTime, MergeResult.SUCCESS)
+    listener.snapshotCreationEnded(tokens[0], REPORTING_THRESHOLD - 9.milliseconds, MergeResult.SUCCESS)
     scheduler.advanceTimeBy(1.milliseconds)
-    listener.snapshotCreationEnded(tokens[2], startTimeMillis, scheduler.currentTime, MergeResult.SUCCESS)
+    listener.snapshotCreationEnded(tokens[2], REPORTING_THRESHOLD - 8.milliseconds, MergeResult.SUCCESS)
     scheduler.advanceTimeBy(1.milliseconds)
-    listener.snapshotCreationEnded(tokens[1], startTimeMillis, scheduler.currentTime, MergeResult.SUCCESS)
+    listener.snapshotCreationEnded(tokens[1], REPORTING_THRESHOLD - 7.milliseconds, MergeResult.SUCCESS)
 
     // Advance the clock to ensure no captures are started.
     scheduler.advanceTimeBy(1.days)
@@ -168,19 +163,18 @@ class JfrManifestMergerReportsTest {
   fun snapshotComputeListener_multipleParallelComputesWithOneAboveThreshold() {
     // Start 4 merges at the same time.
     val tokens = List(4) { Any() }
-    val startTimeMillis = scheduler.currentTime
-    tokens.forEach { listener.snapshotCreationStarted(it, startTimeMillis) }
+    tokens.forEach { listener.snapshotCreationStarted(it) }
 
     // End the merges out of order, with three before the reporting threshold.
     scheduler.advanceTimeBy(REPORTING_THRESHOLD - 10.milliseconds)
-    listener.snapshotCreationEnded(tokens[3], startTimeMillis, scheduler.currentTime, MergeResult.SUCCESS)
+    listener.snapshotCreationEnded(tokens[3], REPORTING_THRESHOLD - 10.milliseconds, MergeResult.SUCCESS)
     scheduler.advanceTimeBy(1.milliseconds)
-    listener.snapshotCreationEnded(tokens[0], startTimeMillis, scheduler.currentTime, MergeResult.SUCCESS)
+    listener.snapshotCreationEnded(tokens[0], REPORTING_THRESHOLD - 9.milliseconds, MergeResult.SUCCESS)
     scheduler.advanceTimeBy(1.milliseconds)
-    listener.snapshotCreationEnded(tokens[2], startTimeMillis, scheduler.currentTime, MergeResult.SUCCESS)
+    listener.snapshotCreationEnded(tokens[2], REPORTING_THRESHOLD - 8.milliseconds, MergeResult.SUCCESS)
     // Advance by 10ms, which pushes the last merge above the threshold.
     scheduler.advanceTimeBy(10.milliseconds)
-    listener.snapshotCreationEnded(tokens[1], startTimeMillis, scheduler.currentTime, MergeResult.SUCCESS)
+    listener.snapshotCreationEnded(tokens[1], REPORTING_THRESHOLD + 2.milliseconds, MergeResult.SUCCESS)
 
     scheduler.runCurrent()
 
@@ -195,13 +189,13 @@ class JfrManifestMergerReportsTest {
     val startTimes = mutableListOf<Long>()
     tokens.forEach {
       startTimes.add(scheduler.currentTime)
-      listener.snapshotCreationStarted(it, scheduler.currentTime)
+      listener.snapshotCreationStarted(it)
       scheduler.advanceTimeBy(10.milliseconds)
     }
 
     // End merge 0 before the threshold.
     scheduler.advanceTimeBy(REPORTING_THRESHOLD - 41.milliseconds)
-    listener.snapshotCreationEnded(tokens[0], startTimes[0], scheduler.currentTime, MergeResult.SUCCESS)
+    listener.snapshotCreationEnded(tokens[0], (scheduler.currentTime - startTimes[0]).milliseconds, MergeResult.SUCCESS)
 
     // Advance to when merge 1 reaches the threshold. No report should have started yet.
     scheduler.advanceTimeBy(11.milliseconds)
@@ -219,19 +213,19 @@ class JfrManifestMergerReportsTest {
     assertThat(stopCaptureCalls).isEqualTo(0)
 
     // End merge 2. The report should not stop, since merge 1 is the controlling merge.
-    listener.snapshotCreationEnded(tokens[2], startTimes[2], scheduler.currentTime, MergeResult.SUCCESS)
+    listener.snapshotCreationEnded(tokens[2], (scheduler.currentTime - startTimes[2]).milliseconds, MergeResult.SUCCESS)
     scheduler.runCurrent()
     assertThat(startCaptureCalls).isEqualTo(1)
     assertThat(stopCaptureCalls).isEqualTo(0)
 
     // End merge 1. Now the report should stop.
-    listener.snapshotCreationEnded(tokens[1], startTimes[1], scheduler.currentTime, MergeResult.SUCCESS)
+    listener.snapshotCreationEnded(tokens[1], (scheduler.currentTime - startTimes[1]).milliseconds, MergeResult.SUCCESS)
     scheduler.runCurrent()
     assertThat(startCaptureCalls).isEqualTo(1)
     assertThat(stopCaptureCalls).isEqualTo(1)
 
     // End merge 3. No more calls should have come in to stop, since this merge didn't cause a report to be started.
-    listener.snapshotCreationEnded(tokens[3], startTimes[3], scheduler.currentTime, MergeResult.SUCCESS)
+    listener.snapshotCreationEnded(tokens[3], (scheduler.currentTime - startTimes[3]).milliseconds, MergeResult.SUCCESS)
     scheduler.runCurrent()
     assertThat(startCaptureCalls).isEqualTo(1)
     assertThat(stopCaptureCalls).isEqualTo(1)

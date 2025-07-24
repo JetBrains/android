@@ -25,7 +25,7 @@ import com.android.tools.idea.model.MergedManifestException.MissingAttribute
 import com.android.tools.idea.model.MergedManifestException.MissingElement
 import com.android.tools.idea.model.MergedManifestException.ParsingError
 import com.android.tools.idea.model.MergedManifestManager.Companion.LOG
-import com.android.tools.idea.res.TransitiveAarRClass
+import com.android.tools.idea.model.MergedManifestManager.Companion.getMergedManifestSupplier
 import com.android.tools.idea.stats.ManifestMergerStatsTracker.MergeResult
 import com.android.tools.idea.util.androidFacet
 import com.android.utils.TraceUtils
@@ -47,14 +47,17 @@ import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.RecursionManager
 import com.intellij.util.messages.Topic
 import org.jetbrains.android.facet.AndroidFacet
-import java.time.Duration
 import java.util.concurrent.ExecutionException
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.TimeSource
+import kotlin.time.toJavaDuration
 
 /**
  * The minimum amount of time between the creation of any two [MergedManifestSnapshot]s
  * for the same module. See [ThrottlingAsyncSupplier].
  */
-private val RECOMPUTE_INTERVAL = Duration.ofMillis(50)
+private val RECOMPUTE_INTERVAL = 50.milliseconds.toJavaDuration()
 
 /**
  * [MergedManifestSupplier] wraps a [ThrottlingAsyncSupplier] that knows how to calculate and cache
@@ -67,6 +70,8 @@ private val RECOMPUTE_INTERVAL = Duration.ofMillis(50)
 private class MergedManifestSupplier(private val module: Module) : AsyncSupplier<MergedManifestSnapshot>, Disposable, ModificationTracker {
 
   private val delegate = ThrottlingAsyncSupplier(::getOrCreateSnapshotFromDelegate, ::snapshotUpToDate, RECOMPUTE_INTERVAL)
+
+  private val timeSource = TimeSource.Monotonic
 
   private val callingThreadLock = Any()
   /**
@@ -121,10 +126,10 @@ private class MergedManifestSupplier(private val module: Module) : AsyncSupplier
   /** Create a [MergedManifestSnapshot] and record associated telemetry. */
   @Slow
   private fun createMergedManifestSnapshot(facet: AndroidFacet): MergedManifestSnapshot {
-    val startMillis = System.currentTimeMillis()
+    val timeMarker = timeSource.markNow()
     val token = Object()
     ApplicationManager.getApplication().messageBus.syncPublisher(MergedManifestSnapshotComputeListener.TOPIC)
-      .snapshotCreationStarted(token, startMillis)
+      .snapshotCreationStarted(token)
 
     var snapshot: MergedManifestSnapshot
     var result = MergeResult.FAILED
@@ -153,7 +158,7 @@ private class MergedManifestSupplier(private val module: Module) : AsyncSupplier
     finally {
       val endMillis = System.currentTimeMillis()
       ApplicationManager.getApplication().messageBus.syncPublisher(MergedManifestSnapshotComputeListener.TOPIC)
-        .snapshotCreationEnded(token, startMillis, endMillis, result)
+        .snapshotCreationEnded(token, timeMarker.elapsedNow(), result)
     }
 
     return snapshot
@@ -415,7 +420,7 @@ interface MergedManifestSnapshotComputeListener {
    * between calls to the start and end events, since multiple merges may be happening simultaneously. The token passed to each method will
    * be the same object for a given single merge computation.
    */
-  fun snapshotCreationStarted(token: Any, startTimestampMillis: Long)
+  fun snapshotCreationStarted(token: Any)
 
   /**
    * Invoked when manifest merge computation end.
@@ -424,6 +429,6 @@ interface MergedManifestSnapshotComputeListener {
    * between calls to the start and end events, since multiple merges may be happening simultaneously. The token passed to each method will
    * be the same object for a given single merge computation.
    */
-  fun snapshotCreationEnded(token: Any, startTimestampMillis: Long, endTimestampMillis: Long, result: MergeResult)
+  fun snapshotCreationEnded(token: Any, duration: Duration, result: MergeResult)
 
 }

@@ -25,6 +25,7 @@ import com.google.wireless.android.sdk.stats.ManifestMergerStats
 import com.intellij.openapi.application.ApplicationManager
 import org.HdrHistogram.SingleWriterRecorder
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Duration
 
 /** Object used to record metrics related to running the Manifest Merger within the IDE. */
 object ManifestMergerStatsTracker : MergedManifestSnapshotComputeListener {
@@ -36,16 +37,15 @@ object ManifestMergerStatsTracker : MergedManifestSnapshotComputeListener {
   private val histogramsByResult = ConcurrentHashMap<MergeResult, SingleWriterRecorder>()
 
   @AnyThread
-  override fun snapshotCreationStarted(token: Any, startTimestampMillis: Long) {
+  override fun snapshotCreationStarted(token: Any) {
     // Do nothing
   }
 
   @AnyThread
-  override fun snapshotCreationEnded(token: Any, startTimestampMillis: Long, endTimestampMillis: Long, result: MergeResult) {
-    val runTimeMs = endTimestampMillis - startTimestampMillis
+  override fun snapshotCreationEnded(token: Any, duration: Duration, result: MergeResult) {
     ApplicationManager.getApplication().invokeLater {
       // This runs on the EDT to ensure a single writer, but is thread-safe with respect to a background thread reading the histogram.
-      histogramsByResult.computeIfAbsent(result) { SingleWriterRecorder(1) }.recordValue(runTimeMs)
+      histogramsByResult.computeIfAbsent(result) { SingleWriterRecorder(1) }.recordValue(duration.inWholeMilliseconds)
     }
   }
 

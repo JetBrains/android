@@ -34,6 +34,7 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 object JfrManifestMergerReports {
@@ -84,14 +85,13 @@ object JfrManifestMergerReports {
   ) : MergedManifestSnapshotComputeListener {
 
     @AnyThread
-    override fun snapshotCreationStarted(token: Any, startTimestampMillis: Long) {
+    override fun snapshotCreationStarted(token: Any) {
       coroutineScope.launch { handleSnapshotCreationStarted(token) }
     }
 
     @AnyThread
     override fun snapshotCreationEnded(token: Any,
-                                       startTimestampMillis: Long,
-                                       endTimestampMillis: Long,
+                                       duration: Duration,
                                        result: ManifestMergerStatsTracker.MergeResult) {
       coroutineScope.launch { handleSnapshotCreationEnded(token) }
     }
