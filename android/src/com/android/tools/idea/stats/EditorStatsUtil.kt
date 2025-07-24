@@ -50,6 +50,9 @@ import com.google.wireless.android.sdk.stats.EditorFileType.PROTO
 import com.google.wireless.android.sdk.stats.EditorFileType.PROTO_WITHOUT_PLUGIN
 import com.google.wireless.android.sdk.stats.EditorFileType.TOML
 import com.google.wireless.android.sdk.stats.EditorFileType.UNKNOWN
+import com.google.wireless.android.sdk.stats.EditorFileType.PYTHON
+import com.google.wireless.android.sdk.stats.EditorFileType.RUST
+import com.google.wireless.android.sdk.stats.EditorFileType.GO
 import com.google.wireless.android.sdk.stats.EditorFileType.XML
 import com.google.wireless.android.sdk.stats.EditorFileType.XML_MANIFEST
 import com.google.wireless.android.sdk.stats.EditorFileType.XML_RES_ANIM
@@ -135,6 +138,12 @@ suspend fun getEditorFileTypeForAnalytics(file: VirtualFile, project: Project?):
     else ->
       when (file.extension) {
         "proto" -> PROTO_WITHOUT_PLUGIN
+        // LSP4IJ language support doesn't create a distinct plugin for each language and
+        // can coexist with plugins that do claim ownership of a file type. Here, we capture
+        // the editor language type regardless.
+        "py" -> PYTHON
+        "rs" -> RUST
+        "go" -> GO
         else -> UNKNOWN
       }
   }

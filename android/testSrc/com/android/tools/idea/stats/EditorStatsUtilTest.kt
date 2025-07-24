@@ -75,6 +75,9 @@ class EditorStatsUtilTest {
       "properties" to EditorFileType.PROPERTIES,
       "json" to EditorFileType.JSON,
       "toml" to EditorFileType.TOML,
+      "py" to EditorFileType.PYTHON,
+      "rs" to EditorFileType.RUST,
+      "go" to EditorFileType.GO,
       "foo" to EditorFileType.UNKNOWN,
     )
 
