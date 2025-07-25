@@ -65,7 +65,7 @@ class ScreenRecorderAction : DumbAwareAction(
     val params = event.getData(ScreenRecordingParameters.DATA_KEY)
     val project = event.project
     event.presentation.isEnabled =
-        params != null && project != null && isRecordingSupported(params, project) && !recordingInProgress.contains(params.serialNumber)
+        params != null && project != null && params.isRecordingSupported(project) && !recordingInProgress.contains(params.serialNumber)
   }
 
   override fun actionPerformed(event: AnActionEvent) {
@@ -80,11 +80,6 @@ class ScreenRecorderAction : DumbAwareAction(
       val avdFolderForRecording = if (settings.useEmulatorRecordingWhenAvailable) avdFolder else null
       startRecordingAsync(settings, params, displayId, displayInfoProvider, avdFolderForRecording, project)
     }
-  }
-
-  private fun isRecordingSupported(params: ScreenRecordingParameters, project: Project): Boolean {
-    return params.featureLevel >= 19 &&
-           ScreenRecordingSupportedCache.getInstance(project).isScreenRecordingSupported(params.serialNumber)
   }
 
   @UiThread
@@ -218,3 +213,7 @@ data class ScreenRecordingParameters(
     val DATA_KEY = DataKey.create<ScreenRecordingParameters>("ScreenRecordingParameters")
   }
 }
+
+private fun ScreenRecordingParameters.isRecordingSupported(project: Project): Boolean =
+    featureLevel >= 19 && ScreenRecordingSupportedCache.getInstance(project).isScreenRecordingSupported(serialNumber)
+
