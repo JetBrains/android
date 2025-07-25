@@ -23,7 +23,7 @@
 
 namespace screensharing {
 
-class VirtualDisplay : public JObject {
+class VirtualDisplay : private JObject {
 public:
   using JObject::JObject;
   explicit VirtualDisplay(JObject&& virtual_display);

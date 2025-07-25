@@ -92,11 +92,9 @@ private:
     DISALLOW_COPY_AND_ASSIGN(DisplayRotationWatcher);
   };
 
-  enum class FrameStreamStopReason { TIMEOUT, CODEC_STOPPED, END_OF_STREAM };
-
   void Run();
   // Returns true if the streaming should continue, otherwise false.
-  FrameStreamStopReason ProcessFramesUntilCodecStopped(VideoPacketHeader* packet_header, const AMediaFormat* sync_frame_request);
+  bool ProcessFramesUntilCodecStopped(VideoPacketHeader* packet_header, const AMediaFormat* sync_frame_request);
   void CreateCodec();
   // Deletes the codec if it was created. The codec should not be running when this method is called. Safe to call multiple times.
   void DeleteCodec();
@@ -131,7 +129,6 @@ private:
   JObject display_token_;
 
   AMediaCodec* codec_ = nullptr;
-  ANativeWindow* surface_ = nullptr;
   std::recursive_mutex mutex_;
   DisplayInfo display_info_;  // GUARDED_BY(mutex_)
   Size max_video_resolution_;  // GUARDED_BY(mutex_)
