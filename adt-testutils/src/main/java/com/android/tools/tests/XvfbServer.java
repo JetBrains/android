@@ -35,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
 class XvfbServer {
   private static final String DEFAULT_RESOLUTION = "1280x1024x24";
   private static final int MAX_RETRIES_TO_FIND_DISPLAY = 20;
-  private static final String XVFB_LAUNCHER = "tools/vendor/google/testing/display/launch_xvfb.sh";
+  private static final String XVFB_LAUNCHER = "tools/emulator/testlib/display/launch_xvfb.sh";
 
   @Nullable
   private Process process;
@@ -85,7 +85,7 @@ class XvfbServer {
       throw new IllegalStateException("Xvfb runfiles does not exist. "
                                       + "Add a data dependency on the runfiles for Xvfb. "
                                       + "It will look something like "
-                                      + "//tools/vendor/google/testing/display:xvfb");
+                                      + "//tools/emulator/testlib/display:xvfb");
     }
     try {
       return new ProcessBuilder(

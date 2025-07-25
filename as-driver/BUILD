@@ -60,8 +60,6 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/android-33",
         "//tools/adt/idea/as-driver:asdriver.plugin",
         "//tools/base/threading-agent:threading_agent.jar",
-        "//tools/vendor/google/testing/display:ffmpeg_files",
-        "//tools/vendor/google/testing/display:xvfb",
     ] + select({
         "@intellij//:studio-sdk": [":studio_zips"],
         "//conditions:default": ["@intellij//:distribution-zip"],
