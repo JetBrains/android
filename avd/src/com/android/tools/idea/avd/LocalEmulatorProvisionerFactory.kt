@@ -23,7 +23,6 @@ import com.android.sdklib.deviceprovisioner.LocalEmulatorSnapshot
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.avd.EditVirtualDeviceDialog.Mode
-import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType.DIRECT_DEVICE_MANAGER
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType.INDIRECT
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.RunningAvdTracker
@@ -104,14 +103,10 @@ private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPl
   override suspend fun startAvd(avdInfo: AvdInfo): Unit =
     // Note: the original DeviceManager does this in UI thread, but this may call
     // @Slow methods so switch
-    withContext(workerThread) {
-      avdManagerConnection.quickBoot(project, avdInfo, DIRECT_DEVICE_MANAGER)
-    }
+    withContext(workerThread) { avdManagerConnection.quickBoot(project, avdInfo, INDIRECT) }
 
   override suspend fun coldBootAvd(avdInfo: AvdInfo): Unit =
-    withContext(workerThread) {
-      avdManagerConnection.coldBoot(project, avdInfo, DIRECT_DEVICE_MANAGER)
-    }
+    withContext(workerThread) { avdManagerConnection.coldBoot(project, avdInfo, INDIRECT) }
 
   override suspend fun bootAvdFromSnapshot(
     avdInfo: AvdInfo,

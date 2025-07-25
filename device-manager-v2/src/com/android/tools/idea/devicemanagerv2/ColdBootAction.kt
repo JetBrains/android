@@ -37,8 +37,10 @@ class ColdBootAction() : DumbAwareAction("Cold Boot") {
 
     DeviceManagerUsageTracker.logDeviceManagerEvent(VIRTUAL_COLD_BOOT_NOW_ACTION)
 
-    deviceHandle.launchCatchingDeviceActionException(project = e.project) {
+    val project = e.project
+    deviceHandle.launchCatchingDeviceActionException(project = project) {
       coldBootAction.activate()
+      project?.userInvolvementRequired(deviceHandle)
     }
   }
 }

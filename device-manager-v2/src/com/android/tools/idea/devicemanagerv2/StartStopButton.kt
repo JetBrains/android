@@ -57,6 +57,7 @@ internal class StartStopButton(
             }
             runCatchingDeviceActionException(project, handle.state.properties.title) {
               activationAction.activate()
+              project?.userInvolvementRequired(handle)
             }
           }
         deactivationPresentation.value.icon ->
