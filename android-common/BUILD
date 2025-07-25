@@ -62,6 +62,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
         "//tools/adt/idea/android-common:libandroid-core-proto",
     ],
+    test_resources = ["test-resources"],
     test_srcs = ["test"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

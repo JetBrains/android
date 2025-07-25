@@ -17,7 +17,6 @@ package com.android.tools.idea.flags
 
 import com.android.flags.FlagDefault
 import com.android.tools.idea.IdeChannel
-import com.google.common.annotations.VisibleForTesting
 
 /**
  * Utility API allowing specification of a different default flag value depending on the release channel of Android Studio.
@@ -25,7 +24,7 @@ import com.google.common.annotations.VisibleForTesting
  * Example usage: `ChannelDefault.enabledUpTo(CANARY)` would return true for dev, nightly and canary, but false for beta, release-candidate
  * and stable versions of Studio.
  */
-class ChannelDefault private constructor(private val leastStableChannel: IdeChannel.Channel, explanation: String): FlagDefault<Boolean>(explanation) {
+class ChannelDefault private constructor(val leastStableChannel: IdeChannel.Channel, explanation: String): FlagDefault<Boolean>(explanation) {
 
   override fun get(): Boolean = IdeChannel.channel <= leastStableChannel
 
