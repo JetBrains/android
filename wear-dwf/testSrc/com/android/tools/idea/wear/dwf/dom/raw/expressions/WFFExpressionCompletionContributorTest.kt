@@ -26,6 +26,7 @@ import com.android.tools.wear.wff.WFFVersion.WFFVersion2
 import com.android.tools.wear.wff.WFFVersion.WFFVersion3
 import com.android.tools.wear.wff.WFFVersion.WFFVersion4
 import com.google.common.truth.Truth.assertThat
+import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
@@ -49,7 +50,7 @@ class WFFExpressionCompletionContributorTest {
 
   @Test
   fun `autocompletes functions when a literal is expected`() {
-    fixture.configureByText(WFFExpressionFileType, caret)
+    configureExpression(caret)
 
     assertThat(fixture.completeBasic().map { it.lookupString })
       .containsAllOf("log", "log10", "clamp")
@@ -57,7 +58,7 @@ class WFFExpressionCompletionContributorTest {
 
   @Test
   fun `function variants depend on WFF version`() {
-    fixture.configureByText(WFFExpressionFileType, caret)
+    configureExpression(caret)
 
     overrideCurrentWFFVersion(WFFVersion1, projectRule.testRootDisposable)
     var variants = fixture.completeBasic().map { it.lookupString }
@@ -87,53 +88,55 @@ class WFFExpressionCompletionContributorTest {
 
   @Test
   fun `does not autocomplete functions when after a bracket`() {
-    fixture.configureByText(WFFExpressionFileType, "[$caret")
+    configureExpression("[$caret")
 
     assertThat(fixture.completeBasic().map { it.lookupString }).doesNotContain("log")
 
-    fixture.configureByText(WFFExpressionFileType, "[CONFIGURATION.$caret]")
+    configureExpression("[CONFIGURATION.$caret")
 
     assertThat(fixture.completeBasic().map { it.lookupString }).doesNotContain("log")
   }
 
   @Test
   fun `does not autocomplete functions when a literal is not expected`() {
-    fixture.configureByText(WFFExpressionFileType, "log() $caret")
+    configureExpression("log() $caret")
 
     assertThat(fixture.completeBasic().map { it.lookupString }).isEmpty()
   }
 
   @Test
   fun `autocompleted functions adds parenthesis if needed and moves the cursor`() {
-    fixture.configureByText(WFFExpressionFileType, "textLen$caret")
+    configureExpression("textLen$caret")
 
     fixture.completeBasic()
 
-    fixture.checkResult("textLength($caret)")
+    checkExpressionAutocomplete("textLength($caret)")
   }
 
   @Test
   fun `autocompleted functions does not add parenthesis if not needed and moves the cursor`() {
-    fixture.configureByText(WFFExpressionFileType, "textLen$caret(\"some string\")")
+    configureExpression("textLen$caret(\"some string\")")
 
     fixture.completeBasic()
 
-    fixture.checkResult("textLength($caret\"some string\")")
+    checkExpressionAutocomplete("textLength($caret\"some string\")")
   }
 
   @Test
   fun `autocompletes data sources when a literal is expected`() {
-    fixture.configureByText(WFFExpressionFileType, caret)
+    configureExpression(caret)
 
     assertThat(fixture.completeBasic().map { it.lookupString })
-      .containsAllIn(
-        arrayOf("WEATHER.IS_AVAILABLE", "STEP_COUNT", "WEATHER.DAYS.<days>.CHANCE_OF_PRECIPITATION")
+      .containsAllOf(
+        "WEATHER.IS_AVAILABLE",
+        "STEP_COUNT",
+        "WEATHER.DAYS.<days>.CHANCE_OF_PRECIPITATION",
       )
   }
 
   @Test
   fun `data source variants depend on the WFF version`() {
-    fixture.configureByText(WFFExpressionFileType, caret)
+    configureExpression(caret)
 
     overrideCurrentWFFVersion(WFFVersion1, projectRule.testRootDisposable)
     var variants = fixture.completeBasic().map { it.lookupString }
@@ -158,7 +161,7 @@ class WFFExpressionCompletionContributorTest {
 
   @Test
   fun `all data source variants are returned when the WFF version can't be determined`() {
-    fixture.configureByText(WFFExpressionFileType, caret)
+    configureExpression(caret)
     overrideCurrentWFFVersion(null, projectRule.testRootDisposable)
 
     val variants = fixture.completeBasic().map { it.lookupString }
@@ -170,60 +173,60 @@ class WFFExpressionCompletionContributorTest {
 
   @Test
   fun `does not autocomplete data sources when a literal is not expected`() {
-    fixture.configureByText(WFFExpressionFileType, "[STEP_COUNT] $caret")
+    configureExpression("[STEP_COUNT] $caret")
 
     assertThat(fixture.completeBasic().map { it.lookupString }).isEmpty()
   }
 
   @Test
   fun `autocompleted data sources add brackets if needed`() {
-    fixture.configureByText(WFFExpressionFileType, "STEP_C$caret")
+    configureExpression("STEP_C$caret")
 
     fixture.completeBasic()
 
-    fixture.checkResult("[STEP_COUNT]")
+    checkExpressionAutocomplete("[STEP_COUNT]")
   }
 
   @Test
   fun `autocompleted data sources do not add brackets if not needed`() {
-    fixture.configureByText(WFFExpressionFileType, "[STEP_C$caret]")
+    configureExpression("[STEP_C$caret]")
 
     fixture.completeBasic()
+    fixture.finishLookup(Lookup.NORMAL_SELECT_CHAR)
 
-    fixture.checkResult("[STEP_COUNT]")
+    checkExpressionAutocomplete("[STEP_COUNT]")
   }
 
   @Test
   fun `autocompletes weather data sources after the dot`() {
-    fixture.configureByText(WFFExpressionFileType, "[WEATHER.$caret")
+    configureExpression("[WEATHER.$caret")
 
     assertThat(fixture.completeBasic().map { it.lookupString })
-      .containsAllIn(
-        arrayOf(
-          "WEATHER.IS_AVAILABLE",
-          "WEATHER.DAYS.<days>.IS_AVAILABLE",
-          "WEATHER.HOURS.<hours>.IS_AVAILABLE",
-        )
+      .containsAllOf(
+        "WEATHER.IS_AVAILABLE",
+        "WEATHER.DAYS.<days>.IS_AVAILABLE",
+        "WEATHER.HOURS.<hours>.IS_AVAILABLE",
       )
   }
 
   @Test
   fun `autocompletes patterned weather data sources after the dot`() {
-    fixture.configureByText(WFFExpressionFileType, "[WEATHER.DAYS.$caret")
+    configureExpression("[WEATHER.DAYS.$caret")
 
     assertThat(fixture.completeBasic().map { it.lookupString })
-      .containsAllIn(
-        arrayOf("WEATHER.DAYS.<days>.IS_AVAILABLE", "WEATHER.DAYS.<days>.CHANCE_OF_PRECIPITATION")
+      .containsAllOf(
+        "WEATHER.DAYS.<days>.IS_AVAILABLE",
+        "WEATHER.DAYS.<days>.CHANCE_OF_PRECIPITATION",
       )
   }
 
   @Test
   fun `autocompletes patterned weather data sources after the specified days`() {
-    fixture.configureByText(WFFExpressionFileType, "[WEATHER.DAYS.3.$caret")
+    configureExpression("[WEATHER.DAYS.3.$caret")
 
     val lookupStrings = fixture.completeBasic().map { it.lookupString }
     assertThat(lookupStrings)
-      .containsAllIn(arrayOf("WEATHER.DAYS.3.IS_AVAILABLE", "WEATHER.DAYS.3.CONDITION_DAY_NAME"))
+      .containsAllOf("WEATHER.DAYS.3.IS_AVAILABLE", "WEATHER.DAYS.3.CONDITION_DAY_NAME")
     assertThat(lookupStrings).doesNotContain("WEATHER.DAYS.<days>.IS_AVAILABLE")
     assertThat(lookupStrings).doesNotContain("WEATHER.HOURS.<hours>.IS_AVAILABLE")
     assertThat(lookupStrings).doesNotContain("WEATHER.IS_AVAILABLE")
@@ -232,11 +235,11 @@ class WFFExpressionCompletionContributorTest {
 
   @Test
   fun `autocompletes patterned weather data sources after the specified hours`() {
-    fixture.configureByText(WFFExpressionFileType, "[WEATHER.HOURS.2$caret")
+    configureExpression("[WEATHER.HOURS.2$caret")
 
     val lookupStrings = fixture.completeBasic().map { it.lookupString }
     assertThat(lookupStrings)
-      .containsAllIn(arrayOf("WEATHER.HOURS.2.IS_AVAILABLE", "WEATHER.HOURS.2.CONDITION_NAME"))
+      .containsAllOf("WEATHER.HOURS.2.IS_AVAILABLE", "WEATHER.HOURS.2.CONDITION_NAME")
     assertThat(lookupStrings).doesNotContain("WEATHER.HOURS.<hours>.IS_AVAILABLE")
     assertThat(lookupStrings).doesNotContain("WEATHER.DAYS.<days>.IS_AVAILABLE")
     assertThat(lookupStrings).doesNotContain("WEATHER.IS_AVAILABLE")
@@ -245,11 +248,21 @@ class WFFExpressionCompletionContributorTest {
 
   @Test
   fun `autocompleted patterned weather data sources add brackets, remove the cursor token, and move the cursor`() {
-    fixture.configureByText(WFFExpressionFileType, "[WEATHER.DAYS.is$caret")
+    configureExpression("WEATHER.DAYS.is$caret")
 
     fixture.completeBasic()
 
-    fixture.checkResult("[WEATHER.DAYS.$caret.IS_AVAILABLE]")
+    checkExpressionAutocomplete("[WEATHER.DAYS.$caret.IS_AVAILABLE]")
+  }
+
+  @Test
+  fun `autocompleted patterned weather data sources don't add brackets if not needed`() {
+    configureExpression("[WEATHER.DAYS.is$caret]")
+
+    fixture.completeBasic()
+    fixture.finishLookup(Lookup.NORMAL_SELECT_CHAR)
+
+    checkExpressionAutocomplete("[WEATHER.DAYS.$caret.IS_AVAILABLE]")
   }
 
   @Test
@@ -278,4 +291,27 @@ class WFFExpressionCompletionContributorTest {
 
     assertThat(fixture.completeBasic().map { it.lookupString }).isEmpty()
   }
+
+  private fun configureExpression(wffExpression: String) {
+    // wrap in the watch face file for references to be created
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        basicWatchFaceFileWithWFFExpression(wffExpression),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+  }
+
+  private fun checkExpressionAutocomplete(expectedWffExpression: String) {
+    fixture.checkResult(basicWatchFaceFileWithWFFExpression(expectedWffExpression))
+  }
+
+  private fun basicWatchFaceFileWithWFFExpression(wffExpression: String) =
+    // language=XML
+    """
+      <WatchFace>
+        <Parameter expression="$wffExpression" />
+      </WatchFace>
+    """
+      .trimIndent()
 }

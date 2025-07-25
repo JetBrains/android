@@ -104,12 +104,11 @@ class WFFExpressionCompletionContributor : CompletionContributor() {
 
         resultSet.addAllElements(
           availablePatternedDataSource.map {
-            LookupElementBuilder.create(it.lookupString)
-              .withPresentableText("[${it.lookupString}]")
-              .withInsertHandler { context, lookupItem ->
-                insertBracketsAroundIfNeeded(context, lookupItem)
-                moveCursorToCursorTokenAndRemoveIt(context, lookupItem, it)
-              }
+            createDataSourceLookupElement(it.lookupString).withInsertHandler { context, lookupItem
+              ->
+              insertBracketsAroundIfNeeded(context, lookupItem)
+              moveCursorToCursorTokenAndRemoveIt(context, lookupItem, it)
+            }
           }
         )
       }
@@ -187,6 +186,7 @@ class WFFExpressionCompletionContributor : CompletionContributor() {
 
   private fun createDataSourceLookupElement(lookupString: String) =
     LookupElementBuilder.create(lookupString)
+      .withLookupStrings(listOf(lookupString, "[$lookupString]"))
       .withPresentableText("[$lookupString]")
       .insertBracketsAroundIfNeeded()
 
@@ -201,7 +201,7 @@ class WFFExpressionCompletionContributor : CompletionContributor() {
   ) {
     val tokenOffsetInLookupString = lookupItem.lookupString.indexOf(dataSource.lookupCursorToken)
     if (tokenOffsetInLookupString < 0) return
-    val cursorOffset = context.startOffset + tokenOffsetInLookupString
+    val cursorOffset = context.startOffset + tokenOffsetInLookupString + 1
 
     context.editor.caretModel.moveToOffset(cursorOffset)
     context.document.replaceString(
