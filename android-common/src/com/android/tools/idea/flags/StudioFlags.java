@@ -1499,8 +1499,11 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_CODE_TO_PREVIEW_NAVIGATION = new BooleanFlag(
     COMPOSE, "preview.code.to.preview.navigation", "Enable the highlighting of preview components when clicking on code",
-    "If a user moves their caret to a element present in a preview, we highlight those elements"
-    );
+    "If a user moves their caret to a element present in a preview, we highlight those elements");
+
+  public static final Flag<Boolean> COMPOSE_PREVIEW_RENDER_TOOL = new BooleanFlag(
+    COMPOSE, "preview.render.tool", "Enable the Compose Preview render agent tool",
+    "If enabled, an agent tool to render Compose Previews will be available for agents.");
   //endregion
 
   // region Wear surfaces
