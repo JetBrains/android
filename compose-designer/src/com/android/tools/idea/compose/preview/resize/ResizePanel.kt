@@ -69,6 +69,8 @@ import java.awt.event.ActionListener
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.util.Objects
+import javax.swing.Box
+import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.SwingConstants
@@ -518,10 +520,14 @@ class ResizePanel(parentDisposable: Disposable) :
         )
         .apply { isFocusable = true }
 
-    // Wrap the close button in a panel to prevent it from being stretched by the BorderLayout.
-    return JBPanel<Nothing>(FlowLayout(FlowLayout.CENTER, 0, 0)).apply {
+    // Wrap the close button in a panel to prevent it from being stretched by the BorderLayout,
+    // and to align it vertically.
+    return JBPanel<Nothing>().apply {
       isOpaque = false
+      layout = BoxLayout(this, BoxLayout.Y_AXIS)
+      add(Box.createVerticalGlue())
       add(closeButton)
+      add(Box.createVerticalGlue())
     }
   }
 
