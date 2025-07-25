@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.memory
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
-import com.android.tools.idea.gradle.project.sync.cpu.CPU_BENCHMARK
 import com.android.tools.idea.gradle.project.sync.gradle.EventRecorder.GC_COLLECTION_TIME_FILE_NAME_SUFFIX
 import com.android.tools.idea.gradle.project.sync.mutateGradleProperties
+import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.intellij.openapi.project.Project
 import kotlinx.datetime.Clock
@@ -33,7 +33,8 @@ import kotlin.time.Duration.Companion.milliseconds
 
 class MemoryConstrainedTestRule(
   private val projectName: String,
-  private val maxHeapMB: Int
+  private val maxHeapMB: Int,
+  private val benchmark: Benchmark,
 ) : ExternalResource() {
   private val gcCollectionTimeMeasurements = mutableListOf<Pair<Instant, Duration>>()
   private val processedFiles = mutableSetOf<String>()
@@ -106,14 +107,11 @@ class MemoryConstrainedTestRule(
   }
 
   private fun recordMeasurement(metricName: String, values: List<Pair<Instant, Long>>) {
-    val benchmarks = listOf(MEMORY_BENCHMARK, CPU_BENCHMARK)
     Metric(metricName).apply {
-      benchmarks.forEach { benchmark ->
         values.forEach {
           addSamples(benchmark, Metric.MetricSample(it.first.toEpochMilliseconds(), it.second))
         }
         commit()
-      }
     }
   }
 }

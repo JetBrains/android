@@ -35,63 +35,63 @@ import com.android.tools.idea.gradle.project.sync.SUBSET_200_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_4200_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_500_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_KMP_2000_NAME
-import com.android.tools.idea.gradle.project.sync.createBenchmarkTestRule
+import com.android.tools.idea.gradle.project.sync.createCpuBenchmarkTestRule
 import com.android.tools.idea.testing.requestSyncAndWait
 import org.junit.Rule
 import org.junit.Test
 import kotlin.time.Duration.Companion.minutes
 
 class Benchmark200CpuTest  {
-  @get:Rule val benchmarkProjectSetupRule = createBenchmarkTestRule(SUBSET_200_NAME, STANDARD_200)
+  @get:Rule val benchmarkProjectSetupRule = createCpuBenchmarkTestRule(SUBSET_200_NAME, STANDARD_200)
   @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 0, enableAnalyzers = false)
   @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(3.minutes)
   @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
 }
 
 class Benchmark500CpuTest {
-  @get:Rule val benchmarkProjectSetupRule = createBenchmarkTestRule(SUBSET_500_NAME, STANDARD_500)
+  @get:Rule val benchmarkProjectSetupRule = createCpuBenchmarkTestRule(SUBSET_500_NAME, STANDARD_500)
   @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 25, enableAnalyzers = false)
   @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(5.minutes)
   @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
 }
 
 class Benchmark1000CpuTest {
-  @get:Rule val benchmarkProjectSetupRule = createBenchmarkTestRule(SUBSET_1000_NAME, STANDARD_1000)
+  @get:Rule val benchmarkProjectSetupRule = createCpuBenchmarkTestRule(SUBSET_1000_NAME, STANDARD_1000)
   @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 15, enableAnalyzers = false)
   @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(6.minutes)
   @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
 }
 
 class Benchmark2000KotlinMultiplatformCpuTest {
-  @get:Rule val benchmarkProjectSetupRule = createBenchmarkTestRule(SUBSET_KMP_2000_NAME, KMP_2000)
+  @get:Rule val benchmarkProjectSetupRule = createCpuBenchmarkTestRule(SUBSET_KMP_2000_NAME, KMP_2000)
   @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5)
   @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(6.minutes)
   @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
 }
 
 class Benchmark2000CpuTest {
-  @get:Rule val benchmarkProjectSetupRule = createBenchmarkTestRule(SUBSET_2000_NAME, STANDARD_2000)
+  @get:Rule val benchmarkProjectSetupRule = createCpuBenchmarkTestRule(SUBSET_2000_NAME, STANDARD_2000)
   @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5)
   @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(7.minutes)
   @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
 }
 
 class Benchmark4200CpuTest {
-  @get:Rule val benchmarkProjectSetupRule = createBenchmarkTestRule(SUBSET_4200_NAME, STANDARD_4200)
+  @get:Rule val benchmarkProjectSetupRule = createCpuBenchmarkTestRule(SUBSET_4200_NAME, STANDARD_4200)
   @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 2)
   @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(10.minutes)
   @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
 }
 
 class BenchmarkMultiApp100CpuTest {
-  @get:Rule val benchmarkProjectSetupRule = createBenchmarkTestRule(MULTI_APP_100_NAME, MULTI_APP_100)
+  @get:Rule val benchmarkProjectSetupRule = createCpuBenchmarkTestRule(MULTI_APP_100_NAME, MULTI_APP_100)
   @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5, enableAnalyzers = false)
   @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(15.minutes)
   @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
 }
 
 class BenchmarkMultiApp190CpuTest {
-  @get:Rule val benchmarkProjectSetupRule = createBenchmarkTestRule(MULTI_APP_190_NAME, MULTI_APP_190)
+  @get:Rule val benchmarkProjectSetupRule = createCpuBenchmarkTestRule(MULTI_APP_190_NAME, MULTI_APP_190)
   @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5, enableAnalyzers = false)
   @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(15.minutes)
   @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
@@ -109,14 +109,14 @@ private fun runTest(benchmarkTestRule: BenchmarkTestRule,
 }
 
 class Benchmark2000CpuLatestGradleTest {
-  @get:Rule val benchmarkProjectSetupRule = createBenchmarkTestRule(SUBSET_2000_GRADLE_LATEST_NAME, STANDARD_2000, useLatestGradle = true)
+  @get:Rule val benchmarkProjectSetupRule = createCpuBenchmarkTestRule(SUBSET_2000_GRADLE_LATEST_NAME, STANDARD_2000, useLatestGradle = true)
   @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5, projectToCompareAgainst = SUBSET_2000_NAME)
   @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(7.minutes)
   @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
 }
 
 class Benchmark2000CpuLatestKotlinTest {
-  @get:Rule val benchmarkProjectSetupRule = createBenchmarkTestRule(SUBSET_2000_KOTLIN_LATEST_NAME, STANDARD_2000, useLatestKotlin = true)
+  @get:Rule val benchmarkProjectSetupRule = createCpuBenchmarkTestRule(SUBSET_2000_KOTLIN_LATEST_NAME, STANDARD_2000, useLatestKotlin = true)
   @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5, projectToCompareAgainst = SUBSET_2000_NAME)
   @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(7.minutes)
   @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)

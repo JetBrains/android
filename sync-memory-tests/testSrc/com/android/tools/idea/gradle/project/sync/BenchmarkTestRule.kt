@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.tools.idea.gradle.project.sync.cpu.CPU_BENCHMARK
 import com.android.tools.idea.gradle.project.sync.cpu.CaptureJfrRule
+import com.android.tools.idea.gradle.project.sync.memory.MEMORY_BENCHMARK
 import com.android.tools.idea.gradle.project.sync.memory.MemoryConstrainedTestRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import org.junit.rules.RuleChain
@@ -42,10 +44,23 @@ const val FEATURE_RUNTIME_CLASSPATH_1000 = "FRuntimeClasspath1000"
 
 interface BenchmarkTestRule : ProjectSetupRule, TestRule
 
-fun createBenchmarkTestRule(projectName: String,
+fun createCpuBenchmarkTestRule(projectName: String,
+                               project: BenchmarkProject,
+                               useLatestGradle: Boolean = false,
+                               useLatestKotlin: Boolean = false) =
+  createBenchmarkTestRule(projectName, project, useLatestGradle, useLatestKotlin, CPU_BENCHMARK)
+
+fun createMemoryBenchmarkTestRule(projectName: String,
+                               project: BenchmarkProject,
+                               useLatestGradle: Boolean = false,
+                               useLatestKotlin: Boolean = false) =
+  createBenchmarkTestRule(projectName, project, useLatestGradle, useLatestKotlin, MEMORY_BENCHMARK)
+
+private fun createBenchmarkTestRule(projectName: String,
                             project: BenchmarkProject,
                             useLatestGradle: Boolean = false,
-                            useLatestKotlin: Boolean = false): BenchmarkTestRule {
+                            useLatestKotlin: Boolean = false,
+                            benchmark: com.android.tools.perflogger.Benchmark): BenchmarkTestRule {
   val projectSetupRule = ProjectSetupRuleImpl(
     projectName,
     project,
@@ -54,7 +69,7 @@ fun createBenchmarkTestRule(projectName: String,
   ) { AndroidProjectRule.withIntegrationTestEnvironment() }
   val wrappedRules =  RuleChain.outerRule(projectSetupRule.testEnvironmentRule)
     .around(projectSetupRule)
-    .around(MemoryConstrainedTestRule(projectName, project.maxHeapMB).also {
+    .around(MemoryConstrainedTestRule(projectName, project.maxHeapMB, benchmark).also {
       projectSetupRule.addListener(it.listener)
     })
     .around(CollectDaemonLogsRule())
