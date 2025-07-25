@@ -597,8 +597,10 @@ public class LiveEditProjectMonitor implements Disposable {
         inputs.add(new LiveEditCompilerInput(file, state, vibe));
       }
 
+      // TODO: Set unrestricted to true if mode == ON_VIBE
+      var unrestricted = LiveEditAdvancedConfiguration.getInstance().getAllowClassStructuralRedefinition();
       compiled = compiler
-        .compile(inputs, !LiveEditService.isLeTriggerManual(), getDevicesApiLevels());
+        .compile(inputs, !LiveEditService.isLeTriggerManual(), unrestricted, getDevicesApiLevels());
       if (compiled.isEmpty()) {
         return false;
       }

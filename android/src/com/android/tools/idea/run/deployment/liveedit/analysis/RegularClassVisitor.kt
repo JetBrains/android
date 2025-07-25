@@ -47,7 +47,7 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrTryCatchBl
 import com.android.utils.ILogger
 
 // TODO: which annotations from Compose and Kotlin do we need to allow-list? Once we know, modifying other annotations should be an error.
-class RegularClassVisitor(private val className: String, private val logger: ILogger) : ClassVisitor {
+class RegularClassVisitor(private val className: String, private val unrestricted: Boolean = false, private val logger: ILogger) : ClassVisitor {
   private val location = className.replace('/', '.')
   private val changedMethods = mutableListOf<MethodDiff>()
   val modifiedMethods: List<MethodDiff> = changedMethods
@@ -75,14 +75,14 @@ class RegularClassVisitor(private val className: String, private val logger: ILo
   // Allow adding and removing synthetic methods, such as compiler-generated accessor methods.
   override fun visitMethods(added: List<IrMethod>, removed: List<IrMethod>, modified: List<MethodDiff>) {
     if (added.filterNot { it.isSyntheticOrBridge() }.isNotEmpty()) {
-      if (!LiveEditAdvancedConfiguration.getInstance().allowClassStructuralRedefinition) {
+      if (!unrestricted) {
         val msg = "added method(s): " + added.joinToString(", ") { it.getReadableDesc() }
         throw unsupportedSourceModificationAddedMethod(location, msg)
       }
     }
 
     if (removed.filterNot { it.isSyntheticOrBridge() }.isNotEmpty()) {
-      if (!LiveEditAdvancedConfiguration.getInstance().allowClassStructuralRedefinition) {
+      if (!unrestricted) {
         val msg = "removed method(s): " + removed.joinToString(", ") { it.getReadableDesc() }
         throw unsupportedSourceModificationRemovedMethod(location, msg)
       }

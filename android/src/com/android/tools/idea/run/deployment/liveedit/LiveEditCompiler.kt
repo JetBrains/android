@@ -56,7 +56,6 @@ class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCa
 
   // Each Deployment would invoke resetState() to ensure we have a non-null desugarer.
   private var desugarer : LiveEditDesugar? = null
-  private val outputBuilderWithAnalysis = LiveEditOutputBuilder()
   private val logger = LiveEditLogger("LE Compiler")
 
   /**
@@ -70,6 +69,7 @@ class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCa
   @Trace
   fun compile(inputs: List<LiveEditCompilerInput>,
               giveWritePriority: Boolean = true,
+              unrestricted: Boolean = false,
               apiVersions: Set<MinApiLevel> = emptySet()): Optional<LiveEditDesugarResponse> {
     // Bundle changes per-file to prevent wasted recompilation of the same file. The most common
     // scenario is multiple pending changes in the same file, so this is somewhat important.
@@ -104,8 +104,8 @@ class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCa
           // allows the user time to undo incompatible changes without triggering an error, similar to how differ validation works.
           validatePsiDiff(input, file)
 
-          outputBuilderWithAnalysis.getGeneratedCode(applicationLiveEditServices!!, file, compilerOutput, irClassCache,
-                                                     inlineCandidateCache, outputBuilder)
+          LiveEditOutputBuilder(unrestricted).getGeneratedCode(applicationLiveEditServices!!, file, compilerOutput, irClassCache,
+                                                               inlineCandidateCache, outputBuilder)
 
           val outputs = outputBuilder.build()
           logger.dumpCompilerOutputs(outputs.classes)
