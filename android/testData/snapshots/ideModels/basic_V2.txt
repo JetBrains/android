@@ -537,10 +537,10 @@ LIBRARY_TABLE
         artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
         artifactAddress               : com.android.support:support-annotations:28.0.0@jar
         component                     : com.android.support:support-annotations:28.0.0
-    - library                     : org.jacoco:org.jacoco.agent:0.8.12 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/jacoco/org.jacoco.agent/0.8.12/org.jacoco.agent-0.8.12-runtime.jar
-        artifactAddress               : org.jacoco:org.jacoco.agent:0.8.12@jar
-        component                     : org.jacoco:org.jacoco.agent:0.8.12
+    - library                     : org.jacoco:org.jacoco.agent:0.8.13 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jacoco/org.jacoco.agent/0.8.13/org.jacoco.agent-0.8.13-runtime.jar
+        artifactAddress               : org.jacoco:org.jacoco.agent:0.8.13@jar
+        component                     : org.jacoco:org.jacoco.agent:0.8.13
     - library                     : <ROOT>::@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         projectPath                   : :
@@ -1084,10 +1084,10 @@ MODULE                        : project
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : org.jacoco:org.jacoco.agent:0.8.12@jar
+                        javaLibrary                   : org.jacoco:org.jacoco.agent:0.8.13@jar
                 BytecodeTransforms            : JACOCO_INSTRUMENTATION
                 RuntimeOnlyClasses
-                    - class                       : <M2>/org/jacoco/org.jacoco.agent/0.8.12/org.jacoco.agent-0.8.12-runtime.jar
+                    - class                       : <M2>/org/jacoco/org.jacoco.agent/0.8.13/org.jacoco.agent-0.8.13-runtime.jar
                 ApplicationId                 : com.android.tests.basic.debug
                 SigningConfigName             : myConfig
                 IsSigned                      : true
@@ -1512,13 +1512,13 @@ MODULE                        : project
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : org.jacoco:org.jacoco.agent:0.8.12@jar
+                        javaLibrary                   : org.jacoco:org.jacoco.agent:0.8.13@jar
                         module                        : <ROOT>-:-MAIN
                             androidLibrary                : com.android.support:support-v4:28.0.0@aar
                             androidLibrary                : com.android.support:support-v13:28.0.0@aar
-                            javaLibrary                   : org.jacoco:org.jacoco.agent:0.8.12@jar
+                            javaLibrary                   : org.jacoco:org.jacoco.agent:0.8.13@jar
                 RuntimeOnlyClasses
-                    - class                       : <M2>/org/jacoco/org.jacoco.agent/0.8.12/org.jacoco.agent-0.8.12-runtime.jar
+                    - class                       : <M2>/org/jacoco/org.jacoco.agent/0.8.13/org.jacoco.agent-0.8.13-runtime.jar
                 MockablePlatformJar           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : project (DefaultExternalProject)
         path                          : : [-]
