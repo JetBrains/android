@@ -102,7 +102,7 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
         CommonViewControlAction().visibleOnlyInStaticPreview(),
         StudioFlags.COMPOSE_PREVIEW_AI_AGENTS_DROPDOWN.ifEnabled {
           ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull()?.let {
-            it.previewAgentsDropDownAction()?.let { action -> action.visibleOnlyInStaticPreview() }
+            it.previewAgentsDropDownAction()?.visibleOnlyInStaticPreview()
           }
         },
         Separator.getInstance().visibleOnlyInUiCheck(),
