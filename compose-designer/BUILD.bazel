@@ -4,7 +4,8 @@ load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 create_kotlinc_options(
   name = "custom_compose-designer",
-  context_receivers = True
+  x_context_receivers = True,
+  x_sam_conversions = "class"
 )
 
 jvm_resources(
@@ -142,7 +143,8 @@ jps_test(
 ### auto-generated section `build intellij.android.compose-designer.tests` start
 create_kotlinc_options(
   name = "custom_compose-designer-tests",
-  context_receivers = True
+  x_context_receivers = True,
+  x_sam_conversions = "class"
 )
 
 jvm_resources(
