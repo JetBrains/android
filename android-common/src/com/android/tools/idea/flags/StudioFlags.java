@@ -47,7 +47,7 @@ import org.jetbrains.annotations.TestOnly;
  * "//tools/base/flags".
  */
 public final class StudioFlags {
-  private static final Flags FLAGS = createFlags();
+  public static final Flags FLAGS = createFlags();
 
   @NotNull
   private static Flags createFlags() {

@@ -44,6 +44,10 @@ class ConfigurationOverrides: ImmutableFlagOverrides {
   override fun get(flag: Flag<*>): String? = defaultValues[flag.id]
 
   companion object {
+    /** Returns the current IDE feature flags configuration as a stream. */
+    private fun featureFlagsResourceStream(): InputStream =
+      requireNotNull(ConfigurationOverrides::class.java.getResourceAsStream(FEATURE_FLAGS_FILE))
+
     /**
      * The map that contains the default values. The values are already applied to the
      * current configuration, so that the value can be used directly.
@@ -51,31 +55,22 @@ class ConfigurationOverrides: ImmutableFlagOverrides {
      * The map is from flag id (group + name) to a serialized boolean value
      */
     private val defaultValues: Map<String, String> by lazy {
-      val stream = ConfigurationOverrides::class.java.getResourceAsStream(FEATURE_FLAGS_FILE)
-                   ?: return@lazy mapOf()
-
-      loadValues(stream)
+      loadValues()
     }
 
     @VisibleForTesting
     fun loadValues(
-      inputStream: InputStream,
+      inputStream: InputStream = featureFlagsResourceStream(),
       currentConfig: Configuration = IdeConfiguration.configuration
     ): Map<String, String> {
+      val configsByName = Configuration.entries.associateBy { it.name }
 
       return inputStream.use { stream ->
         stream.reader(Charsets.UTF_8).use { reader ->
           reader.readLines().filter { !it.startsWith("#") }.associateNotNull {
             val tokens = parseLine(it) ?: return@associateNotNull null
-
-            val flagConfig = Configuration.entries.singleOrNull { it.name == tokens.second }
-                             ?: return@associateNotNull null
-
-            tokens.first to if (currentConfig.level <= flagConfig.level) {
-              "true"
-            } else {
-              "false"
-            }
+            val flagConfig = configsByName[tokens.second] ?: return@associateNotNull null
+            tokens.first to (currentConfig.level <= flagConfig.level).toString()
           }
         }
       }
