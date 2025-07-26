@@ -28,6 +28,5 @@
     <orderEntry type="module" module-name="studio-sdk-all-plugins" />
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
-    <orderEntry type="module" module-name="aiplugin.mcp.server" />
   </component>
 </module>

@@ -1105,7 +1105,6 @@ iml_module(
         "//tools/adt/idea/studio:studio-sdk-all-plugins",
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
-        "//tools/vendor/google/ml/aiplugin/mcp/server:aiplugin.mcp.server",
     ],
 )
 
