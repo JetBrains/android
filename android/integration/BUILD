@@ -239,6 +239,42 @@ iml_test(
 )
 
 iml_test(
+    name = "EmulatorTest",
+    data = [
+        "//prebuilts/studio/sdk:emulator",
+        "//prebuilts/studio/sdk:platform-tools",
+        INTEGRATION_TEST_SYSTEM_IMAGE,
+    ],
+    jvm_flags = [
+        "-Demulator.test.system.image.files=\"$(locations " + INTEGRATION_TEST_SYSTEM_IMAGE + ")\"",
+        "-Demulator.test.emulator.location=\"$(locations //prebuilts/studio/sdk:emulator)\"",
+    ] + select({
+        "@platforms//os:linux": [
+            "-Demulator.test.sdk.path=prebuilts/studio/sdk/linux",
+            "-Demulator.test.emulator.path=prebuilts/studio/sdk/linux/emulator/emulator",
+        ],
+        "@platforms//os:windows": [
+            "-Demulator.test.sdk.path=prebuilts/studio/sdk/windows",
+            "-Demulator.test.emulator.path=prebuilts/studio/sdk/windows/emulator/emulator",
+        ],
+        "//conditions:default": [
+            "-Demulator.test.sdk.path=prebuilts/studio/sdk/darwin",
+            "-Demulator.test.emulator.path=prebuilts/studio/sdk/darwin/emulator/emulator",
+        ],
+    }),
+    module = "//tools/emulator/tests:android.tools.emulator.tests",
+    tags = [
+        "studio-e2e-test",
+    ],
+    tags_linux = ["block-network"],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.idea.EmulatorTest",
+)
+
+iml_test(
     name = "DebuggerTest",
     timeout = "long",
     data = [
