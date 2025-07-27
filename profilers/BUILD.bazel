@@ -2,7 +2,7 @@
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 
 jvm_provided_library(
-  name = "artifactResolver-m31_provided",
+  name = "plugins_maven_artifactResolver-m31_provided",
   lib = "//plugins/maven/artifact-resolver-m31:artifactResolver-m31"
 )
 
@@ -38,7 +38,7 @@ jvm_library(
     "//platform/ide-core",
     "//platform/editor-ui-api:editor-ui",
     "//platform/core-ui",
-    ":artifactResolver-m31_provided",
+    ":plugins_maven_artifactResolver-m31_provided",
   ]
 )
 

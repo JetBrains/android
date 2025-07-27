@@ -29,7 +29,7 @@ jvm_resources(
 )
 
 jvm_provided_library(
-  name = "artifactResolver-m31_provided",
+  name = "plugins_maven_artifactResolver-m31_provided",
   lib = "//plugins/maven/artifact-resolver-m31:artifactResolver-m31"
 )
 
@@ -250,7 +250,7 @@ jvm_library(
     "@lib//:kotlinc-analysis-api-k2-provided",
     "@lib//:jgoodies-forms",
     "//spellchecker/xml",
-    ":artifactResolver-m31_provided",
+    ":plugins_maven_artifactResolver-m31_provided",
   ],
   exports = ["//android/build-common"],
   runtime_deps = [":core_resources"]
