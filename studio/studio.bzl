@@ -959,38 +959,13 @@ def _android_studio_impl(ctx):
     _produce_update_message_html(ctx)
 
     host_platform = platform_by_name[ctx.attr.host_platform_name]
-    if not ctx.attr.legacy_runner:
-        script = ctx.actions.declare_file("%s/%s.py" % (ctx.attr.name, ctx.attr.name))
-        _studio_runner(
-            ctx,
-            ctx.attr.name,
-            all_files[host_platform],
-            script,
-        )
-        default_files = depset([script, ctx.outputs.manifest, ctx.outputs.update_message])
-        default_runfiles = None
-    else:
-        script = ctx.actions.declare_file("%s-run" % ctx.label.name)
-        script_content = script_template.format(
-            zip_file = outputs[host_platform].short_path,
-            command = {
-                LINUX: "$tmp_dir/android-studio/bin/studio.sh",
-                MAC: "open \"$tmp_dir/" + _android_studio_prefix(ctx, MAC) + "\"",
-                MAC_ARM: "open \"$tmp_dir/" + _android_studio_prefix(ctx, MAC_ARM) + "\"",
-                WIN: "$tmp_dir/android-studio/bin/studio64",
-            }[host_platform],
-        )
-        ctx.actions.write(script, script_content, is_executable = True)
-        runfiles = ctx.runfiles(files = [outputs[host_platform]])
-
-        default_files = depset([ctx.outputs.linux, ctx.outputs.mac, ctx.outputs.mac_arm, ctx.outputs.win, ctx.outputs.manifest, ctx.outputs.update_message])
-        default_runfiles = runfiles
+    script = ctx.actions.declare_file("%s/%s.py" % (ctx.attr.name, ctx.attr.name))
+    _studio_runner(ctx, ctx.attr.name, all_files[host_platform], script)
 
     # Leave everything that is not the main zips as implicit outputs
     return DefaultInfo(
         executable = script,
-        files = default_files,
-        runfiles = default_runfiles,
+        files = depset([script, ctx.outputs.manifest, ctx.outputs.update_message]),
     )
 
 _android_studio = rule(
@@ -999,7 +974,6 @@ _android_studio = rule(
         "codesign_entitlements": attr.label(allow_single_file = True),
         "compress": attr.bool(),
         "essential_plugins": attr.string_list(),
-        "legacy_runner": attr.bool(default = False),
         "files_linux": attr.label_keyed_string_dict(allow_files = True, default = {}),
         "files_mac": attr.label_keyed_string_dict(allow_files = True, default = {}),
         "files_mac_arm": attr.label_keyed_string_dict(allow_files = True, default = {}),
