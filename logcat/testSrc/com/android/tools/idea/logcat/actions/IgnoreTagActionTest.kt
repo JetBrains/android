@@ -24,7 +24,6 @@ import com.android.tools.idea.logcat.messages.DocumentAppender
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.messages.MessageFormatter
-import com.android.tools.idea.logcat.messages.ProguardMessageRewriter
 import com.android.tools.idea.logcat.messages.TextAccumulator
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
@@ -126,11 +125,7 @@ class IgnoreTagActionTest {
 
   private fun appendMessage(logcatMessage: LogcatMessage) {
     val messageFormatter =
-      MessageFormatter(
-        ProguardMessageRewriter(projectRule.project),
-        LogcatColors(),
-        ZoneId.systemDefault(),
-      )
+      MessageFormatter(projectRule.project, LogcatColors(), ZoneId.systemDefault())
     val textAccumulator = TextAccumulator()
     messageFormatter.formatMessages(FormattingOptions(), textAccumulator, listOf(logcatMessage))
     documentAppender.appendToDocument(textAccumulator)

@@ -52,8 +52,7 @@ class MessageFormatterTest {
   private val logcatColors = LogcatColors()
   private val formattingOptions = FormattingOptions()
 
-  private val messageFormatter =
-    MessageFormatter(ProguardMessageRewriter(projectRule.project), logcatColors, ZONE_ID)
+  private val messageFormatter = MessageFormatter(projectRule.project, logcatColors, ZONE_ID)
 
   @Test
   fun formatMessages_defaultFormat() {

@@ -18,29 +18,36 @@ package com.android.tools.idea.logcat.messages
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.message.LogcatMessage
-import com.android.tools.idea.logcat.util.LOGGER
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
+import java.nio.file.Path
 import java.time.ZoneId
-import kotlin.time.measureTimedValue
 
 private val exceptionLinePattern = Regex("\n\\s*at .+\\((?<filename>.+)\\)\n")
 
 /** Formats [LogcatMessage]'s into a [TextAccumulator] */
 internal class MessageFormatter(
-  private val proguardMessageRewriter: ProguardMessageRewriter,
+  project: Project,
   private val logcatColors: LogcatColors,
   private val zoneId: ZoneId,
 ) {
   private var softWrapEnabled = false
-
-  fun setSoftWrapEnabled(value: Boolean) {
-    softWrapEnabled = value
-  }
 
   // Keeps track of the previous tag, so we can omit on consecutive lines
   // TODO(aalbert): This was borrowed from Pidcat. Should we do it too? Should we also do it for
   // app?
   private var previousTag: String? = null
   private var previousPid: Int? = null
+  private val proguardMessageRewriter = ProguardMessageRewriter()
+  private val autoProguardMessageRewriter = project.service<AutoProguardMessageRewriter>()
+
+  fun setProguardMapping(path: Path) {
+    proguardMessageRewriter.loadProguardMap(path)
+  }
+
+  fun setSoftWrapEnabled(value: Boolean) {
+    softWrapEnabled = value
+  }
 
   fun formatMessages(
     formattingOptions: FormattingOptions,
@@ -107,9 +114,10 @@ internal class MessageFormatter(
   private fun rewriteException(message: LogcatMessage): String {
     var result = message.message
     if (StudioFlags.LOGCAT_DEOBFUSCATE.get()) {
-      val timedValue = measureTimedValue { proguardMessageRewriter.rewrite(message) }
-      result = timedValue.value
-      LOGGER.debug("Proguard rewrite took ${timedValue.duration}")
+      result = autoProguardMessageRewriter.rewrite(result, message.header.applicationId)
+      if (result == message.message) {
+        result = proguardMessageRewriter.rewrite(message)
+      }
     }
     ExceptionMessageRewriter.EP_NAME.extensionList.forEach { result = it.rewrite(result) }
     return result

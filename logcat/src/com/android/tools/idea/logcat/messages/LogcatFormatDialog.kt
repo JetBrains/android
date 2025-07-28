@@ -28,7 +28,6 @@ import com.android.tools.idea.logcat.util.createLogcatEditor
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration.Preset
 import com.intellij.CommonBundle
-import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.observable.properties.ObservableMutableProperty
 import com.intellij.openapi.observable.properties.PropertyGraph
@@ -139,8 +138,7 @@ internal class LogcatFormatDialog(
   private var defaultFormatting: FormattingOptions.Style,
   private val applyAction: ApplyAction,
 ) {
-  private val previewFormatter =
-    MessageFormatter(project.service<ProguardMessageRewriter>(), LogcatColors(), previewZoneId)
+  private val previewFormatter = MessageFormatter(project, LogcatColors(), previewZoneId)
   private val standardFormattingOptions = STANDARD.formattingOptions.copy()
   private val compactFormattingOptions = COMPACT.formattingOptions.copy()
 
