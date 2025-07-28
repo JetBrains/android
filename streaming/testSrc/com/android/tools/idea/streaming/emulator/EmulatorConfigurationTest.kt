@@ -68,7 +68,7 @@ class EmulatorConfigurationTest {
   @Test
   fun testTablet() {
     // Prepare.
-    val androidVersion = AndroidVersion(29, 0)
+    val androidVersion = AndroidVersion(34, 0)
     val avdFolder = FakeEmulator.createTabletAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
 
     // Act.
@@ -77,14 +77,14 @@ class EmulatorConfigurationTest {
     // Assert.
     assertThat(config).isNotNull()
     assertThat(config.avdFolder).isEqualTo(avdFolder)
-    assertThat(config.avdName).isEqualTo("Nexus 10 API 29")
+    assertThat(config.avdName).isEqualTo("Pixel Tablet API 34")
     assertThat(config.deviceType).isEqualTo(DeviceType.HANDHELD)
     assertThat(config.androidVersion).isEqualTo(androidVersion)
     assertThat(config.displayWidth).isEqualTo(1600)
     assertThat(config.displayHeight).isEqualTo(2560)
     assertThat(config.density).isEqualTo(320)
     assertThat(config.additionalDisplays).isEmpty()
-    assertThat(config.skinFolder?.toString()?.replace('\\', '/')).isEqualTo("${baseDir}/Android/Sdk/skins/nexus_10")
+    assertThat(config.skinFolder?.toString()?.replace('\\', '/')).isEqualTo("${baseDir}/Android/Sdk/skins/pixel_tablet")
     assertThat(config.hasAudioOutput).isTrue()
     assertThat(config.hasOrientationSensors).isTrue()
     assertThat(config.initialOrientationQuadrants).isEqualTo(1)

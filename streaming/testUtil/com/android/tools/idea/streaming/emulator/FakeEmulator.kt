@@ -1117,16 +1117,16 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
 
     /**
-     * Creates a fake "Nexus 10" AVD. The skin path in config.ini is relative.
+     * Creates a fake "Pixel Tablet" AVD. The skin path in config.ini is relative.
      */
     @JvmStatic
     fun createTabletAvd(
-        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(29, 0)): Path {
+        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(34, 0)): Path {
       val api = androidVersion.androidApiLevel.majorVersion
-      val avdId = "Nexus_10_API_$api"
-      val avdFolder = parentFolder.resolve("${avdId}.avd")
+      val avdId = "Pixel_Tablet_API_$api"
+      val avdFolder = parentFolder.resolve("$avdId.avd")
       val avdName = avdId.replace('_', ' ')
-      val skinName = "nexus_10"
+      val skinName = "pixel_tablet"
       val skinFolder = getSkinFolder(skinName)
       copyDirectory(skinFolder, sdkFolder.resolve("skins").resolve(skinName), false)
       val systemImage = "system-images/android-$api/google_apis_playstore/x86_64/"
@@ -1138,7 +1138,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           abi.type=x86
           avd.ini.displayname=${avdName}
           avd.ini.encoding=UTF-8
-          disk.dataPartition.size=800M
+          disk.dataPartition.size=6442450944
           hw.accelerometer=yes
           hw.arc=false
           hw.audioInput=yes
@@ -1148,7 +1148,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.cpu.arch=x86
           hw.cpu.ncore=4
           hw.dPad=no
-          hw.device.name=Nexus 10
+          hw.device.name=pixel_tablet
           hw.gps=yes
           hw.gpu.enabled=yes
           hw.gpu.mode=auto
@@ -1158,7 +1158,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.lcd.height=1600
           hw.lcd.width=2560
           hw.mainKeys=no
-          hw.ramSize=1536
+          hw.ramSize=2048
           hw.sdCard=yes
           hw.sensors.orientation=yes
           hw.sensors.proximity=no
@@ -1172,7 +1172,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           skin.dynamic=yes
           skin.name=${skinName}
           skin.path=skins/${skinName}
-          tag.display=Google APIs
+          tag.display=Google Play
           tag.id=google_apis_playstore
           """.trimIndent()
 
