@@ -65,6 +65,12 @@ class AndroidAdbUsageTracker : AdbUsageTracker {
       }
     }
 
+    appInfoProcessPropertiesCollector?.let {
+      androidStudioEvent.adbUsageEventBuilder.appInfoProcessPropertiesEventBuilder.setEventType(
+        it.eventType.toProtoEnum()
+      )
+    }
+
     adbDeviceStateChange?.let { deviceStateChange ->
       val builder = androidStudioEvent.adbUsageEventBuilder.deviceStateChangeEventBuilder
       builder.setDeviceState(deviceStateChange.deviceState.toProtoEnum())
@@ -107,6 +113,24 @@ class AndroidAdbUsageTracker : AdbUsageTracker {
         AdbUsageEvent.JdwpProcessPropertiesCollectorEvent.FailureType.IO_EXCEPTION
       AdbUsageTracker.JdwpProcessPropertiesCollectorFailureType.OTHER_ERROR ->
         AdbUsageEvent.JdwpProcessPropertiesCollectorEvent.FailureType.OTHER_ERROR
+    }
+  }
+
+  private fun AdbUsageTracker.AppInfoProcessPropertiesCollectorEventType.toProtoEnum():
+    AdbUsageEvent.AppInfoProcessPropertiesCollectorEvent.EventType {
+    return when (this) {
+      AdbUsageTracker.AppInfoProcessPropertiesCollectorEventType.TRACK_APP_VALUE_COLLECTED ->
+        AdbUsageEvent.AppInfoProcessPropertiesCollectorEvent.EventType.TRACK_APP_VALUE_COLLECTED
+      AdbUsageTracker.AppInfoProcessPropertiesCollectorEventType.VM_INFO_VALUE_COLLECTED ->
+        AdbUsageEvent.AppInfoProcessPropertiesCollectorEvent.EventType.VM_INFO_VALUE_COLLECTED
+      AdbUsageTracker.AppInfoProcessPropertiesCollectorEventType.TRACK_APP_IO_EXCEPTION ->
+        AdbUsageEvent.AppInfoProcessPropertiesCollectorEvent.EventType.TRACK_APP_IO_EXCEPTION
+      AdbUsageTracker.AppInfoProcessPropertiesCollectorEventType.TRACK_APP_OTHER_EXCEPTION ->
+        AdbUsageEvent.AppInfoProcessPropertiesCollectorEvent.EventType.TRACK_APP_OTHER_EXCEPTION
+      AdbUsageTracker.AppInfoProcessPropertiesCollectorEventType.VM_INFO_IO_EXCEPTION ->
+        AdbUsageEvent.AppInfoProcessPropertiesCollectorEvent.EventType.VM_INFO_IO_EXCEPTION
+      AdbUsageTracker.AppInfoProcessPropertiesCollectorEventType.VM_INFO_OTHER_EXCEPTION ->
+        AdbUsageEvent.AppInfoProcessPropertiesCollectorEvent.EventType.VM_INFO_OTHER_EXCEPTION
     }
   }
 
