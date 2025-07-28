@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.wear.dwf.inspections
 
-import ai.grazie.nlp.utils.length
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.wear.dwf.WearDwfBundle.message
 import com.android.tools.idea.wear.dwf.dom.raw.configurations.ColorConfiguration
@@ -155,3 +154,6 @@ private fun visitReference(
     }
   }
 }
+
+val IntRange.length
+  get() = endInclusive - start + 1
