@@ -25,6 +25,7 @@ compose.preview.code.to.preview.navigation=STABLE:2025
 compose.preview.generate.extra.parameter.context=PREVIEW
 compose.preview.generate.preview.action=PREVIEW
 compose.preview.invalidate.on.resource.change=STABLE:2023
+compose.preview.render.tool=PREVIEW
 compose.preview.resizing=PREVIEW
 compose.transform.ui.with.ai.agentic=INTERNAL
 compose.transform.ui.with.ai=PREVIEW
