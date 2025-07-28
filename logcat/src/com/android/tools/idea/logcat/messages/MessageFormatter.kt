@@ -19,11 +19,14 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.intellij.openapi.components.service
+import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.openapi.project.Project
+import java.awt.Font
 import java.nio.file.Path
 import java.time.ZoneId
 
 private val exceptionLinePattern = Regex("\n\\s*at .+\\((?<filename>.+)\\)\n")
+private val DEOBFUSCATED_ANNOTATION_ATTRIBUTES = TextAttributes(null, null, null, null, Font.ITALIC)
 
 /** Formats [LogcatMessage]'s into a [TextAccumulator] */
 internal class MessageFormatter(
@@ -87,9 +90,11 @@ internal class MessageFormatter(
         )
         formattingOptions.levelFormat.format(header.logLevel, textAccumulator, logcatColors)
 
+        val isException = exceptionLinePattern.containsMatchIn(message.message)
+
         val msg =
-          when (exceptionLinePattern.containsMatchIn(message.message)) {
-            true -> rewriteException(message)
+          when (isException) {
+            true -> rewriteException(message) { appendRetraceInfo(it, textAccumulator, newline) }
             false -> message.message
           }
 
@@ -111,15 +116,39 @@ internal class MessageFormatter(
     previousPid = null
   }
 
-  private fun rewriteException(message: LogcatMessage): String {
-    var result = message.message
-    if (StudioFlags.LOGCAT_DEOBFUSCATE.get()) {
-      result = autoProguardMessageRewriter.rewrite(result, message.header.applicationId)
-      if (result == message.message) {
-        result = proguardMessageRewriter.rewrite(message)
-      }
-    }
+  private fun rewriteException(message: LogcatMessage, onDeobfuscated: (Path?) -> Unit): String {
+    var result = deobfuscateException(message, onDeobfuscated)
     ExceptionMessageRewriter.EP_NAME.extensionList.forEach { result = it.rewrite(result) }
     return result
+  }
+
+  private fun deobfuscateException(
+    message: LogcatMessage,
+    onDeobfuscated: (Path?) -> Unit,
+  ): String {
+    if (StudioFlags.LOGCAT_DEOBFUSCATE.get()) {
+      if (StudioFlags.LOGCAT_AUTO_DEOBFUSCATE.get()) {
+        val msg = autoProguardMessageRewriter.rewrite(message.message, message.header.applicationId)
+        if (msg != message.message) {
+          onDeobfuscated(autoProguardMessageRewriter.getMapping())
+          return msg
+        }
+      }
+      val msg = proguardMessageRewriter.rewrite(message)
+      if (msg != message.message) {
+        onDeobfuscated(proguardMessageRewriter.getMapping())
+        return msg
+      }
+    }
+    return message.message
+  }
+
+  private fun appendRetraceInfo(mapping: Path?, textAccumulator: TextAccumulator, newline: String) {
+    if (mapping != null) {
+      textAccumulator.accumulate(
+        "Stack has been deobfuscated with $mapping$newline",
+        DEOBFUSCATED_ANNOTATION_ATTRIBUTES,
+      )
+    }
   }
 }

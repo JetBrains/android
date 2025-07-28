@@ -53,6 +53,8 @@ internal class AutoProguardMessageRewriter(private val project: Project) {
   // is that there's usually only going to be a single one at a time.
   private var autoRetracer by AtomicReference<AutoRetracer?>(null)
 
+  fun getMapping() = autoRetracer?.mapping
+
   fun rewrite(message: String, applicationId: String): String {
     val match = exceptionLinePattern.find(message) ?: return message
     val filename = match.groups["filename"]?.value ?: return message
@@ -83,7 +85,7 @@ internal class AutoProguardMessageRewriter(private val project: Project) {
     }
     val mapping = findMapping(applicationId, id) ?: return null
     val builder = createRetracer(mapping)
-    autoRetracer = AutoRetracer(id, builder)
+    autoRetracer = AutoRetracer(id, builder, mapping)
     return builder
   }
 
@@ -98,7 +100,11 @@ internal class AutoProguardMessageRewriter(private val project: Project) {
     }
   }
 
-  private class AutoRetracer(val id: String, val builder: RetraceCommand.Builder)
+  private class AutoRetracer(
+    val id: String,
+    val builder: RetraceCommand.Builder,
+    val mapping: Path,
+  )
 }
 
 /**

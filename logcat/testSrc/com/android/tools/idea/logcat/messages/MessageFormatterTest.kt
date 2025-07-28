@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.messages
 
+import com.android.testutils.TestResources
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.message.LogLevel
 import com.android.tools.idea.logcat.message.LogLevel.ASSERT
@@ -29,6 +30,7 @@ import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.PID
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.DATETIME
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.TIME
 import com.android.tools.idea.logcat.util.logcatMessage
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.DisposableRule
@@ -43,16 +45,43 @@ import org.junit.Test
 private val TIMESTAMP = Instant.ofEpochMilli(1000)
 private val ZONE_ID = ZoneId.of("Asia/Yerevan")
 
+private val OBFUSCATED_MESSAGE =
+  """
+    Exception
+      at S0.a.e(SourceFile:30)
+      at H.a.k(SourceFile:160)
+      at m.n.m(SourceFile:132)
+      at Z0.a.d(SourceFile:9)
+  """
+    .trimIndent()
+
+private val CLEAR_MESSAGE =
+  """
+    Exception (Show obfuscated)
+      at com.example.myapplication.Foo.foo(Foo.kt:7)
+      at com.example.myapplication.MainActivity.onClick(MainActivity.kt:38)
+      at com.example.myapplication.MainActivity.Greeting${'$'}lambda$1${'$'}lambda$0(MainActivity.kt:43)
+      at androidx.compose.foundation.ClickablePointerInputNode${'$'}pointerInput$3.invoke-k-4lQ0M(ClickablePointerInputNode.java:987)
+      at androidx.compose.foundation.ClickablePointerInputNode${'$'}pointerInput$3.invoke(ClickablePointerInputNode.java:981)
+      at androidx.compose.foundation.gestures.TapGestureDetectorKt${'$'}detectTapAndPress$2$1.invokeSuspend(TapGestureDetector.kt:255)
+      at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+
+  """
+    .trimIndent()
+
 /** Tests for [MessageFormatter] */
 class MessageFormatterTest {
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
-  @get:Rule val rule = RuleChain(projectRule, disposableRule)
+
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), disposableRule)
 
   private val logcatColors = LogcatColors()
   private val formattingOptions = FormattingOptions()
 
-  private val messageFormatter = MessageFormatter(projectRule.project, logcatColors, ZONE_ID)
+  private val messageFormatter by lazy {
+    MessageFormatter(projectRule.project, logcatColors, ZONE_ID)
+  }
 
   @Test
   fun formatMessages_defaultFormat() {
@@ -697,6 +726,29 @@ class MessageFormatterTest {
         """
           .trimIndent()
       )
+  }
+
+  @Test
+  fun formatMessages_deobfuscate() {
+    val textAccumulator = TextAccumulator()
+    messageFormatter.setProguardMapping(TestResources.getFile("/proguard/mapping.txt").toPath())
+
+    messageFormatter.formatMessages(
+      FormattingOptions(
+        TimestampFormat(enabled = false),
+        ProcessThreadFormat(enabled = false),
+        TagFormat(enabled = false),
+        AppNameFormat(enabled = false),
+        ProcessNameFormat(enabled = false),
+        LevelFormat(enabled = false),
+      ),
+      textAccumulator,
+      listOf(logcatMessage(message = OBFUSCATED_MESSAGE)),
+    )
+
+    val lines = textAccumulator.text.split('\n', limit = 2)
+    assertThat(lines[0].trim()).startsWith("Stack has been deobfuscated with ")
+    assertThat(lines[1]).isEqualTo(CLEAR_MESSAGE)
   }
 }
 

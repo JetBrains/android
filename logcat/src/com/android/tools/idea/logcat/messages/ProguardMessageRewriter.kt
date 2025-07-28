@@ -26,18 +26,22 @@ import java.util.concurrent.atomic.AtomicReference
 
 /** Rewrites an obfuscated stack trace using a provided mapping file */
 internal class ProguardMessageRewriter {
-  private var retracer by AtomicReference<RetraceCommand.Builder?>(null)
+  private var retraceInfo by AtomicReference<RetraceInfo?>(null)
 
   fun loadProguardMap(path: Path) {
     val builder = createRetracer(path)
     // We prime the internal caches when we are asked to load the file rather than pay that price
     // while retracing the first exception.
     Retrace.run(builder.setStackTrace(emptyList()).setRetracedStackTraceConsumer {}.build())
-    retracer = builder
+    retraceInfo = RetraceInfo(builder, path)
   }
 
   fun rewrite(message: LogcatMessage): String {
     val msg = message.message
-    return retracer?.rewrite(msg) ?: msg
+    return retraceInfo?.retracer?.rewrite(msg) ?: msg
   }
+
+  fun getMapping() = retraceInfo?.mapping
+
+  private class RetraceInfo(val retracer: RetraceCommand.Builder, val mapping: Path)
 }

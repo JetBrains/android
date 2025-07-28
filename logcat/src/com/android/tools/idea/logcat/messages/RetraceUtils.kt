@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.messages
 
+import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.util.LOGGER
 import com.android.tools.r8.retrace.ProguardMapProducer
 import com.android.tools.r8.retrace.ProguardMappingSupplier
@@ -22,6 +23,8 @@ import com.android.tools.r8.retrace.Retrace
 import com.android.tools.r8.retrace.RetraceCommand
 import java.nio.file.Path
 import kotlin.io.path.readText
+
+private val linkText = LogcatBundle.message("logcat.proguard.link.text")
 
 internal fun RetraceCommand.Builder.rewrite(message: String): String {
   try {
@@ -43,7 +46,7 @@ internal fun RetraceCommand.Builder.rewrite(message: String): String {
     if (result != message) {
       val split = result.split("\n", ignoreCase = false, limit = 2)
       assert(split.size > 1)
-      return "${split[0]} [deobfuscated]\n${split[1]}"
+      return "${split[0]} $linkText\n${split[1]}"
     }
     return result
   } catch (e: Exception) {

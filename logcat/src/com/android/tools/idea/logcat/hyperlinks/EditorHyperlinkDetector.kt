@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.hyperlinks
 
 import com.android.sdklib.AndroidApiLevel
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatConsoleFilterProvider
 import com.android.tools.idea.logcat.util.LOGGER
 import com.intellij.execution.filters.Filter
@@ -56,6 +57,9 @@ internal class EditorHyperlinkDetector(
     LogcatConsoleFilterProvider.EP_NAME.extensionList
       .map { it.create(editor) }
       .forEach { filter.addFilter(it) }
+    if (StudioFlags.LOGCAT_DEOBFUSCATE.get()) {
+      filter.addFilter(DeobfuscatedFilter(editor))
+    }
 
     // Add all standard filters
     // Performed as a background task based on `ConsoleViewImpl.updatePredefinedFiltersLater()`
