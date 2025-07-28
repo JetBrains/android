@@ -1473,6 +1473,11 @@ public final class StudioFlags {
     "Enable context-menu actions that can generate a Compose Preview corresponding to the selected @Composable"
     );
 
+  public static final Flag<Boolean> COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC = new BooleanFlag(
+    COMPOSE, "preview.generate.preview.action.agentic", "Use agents to generate Compose Previews",
+    "Uses agentic approach when generating Compose Previews corresponding to the selected @Composable. This replaces the transform based approach set by compose.preview.generate.preview.action. preview.generate.preview.action must be enabled for the action to be available."
+  );
+
   public static final Flag<Boolean> COMPOSE_PREVIEW_GENERATE_EXTRA_PARAMETER_CONTEXT = new BooleanFlag(
     COMPOSE, "preview.generate.extra.parameter.context", "Enable additional parameter context when generating Compose Previews",
     "Enables an experiment of adding extra context when generating Compose Previews. The extra context will include information that should help instantiate parameters required by the Composable method used in the preview."
