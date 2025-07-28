@@ -20,8 +20,6 @@ import com.android.flags.ImmutableFlagOverrides
 import com.android.tools.idea.flags.overrides.IdeConfiguration.Configuration
 import com.android.utils.associateNotNull
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.packaging.impl.artifacts.InvalidArtifact
-import org.jetbrains.annotations.TestOnly
 import java.io.InputStream
 import kotlin.text.split
 import kotlin.text.startsWith
@@ -70,7 +68,7 @@ class ConfigurationOverrides: ImmutableFlagOverrides {
           reader.readLines().filter { !it.startsWith("#") }.associateNotNull {
             val tokens = parseLine(it) ?: return@associateNotNull null
             val flagConfig = configsByName[tokens.second] ?: return@associateNotNull null
-            tokens.first to (currentConfig.level <= flagConfig.level).toString()
+            tokens.first to (currentConfig.stabilityLevel <= flagConfig.stabilityLevel).toString()
           }
         }
       }
