@@ -17,7 +17,6 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.flags.junit.FlagRule
 import com.android.testutils.delayUntilCondition
-import com.android.testutils.waitForCondition
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gservices.DeprecationBanner
 import com.android.tools.idea.gservices.DevServicesDeprecationData
@@ -40,7 +39,6 @@ import com.intellij.testFramework.replaceService
 import com.intellij.util.application
 import com.intellij.util.ui.JBUI
 import javax.swing.JPanel
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
@@ -115,7 +113,9 @@ class VitalsTabProviderTest {
     // Setup
     tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
 
-    assertThat(tabPanel.components.single().toString()).contains("placeholderContent")
+    delayUntilCondition(200) {
+      tabPanel.components.firstOrNull().toString().contains("placeholderContent")
+    }
     val stubController =
       object : StubAppInsightsProjectLevelController() {
         override val project = projectRule.project
@@ -160,24 +160,22 @@ class VitalsTabProviderTest {
     withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
 
     modelStateFlow.value = AppInsightsModel.Unauthenticated
-    waitForCondition(2.seconds) {
-      tabPanel.components.firstOrNull().toString().contains("loggedOut")
-    }
+    delayUntilCondition(200) { tabPanel.components.firstOrNull().toString().contains("loggedOut") }
     assertThat(controller.refreshCount).isEqualTo(0)
 
     modelStateFlow.value = AppInsightsModel.Authenticated(controller)
     withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
-    waitForCondition(2.seconds) { controller.refreshCount == 1 }
+    delayUntilCondition(200) { controller.refreshCount == 1 }
 
     modelStateFlow.value = AppInsightsModel.InitializationFailed
-    waitForCondition(2.seconds) {
+    delayUntilCondition(200) {
       tabPanel.components.firstOrNull().toString().contains("initializationFailedComponent")
     }
     assertThat(controller.refreshCount).isEqualTo(1)
 
     modelStateFlow.value = AppInsightsModel.Authenticated(controller)
     withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
-    waitForCondition(2.seconds) { controller.refreshCount == 2 }
+    delayUntilCondition(200) { controller.refreshCount == 2 }
   }
 
   @Test
@@ -193,7 +191,7 @@ class VitalsTabProviderTest {
     }
     tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
     withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
-    waitForCondition(2.seconds) { tabPanel.components.any { it is ServiceUnsupportedPanel } }
+    delayUntilCondition(200) { tabPanel.components.any { it is ServiceUnsupportedPanel } }
   }
 
   @Test
@@ -209,7 +207,7 @@ class VitalsTabProviderTest {
     }
     tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
     withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
-    waitForCondition(1.seconds) { tabPanel.components.any { it is DeprecationBanner } }
+    delayUntilCondition(200) { tabPanel.components.any { it is DeprecationBanner } }
 
     val banner = tabPanel.components.first { it is DeprecationBanner }
     assertThat(banner.background).isEqualTo(JBUI.CurrentTheme.Banner.WARNING_BACKGROUND)
@@ -233,7 +231,7 @@ class VitalsTabProviderTest {
 
     tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
     withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
-    waitForCondition(2.seconds) { tabPanel.components.any { it is ServiceUnsupportedPanel } }
+    delayUntilCondition(200) { tabPanel.components.any { it is ServiceUnsupportedPanel } }
 
     deprecationDataFlow.update {
       DevServicesDeprecationData(
@@ -245,8 +243,8 @@ class VitalsTabProviderTest {
       )
     }
     withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
-    waitForCondition(2.seconds) { tabPanel.components.none { it is ServiceUnsupportedPanel } }
-    waitForCondition(2.seconds) { tabPanel.components.any { it is VitalsTab } }
+    delayUntilCondition(200) { tabPanel.components.none { it is ServiceUnsupportedPanel } }
+    delayUntilCondition(200) { tabPanel.components.any { it is VitalsTab } }
   }
 
   @Test
@@ -264,7 +262,7 @@ class VitalsTabProviderTest {
 
     tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
     withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
-    waitForCondition(2.seconds) { tabPanel.components.any { it is ServiceUnsupportedPanel } }
+    delayUntilCondition(200) { tabPanel.components.any { it is ServiceUnsupportedPanel } }
 
     deprecationDataFlow.update {
       DevServicesDeprecationData(
@@ -276,9 +274,9 @@ class VitalsTabProviderTest {
       )
     }
     withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
-    waitForCondition(2.seconds) { tabPanel.components.none { it is ServiceUnsupportedPanel } }
-    waitForCondition(2.seconds) { tabPanel.components.any { it is DeprecationBanner } }
-    waitForCondition(2.seconds) { tabPanel.components.any { it is VitalsTab } }
+    delayUntilCondition(200) { tabPanel.components.none { it is ServiceUnsupportedPanel } }
+    delayUntilCondition(200) { tabPanel.components.any { it is DeprecationBanner } }
+    delayUntilCondition(200) { tabPanel.components.any { it is VitalsTab } }
   }
 
   @Test
@@ -296,8 +294,8 @@ class VitalsTabProviderTest {
       }
       tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
       withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
-      waitForCondition(2.seconds) { tabPanel.components.any { it is DeprecationBanner } }
-      waitForCondition(2.seconds) { tabPanel.components.any { it is VitalsTab } }
+      delayUntilCondition(200) { tabPanel.components.any { it is DeprecationBanner } }
+      delayUntilCondition(200) { tabPanel.components.any { it is VitalsTab } }
 
       deprecationDataFlow.update {
         DevServicesDeprecationData(
@@ -309,7 +307,7 @@ class VitalsTabProviderTest {
         )
       }
 
-      waitForCondition(2.seconds) { tabPanel.components.none { it is DeprecationBanner } }
+      delayUntilCondition(200) { tabPanel.components.none { it is DeprecationBanner } }
     }
 
   @Test
