@@ -40,30 +40,25 @@ dependencies {
   intellijPlatform {
     intellijIdeaCommunity(libs.versions.idea)
     bundledPlugin("org.jetbrains.kotlin")
+    // Add dependency on Compose and Jewel modules
+    bundledModule("intellij.platform.jewel.foundation")
+    bundledModule("intellij.platform.jewel.ideLafBridge")
+    bundledModule("intellij.platform.jewel.markdown.core")
+    bundledModule("intellij.platform.jewel.markdown.extensions.gfmAlerts")
+    bundledModule("intellij.platform.jewel.markdown.extensions.gfmStrikethrough")
+    bundledModule("intellij.platform.jewel.markdown.extensions.gfmTables")
+    bundledModule("intellij.platform.jewel.markdown.ideLafBridgeStyling")
+    bundledModule("intellij.platform.jewel.ui")
+    bundledModule("intellij.libraries.compose.foundation.desktop")
+    bundledModule("intellij.libraries.skiko")
   }
 }
 
 dependencies {
-  // MUST align version with the Jewel dependency in adt-ui-compose
-  // MUST align -XXX suffix in artifact ID to the target IJP version
-  // See https://github.com/JetBrains/Jewel/releases for the release notes
-  api("org.jetbrains.jewel:jewel-ide-laf-bridge-243:0.27.0") {
-    exclude(group = "org.jetbrains.kotlinx")
-  }
-  api("org.jetbrains.jewel:jewel-markdown-ide-laf-bridge-styling-243:0.27.0") {
-    exclude(group = "org.jetbrains.kotlinx")
-  }
-
-  // Do not bring in Material (we use Jewel) and Coroutines (the IDE has its own)
-  api(compose.desktop.currentOs) {
-    exclude(group = "org.jetbrains.compose.material")
-    exclude(group = "org.jetbrains.kotlinx")
-  }
-
   api("androidx.lifecycle:lifecycle-runtime:2.8.7")
   testApi(compose.desktop.uiTestJUnit4)
-  testApi("org.jetbrains.jewel:jewel-int-ui-standalone-243:0.27.0")
-  testApi("org.jetbrains.jewel:jewel-markdown-int-ui-standalone-styling-243:0.27.0")
+  testApi("org.jetbrains.jewel:jewel-int-ui-standalone:0.28.0-251.26137")
+  testApi("org.jetbrains.jewel:jewel-markdown-int-ui-standalone-styling:0.28.0-251.26137")
 }
 
 sourceSets {
