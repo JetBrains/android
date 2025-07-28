@@ -12,15 +12,4 @@
             column="3"/>
     </issue>
 
-    <issue
-        id="ModifierParameter"
-        message="Modifier parameter should be the first optional parameter"
-        errorLine1="  modifier: Modifier = Modifier,"
-        errorLine2="  ~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/adddevicedialog/Table.kt"
-            line="184"
-            column="3"/>
-    </issue>
-
 </issues>

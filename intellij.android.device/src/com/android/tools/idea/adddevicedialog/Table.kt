@@ -74,6 +74,7 @@ import com.android.tools.adtui.compose.IntUiPaletteDefaults
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.bridge.retrieveColorOrUnspecified
 import org.jetbrains.jewel.foundation.modifier.onHover
+import org.jetbrains.jewel.foundation.modifier.thenIf
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalContentColor
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
@@ -86,7 +87,6 @@ import org.jetbrains.jewel.ui.component.scrollbarContentSafePadding
 import org.jetbrains.jewel.ui.component.styling.ScrollbarStyle
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 import org.jetbrains.jewel.ui.theme.scrollbarStyle
-import org.jetbrains.jewel.ui.util.thenIf
 
 /** A column of a [Table]; determines its name, size, order, and content. */
 data class TableColumn<in T>(
@@ -229,21 +229,21 @@ internal fun <T> TableHeader(
   Row(modifier.fillMaxWidth().padding(horizontal = ROW_PADDING)) {
     val focusedBackgroundColor =
       rememberColor(IntUiPaletteDefaults.Dark.Gray3, IntUiPaletteDefaults.Light.Gray12)
-    columns.forEach {
-      val widthModifier = with(it.width) { widthModifier() }
+    columns.forEach { column ->
+      val widthModifier = with(column.width) { widthModifier() }
       var isFocused by remember { mutableStateOf(false) }
       Row(
         widthModifier
           .semantics(mergeDescendants = true) { heading() }
           .thenIf(isFocused) { background(focusedBackgroundColor) }
           .onFocusChanged { isFocused = it.isFocused }
-          .thenIf(it.comparator != null) {
-            clickable(interactionSource = null, indication = null) { onClick(it) }
+          .thenIf(column.comparator != null) {
+            clickable(interactionSource = null, indication = null) { onClick(column) }
           }
           .padding(horizontal = CELL_SPACING / 2, vertical = CELL_SPACING)
       ) {
-        Text(it.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        if (it == sortColumn) {
+        Text(column.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        if (column == sortColumn) {
           sortOrder.Icon()
         }
       }
@@ -266,10 +266,10 @@ private fun scrollbarHeaderPadding(style: ScrollbarStyle = JewelTheme.scrollbarS
 internal fun <T> TableRow(
   value: T,
   selected: Boolean,
-  onClick: (T) -> Unit = {},
-  onSecondaryClick: (T, Offset) -> Unit = { _, _ -> },
   columns: List<TableColumn<T>>,
   modifier: Modifier = Modifier,
+  onClick: (T) -> Unit = {},
+  onSecondaryClick: (T, Offset) -> Unit = { _, _ -> },
 ) {
   var isHovered by remember { mutableStateOf(false) }
   var layoutCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
@@ -412,13 +412,6 @@ fun <T> Table(
           TableRow(
             sortedRows[index],
             selected = sortedRows[index] == tableSelectionState.selection,
-            { row ->
-              onRowClick(row)
-              if (!hasFocus) {
-                tableFocusRequester.requestFocus()
-              }
-            },
-            onRowSecondaryClick,
             columns,
             Modifier.onFocusChanged {
               hasFocus = it.hasFocus
@@ -426,6 +419,13 @@ fun <T> Table(
                 tableSelectionState.selection = sortedRows[index]
               }
             },
+            { row ->
+              onRowClick(row)
+              if (!hasFocus) {
+                tableFocusRequester.requestFocus()
+              }
+            },
+            onRowSecondaryClick,
           )
         }
       }

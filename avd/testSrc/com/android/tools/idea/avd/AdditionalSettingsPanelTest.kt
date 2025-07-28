@@ -39,10 +39,15 @@ import com.android.sdklib.devices.VendorDevices
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
+import com.android.tools.adtui.compose.utils.lingerMouseHover
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.android.utils.NullLogger
 import com.google.common.truth.Truth.assertThat
+import java.nio.file.FileSystem
+import java.nio.file.FileSystems
+import java.nio.file.Files
+import kotlin.math.max
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
 import org.junit.Rule
@@ -51,10 +56,6 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.nio.file.FileSystem
-import java.nio.file.FileSystems
-import java.nio.file.Files
-import kotlin.math.max
 
 @RunWith(JUnit4::class)
 class AdditionalSettingsPanelTest {

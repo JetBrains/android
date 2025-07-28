@@ -22,8 +22,6 @@ import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isPopup
 import androidx.compose.ui.test.onChildren
-import androidx.compose.ui.test.performMouseInput
-import com.android.tools.adtui.compose.utils.StudioComposeTestRule
 
 internal fun SemanticsNodeInteractionsProvider.onNodeWithEditableText(
   text: String,
@@ -42,11 +40,3 @@ internal fun SemanticsNodeInteractionsProvider.onNodeWithClickableText(
   onNode(hasClickAction() and hasText(text, substring, ignoreCase), useUnmergedTree)
 
 internal fun SemanticsNodeInteractionsProvider.onTooltips() = onNode(isPopup()).onChildren()
-
-internal fun SemanticsNodeInteraction.lingerMouseHover(
-  rule: StudioComposeTestRule,
-  durationMillis: Long = 1000,
-) {
-  performMouseInput { moveTo(center) }
-  rule.mainClock.advanceTimeBy(durationMillis)
-}
