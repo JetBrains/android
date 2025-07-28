@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import com.intellij.openapi.util.registry.Registry
 import kotlin.time.Duration.Companion.milliseconds
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.Text
@@ -126,5 +127,7 @@ private fun validationTooltipMetrics() =
           alignment = Alignment.TopEnd,
           offset = DpOffset(0.dp, -8.dp),
         ),
+      regularDisappearDelay = Registry.intValue("ide.helptooltip.regular.dismissDelay").milliseconds,
+      fullDisappearDelay = Registry.intValue("ide.helptooltip.full.dismissDelay").milliseconds,
     )
   }

@@ -81,7 +81,7 @@ jvm_import(
 # managed by go/iml_to_build
 iml_module(
     name = "jewel.sdkcompat.main",
-    srcs = ["api251"],
+    srcs = ["api252"],
     iml_files = ["jewel.sdkcompat.iml"],
     kotlin_use_compose = True,
     visibility = ["//visibility:public"],
