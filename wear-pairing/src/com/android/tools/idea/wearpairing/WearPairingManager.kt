@@ -25,11 +25,11 @@ import com.android.sdklib.SystemImageTags
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.idea.AndroidStartupActivity
 import com.android.tools.idea.adb.AdbService
-import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.avdmanager.AvdManagerConnection.Companion.getDefaultAvdManagerConnection
 import com.android.tools.idea.ddms.DevicePropertyUtil.getManufacturer
 import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
 import com.android.tools.idea.observable.core.OptionalProperty
+import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
@@ -447,18 +447,17 @@ class WearPairingManager(
       }
     }
 
-  internal suspend fun launchDevice(
-    project: Project?,
-    deviceId: String,
-    avdInfo: AvdInfo,
-  ): IDevice {
-    connectedDevicesProvider()
-      .find { it.getDeviceID() == deviceId }
-      ?.apply {
-        return this
-      }
+  internal suspend fun launchDevice(project: Project?, deviceId: String, avd: AvdInfo): IDevice =
+    connectedDevicesProvider().find { it.getDeviceID() == deviceId } ?: launchAvd(project, avd)
+
+  private suspend fun launchAvd(project: Project?, avd: AvdInfo): IDevice {
     return withContext(ioDispatcher) {
-      getDefaultAvdManagerConnection().startAvd(project, avdInfo, RequestType.DIRECT_DEVICE_MANAGER)
+      getDefaultAvdManagerConnection().startAvd(project, avd).also {
+        project
+          ?.messageBus
+          ?.syncPublisher(DeviceHeadsUpListener.TOPIC)
+          ?.userInvolvementRequired(it.serialNumber, project)
+      }
     }
   }
 

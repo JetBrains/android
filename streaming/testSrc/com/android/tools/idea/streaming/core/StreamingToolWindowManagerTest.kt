@@ -28,7 +28,6 @@ import com.android.sdklib.deviceprovisioner.Reservation
 import com.android.sdklib.deviceprovisioner.ReservationState
 import com.android.sdklib.deviceprovisioner.TemplateActivationAction
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
-import com.android.sdklib.internal.avd.AvdInfo
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.actions.createTestEvent
@@ -40,8 +39,6 @@ import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.popup.FakeListPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
-import com.android.tools.idea.avdmanager.AvdLaunchListener
-import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.protobuf.TextFormat
@@ -67,7 +64,6 @@ import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.DisposerExplorer
 import com.android.tools.idea.testing.override
 import com.google.common.truth.Truth.assertThat
-import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ui.LafManager
 import com.intellij.ide.ui.laf.UIThemeLookAndFeelInfoImpl
@@ -92,15 +88,6 @@ import com.intellij.ui.content.ContentManager
 import com.intellij.util.ConcurrencyUtil.awaitQuiescence
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import icons.StudioIcons
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.runBlocking
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 import java.awt.Dimension
 import java.awt.Point
 import java.util.concurrent.Executors
@@ -111,6 +98,15 @@ import javax.swing.JViewport
 import javax.swing.SwingConstants
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.runBlocking
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /** Tests for [StreamingToolWindowManager] and [StreamingToolWindowFactory]. */
 @RunsInEdt
@@ -166,79 +162,90 @@ class StreamingToolWindowManagerTest {
     assertThat(contentManager.contents).isEmpty()
 
     val tempFolder = emulatorRule.avdRoot
-    val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
-    val emulator2 = emulatorRule.newEmulator(FakeEmulator.createTabletAvd(tempFolder))
-    val emulator3 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder))
+    val tablet = emulatorRule.newEmulator(FakeEmulator.createTabletAvd(tempFolder))
+    val phone = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
+    val watch = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder))
 
     // The Running Devices tool window is closed.
     assertThat(toolWindow.isVisible).isFalse()
 
-    // Start the first and the second emulators.
-    emulator1.start(standalone = false)
-    emulator2.start(standalone = true)
+    // Start the tablet AVD in standalone mode.
+    tablet.start(standalone = true)
 
-    // Send notification that the emulator has been launched.
-    val avdInfo = AvdInfo(emulator1.avdFolder.resolve("config.ini"), emulator1.avdFolder, mock(), null, null)
-    val commandLine = GeneralCommandLine("/emulator_home/fake_emulator", "-avd", emulator1.avdId, "-qt-hide-window")
-    project.messageBus.syncPublisher(AvdLaunchListener.TOPIC).avdLaunched(avdInfo, commandLine, RequestType.INDIRECT, project)
+    val runningEmulatorCatalog = RunningEmulatorCatalog.getInstance()
+    runBlocking { runningEmulatorCatalog.updateNow().await() }
+    assertThat(runningEmulatorCatalog.emulators.size).isEqualTo(1)
     dispatchAllInvocationEvents()
-    assertThat(toolWindow.isVisible).isFalse() // Indirect AVD launches don't open the Running Devices tool window.
+    assertThat(toolWindow.isVisible).isFalse() // Launching an AVD in standalone mode doesn't affect the Running Devices tool window.
+    assertThat(toolWindow.icon).isEqualTo(INACTIVE_ICON) // Liveness indicator is off.
 
-    project.messageBus.syncPublisher(AvdLaunchListener.TOPIC).avdLaunched(avdInfo, commandLine, RequestType.DIRECT_DEVICE_MANAGER, project)
-    dispatchAllInvocationEvents()
+    // Start the watch AVD in embedded mode.
+    watch.start(standalone = false)
+    runBlocking { runningEmulatorCatalog.updateNow().await() }
+    assertThat(runningEmulatorCatalog.emulators.size).isEqualTo(2)
+    waitForCondition(2.seconds) { toolWindow.icon == LIVE_ICON } // Wait for liveness indicator to turn on.
+    assertThat(toolWindow.isVisible).isFalse() // The Running Devices tool window is still closed.
+    assertThat(contentManager.contents).isEmpty()
+
+    // Start the phone AVD by using the pull down menu action.
+    toolWindow.show()
+    val startPhoneAction = getAddDeviceAction(phone.avdName)
+    assertThat(startPhoneAction.templatePresentation.icon).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
+    executeAction(startPhoneAction, toolWindow.component, project)
+    waitForCondition(2.seconds) { contentManager.contents.size == 2 }
+
     // The Running Devices tool window is opened and activated when an embedded emulator is launched by a direct request.
-    waitForCondition(2.seconds) { toolWindow.isVisible }
     assertThat(toolWindow.isActive).isTrue()
+    assertThat(contentManager.contents[0].displayName).isEqualTo(watch.avdName)
+    assertThat(contentManager.contents[0].description).isEqualTo("${watch.avdName} <font color=808080>(${watch.serialNumber})</font>")
+    assertThat(contentManager.contents[1].displayName).isEqualTo(phone.avdName)
+    assertThat(contentManager.contents[1].description).isEqualTo("${phone.avdName} <font color=808080>(${phone.serialNumber})</font>")
+    assertThat(contentManager.contents[1].isSelected).isTrue() // The phone tab is selected.
 
-    waitForCondition(2.seconds) { contentManager.contents.isNotEmpty() }
-    assertThat(contentManager.contents).hasLength(1)
-    waitForCondition(2.seconds) { RunningEmulatorCatalog.getInstance().emulators.isNotEmpty() }
-    emulator1.getNextGrpcCall(2.seconds) { true } // Wait for the initial "getVmState" call.
-    waitForCondition(2.seconds) { contentManager.contents[0].displayName != null }
-    assertThat(contentManager.contents[0].displayName).isEqualTo(emulator1.avdName)
-    assertThat(contentManager.contents[0].description).isEqualTo(
-      "${emulator1.avdName} <font color=808080>(${emulator1.serialNumber})</font>")
+    // Close the watch tab.
+    contentManager.removeContent(contentManager.contents[0], true)
+    var call = watch.getNextGrpcCall(2.seconds,
+                                     FakeEmulator.DEFAULT_CALL_FILTER.or("android.emulation.control.UiController/closeExtendedControls"))
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVmState")
+    assertThat(TextFormat.shortDebugString(call.request)).isEqualTo("state: SHUTDOWN")
+    waitForCondition(2.seconds) { !watch.isRunning }
+    assertThat(runBlocking { runningEmulatorCatalog.updateNow().await()}).hasSize(2)
 
-    // Start the third emulator.
-    emulator3.start(standalone = false)
+    // Start the watch AVD again.
+    watch.start(standalone = false)
+    runningEmulatorCatalog.updateNow()
+    waitForCondition(2.seconds) { contentManager.contents.size == 2 }
 
-    waitForCondition(3.seconds) { contentManager.contents.size == 2 }
+    // The watch tab is added but the phone one is still selected.
+    assertThat(contentManager.contents[0].displayName).isEqualTo(phone.avdName)
+    assertThat(contentManager.contents[0].isSelected).isTrue() // The phone tab is still selected.
+    assertThat(contentManager.contents[1].displayName).isEqualTo(watch.avdName) // The watch tab is added.
 
-    assertThat(contentManager.contents[0].displayName).isEqualTo(emulator1.avdName)
-    assertThat(contentManager.contents[0].description).isEqualTo(
-        "${emulator1.avdName} <font color=808080>(${emulator1.serialNumber})</font>")
-    // The panel for emulator3 is added but the emulator1 is still selected.
-    assertThat(contentManager.contents[0].isSelected).isTrue()
-    assertThat(contentManager.contents[1].displayName).isEqualTo(emulator3.avdName)
-    assertThat(contentManager.contents[1].description).isEqualTo(
-        "${emulator3.avdName} <font color=808080>(${emulator3.serialNumber})</font>")
-    // Deploying an app activates the corresponding emulator panel.
-    for (emulator in listOf(emulator2, emulator3)) {
+    // Deploying an app activates the corresponding tab.
+    for (emulator in listOf(tablet, watch)) {
       project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).userInvolvementRequired(emulator.serialNumber, project)
     }
     waitForCondition(2.seconds) { contentManager.contents[1].isSelected }
 
-    assertThat(contentManager.contents).hasLength(2)
+    // Stop the watch AVD.
+    watch.stop()
 
-    // Stop the second embedded emulator.
-    emulator3.stop()
-
-    // The panel corresponding to the second emulator goes away.
-    waitForCondition(5.seconds) { contentManager.contents.size == 1 }
-    assertThat(contentManager.contents[0].displayName).isEqualTo(emulator1.avdName)
+    waitForCondition(5.seconds) { contentManager.contents.size == 1 } // Wait for the watch tab to close.
+    assertThat(contentManager.contents[0].displayName).isEqualTo(phone.avdName)
     assertThat(contentManager.contents[0].isSelected).isTrue()
 
-    // Close the panel corresponding to emulator1.
+    // Close the phone tab.
     contentManager.removeContent(contentManager.contents[0], true)
-    val call = emulator1.getNextGrpcCall(2.seconds,
-                                         FakeEmulator.DEFAULT_CALL_FILTER.or("android.emulation.control.UiController/closeExtendedControls"))
+    call = phone.getNextGrpcCall(2.seconds,
+                                     FakeEmulator.DEFAULT_CALL_FILTER.or("android.emulation.control.UiController/closeExtendedControls"))
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVmState")
     assertThat(TextFormat.shortDebugString(call.request)).isEqualTo("state: SHUTDOWN")
 
-    // The panel corresponding the first emulator goes away and is replaced by the empty state panel.
+    // The phone tab is closed and replaced by the empty state panel.
     assertThat(contentManager.contents.size).isEqualTo(1)
     assertThat(contentManager.contents[0].component).isInstanceOf(EmptyStatePanel::class.java)
     assertThat(contentManager.contents[0].displayName).isNull()
+    assertThat(toolWindow.icon).isEqualTo(INACTIVE_ICON) // Liveness indicator is off.
   }
 
   @Test
@@ -393,14 +400,14 @@ class StreamingToolWindowManagerTest {
     val bottomContentManager = bottomContent.manager!!
     assertThat(bottomContentManager.contents).hasLength(1)
 
-    var action = waitForAction(2.seconds, emulator2.avdName)
+    var action = getAddDeviceAction(emulator2.avdName)
     executeAction(action, toolWindow.component, project,
                   extra = DataSnapshotProvider { it[PlatformDataKeys.CONTENT_MANAGER] = bottomContentManager })
     waitForCondition(15.seconds) { bottomContentManager.contents.size == 2 }
     assertThat(bottomContentManager.contents[1].displayName).isEqualTo(emulator2.avdName)
 
     val device2Name = "${device2.deviceState.model} API ${device2.deviceState.buildVersionSdk}"
-    action = waitForAction(2.seconds, device2Name)
+    action = getAddDeviceAction(device2Name)
     executeAction(action, toolWindow.component, project,
                   extra = DataSnapshotProvider { it[PlatformDataKeys.CONTENT_MANAGER] = topContentManager })
     waitForCondition(15.seconds) { topContentManager.contents.size == 2 }
@@ -814,7 +821,10 @@ class StreamingToolWindowManagerTest {
     return displayView.frameNumber
   }
 
-  private fun waitForAction(timeout: Duration, actionName: String): AnAction {
+  private fun getAddDeviceAction(actionName: String): AnAction =
+      waitForAddDeviceAction(2.seconds, actionName)
+
+  private fun waitForAddDeviceAction(timeout: Duration, actionName: String): AnAction {
     var action: AnAction? = null
     waitForCondition(timeout) {
       action = triggerAddDevicePopup().actions.find { it.templateText == actionName }

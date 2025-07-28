@@ -19,7 +19,6 @@ import com.android.ddmlib.IDevice
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.testutils.ProcessHandleProviderRule
-import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.io.grpc.ManagedChannelBuilder
 import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder
@@ -32,15 +31,15 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.registerOrReplaceServiceInstance
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import org.junit.rules.ExternalResource
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import org.mockito.kotlin.mock
-import java.nio.file.Files
-import java.nio.file.Path
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * Allows tests to use [FakeEmulator] instead of the real one.
@@ -126,10 +125,10 @@ class FakeEmulatorRule : TestRule {
       return super.getAvds(true) // Always refresh in tests.
     }
 
-    override suspend fun startAvd(project: Project?, avd: AvdInfo, requestType: RequestType): IDevice {
+    override suspend fun startAvd(project: Project?, avd: AvdInfo, forceStartInToolWindow: Boolean): IDevice {
       val emulator = emulators.firstOrNull { it.avdFolder == avd.dataFolderPath } ?:
           throw IllegalArgumentException("Unknown AVD: ${avd.id}")
-      emulator.start(standalone = requestType != RequestType.DIRECT_RUNNING_DEVICES)
+      emulator.start(standalone = !forceStartInToolWindow)
       return mock<IDevice>()
     }
   }

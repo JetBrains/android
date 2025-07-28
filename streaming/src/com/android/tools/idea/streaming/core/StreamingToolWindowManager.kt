@@ -28,8 +28,6 @@ import com.android.sdklib.deviceprovisioner.ReservationState
 import com.android.sdklib.deviceprovisioner.mapStateNotNull
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction
-import com.android.tools.idea.avdmanager.AvdLaunchListener
-import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.concurrency.createCoroutineScope
@@ -120,6 +118,15 @@ import com.intellij.util.containers.ComparatorUtil.max
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
+import java.awt.Component
+import java.awt.EventQueue
+import java.awt.event.KeyEvent
+import java.nio.file.Path
+import java.util.function.Supplier
+import javax.swing.JComponent
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -129,14 +136,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
-import java.awt.Component
-import java.awt.EventQueue
-import java.awt.event.KeyEvent
-import java.util.function.Supplier
-import javax.swing.JComponent
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.toJavaDuration
 
 private const val DEVICE_FRAME_VISIBLE_PROPERTY = "com.android.tools.idea.streaming.emulator.frame.visible"
 private const val DEVICE_FRAME_VISIBLE_DEFAULT = true
@@ -190,8 +189,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   /** Requested activation levels of devices that recently requested attention keyed by their serial numbers. */
   private val recentAttentionRequests = buildCache<String, ActivationLevel>(ATTENTION_REQUEST_EXPIRATION)
-  /** Requested activation levels of AVDs keyed by their IDs. */
-  private val recentAvdLaunches = buildCache<String, ActivationLevel>(ATTENTION_REQUEST_EXPIRATION)
+  /** Requested activation levels of AVDs keyed by their data directories. */
+  private val recentAvdLaunches = buildCache<Path, ActivationLevel>(ATTENTION_REQUEST_EXPIRATION)
   /** Recently disconnected mirrored devices. */
   private val recentDisconnections = buildCache<String, ActivationLevel>(AUTO_RECONNECTION_TIMEOUT)
   /** Links pending AVD starts to the content managers that requested them. Keyed by AVD IDs. */
@@ -281,6 +280,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   init {
     Disposer.register(toolWindow.disposable, this)
+    RunningEmulatorCatalog.getInstance().addListener(this, EMULATOR_DISCOVERY_INTERVAL_MILLIS * 10)
     deviceClientRegistry.addListener(this)
     PhysicalDeviceWatcher(this)
 
@@ -315,18 +315,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
         }
       }
     })
-
-    messageBusConnection.subscribe(AvdLaunchListener.TOPIC,
-                                   AvdLaunchListener @AnyThread { avd, commandLine, requestType, project ->
-                                     if (project == toolWindow.project && isEmbeddedEmulator(commandLine)) {
-                                       RunningEmulatorCatalog.getInstance().updateNow()
-                                       EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-                                         if (requestType != RequestType.INDIRECT) {
-                                           onEmulatorHeadsUp(avd.name, ActivationLevel.ACTIVATE_TAB)
-                                         }
-                                       }
-                                     }
-                                   })
 
     messageBusConnection.subscribe(DeviceHeadsUpListener.TOPIC, MyDeviceHeadsUpListener())
   }
@@ -378,17 +366,17 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     val emulator = runningEmulators.find { it.emulatorId.serialNumber == serialNumber } ?: return
     // Ignore standalone emulators.
     if (emulator.emulatorId.isEmbedded) {
-      onEmulatorHeadsUp(emulator.emulatorId.avdId, activation)
+      onEmulatorHeadsUp(emulator.emulatorId.avdFolder, activation)
     }
   }
 
-  private fun onEmulatorHeadsUp(avdId: String, activation: ActivationLevel) {
+  private fun onEmulatorHeadsUp(avdFolder: Path, activation: ActivationLevel) {
     toolWindow.activate(activation)
 
-    val content = findContentByAvdId(avdId)
+    val content = findContentByAvdFolder(avdFolder)
     if (content == null) {
       RunningEmulatorCatalog.getInstance().updateNow()
-      recentAvdLaunches.put(avdId, activation)
+      recentAvdLaunches.put(avdFolder, activation)
       alarm.addRequest(recentAvdLaunches::cleanUp, ATTENTION_REQUEST_EXPIRATION.inWholeMicroseconds)
     }
     else {
@@ -560,7 +548,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       val deviceId = panel.id
       val activation = max(
           recentAttentionRequests.remove(deviceId.serialNumber) ?: ActivationLevel.CREATE_TAB,
-          (deviceId as? DeviceId.EmulatorDeviceId)?.emulatorId?.avdId?.let(recentAvdLaunches::remove) ?: ActivationLevel.CREATE_TAB)
+          (deviceId as? DeviceId.EmulatorDeviceId)?.emulatorId?.avdFolder?.let(recentAvdLaunches::remove) ?: ActivationLevel.CREATE_TAB)
       if (activation >= ActivationLevel.SELECT_TAB) {
         content.select(activation)
       }
@@ -649,8 +637,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       findContent { it.deviceId == deviceId }
   private fun findContentByEmulatorId(emulatorId: EmulatorId): Content? =
       findContent { (it.deviceId as? DeviceId.EmulatorDeviceId)?.emulatorId == emulatorId }
-  private fun findContentByAvdId(avdId: String): Content? =
-      findContent { (it.deviceId as? DeviceId.EmulatorDeviceId)?.emulatorId?.avdId == avdId }
+  private fun findContentByAvdFolder(avdFolder: Path): Content? =
+      findContent { (it.deviceId as? DeviceId.EmulatorDeviceId)?.emulatorId?.avdFolder == avdFolder }
   private fun findContentBySerialNumberOfPhysicalDevice(serialNumber: String): Content? =
       findContent { it.deviceId?.serialNumber == serialNumber && it.component is DeviceToolWindowPanel}
 
@@ -693,6 +681,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   override fun emulatorAdded(emulator: EmulatorController) {
     if (emulator.emulatorId.isEmbedded && emulator.emulatorConfig.isValid) {
       EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
+        updateLiveIndicator()
         if (contentShown && emulators.add(emulator)) {
           addEmulatorPanel(emulator)
         }
@@ -704,9 +693,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   override fun emulatorRemoved(emulator: EmulatorController) {
     if (emulator.emulatorId.isEmbedded) {
       EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-        if (removeEmulatorPanel(emulator)) {
-          emulators.remove(emulator)
-        }
+        emulators.remove(emulator)
+        removeEmulatorPanel(emulator)
+        updateLiveIndicator()
       }
     }
   }
@@ -1194,7 +1183,10 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       toolWindowScope.launch(Dispatchers.IO) {
         val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
         try {
-          avdManager.startAvd(project, avd, RequestType.DIRECT_RUNNING_DEVICES)
+          // Delay the onEmulatorHeadsUp call slightly to make it more likely that the emulator will
+          // have registered itself by the time of the call.
+          alarm.addRequest({ onEmulatorHeadsUp(avd.dataFolderPath, ActivationLevel.ACTIVATE_TAB) }, 200)
+          avdManager.startAvd(project, avd, forceLaunchInToolWindow = true)
         }
         catch (e: Exception) {
           val message = e.message?.let { if (it.contains(avd.displayName)) it else "Unable to launch ${avd.displayName} - $it"} ?:

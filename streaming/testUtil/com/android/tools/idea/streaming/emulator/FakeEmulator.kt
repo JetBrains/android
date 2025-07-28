@@ -22,6 +22,7 @@ import com.android.emulator.control.ClipData
 import com.android.emulator.control.DisplayConfiguration
 import com.android.emulator.control.DisplayConfigurations
 import com.android.emulator.control.DisplayConfigurationsChangedNotification
+import com.android.emulator.control.DisplayMode as DisplayModeMessage
 import com.android.emulator.control.EmulatorControllerGrpc
 import com.android.emulator.control.EmulatorStatus
 import com.android.emulator.control.ExtendedControlsStatus
@@ -52,6 +53,7 @@ import com.android.emulator.control.UiControllerGrpc
 import com.android.emulator.control.Velocity
 import com.android.emulator.control.VmRunState
 import com.android.emulator.control.XrOptions
+import com.android.emulator.snapshot.SnapshotOuterClass.Image as SnapshotImage
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.android.io.writeImage
 import com.android.sdklib.AndroidVersion
@@ -89,9 +91,6 @@ import com.intellij.openapi.util.text.StringUtil.parseInt
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.io.createDirectories
 import com.intellij.util.ui.UIUtil
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.invoke
-import org.junit.Assert.fail
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.RenderingHints
@@ -103,7 +102,6 @@ import java.awt.geom.Path2D
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.ByteArrayOutputStream
-import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
@@ -122,8 +120,9 @@ import javax.imageio.ImageIO
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.time.Duration
-import com.android.emulator.control.DisplayMode as DisplayModeMessage
-import com.android.emulator.snapshot.SnapshotOuterClass.Image as SnapshotImage
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.invoke
+import org.junit.Assert.fail
 
 /**
  * Fake emulator for use in tests. Provides in-process gRPC services.
@@ -134,13 +133,19 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   private val registrationFile = registrationDirectory.resolve("pid_${grpcPort + 12345}.ini")
   private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("FakeEmulatorControllerService", 1)
   private val coroutineDispatcher = executor.asCoroutineDispatcher()
-  private var grpcServer = createGrpcServer()
+  private var grpcServer: Server? = null
   private val lifeCycleLock = Object()
   private var startTime = 0L
 
   private val config = EmulatorConfiguration.readAvdDefinition(avdId, avdFolder)
   private val foldedDisplayRegion: FoldedDisplay? = readDisplayRegion(avdFolder)
 
+  val isRunning: Boolean
+    get() {
+      return synchronized(lifeCycleLock) {
+        startTime != 0L
+      }
+    }
   @Volatile var displayRotation: SkinRotation = SkinRotation.PORTRAIT
   private var screenshotStreamRequest: ImageFormat? = null
   @Volatile private var screenshotStreamObserver: StreamObserver<Image>? = null
@@ -228,8 +233,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
       startTime = System.currentTimeMillis()
       grpcCallLog.clear()
-      grpcServer.start()
-      Files.write(registrationFile, registrationContent(standalone).toByteArray(UTF_8), CREATE_NEW)
+      grpcServer = createAndStartGrpcServer()
+      Files.writeString(registrationFile, registrationContent(standalone), CREATE_NEW)
     }
   }
 
@@ -262,16 +267,21 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
         if (grpcSemaphore.availablePermits() == 0) {
           resumeGrpc()
         }
-        grpcServer.shutdownNow()
-        try {
-          grpcServer.awaitTermination(10, TimeUnit.SECONDS)
-        }
-        catch (_: InterruptedException) {
-          thisLogger().error("Interrupted while waiting for the emulator gRPC server to terminate")
-        }
+        stopGrpcServer()
         startTime = 0
       }
     }
+  }
+
+  private fun stopGrpcServer() {
+    grpcServer?.shutdownNow()
+    try {
+      grpcServer?.awaitTermination(10, TimeUnit.SECONDS)
+    }
+    catch (_: InterruptedException) {
+      thisLogger().error("Interrupted while waiting for the emulator gRPC server to terminate")
+    }
+    grpcServer = null
   }
 
   /**
@@ -283,13 +293,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
         if (grpcSemaphore.availablePermits() == 0) {
           resumeGrpc()
         }
-        grpcServer.shutdownNow()
-        try {
-          grpcServer.awaitTermination(10, TimeUnit.SECONDS)
-        }
-        catch (_: InterruptedException) {
-          thisLogger().error("Interrupted while waiting for the emulator gRPC server to terminate")
-        }
+        stopGrpcServer()
         startTime = 0
       }
     }
@@ -356,13 +360,14 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
   }
 
-  private fun createGrpcServer(): Server {
+  private fun createAndStartGrpcServer(): Server {
     return InProcessServerBuilder.forName(grpcServerName(grpcPort))
       .executor(AppExecutorUtil.createBoundedApplicationPoolExecutor("FakeEmulator-gRPC", 1))
       .addService(ServerInterceptors.intercept(EmulatorControllerService(executor), LoggingInterceptor()))
       .addService(ServerInterceptors.intercept(EmulatorSnapshotService(executor), LoggingInterceptor()))
       .addService(ServerInterceptors.intercept(UiControllerService(executor), LoggingInterceptor()))
       .build()
+      .start()
   }
 
   private fun drawDisplayImage(size: Dimension, displayId: Int): BufferedImage {

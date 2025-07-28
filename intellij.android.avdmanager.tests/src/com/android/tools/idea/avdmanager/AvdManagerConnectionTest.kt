@@ -148,13 +148,7 @@ class AvdManagerConnectionTest : AndroidTestCase() {
 
     try {
       checkNotNull(skinnyAvd)
-      runBlocking {
-        avdManagerConnection.startAvd(
-          null,
-          skinnyAvd,
-          AvdLaunchListener.RequestType.DIRECT_DEVICE_MANAGER,
-        )
-      }
+      runBlocking { avdManagerConnection.startAvd(null, skinnyAvd) }
       fail()
     } catch (expected: RuntimeException) {
       assertThat(expected.message).startsWith("No emulator installed")
@@ -184,14 +178,7 @@ class AvdManagerConnectionTest : AndroidTestCase() {
       )
 
     try {
-      checkNotNull(skinlessAvd)
-      runBlocking {
-        avdManagerConnection.startAvd(
-          null,
-          skinlessAvd,
-          AvdLaunchListener.RequestType.DIRECT_DEVICE_MANAGER,
-        )
-      }
+      runBlocking { avdManagerConnection.startAvd(null, skinlessAvd) }
       fail()
     } catch (expected: RuntimeException) {
       assertThat(expected.message).startsWith("No emulator installed")
