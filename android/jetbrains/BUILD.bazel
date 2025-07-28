@@ -5,7 +5,10 @@ load("@rules_kotlin//kotlin:jvm.bzl", "kt_javac_options")
 
 create_kotlinc_options(
   name = "custom_jetbrains",
-  opt_in = ["org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction"]
+  opt_in = [
+    "com.intellij.openapi.util.IntellijInternalApi",
+    "org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction",
+  ]
 )
 
 kt_javac_options(
