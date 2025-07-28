@@ -1602,9 +1602,9 @@ android-studio/plugins/android/lib/sdk-tools.jar
 android-studio/plugins/android/lib/sdklib-sdk-schema.jar
 android-studio/plugins/android/lib/sdklib.jar
 android-studio/plugins/android/lib/shared.jar
-android-studio/plugins/android/lib/smali-baksmali-3.0.3.jar
-android-studio/plugins/android/lib/smali-dexlib2-3.0.3.jar
-android-studio/plugins/android/lib/smali-util-3.0.3.jar
+android-studio/plugins/android/lib/smali-baksmali-3.0.9.jar
+android-studio/plugins/android/lib/smali-dexlib2-3.0.9.jar
+android-studio/plugins/android/lib/smali-util-3.0.9.jar
 android-studio/plugins/android/lib/sqlite-jdbc-3.34.0.jar
 android-studio/plugins/android/lib/studio-grpc.jar
 android-studio/plugins/android/lib/studio-proto.jar
