@@ -1,4 +1,4 @@
-load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@rules_java//java:defs.bzl", "java_binary")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("//tools/adt/idea/studio:studio.bzl", "android_studio", "android_studio_configuration", "studio_plugin")
@@ -719,6 +719,7 @@ studio_plugin(
     directory = "gemini",
     libs = [
         "//prebuilts/tools/common/m2:libgoogle_auth_transitive_deps",
+        "//prebuilts/tools/common/m2:openai-java-sdk",
         "//prebuilts/tools/common/m2:sqlite-jdbc-3.43.0.0",
         "//prebuilts/tools/common/m2:wire-runtime-jvm-5.3.1",
         "//tools/adt/idea/.idea/libraries:kotlinx-serialization",
