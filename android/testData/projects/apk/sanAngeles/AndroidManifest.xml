@@ -7,10 +7,6 @@
     platformBuildVersionCode="23"
     platformBuildVersionName="6.0-2704002">
 
-    <uses-sdk
-        android:minSdkVersion="4"
-        android:targetSdkVersion="23" />
-
     <application
         android:label="@ref/0x7f030000"
         android:icon="@ref/0x7f020000"
