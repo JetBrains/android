@@ -488,10 +488,6 @@ constructor(
     return true
   }
 
-  fun findAvdWithDisplayName(name: String): Boolean {
-    return avdManager?.findAvdWithDisplayName(name) != null
-  }
-
   open fun findAvdWithFolder(avdFolder: Path): AvdInfo? {
     return avdManager?.findAvdWithFolder(avdFolder)
   }
