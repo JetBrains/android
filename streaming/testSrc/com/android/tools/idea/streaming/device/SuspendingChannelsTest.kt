@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.testutils.assertThrows
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.UsefulTestCase.assertThrows
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -147,7 +147,7 @@ class SuspendingChannelsTest {
         assertThat(connected.await(20, MILLISECONDS)).isTrue()
 
         assertThat(closed.await(20, MILLISECONDS)).isTrue()
-        assertThrows(IOException::class.java) {
+        assertThrows<IOException> {
           runBlocking {
             while (true) {
               channel.writeFully(ByteBuffer.wrap("knock knock".toByteArray()))

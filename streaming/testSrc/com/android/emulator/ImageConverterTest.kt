@@ -15,9 +15,9 @@
  */
 package com.android.emulator
 
+import com.android.testutils.assertThrows
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.protobuf.UnsafeByteOperations
-import com.intellij.testFramework.UsefulTestCase.assertThrows
 import org.junit.Assert.fail
 import org.junit.Test
 
@@ -53,11 +53,11 @@ class ImageConverterTest {
   @Test
   fun testUnpackRgb888ErrorHandling() {
     val bytes = ByteArray(30)
-    assertThrows(IllegalArgumentException::class.java) {
+    assertThrows<IllegalArgumentException> {
       ImageConverter.unpackRgb888(UnsafeByteOperations.unsafeWrap(bytes, 3, bytes.size - 4), IntArray(9))
     }
 
-    assertThrows(ArrayIndexOutOfBoundsException::class.java) {
+    assertThrows<ArrayIndexOutOfBoundsException> {
       ImageConverter.unpackRgb888(UnsafeByteOperations.unsafeWrap(bytes, 0, bytes.size), IntArray(9))
     }
   }
