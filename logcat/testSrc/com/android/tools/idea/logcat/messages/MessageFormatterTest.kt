@@ -57,7 +57,7 @@ private val OBFUSCATED_MESSAGE =
 
 private val CLEAR_MESSAGE =
   """
-    Exception (Show obfuscated)
+    Exception (Show original)
       at com.example.myapplication.Foo.foo(Foo.kt:7)
       at com.example.myapplication.MainActivity.onClick(MainActivity.kt:38)
       at com.example.myapplication.MainActivity.Greeting${'$'}lambda$1${'$'}lambda$0(MainActivity.kt:43)
@@ -747,7 +747,7 @@ class MessageFormatterTest {
     )
 
     val lines = textAccumulator.text.split('\n', limit = 2)
-    assertThat(lines[0].trim()).startsWith("Stack has been deobfuscated with ")
+    assertThat(lines[0].trim()).startsWith("Stack has been retraced with ")
     assertThat(lines[1]).isEqualTo(CLEAR_MESSAGE)
   }
 }

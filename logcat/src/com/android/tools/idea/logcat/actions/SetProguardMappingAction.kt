@@ -31,7 +31,7 @@ internal class SetProguardMappingAction :
   DumbAwareAction(
     LogcatBundle.message("logcat.proguard.mapping.action.name"),
     null,
-    AllIcons.General.InspectionsEye,
+    AllIcons.ObjectBrowser.AbbreviatePackageNames,
   ) {
   override fun getActionUpdateThread() = BGT
 
@@ -40,9 +40,7 @@ internal class SetProguardMappingAction :
     val descriptor =
       FileChooserDescriptor(true, false, true, true, false, false)
         .withTitle(LogcatBundle.message("logcat.proguard.mapping.action.chooser.title"))
-        .withFileFilter {
-          it.name.substringAfterLast('.') in MAPPING_FILE_EXTENSIONS
-        }
+        .withFileFilter { it.name.substringAfterLast('.') in MAPPING_FILE_EXTENSIONS }
     val path =
       FileChooserFactory.getInstance()
         .createFileChooser(descriptor, e.project, null)

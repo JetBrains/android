@@ -49,7 +49,7 @@ private val MESSAGE =
 
 private val CLEAR_MESSAGE =
   """
-    at com.example.proguardedapp.MainActivityKt.logStackTrace(MainActivity.kt:43) (Show obfuscated)
+    at com.example.proguardedapp.MainActivityKt.logStackTrace(MainActivity.kt:43) (Show original)
     at com.example.proguardedapp.MainActivityKt.access${'$'}logStackTrace(MainActivity.kt:1)
     at com.example.proguardedapp.MainActivityKt${'$'}App$1$1$1$1.invoke(MainActivity.kt:38)
     at com.example.proguardedapp.MainActivityKt${'$'}App$1$1$1$1.invoke(MainActivity.kt:38)

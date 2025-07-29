@@ -36,7 +36,7 @@ private val MESSAGE =
 
 private val CLEAR_MESSAGE =
   """
-    at com.example.myapplication.Foo.foo(Foo.kt:7) (Show obfuscated)
+    at com.example.myapplication.Foo.foo(Foo.kt:7) (Show original)
     at com.example.myapplication.MainActivity.onClick(MainActivity.kt:38)
     at com.example.myapplication.MainActivity.Greeting${'$'}lambda$1${'$'}lambda$0(MainActivity.kt:43)
     at androidx.compose.foundation.ClickablePointerInputNode${'$'}pointerInput$3.invoke-k-4lQ0M(ClickablePointerInputNode.java:987)

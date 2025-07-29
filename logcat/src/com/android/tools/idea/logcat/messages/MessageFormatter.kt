@@ -146,7 +146,7 @@ internal class MessageFormatter(
   private fun appendRetraceInfo(mapping: Path?, textAccumulator: TextAccumulator, newline: String) {
     if (mapping != null) {
       textAccumulator.accumulate(
-        "Stack has been deobfuscated with $mapping$newline",
+        "Stack has been retraced with $mapping$newline",
         DEOBFUSCATED_ANNOTATION_ATTRIBUTES,
       )
     }
