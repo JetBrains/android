@@ -205,7 +205,7 @@ private fun Project.createDumper() = ProjectDumper(
   androidSdk = getSdk().toFile(),
   devBuildHome = TestUtils.getWorkspaceRoot().toFile(),
   projectJdk = ProjectRootManager.getInstance(this).projectSdk,
-  alwaysExpandLibraries = true
+  forSnapshotComparison = true
 )
 
 private fun Module.projectDirectory(): File? = ExternalSystemModulePropertyManager.getInstance(this).getLinkedProjectPath()?.let { File(it) }

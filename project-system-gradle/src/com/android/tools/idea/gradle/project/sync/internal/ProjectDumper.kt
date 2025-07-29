@@ -47,7 +47,11 @@ class ProjectDumper(
   private val additionalRoots: Map<String, File> = emptyMap(),
   private val projectJdk: Sdk? = null,
   internal val ignoreModuleFileAndType: Boolean = false,
-  internal val alwaysExpandLibraries: Boolean = false
+  // Set this when comparing two snapshots to each other
+  // It currently makes sure the following:
+  // - The library details are always expanded
+  // - Only the first level of dependencies are dumped as the second level makes comparison too hard
+  internal val forSnapshotComparison: Boolean = false
 ) {
   private val gradleCache: File = getGradleCacheLocation()
   private val userM2: File = getUserM2Location()
