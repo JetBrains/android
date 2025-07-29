@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.module.recipes
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
+import com.android.tools.idea.wizard.template.common.AGP_VERSION_WITH_BUILT_IN_KOTLIN
 import org.jetbrains.kotlin.config.ApiVersion
 
 fun RecipeExecutor.addKotlinDependencies(androidX: Boolean, targetApi: Int) {
@@ -40,7 +41,7 @@ fun RecipeExecutor.addKotlinIfNeeded(
 ) {
   if (data.language == Language.Kotlin) {
     setKotlinVersion(data.kotlinVersion)
-    if (!data.agpVersion.isAtLeastIncludingPreviews(9, 0, 0)) {
+    if (data.agpVersion < AGP_VERSION_WITH_BUILT_IN_KOTLIN) {
       addPlugin(
         "org.jetbrains.kotlin.android",
         "org.jetbrains.kotlin:kotlin-gradle-plugin",
