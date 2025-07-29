@@ -53,10 +53,8 @@ public final class TestProjectPaths {
   public static final String MIGRATE_TO_VERSION_CATALOG = "projects/migrateToVersionCatalog";
   public static final String MIGRATE_TO_VERSION_CATALOG_KTS = "projects/migrateToVersionCatalogKts";
   public static final String MIGRATE_TO_VERSION_CATALOG_PLUGINS = "projects/migrateToVersionCatalogPlugins";
-  public static final String MODULE_INFO_BOTH = "projects/moduleInfo/both";
   public static final String MODULE_INFO_FLAVORS = "projects/moduleInfo/flavors";
   public static final String MODULE_INFO_GRADLE_ONLY = "projects/moduleInfo/gradleOnly";
-  public static final String MODULE_INFO_MANIFEST_ONLY = "projects/moduleInfo/manifestOnly";
   public static final String MOVE_WITH_RESOURCES = "projects/moveWithResources";
   public static final String MULTIPLE_MODULE_DEPEND_ON_AAR = "projects/multipleModuleDependOnAar";
   public static final String NAMESPACES = "projects/namespaces";

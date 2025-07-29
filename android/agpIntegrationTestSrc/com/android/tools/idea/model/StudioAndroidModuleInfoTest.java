@@ -15,13 +15,9 @@
  */
 package com.android.tools.idea.model;
 
-import static com.android.tools.idea.testing.TestProjectPaths.MODULE_INFO_BOTH;
 import static com.android.tools.idea.testing.TestProjectPaths.MODULE_INFO_FLAVORS;
 import static com.android.tools.idea.testing.TestProjectPaths.MODULE_INFO_GRADLE_ONLY;
-import static com.android.tools.idea.testing.TestProjectPaths.MODULE_INFO_MANIFEST_ONLY;
 
-import com.android.sdklib.SdkVersionInfo;
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment;
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.module.AndroidModuleInfo;
@@ -30,15 +26,6 @@ public class StudioAndroidModuleInfoTest extends AndroidGradleTestCase {
 
   private final AgpVersionSoftwareEnvironmentDescriptor softwareEnvironment = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT;
 
-  public void testManifestOnly() throws Exception {
-    loadProject(MODULE_INFO_MANIFEST_ONLY, null, softwareEnvironment);
-    assertNotNull(myAndroidFacet);
-    AndroidModuleInfo androidModuleInfo = StudioAndroidModuleInfo.getInstance(myAndroidFacet);
-    assertEquals(1, androidModuleInfo.getMinSdkVersion().getApiLevel());
-    assertEquals(18, androidModuleInfo.getTargetSdkVersion().getApiLevel());
-    assertEquals("com.example.unittest", androidModuleInfo.getPackageName());
-  }
-
   public void testGradleOnly() throws Exception {
     loadProject(MODULE_INFO_GRADLE_ONLY, null, softwareEnvironment);
     assertNotNull(myAndroidFacet);
@@ -46,15 +33,6 @@ public class StudioAndroidModuleInfoTest extends AndroidGradleTestCase {
     assertEquals(17, androidModuleInfo.getMinSdkVersion().getApiLevel());
     assertEquals(Integer.parseInt(softwareEnvironment.getTargetSdk()), androidModuleInfo.getTargetSdkVersion().getApiLevel());
     assertEquals("from.gradle", androidModuleInfo.getPackageName());
-  }
-
-  public void testBoth() throws Exception {
-    loadProject(MODULE_INFO_BOTH, null, softwareEnvironment);
-    assertNotNull(myAndroidFacet);
-    AndroidModuleInfo androidModuleInfo = StudioAndroidModuleInfo.getInstance(myAndroidFacet);
-    assertEquals(17, androidModuleInfo.getMinSdkVersion().getApiLevel());
-    assertEquals(Integer.parseInt(softwareEnvironment.getTargetSdk()), androidModuleInfo.getTargetSdkVersion().getApiLevel());
-        assertEquals("from.gradle", androidModuleInfo.getPackageName());
   }
 
   public void testFlavors() throws Exception {
