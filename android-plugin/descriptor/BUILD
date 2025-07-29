@@ -6,4 +6,9 @@ iml_module(
     iml_files = ["intellij.android.plugin.descriptor.iml"],
     resources = ["resources"],
     visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    runtime_deps = [
+        "@intellij//:com.intellij.properties",
+        "@intellij//:com.intellij.modules.json",
+    ],
 )
