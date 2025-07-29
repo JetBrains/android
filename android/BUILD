@@ -127,7 +127,6 @@ iml_module(
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements",
         "//tools/base/environment-services:studio.intellij.android.environment-services",
         "//tools/adt/idea/.idea/libraries:libadb-server-proto",
-        "//tools/adt/idea/safemode:intellij.android.safemode",
         "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile",
         "//tools/adt/idea/completion:intellij.android.completion",
         "//tools/base/backup:studio.android.sdktools.backup",

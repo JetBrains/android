@@ -74,7 +74,6 @@ Android Studio Preview.app/Contents/bin/printenv
 Android Studio Preview.app/Contents/bin/restarter
 Android Studio Preview.app/Contents/bin/studio.svg
 Android Studio Preview.app/Contents/bin/studio.vmoptions
-Android Studio Preview.app/Contents/bin/studio_safe.sh
 Android Studio Preview.app/Contents/jbr/Contents/Home/bin/jar
 Android Studio Preview.app/Contents/jbr/Contents/Home/bin/jarsigner
 Android Studio Preview.app/Contents/jbr/Contents/Home/bin/java

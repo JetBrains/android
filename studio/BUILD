@@ -280,7 +280,6 @@ studio_plugin(
             "//tools/adt/idea/execution/common:intellij.android.execution.common",
             "//tools/base/environment-services:studio.intellij.android.environment-services",
             "//tools/base/kotlin-multiplatform-models:studio.android.kotlin-multiplatform-models",
-            "//tools/adt/idea/safemode:intellij.android.safemode",
             "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile",
             "//tools/adt/idea/completion:intellij.android.completion",
             "//tools/adt/idea/studio-labs:intellij.android.studio-labs",
@@ -824,18 +823,6 @@ android_studio(
         "//conditions:default": None,
     }),
     codesign_entitlements = "codesign/entitlements.xml",
-    files_linux = {
-        "safemode/linux/studio_safe.sh": "bin/studio_safe.sh",
-    },
-    files_mac = {
-        "safemode/mac/studio_safe.sh": "bin/studio_safe.sh",
-    },
-    files_mac_arm = {
-        "safemode/mac/studio_safe.sh": "bin/studio_safe.sh",
-    },
-    files_win = {
-        "safemode/win/studio_safe.bat": "bin/studio_safe.bat",
-    },
     generate_package_metadata = True,
     jre = "//prebuilts/studio/jdk:jdk-bundle",
     platform = "@intellij//:intellij-sdk",
