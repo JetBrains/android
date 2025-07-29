@@ -66,7 +66,6 @@ public class AddCompiledJavaDeps implements ProjectProtoUpdateOperation {
     for (TargetBuildInfo target : artifactState.targets()) {
       if (target.javaInfo().isPresent()) {
         JavaArtifactInfo javaInfo = target.javaInfo().get();
-        Set<String> locallySeen = new HashSet<>();
 
         for (BuildArtifact jar :
           javaInfo.jars().stream()
@@ -84,14 +83,15 @@ public class AddCompiledJavaDeps implements ProjectProtoUpdateOperation {
                 return targetLabelByDigest == null
                        || target.label().equals(targetLabelByDigest);
               })
-            .sorted(Comparator.comparing(it -> !seen.contains(it.artifactPath().toString())))
+            .filter(jar -> {
+              boolean duplicateJar = seen.contains(jar.digest());
+              if (duplicateJar) {
+                skipped.add(jar.artifactPath().toString());
+              }
+              return !duplicateJar;
+            })
             .toList()) {
-          if (locallySeen.contains(jar.digest())) {
-            skipped.add(jar.artifactPath().toString());
-            continue;
-          }
-          locallySeen.add(jar.digest());
-          seen.add(jar.artifactPath().toString());
+          seen.add(jar.digest());
           javaDepsDir.addIfNewer(jar.artifactPath(), jar, target.buildContext());
           libNameToJars
               .computeIfAbsent(target.label().toString(), t -> new HashSet<>())
