@@ -43,12 +43,10 @@ import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilderFactory
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.tools.idea.streaming.EmulatorSettings
-import com.android.utils.ILogger
 import com.android.utils.PathUtils
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
@@ -488,7 +486,6 @@ constructor(
 
   companion object {
     private val IJ_LOG = Logger.getInstance(AvdManagerConnection::class.java)
-    private val SDK_LOG: ILogger = LogWrapper(IJ_LOG)
     private val REPO_LOG: ProgressIndicator =
       StudioLoggerProgressIndicator(AvdManagerConnection::class.java)
     // The dispatcher on NULL_CONNECTION is unused. Pass Unconfined rather than the default
