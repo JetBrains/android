@@ -19,6 +19,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth",
         "@intellij//:org.toml.lang",
         "@intellij//:test-framework",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
     ],
     test_srcs = ["src/main/java"],
     visibility = ["//visibility:public"],

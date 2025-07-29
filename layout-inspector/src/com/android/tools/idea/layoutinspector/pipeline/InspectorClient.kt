@@ -20,8 +20,10 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.RecompositionData
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadResult
 import com.android.tools.idea.layoutinspector.properties.EmptyPropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
@@ -83,6 +85,12 @@ interface InspectorClient : Disposable {
      * information.
      */
     HAS_LINE_NUMBER_INFORMATION,
+
+    /**
+     * This client is able to record and report state reads in connection with compose
+     * recompositions.
+     */
+    CAN_OBSERVE_RECOMPOSE_STATE_READS,
   }
 
   fun interface ErrorListener {
@@ -208,6 +216,12 @@ interface InspectorClient : Disposable {
 
   val treeLoader: TreeLoader
 
+  /** Load Recomposition State Reads for the current app. */
+  suspend fun getRecompositionStateReadsFromCache(
+    view: ComposeViewNode,
+    recomposition: Int,
+  ): RecomposeStateReadResult?
+
   /** True, if the current connection is currently receiving live updates. */
   val inLiveMode: Boolean
 
@@ -282,6 +296,14 @@ object DisconnectedClient : InspectorClient {
 
       override fun getAllWindowIds(data: Any?): List<*> = emptyList<Any>()
     }
+
+  override suspend fun getRecompositionStateReadsFromCache(
+    view: ComposeViewNode,
+    recomposition: Int,
+  ): RecomposeStateReadResult? {
+    return null
+  }
+
   override val inLiveMode = false
   override val provider = EmptyPropertiesProvider
 }

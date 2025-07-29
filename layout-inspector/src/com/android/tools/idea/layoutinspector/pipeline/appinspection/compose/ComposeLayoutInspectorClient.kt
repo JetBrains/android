@@ -34,6 +34,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.common.logDiagnostics
+import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
@@ -49,6 +50,7 @@ import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.android.tools.idea.protobuf.CodedInputStream
+import com.android.tools.idea.protobuf.InvalidProtocolBufferException
 import com.android.tools.idea.transport.TransportException
 import com.android.tools.idea.util.StudioPathManager
 import com.google.common.annotations.VisibleForTesting
@@ -63,9 +65,13 @@ import java.nio.file.Paths
 import java.util.EnumSet
 import kotlin.io.path.name
 import kotlin.io.path.pathString
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Command
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Event
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersCommand
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesCommand
@@ -74,7 +80,10 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetPara
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParameterDetailsResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParametersCommand
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParametersResponse
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetRecompositionStateReadCommand
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetRecompositionStateReadResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Response
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.StateReadSettings.Kind
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UpdateSettingsCommand
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UpdateSettingsResponse
 
@@ -136,6 +145,7 @@ class GetComposablesResult(
  */
 class ComposeLayoutInspectorClient(
   private val model: InspectorModel,
+  scope: CoroutineScope,
   private val treeSettings: TreeSettings,
   private val messenger: AppInspectorMessenger,
   private val capabilities: EnumSet<Capability>,
@@ -198,7 +208,7 @@ class ComposeLayoutInspectorClient(
         compatibility?.version?.takeIf {
           compatibility.status == LibraryCompatibilityInfo.Status.COMPATIBLE && it.isNotBlank()
         }
-          ?: return ComposeLayoutInspectorClient.handleError(
+          ?: return handleError(
             notificationModel,
             logErrorToMetrics,
             isRunningFromSourcesInTests,
@@ -243,6 +253,7 @@ class ComposeLayoutInspectorClient(
       apiServices: AppInspectionApiServices,
       process: ProcessDescriptor,
       model: InspectorModel,
+      scope: CoroutineScope,
       notificationModel: NotificationModel,
       treeSettings: TreeSettings,
       capabilities: EnumSet<Capability>,
@@ -354,6 +365,7 @@ class ComposeLayoutInspectorClient(
         val client =
           ComposeLayoutInspectorClient(
               model,
+              scope,
               treeSettings,
               messenger,
               capabilities,
@@ -515,6 +527,8 @@ class ComposeLayoutInspectorClient(
 
   val parametersCache = ComposeParametersCache(this, model)
 
+  val recompositionStateReadsCache = RecompositionStateReadCache(this, model, treeSettings)
+
   /**
    * The caller will supply a running (increasing) number, that can be used to coordinate the
    * responses from varies commands.
@@ -523,6 +537,29 @@ class ComposeLayoutInspectorClient(
 
   /** The value of [lastGeneration] when the last recomposition reset command was sent. */
   private var lastGenerationReset = 0
+
+  init {
+    scope.launch {
+      messenger.eventFlow
+        .mapNotNull { eventBytes ->
+          try {
+            Event.parseFrom(eventBytes)
+          } catch (_: InvalidProtocolBufferException) {
+            // Catch and swallow protocol exceptions thrown when debugging the application.
+            // The above bytes are stitched together from separate messages. However, messages
+            // sent during break point suspension can get duplicated in the transport layer,
+            // resulting in a larger than expected payload.
+            // See b/181908873 for context.
+            null
+          }
+        }
+        .collect { event ->
+          if (event.specializedCase == Event.SpecializedCase.STATE_READ_EVENT) {
+            recompositionStateReadsCache.handleEvent(event.stateReadEvent)
+          }
+        }
+    }
+  }
 
   suspend fun getComposeables(
     rootViewId: Long,
@@ -635,15 +672,52 @@ class ComposeLayoutInspectorClient(
     return response.getParameterDetailsResponse
   }
 
-  suspend fun updateSettings(): UpdateSettingsResponse {
+  /**
+   * Get state reads observed for the composable with [anchorHash] while it was recomposing for the
+   * specified [recomposition] from the device agent.
+   */
+  suspend fun getRecompositionStateReads(
+    anchorHash: Int,
+    recomposition: Int,
+  ): GetRecompositionStateReadResponse {
+    logDiagnostics(ComposeLayoutInspectorClient::class.java, "Sending: GetComposeStateReadResponse")
+    val response =
+      messenger.sendCommand {
+        getRecompositionStateReadCommand =
+          GetRecompositionStateReadCommand.newBuilder()
+            .apply {
+              this.anchorHash = anchorHash
+              this.recompositionNumber = recomposition
+            }
+            .build()
+      }
+    return response.getRecompositionStateReadResponse
+  }
+
+  suspend fun updateSettings(keepRecompositionCounts: Boolean = false): UpdateSettingsResponse {
     lastGenerationReset = lastGeneration
     logDiagnostics(ComposeLayoutInspectorClient::class.java, "Sending: UpdateSettingsCommand")
+    val nodeForStateReads = model.stateReadsNode as? ComposeViewNode
+    val maxRecompositions =
+      StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_MAX_RECOMPOSITIONS_WITH_STATE_READS.get()
     val response =
       messenger.sendCommand {
         updateSettingsCommand =
           UpdateSettingsCommand.newBuilder()
             .apply {
               includeRecomposeCounts = treeSettings.showRecompositions
+              keepRecomposeCounts = keepRecompositionCounts
+              stateReadSettingsBuilder.apply {
+                when {
+                  treeSettings.observeStateReadsForAll ->
+                    allBuilder.maxRecompositions = maxRecompositions
+                  nodeForStateReads != null -> {
+                    byIdBuilder.addComposableToObserve(nodeForStateReads.anchorHash)
+                    byIdBuilder.maxRecompositions = maxRecompositions
+                  }
+                  else -> noneBuilder
+                }
+              }
               delayParameterExtractions = true
               reduceChildNesting = true
             }
@@ -657,12 +731,27 @@ class ComposeLayoutInspectorClient(
     if (response.hasUpdateSettingsResponse()) {
       capabilities.add(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
     }
+    if (
+      response.updateSettingsResponse.supportedStateReadKindList.containsAll(
+        listOf(Kind.ALL, Kind.BY_ID)
+      )
+    ) {
+      capabilities.add(Capability.CAN_OBSERVE_RECOMPOSE_STATE_READS)
+    }
     return response.updateSettingsResponse
   }
 
   fun disconnect() {
     logDiagnostics(ComposeLayoutInspectorClient::class.java, "disconnect")
+    recompositionStateReadsCache.disconnect()
     messenger.scope.cancel()
+  }
+
+  suspend fun getRecompositionStateReadsFromCache(
+    view: ComposeViewNode,
+    recomposition: Int,
+  ): RecomposeStateReadResult? {
+    return recompositionStateReadsCache.getRecomposeStateReads(view, recomposition)
   }
 }
 

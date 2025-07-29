@@ -83,7 +83,23 @@ class AppInspectionInspectorRule(
         }
       }
     )
-  val composeInspector = FakeComposeLayoutInspector()
+  val composeInspector =
+    FakeComposeLayoutInspector(
+      object : FakeInspector.Connection<LayoutInspectorComposeProtocol.Event>() {
+        override fun sendEvent(event: LayoutInspectorComposeProtocol.Event) {
+          if (withDefaultResponse) {
+            inspectionService.addAppInspectionEvent(
+              AppInspection.AppInspectionEvent.newBuilder()
+                .apply {
+                  inspectorId = COMPOSE_LAYOUT_INSPECTOR_ID
+                  rawEventBuilder.content = event.toByteString()
+                }
+                .build()
+            )
+          }
+        }
+      }
+    )
 
   init {
     val viewInspectorHandler =

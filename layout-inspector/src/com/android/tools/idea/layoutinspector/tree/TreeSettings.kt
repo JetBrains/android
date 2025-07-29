@@ -36,6 +36,9 @@ const val KEY_RECOMPOSITIONS = "live.layout.inspector.tree.recompositions"
 val DEFAULT_RECOMPOSITIONS: Boolean =
   StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_COUNTS_DEFAULT.get()
 
+const val KEY_STATE_READS_FOR_ALL = "live.layout.inspector.tree.all.state.reads"
+const val DEFAULT_STATE_READS_FOR_ALL = false
+
 /** Miscellaneous tree settings. */
 interface TreeSettings {
 
@@ -44,6 +47,7 @@ interface TreeSettings {
   var highlightSemantics: Boolean
   var supportLines: Boolean
   var showRecompositions: Boolean
+  var observeStateReadsForAll: Boolean
 
   fun isInComponentTree(node: ViewNode): Boolean = !(hideSystemNodes && node.isSystemNode)
 }
@@ -72,6 +76,13 @@ class InspectorTreeSettings(private val activeClient: () -> InspectorClient) : T
         get(KEY_RECOMPOSITIONS, DEFAULT_RECOMPOSITIONS)
     set(value) = set(KEY_RECOMPOSITIONS, value, DEFAULT_RECOMPOSITIONS)
 
+  override var observeStateReadsForAll: Boolean
+    get() =
+      StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_STATE_READS.get() &&
+        hasCapability(Capability.CAN_OBSERVE_RECOMPOSE_STATE_READS) &&
+        get(KEY_STATE_READS_FOR_ALL, DEFAULT_STATE_READS_FOR_ALL)
+    set(value) = set(KEY_STATE_READS_FOR_ALL, value, DEFAULT_STATE_READS_FOR_ALL)
+
   @Suppress("SameParameterValue")
   private fun hasCapability(capability: Capability): Boolean {
     val client = activeClient()
@@ -99,4 +110,5 @@ class EditorTreeSettings(capabilities: Set<Capability>) : TreeSettings {
   override var highlightSemantics: Boolean = DEFAULT_HIGHLIGHT_SEMANTICS
   override var supportLines: Boolean = DEFAULT_SUPPORT_LINES
   override var showRecompositions: Boolean = DEFAULT_RECOMPOSITIONS
+  override var observeStateReadsForAll: Boolean = DEFAULT_STATE_READS_FOR_ALL
 }

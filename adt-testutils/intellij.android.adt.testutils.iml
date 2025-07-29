@@ -30,5 +30,6 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-plugin-org.toml.lang" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="intellij-test-framework" level="project" />
+    <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
   </component>
 </module>

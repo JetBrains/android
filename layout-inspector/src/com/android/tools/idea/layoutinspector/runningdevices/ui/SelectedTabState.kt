@@ -38,6 +38,7 @@ import com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleDeepI
 import com.android.tools.idea.layoutinspector.runningdevices.actions.UiConfig
 import com.android.tools.idea.layoutinspector.runningdevices.actions.VerticalSplitAction
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.LayoutInspectorRenderer
+import com.android.tools.idea.layoutinspector.stateinspection.createStateInspectionPanel
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.OverlayActionGroup
@@ -69,6 +70,7 @@ import javax.swing.KeyStroke
 import org.jetbrains.annotations.TestOnly
 
 private const val WORKBENCH_NAME = "Layout Inspector"
+const val STATE_READ_SPLITTER_NAME = "StateReadSplitter"
 @VisibleForTesting
 const val UI_CONFIGURATION_KEY =
   "com.android.tools.idea.layoutinspector.runningdevices.ui.uiconfigkey"
@@ -215,10 +217,19 @@ data class SelectedTabState(
       DataManager.removeDataProvider(toolbar)
       DataManager.removeDataProvider(workBench)
     }
+    // Split panel used for inspection of State Reads in Compose.
+    val splitPanel =
+      OnePixelSplitter(true, SPLITTER_KEY, 0.65f).apply {
+        name = STATE_READ_SPLITTER_NAME
+        firstComponent = workBench
+        secondComponent = createStateInspectionPanel(layoutInspector, disposable)
+        setBlindZone { JBUI.insets(0, 1) }
+      }
 
     toolsPanel.add(toolbar, BorderLayout.NORTH)
-    toolsPanel.add(workBench, BorderLayout.CENTER)
+    toolsPanel.add(splitPanel, BorderLayout.CENTER)
     workBench.component.border = JBUI.Borders.customLineTop(JBColor.border())
+
     return toolsPanel
   }
 

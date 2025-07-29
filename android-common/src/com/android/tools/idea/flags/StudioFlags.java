@@ -1131,6 +1131,17 @@ public final class StudioFlags {
     "Horizontal scroll for layout inspector component tree",
     "When this flag is enabled, we enable horizontal scrolling for the Layout Inspector's component tree."
     );
+
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ENABLE_STATE_READS = new BooleanFlag(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.state.reads", "Enable Recomposition State Reads",
+    "Enable display of state read stacktrace for recompositions."
+    );
+
+  public static final Flag<Integer> DYNAMIC_LAYOUT_INSPECTOR_MAX_RECOMPOSITIONS_WITH_STATE_READS = new IntFlag(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.max.recompositions.with.state.reads",
+    "Max recompositions with state reads",
+    "When dynamic state reads are observed: limit the recompositions the agent caches state reads for.", 20
+  );
   //endregion
 
   //region Embedded Emulator

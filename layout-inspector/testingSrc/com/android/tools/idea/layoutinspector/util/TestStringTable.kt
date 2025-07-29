@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorVie
 import com.google.common.collect.BiMap
 import com.google.common.collect.HashBiMap
 import com.intellij.util.text.nullize
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 
 class TestStringTable : StringTable {
   private val strings: BiMap<String, Int> = HashBiMap.create()
@@ -42,6 +43,16 @@ class TestStringTable : StringTable {
   fun asEntryList(): List<LayoutInspectorViewProtocol.StringEntry> =
     strings.entries.map {
       LayoutInspectorViewProtocol.StringEntry.newBuilder()
+        .apply {
+          id = it.value
+          str = it.key
+        }
+        .build()
+    }
+
+  fun asComposeStrings(): List<LayoutInspectorComposeProtocol.StringEntry> =
+    strings.entries.map {
+      LayoutInspectorComposeProtocol.StringEntry.newBuilder()
         .apply {
           id = it.value
           str = it.key

@@ -23,6 +23,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
@@ -272,10 +273,8 @@ private constructor(
             }
             if (
               !composeSourceInfoMissingWarningGiven &&
-                currentClient.capabilities.contains(InspectorClient.Capability.SUPPORTS_COMPOSE) &&
-                !currentClient.capabilities.contains(
-                  InspectorClient.Capability.HAS_LINE_NUMBER_INFORMATION
-                )
+                currentClient.capabilities.contains(Capability.SUPPORTS_COMPOSE) &&
+                !currentClient.capabilities.contains(Capability.HAS_LINE_NUMBER_INFORMATION)
             ) {
               composeSourceInfoMissingWarningGiven = true
               notificationModel.addNotification(
@@ -312,3 +311,6 @@ private constructor(
     fun get(event: AnActionEvent): LayoutInspector? = event.getData(LAYOUT_INSPECTOR_DATA_KEY)
   }
 }
+
+fun LayoutInspector?.hasCapability(capability: Capability): Boolean =
+  this?.currentClient?.capabilities?.contains(capability) ?: false

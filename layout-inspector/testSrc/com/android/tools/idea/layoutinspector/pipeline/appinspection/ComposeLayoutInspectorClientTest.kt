@@ -32,6 +32,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.AppInspectionTarget
 import com.android.tools.idea.appinspection.test.mockMinimumArtifactCoordinate
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.Info
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
@@ -617,6 +618,7 @@ class ComposeLayoutInspectorClientTest {
         apiServices,
         processDescriptor,
         model,
+        projectRule.testRootDisposable.createCoroutineScope(),
         notificationModel,
         mock(),
         capabilities,

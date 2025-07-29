@@ -238,6 +238,7 @@ class InspectorViewDescriptor(
   private val composeOffset: Int = 0,
   private val composeLineNumber: Int = 0,
   private val composeFlags: Int = 0,
+  private val anchorHash: Int = 0,
   val imageType: ImageType = ImageType.BITMAP_AS_REQUESTED,
 ) : InspectorNodeDescriptor {
   private val children = mutableListOf<InspectorNodeDescriptor>()
@@ -312,6 +313,7 @@ class InspectorViewDescriptor(
       if (composePackageHash == SYSTEM_PKG) ComposableNode.Flags.SYSTEM_CREATED_VALUE else 0,
     composeCount: Int = 0,
     composeSkips: Int = 0,
+    anchorHash: Int = drawId.toInt(),
     x: Int = 0,
     y: Int = 0,
     width: Int = 0,
@@ -337,6 +339,7 @@ class InspectorViewDescriptor(
           composeFlags = composeFlags,
           composeCount = composeCount,
           composeSkips = composeSkips,
+          anchorHash = anchorHash,
         )
         .apply(body)
     )
@@ -374,7 +377,7 @@ class InspectorViewDescriptor(
           composeOffset,
           composeLineNumber,
           composeFlags,
-          0,
+          anchorHash,
         )
       }
     ViewNode.writeAccess {

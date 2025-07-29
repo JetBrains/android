@@ -17,21 +17,21 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors
 
 import kotlin.test.fail
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Command
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Event
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParameterDetailsResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParametersResponse
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetRecompositionStateReadResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Response
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UpdateSettingsResponse
 
-// Note: The ComposeInspector doesn't have any events yet, but if they are added in the future,
-// change the
-// `Nothing` generic argument here to ComposeProtocol.Event
-class FakeComposeLayoutInspector : FakeInspector<Command, Response, Nothing>(DisabledConnection()) {
+fun FakeInspector.Connection<Event>.sendEvent(init: Event.Builder.() -> Unit) {
+  sendEvent(Event.newBuilder().apply(init).build())
+}
 
-  private class DisabledConnection : Connection<Nothing>() {
-    override fun sendEvent(event: Nothing) = throw NotImplementedError()
-  }
+class FakeComposeLayoutInspector(connection: Connection<Event>) :
+  FakeInspector<Command, Response, Event>(connection) {
 
   override fun handleCommandImpl(command: Command): Response {
     return when (command.specializedCase) {
@@ -54,6 +54,12 @@ class FakeComposeLayoutInspector : FakeInspector<Command, Response, Nothing>(Dis
       Command.SpecializedCase.GET_PARAMETER_DETAILS_COMMAND ->
         Response.newBuilder()
           .setGetParameterDetailsResponse(GetParameterDetailsResponse.getDefaultInstance())
+          .build()
+      Command.SpecializedCase.GET_RECOMPOSITION_STATE_READ_COMMAND ->
+        Response.newBuilder()
+          .setGetRecompositionStateReadResponse(
+            GetRecompositionStateReadResponse.getDefaultInstance()
+          )
           .build()
       else -> fail("Unhandled view inspector command: ${command.specializedCase}")
     }

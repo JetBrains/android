@@ -19,10 +19,12 @@ import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
+import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadResult
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.snapshots.saveLegacySnapshot
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.LEGACY_CLIENT
@@ -83,6 +85,11 @@ class LegacyClient(
     }
 
   override val treeLoader = treeLoaderForTest ?: LegacyTreeLoader(this)
+
+  override suspend fun getRecompositionStateReadsFromCache(
+    view: ComposeViewNode,
+    recomposition: Int,
+  ): RecomposeStateReadResult? = null
 
   val latestScreenshots = mutableMapOf<String, ByteArray>()
   var latestData = mutableMapOf<String, ByteArray>()

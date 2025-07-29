@@ -31,6 +31,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.InspectorModel.ModificationListener
 import com.android.tools.idea.layoutinspector.model.NotificationModel
@@ -42,6 +43,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorConnectionError
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.Compatibility.NotCompatible.Reason.API_29_PLAY_STORE
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadResult
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
@@ -138,6 +140,13 @@ class AppInspectionInspectorClient(
   override val provider: PropertiesProvider
     get() = propertiesProvider
 
+  override suspend fun getRecompositionStateReadsFromCache(
+    view: ComposeViewNode,
+    recomposition: Int,
+  ): RecomposeStateReadResult? {
+    return composeInspector?.getRecompositionStateReadsFromCache(view, recomposition)
+  }
+
   override val inLiveMode: Boolean
     get() = inspectorClientSettings.inLiveMode
 
@@ -160,6 +169,7 @@ class AppInspectionInspectorClient(
             apiServices,
             process,
             model,
+            coroutineScope,
             notificationModel,
             treeSettings,
             capabilities,
@@ -448,7 +458,10 @@ class AppInspectionInspectorClient(
   }
 
   fun updateRecompositionCountSettings() {
-    coroutineScope.launch(loggingExceptionHandler) { composeInspector?.updateSettings() }
+    coroutineScope.launch(loggingExceptionHandler) {
+      composeInspector?.updateSettings()
+      composeInspector?.recompositionStateReadsCache?.clear()
+    }
   }
 
   override suspend fun saveSnapshot(path: Path) {

@@ -91,7 +91,14 @@ class ComposeParametersDataGenerator(
     kind: ParameterKind,
     parameter: Parameter,
   ): ParameterGroupItem? =
-    parameter.toParameterItem(rootId, composableId, kind.toPropertySection()) as? ParameterGroupItem
+    generateItem(rootId, composableId, kind, parameter) as? ParameterGroupItem
+
+  fun generateItem(
+    rootId: Long,
+    composableId: Long,
+    kind: ParameterKind,
+    parameter: Parameter,
+  ): ParameterItem = parameter.toParameterItem(rootId, composableId, kind.toPropertySection())
 
   private fun ParameterKind.toPropertySection(): PropertySection =
     when (this) {
