@@ -33,7 +33,7 @@ public class StringExperiment extends Experiment {
 
   @Nullable
   public String getValue() {
-    return ExperimentService.getInstance().getExperimentString(this, null);
+    return ExperimentService.getInstance().getExperimentString(this, defaultValue);
   }
 
   @Override
