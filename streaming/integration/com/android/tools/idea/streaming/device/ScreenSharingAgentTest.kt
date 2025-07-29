@@ -392,7 +392,7 @@ class ScreenSharingAgentTest {
     @get:ClassRule
     @get:JvmStatic
     val ruleChain: RuleChain =
-      RuleChain(projectRule, disposableRule, InitAdbLibApplicationServiceRule(), system, EdtRule())
+      RuleChain(projectRule, disposableRule, InitAdbLibApplicationServiceRule(createBridgeOnDefaultPort = true), system, EdtRule())
 
     private lateinit var adb: Adb
     private lateinit var emulator: Emulator
