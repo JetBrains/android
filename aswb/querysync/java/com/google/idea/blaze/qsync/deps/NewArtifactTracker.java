@@ -54,6 +54,7 @@ import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcTargetI
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcToolchainInfo;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.common.experiments.BoolExperiment;
+import com.google.idea.common.experiments.FeatureRolloutExperiment;
 import com.google.protobuf.ExtensionRegistry;
 import java.io.IOException;
 import java.io.InputStream;
@@ -94,8 +95,8 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
   private static final Logger logger = Logger.getLogger(NewArtifactTracker.class.getName());
 
   @VisibleForTesting
-  public static final BoolExperiment enableJdepsDependencyGraph =
-    new BoolExperiment("qsync.enable.jdeps.dependency.graph", false);
+  public static final FeatureRolloutExperiment enableJdepsDependencyGraph =
+    new FeatureRolloutExperiment("qsync.enable.jdeps.dependency.graph");
 
   private final BuildArtifactCache artifactCache;
   private final Function<
@@ -159,7 +160,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
       Set<Label> targets, OutputInfo outputInfo, DigestMap digestMap) {
 
     ImmutableSet.Builder<TargetBuildInfo> targetBuildInfoSet = ImmutableSet.builder();
-    if (enableJdepsDependencyGraph.getValue())  {
+    if (enableJdepsDependencyGraph.isEnabled())  {
       targetBuildInfoSet.addAll(getJavaTargetBuildInfoViaJdeps(targets, outputInfo, digestMap));
     } else {
       targetBuildInfoSet.addAll(getJavaTargetBuildInfo(outputInfo, digestMap));
