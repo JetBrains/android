@@ -30,7 +30,6 @@ import com.android.tools.idea.gradle.model.IdeBaseConfig
 import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
-import com.android.tools.idea.gradle.model.IdeBytecodeTransformation
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeDependenciesInfo
@@ -480,11 +479,13 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
           ideDependencies.resolver.resolve(dependency).forEach {
             prop(it.toLibraryType()) { it.toDisplayString() }
           }
-          nest {
-            // All the dependencies are included in unresolvedDependencies so we only need to dump the first level of children
-            dependency.dependencies?.map { ideDependencies.lookup(it) }?.forEach { nestedDependency ->
-              ideDependencies.resolver.resolve(nestedDependency).forEach { lib ->
-                prop(lib.toLibraryType()) { lib.toDisplayString() }
+          if (!projectDumper.forSnapshotComparison) {
+            nest {
+              // All the dependencies are included in unresolvedDependencies so we only need to dump the first level of children
+              dependency.dependencies?.map { ideDependencies.lookup(it) }?.forEach { nestedDependency ->
+                ideDependencies.resolver.resolve(nestedDependency).forEach { lib ->
+                  prop(lib.toLibraryType()) { lib.toDisplayString() }
+                }
               }
             }
           }

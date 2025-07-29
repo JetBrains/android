@@ -32,7 +32,6 @@ import com.intellij.execution.RunManagerEx
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
-import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
@@ -43,7 +42,6 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.roots.AnnotationOrderRootType
@@ -297,7 +295,7 @@ private fun ProjectDumper.dumpLibrary(library: LibraryOrderEntry) {
     prop("IsModuleLevel") { library.isModuleLevel.takeIf { it }?.toString() }
     prop("Scope") { library.scope.takeIf {it != COMPILE }?.toString () }
     prop("IsExported") { library.isExported.takeIf{ it}?.toString() }
-    if (alwaysExpandLibraries || library.libraryLevel != "project" ) {
+    if (forSnapshotComparison || library.libraryLevel != "project" ) {
       library.library?.let { dump(it) }
     }
   }
@@ -311,7 +309,7 @@ private fun ProjectDumper.dump(library: Library) {
     orderRootTypes.forEach { type ->
       library
         .getUrls(type).toList().let {
-          if(alwaysExpandLibraries) {
+          if(forSnapshotComparison) {
             it
           } else {
             it.filterNot { file ->
