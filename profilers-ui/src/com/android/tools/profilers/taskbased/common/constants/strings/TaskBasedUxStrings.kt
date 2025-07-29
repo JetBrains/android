@@ -116,6 +116,8 @@ object TaskBasedUxStrings {
   const val LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE = "Once the current ongoing recording has captured memory leaks their details" +
                                                            " will appear here"
   const val LEAKCANARY_GO_TO_DECLARATION = "Go to declaration"
+  const val LEAKCANARY_NO_DECLARATION_FOUND = "No declaration found"
+  const val LEAKCANARY_NO_DECLARATION_FOUND_TOOLTIP = "No declaration found in Project Files"
   const val LEAKCANARY_OPEN = "open"
   const val LEAKCANARY_CLOSE = "close"
 

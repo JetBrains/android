@@ -43,6 +43,7 @@ import com.intellij.openapi.diagnostic.Logger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.jetbrains.annotations.NotNull
+import java.util.concurrent.CompletableFuture
 
 class LeakCanaryModel(@NotNull private val profilers: StudioProfilers): ModelStage(profilers), Updatable {
 
@@ -216,6 +217,12 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers): ModelSta
     val action = NavigateToCodeAction(codeLocationSupplier, navigator)
     val event = createEvent(action, DataContext.EMPTY_CONTEXT, null, ActionPlaces.CODE_INSPECTION, ActionUiKind.NONE, null)
     action.actionPerformed(event)
+  }
+
+  fun isDeclarationAvailableAsync(node: Node): CompletableFuture<Boolean> {
+    val codeLocationSupplier: CodeLocation = CodeLocation.Builder(node.className.removeSuffix("[]")).build()
+    val navigator = this.studioProfilers.ideServices.codeNavigator
+    return navigator.isNavigatableAsync(codeLocationSupplier)
   }
 
   companion object {

@@ -61,6 +61,7 @@ private fun LeakDetailsColumn(leakCanaryModel: LeakCanaryModel) {
       selectedLeak = selectedLeak,
       gotoDeclaration = leakCanaryModel::goToDeclaration,
       isRecording = isRecording,
+      isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync
     )
   }
 }

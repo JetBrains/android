@@ -49,6 +49,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
+import org.mockito.Mockito.`when`
+import java.util.concurrent.CompletableFuture
 
 class LeakDetailsPanelTest : WithFakeTimer {
   override val timer = FakeTimer()
@@ -92,7 +94,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
     val selectedLeak = leaks[0]
 
     composeTestRule.setContent {
-      LeakDetailsPanel(selectedLeak = selectedLeak, leakCanaryModel::goToDeclaration, true)
+      LeakDetailsPanel(selectedLeak = selectedLeak, leakCanaryModel::goToDeclaration, true, leakCanaryModel::isDeclarationAvailableAsync)
     }
     composeTestRule.onAllNodesWithContentDescription(LeakingStatus.YES.name).assertCountEquals(1) // 1 - yes leak icon
     composeTestRule.onAllNodesWithContentDescription(LeakingStatus.NO.name).assertCountEquals(2) // 2 - no leak icon
@@ -116,7 +118,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
     val selectedLeak = leaks[0]
 
     composeTestRule.setContent {
-      LeakDetailsPanel(selectedLeak = selectedLeak, leakCanaryModel::goToDeclaration, true)
+      LeakDetailsPanel(selectedLeak = selectedLeak, leakCanaryModel::goToDeclaration, true, leakCanaryModel::isDeclarationAvailableAsync)
     }
 
     // Before expanding the rows, check if leak nodes are displayed
@@ -148,9 +150,13 @@ class LeakDetailsPanelTest : WithFakeTimer {
   fun `test leak go to declaration displayed on expand and clickable`() {
     val leaks = getSampleLeak()
     val selectedLeak = leaks[0]
+    val mockLeakCanaryModel= spy(leakCanaryModel)
+    `when`(mockLeakCanaryModel.isDeclarationAvailableAsync(selectedLeak.displayedLeakTrace[0].nodes[0])).thenReturn(CompletableFuture.completedFuture(true))
+    `when`(mockLeakCanaryModel.isDeclarationAvailableAsync(selectedLeak.displayedLeakTrace[0].nodes[1])).thenReturn(CompletableFuture.completedFuture(true))
+    `when`(mockLeakCanaryModel.isDeclarationAvailableAsync(selectedLeak.displayedLeakTrace[0].nodes[2])).thenReturn(CompletableFuture.completedFuture(true))
 
     composeTestRule.setContent {
-      LeakDetailsPanel(selectedLeak = selectedLeak, leakCanaryModel::goToDeclaration, true)
+      LeakDetailsPanel(selectedLeak = selectedLeak, mockLeakCanaryModel::goToDeclaration, true, mockLeakCanaryModel::isDeclarationAvailableAsync)
     }
 
     var goToDeclarationLocation: String? = null
@@ -174,7 +180,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
 
     composeTestRule.onNodeWithTag("dalvik.system.PathClassLoader").performClick()
     composeTestRule.onNodeWithTag("androidx.constraintlayout.widget.ConstraintLayout").performClick()
-    composeTestRule.onAllNodesWithText("Go to declaration").assertCountEquals(3) // All 3 nodes are expanded now
+    composeTestRule.onAllNodesWithText("Go to declaration").assertCountEquals(3)  // 3 nodes are expanded now
   }
 
   @Test
@@ -188,7 +194,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
   @Test
   fun `test leak details shows place holder when recording and no leak detected`() {
     composeTestRule.setContent {
-      LeakDetailsPanel(selectedLeak = null, leakCanaryModel::goToDeclaration, true)
+      LeakDetailsPanel(selectedLeak = null, leakCanaryModel::goToDeclaration, true, leakCanaryModel::isDeclarationAvailableAsync)
     }
     composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE).assertIsDisplayed()
     composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_NOT_LEAKING).assertDoesNotExist()
@@ -197,7 +203,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
   @Test
   fun `test leak details shows place holder when not recording and no leak detected`() {
     composeTestRule.setContent {
-      LeakDetailsPanel(selectedLeak = null, leakCanaryModel::goToDeclaration, false)
+      LeakDetailsPanel(selectedLeak = null, leakCanaryModel::goToDeclaration, false, leakCanaryModel::isDeclarationAvailableAsync)
     }
     composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE).assertDoesNotExist()
     composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_NO_LEAK_FOUND_MESSAGE).assertIsDisplayed()
@@ -211,6 +217,75 @@ class LeakDetailsPanelTest : WithFakeTimer {
             │ GC Root: Input or output parameters in native code
             │
             ├─ dalvik.system.PathClassLoader instance
+            │    Leaking: NO (InternalLeakCanary↓ is not leaking and A ClassLoader is never leaking)
+            │    ↓ ClassLoader.runtimeInternalObjects
+            ├─ com.amaze.filemanager.ui.fragments.AppsListFragment instance
+            │    Leaking: NO (Fragment.mLifecycleRegistry.state is CREATED)
+            │    ↓ AppsListFragment.rootView
+            │                       ~~~~~~~~
+            ╰→ androidx.constraintlayout.widget.ConstraintLayout instance
+            ​     Leaking: YES (testing leaking)
+            ​     Retaining 2.2 kB in 43 objects
+            ​     key = d8a25ea4-cdd7-4a2a-b459-afe3956b109b
+            ​     watchDurationMillis = 242280
+            ​     retainedDurationMillis = 237276
+            """.trimIndent()
+
+    return Leak.fromString(applicationLeakText, LeakType.APPLICATION_LEAKS)
+  }
+
+  @Test
+  fun `test leak go to declaration displayed on expand and some are not clickable`() {
+    val leaks = getLeakWithNavigatableAndNonNavigatableNode()
+    val selectedLeak = leaks[0]
+    val mockLeakCanaryModel= spy(leakCanaryModel)
+
+    // No declaration found for this node
+    `when`(mockLeakCanaryModel.isDeclarationAvailableAsync(selectedLeak.displayedLeakTrace[0].nodes[0])).thenReturn(CompletableFuture.completedFuture(false))
+    // Declaration found for following nodes
+    `when`(mockLeakCanaryModel.isDeclarationAvailableAsync(selectedLeak.displayedLeakTrace[0].nodes[1])).thenReturn(CompletableFuture.completedFuture(true))
+    `when`(mockLeakCanaryModel.isDeclarationAvailableAsync(selectedLeak.displayedLeakTrace[0].nodes[2])).thenReturn(CompletableFuture.completedFuture(true))
+
+    composeTestRule.setContent {
+      LeakDetailsPanel(selectedLeak = selectedLeak, mockLeakCanaryModel::goToDeclaration, true, mockLeakCanaryModel::isDeclarationAvailableAsync)
+    }
+
+    var goToDeclarationLocation: String? = null
+    val codeNavigatorListener: Listener = object: Listener {
+      override fun onNavigated(location: CodeLocation) {
+        goToDeclarationLocation = location.className
+      }
+    }
+
+    ideProfilerServices.codeNavigator.addListener(codeNavigatorListener)
+
+    composeTestRule.onAllNodesWithText("Go to declaration").assertCountEquals(0) // None of the nodes are expanded yet
+
+    // Expand the first node (with Go to declaration)
+    composeTestRule.onNodeWithTag("com.amaze.filemanager.ui.fragments.AppsListFragment").performClick()
+    composeTestRule.onNodeWithText("Go to declaration").isDisplayed()
+    setupApplicationManagerActionManager()
+    composeTestRule.onNodeWithText("Go to declaration").performClick()
+    assertNotNull(goToDeclarationLocation)
+    assertEquals(goToDeclarationLocation, "com.amaze.filemanager.ui.fragments.AppsListFragment")
+
+    // Expand the second node
+    composeTestRule.onNodeWithTag("random.class.name").performClick()
+    // No declaration found for 1st node
+    composeTestRule.onNodeWithText("No declaration found").isDisplayed()
+    // Expand the third node (with Go to declaration)
+    composeTestRule.onNodeWithTag("androidx.constraintlayout.widget.ConstraintLayout").performClick()
+    composeTestRule.onAllNodesWithText("Go to declaration").assertCountEquals(2)  // Only 2 nodes are expanded and clickable
+  }
+
+  private fun getLeakWithNavigatableAndNonNavigatableNode(): List<Leak> {
+    val applicationLeakText = """
+            2200 bytes retained by leaking objects
+            Signature: 41c3c2258578581a1b0c9f78b59966266ed118b9
+            ┬───
+            │ GC Root: Input or output parameters in native code
+            │
+            ├─ random.class.name instance
             │    Leaking: NO (InternalLeakCanary↓ is not leaking and A ClassLoader is never leaking)
             │    ↓ ClassLoader.runtimeInternalObjects
             ├─ com.amaze.filemanager.ui.fragments.AppsListFragment instance

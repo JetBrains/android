@@ -94,6 +94,14 @@ class CodeNavigator (source: NavSource, private val executor: Executor) {
       }) { runnable: Runnable? -> executor.onForeground(runnable!!)}
   }
 
+  fun isNavigatableAsync(location: CodeLocation): CompletableFuture<Boolean> {
+    return getNavigatableAsync(location).thenApply { nav ->
+      ReadAction.compute<Boolean, RuntimeException> {
+        nav?.canNavigateToSource() ?: false
+      }
+    }
+  }
+
   fun isNavigatable(location: CodeLocation) = getNavigatable(location)?.canNavigateToSource() ?: false
 
   /**

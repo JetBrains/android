@@ -30,6 +30,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,13 +50,19 @@ import com.android.tools.leakcanarylib.data.Node
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_CLOSE
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_GO_TO_DECLARATION
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_NO_DECLARATION_FOUND
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_NO_DECLARATION_FOUND_TOOLTIP
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_NO_LEAK_FOUND_MESSAGE
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_OPEN
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.START_TASK_SELECTION_ERROR_ICON_DESC
 import com.android.tools.profilers.taskbased.common.text.EllipsisText
+import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.notifications.NotificationWithTooltip
+import icons.StudioIconsCompose
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Link
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
+import java.util.concurrent.CompletableFuture
 
 /**
  * Composable function that renders the leak details panel.
@@ -65,7 +72,10 @@ import org.jetbrains.jewel.ui.icons.AllIconsKeys
  * @param gotoDeclaration GotoDeclaration action for the given node.
  */
 @Composable
-fun LeakDetailsPanel(selectedLeak: Leak?, gotoDeclaration: (Node) -> Unit, isRecording: Boolean) {
+fun LeakDetailsPanel(selectedLeak: Leak?,
+                     gotoDeclaration: (Node) -> Unit,
+                     isRecording: Boolean,
+                     isDeclarationAvailableAsync: (Node) -> CompletableFuture<Boolean>) {
   val emptyLeakMessage = if (isRecording) LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE else LEAKCANARY_NO_LEAK_FOUND_MESSAGE
   if (selectedLeak == null) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -88,7 +98,8 @@ fun LeakDetailsPanel(selectedLeak: Leak?, gotoDeclaration: (Node) -> Unit, isRec
             isOpen = openStates[index],
             onClickNode = {
               openStates = openStates.toMutableList().apply { this[index] = !this[index] }
-            }
+            },
+            isDeclarationAvailableAsync = isDeclarationAvailableAsync
           )
         }
       }
@@ -115,10 +126,18 @@ fun LeakTraceNodeView(node: Node,
                       gotoDeclaration: (Node) -> Unit,
                       nextNode: Node?,
                       isOpen: Boolean = false,
-                      onClickNode: () -> Unit) {
+                      onClickNode: () -> Unit,
+                      isDeclarationAvailableAsync: (Node) -> CompletableFuture<Boolean>) {
   val rowClickableModifier = Modifier
     .clickable(onClick = { onClickNode() }, indication = null, interactionSource = remember { MutableInteractionSource() })
     .pointerHoverIcon(PointerIcon.Hand)
+  var isDeclarationFound by remember(node) { mutableStateOf<Boolean>(true) }
+
+  LaunchedEffect(node) {
+    isDeclarationAvailableAsync(node).thenAccept { isAvailable ->
+      isDeclarationFound = isAvailable
+    }
+  }
   Column(modifier = Modifier.height(IntrinsicSize.Min)) {
     Row {
       Row(modifier = rowClickableModifier.testTag(node.className)) {
@@ -139,15 +158,24 @@ fun LeakTraceNodeView(node: Node,
       Spacer(Modifier.padding(20.dp))
       Column(horizontalAlignment = Alignment.Start) {
         Row(modifier = rowClickableModifier.padding(top = 2.dp, end = 5.dp)) {
-            Text(
-              text = buildAnnotatedString {
-                appendClassAndStatusText(previousNode, node)
-              },
-              modifier = Modifier.weight(1f),
-              overflow = TextOverflow.Visible
-            )
-          if(isOpen){
-            Link(text = LEAKCANARY_GO_TO_DECLARATION, onClick = { gotoDeclaration(node) })
+          Text(
+            text = buildAnnotatedString {
+              appendClassAndStatusText(previousNode, node)
+            },
+            modifier = Modifier.weight(1f),
+            overflow = TextOverflow.Visible
+          )
+          if (isOpen) {
+            if (isDeclarationFound) {
+              Link(text = LEAKCANARY_GO_TO_DECLARATION, onClick = { gotoDeclaration(node) })
+            }
+            else {
+              NotificationWithTooltip(notificationText = LEAKCANARY_NO_DECLARATION_FOUND,
+                                      tooltipMainText = LEAKCANARY_NO_DECLARATION_FOUND_TOOLTIP,
+                                      tooltipSubText = null,
+                                      iconKey = StudioIconsCompose.AppQualityInsights.NonFatal,
+                                      iconDescription = START_TASK_SELECTION_ERROR_ICON_DESC)
+            }
           }
         }
         if (isOpen) {
