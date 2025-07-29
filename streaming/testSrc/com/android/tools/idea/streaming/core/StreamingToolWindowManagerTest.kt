@@ -142,7 +142,6 @@ class StreamingToolWindowManagerTest {
     val mockUIThemeLookAndFeelInfo = mock<UIThemeLookAndFeelInfoImpl>()
     whenever(mockUIThemeLookAndFeelInfo.name).thenReturn("IntelliJ Light")
     val mockLafManager = mock<LafManager>()
-    @Suppress("UnstableApiUsage")
     whenever(mockLafManager.currentUIThemeLookAndFeel).thenReturn(mockUIThemeLookAndFeelInfo)
     ApplicationManager.getApplication().replaceService(LafManager::class.java, mockLafManager, testRootDisposable)
     deviceMirroringSettings.confirmationDialogShown = true
