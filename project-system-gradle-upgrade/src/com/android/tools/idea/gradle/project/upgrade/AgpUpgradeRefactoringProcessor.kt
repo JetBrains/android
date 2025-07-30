@@ -320,6 +320,7 @@ class AgpUpgradeRefactoringProcessor(
     R8OptimizedResourceShrinkingDefaultRefactoringProcessor(this),
     TargetSdkDefaultRefactoringProcessor(this),
     AppCompileTimeRClassDefaultRefactoringProcessor(this),
+    BuildTypesUnitTestDefaultRefactoringProcessor(this),
     AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor(this),
     AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(this),
     RemoveImplementationPropertiesRefactoringProcessor(this),
