@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.flags.overrides
 
-import com.android.tools.idea.flags.overrides.IdeConfiguration.Configuration
 import com.google.common.truth.Truth
 import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
@@ -41,13 +40,13 @@ class IdeConfigurationTest {
 
   @Test
   fun `test unit test`() {
-    Truth.assertThat(IdeConfiguration.computeConfiguration()).isEqualTo(Configuration.INTERNAL)
+    Truth.assertThat(Configuration.computeConfiguration()).isEqualTo(Configuration.INTERNAL)
   }
 }
 
 private fun assert(versionString: String) = Truth
   .assertWithMessage(versionString)
-  .that(IdeConfiguration.getConfigurationFromVersionName(versionString))
+  .that(Configuration.getConfigurationFromVersionName(versionString))
 
 private fun formatFullVersion(
   majorVersion: String = "2023",

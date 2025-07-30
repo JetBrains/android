@@ -17,12 +17,9 @@ package com.android.tools.idea.flags.overrides
 
 import com.android.flags.Flag
 import com.android.flags.ImmutableFlagOverrides
-import com.android.tools.idea.flags.overrides.IdeConfiguration.Configuration
 import com.android.utils.associateNotNull
 import com.google.common.annotations.VisibleForTesting
 import java.io.InputStream
-import kotlin.text.split
-import kotlin.text.startsWith
 
 /**
  * Overrides for the default values for boolean flags.
@@ -59,7 +56,7 @@ class ConfigurationOverrides: ImmutableFlagOverrides {
     @VisibleForTesting
     fun loadValues(
       inputStream: InputStream = featureFlagsResourceStream(),
-      currentConfig: Configuration = IdeConfiguration.configuration
+      currentConfig: Configuration = Configuration.configuration
     ): Map<String, String> {
       val configsByName = Configuration.entries.associateBy { it.name }
 

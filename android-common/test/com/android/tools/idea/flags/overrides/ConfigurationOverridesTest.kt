@@ -39,7 +39,7 @@ class ConfigurationOverridesTest {
     """.trimIndent()
 
     Truth.assertThat(
-      ConfigurationOverrides.loadValues(content.byteInputStream(), IdeConfiguration.Configuration.INTERNAL)
+      ConfigurationOverrides.loadValues(content.byteInputStream(), Configuration.INTERNAL)
     ).containsExactly(
       "group1.flag1", "true",
       "group1.flag2", "true",
@@ -57,7 +57,7 @@ class ConfigurationOverridesTest {
     """.trimIndent()
 
     Truth.assertThat(
-      ConfigurationOverrides.loadValues(content.byteInputStream(), IdeConfiguration.Configuration.PREVIEW)
+      ConfigurationOverrides.loadValues(content.byteInputStream(), Configuration.PREVIEW)
     ).containsExactly(
       "group1.flag1", "false",
       "group1.flag2", "true",
@@ -75,7 +75,7 @@ class ConfigurationOverridesTest {
     """.trimIndent()
 
     Truth.assertThat(
-      ConfigurationOverrides.loadValues(content.byteInputStream(), IdeConfiguration.Configuration.STABLE)
+      ConfigurationOverrides.loadValues(content.byteInputStream(), Configuration.STABLE)
     ).containsExactly(
       "group1.flag1", "false",
       "group1.flag2", "false",
@@ -116,7 +116,7 @@ class ConfigurationOverridesTest {
     """.trimIndent()
 
     Truth.assertThat(
-      ConfigurationOverrides.loadValues(content.byteInputStream(), IdeConfiguration.Configuration.INTERNAL)
+      ConfigurationOverrides.loadValues(content.byteInputStream(), Configuration.INTERNAL)
     ).containsExactly(
       "group1.flag1", "true",
       "group1.flag2", "true",

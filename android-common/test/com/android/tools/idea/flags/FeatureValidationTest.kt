@@ -19,7 +19,7 @@ import com.android.flags.BooleanFlag
 import com.android.flags.Flag
 import com.android.tools.idea.flags.overrides.ConfigurationOverrides
 import com.android.tools.idea.flags.overrides.FEATURE_FLAGS_FILE
-import com.android.tools.idea.flags.overrides.IdeConfiguration.Configuration
+import com.android.tools.idea.flags.overrides.Configuration
 import com.google.common.truth.Truth
 import org.junit.Test
 import java.lang.reflect.Modifier
