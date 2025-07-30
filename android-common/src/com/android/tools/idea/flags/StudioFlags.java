@@ -28,7 +28,7 @@ import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
-import com.android.tools.idea.flags.overrides.ConfigurationOverrides;
+import com.android.tools.idea.flags.overrides.FeatureConfigurationOverrides;
 import com.android.tools.idea.flags.overrides.MendelOverrides;
 import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
 import com.intellij.openapi.application.ApplicationManager;
@@ -58,7 +58,12 @@ public final class StudioFlags {
     else {
       userOverrides = new LazyStudioFlagSettings();
     }
-    return new Flags(userOverrides, new PropertyOverrides(), new MendelOverrides(), new ServerFlagOverrides(), new ConfigurationOverrides());
+    return new Flags(
+      userOverrides,
+      new PropertyOverrides(),
+      new MendelOverrides(),
+      new ServerFlagOverrides(),
+      new FeatureConfigurationOverrides());
   }
 
   // This class is a workaround for b/355292387: IntelliJ 2024.2 does not allow services to be instantiated inside static initializers.

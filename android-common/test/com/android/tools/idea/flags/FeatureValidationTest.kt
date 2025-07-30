@@ -17,9 +17,8 @@ package com.android.tools.idea.flags
 
 import com.android.flags.BooleanFlag
 import com.android.flags.Flag
-import com.android.tools.idea.flags.overrides.ConfigurationOverrides
+import com.android.tools.idea.flags.overrides.FeatureConfigurationOverrides
 import com.android.tools.idea.flags.overrides.FEATURE_FLAGS_FILE
-import com.android.tools.idea.flags.overrides.Configuration
 import com.google.common.truth.Truth
 import org.junit.Test
 import java.lang.reflect.Modifier
@@ -51,7 +50,7 @@ class FeatureValidationTest {
   fun validate_no_obsolete_entries() {
     val flagsFromFile = readFile().map {
       // this will not return null but we need to handle it somehow to please the compiler
-      val tokens = ConfigurationOverrides.parseLine(it, throwOnInvalidValue = true) ?: return@map null
+      val tokens = FeatureConfigurationOverrides.parseLine(it, throwOnInvalidValue = true) ?: return@map null
       tokens.first
     }
     val flagsFromClass = getFields()
@@ -67,20 +66,21 @@ class FeatureValidationTest {
   @Test
   fun validate_stable_has_date() {
     val stableFlagsFromFile = readFile().mapNotNull {
-      val tokens = ConfigurationOverrides.parseLine(it, removeDate = false, throwOnInvalidValue = true) ?: return@mapNotNull null
+      val tokens = FeatureConfigurationOverrides.parseLine(it, removeDate = false, throwOnInvalidValue = true)
+                   ?: return@mapNotNull null
 
-      if (!tokens.second.startsWith(Configuration.STABLE.name)) return@mapNotNull null
+      if (!tokens.second.startsWith(FeatureConfiguration.STABLE.name)) return@mapNotNull null
 
       tokens
     }
 
     for (flag in stableFlagsFromFile) {
-      if (flag.second == Configuration.STABLE.name) {
-        fail("Flag with ID '${flag.first}' and value ${Configuration.STABLE} does not have a date")
+      if (flag.second == FeatureConfiguration.STABLE.name) {
+        fail("Flag with ID '${flag.first}' and value ${FeatureConfiguration.STABLE} does not have a date")
       }
 
       if (!flag.second.matches(STABLE_WITH_DATE_REGEX)) {
-        fail("Flag with ID '${flag.first}' and value ${Configuration.STABLE} has a malformed date. Make sure the format is STABLE:YYYY")
+        fail("Flag with ID '${flag.first}' and value ${FeatureConfiguration.STABLE} has a malformed date. Make sure the format is STABLE:YYYY")
       }
     }
   }
@@ -88,7 +88,7 @@ class FeatureValidationTest {
   companion object {
 
     fun readFile(): List<String> {
-      val flagsStream = ConfigurationOverrides::class.java.getResourceAsStream(FEATURE_FLAGS_FILE)
+      val flagsStream = FeatureConfigurationOverrides::class.java.getResourceAsStream(FEATURE_FLAGS_FILE)
 
       Truth.assertWithMessage("Check loading of $FEATURE_FLAGS_FILE").that(flagsStream).isNotNull()
       flagsStream!! // to please kotlin compiler
@@ -119,4 +119,4 @@ class FeatureValidationTest {
   }
 }
 
-private val STABLE_WITH_DATE_REGEX = Regex("${Configuration.STABLE}:\\d{4}")
+private val STABLE_WITH_DATE_REGEX = Regex("${FeatureConfiguration.STABLE}:\\d{4}")

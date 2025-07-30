@@ -17,6 +17,7 @@ package com.android.tools.idea.flags.overrides
 
 import com.android.flags.Flag
 import com.android.flags.ImmutableFlagOverrides
+import com.android.tools.idea.flags.FeatureConfiguration
 import com.android.utils.associateNotNull
 import com.google.common.annotations.VisibleForTesting
 import java.io.InputStream
@@ -34,14 +35,14 @@ import java.io.InputStream
  * It must be added to [com.android.flags.Flags] as the *last* override in the list
  * since it's not actually an override.
  */
-class ConfigurationOverrides: ImmutableFlagOverrides {
+class FeatureConfigurationOverrides: ImmutableFlagOverrides {
 
   override fun get(flag: Flag<*>): String? = defaultValues[flag.id]
 
   companion object {
     /** Returns the current IDE feature flags configuration as a stream. */
     private fun featureFlagsResourceStream(): InputStream =
-      requireNotNull(ConfigurationOverrides::class.java.getResourceAsStream(FEATURE_FLAGS_FILE))
+      requireNotNull(FeatureConfigurationOverrides::class.java.getResourceAsStream(FEATURE_FLAGS_FILE))
 
     /**
      * The map that contains the default values. The values are already applied to the
@@ -56,9 +57,9 @@ class ConfigurationOverrides: ImmutableFlagOverrides {
     @VisibleForTesting
     fun loadValues(
       inputStream: InputStream = featureFlagsResourceStream(),
-      currentConfig: Configuration = Configuration.configuration
+      currentConfig: FeatureConfiguration = FeatureConfiguration.current,
     ): Map<String, String> {
-      val configsByName = Configuration.entries.associateBy { it.name }
+      val configsByName = FeatureConfiguration.entries.associateBy { it.name }
 
       return inputStream.use { stream ->
         stream.reader(Charsets.UTF_8).use { reader ->
@@ -94,7 +95,7 @@ class ConfigurationOverrides: ImmutableFlagOverrides {
       }
 
       return tokens[0] to if (removeDate) {
-        if (flagValue.startsWith("${Configuration.STABLE.name}:")) { Configuration.STABLE.name } else flagValue
+        if (flagValue.startsWith("${FeatureConfiguration.STABLE.name}:")) { FeatureConfiguration.STABLE.name } else flagValue
       } else flagValue
     }
   }

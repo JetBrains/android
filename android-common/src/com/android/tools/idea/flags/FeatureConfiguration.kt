@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.flags.overrides
+package com.android.tools.idea.flags
 
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationInfo
@@ -21,11 +21,11 @@ import com.intellij.openapi.application.ApplicationManager
 import java.util.regex.Pattern
 
 /**
- * The different IDE Configurations. These represent the flag configurations for the different
+ * Feature Configuration that represent the flag configurations for the different
  * types of Studio builds.
  *
  * Configuration are ordered from less stable to more stable. A [com.android.flags.BooleanFlag]
- * targeting a particular [IdeConfiguration.Configuration] will also be enabled in all builds
+ * targeting a particular [FeatureConfiguration] will also be enabled in all builds
  * that are using Configuration less stable than the target.
  *
  * e.g. if a Flag is targeting [PREVIEW], it will be enabled in:
@@ -33,7 +33,7 @@ import java.util.regex.Pattern
  * - [NIGHTLY]
  * - [PREVIEW]
  */
-enum class Configuration(val stabilityLevel: Int) {
+enum class FeatureConfiguration(val stabilityLevel: Int) {
   /**
    * This configuration is never present in builds released outside Google.
    *
@@ -55,6 +55,7 @@ enum class Configuration(val stabilityLevel: Int) {
    *
    * Flags targeting [PREVIEW] or [STABLE] are also enabled in this configuration
    */
+  @Deprecated("Do Not Use, this is going to go away soon.")
   NIGHTLY(2),
 
   /**
@@ -77,7 +78,12 @@ enum class Configuration(val stabilityLevel: Int) {
   STABLE(4);
 
   companion object {
-    val configuration: Configuration by lazy {
+    /**
+     * The current flag configuration used by Studio.
+     *
+     * This is computed based on the name of the application
+     */
+    val current: FeatureConfiguration by lazy {
       computeConfiguration()
     }
 
@@ -86,12 +92,12 @@ enum class Configuration(val stabilityLevel: Int) {
     }
 
     /**
-     * Returns the [Configuration] of the current build.
+     * Returns the [FeatureConfiguration] of the current build.
      *
-     * This is based on the [ApplicationInfo] instance.
+     * This is based on the [com.intellij.openapi.application.ApplicationInfo] instance.
      */
     @VisibleForTesting
-    fun computeConfiguration(): Configuration {
+    fun computeConfiguration(): FeatureConfiguration {
       val versionName = when {
         ApplicationManager.getApplication() == null || ApplicationInfo.getInstance() == null -> "dev"
         else -> ApplicationInfo.getInstance().fullVersion
@@ -99,8 +105,9 @@ enum class Configuration(val stabilityLevel: Int) {
       return getConfigurationFromVersionName(versionName)
     }
 
+    @Suppress("DEPRECATION")
     @VisibleForTesting
-    fun getConfigurationFromVersionName(versionName: String) : Configuration = when {
+    fun getConfigurationFromVersionName(versionName: String) : FeatureConfiguration = when {
       versionNameContainsChannel(versionName, "dev") -> INTERNAL
       versionNameContainsChannel(versionName, "nightly") -> NIGHTLY
       versionNameContainsChannel(versionName, "canary") -> PREVIEW

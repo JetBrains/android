@@ -15,38 +15,39 @@
  */
 package com.android.tools.idea.flags.overrides
 
+import com.android.tools.idea.flags.FeatureConfiguration
 import com.google.common.truth.Truth
 import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
 
-class IdeConfigurationTest {
+class FeatureConfigurationTest {
 
   @get:Rule
   val projectRule = ProjectRule()
 
   @Test
   fun `verify configurations from version`() {
-    assert(formatFullVersion(channel = "dEv")).isEqualTo(Configuration.INTERNAL)
-    assert(formatFullVersion()).isEqualTo(Configuration.INTERNAL)
+    assert(formatFullVersion(channel = "dEv")).isEqualTo(FeatureConfiguration.INTERNAL)
+    assert(formatFullVersion()).isEqualTo(FeatureConfiguration.INTERNAL)
 
 
-    assert(formatFullVersion(channel = "Nightly")).isEqualTo(Configuration.NIGHTLY)
-    assert(formatFullVersion(channel = "Canary")).isEqualTo(Configuration.PREVIEW)
-    assert(formatFullVersion(channel = "Beta")).isEqualTo(Configuration.STABLE)
-    assert(formatFullVersion(channel = "RC")).isEqualTo(Configuration.STABLE)
-    assert(formatFullVersion(channel = "Stable")).isEqualTo(Configuration.STABLE)
+    assert(formatFullVersion(channel = "Nightly")).isEqualTo(FeatureConfiguration.NIGHTLY)
+    assert(formatFullVersion(channel = "Canary")).isEqualTo(FeatureConfiguration.PREVIEW)
+    assert(formatFullVersion(channel = "Beta")).isEqualTo(FeatureConfiguration.STABLE)
+    assert(formatFullVersion(channel = "RC")).isEqualTo(FeatureConfiguration.STABLE)
+    assert(formatFullVersion(channel = "Stable")).isEqualTo(FeatureConfiguration.STABLE)
   }
 
   @Test
   fun `test unit test`() {
-    Truth.assertThat(Configuration.computeConfiguration()).isEqualTo(Configuration.INTERNAL)
+    Truth.assertThat(FeatureConfiguration.computeConfiguration()).isEqualTo(FeatureConfiguration.INTERNAL)
   }
 }
 
 private fun assert(versionString: String) = Truth
   .assertWithMessage(versionString)
-  .that(Configuration.getConfigurationFromVersionName(versionString))
+  .that(FeatureConfiguration.getConfigurationFromVersionName(versionString))
 
 private fun formatFullVersion(
   majorVersion: String = "2023",

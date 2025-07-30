@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.flags.overrides
 
+import com.android.tools.idea.flags.FeatureConfiguration
 import com.google.common.truth.Truth
 import org.junit.Test
 
-class ConfigurationOverridesTest {
+class FeatureConfigurationOverridesTest {
 
   @Test
   fun testEmpty() {
@@ -26,7 +27,7 @@ class ConfigurationOverridesTest {
     #some comments
     """.trimIndent()
 
-    Truth.assertThat(ConfigurationOverrides.loadValues(content.byteInputStream())).isEmpty()
+    Truth.assertThat(FeatureConfigurationOverrides.loadValues(content.byteInputStream())).isEmpty()
   }
 
   @Test
@@ -39,7 +40,7 @@ class ConfigurationOverridesTest {
     """.trimIndent()
 
     Truth.assertThat(
-      ConfigurationOverrides.loadValues(content.byteInputStream(), Configuration.INTERNAL)
+      FeatureConfigurationOverrides.loadValues(content.byteInputStream(), FeatureConfiguration.INTERNAL)
     ).containsExactly(
       "group1.flag1", "true",
       "group1.flag2", "true",
@@ -57,7 +58,7 @@ class ConfigurationOverridesTest {
     """.trimIndent()
 
     Truth.assertThat(
-      ConfigurationOverrides.loadValues(content.byteInputStream(), Configuration.PREVIEW)
+      FeatureConfigurationOverrides.loadValues(content.byteInputStream(), FeatureConfiguration.PREVIEW)
     ).containsExactly(
       "group1.flag1", "false",
       "group1.flag2", "true",
@@ -75,7 +76,7 @@ class ConfigurationOverridesTest {
     """.trimIndent()
 
     Truth.assertThat(
-      ConfigurationOverrides.loadValues(content.byteInputStream(), Configuration.STABLE)
+      FeatureConfigurationOverrides.loadValues(content.byteInputStream(), FeatureConfiguration.STABLE)
     ).containsExactly(
       "group1.flag1", "false",
       "group1.flag2", "false",
@@ -96,7 +97,7 @@ class ConfigurationOverridesTest {
 
     // make sure to use the default param for loadValues
     Truth.assertThat(
-      ConfigurationOverrides.loadValues(content.byteInputStream())
+      FeatureConfigurationOverrides.loadValues(content.byteInputStream())
     ).containsExactly(
       "group1.flag1", "true",
       "group1.flag2", "true",
@@ -116,7 +117,7 @@ class ConfigurationOverridesTest {
     """.trimIndent()
 
     Truth.assertThat(
-      ConfigurationOverrides.loadValues(content.byteInputStream(), Configuration.INTERNAL)
+      FeatureConfigurationOverrides.loadValues(content.byteInputStream(), FeatureConfiguration.INTERNAL)
     ).containsExactly(
       "group1.flag1", "true",
       "group1.flag2", "true",
