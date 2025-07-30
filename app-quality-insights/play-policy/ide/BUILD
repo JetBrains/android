@@ -17,6 +17,7 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/adt/idea/.idea/libraries:mockito",
         "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/analytics-library/testing:android.sdktools.analytics-testing",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
@@ -26,5 +27,9 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/adt/idea/lint:intellij.lint",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/analytics-library/tracker:analytics-tracker",
+        "//tools/adt/idea/.idea/libraries:protobuf-kotlin",
+        "//tools/adt/idea/android:intellij.android.core",
     ],
 )

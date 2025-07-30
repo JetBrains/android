@@ -15,16 +15,21 @@
  */
 package com.android.tools.idea.play
 
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.lint.common.forceRegisterThirdPartyIssues
+import com.google.wireless.android.sdk.stats.PlayPolicyInsightsUsageEvent.PlayPolicyInsightsUsageEventType
+import com.google.wireless.android.sdk.stats.PlayPolicyInsightsUsageEventKt.batchInspectionDetails
+import com.google.wireless.android.sdk.stats.playPolicyInsightsUsageEvent
 import com.intellij.analysis.AnalysisScope
 import com.intellij.analysis.BaseAnalysisActionDialog
 import com.intellij.codeInspection.actions.CodeInspectionAction
 import com.intellij.codeInspection.ex.InspectionProfileImpl
 import com.intellij.codeInspection.ex.InspectionToolsSupplier
 import com.intellij.icons.AllIcons
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
@@ -46,6 +51,7 @@ import com.jetbrains.rd.util.getLogger
 import java.awt.Dimension
 import javax.swing.JComponent
 import javax.swing.JEditorPane
+import kotlinx.coroutines.launch
 
 class PlayPolicyCodeInspectionAction : CodeInspectionAction("Inspect Play Policy", "Play Policy") {
 
@@ -60,39 +66,42 @@ class PlayPolicyCodeInspectionAction : CodeInspectionAction("Inspect Play Policy
   override fun runInspections(project: Project, scope: AnalysisScope) {
     val rootProfile = InspectionProjectProfileManager.getInstance(project).currentProfile
 
-    fun getToolWrappers() =
-      rootProfile.tools
-        .map { it.tool }
-        .filter {
-          (it.tool as? AndroidLintInspectionBase)
-            ?.groupPath
-            ?.contentEquals(arrayOf("Android", "Lint", "Play Policy")) == true
-        }
+    fun getTools() =
+      rootProfile.tools.filter {
+        (it.tool.tool as? AndroidLintInspectionBase)
+          ?.groupPath
+          ?.contentEquals(arrayOf("Android", "Lint", "Play Policy")) == true
+      }
 
-    val toolWrappers =
-      getToolWrappers().ifEmpty {
+    val tools =
+      getTools().ifEmpty {
         // If the user has not yet run Lint, the Play Policy checks will not be registered as
         // inspections in the profile. We can force this.
         forceRegisterThirdPartyIssues(project, rootProfile)
         // And then try again.
-        getToolWrappers()
+        getTools()
       }
 
     myExternalProfile =
       InspectionProfileImpl(
         "Play Policy",
-        InspectionToolsSupplier.Simple(toolWrappers),
+        InspectionToolsSupplier.Simple(tools.map { it.tool }),
         rootProfile,
       )
-    if (toolWrappers.isNotEmpty()) {
-      logger.log(
-        LogLevel.Info,
-        "${toolWrappers.size} rules are loaded for Play Policy Insights.",
-        null,
-      )
+    if (tools.isNotEmpty()) {
+      logger.log(LogLevel.Info, "${tools.size} rules are loaded for Play Policy Insights.", null)
     } else {
       logger.log(LogLevel.Warn, "Failed to load rules for Play Policy Insights.", null)
     }
+
+    playPolicyInsightsUsageEvent {
+        type = PlayPolicyInsightsUsageEventType.BATCH_INSPECTION
+        batchInspectionDetails = batchInspectionDetails {
+          enabledIssueCount = tools.count { it.isEnabled }
+          totalIssueCount = tools.size
+        }
+      }
+      .track()
 
     super.runInspections(project, scope)
   }
@@ -100,7 +109,7 @@ class PlayPolicyCodeInspectionAction : CodeInspectionAction("Inspect Play Policy
   override fun getAdditionalActionSettings(
     project: Project,
     dialog: BaseAnalysisActionDialog,
-  ): JComponent? {
+  ): JComponent {
     val deprecationData =
       service<DevServicesDeprecationDataProvider>()
         .getCurrentDeprecationData("aqi/policy", "Play Policy Insights")
@@ -111,6 +120,9 @@ class PlayPolicyCodeInspectionAction : CodeInspectionAction("Inspect Play Policy
     return panel {
       customizeSpacingConfiguration(EmptySpacingConfiguration()) {
         if (!deprecationData.isSupported() && deprecationData.description.isNotEmpty()) {
+          dialog.disposable.createCoroutineScope().launch {
+            trackDeprecation(deprecationData.status, userNotified = true)
+          }
           row {
               icon(
                   if (deprecationData.isDeprecated()) AllIcons.General.Warning
@@ -128,6 +140,7 @@ class PlayPolicyCodeInspectionAction : CodeInspectionAction("Inspect Play Policy
                         "<a>Update Android Studio</a>",
                         action =
                           HyperlinkEventAction {
+                            trackDeprecation(deprecationData.status, userClickedUpdate = true)
                             UpdateChecker.updateAndShowResult(project, UpdateSettings())
                           },
                       )
@@ -136,7 +149,13 @@ class PlayPolicyCodeInspectionAction : CodeInspectionAction("Inspect Play Policy
                   }
                   val moreInfoUrl = deprecationData.moreInfoUrl
                   if (moreInfoUrl.isNotBlank()) {
-                    text("<a href=${moreInfoUrl}>More Info</a>").align(AlignX.LEFT + AlignY.FILL)
+                    val hyperlinkEventAction = HyperlinkEventAction { e ->
+                      trackDeprecation(deprecationData.status, userClickedMoreInfo = true)
+                      e.url?.let { BrowserUtil.browse(it) }
+                    }
+
+                    text("<a href=${moreInfoUrl}>More Info</a>", action = hyperlinkEventAction)
+                      .align(AlignX.LEFT + AlignY.FILL)
                   }
                 }
               }
