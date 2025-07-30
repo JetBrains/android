@@ -17,8 +17,16 @@ iml_module(
                 "noci:studio-linux",
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
-                "ci:studio-mac",
+                "block-network",
             ],
+        },
+        "Benchmark2000MemoryMac": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000MemoryTest",
+            "tags": [
+                "ci:studio-mac",
+                "exclusive-if-local",
+            ],
+            "timeout": "long",
         },
         "Benchmark2000KotlinMultiplatformCpu": {
             "test_filer": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000KotlinMultiplatformCpuTest",
@@ -26,6 +34,7 @@ iml_module(
                 "noci:studio-win",
                 "noci:studio-linux",
                 "ci:perfgate-linux",
+                "block-network",
             ],
         },
         # This test is run in release branch, too but not analyzed due to small number of runs per test
@@ -40,8 +49,17 @@ iml_module(
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
                 "perfgate-release",
-                "ci:studio-mac",
+                "block-network",
             ],
+        },
+        "Benchmark2000CpuMac": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuTest",
+            "additional_jvm_args": ["-Xmx6g"],
+            "tags": [
+                "ci:studio-mac",
+                "exclusive-if-local",
+            ],
+            "timeout": "long",
         },
         # Release branch tests with comparison to main branch
         "Benchmark2000CpuReleaseBranch": {
@@ -70,6 +88,7 @@ iml_module(
                 "noci:studio-linux",
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
+                "block-network",
             ],
             "data": ["//tools/base/build-system:gradle-distrib-latest-snapshot"],
         },
@@ -81,6 +100,7 @@ iml_module(
                 "noci:studio-linux",
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
+                "block-network",
             ],
             "data": ["//tools/base/build-system:gradle-distrib-latest-snapshot"],
         },
@@ -93,6 +113,7 @@ iml_module(
                 "noci:studio-linux",
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
+                "block-network",
             ],
             "data": ["//tools/base/build-system/integration-test:latest_kotlin_gradle_plugin_prebuilts_for_sync_benchmarks"],
         },
@@ -104,6 +125,7 @@ iml_module(
                 "noci:studio-linux",
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
+                "block-network",
             ],
             "data": ["//tools/base/build-system/integration-test:latest_kotlin_gradle_plugin_prebuilts_for_sync_benchmarks"],
         },
@@ -120,6 +142,7 @@ iml_module(
                 "noci:studio-linux",
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
+                "block-network",
             ],
         },
         "Benchmark500Cpu": {
@@ -129,6 +152,7 @@ iml_module(
                 "noci:studio-linux",
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
+                "block-network",
             ],
         },
         "Benchmark200Repeated20TimesMemory": {
@@ -138,6 +162,7 @@ iml_module(
                 "noci:studio-linux",
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
+                "block-network",
             ],
         },
         "Benchmark1000Memory": {
@@ -146,6 +171,7 @@ iml_module(
                 "noci:studio-win",
                 "noci:studio-linux",
                 "ci:perfgate-linux",
+                "block-network",
             ],
         },
         "Benchmark1000Cpu": {
@@ -154,6 +180,7 @@ iml_module(
                 "noci:studio-win",
                 "noci:studio-linux",
                 "ci:perfgate-linux",
+                "block-network",
             ],
         },
         # Disabled tests
