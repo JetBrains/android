@@ -9,9 +9,11 @@ kotlin {
   }
 
   jvm {
-    compilations.all {
-      compilerOptions.configure {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
+    compilations.configureEach {
+      compileTaskProvider.configure {
+        compilerOptions {
+          jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
+        }
       }
     }
   }
@@ -21,9 +23,11 @@ kotlin {
     compileSdk = 33
     minSdk = 22
 
-    compilations.all {
-      compilerOptions.configure {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
+    compilations.configureEach {
+      compileTaskProvider.configure {
+        compilerOptions {
+          jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
+        }
       }
     }
   }
