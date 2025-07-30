@@ -36,6 +36,7 @@ namespace {
 constexpr int MAX_SUBSEQUENT_ERRORS = 5;
 constexpr int MIN_VIDEO_RESOLUTION = 128;
 constexpr int64_t INITIAL_FRAME_TIMEOUT_MILLIS = 200;
+constexpr int64_t FRAME_TIMEOUT_MILLIS = 30000;
 constexpr int COLOR_FormatSurface = 0x7F000789;  // See android.media.MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface.
 constexpr int MAX_FRAME_RATE = 60;
 constexpr int REDUCED_FRAME_RATE = 30;  // Frame rate used for watches.
@@ -213,34 +214,36 @@ void DisplayStreamer::Run() {
 
   AMediaFormat* media_format = CreateMediaFormat(codec_info_->mime_type);
   VideoPacketHeader packet_header = { .display_id = display_id_, .frame_number = frame_number_};
-  bool continue_streaming = true;
+  FrameStreamStopReason stop_reason = FrameStreamStopReason::CODEC_STOPPED;
   consequent_deque_error_count_ = 0;
 
-  while (continue_streaming && !streamer_stopped_ && !Agent::IsShuttingDown()) {
+  while (stop_reason != FrameStreamStopReason::END_OF_STREAM && !streamer_stopped_ && !Agent::IsShuttingDown()) {
     DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni, display_id_);
     if (!display_info.IsValid()) {
       break;
     }
     Log::D("Display %d: display_info: %s", display_id_, display_info.ToDebugString().c_str());
-    CreateCodec();
-    string display_name = StringPrintf("studio.screen.sharing:%d", display_id_);
-    if (Agent::feature_level() >= 34) {
-      virtual_display_ = DisplayManager::CreateVirtualDisplay(
-          jni, display_name.c_str(), display_info.logical_size.width, display_info.logical_size.height, display_id_, nullptr);
-    } else {
-      bool secure = Agent::feature_level() < 31;  // Creation of secure displays is not allowed on API 31+.
-      display_token_ = SurfaceControl::CreateDisplay(jni, display_name.c_str(), secure);
-      if (display_token_.IsNull()) {
-        Log::Fatal(VIRTUAL_DISPLAY_CREATION_ERROR, "Display %d: unable to create a virtual display", display_id_);
+    if (stop_reason != FrameStreamStopReason::TIMEOUT) {
+      ReleaseVirtualDisplay(jni);
+    }
+    if (virtual_display_.IsNull() && display_token_.IsNull()) {
+      string display_name = StringPrintf("studio.screen.sharing:%d", display_id_);
+      if (Agent::feature_level() >= 34) {
+        virtual_display_ = DisplayManager::CreateVirtualDisplay(
+            jni, display_name.c_str(), display_info.logical_size.width, display_info.logical_size.height, display_id_, nullptr);
+      } else {
+        bool secure = Agent::feature_level() < 31;  // Creation of secure displays is not allowed on API 31+.
+        display_token_ = SurfaceControl::CreateDisplay(jni, display_name.c_str(), secure);
+        if (display_token_.IsNull()) {
+          Log::Fatal(VIRTUAL_DISPLAY_CREATION_ERROR, "Display %d: unable to create a virtual display", display_id_);
+        }
       }
     }
-    ANativeWindow* surface = nullptr;
     {
       unique_lock lock(mutex_);
-      if (codec_ == nullptr || codec_stop_pending_) {
+      if (codec_stop_pending_) {
         codec_stop_pending_ = false;
         ReleaseVirtualDisplay(jni);
-        DeleteCodec();
         continue;  // Start another loop to refresh display information.
       }
       display_info_ = display_info;
@@ -251,21 +254,22 @@ void DisplayStreamer::Run() {
         display_info.rotation = 0;
         rotation_correction = 2;
       }
+      CreateCodec();
       Size video_size = ConfigureCodec(
           codec_, *codec_info_, max_video_resolution_.Rotated(rotation_correction), bit_rate_, media_format, display_info, display_id_);
       Log::D("Display %d: rotation=%d rotation_correction=%d video_size=%dx%d",
              display_id_, display_info.rotation, rotation_correction, video_size.width, video_size.height);
-      media_status_t status = AMediaCodec_createInputSurface(codec_, &surface);  // Requires API 26.
+      media_status_t status = AMediaCodec_createInputSurface(codec_, &surface_);  // Requires API 26.
       if (status != AMEDIA_OK) {
         Log::Fatal(INPUT_SURFACE_CREATION_ERROR, "Display %d: AMediaCodec_createInputSurface returned %d", display_id_, status);
       }
       if (Agent::feature_level() >= 34) {
         virtual_display_.Resize(video_size.width, video_size.height, display_info_.logical_density_dpi);
-        virtual_display_.SetSurface(surface);
+        virtual_display_.SetSurface(surface_);
       } else {
         int32_t height = lround(static_cast<double>(video_size.width) * display_info.logical_size.height / display_info.logical_size.width);
         int32_t y = (video_size.height - height) / 2;
-        SurfaceControl::ConfigureProjection(jni, display_token_, surface, display_info, {0, y, video_size.width, height });
+        SurfaceControl::ConfigureProjection(jni, display_token_, surface_, display_info, { 0, y, video_size.width, height });
       }
       StartCodecUnlocked();
       codec_running_ = true;
@@ -281,24 +285,32 @@ void DisplayStreamer::Run() {
     }
     AMediaFormat* sync_frame_request = AMediaFormat_new();
     AMediaFormat_setInt32(sync_frame_request, AMEDIACODEC_KEY_REQUEST_SYNC_FRAME, 0);
-    continue_streaming = ProcessFramesUntilCodecStopped(&packet_header, sync_frame_request);
-    StopCodec();
+    stop_reason = ProcessFramesUntilCodecStopped(&packet_header, sync_frame_request);
+    Log::D("ProcessFramesUntilCodecStopped returned %d", stop_reason);
     AMediaFormat_delete(sync_frame_request);
+    StopCodec();
     DeleteCodec();
-    ReleaseVirtualDisplay(jni);
-    ANativeWindow_release(surface);
+    if (virtual_display_.IsNotNull()) {
+      virtual_display_.SetSurface(nullptr);
+    } else {
+      SurfaceControl::SetSurface(jni, display_token_, nullptr);
+    }
+    ANativeWindow_release(surface_);
+    surface_ = nullptr;
   }
 
+  ReleaseVirtualDisplay(jni);
   AMediaFormat_delete(media_format);
   WindowManager::RemoveRotationWatcher(jni, display_id_, &display_rotation_watcher_);
   DisplayManager::RemoveDisplayListener(this);
 
-  if (!continue_streaming) {
+  if (stop_reason == FrameStreamStopReason::END_OF_STREAM) {
     Agent::Shutdown();
   }
 }
 
-bool DisplayStreamer::ProcessFramesUntilCodecStopped(VideoPacketHeader* packet_header, const AMediaFormat* sync_frame_request) {
+DisplayStreamer::FrameStreamStopReason DisplayStreamer::ProcessFramesUntilCodecStopped(
+    VideoPacketHeader* packet_header, const AMediaFormat* sync_frame_request) {
   bool continue_streaming = true;
   bool request_sync_frame = true;
   while (continue_streaming && IsCodecRunning()) {
@@ -306,12 +318,15 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(VideoPacketHeader* packet_h
     if (frame_number_ == initial_frame_number_) {
       Log::D("Display %d: calling AMediaCodec_dequeueOutputBuffer", display_id_);
     }
-    int64_t timeout = frame_number_ == initial_frame_number_ ? INITIAL_FRAME_TIMEOUT_MILLIS * 1000 : -1;
+    int64_t timeout = frame_number_ == initial_frame_number_ ? INITIAL_FRAME_TIMEOUT_MILLIS * 1000 : FRAME_TIMEOUT_MILLIS * 1000;
     if (!codec_buffer.Deque(timeout)) {
       if (++consequent_deque_error_count_ >= MAX_SUBSEQUENT_ERRORS && !ReduceBitRate()) {
         ExitCode exitCode = bit_rate_ <= MIN_BIT_RATE ? WEAK_VIDEO_ENCODER : REPEATED_VIDEO_ENCODER_ERRORS;
         Log::Fatal(exitCode, "Display %d: too many video encoder errors:\n%s", display_id_,
                    GetVideoEncoderDetails(*codec_info_, packet_header->display_width, packet_header->display_height).c_str());
+      }
+      if (frame_number_ != initial_frame_number_) {
+        return FrameStreamStopReason::TIMEOUT;
       }
       continue;
     }
@@ -319,7 +334,7 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(VideoPacketHeader* packet_h
     consequent_deque_error_count_ = 0;
     continue_streaming = !codec_buffer.IsEndOfStream();
     if (!IsCodecRunning()) {
-      return true;
+      return FrameStreamStopReason::CODEC_STOPPED;
     }
     // Skip an AV1-specific data packet that is not a part of AV1 bitstream.
     // See https://aomediacodec.github.io/av1-spec/#obu-header-semantics.
@@ -365,7 +380,7 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(VideoPacketHeader* packet_h
     bit_rate_reduced_ = false;
     packet_header->flags &= ~VideoPacketHeader::FLAG_BIT_RATE_REDUCED;
   }
-  return continue_streaming;
+  return continue_streaming ? FrameStreamStopReason::CODEC_STOPPED : FrameStreamStopReason::END_OF_STREAM;
 }
 
 void DisplayStreamer::SetVideoOrientation(int32_t orientation) {

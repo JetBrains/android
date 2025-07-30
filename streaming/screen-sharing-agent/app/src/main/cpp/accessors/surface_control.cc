@@ -26,7 +26,12 @@ namespace screensharing {
 
 using namespace std;
 
+namespace {
+
+
 static mutex static_initialization_mutex; // Protects initialization of static fields.
+
+}  // namespace
 
 void SurfaceControl::InitializeStatics(Jni jni) {
   unique_lock lock(static_initialization_mutex);
@@ -121,22 +126,17 @@ void SurfaceControl::SetDisplayProjection(
 
 void SurfaceControl::ConfigureProjection(
     Jni jni, jobject display_token, ANativeWindow* surface, const DisplayInfo& display_info, ARect projection_rect) {
-  struct Transaction {
-    explicit Transaction(Jni jni)
-        : jni_(jni) {
-      OpenTransaction(jni_);
-    }
-    ~Transaction() {
-      CloseTransaction(jni_);
-    }
-
-    Jni jni_;
-  };
   InitializeStatics(jni);
   Transaction transaction(jni);
   SetDisplaySurface(jni, display_token, surface);
   SetDisplayProjection(jni, display_token, 0, display_info.logical_size.toRect(), projection_rect);
   SetDisplayLayerStack(jni, display_token, display_info.layer_stack);
+}
+
+void SurfaceControl::SetSurface(Jni jni, jobject display_token, ANativeWindow* surface) {
+  InitializeStatics(jni);
+  Transaction transaction(jni);
+  SetDisplaySurface(jni, display_token, surface);
 }
 
 void SurfaceControl::SetDisplayPowerMode(Jni jni, jobject display_token, DisplayPowerMode mode) {
