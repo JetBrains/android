@@ -16,6 +16,7 @@ java_test(
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",
         "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/adt/idea/aswb/third_party/java/truth",
+        "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
     ],
 )
 
@@ -61,5 +62,6 @@ java_test(
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/adt/idea/aswb/third_party/java/truth",
+        "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
     ],
 )

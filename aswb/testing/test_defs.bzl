@@ -145,7 +145,7 @@ def intellij_unit_test_suite(
         target_compatible_with = target_compatible_with,
         testonly = 1,
         friends = friends,
-        #        stdlib = "//tools/adt/idea/aswb/testing:lib",
+        stdlib = None,  # kotlin-stdlib already comes bundled in IntelliJ.
     )
 
     # NOTE: Do not replace with `kotlin_test` as it orders classpath in a way
@@ -318,7 +318,7 @@ def intellij_integration_test_suite(
         target_compatible_with = target_compatible_with,
         testonly = 1,
         friends = friends,
-        #        stdlib = "//tools/adt/idea/aswb/testing:lib",
+        stdlib = None,  # kotlin-stdlib already comes bundled in IntelliJ.
     )
 
     # NOTE: Do not replace with `kotlin_test` as it orders classpath in a way

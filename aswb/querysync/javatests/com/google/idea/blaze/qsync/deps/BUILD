@@ -22,6 +22,7 @@ java_test(
         "//tools/adt/idea/aswb/shared/javatests/com/google/idea/blaze/common/artifact:test_utils",
         "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/adt/idea/aswb/third_party/java/truth",
+        "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "@maven//:com.google.guava.guava",
         "@maven//:org.mockito.mockito-core",
     ],
@@ -41,6 +42,7 @@ java_test(
         "//tools/adt/idea/aswb/shared:vcs",
         "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/adt/idea/aswb/third_party/java/truth",
+        "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "@maven//:com.google.guava.guava",
     ],
 )
@@ -57,6 +59,7 @@ java_test(
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/adt/idea/aswb/third_party/java/truth",
+        "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "@maven//:com.google.guava.guava",
         "@maven//:com.google.protobuf.protobuf-java",
     ],

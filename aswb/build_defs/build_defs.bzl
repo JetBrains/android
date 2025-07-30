@@ -21,6 +21,7 @@ def aswb_library(name, testonly = False, **kwargs):
         testonly = testonly,
         jvm_target = "17",
         lint_is_test_sources = testonly,
+        stdlib = None,  # kotlin-stdlib already comes bundled in IntelliJ.
         **kwargs
     )
 
