@@ -93,7 +93,6 @@ public class AndroidXmlIndentAutoDetectionTest extends AndroidTestCase {
         -1, 0, -1,
         2,
         2,
-        2,
         2, -1, -1, -1, 4, 6, 8, 8, 6, 4, 2,
         0);
     List<LineIndentInfo> indentInfosDumb = DumbModeTestUtils.computeInDumbModeSynchronously(getProject(), () -> getIndentInfos(manifestFile));
