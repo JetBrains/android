@@ -65,22 +65,22 @@ class FeatureValidationTest {
 
   @Test
   fun validate_stable_has_date() {
-    val stableFlagsFromFile = readFile().mapNotNull {
+    val completeFlagsFromFile = readFile().mapNotNull {
       val tokens = FeatureConfigurationOverrides.parseLine(it, removeDate = false, throwOnInvalidValue = true)
                    ?: return@mapNotNull null
 
-      if (!tokens.second.startsWith(FeatureConfiguration.STABLE.name)) return@mapNotNull null
+      if (!tokens.second.startsWith(FeatureConfiguration.COMPLETE.name)) return@mapNotNull null
 
       tokens
     }
 
-    for (flag in stableFlagsFromFile) {
-      if (flag.second == FeatureConfiguration.STABLE.name) {
-        fail("Flag with ID '${flag.first}' and value ${FeatureConfiguration.STABLE} does not have a date")
+    for (flag in completeFlagsFromFile) {
+      if (flag.second == FeatureConfiguration.COMPLETE.name) {
+        fail("Flag with ID '${flag.first}' and value ${FeatureConfiguration.COMPLETE} does not have a date")
       }
 
-      if (!flag.second.matches(STABLE_WITH_DATE_REGEX)) {
-        fail("Flag with ID '${flag.first}' and value ${FeatureConfiguration.STABLE} has a malformed date. Make sure the format is STABLE:YYYY")
+      if (!flag.second.matches(COMPLETE_WITH_DATE_REGEX)) {
+        fail("Flag with ID '${flag.first}' and value ${FeatureConfiguration.COMPLETE} has a malformed date. Make sure the format is STABLE:YYYY")
       }
     }
   }
@@ -119,4 +119,4 @@ class FeatureValidationTest {
   }
 }
 
-private val STABLE_WITH_DATE_REGEX = Regex("${FeatureConfiguration.STABLE}:\\d{4}")
+private val COMPLETE_WITH_DATE_REGEX = Regex("${FeatureConfiguration.COMPLETE}:\\d{4}")

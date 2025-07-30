@@ -36,7 +36,7 @@ class FeatureConfigurationOverridesTest {
     #some comments
     group1.flag1=INTERNAL
     group1.flag2=PREVIEW
-    group1.flag3=STABLE:2025
+    group1.flag3=COMPLETE:2025
     """.trimIndent()
 
     Truth.assertThat(
@@ -54,7 +54,7 @@ class FeatureConfigurationOverridesTest {
     #some comments
     group1.flag1=INTERNAL
     group1.flag2=PREVIEW
-    group1.flag3=STABLE:2025
+    group1.flag3=COMPLETE:2025
     """.trimIndent()
 
     Truth.assertThat(
@@ -67,16 +67,16 @@ class FeatureConfigurationOverridesTest {
   }
 
   @Test
-  fun testStable() {
+  fun testComplete() {
     val content = """
     #some comments
     group1.flag1=INTERNAL
     group1.flag2=PREVIEW
-    group1.flag3=STABLE:2025
+    group1.flag3=COMPLETE:2025
     """.trimIndent()
 
     Truth.assertThat(
-      FeatureConfigurationOverrides.loadValues(content.byteInputStream(), FeatureConfiguration.STABLE)
+      FeatureConfigurationOverrides.loadValues(content.byteInputStream(), FeatureConfiguration.COMPLETE)
     ).containsExactly(
       "group1.flag1", "false",
       "group1.flag2", "false",
@@ -92,7 +92,7 @@ class FeatureConfigurationOverridesTest {
     #some comments
     group1.flag1=INTERNAL
     group1.flag2=PREVIEW
-    group1.flag3=STABLE:2025
+    group1.flag3=COMPLETE:2025
     """.trimIndent()
 
     // make sure to use the default param for loadValues
@@ -113,7 +113,7 @@ class FeatureConfigurationOverridesTest {
     #some comments
     group1.flag1=INTERNAL # some comments
     group1.flag2=PREVIEW # some comments
-    group1.flag3=STABLE:2025 # some comments
+    group1.flag3=COMPLETE:2025 # some comments
     """.trimIndent()
 
     Truth.assertThat(

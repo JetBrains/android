@@ -53,7 +53,7 @@ enum class FeatureConfiguration(val stabilityLevel: Int) {
    * This can be used to enable some debugging features when we want developers to
    * try something via the nightly download.
    *
-   * Flags targeting [PREVIEW] or [STABLE] are also enabled in this configuration
+   * Flags targeting [PREVIEW] or [COMPLETE] are also enabled in this configuration
    */
   @Deprecated("Do Not Use, this is going to go away soon.")
   NIGHTLY(2),
@@ -61,7 +61,7 @@ enum class FeatureConfiguration(val stabilityLevel: Int) {
   /**
    * This is the main preview configuration.
    *
-   * Flags targeting [STABLE] are also enabled in this configuration
+   * Flags targeting [COMPLETE] are also enabled in this configuration
    *
    * It is published to the canary channel
    */
@@ -75,7 +75,7 @@ enum class FeatureConfiguration(val stabilityLevel: Int) {
    *
    * It is published to the Beta/RC and Stable channels
    */
-  STABLE(4);
+  COMPLETE(4);
 
   companion object {
     /**
@@ -111,7 +111,7 @@ enum class FeatureConfiguration(val stabilityLevel: Int) {
       versionNameContainsChannel(versionName, "dev") -> INTERNAL
       versionNameContainsChannel(versionName, "nightly") -> NIGHTLY
       versionNameContainsChannel(versionName, "canary") -> PREVIEW
-      else -> STABLE
+      else -> COMPLETE
     }
   }
 }

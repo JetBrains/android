@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.flags.overrides
+package com.android.tools.idea.flags
 
-import com.android.tools.idea.flags.FeatureConfiguration
 import com.google.common.truth.Truth
 import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
@@ -34,9 +33,9 @@ class FeatureConfigurationTest {
 
     assert(formatFullVersion(channel = "Nightly")).isEqualTo(FeatureConfiguration.NIGHTLY)
     assert(formatFullVersion(channel = "Canary")).isEqualTo(FeatureConfiguration.PREVIEW)
-    assert(formatFullVersion(channel = "Beta")).isEqualTo(FeatureConfiguration.STABLE)
-    assert(formatFullVersion(channel = "RC")).isEqualTo(FeatureConfiguration.STABLE)
-    assert(formatFullVersion(channel = "Stable")).isEqualTo(FeatureConfiguration.STABLE)
+    assert(formatFullVersion(channel = "Beta")).isEqualTo(FeatureConfiguration.COMPLETE)
+    assert(formatFullVersion(channel = "RC")).isEqualTo(FeatureConfiguration.COMPLETE)
+    assert(formatFullVersion(channel = "Stable")).isEqualTo(FeatureConfiguration.COMPLETE)
   }
 
   @Test

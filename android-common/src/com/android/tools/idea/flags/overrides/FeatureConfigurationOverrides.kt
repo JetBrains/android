@@ -95,7 +95,7 @@ class FeatureConfigurationOverrides: ImmutableFlagOverrides {
       }
 
       return tokens[0] to if (removeDate) {
-        if (flagValue.startsWith("${FeatureConfiguration.STABLE.name}:")) { FeatureConfiguration.STABLE.name } else flagValue
+        if (flagValue.startsWith("${FeatureConfiguration.COMPLETE.name}:")) { FeatureConfiguration.COMPLETE.name } else flagValue
       } else flagValue
     }
   }
