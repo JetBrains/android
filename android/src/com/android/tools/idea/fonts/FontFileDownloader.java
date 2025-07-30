@@ -1,4 +1,4 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.fonts;
 
 import com.google.common.util.concurrent.AtomicDouble;
@@ -73,7 +73,7 @@ public class FontFileDownloader {
           final String url = description.getDownloadUrl();
           if (url.startsWith(LIB_SCHEMA)) {
             final String path = FileUtil.toSystemDependentName(StringUtil.trimStart(url, LIB_SCHEMA));
-            final File file = PathManager.findFileInLibDirectory(path);
+            final File file = new File(PathManager.getLibPath(), path);
             existingFiles.add(Pair.create(file, description));
           }
           else if (url.startsWith(LocalFileSystem.PROTOCOL_PREFIX)) {
