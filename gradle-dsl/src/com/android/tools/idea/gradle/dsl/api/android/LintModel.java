@@ -115,4 +115,7 @@ public interface LintModel extends GradleDslModel {
 
   @NotNull
   ResolvedPropertyModel xmlReport();
+
+  @NotNull
+  ResolvedPropertyModel targetSdkVersion();
 }

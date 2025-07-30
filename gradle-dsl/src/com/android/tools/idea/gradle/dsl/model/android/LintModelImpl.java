@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.TARGET_SDK_VERSION;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET;
 
 import com.android.tools.idea.gradle.dsl.api.android.LintModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.SdkOrPreviewTransform;
 import com.android.tools.idea.gradle.dsl.parser.android.LintDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -248,5 +252,13 @@ public class LintModelImpl extends GradleDslBlockModel implements LintModel {
   @NotNull
   public ResolvedPropertyModel xmlReport() {
     return getModelForProperty(XML_REPORT);
+  }
+
+  @Override
+  public @NotNull ResolvedPropertyModel targetSdkVersion() {
+    VersionConstraint agp410plus = VersionConstraint.agpFrom("4.1.0");
+    return GradlePropertyModelBuilder.create(myDslElement, TARGET_SDK_VERSION)
+      .addTransform(new SdkOrPreviewTransform(TARGET_SDK_VERSION, "targetSdkVersion", "targetSdk", "targetSdkPreview", agp410plus))
+      .buildResolved();
   }
 }

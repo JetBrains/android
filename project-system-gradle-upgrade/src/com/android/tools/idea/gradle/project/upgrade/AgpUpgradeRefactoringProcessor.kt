@@ -320,6 +320,7 @@ class AgpUpgradeRefactoringProcessor(
     R8OptimizedResourceShrinkingDefaultRefactoringProcessor(this),
     TargetSdkDefaultRefactoringProcessor(this),
     AppCompileTimeRClassDefaultRefactoringProcessor(this),
+    DeprecatedLibraryTargetSdkRefactoringProcessor(this),
     BuildTypesUnitTestDefaultRefactoringProcessor(this),
     DisallowUsesSdkInManifestDefaultRefactoringProcessor(this),
     EnforceUniquePackageNameRefactoringProcessor(this),

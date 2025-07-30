@@ -1,0 +1,16 @@
+plugins {
+  id("com.android.library")
+}
+
+android {
+  compileSdkVersion 30
+  defaultConfig {
+    minSdkVersion 21
+  }
+  lint {
+    targetSdk 27
+  }
+  testOptions {
+    targetSdk 27
+  }
+}

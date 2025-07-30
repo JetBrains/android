@@ -40,4 +40,7 @@ public interface TestOptionsModel extends GradleBlockModel {
 
   @NotNull
   ResolvedPropertyModel execution();
+
+  @NotNull
+  ResolvedPropertyModel targetSdkVersion();
 }

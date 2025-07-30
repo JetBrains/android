@@ -24,13 +24,17 @@ import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.android.testOptions.EmulatorSnapshotsModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.testOptions.FailureRetentionModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.testOptions.UnitTestsModelImpl;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.SdkOrPreviewTransform;
 import com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.testOptions.EmulatorSnapshotsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.testOptions.FailureRetentionDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.testOptions.UnitTestsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.TARGET_SDK_VERSION;
 import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.EmulatorSnapshotsDslElement.EMULATOR_SNAPSHOTS;
 import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.FailureRetentionDslElement.FAILURE_RETENTION;
 import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.UnitTestsDslElement.UNIT_TESTS;
@@ -80,5 +84,13 @@ public class TestOptionsModelImpl extends GradleDslBlockModel implements TestOpt
   @Override
   public ResolvedPropertyModel execution() {
     return getModelForProperty(EXECUTION);
+  }
+
+  @Override
+  public @NotNull ResolvedPropertyModel targetSdkVersion() {
+    VersionConstraint agp410plus = VersionConstraint.agpFrom("4.1.0");
+    return GradlePropertyModelBuilder.create(myDslElement, TARGET_SDK_VERSION)
+      .addTransform(new SdkOrPreviewTransform(TARGET_SDK_VERSION, "targetSdkVersion", "targetSdk", "targetSdkPreview", agp410plus))
+      .buildResolved();
   }
 }
