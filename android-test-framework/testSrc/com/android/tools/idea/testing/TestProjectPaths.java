@@ -67,6 +67,7 @@ public final class TestProjectPaths {
   public static final String PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER = "projects/privacySandboxSdk/libraryAndConsumer";
   public static final String PROJECT_WITH_APPAND_LIB = "projects/projectWithAppandLib";
   public static final String PROJECT_WITH_APP_AND_LIB_DEPENDENCY = "projects/projectWithAppAndLibDependency";
+  public static final String PROJECT_WITH_APP_AND_LIB_WITHOUT_TARGET_SDK = "projects/projectWithAppAndLibWithoutTargetSdk";
   public static final String PSD_DEPENDENCY = "projects/psdDependency";
   public static final String PSD_DEPENDENCY_CATALOG = "projects/psdDependencyCatalog";
   public static final String PSD_BOM = "projects/psdBom";
@@ -107,7 +108,6 @@ public final class TestProjectPaths {
   public static final String SIMPLE_APPLICATION_VERSION_CATALOG_KTS = "projects/simpleApplicationVersionCatalogKts";
   public static final String SIMPLE_APPLICATION_SCHEMA_KTS = "projects/simpleApplicationDeclarativeSchemaKts";
   public static final String SIMPLE_APPLICATION_WITH_DUPLICATES = "projects/simpleApplicationWithDuplicates";
-  public static final String SIMPLE_APPLICATION_WITHOUT_TARGET_SDK = "projects/simpleApplicationWithoutTargetSdk";
   public static final String SIMPLE_APP_WITH_OLDER_SUPPORT_LIB = "projects/simpleAppWithOlderSupportLib";
   public static final String SIMPLE_APP_WITH_SCREENSHOT_TEST = "projects/simpleApplicationWithScreenshot";
   public static final String SIMPLE_APP_ANDROID_TEST_DISABLED = "projects/simpleApplicationAndroidTestDisabled";

@@ -40,7 +40,7 @@ class MigrateToDefaultTargetSdkToCompileSdkIfUnsetTest {
   @RunsInEdt
   fun testTargetSdkDefaultsToMinSdkRefactoring() {
     projectRule.loadProject(
-      TestProjectPaths.SIMPLE_APPLICATION_WITHOUT_TARGET_SDK,
+      TestProjectPaths.PROJECT_WITH_APP_AND_LIB_WITHOUT_TARGET_SDK,
       agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST)
 
     val project = projectRule.project

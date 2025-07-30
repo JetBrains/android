@@ -8,4 +8,5 @@ dependencyResolutionManagement {
     // This will be populated by AndroidGradleTestCase
   }
 }
-include ':app'
+include ':app', ':lib'
+
