@@ -27,6 +27,7 @@ import com.android.repository.api.Channel;
 import com.android.repository.api.Downloader;
 import com.android.repository.api.RepoManager;
 import com.android.repository.api.RepoPackage;
+import com.android.repository.api.SchemaModule;
 import com.android.repository.api.SettingsController;
 import com.android.repository.api.SimpleRepositorySource;
 import com.android.repository.impl.manager.RepoManagerImpl;
@@ -149,11 +150,15 @@ public class SdkComponentSourceTest {
     String url = "http://example.com/repo";
     downloader.registerUrl(new URL(url), getRepoXml(remotePaths, remoteRevisions, remoteChannels, true).getBytes(Charsets.UTF_8));
 
-    final RepoManager mgr = new RepoManagerImpl(sdkRoot);
-    mgr.registerSchemaModule(AndroidSdkHandler.getRepositoryModule());
-    mgr.registerSchemaModule(AndroidSdkHandler.getCommonModule());
-    mgr.registerSourceProvider(new FakeRepositorySourceProvider(
-      ImmutableList.of(new SimpleRepositorySource(url, "dummy", true, mgr.getSchemaModules(), null))));
+    SimpleRepositorySource source =
+        new SimpleRepositorySource(url, "dummy", true, AndroidSdkHandler.getAllModules(), null);
+    RepoManager mgr =
+        RepoManager.createRepoManager(
+            sdkRoot,
+            AndroidSdkHandler.getAllModules(),
+            ImmutableList.of(new FakeRepositorySourceProvider(ImmutableList.of(source))),
+            null,
+            null);
 
     myChannelId = 0;
 

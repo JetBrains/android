@@ -27,6 +27,8 @@ import static org.mockito.Mockito.when;
 import com.android.repository.api.ConstantSourceProvider;
 import com.android.repository.api.RemoteListSourceProvider;
 import com.android.repository.api.RepoManager;
+import com.android.repository.api.RepositorySourceProvider;
+import com.android.repository.api.SchemaModule;
 import com.android.repository.api.SimpleRepositorySource;
 import com.android.repository.impl.manager.RepoManagerImpl;
 import com.android.repository.impl.sources.LocalSourceProvider;
@@ -38,6 +40,8 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.testFramework.ApplicationRule;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -60,16 +64,10 @@ public class SourcesTableModelTest {
     myModel.setRefreshCallback(() -> {});
     SdkUpdaterConfigurable configurable = mock(SdkUpdaterConfigurable.class);
     Path sdkRoot = InMemoryFileSystems.createInMemoryFileSystemAndFolder("sdk");
-    RepoManager repoManager = new RepoManagerImpl(sdkRoot);
-    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(sdkRoot, sdkRoot.getRoot().resolve("android"), repoManager);
-    LocalSourceProvider localSourceProvider = sdkHandler.getUserSourceProvider(new FakeProgressIndicator());
-    localSourceProvider.getSources(null, new FakeProgressIndicator(), false);
-    localSourceProvider.addSource(new SimpleRepositorySource(
-      "http://example.com", "test local source", true,
-      ImmutableList.of(AndroidSdkHandler.getAddonModule(), AndroidSdkHandler.getSysImgModule()),
-      localSourceProvider));
-    RemoteSiteType.SysImgSiteType sysImgSite = mock(RemoteSiteType.SysImgSiteType.class);
+    Path androidFolder = sdkRoot.getRoot().resolve("android");
+
     RemoteListSourceProvider remoteProvider = mock(RemoteListSourceProvider.class);
+    RemoteSiteType.SysImgSiteType sysImgSite = mock(RemoteSiteType.SysImgSiteType.class);
     when(sysImgSite.getProvider()).thenReturn(remoteProvider);
     when(sysImgSite.isEnabled()).thenReturn(true);
     RemoteSiteType.AddonSiteType addonSite = mock(RemoteSiteType.AddonSiteType.class);
@@ -77,13 +75,29 @@ public class SourcesTableModelTest {
     when(addonSite.isEnabled()).thenReturn(true);
     when(remoteProvider.getSources(any(), any(), anyBoolean())).thenReturn(ImmutableList.of(sysImgSite, addonSite));
     RemoteListSourceProvider.GenericSite genericSite = mock(RemoteListSourceProvider.GenericSite.class);
+
     ConstantSourceProvider constantProvider = mock(ConstantSourceProvider.class);
     when(genericSite.getProvider()).thenReturn(constantProvider);
     when(genericSite.isEnabled()).thenReturn(true);
     when(constantProvider.getSources(any(), any(), anyBoolean())).thenReturn(ImmutableList.of(genericSite));
-    repoManager.registerSourceProvider(localSourceProvider);
-    repoManager.registerSourceProvider(constantProvider);
-    repoManager.registerSourceProvider(remoteProvider);
+
+    LocalSourceProvider localSourceProvider = AndroidSdkHandler.createUserSourceProvider(androidFolder);
+
+    RepoManager repoManager =
+        RepoManager.createRepoManager(
+            sdkRoot,
+            AndroidSdkHandler.getAllModules(),
+            ImmutableList.of(localSourceProvider, constantProvider, remoteProvider),
+            null,
+            null);
+    localSourceProvider.setRepoManager(repoManager);
+    localSourceProvider.getSources(null, new FakeProgressIndicator(), false);
+    localSourceProvider.addSource(new SimpleRepositorySource(
+      "http://example.com", "test local source", true,
+      AndroidSdkHandler.getAllModules(),
+      localSourceProvider));
+
+    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(sdkRoot, androidFolder, repoManager, localSourceProvider);
     when(configurable.getSdkHandler()).thenReturn(sdkHandler);
     when(configurable.getRepoManager()).thenReturn(repoManager);
 
