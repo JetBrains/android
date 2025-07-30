@@ -15,7 +15,7 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <projectConfigurable provider="com.android.tools.studio.labs.StudioLabsConfigurableProvider"
+    <applicationConfigurable provider="com.android.tools.studio.labs.StudioLabsConfigurableProvider"
                          id ="studioLabs" displayName="Studio Labs" groupId="root" groupWeight="-999"/>
   </extensions>
 </idea-plugin>
