@@ -48,17 +48,22 @@ class MigrateToDefaultTargetSdkToCompileSdkIfUnsetTest {
     ApplicationManager.getApplication().invokeAndWait {
       projectRule.fixture.openFileInEditor(project.baseDir.findChild("gradle.properties")!!)
       projectRule.fixture.openFileInEditor(project.baseDir.findChild("app")!!.findChild("build.gradle")!!)
+      projectRule.fixture.openFileInEditor(project.baseDir.findChild("lib")!!.findChild("build.gradle")!!)
     }
 
     val appBuildGradle = project.baseDir.findChild("app")!!.findChild("build.gradle")!!
+    val libBuildGradle = project.baseDir.findChild("lib")!!.findChild("build.gradle")!!
     val gradleProperties = project.baseDir.findChild("gradle.properties")!!
 
     Truth.assertThat(VfsUtil.loadText(appBuildGradle)).doesNotContain("targetSdkVersion")
+    Truth.assertThat(VfsUtil.loadText(libBuildGradle)).doesNotContain("targetSdkVersion")
+
     Truth.assertThat(VfsUtil.loadText(gradleProperties)).contains("android.sdk.defaultTargetSdkToCompileSdkIfUnset=false")
 
     MigrateToDefaultTargetSdkToCompileSdkIfUnsetHandler().invoke(project, null, null, null)
 
     Truth.assertThat(VfsUtil.loadText(appBuildGradle)).contains("targetSdkVersion '21'")
+    Truth.assertThat(VfsUtil.loadText(libBuildGradle)).doesNotContain("targetSdkVersion")
 
     // This property should be removed for AGP 9.0.0+ and set to 'true' for AGP versions below 9.0.0.
     Truth.assertThat(VfsUtil.loadText(gradleProperties)).contains("android.sdk.defaultTargetSdkToCompileSdkIfUnset=true")

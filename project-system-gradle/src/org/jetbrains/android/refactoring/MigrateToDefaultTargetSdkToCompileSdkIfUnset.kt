@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.projectsystem.gradle.isHolderModule
+import com.android.tools.idea.projectsystem.gradle.isMainModule
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.lang.Language
@@ -57,13 +58,14 @@ const val DEFAULT_TARGET_SDK_TO_COMPILE_SDK_IF_UNSET_PROPERTY = "android.sdk.def
 
 private fun findFacetsToMigrate(project: Project): List<AndroidFacet> {
   return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).filter { facet ->
-    val isNotHolderModule =  !facet.module.isHolderModule()
+    val isApplicationModule = facet.configuration.isAppProject
+    val isMainModule = facet.module.isMainModule()
     val projectProperties = facet.module.project.getProjectProperties()
     val shouldMigrateDefaultTargetSdk = projectProperties
       ?.findPropertyByKey(DEFAULT_TARGET_SDK_TO_COMPILE_SDK_IF_UNSET_PROPERTY)
       ?.value == "false"
 
-    isNotHolderModule && shouldMigrateDefaultTargetSdk
+    isApplicationModule && isMainModule && shouldMigrateDefaultTargetSdk
   }
 }
 
