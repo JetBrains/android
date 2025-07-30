@@ -71,9 +71,8 @@ public class SdkComponentSource implements ExternalComponentSource {
     else {
       progress = LOGGER;
     }
-    if (mgr.loadSynchronously(TimeUnit.MINUTES.toMillis(1), progress, getDownloader(), getSettingsController())) {
-      myPackages = mgr.getPackages();
-    }
+    mgr.loadSynchronously(TimeUnit.MINUTES.toMillis(1), progress, getDownloader(), getSettingsController());
+    myPackages = mgr.getPackages();
   }
 
   @VisibleForTesting
