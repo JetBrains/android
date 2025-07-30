@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.apk.viewer.diff;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.util.HumanReadableUtil;
 import com.android.tools.apk.analyzer.ArchiveContext;
@@ -43,7 +42,6 @@ import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.containers.Convertor;
 import com.intellij.util.ui.JBUI;
 import java.awt.Dimension;
-import java.awt.Insets;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -65,8 +63,8 @@ public class ApkDiffPanel {
   private JComponent myColumnTreePane;
   private JCheckBox myCalculateFileByFileCheckBox;
 
-  @NonNull private final VirtualFile myOldApk;
-  @NonNull private final VirtualFile myNewApk;
+  @NotNull private final VirtualFile myOldApk;
+  @NotNull private final VirtualFile myNewApk;
 
   private Tree myTree;
   private DefaultTreeModel myTreeModel;
@@ -82,6 +80,7 @@ public class ApkDiffPanel {
 
     setupUI();
     myCalculateFileByFileCheckBox.addItemListener(e -> {
+      addOrReplaceColumnTree();
       if (myCalculateFileByFileCheckBox.isSelected()) {
         myCalculateFileByFileCheckBox.setEnabled(false);
         constructFbfTree();
@@ -151,24 +150,17 @@ public class ApkDiffPanel {
     Futures.addCallback(treeStructureFuture, setRootNode, EdtExecutorService.getInstance());
   }
 
-  private void createUIComponents() {
-    myTreeModel = new DefaultTreeModel(new LoadingNode());
-    myTree = new Tree(myTreeModel);
-    myTree.setShowsRootHandles(true);
-    myTree.setRootVisible(true); // show root node only when showing LoadingNode
-    myTree.setPaintBusy(true);
+  @NotNull
+  public JComponent getContainer() {
+    return myContainer;
+  }
 
-    Convertor<TreePath, String> convertor = path -> {
-      ApkEntry e = ApkEntry.fromNode(path.getLastPathComponent());
-      if (e == null) {
-        return null;
-      }
+  @NotNull
+  public JComponent getPreferredFocusedComponent() {
+    return myTree;
+  }
 
-      return e.getPath().toString();
-    };
-
-    TreeSpeedSearch.installOn(myTree, true, convertor);
-
+  private JComponent createColumnTree() {
     ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree)
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("File")
@@ -189,22 +181,12 @@ public class ApkDiffPanel {
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new SizeRenderer(ApkDiffEntry::getNewSize)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                   .setName("Diff Size")
+                   .setName(myCalculateFileByFileCheckBox.isSelected() ? "Patch Size" : "Diff Size")
                    .setPreferredWidth(150)
                    .setHeaderAlignment(SwingConstants.TRAILING)
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new SizeRenderer(ApkEntry::getSize)));
-    myColumnTreePane = builder.build();
-  }
-
-  @NotNull
-  public JComponent getContainer() {
-    return myContainer;
-  }
-
-  @NotNull
-  public JComponent getPreferredFocusedComponent() {
-    return myTree;
+    return builder.build();
   }
 
   private void setRootNode(@NotNull DefaultMutableTreeNode root) {
@@ -220,24 +202,62 @@ public class ApkDiffPanel {
   }
 
   private void setupUI() {
-    createUIComponents();
-    myContainer = new JPanel();
-    myContainer.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
-    myContainer.add(myColumnTreePane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
-                                                          new Dimension(400, -1), new Dimension(400, 300), null, 0, false));
     myCalculateFileByFileCheckBox = new JCheckBox();
     myCalculateFileByFileCheckBox.setEnabled(false);
     myCalculateFileByFileCheckBox.setText("Show File-By-File patch size (may take a long time)");
     myCalculateFileByFileCheckBox.setToolTipText("This is a size estimation for the update that Play store sends to the device");
-    myContainer.add(myCalculateFileByFileCheckBox, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK |
-                                                                       GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                                       GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+
+    myTreeModel = new DefaultTreeModel(new LoadingNode());
+    myTree = new Tree(myTreeModel);
+    myTree.setShowsRootHandles(true);
+    myTree.setRootVisible(true); // show root node only when showing LoadingNode
+    myTree.setPaintBusy(true);
+
+    Convertor<TreePath, String> convertor = path -> {
+      ApkEntry e = ApkEntry.fromNode(path.getLastPathComponent());
+      if (e == null) {
+        return null;
+      }
+
+      return e.getPath().toString();
+    };
+
+    TreeSpeedSearch.installOn(myTree, true, convertor);
+
+    myContainer = new JPanel();
+    myContainer.setLayout(new GridLayoutManager(2, 1, JBUI.emptyInsets(), -1, -1));
+    addOrReplaceColumnTree();
+    myContainer.add(myCalculateFileByFileCheckBox,
+                    new GridConstraints(
+                      1, 0, 1, 1,
+                      GridConstraints.ANCHOR_WEST,
+                      GridConstraints.FILL_NONE,
+                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                      GridConstraints.SIZEPOLICY_FIXED,
+                      null, null, null, 0, false));
   }
 
   public JComponent getRootComponent() { return myContainer; }
+
+  // We need to reconstruct the column tree with when we switch to file-by-file mode and back so we
+  // can change the column names from `Diff Size` to `Patch Size`
+  private void addOrReplaceColumnTree() {
+    if (myColumnTreePane != null) {
+      myContainer.remove(myColumnTreePane);
+    }
+    myColumnTreePane = createColumnTree();
+
+    myContainer.add(myColumnTreePane,
+                    new GridConstraints(
+                      0, 0, 1, 1,
+                      GridConstraints.ANCHOR_CENTER,
+                      GridConstraints.FILL_BOTH,
+                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                      new Dimension(400, -1),
+                      new Dimension(400, 300),
+                      null, 0, false));
+  }
 
   // Duplicated from ApkViewPanel.SizeRenderer until the diff entries are unified into the ArchiveEntry data class.
   public static class SizeRenderer extends ColoredTreeCellRenderer {
