@@ -136,7 +136,7 @@ interface LiveEditService : Disposable {
    *
    * Note that, unlike triggerLiveEdit(), this call is a sync call. We have the option to inform the agent what exactly happened.
    */
-  fun triggerVibeEdit(pathString: String, prompt: String)
+  fun triggerVibeEdit(pathString: String, prompt: String) : String
 
   fun notifyLiveEditAvailability(device: IDevice)
 }

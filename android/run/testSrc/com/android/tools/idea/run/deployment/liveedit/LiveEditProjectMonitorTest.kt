@@ -57,6 +57,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.fail
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -363,5 +364,19 @@ class LiveEditProjectMonitorTest {
     monitor.onManualLETrigger()
     assertTrue(done.await(5000, TimeUnit.MILLISECONDS))
     assertTrue(statuses.last().description.startsWith(LiveEditUpdateException.Error.NON_KOTLIN_IS_JAVA.message))
+  }
+
+
+  @Test
+  fun testVibeEditWithoutRunningDevices() {
+    LiveEditApplicationConfiguration.getInstance().leTriggerMode = LiveEditService.Companion.LiveEditTriggerMode.ON_HOTKEY
+    val monitor = LiveEditProjectMonitor(LiveEditService.getInstance(myProject), myProject)
+    val file = projectRule.fixture.configureByText("A.java", "class A() { }")
+    try {
+      monitor.onAgentTrigger(file.virtualFile.name, "do fun things with it.")
+      fail("Exception should have been thrown.")
+    } catch (e : LiveEditUpdateException) {
+      assertTrue(e.message!!.contains("No running application available for Live Edit"))
+    }
   }
 }

@@ -491,7 +491,15 @@ public class LiveEditProjectMonitor implements Disposable {
   }
 
   @Trace
-  public void onAgentTrigger(String path, String vibe) {
+  public String onAgentTrigger(String path, String vibe) {
+    if (liveEditDevices.devices().isEmpty()) {
+      throw LiveEditUpdateException.Companion.internalErrorVibeEdit("No running application available for Live Edit.");
+    }
+
+    if (liveEditDevices.isDisabled()) {
+      throw LiveEditUpdateException.Companion.internalErrorVibeEdit("Live Edit is not enabled.");
+    }
+
     // We want to flush out all pending changes if we can.
     doOnManualLETrigger();
 
@@ -499,12 +507,14 @@ public class LiveEditProjectMonitor implements Disposable {
     if (virtualFile == null) {
       throw LiveEditUpdateException.Companion.internalErrorVibeEdit(path + " not found in local file system.");
     }
+
     PsiFile file = PsiManager.getInstance(project).findFile(virtualFile);
 
     // TODO: Add LiveEditEvent.Mode.AGENT_TOOL_VIBE
     while(!processChanges(project, List.of(file), LiveEditEvent.Mode.MANUAL, vibe)) {
       LOGGER.info("Vibe Edit ProcessChanges was interrupted");
     }
+    return "The runtime behavior has been changed. Check the running device.";
   }
 
   @VisibleForTesting

@@ -247,8 +247,8 @@ class LiveEditServiceImpl(val project: Project,
     deployMonitor.onManualLETrigger()
   }
 
-  override fun triggerVibeEdit(pathString: String, prompt: String) {
-    deployMonitor.onAgentTrigger(pathString, prompt)
+  override fun triggerVibeEdit(pathString: String, prompt: String) : String {
+    return deployMonitor.onAgentTrigger(pathString, prompt)
   }
 
   override fun notifyLiveEditAvailability(device: IDevice) {
