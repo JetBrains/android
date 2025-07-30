@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.backup
 
+import com.intellij.CommonBundle
 import com.intellij.openapi.project.Project
 
 /** Displays a warning popup */
@@ -24,7 +25,7 @@ internal interface DialogFactory {
     project: Project,
     title: String,
     message: String,
-    buttons: List<DialogButton> = emptyList(),
+    buttons: List<DialogButton> = listOf(DialogButton(CommonBundle.getOkButtonText(), {})),
   )
 
   class DialogButton(val text: String, val onClick: () -> Unit)

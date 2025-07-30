@@ -35,6 +35,7 @@ import com.android.backup.ErrorCode.BACKUP_NOT_SUPPORTED
 import com.android.backup.ErrorCode.BMGR_ERROR_BACKUP
 import com.android.backup.ErrorCode.BMGR_ERROR_RESTORE
 import com.android.backup.ErrorCode.GMSCORE_IS_TOO_OLD
+import com.android.backup.ErrorCode.GMSCORE_IS_TOO_OLD_NO_PLAY_STORE
 import com.android.backup.ErrorCode.PLAY_STORE_NOT_INSTALLED
 import com.android.tools.adtui.validation.ErrorDetailDialog
 import com.android.tools.environment.Logger
@@ -47,6 +48,7 @@ import com.android.tools.idea.backup.DialogFactory.DialogButton
 import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.util.absoluteInProject
+import com.intellij.CommonBundle
 import com.intellij.execution.ExecutionManager
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.ide.BrowserUtil
@@ -361,7 +363,7 @@ internal constructor(
       when (errorCode) {
         GMSCORE_IS_TOO_OLD -> addUpdateGmsCoreButton(serialNumber)
         BACKUP_NOT_ENABLED -> addBackupNotEnabledButton()
-        else -> {}
+        else -> add(DialogButton(CommonBundle.getOkButtonText()) {})
       }
     }
     dialogFactory.showDialog(project, title, content, buttons)
@@ -369,12 +371,16 @@ internal constructor(
 
   private suspend fun MutableList<DialogButton>.addUpdateGmsCoreButton(serialNumber: String) {
     if (backupService.isPlayStoreInstalled(serialNumber)) {
+      add(DialogButton(CommonBundle.getOkButtonText()) {})
+      // Open Play Store is the default and is displayed last
       add(DialogButton(message("notification.update.gms")) { sendUpdateGmsIntent(serialNumber) })
     }
   }
 
   private fun MutableList<DialogButton>.addBackupNotEnabledButton() {
     add(DialogButton(message("learn.more")) { openBackupDisabledLearnMoreLink() })
+    // OK is the default and is displayed last
+    add(DialogButton(CommonBundle.getOkButtonText()) {})
   }
 
   private class ShowPostBackupDialogAction(val project: Project, private val backupPath: Path) :
@@ -395,6 +401,8 @@ internal constructor(
       BMGR_ERROR_BACKUP -> false
       BMGR_ERROR_RESTORE -> false
       BACKUP_MANAGER_IS_NOT_RUNNING -> false
+      GMSCORE_IS_TOO_OLD -> false
+      GMSCORE_IS_TOO_OLD_NO_PLAY_STORE -> false
       else -> true
     }
   }

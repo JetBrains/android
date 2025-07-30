@@ -41,6 +41,6 @@ internal class FakeDialogFactory : DialogFactory {
   data class DialogData(
     val title: String,
     val message: String,
-    val buttons: List<String> = emptyList(),
+    val buttons: List<String> = listOf("OK"),
   )
 }

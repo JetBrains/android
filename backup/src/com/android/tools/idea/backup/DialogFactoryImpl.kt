@@ -16,7 +16,6 @@
 package com.android.tools.idea.backup
 
 import com.android.tools.idea.backup.DialogFactory.DialogButton
-import com.intellij.CommonBundle
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageDialogBuilder
@@ -34,8 +33,8 @@ internal class DialogFactoryImpl : DialogFactory {
       @Suppress("UnstableApiUsage")
       val button =
         MessageDialogBuilder.Message(title, message)
-          .buttons(*(buttonTexts + CommonBundle.getOkButtonText()).toTypedArray())
-          .defaultButton("OK")
+          .buttons(*buttonTexts.toTypedArray())
+          .defaultButton(buttons.last().text)
           .asWarning()
           .show(project)
       if (button != null) {

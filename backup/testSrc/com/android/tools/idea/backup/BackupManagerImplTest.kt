@@ -25,6 +25,7 @@ import com.android.backup.BackupType.DEVICE_TO_DEVICE
 import com.android.backup.ErrorCode
 import com.android.backup.ErrorCode.BMGR_ERROR_RESTORE
 import com.android.backup.ErrorCode.GMSCORE_IS_TOO_OLD
+import com.android.backup.ErrorCode.GMSCORE_IS_TOO_OLD_NO_PLAY_STORE
 import com.android.backup.ErrorCode.SUCCESS
 import com.android.backup.testing.BackupFileHelper
 import com.android.backup.testing.FakeAdbServices.CommandOverride.Output
@@ -367,7 +368,7 @@ internal class BackupManagerImplTest {
         DialogData(
           "Backup Failed",
           "No data was generated in backup since allowBackup property is false",
-          listOf("Learn More"),
+          listOf("Learn More", "OK"),
         )
       )
     assertThat(backupFile.notExists()).isTrue()
@@ -471,8 +472,10 @@ internal class BackupManagerImplTest {
       .containsExactly(
         DialogData(
           "Restore Failed",
-          "Google Services version is too old (50).  Min version is 100",
-          listOf("Show Full Error", "Open Play Store"),
+          "The version of Google Play services installed on the device hasn't been auto" +
+            " updated yet. To manually update, open the Google Play store on the device and update" +
+            " manually. You may need to sign into an account.",
+          listOf("OK", "Open Play Store"),
         )
       )
   }
@@ -507,14 +510,14 @@ internal class BackupManagerImplTest {
     backupManagerImpl.restore(serialNumber, backupFile, RUN_CONFIG, notify = true)
 
     assertThat(usageTrackerRule.backupEvents())
-      .containsExactly(restoreUsageEvent(RUN_CONFIG, GMSCORE_IS_TOO_OLD))
+      .containsExactly(restoreUsageEvent(RUN_CONFIG, GMSCORE_IS_TOO_OLD_NO_PLAY_STORE))
     assertThat(notificationRule.notifications).isEmpty()
     assertThat(fakeDialogFactory.dialogs)
       .containsExactly(
         DialogData(
           "Restore Failed",
-          "Google Services version is too old (50).  Min version is 100",
-          listOf("Show Full Error"),
+          "The version of Google Play services installed on the device is not supported." +
+            " Please use a device with an image that includes the Google Play store.",
         )
       )
   }
