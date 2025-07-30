@@ -23,6 +23,7 @@ import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.RepoLinker;
 import com.android.testutils.TestUtils;
 import com.android.testutils.diff.UnifiedDiff;
+import com.intellij.openapi.application.PathManager;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -98,6 +99,8 @@ public class IdeaTestSuiteBase {
 
     // set compose property for unit tests
     System.setProperty("compose.swing.render.on.graphics", "true");
+    // b/435253226
+    System.setProperty("skiko.library.path", PathManager.getHomePath() + "/lib/skiko-awt-runtime-all");
   }
 
   private static Map<String, String> readJvmArgsProperties(Path path) throws IOException {

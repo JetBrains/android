@@ -23,12 +23,16 @@ iml_module(
     iml_files = ["intellij.android.adt.ui.compose.tests.iml"],
     kotlin_use_compose = True,
     # do not sort: must match IML order
+    test_class = "com.android.tools.adtui.compose.ComposeTestSuite",
+    # do not sort: must match IML order
     test_deps = [
         "@intellij//:intellij-sdk",
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
         "//tools/adt/idea/.idea/libraries:junit4",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
         "@intellij//:test-framework",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
     ],
     test_friends = ["//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose"],
     test_resources = ["testResources"],
