@@ -42,6 +42,12 @@
                      groupKey="android.inspections.group.name"
                      displayName="Invalid color index"/>
 
+    <localInspection language="WFFExpression" bundle="messages.AndroidBundle"
+                     implementationClass="com.android.tools.idea.wear.dwf.inspections.InvalidComplicationDataSourceLocationInspection"
+                     enabledByDefault="true"
+                     groupKey="android.inspections.group.name"
+                     displayName="Invalid complication data source location"/>
+
     <fileType name="WFFExpressionFile"
               language="WFFExpression"
               implementationClass="com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionFileType"
