@@ -93,6 +93,7 @@ jvm_library(
     "//android/screenshot-testing/gradle",
     "//android/testartifacts",
     "//android/designer",
+    "//android/designer/gradle",
     "//android/android-common:common",
   ]
 )

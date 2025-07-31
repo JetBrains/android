@@ -8,10 +8,9 @@
    </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" />
     <orderEntry type="module" module-name="intellij.android.designer" />
-    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
   </component>
 </module>
