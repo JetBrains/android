@@ -76,6 +76,7 @@ jvm_library(
     "//plugins/kotlin/base/plugin",
     "//plugins/kotlin/base/plugin:plugin_test_lib",
     "//plugins/kotlin/refactorings/kotlin.refactorings.k2:kotlin-refactorings-k2",
+    "@lib//:javapoet",
   ]
 )
 ### auto-generated section `build intellij.android.core.res` end

@@ -71,5 +71,6 @@
     <orderEntry type="module" module-name="kotlin.refactorings.common" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.base.plugin" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.refactorings.k2" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="javapoet" level="project" />
   </component>
 </module>
