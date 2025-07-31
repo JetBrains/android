@@ -24,6 +24,7 @@ import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.projectView.AndroidProjectViewSettingsImpl;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
@@ -250,6 +251,8 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
 
     settings.setDefaultToProjectView(true);
     System.setProperty("studio.projectview", "false");
+    if (!StudioFlags.SHOW_DEFAULT_PROJECT_VIEW_SETTINGS.get()) return; // The rest of the test does not make sense if the flag is disabled.
+
     assertThat(settings.isDefaultToProjectViewEnabled()).isTrue();
     when(ideInfo.isAndroidStudio()).thenReturn(false);
     when(ideInfo.isGameTools()).thenReturn(false);
@@ -265,6 +268,8 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   }
 
   public void testAndroidViewIsDefaultMetrics() {
+    if (!StudioFlags.SHOW_DEFAULT_PROJECT_VIEW_SETTINGS.get()) return; // This test does not make sense if the flag is disabled.
+
     myPane = createPane();
     IdeInfo ideInfo = Mockito.spy(IdeInfo.getInstance());
     AndroidProjectViewSettingsImpl settings = new AndroidProjectViewSettingsImpl();
