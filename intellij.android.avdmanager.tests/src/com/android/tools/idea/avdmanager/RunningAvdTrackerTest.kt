@@ -18,6 +18,7 @@ package com.android.tools.idea.avdmanager
 import com.android.testutils.FakeProcessHandle
 import com.android.tools.idea.avdmanager.RunningAvd.RunType
 import com.google.common.truth.Truth.assertThat
+import java.nio.file.Path
 import org.junit.Test
 
 /** Tests for [RunningAvdTracker]. */
@@ -28,34 +29,34 @@ class RunningAvdTrackerTest {
     val tracker = RunningAvdTracker()
     assertThat(tracker.runningAvds).isEmpty()
     val handle1 = FakeProcessHandle(1)
-    tracker.started("avd1", handle1, RunType.EMBEDDED, isLaunchedByThisProcess = true)
+    tracker.started(Path.of("avd1"), handle1, RunType.EMBEDDED, isLaunchedByThisProcess = true)
     assertThat(tracker.runningAvds.toSortedMap().toString())
       .isEqualTo(
-        "{avd1=RunningAvd(avdId=avd1, processHandle=1, runType=EMBEDDED, isLaunchedByThisProcess=true, isShuttingDown=false)}"
+        "{avd1=RunningAvd(avdDataFolder=avd1, processHandle=1, runType=EMBEDDED, isLaunchedByThisProcess=true, isShuttingDown=false)}"
       )
     val handle2 = FakeProcessHandle(2)
-    tracker.started("avd2", handle2, RunType.STANDALONE)
+    tracker.started(Path.of("avd2"), handle2, RunType.STANDALONE)
     assertThat(tracker.runningAvds.toSortedMap().toString())
       .isEqualTo(
-        "{avd1=RunningAvd(avdId=avd1, processHandle=1, runType=EMBEDDED, isLaunchedByThisProcess=true, isShuttingDown=false), " +
-          "avd2=RunningAvd(avdId=avd2, processHandle=2, runType=STANDALONE, isLaunchedByThisProcess=false, isShuttingDown=false)}"
+        "{avd1=RunningAvd(avdDataFolder=avd1, processHandle=1, runType=EMBEDDED, isLaunchedByThisProcess=true, isShuttingDown=false), " +
+          "avd2=RunningAvd(avdDataFolder=avd2, processHandle=2, runType=STANDALONE, isLaunchedByThisProcess=false, isShuttingDown=false)}"
       )
-    tracker.started("avd1", handle1, RunType.EMBEDDED)
+    tracker.started(Path.of("avd1"), handle1, RunType.EMBEDDED)
     assertThat(tracker.runningAvds.toSortedMap().toString())
       .isEqualTo(
-        "{avd1=RunningAvd(avdId=avd1, processHandle=1, runType=EMBEDDED, isLaunchedByThisProcess=true, isShuttingDown=false), " +
-          "avd2=RunningAvd(avdId=avd2, processHandle=2, runType=STANDALONE, isLaunchedByThisProcess=false, isShuttingDown=false)}"
+        "{avd1=RunningAvd(avdDataFolder=avd1, processHandle=1, runType=EMBEDDED, isLaunchedByThisProcess=true, isShuttingDown=false), " +
+          "avd2=RunningAvd(avdDataFolder=avd2, processHandle=2, runType=STANDALONE, isLaunchedByThisProcess=false, isShuttingDown=false)}"
       )
-    tracker.shuttingDown("avd1")
+    tracker.shuttingDown(Path.of("avd1"))
     assertThat(tracker.runningAvds.toSortedMap().toString())
       .isEqualTo(
-        "{avd1=RunningAvd(avdId=avd1, processHandle=1, runType=EMBEDDED, isLaunchedByThisProcess=true, isShuttingDown=true), " +
-          "avd2=RunningAvd(avdId=avd2, processHandle=2, runType=STANDALONE, isLaunchedByThisProcess=false, isShuttingDown=false)}"
+        "{avd1=RunningAvd(avdDataFolder=avd1, processHandle=1, runType=EMBEDDED, isLaunchedByThisProcess=true, isShuttingDown=true), " +
+          "avd2=RunningAvd(avdDataFolder=avd2, processHandle=2, runType=STANDALONE, isLaunchedByThisProcess=false, isShuttingDown=false)}"
       )
     handle1.destroy()
     assertThat(tracker.runningAvds.toSortedMap().toString())
       .isEqualTo(
-        "{avd2=RunningAvd(avdId=avd2, processHandle=2, runType=STANDALONE, isLaunchedByThisProcess=false, isShuttingDown=false)}"
+        "{avd2=RunningAvd(avdDataFolder=avd2, processHandle=2, runType=STANDALONE, isLaunchedByThisProcess=false, isShuttingDown=false)}"
       )
     handle2.destroy()
     assertThat(tracker.runningAvds).isEmpty()

@@ -19,70 +19,65 @@ import com.android.tools.idea.avdmanager.RunningAvd.RunType
 import com.intellij.openapi.components.Service
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.nio.file.Path
 
 /** Keeps track of running emulator processes. */
 @Service
 class RunningAvdTracker {
 
-  /** A flow of all currently running emulator processes keyed by [AVD IDs][com.android.sdklib.internal.avd.AvdInfo.id]. */
-  val runningAvdsFlow: StateFlow<Map<String, RunningAvd>>
+  /** A flow of all currently running emulator processes keyed by AVD data folders. */
+  val runningAvdsFlow: StateFlow<Map<Path, RunningAvd>>
     get() = mutableRunningAvdsFlow
-  /** A snapshot of all currently running emulator processes keyed by [AVD IDs][com.android.sdklib.internal.avd.AvdInfo.id]. */
-  var runningAvds: Map<String, RunningAvd>
+  /** A snapshot of all currently running emulator processes keyed by AVD data folders. */
+  var runningAvds: Map<Path, RunningAvd>
     get() = mutableRunningAvdsFlow.value
     private set(value) {
       mutableRunningAvdsFlow.value = value
     }
 
-  private val mutableRunningAvdsFlow: MutableStateFlow<Map<String, RunningAvd>> = MutableStateFlow(mapOf())
+  private val mutableRunningAvdsFlow: MutableStateFlow<Map<Path, RunningAvd>> = MutableStateFlow(mapOf())
   private val lock = Any()
 
-  /**
-   * Called when an emulator starts. The [avdId] parameter has the same semantics as
-   * [AvdInfo.id][com.android.sdklib.internal.avd.AvdInfo.id].
-   */
-  fun started(avdId: String, processHandle: ProcessHandle, runType: RunType, isLaunchedByThisProcess: Boolean? = null) {
+  /** Called when an emulator starts. */
+  fun started(avdDataFolder: Path, processHandle: ProcessHandle, runType: RunType, isLaunchedByThisProcess: Boolean? = null) {
     synchronized(lock) {
       if (isLaunchedByThisProcess == null) {
-        if (!runningAvds.containsKey(avdId)) {
-          runningAvds = runningAvds.plus(avdId to RunningAvd(avdId, processHandle, runType, isLaunchedByThisProcess = false))
-          removeOnExit(avdId, processHandle)
+        if (!runningAvds.containsKey(avdDataFolder)) {
+          runningAvds = runningAvds.plus(avdDataFolder to RunningAvd(avdDataFolder, processHandle, runType, isLaunchedByThisProcess = false))
+          removeOnExit(avdDataFolder, processHandle)
         }
       }
       else {
-        runningAvds = runningAvds.plus(avdId to RunningAvd(avdId, processHandle, runType, isLaunchedByThisProcess))
-        removeOnExit(avdId, processHandle)
+        runningAvds = runningAvds.plus(avdDataFolder to RunningAvd(avdDataFolder, processHandle, runType, isLaunchedByThisProcess))
+        removeOnExit(avdDataFolder, processHandle)
       }
     }
   }
 
-  /**
-   * Called when an emulator starts shutting down. The [avdId] parameter has the same semantics as
-   * [AvdInfo.id][com.android.sdklib.internal.avd.AvdInfo.id].
-   */
-  fun shuttingDown(avdId: String) {
+  /** Called when an emulator starts shutting down. */
+  fun shuttingDown(avdDataFolder: Path) {
     synchronized(lock) {
-      val runningAvd = runningAvds[avdId]
+      val runningAvd = runningAvds[avdDataFolder]
       if (runningAvd != null && !runningAvd.isShuttingDown) {
-        runningAvds = runningAvds.plus(avdId to runningAvd.shuttingDown())
+        runningAvds = runningAvds.plus(avdDataFolder to runningAvd.shuttingDown())
       }
     }
   }
 
-  private fun removeOnExit(avdId: String, processHandle: ProcessHandle) {
+  private fun removeOnExit(avdDataFolder: Path, processHandle: ProcessHandle) {
     processHandle.onExit().thenRun {
       synchronized(lock) {
-        if (runningAvds[avdId]?.processHandle == processHandle) {
-          runningAvds = runningAvds.minus(avdId)
+        if (runningAvds[avdDataFolder]?.processHandle == processHandle) {
+          runningAvds = runningAvds.filter { it.key != avdDataFolder }
         }
       }
     }
   }
 }
 
-/** The [avdId] property has the same semantics as [AvdInfo.id][com.android.sdklib.internal.avd.AvdInfo.id]. */
+/** Represents a running AVD. */
 data class RunningAvd(
-  val avdId: String,
+  val avdDataFolder: Path,
   val processHandle: ProcessHandle,
   val runType: RunType,
   val isLaunchedByThisProcess: Boolean,

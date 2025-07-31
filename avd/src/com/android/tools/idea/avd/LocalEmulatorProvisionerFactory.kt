@@ -168,6 +168,6 @@ private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPl
   }
 
   override fun requestedAvdShutdown(avdInfo: AvdInfo) {
-    runningAvdTracker.shuttingDown(avdInfo.id)
+    runningAvdTracker.shuttingDown(avdInfo.dataFolderPath)
   }
 }

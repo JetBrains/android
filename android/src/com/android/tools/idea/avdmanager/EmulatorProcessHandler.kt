@@ -98,7 +98,7 @@ class EmulatorProcessHandler(
   private inner class EmulatorProcessListener : ProcessListener {
 
     override fun startNotified(event: ProcessEvent) {
-      ownedRunningEmulators.started(avd.id, process.toHandle(), runType, isLaunchedByThisProcess = true)
+      ownedRunningEmulators.started(avd.dataFolderPath, process.toHandle(), runType, isLaunchedByThisProcess = true)
     }
 
     override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {

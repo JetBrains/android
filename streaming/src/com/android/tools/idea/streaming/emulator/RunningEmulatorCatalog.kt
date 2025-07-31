@@ -256,7 +256,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
           val processHandle = ProcessHandleProvider.getProcessHandle(emulator.emulatorId.pid)
           if (processHandle?.isAlive == true) {
             val tracker = runningAvdTracker ?: service<RunningAvdTracker>().also { runningAvdTracker = it }
-            tracker.started(emulator.emulatorId.avdId, processHandle,
+            tracker.started(emulator.emulatorId.avdFolder, processHandle,
                             if (emulator.emulatorId.isEmbedded) RunningAvd.RunType.EMBEDDED else RunningAvd.RunType.STANDALONE)
           }
           for (listener in listenersSnapshot) {
@@ -385,8 +385,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
     synchronized(dataLock) {
       val runningAvds = serviceIfCreated<RunningAvdTracker>()?.runningAvds ?: emptyMap()
       for (emulator in emulators) {
-        val avdId = emulator.emulatorId.avdId
-        if (emulator.emulatorId.isEmbedded && runningAvds[avdId]?.isLaunchedByThisProcess == true) {
+        if (emulator.emulatorId.isEmbedded && runningAvds[emulator.emulatorId.avdFolder]?.isLaunchedByThisProcess == true) {
           emulator.shutdown()
           registrationDirectory?.resolve("pid_${emulator.emulatorId.pid}.ini")?.deleteIfExists()
         }
