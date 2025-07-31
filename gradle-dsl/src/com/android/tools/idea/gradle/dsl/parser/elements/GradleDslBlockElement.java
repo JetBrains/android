@@ -103,13 +103,15 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
       }
     }
     else {
-      for (ExternalToModelMap.Entry entry : nameMapper.getEntrySet()) {
-        String entryName = entry.surfaceSyntaxDescription.name;
-        Integer arity = entry.surfaceSyntaxDescription.arity;
-        // TODO(xof): distinguish between semantics based on expressed arities (at the moment we return the first method entry we find,
-        //  whether or not the arity is compatible.
-        if (entryName.equals(name) && !Objects.equals(arity, property)) {
-          return entry.modelEffectDescription;
+      if (!element.isBlockElement()) {
+        for (ExternalToModelMap.Entry entry : nameMapper.getEntrySet()) {
+          String entryName = entry.surfaceSyntaxDescription.name;
+          Integer arity = entry.surfaceSyntaxDescription.arity;
+          // TODO(xof): distinguish between semantics based on expressed arities (at the moment we return the first method entry we find,
+          //  whether or not the arity is compatible.
+          if (entryName.equals(name) && !Objects.equals(arity, property)) {
+            return entry.modelEffectDescription;
+          }
         }
       }
     }
