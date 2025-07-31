@@ -12,7 +12,6 @@ jvm_library(
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:io-ktor-utils",
     "@lib//:jetbrains-annotations",
     "@lib//:studio-test-platform",
   ]

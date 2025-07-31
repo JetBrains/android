@@ -15,8 +15,6 @@
  */
 package com.android.tools.platform.performance.testing;
 
-import static io.ktor.util.date.DateJvmKt.getTimeMillis;
-
 import com.android.tools.perflogger.Analyzer;
 import com.android.tools.perflogger.Benchmark;
 import com.android.tools.perflogger.Metric;
@@ -45,7 +43,7 @@ public class PlatformPerformanceBenchmark {
       .setProject("Android Studio Performance")
       .setDescription(String.format("Performance metrics collected during the execution of the %s test", dashboardName))
       .build();
-    creationTimestampMs = getTimeMillis();
+    creationTimestampMs = System.currentTimeMillis();
   }
 
   public void log(@NotNull final String metricName, long metricValue) {
