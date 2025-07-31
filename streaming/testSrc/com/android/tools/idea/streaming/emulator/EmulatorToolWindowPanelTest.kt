@@ -159,6 +159,7 @@ class EmulatorToolWindowPanelTest {
   @Before
   fun setUp() {
     StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_HEADSET_AVD.overrideForTest(true, testRootDisposable)
+    StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_GLASSES_AVD.overrideForTest(true, testRootDisposable)
     StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.overrideForTest(true, testRootDisposable)
     StudioFlags.EMBEDDED_EMULATOR_XR_EYE_TRACKING.overrideForTest(true, testRootDisposable)
     val mockScreenRecordingCache = mock<ScreenRecordingSupportedCache>()
