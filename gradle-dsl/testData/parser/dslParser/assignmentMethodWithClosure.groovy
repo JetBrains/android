@@ -1,0 +1,1 @@
+variable = method(12){ /*closure*/ }

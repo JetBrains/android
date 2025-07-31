@@ -83,6 +83,7 @@ import org.jetbrains.kotlin.psi.psiUtil.referenceExpression
 import org.jetbrains.kotlin.parsing.parseBoolean
 import org.jetbrains.kotlin.parsing.parseNumericLiteral
 import org.jetbrains.kotlin.psi.KtAnnotatedExpression
+import org.jetbrains.kotlin.psi.KtCallElement
 import java.math.BigDecimal
 
 /**
@@ -544,7 +545,7 @@ class KotlinDslParser(
 
   private fun getCallExpression(
     parentElement : GradleDslElement,
-    psiElement : PsiElement,
+    psiElement : KtCallElement,
     name : GradleNameElement,
     argumentsList : KtValueArgumentList,
     methodName : String,
@@ -597,7 +598,13 @@ class KotlinDslParser(
           name,
           arguments[0].getArgumentExpression() as KtElement)
       }
-      return getMethodCall(parentElement, psiElement, name, methodName, argumentsList, false)
+
+      val call = getMethodCall(parentElement, psiElement, name, methodName, argumentsList, false)
+      val body = psiElement.lambdaArguments.getOrNull(0)?.getLambdaExpression()?.bodyExpression
+      if (body != null) {
+        call.setParsedClosureElement(getClosureBlock(call, body, name))
+      }
+      return call
     }
   }
 

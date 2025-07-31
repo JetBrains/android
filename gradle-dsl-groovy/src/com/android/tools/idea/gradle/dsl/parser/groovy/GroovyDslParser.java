@@ -767,7 +767,12 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
         String methodName = callReferenceExpression.getText();
         if (!methodName.isEmpty()) {
           GrArgumentList argumentList = methodCall.getArgumentList();
-          return getMethodCall(parentElement, methodCall, propertyName, argumentList, methodName, false);
+          GradleDslMethodCall call = getMethodCall(parentElement, methodCall, propertyName, argumentList, methodName, false);
+          GrClosableBlock[] closureArguments = methodCall.getClosureArguments();
+          if (closureArguments.length > 0) {
+            call.setParsedClosureElement(getClosureElement(call, closureArguments[0], propertyName));
+          }
+          return call;
         }
       }
     }
