@@ -8,9 +8,9 @@
         </compilerSettings>
         <compilerArguments>
           <stringArguments>
-            <stringArg name="jvmTarget" value="1.8" />
-            <stringArg name="languageVersion" value="2.0" />
-            <stringArg name="apiVersion" value="2.0" />
+            <stringArg name="jvmTarget" arg="1.8" />
+            <stringArg name="languageVersion" arg="2.0" />
+            <stringArg name="apiVersion" arg="2.0" />
           </stringArguments>
         </compilerArguments>
       </configuration>
