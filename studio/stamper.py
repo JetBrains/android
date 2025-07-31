@@ -136,6 +136,20 @@ def _replace_build_number(content, info_file):
 def _replace_selector(content, selector):
   return content.replace("_ANDROID_STUDIO_SYSTEM_SELECTOR_", selector)
 
+def _format_build_day(build_version):
+  timestamp = build_version["BUILD_TIMESTAMP"]
+  time = datetime.datetime.fromtimestamp(int(timestamp))
+  return time.strftime("%Y-%m-%d")
+
+def _replace_build_day(version_file, content):
+  build_version = _read_status_file(version_file)
+  day = _format_build_day(build_version)
+  return content.replace("__BUILD_DAY__", day)
+
+def _replace_subs(subs, content):
+  for k,v in subs:
+    content = content.replace(k, v)
+  return content
 
 def _read_file(file, entry = None, optional_entry = False):
   if entry:
@@ -175,6 +189,10 @@ def main(argv):
   parser.add_argument(
       "--replace_selector",
       help="Replaces _ANDROID_STUDIO_SYSTEM_SELECTOR_ with the given value")
+  parser.add_argument(
+      "--replace_build_day",
+      action="store_true",
+      help="Replaces __BUILD_DAY__ with the current date")
   parser.add_argument(
       "--stamp_app_info",
       action="store_true",
@@ -245,8 +263,17 @@ def main(argv):
       "--version_file",
       default="",
       dest="version_file",
-      required = "--stamp_app_info" in sys.argv,
+      required = "--stamp_app_info" in sys.argv or "--replace_build_day" in sys.argv,
       help="Path to the bazel version file (bazel-out/volatile-status.txt).")
+  parser.add_argument(
+    '--substitute',
+    nargs=2,
+    action='append',
+    dest='subs',
+    metavar=('KEY', 'VALUE'),
+    help="Specify a key and value pair to subsitute.\nThis option can be used multiple times."
+  )
+
   args = parser.parse_args(argv)
   content = _read_file(args.stamp[0], args.entry, args.optional_entry)
 
@@ -271,6 +298,12 @@ def main(argv):
 
     if args.stamp_product_info:
       content = _stamp_product_info(args.info_file, args.build_txt, args.added_plugins, content)
+
+    if args.subs:
+      content = _replace_subs(args.subs, content)
+
+    if args.replace_build_day:
+      content = _replace_build_day(args.version_file, content)
 
   _write_file(args.stamp[0], args.stamp[1], content, args.entry)
 

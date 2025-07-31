@@ -26,13 +26,6 @@ bool_flag(
     build_setting_default = False,
 )
 
-# Examples of version suffix are
-# Canary 2, RC 1, Patch 1, Nightly 2023-04-10.
-string_flag(
-    name = "version-suffix",
-    build_setting_default = "",
-)
-
 config_setting(
     name = "nightly-build",
     flag_values = {
@@ -844,7 +837,7 @@ android_studio(
     # TODO(b/240707039): automate this.
     version_release_number = STUDIO_RELEASE_NUMBER,
     version_suffix = select({
-        ":nightly-build": ":version-suffix",
+        ":nightly-build": "Nightly __BUILD_DAY__",
         # The android_studio rule will generate suffixes depending on the
         # version_type and version_release_number.
         "//conditions:default": None,

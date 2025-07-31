@@ -382,6 +382,47 @@ FORMATTED_DATE 2025 May 05 20 54 54 Mon""",
       <version major="4" minor="3" micro="33" patch="44" full="{0} Canary 5" eap="false" >"""
     }, read_zip(after))
 
+  def test_stamp_day_in_full(self):
+    volatile = create_file("volatile.txt", "BUILD_TIMESTAMP 1597877532")
+    build_txt = create_file("build.txt", "AI-1234.3333")
+    before = create_zip("resources.jar", {
+        "idea/AndroidStudioApplicationInfo.xml": """
+      <build number="AI-__BUILD__" date="__BUILD_DATE__">
+      <version major="4" minor="3" micro="2" patch="1" full="a" eap="false" >"""
+    })
+    after = get_path("res.zip")
+    stamper.main([
+        "--entry", "idea/AndroidStudioApplicationInfo.xml",
+        "--version_file", volatile,
+        "--build_txt", build_txt,
+        "--version_micro", "33",
+        "--version_patch", "44",
+        "--version_full", "{0} Nightly __BUILD_DAY__",
+        "--eap", "false",
+        "--replace_build_day",
+        "--stamp", before, after,
+        "--stamp_app_info"
+    ])
+    self.maxDiff=None
+    self.assertEqual({
+        "idea/AndroidStudioApplicationInfo.xml": """
+      <build number="AI-1234.3333" date="202008192252">
+      <version major="4" minor="3" micro="33" patch="44" full="{0} Nightly 2020-08-19" eap="false" >"""
+    }, read_zip(after))
+
+  def test_replace_subs(self):
+    volatile = create_file("volatile.txt", "BUILD_TIMESTAMP 1597877532")
+    before = create_file("file.txt", "Some {a} text {b} here")
+    after = get_path("after.txt")
+    stamper.main([
+        "--version_file", volatile,
+        "--stamp", before, after,
+        "--substitute", "{a}", "AA",
+        "--substitute", "{b}", "b__BUILD_DAY__b",
+        "--replace_build_day"
+    ])
+    self.assertEqual("Some AA text b2020-08-19b here", read_file(after))
+
   def test_inject(self):
     build_txt = create_file("build.txt", "AI-1234.3333")
     before = create_zip("before.jar", {

@@ -546,7 +546,7 @@ def _form_version_full(ctx):
 
         return code_name_and_patch_components + " Patch " + str(ctx.attr.version_release_number - 1)
     if ctx.attr.version_suffix:
-        return code_name_and_patch_components + " " + ctx.attr.version_suffix[BuildSettingInfo].value
+        return code_name_and_patch_components + " " + ctx.attr.version_suffix
 
     return (code_name_and_patch_components +
             " " +
@@ -638,14 +638,13 @@ def _produce_update_message_html(ctx):
         return
 
     channel, _ = _get_channel_info(ctx.attr.version_type)
-    ctx.actions.expand_template(
-        template = ctx.file.update_message_template,
-        output = ctx.outputs.update_message,
-        substitutions = {
-            "{full_version}": _full_display_version(ctx),
-            "{channel}": channel,
-        },
-    )
+
+    args = ctx.actions.args()
+    args.add("--version_file", ctx.version_file)
+    args.add_all(["--substitute", "{full_version}", _full_display_version(ctx)])
+    args.add_all(["--substitute", "{channel}", channel])
+    args.add("--replace_build_day")
+    _stamp(ctx, args, [ctx.version_file], ctx.file.update_message_template, ctx.outputs.update_message)
 
 def _stamp_platform(ctx, platform, platform_files, added_plugins):
     args = ["--stamp_platform"]
@@ -669,6 +668,7 @@ def _stamp_platform(ctx, platform, platform_files, added_plugins):
     args.add("--eap", "true" if is_eap else "false")
     args.add("--version_micro", micro)
     args.add("--version_patch", patch)
+    args.add("--replace_build_day")
     args.add("--build_txt", stamped_build_txt.path)
 
     if ctx.attr.essential_plugins:
@@ -982,9 +982,7 @@ _android_studio = rule(
         "version_release_number": attr.int(),
         "version_type": attr.string(),
         "update_message_template": attr.label(allow_single_file = True),
-        "version_suffix": attr.label(
-            providers = [BuildSettingInfo],
-        ),
+        "version_suffix": attr.string(),
         "_singlejar": attr.label(
             default = Label("@bazel_tools//tools/jdk:singlejar"),
             cfg = "exec",
