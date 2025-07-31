@@ -74,9 +74,6 @@ fun createEmbeddedLayoutInspectorToolbar(
       firstGroupExtraActions = firstGroupExtraActions,
       lastGroupExtraActions = lastGroupExtraActions,
     )
-  actionToolbar.layoutStrategy = ToolbarLayoutStrategy.AUTOLAYOUT_STRATEGY
-  actionToolbar.setReservePlaceAutoPopupIcon(false)
-  actionToolbar.setOrientation(SwingConstants.HORIZONTAL)
 
   val toolTitleLabel = JLabel(LayoutInspectorBundle.message("layout.inspector"))
   toolTitleLabel.name = "LayoutInspectorToolbarTitleLabel"
@@ -128,8 +125,11 @@ fun createStandaloneLayoutInspectorToolbar(
   actionToolbar.component.name = LAYOUT_INSPECTOR_MAIN_TOOLBAR
   actionToolbar.component.putClientProperty(ActionToolbarImpl.IMPORTANT_TOOLBAR_KEY, true)
   actionToolbar.targetComponent = targetComponent
+
+  actionToolbar.layoutStrategy = ToolbarLayoutStrategy.AUTOLAYOUT_STRATEGY
   // Removes empty space on the right side of the toolbar.
-  actionToolbar.setReservePlaceAutoPopupIcon(false)
+  actionToolbar.isReservePlaceAutoPopupIcon = false
+  actionToolbar.orientation = SwingConstants.HORIZONTAL
 
   val modificationListener =
     InspectorModel.ModificationListener { _, _, _ ->
