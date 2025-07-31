@@ -838,7 +838,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
          Files:
             ->  ../../.gradle/caches/8.13/transforms/<hash>/transformed/ads-sdk/standalone.apk
          RequiredInstallationOptions: []
-         
+
          ApplicationId: com.example.rubidumconsumer
          Files:
            project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/apk/debug/app-with-dynamic-feature-debug.apk
@@ -861,7 +861,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
          Files:
             -> ../../.gradle/caches/8.13/transforms/<hash>/transformed/ads-sdk/standalone.apk
          RequiredInstallationOptions: []
-         
+
          ApplicationId: com.example.rubidumconsumer
          Files:
            project.app -> project/app/build/intermediates/apk/debug/app-debug.apk

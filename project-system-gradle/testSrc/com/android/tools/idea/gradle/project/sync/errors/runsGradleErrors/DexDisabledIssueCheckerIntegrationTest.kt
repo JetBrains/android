@@ -89,6 +89,7 @@ class DexDisabledIssueCheckerIntegrationTest {
     runWriteAction {
       gradlePropertiesFile.setBinaryContent("""
           org.gradle.java.installations.paths=${TestUtils.getJava17Jdk().toString().replace("\\", "/")}
+          android.uniquePackageNames=false
       """.trimIndent().toByteArray(Charsets.UTF_8))
     }
 
