@@ -1,4 +1,5 @@
 # Route bugs created from test failures to L2 triage.
 # Bug template url: http://b/new?component=540609&template=191968
 # See go/studio-test-owners for more.
+# Bug component: 540609
 include platform/tools/base:/owners/design_tools_OWNERS
