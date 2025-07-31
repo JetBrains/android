@@ -537,9 +537,9 @@ constructor(
     /** Checks whether the emulator can be launched in the Running Device tool window. */
     private fun canLaunchInToolWindow(avd: AvdInfo, project: Project?): Boolean {
       return project != null &&
-        ToolWindowManager.getInstance(project).getToolWindow("Running Devices") != null &&
-             (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_AVD.get() || !avd.isXrHeadsetDevice) &&
-             !avd.isXrGlassesDevice // Glasses devices are not supported by the tool window yet.
+             ToolWindowManager.getInstance(project).getToolWindow("Running Devices") != null &&
+             (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_HEADSET_AVD.get() || !avd.isXrHeadsetDevice) &&
+             (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_GLASSES_AVD.get() || !avd.isXrGlassesDevice)
     }
 
     @JvmStatic
