@@ -23,8 +23,6 @@ import static com.android.tools.idea.gradle.dsl.model.notifications.Notification
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.SET_METHOD;
-import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.ensureUnquotedText;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.findInjections;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.isBlockElement;

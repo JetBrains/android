@@ -59,6 +59,7 @@ import com.android.tools.idea.gradle.dsl.api.android.AndroidResourcesModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildFeaturesModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.api.android.CompileOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.CompileSdkPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.android.ComposeOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.DataBindingModel;
 import com.android.tools.idea.gradle.dsl.api.android.DependenciesInfoModel;
@@ -80,8 +81,6 @@ import com.android.tools.idea.gradle.dsl.api.android.ViewBindingModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
-import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
-import com.android.tools.idea.gradle.dsl.model.ext.transforms.SdkOrPreviewTransform;
 import com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
@@ -116,7 +115,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
-import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint;
 import com.google.common.collect.ImmutableList;
 import java.util.List;
 import org.jetbrains.annotations.NonNls;
@@ -246,11 +244,8 @@ public class AndroidModelImpl extends GradleDslBlockModel implements AndroidMode
 
   @NotNull
   @Override
-  public ResolvedPropertyModel compileSdkVersion() {
-    VersionConstraint agp410plus = VersionConstraint.agpFrom("4.1.0");
-    return GradlePropertyModelBuilder.create(myDslElement, COMPILE_SDK_VERSION)
-      .addTransform(new SdkOrPreviewTransform(COMPILE_SDK_VERSION, "compileSdkVersion", "compileSdk", "compileSdkPreview", agp410plus))
-      .buildResolved();
+  public CompileSdkPropertyModel compileSdkVersion() {
+    return CompileSdkPropertyModelImpl.getOrCreateCompileSdkPropertyModel(myDslElement);
   }
 
   @NotNull

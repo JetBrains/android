@@ -1903,9 +1903,10 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyCompileSdkWithMinor() {
-    // TODO(b/411099168): Add additional test case for the new DSL once ready
     writeToBuildFile(TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
     val buildModel = gradleBuildModel
+    // need to make sure agpVersion is too old for inserting compileSdk as block (appears in 8.13)
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse("8.12.0")
     val android = buildModel.android()
     assertNotNull(android)
 

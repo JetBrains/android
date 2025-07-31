@@ -91,7 +91,8 @@ public class AndroidDslElement extends GradleDslBlockElement {
     {"splits", SplitsDslElement.SPLITS},
     {"testCoverage", TestCoverageDslElement.TEST_COVERAGE},
     {"testOptions", TestOptionsDslElement.TEST_OPTIONS},
-    {"viewBinding", ViewBindingDslElement.VIEW_BINDING}
+    {"viewBinding", ViewBindingDslElement.VIEW_BINDING},
+    {"compileSdk", CompileSdkBlockDslElement.COMPILE_SDK}
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
   public static final ImmutableMap<String, PropertiesElementDescription<?>> DCL_CHILD_PROPERTIES_ELEMENTS_MAP =
