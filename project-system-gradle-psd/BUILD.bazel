@@ -85,6 +85,7 @@ jvm_library(
 
 jvm_library(
   name = "projectSystem-gradle-psd-tests_test_lib",
+  module_name = "intellij.android.projectSystem.gradle.psd.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [

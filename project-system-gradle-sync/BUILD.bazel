@@ -36,6 +36,7 @@ jvm_library(
 ### auto-generated section `build intellij.android.projectSystem.gradle.sync.tests` start
 jvm_library(
   name = "projectSystem-gradle-sync-tests_test_lib",
+  module_name = "intellij.android.projectSystem.gradle.sync.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [

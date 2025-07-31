@@ -69,6 +69,7 @@ jvm_resources(
 
 jvm_library(
   name = "android-app-inspection-ide-tests_test_lib",
+  module_name = "intellij.android.app-inspection.ide.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [

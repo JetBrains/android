@@ -9,6 +9,7 @@ jvm_resources(
 
 jvm_library(
   name = "designer-perf-tests_test_lib",
+  module_name = "intellij.android.designer-perf-tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [

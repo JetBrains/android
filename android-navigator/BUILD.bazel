@@ -70,6 +70,7 @@ jvm_library(
 
 jvm_library(
   name = "navigator-testutils_test_lib",
+  module_name = "intellij.android.navigator.testutils",
   visibility = ["//visibility:public"],
   srcs = glob(["testUtils/**/*.kt", "testUtils/**/*.java"], allow_empty = True),
   deps = [

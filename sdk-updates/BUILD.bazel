@@ -55,6 +55,7 @@ jvm_resources(
 
 jvm_library(
   name = "sdkUpdates-tests_test_lib",
+  module_name = "intellij.android.sdkUpdates.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [

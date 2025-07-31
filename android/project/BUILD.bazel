@@ -9,6 +9,7 @@ jvm_library(
 
 jvm_library(
   name = "project_test_lib",
+  module_name = "intellij.android.core.project",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [

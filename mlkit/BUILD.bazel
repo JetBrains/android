@@ -74,6 +74,7 @@ jvm_resources(
 
 jvm_library(
   name = "mlkit-tests_test_lib",
+  module_name = "intellij.android.mlkit.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [

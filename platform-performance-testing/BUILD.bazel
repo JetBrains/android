@@ -9,6 +9,7 @@ jvm_library(
 
 jvm_library(
   name = "platform-performance-testing_test_lib",
+  module_name = "intellij.android.platform-performance-testing",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [

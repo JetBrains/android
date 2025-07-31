@@ -17,6 +17,7 @@ jvm_library(
 
 jvm_library(
   name = "rendering_test_lib",
+  module_name = "intellij.android.core.rendering",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   javac_opts = ":custom-javac-options",

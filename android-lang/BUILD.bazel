@@ -64,6 +64,7 @@ jvm_library(
 
 jvm_library(
   name = "lang-tests_test_lib",
+  module_name = "intellij.android.lang.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [

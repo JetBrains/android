@@ -9,6 +9,7 @@ jvm_library(
 
 jvm_library(
   name = "apk_test_lib",
+  module_name = "intellij.android.core.apk",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [

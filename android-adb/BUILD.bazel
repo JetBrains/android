@@ -70,6 +70,7 @@ jvm_library(
 
 jvm_library(
   name = "adb-testUtil_test_lib",
+  module_name = "intellij.android.adb.testUtil",
   visibility = ["//visibility:public"],
   srcs = glob(["testUtil/**/*.kt", "testUtil/**/*.java"], allow_empty = True),
   deps = [

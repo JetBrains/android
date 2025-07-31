@@ -21,6 +21,7 @@ jvm_library(
 
 jvm_library(
   name = "k1_test_lib",
+  module_name = "intellij.android.nav.safeargs.tests.k1",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   kotlinc_opts = ":custom_k1",

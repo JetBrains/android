@@ -260,6 +260,7 @@ jvm_library(
 ### auto-generated section `build intellij.android.core.agp-integration-tests` start
 jvm_library(
   name = "core-agp-integration-tests_test_lib",
+  module_name = "intellij.android.core.agp-integration-tests",
   visibility = ["//visibility:public"],
   srcs = glob(["agpIntegrationTestSrc/**/*.kt", "agpIntegrationTestSrc/**/*.java"], allow_empty = True),
   deps = [

@@ -55,6 +55,7 @@ jvm_library(
 ### auto-generated section `build intellij.android.kotlin.tests` start
 jvm_library(
   name = "android-kotlin-tests_test_lib",
+  module_name = "intellij.android.kotlin.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["tests/**/*.kt", "tests/**/*.java"], allow_empty = True),
   deps = [

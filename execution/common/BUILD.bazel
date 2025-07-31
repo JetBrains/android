@@ -65,6 +65,7 @@ jvm_library(
 
 jvm_library(
   name = "android-execution-common-tests_test_lib",
+  module_name = "intellij.android.execution.common.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [

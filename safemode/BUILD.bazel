@@ -20,6 +20,7 @@ jvm_library(
 ### auto-generated section `build intellij.android.safemode.integration.tests` start
 jvm_library(
   name = "safemode-integration-tests_test_lib",
+  module_name = "intellij.android.safemode.integration.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["integration/testSrc/**/*.kt", "integration/testSrc/**/*.java"], allow_empty = True),
   deps = [
