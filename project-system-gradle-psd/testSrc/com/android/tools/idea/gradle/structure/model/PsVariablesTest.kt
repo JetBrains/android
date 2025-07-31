@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
+import com.android.testutils.AssumeUtil
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
@@ -30,6 +31,7 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assume.assumeThat
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.math.BigDecimal
@@ -39,6 +41,11 @@ class PsVariablesTest {
 
   @get:Rule
   val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+
+  @Before
+  fun assumeNotWindows() {
+    AssumeUtil.assumeNotWindows() // TODO(b/418084011): fix on windows
+  }
 
   @Test
   fun testGetBuildScriptVariables() {
