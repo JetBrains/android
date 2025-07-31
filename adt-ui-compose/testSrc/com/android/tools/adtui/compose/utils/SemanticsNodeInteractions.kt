@@ -16,6 +16,7 @@
 package com.android.tools.adtui.compose.utils
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.InjectionScope
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.performMouseInput
@@ -30,6 +31,7 @@ import androidx.compose.ui.test.performMouseInput
  * @param positionProvider A function that returns the position to hover over. Defaults to the
  *   center of the node.
  */
+@OptIn(ExperimentalTestApi::class)
 fun SemanticsNodeInteraction.lingerMouseHover(
   rule: StudioComposeTestRule,
   durationMillis: Long = 1000,
