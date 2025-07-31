@@ -183,13 +183,6 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
         // Launch all the listeners that are bound to the current activation.
         val previewElementsFlow =
           previewElementsOnFileChangesFlow(project) { previewElementProvider }
-            .map {
-              when (it) {
-                is FlowableCollection.Uninitialized -> FlowableCollection.Uninitialized
-                is FlowableCollection.Present ->
-                  FlowableCollection.Present(it.collection.sortByDisplayAndSourcePosition())
-              }
-            }
 
         // Combine both the flow of global ModuleClassLoaderOverlay modifications and the preview
         // elements flow. If Fast Preview is used and a new class is injected into the
@@ -202,6 +195,13 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
             previewElements
           }
           .let { toInstantiatedPreviewElementsFlow(it) }
+          .map {
+            when (it) {
+              is FlowableCollection.Uninitialized -> FlowableCollection.Uninitialized
+              is FlowableCollection.Present ->
+                FlowableCollection.Present(it.collection.sortByDisplayAndSourcePosition())
+            }
+          }
           .collectLatest {
             val previousElements = allPreviewElementsFlow.value
             allPreviewElementsFlow.value = it

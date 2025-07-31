@@ -72,3 +72,20 @@ fun TestLargeProvider(@PreviewParameter(provider = LargeProvider::class) name: S
 @Preview
 @Composable
 fun TestEmptyProvider(@PreviewParameter(provider = EmptyProvider::class) name: String) {}
+
+@Preview("DefaultName")
+@Preview("DefaultName", device = "spec:width=100,isRound=no")
+@Composable
+fun TestWithProviderMultiplePreviews(
+  @PreviewParameter(provider = TestProvider::class) name: String
+) {}
+
+@Preview("DefaultName")
+@Preview("DefaultName", device = "spec:width=100,isRound=no")
+annotation class CustomPreview
+
+@CustomPreview
+@Composable
+fun TestWithProviderMultiplePreviewsAnnotation(
+  @PreviewParameter(provider = TestProvider::class) name: String
+) {}
