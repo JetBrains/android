@@ -1,7 +1,7 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
 load("@rules_java//java:defs.bzl", "java_binary")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
-load("//tools/adt/idea/studio:studio.bzl", "android_studio", "studio_plugin")
+load("//tools/adt/idea/studio:studio.bzl", "android_studio", "android_studio_configuration", "studio_plugin")
 load("//tools/adt/idea/studio/rules:app-icon.bzl", "app_icon")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load(":version.bzl", "STUDIO_CODENAME", "STUDIO_MICRO_PATCH", "STUDIO_RELEASE_NUMBER", "STUDIO_VERSION")
@@ -802,15 +802,30 @@ exports_files([
     "studio.py",
 ])
 
+android_studio_configuration(
+    name = "nightly",
+    application_icon = ":nightly-icon",
+    version_suffix = "Nightly __BUILD_DAY__",
+    version_type = "Nightly",
+)
+
+android_studio_configuration(
+    name = "canary",
+    application_icon = None,
+    version_suffix = None,
+    version_type = STUDIO_VERSION,
+)
+
 android_studio(
     name = "android-studio",
-    application_icon = select({
-        ":nightly-build": ":nightly-icon",
-        "//conditions:default": None,
-    }),
     codesign_entitlements = "codesign/entitlements.xml",
+    configurations = [
+        ":canary",
+        ":nightly",
+    ],
     generate_package_metadata = True,
     jre = "//prebuilts/studio/jdk:jdk-bundle",
+    legacy_default_configuration = "canary",
     platform = "@intellij//:intellij-sdk",
     plugins = [
         ":org.jetbrains.android",
@@ -833,19 +848,7 @@ android_studio(
     update_message_template = ":update_message.html",
     version_code_name = STUDIO_CODENAME,
     version_micro_patch = STUDIO_MICRO_PATCH,
-    # This will get added to the end of the full-version string.
-    # TODO(b/240707039): automate this.
     version_release_number = STUDIO_RELEASE_NUMBER,
-    version_suffix = select({
-        ":nightly-build": "Nightly __BUILD_DAY__",
-        # The android_studio rule will generate suffixes depending on the
-        # version_type and version_release_number.
-        "//conditions:default": None,
-    }),
-    version_type = select({
-        ":nightly-build": "Nightly",
-        "//conditions:default": STUDIO_VERSION,
-    }),
     visibility = ["//visibility:public"],
 )
 

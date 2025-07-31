@@ -48,6 +48,15 @@ _StudioDataInfo = provider(
     },
 )
 
+_ConfigurationInfo = provider(
+    doc = "All the needed information to configure a studio distro (channel, flags, icons, splash screen, etc)",
+    fields = {
+        "version_type": "Nightly, Canary, Beta, etc.",
+        "version_suffix": "If None, auto computed, if provided used instead. Eg. Nightly 2024-10-10.",
+        "application_icon": "The application icon to use.",
+    },
+)
+
 _SearchableOptionsInfo = provider(
     # For context: the "searchable options" for a given plugin is essentially just a list of
     # available options exposed by that plugin in the IDE settings dialog. The list gets stored
@@ -534,7 +543,8 @@ def _get_channel_info(version_type):
 
 def _form_version_full(ctx):
     """Forms version_full based on code name, version type, and release number"""
-    (channel, _) = _get_channel_info(ctx.attr.version_type)
+    config = ctx.attr.configuration[_ConfigurationInfo]
+    (channel, _) = _get_channel_info(config.version_type)
 
     code_name_and_patch_components = (ctx.attr.version_code_name +
                                       " | " +
@@ -545,12 +555,12 @@ def _form_version_full(ctx):
             return code_name_and_patch_components
 
         return code_name_and_patch_components + " Patch " + str(ctx.attr.version_release_number - 1)
-    if ctx.attr.version_suffix:
-        return code_name_and_patch_components + " " + ctx.attr.version_suffix
+    if config.version_suffix:
+        return code_name_and_patch_components + " " + config.version_suffix
 
     return (code_name_and_patch_components +
             " " +
-            ctx.attr.version_type +
+            config.version_type +
             " " +
             str(ctx.attr.version_release_number))
 
@@ -613,10 +623,11 @@ def _declare_stamped_file(ctx, files, platform, path):
 
 def _produce_manifest(ctx, platform, platform_files):
     out = ctx.outputs.manifest
+    config = ctx.attr.configuration[_ConfigurationInfo]
     build_txt = platform_files[platform.resource_path + "build.txt"]
     resources_jar = platform_files[platform.base_path + "lib/resources.jar"]
 
-    (channel, _) = _get_channel_info(ctx.attr.version_type)
+    (channel, _) = _get_channel_info(config.version_type)
     args = ["--out", out.path]
     args += ["--build_txt", build_txt.path]
     args += ["--resources_jar", resources_jar.path]
@@ -633,11 +644,12 @@ def _produce_manifest(ctx, platform, platform_files):
     )
 
 def _produce_update_message_html(ctx):
+    config = ctx.attr.configuration[_ConfigurationInfo]
     if not ctx.file.update_message_template:
         ctx.actions.write(output = ctx.outputs.update_message, content = "")
         return
 
-    channel, _ = _get_channel_info(ctx.attr.version_type)
+    channel, _ = _get_channel_info(config.version_type)
 
     args = ctx.actions.args()
     args.add("--version_file", ctx.version_file)
@@ -647,6 +659,8 @@ def _produce_update_message_html(ctx):
     _stamp(ctx, args, [ctx.version_file], ctx.file.update_message_template, ctx.outputs.update_message)
 
 def _stamp_platform(ctx, platform, platform_files, added_plugins):
+    config = ctx.attr.configuration[_ConfigurationInfo]
+
     args = ["--stamp_platform"]
 
     ret = {}
@@ -659,7 +673,7 @@ def _stamp_platform(ctx, platform, platform_files, added_plugins):
     _stamp(ctx, args, [ctx.info_file], build_txt, stamped_build_txt)
 
     resources_jar, stamped_resources_jar = _declare_stamped_file(ctx, ret, platform, platform.base_path + "lib/resources.jar")
-    (_, is_eap) = _get_channel_info(ctx.attr.version_type)
+    (_, is_eap) = _get_channel_info(config.version_type)
     (micro, patch) = _split_version(ctx.attr.version_micro_patch)
     args = ctx.actions.args()
     args.add("--entry", "idea/AndroidStudioApplicationInfo.xml")
@@ -788,10 +802,11 @@ def _android_studio_os(ctx, platform, added_plugins, out):
     all_files = {}
 
     platform_prefix = _android_studio_prefix(ctx, platform)
+    config = ctx.attr.configuration[_ConfigurationInfo]
 
     platform_files = platform.get(ctx.attr.platform[IntellijInfo].base)
-    if ctx.attr.application_icon:
-        platform_files = replace_app_icon(ctx, platform.name, platform_files, ctx.attr.application_icon[AppIconInfo])
+    if config.application_icon:
+        platform_files = replace_app_icon(ctx, platform.name, platform_files, config.application_icon[AppIconInfo])
     plugin_files = platform.get(ctx.attr.platform[IntellijInfo].plugins)
 
     if ctx.attr.jre:
@@ -976,13 +991,11 @@ _android_studio = rule(
         "properties_mac_arm": attr.string_list(),
         "properties_win": attr.string_list(),
         "selector": attr.string(mandatory = True),
-        "application_icon": attr.label(providers = [AppIconInfo]),
         "version_code_name": attr.string(),
         "version_micro_patch": attr.string(),
         "version_release_number": attr.int(),
-        "version_type": attr.string(),
         "update_message_template": attr.label(allow_single_file = True),
-        "version_suffix": attr.string(),
+        "configuration": attr.label(providers = [_ConfigurationInfo]),
         "_singlejar": attr.label(
             default = Label("@bazel_tools//tools/jdk:singlejar"),
             cfg = "exec",
@@ -1090,6 +1103,8 @@ _android_studio = rule(
 def android_studio(
         name,
         plugins,
+        configurations,
+        legacy_default_configuration,
         generate_package_metadata = False,
         **kwargs):
     if generate_package_metadata:
@@ -1097,19 +1112,39 @@ def android_studio(
             name = name + "-metadata",
             deps = plugins,
         )
-    _android_studio(
-        name = name,
-        compress = is_release(),
-        host_platform_name = select({
-            "@platforms//os:linux": LINUX.name,
-            "//tools/base/bazel/platforms:macos-x86_64": MAC.name,
-            "//tools/base/bazel/platforms:macos-arm64": MAC_ARM.name,
-            "@platforms//os:windows": WIN.name,
-            "//conditions:default": "",
-        }),
-        plugins = plugins,
-        **kwargs
-    )
+    for configuration in configurations:
+        config_name = Label(configuration).name
+        suffix = "" if config_name == legacy_default_configuration else "." + config_name
+        _android_studio(
+            name = name + suffix,
+            compress = is_release(),
+            configuration = configuration,
+            host_platform_name = select({
+                "@platforms//os:linux": LINUX.name,
+                "//tools/base/bazel/platforms:macos-x86_64": MAC.name,
+                "//tools/base/bazel/platforms:macos-arm64": MAC_ARM.name,
+                "@platforms//os:windows": WIN.name,
+                "//conditions:default": "",
+            }),
+            plugins = plugins,
+            **kwargs
+        )
+
+def _android_studio_configuration_impl(ctx):
+    return [_ConfigurationInfo(
+        application_icon = ctx.attr.application_icon,
+        version_type = ctx.attr.version_type,
+        version_suffix = ctx.attr.version_suffix,
+    )]
+
+android_studio_configuration = rule(
+    attrs = {
+        "application_icon": attr.label(providers = [AppIconInfo]),
+        "version_type": attr.string(),
+        "version_suffix": attr.string(),
+    },
+    implementation = _android_studio_configuration_impl,
+)
 
 def _intellij_plugin_import_impl(ctx):
     files = {}
