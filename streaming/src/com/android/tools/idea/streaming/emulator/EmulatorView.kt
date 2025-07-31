@@ -46,7 +46,6 @@ import com.android.tools.analytics.toProto
 import com.android.tools.idea.avdmanager.EmulatorLogListener
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_NOTIFICATIONS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.EmulatorSettings
@@ -882,9 +881,7 @@ class EmulatorView(
   private inner class NotificationReceiver : EmptyStreamObserver<EmulatorNotification>() {
 
     override fun onNext(message: EmulatorNotification) {
-      if (EMBEDDED_EMULATOR_TRACE_NOTIFICATIONS.get()) {
-        LOG.info("Received notification: ${shortDebugString(message)}")
-      }
+      LOG.info("Received notification: ${shortDebugString(message)}")
 
       if (notificationReceiver != this) {
         return // This notification feed has already been cancelled.

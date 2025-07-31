@@ -40,7 +40,6 @@ editor.remote.sdk.documentation.fetch.via.content.serving.api.enabled=PREVIEW
 editor.restrict.to.completion.weigher=PREVIEW
 embedded.emulator.allow.xr=COMPLETE:2025
 embedded.emulator.hide.tool.window.name=COMPLETE:2024
-embedded.emulator.trace.notifications=COMPLETE:2023
 embedded.emulator.wrap.toolbar=COMPLETE:2024
 experimentalui.enabled=COMPLETE:2024
 firebasetestlab.direct.access.create.project=COMPLETE:2024

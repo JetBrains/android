@@ -42,7 +42,6 @@ class EmulatorViewRule : TestRule {
     override fun before() {
       StudioFlags.EMBEDDED_EMULATOR_SCREENSHOT_STATISTICS.override(true)
       StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS.override(true)
-      StudioFlags.EMBEDDED_EMULATOR_TRACE_NOTIFICATIONS.override(true)
       StudioFlags.EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.override(true)
       StudioFlags.EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS.override(true)
     }
@@ -50,7 +49,6 @@ class EmulatorViewRule : TestRule {
     override fun after() {
       StudioFlags.EMBEDDED_EMULATOR_SCREENSHOT_STATISTICS.clearOverride()
       StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS.clearOverride()
-      StudioFlags.EMBEDDED_EMULATOR_TRACE_NOTIFICATIONS.clearOverride()
       StudioFlags.EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.clearOverride()
       StudioFlags.EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS.clearOverride()
     }

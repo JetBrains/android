@@ -1064,10 +1064,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_SCREENSHOTS = new BooleanFlag(
     EMBEDDED_EMULATOR, "trace.screenshots", "Enable Emulator Screenshot Tracing",
     "Enables tracing of received Emulator screenshots");
-  public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_NOTIFICATIONS = new BooleanFlag(
-    EMBEDDED_EMULATOR, "trace.notifications", "Enable Emulator Notification Tracing",
-    "Enables tracing of received Emulator notifications"
-    );
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_DISCOVERY = new BooleanFlag(
     EMBEDDED_EMULATOR, "trace.discovery", "Enable Tracing of Emulator Discovery",
     "Enables tracing of Emulator discovery");
