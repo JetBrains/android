@@ -41,7 +41,7 @@ import kotlin.text.replace
 private class AndroidHelperClassCache {
   companion object {
     val ANDROID_HELPER_CLASS_CACHE_KEY =
-      Key.create<AndroidHelperClassCache?>("ANDROID_HELPER_CLASS_CACHE_KEY")
+      Key.create<AndroidHelperClassCache>("ANDROID_HELPER_CLASS_CACHE_KEY")
   }
 
   val classToJDIType = mutableMapOf<Class<*>, ClassType>()
