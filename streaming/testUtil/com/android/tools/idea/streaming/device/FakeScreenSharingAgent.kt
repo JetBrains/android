@@ -192,7 +192,7 @@ class FakeScreenSharingAgent(
   private val deviceStateIdentifier: Int
     get() = deviceState?.id ?: -1
 
-  private val isXr: Boolean = fakeDeviceState.properties[RO_BUILD_CHARACTERISTICS]?.contains("xr") == true
+  private val isXrHeadset: Boolean = fakeDeviceState.properties[RO_BUILD_CHARACTERISTICS]?.contains("xr") == true
   @Volatile var xrPassthroughCoefficient: Float = 0F
   @Volatile var xrEnvironment: XrEnvironment = XrEnvironment.LIVING_ROOM_DAY
 
@@ -1103,7 +1103,7 @@ class FakeScreenSharingAgent(
           sendDeviceStateNotification()
         }
 
-        if (isXr) {
+        if (isXrHeadset) {
           sendXrPassthroughCoefficientChangedNotification()
           sendXrEnvironmentChangedNotification()
         }
