@@ -140,7 +140,7 @@ class DexBytecodeInspectorImpl : DexBytecodeInspector {
 
 private class DexCache {
   companion object {
-    val DEX_CACHE_KEY = Key.create<DexCache?>("DEX_CACHE_KEY")
+    val DEX_CACHE_KEY = Key.create<DexCache>("DEX_CACHE_KEY")
   }
 
   val typeToDex = mutableMapOf<ReferenceType, Dex>()
@@ -180,7 +180,7 @@ private suspend fun findDexWithLocationCacheAware(
   location: Location,
 ): Pair<Dex?, DexSearchStatus> {
   val vmProxy = debugProcess.suspendManager.pausedContext.virtualMachineProxy
-  val cache = vmProxy.getOrCreateUserData<DexCache>(DexCache.DEX_CACHE_KEY) { DexCache() }
+  val cache = vmProxy.getOrCreateUserData(DexCache.DEX_CACHE_KEY) { DexCache() }
 
   cache.typeToDex[location.declaringType()]?.let { dex ->
     return dex to DexSearchStatus.FOUND
