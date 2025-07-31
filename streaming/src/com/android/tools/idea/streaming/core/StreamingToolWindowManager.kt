@@ -59,7 +59,6 @@ import com.android.tools.idea.streaming.emulator.displayNameWithApi
 import com.android.utils.TraceUtils.simpleId
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
-import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.icons.AllIcons
 import com.intellij.ide.actions.ToggleToolbarAction
 import com.intellij.ide.util.PropertiesComponent
@@ -1325,9 +1324,6 @@ private val Component.containingDecorator: InternalDecorator?
 
 private fun isLocalEmulator(deviceSerialNumber: String) =
     deviceSerialNumber.startsWith("emulator-")
-
-private fun isEmbeddedEmulator(commandLine: GeneralCommandLine) =
-    commandLine.parametersList.parameters.contains("-qt-hide-window")
 
 private fun shortenTitleText(title: String): String =
     StringUtil.shortenTextWithEllipsis(title, 25, 6)
