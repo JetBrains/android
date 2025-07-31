@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.wear.dwf.dom.raw.expressions
 
+import com.android.SdkConstants.TAG_COMPLICATION
 import com.android.tools.idea.wear.dwf.dom.raw.configurations.UserConfigurationReference
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
+import com.intellij.psi.util.findParentInFile
 import com.intellij.psi.xml.XmlFile
+import com.intellij.psi.xml.XmlTag
 
 fun getReference(literalExpr: WFFExpressionLiteralExpr): PsiReference? {
   val watchFaceFile = getWatchFaceFile(literalExpr) ?: return null
@@ -35,4 +38,17 @@ fun getWatchFaceFile(element: PsiElement): XmlFile? {
   val injectedLanguageManager = InjectedLanguageManager.getInstance(element.project)
   val psiFile = injectedLanguageManager.getTopLevelFile(element) ?: element.containingFile
   return psiFile as? XmlFile
+}
+
+/**
+ * Returns the parent `<Complication>` tag from the Declarative Watch Face file the WFF Expression
+ * has been injected in, if any.
+ */
+fun getParentComplicationTag(element: PsiElement): XmlTag? {
+  val injectedHost =
+    InjectedLanguageManager.getInstance(element.project).getInjectionHost(element.containingFile)
+      ?: return null
+  return injectedHost.findParentInFile(withSelf = true) {
+    (it as? XmlTag)?.name == TAG_COMPLICATION
+  } as? XmlTag
 }

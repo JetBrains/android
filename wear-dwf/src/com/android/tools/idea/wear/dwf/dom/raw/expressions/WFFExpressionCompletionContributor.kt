@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wear.dwf.dom.raw.expressions
 
+import com.android.SdkConstants
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.wear.dwf.WFFConstants.DataSources
 import com.android.tools.idea.wear.dwf.WFFConstants.DataSources.DAYS_TOKEN
@@ -25,6 +26,7 @@ import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionTypes.FU
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionTypes.LITERAL_EXPR
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionTypes.OPEN_BRACKET
 import com.android.tools.idea.wear.dwf.dom.raw.insertBracketsAroundIfNeeded
+import com.android.tools.wear.wff.WFFVersion
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionProvider
@@ -38,6 +40,7 @@ import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.patterns.StandardPatterns.and
 import com.intellij.patterns.StandardPatterns.not
 import com.intellij.patterns.StandardPatterns.or
+import com.intellij.psi.PsiElement
 import com.intellij.util.ProcessingContext
 
 /** [CompletionContributor] that adds completion options to [WFFExpressionLanguage] elements. */
@@ -95,8 +98,7 @@ class WFFExpressionCompletionContributor : CompletionContributor() {
         }
 
         val availableStaticDataSources =
-          if (wffVersion == null) DataSources.ALL_STATIC
-          else DataSources.ALL_AVAILABLE_STATIC_BY_VERSION.getValue(wffVersion)
+          getAvailableStaticDataSources(wffVersion, parameters.position)
 
         resultSet.addAllElements(
           availableStaticDataSources.map { createDataSourceLookupElement(it.id) }
@@ -113,6 +115,38 @@ class WFFExpressionCompletionContributor : CompletionContributor() {
         )
       }
     }
+
+  /**
+   * Returns all the static data sources for a given [WFFVersion] and [PsiElement].
+   *
+   * If the version is not null, the list will only include static data sources that are available
+   * for that version.
+   *
+   * If the given [PsiElement] is located under a `<Complication>` tag, it will include any
+   * complication data sources that are compatible with that complication's type.
+   *
+   * @see <a
+   *   href="https://developer.android.com/reference/wear-os/wff/complication/complication">Complication</a>
+   */
+  private fun getAvailableStaticDataSources(
+    wffVersion: WFFVersion?,
+    element: PsiElement,
+  ): List<StaticDataSource> {
+    val allStaticDataSources =
+      if (wffVersion == null) DataSources.ALL_STATIC
+      else DataSources.ALL_AVAILABLE_STATIC_BY_VERSION.getValue(wffVersion)
+
+    val allStaticDataSourcesWithoutComplications =
+      allStaticDataSources - DataSources.COMPLICATION_ALL
+    val complicationParentTag = getParentComplicationTag(element)
+    val complicationsForType =
+      DataSources.COMPLICATION_BY_TYPE[
+          complicationParentTag?.getAttribute(SdkConstants.ATTR_TYPE)?.value]
+    if (complicationsForType == null) {
+      return allStaticDataSourcesWithoutComplications
+    }
+    return allStaticDataSourcesWithoutComplications + complicationsForType
+  }
 
   init {
     extend(

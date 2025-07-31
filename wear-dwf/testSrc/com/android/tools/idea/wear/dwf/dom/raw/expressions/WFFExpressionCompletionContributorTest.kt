@@ -20,6 +20,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.flags.overrideForTest
+import com.android.tools.idea.wear.dwf.WFFConstants.DataSources
 import com.android.tools.idea.wear.dwf.dom.raw.overrideCurrentWFFVersion
 import com.android.tools.wear.wff.WFFVersion.WFFVersion1
 import com.android.tools.wear.wff.WFFVersion.WFFVersion2
@@ -290,6 +291,85 @@ class WFFExpressionCompletionContributorTest {
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
 
     assertThat(fixture.completeBasic().map { it.lookupString }).isEmpty()
+  }
+
+  @Test
+  fun `does not autocomplete complication data sources when not under a complication tag`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+      <WatchFace>
+        <Parameter expression="$caret" />
+      </WatchFace>
+    """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    assertThat(fixture.completeBasic().map { it.lookupString })
+      .containsNoneIn(DataSources.COMPLICATION_ALL.map { it.id })
+  }
+
+  @Test
+  fun `does not autocomplete complication data sources when under a complication tag without a type`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+      <WatchFace>
+        <Complication>
+          <PartText>
+              <Text>
+                  <BitmapFont>
+                      <Template>%s
+                          <Parameter expression="$caret" />
+                      </Template>
+                  </BitmapFont>
+              </Text>
+          </PartText>
+        </Complication>
+      </WatchFace>
+    """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    assertThat(fixture.completeBasic().map { it.lookupString })
+      .containsNoneIn(DataSources.COMPLICATION_ALL.map { it.id })
+  }
+
+  @Test
+  fun `autocompletes complication data sources of the right type when under a complication tag with a type`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+      <WatchFace>
+        <Complication type="RANGED_VALUE">
+          <PartText>
+              <Text>
+                  <BitmapFont>
+                      <Template>%s
+                          <Parameter expression="$caret" />
+                      </Template>
+                  </BitmapFont>
+              </Text>
+          </PartText>
+        </Complication>
+      </WatchFace>
+    """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    assertThat(fixture.completeBasic().map { it.lookupString })
+      .containsAllIn(DataSources.COMPLICATION_BY_TYPE["RANGED_VALUE"]?.map { it.id })
+    assertThat(fixture.completeBasic().map { it.lookupString })
+      .containsNoneIn(DataSources.COMPLICATION_BY_TYPE["SMALL_IMAGE"]?.map { it.id })
   }
 
   private fun configureExpression(wffExpression: String) {
