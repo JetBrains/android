@@ -4,6 +4,5 @@
         android:supportsRtl="true">
 
     </application>
-    <uses-sdk android:targetSdkVersion="26" />
 
 </manifest>
