@@ -19,10 +19,14 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.util.ActionToolbarUtil
+import com.android.tools.analytics.UsageTracker
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_NAME
 import com.android.tools.idea.common.editor.DesignFileEditor
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -35,6 +39,7 @@ import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.editor.Editor
@@ -48,6 +53,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.xmlb.annotations.Attribute
 import com.intellij.util.xmlb.annotations.MapAnnotation
 import com.intellij.util.xmlb.annotations.Tag
@@ -64,6 +70,7 @@ import javax.swing.JComponent
 import kotlin.concurrent.withLock
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -71,6 +78,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
 
 /** Tag name used to persist the multi preview state. */
 internal const val MULTI_PREVIEW_STATE_TAG = "multi-preview-state"
@@ -548,6 +556,36 @@ open class MultiRepresentationPreview(
     editor.caretModel.removeCaretListener(caretListener)
     currentRepresentation?.onDeactivate()
     editor.component.removeKeyListener(keyListener)
+  }
+
+  override fun selectNotify() {
+    launch(Dispatchers.Default) {
+      // We need to be in smart mode to be able to access the index for the annotations.
+      val foundComposableAnnotations =
+        smartReadAction(project) {
+          KotlinAnnotationsIndex[
+            COMPOSABLE_ANNOTATION_NAME,
+            project,
+            GlobalSearchScope.fileScope(project, file),
+          ]
+        }
+
+      // If the file has methods annotated with @Composable methods, log it as a Compose file.
+      // Note that this should be done here and not in the representations because we want to
+      // collect every time a file tab is opened, regardless of whether any representation exists
+      // for it or not.
+      if (foundComposableAnnotations.isNotEmpty()) {
+        val studioEvent =
+          AndroidStudioEvent.newBuilder()
+            .setCategory(AndroidStudioEvent.EventCategory.LAYOUT_EDITOR)
+            .setKind(AndroidStudioEvent.EventKind.LAYOUT_EDITOR_EVENT)
+            .setLayoutEditorEvent(
+              LayoutEditorEvent.newBuilder()
+                .setType(LayoutEditorEvent.LayoutEditorEventType.COMPOSE_FILE_OPEN)
+            )
+        UsageTracker.log(studioEvent)
+      }
+    }
   }
 
   override fun dispose() {
