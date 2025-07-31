@@ -43,12 +43,12 @@ class ShowMoreElementsItem(val array: ParameterGroupItem) :
   override val link =
     object : AnAction("Show More") {
       override fun actionPerformed(event: AnActionEvent) {
+        val table = findTable(event)
         val reference = array.reference ?: return
         val startIndex = array.lastRealChildReferenceIndex + 1
         val maxElements = array.children.size - 1
         lookup.resolve(rootId, reference, startIndex, maxElements) { cachedParameter, modification
           ->
-          val table = findTable(event)
           if (cachedParameter != null && table != null) {
             modification?.let { table.updateGroupItems(cachedParameter, it) }
             if (array !== cachedParameter) {
