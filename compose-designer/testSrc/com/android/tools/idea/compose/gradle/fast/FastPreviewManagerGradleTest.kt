@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@ import com.android.testutils.delayUntilCondition
 import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.compile.fast.isSuccess
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
+import com.android.tools.idea.compose.gradle.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.gradle.SimpleComposeAppPaths
 import com.android.tools.idea.compose.gradle.renderer.renderPreviewElement
-import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
-import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager

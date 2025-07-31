@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import com.android.tools.idea.compose.gradle.preview.TestComposePreviewView
 import com.android.tools.idea.compose.gradle.preview.displayName
 import com.android.tools.idea.compose.preview.ComposePreviewRefreshType
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
-import com.android.tools.idea.compose.preview.TEST_DATA_PATH
 import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.awaitStatus

@@ -41,26 +41,6 @@ import org.jetbrains.annotations.TestOnly
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
 
-/**
- * Relative paths to some useful files in the SimpleComposeApplication (
- * [SIMPLE_COMPOSE_PROJECT_PATH]) test project
- */
-internal enum class SimpleComposeAppPaths(val path: String) {
-  APP_MAIN_ACTIVITY("app/src/main/java/google/simpleapplication/MainActivity.kt"),
-  APP_OTHER_PREVIEWS("app/src/main/java/google/simpleapplication/OtherPreviews.kt"),
-  APP_PARAMETRIZED_PREVIEWS("app/src/main/java/google/simpleapplication/ParametrizedPreviews.kt"),
-  APP_RENDER_ERROR("app/src/main/java/google/simpleapplication/RenderError.kt"),
-  APP_PREVIEWS_ANDROID_TEST("app/src/androidTest/java/google/simpleapplication/AndroidPreviews.kt"),
-  APP_PREVIEWS_UNIT_TEST("app/src/test/java/google/simpleapplication/UnitPreviews.kt"),
-  APP_SIMPLE_APPLICATION_DIR("app/src/test/java/google/simpleapplication"),
-  LIB_PREVIEWS("lib/src/main/java/google/simpleapplicationlib/Previews.kt"),
-  LIB_PREVIEWS_ANDROID_TEST(
-    "lib/src/androidTest/java/google/simpleapplicationlib/AndroidPreviews.kt"
-  ),
-  LIB_PREVIEWS_UNIT_TEST("lib/src/test/java/google/simpleapplicationlib/UnitPreviews.kt"),
-  APP_BUILD_GRADLE("app/build.gradle"),
-}
-
 internal const val COMPOSABLE_ANNOTATION_FQN = "androidx.compose.runtime.Composable"
 internal const val PREVIEW_TOOLING_PACKAGE = "androidx.compose.ui.tooling.preview"
 

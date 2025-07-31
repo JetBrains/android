@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,11 @@ package com.android.tools.idea.compose.gradle.datasource
 import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
+import com.android.tools.idea.compose.gradle.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.gradle.SimpleComposeAppPaths
 import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
-import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
-import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.TestComposePreviewView
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.awaitStatus

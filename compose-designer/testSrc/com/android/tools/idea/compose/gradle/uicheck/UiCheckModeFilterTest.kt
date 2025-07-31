@@ -16,14 +16,13 @@
 package com.android.tools.idea.compose.gradle.uicheck
 
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
-import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.gradle.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import org.jetbrains.kotlin.idea.gradleTooling.get
 import org.junit.Rule
 import org.junit.Test
 

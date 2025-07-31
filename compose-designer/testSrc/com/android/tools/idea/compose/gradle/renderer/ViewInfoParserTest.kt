@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 package com.android.tools.idea.compose.gradle.renderer
 
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
+import com.android.tools.idea.compose.gradle.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.gradle.SimpleComposeAppPaths
 import com.android.tools.idea.compose.gradle.navigation.PreviewNavigationTest
 import com.android.tools.idea.compose.preview.ComposeViewInfo
-import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
-import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.testing.virtualFile
 import com.android.tools.preview.SingleComposePreviewElementInstance

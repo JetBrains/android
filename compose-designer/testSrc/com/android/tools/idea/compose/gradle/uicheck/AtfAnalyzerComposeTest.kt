@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@ package com.android.tools.idea.compose.gradle.uicheck
 
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
+import com.android.tools.idea.compose.gradle.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.gradle.createNlModelForCompose
 import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForResult
-import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater

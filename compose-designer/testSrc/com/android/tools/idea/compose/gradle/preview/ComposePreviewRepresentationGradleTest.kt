@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,11 @@ import com.android.tools.idea.common.surface.SceneViewPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.gradle.ComposePreviewFakeUiGradleRule
+import com.android.tools.idea.compose.gradle.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.gradle.SimpleComposeAppPaths
 import com.android.tools.idea.compose.gradle.getPsiFile
 import com.android.tools.idea.compose.preview.ComposePreviewRefreshType
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
-import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
-import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
