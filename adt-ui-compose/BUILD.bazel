@@ -11,6 +11,7 @@ iml_module(
     test_deps = [
         "//tools/adt/idea/.idea/libraries:junit4",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
+        "@intellij//:test-framework",
         "//prebuilts/tools/common/m2:compose-desktop-test",
     ],
     test_resources = ["testResources"],
