@@ -80,7 +80,7 @@ class UiSettingsRule : ExternalResource() {
   val emulator: FakeEmulator by lazy { createAndStartEmulator() }
   val controller: EmulatorController by lazy { getControllerOf(emulator) }
   val emulatorDeviceSelector: DeviceSelector by lazy { DeviceSelector.fromSerialNumber(emulator.serialNumber) }
-  val emulatorConfiguration: EmulatorConfiguration by lazy { EmulatorConfiguration.readAvdDefinition(emulator.avdId, emulator.avdFolder) }
+  val emulatorConfiguration: EmulatorConfiguration by lazy { EmulatorConfiguration.readAvdDefinition(emulator.avdFolder) }
 
   override fun before() {
     configureAdbShellCommands()

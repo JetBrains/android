@@ -44,7 +44,7 @@ class EmulatorConfigurationTest {
     val avdFolder = FakeEmulator.createPhoneAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
 
     // Act.
-    val config = EmulatorConfiguration.readAvdDefinition(avdFolder.fileName.toString().substringBeforeLast("."), avdFolder)
+    val config = EmulatorConfiguration.readAvdDefinition(avdFolder)
 
     // Assert.
     assertThat(config).isNotNull()
@@ -72,7 +72,7 @@ class EmulatorConfigurationTest {
     val avdFolder = FakeEmulator.createTabletAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
 
     // Act.
-    val config = EmulatorConfiguration.readAvdDefinition(avdFolder.fileName.toString().substringBeforeLast("."), avdFolder)
+    val config = EmulatorConfiguration.readAvdDefinition(avdFolder)
 
     // Assert.
     assertThat(config).isNotNull()
@@ -99,7 +99,7 @@ class EmulatorConfigurationTest {
     val avdFolder = FakeEmulator.createAutomotiveAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
 
     // Act.
-    val config = EmulatorConfiguration.readAvdDefinition(avdFolder.fileName.toString().substringBeforeLast("."), avdFolder)
+    val config = EmulatorConfiguration.readAvdDefinition(avdFolder)
 
     // Assert.
     assertThat(config).isNotNull()
@@ -126,7 +126,7 @@ class EmulatorConfigurationTest {
     val avdFolder = FakeEmulator.createWatchAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
 
     // Act.
-    val config = EmulatorConfiguration.readAvdDefinition(avdFolder.fileName.toString().substringBeforeLast("."), avdFolder)
+    val config = EmulatorConfiguration.readAvdDefinition(avdFolder)
 
     // Assert.
     assertThat(config).isNotNull()
@@ -153,7 +153,7 @@ class EmulatorConfigurationTest {
     val avdFolder = FakeEmulator.createXrAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
 
     // Act.
-    val config = EmulatorConfiguration.readAvdDefinition(avdFolder.fileName.toString().substringBeforeLast("."), avdFolder)
+    val config = EmulatorConfiguration.readAvdDefinition(avdFolder)
 
     // Assert.
     assertThat(config).isNotNull()
@@ -179,7 +179,7 @@ class EmulatorConfigurationTest {
     val avdFolder = FakeEmulator.createFoldableAvd(avdParentFolder, sdkFolder)
 
     // Act.
-    val config = EmulatorConfiguration.readAvdDefinition(avdFolder.fileName.toString().substringBeforeLast("."), avdFolder)
+    val config = EmulatorConfiguration.readAvdDefinition(avdFolder)
 
     // Assert.
     assertThat(config).isNotNull()
@@ -209,7 +209,7 @@ class EmulatorConfigurationTest {
     val avdFolder = FakeEmulator.createRollableAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
 
     // Act.
-    val config = EmulatorConfiguration.readAvdDefinition(avdFolder.fileName.toString().substringBeforeLast("."), avdFolder)
+    val config = EmulatorConfiguration.readAvdDefinition(avdFolder)
 
     // Assert.
     assertThat(config).isNotNull()
@@ -239,7 +239,7 @@ class EmulatorConfigurationTest {
     val avdFolder = FakeEmulator.createResizableAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
 
     // Act.
-    val config = EmulatorConfiguration.readAvdDefinition(avdFolder.fileName.toString().substringBeforeLast("."), avdFolder)
+    val config = EmulatorConfiguration.readAvdDefinition(avdFolder)
 
     // Assert.
     assertThat(config).isNotNull()

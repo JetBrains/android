@@ -215,7 +215,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   @Slow
   fun loadEmulatorConfiguration(): Boolean {
     emulatorConfig = try {
-      EmulatorConfiguration.readAvdDefinition(emulatorId.avdId, emulatorId.avdFolder)
+      EmulatorConfiguration.readAvdDefinition(emulatorId.avdFolder)
     }
     catch (e: Exception) {
       val message = e.message ?: e.javaClass.name

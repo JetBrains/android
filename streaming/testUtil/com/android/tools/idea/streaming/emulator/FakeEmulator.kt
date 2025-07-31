@@ -22,7 +22,6 @@ import com.android.emulator.control.ClipData
 import com.android.emulator.control.DisplayConfiguration
 import com.android.emulator.control.DisplayConfigurations
 import com.android.emulator.control.DisplayConfigurationsChangedNotification
-import com.android.emulator.control.DisplayMode as DisplayModeMessage
 import com.android.emulator.control.EmulatorControllerGrpc
 import com.android.emulator.control.EmulatorStatus
 import com.android.emulator.control.ExtendedControlsStatus
@@ -53,7 +52,6 @@ import com.android.emulator.control.UiControllerGrpc
 import com.android.emulator.control.Velocity
 import com.android.emulator.control.VmRunState
 import com.android.emulator.control.XrOptions
-import com.android.emulator.snapshot.SnapshotOuterClass.Image as SnapshotImage
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.android.io.writeImage
 import com.android.sdklib.AndroidVersion
@@ -86,11 +84,13 @@ import com.google.common.base.Predicates.alwaysTrue
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.concurrency.ConcurrentCollectionFactory
 import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.util.text.StringUtil.parseInt
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.io.createDirectories
 import com.intellij.util.ui.UIUtil
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.invoke
+import org.junit.Assert.fail
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.RenderingHints
@@ -120,16 +120,12 @@ import javax.imageio.ImageIO
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.time.Duration
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.invoke
-import org.junit.Assert.fail
+import com.android.emulator.control.DisplayMode as DisplayModeMessage
+import com.android.emulator.snapshot.SnapshotOuterClass.Image as SnapshotImage
 
-/**
- * Fake emulator for use in tests. Provides in-process gRPC services.
- */
+/** Fake emulator for use in tests. Provides in-process gRPC services. */
 class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory: Path) {
 
-  val avdId = StringUtil.trimExtensions(avdFolder.fileName.toString())
   private val registrationFile = registrationDirectory.resolve("pid_${grpcPort + 12345}.ini")
   private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("FakeEmulatorControllerService", 1)
   private val coroutineDispatcher = executor.asCoroutineDispatcher()
@@ -137,7 +133,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   private val lifeCycleLock = Object()
   private var startTime = 0L
 
-  private val config = EmulatorConfiguration.readAvdDefinition(avdId, avdFolder)
+  private val config = EmulatorConfiguration.readAvdDefinition(avdFolder)
   private val foldedDisplayRegion: FoldedDisplay? = readDisplayRegion(avdFolder)
 
   val isRunning: Boolean
@@ -240,14 +236,15 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
   private fun registrationContent(standalone: Boolean): String {
     val embeddedFlags = if (standalone) "" else """ "-qt-hide-window" "-idle-grpc-timeout" "300""""
+    val id = avdFolder.fileName.toString().removeSuffix(".avd")
 
     return """
         port.serial=$serialPort
         port.adb=${serialPort + 1}
         avd.name=$avdName
         avd.dir=$avdFolder
-        avd.id=$avdId
-        cmdline="/emulator_home/fake_emulator" "-netdelay" "none" "-netspeed" "full" "-avd" "$avdId" $embeddedFlags
+        avd.id=$id
+        cmdline="/emulator_home/fake_emulator" "-netdelay" "none" "-netspeed" "full" "-avd" "$id" $embeddedFlags
         grpc.port=$grpcPort
         grpc.token=RmFrZSBnUlBDIHRva2Vu
         """.trimIndent()

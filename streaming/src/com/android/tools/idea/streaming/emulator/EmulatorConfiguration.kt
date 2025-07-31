@@ -20,7 +20,15 @@ import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.Posture.PostureValue
 import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
-import com.android.sdklib.SystemImageTags.*
+import com.android.sdklib.SystemImageTags.ANDROID_TV_TAG
+import com.android.sdklib.SystemImageTags.AUTOMOTIVE_DISTANT_DISPLAY_TAG
+import com.android.sdklib.SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG
+import com.android.sdklib.SystemImageTags.AUTOMOTIVE_TAG
+import com.android.sdklib.SystemImageTags.DESKTOP_TAG
+import com.android.sdklib.SystemImageTags.GOOGLE_TV_TAG
+import com.android.sdklib.SystemImageTags.WEAR_TAG
+import com.android.sdklib.SystemImageTags.XR_GLASSES_TAG
+import com.android.sdklib.SystemImageTags.XR_HEADSET_TAG
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.internal.avd.ConfigKey
 import com.android.tools.idea.streaming.core.FOLDING_STATE_ICONS
@@ -66,7 +74,7 @@ class EmulatorConfiguration private constructor(
      * Creates and returns an [EmulatorConfiguration] using data in the AVD folder.
      * Returns null if any of the essential data is missing.
      */
-    fun readAvdDefinition(avdId: String, avdFolder: Path): EmulatorConfiguration {
+    fun readAvdDefinition(avdFolder: Path): EmulatorConfiguration {
       val hardwareIniFile = avdFolder.resolve("hardware-qemu.ini")
       val keysToExtract = setOf("android.sdk.root", "hw.audioOutput", "hw.lcd.height", "hw.lcd.width", "hw.lcd.density",
                                 "hw.sensor.hinge.resizable.config")
@@ -85,7 +93,7 @@ class EmulatorConfiguration private constructor(
       val configIniFile = avdFolder.resolve("config.ini")
       val configIni = readKeyValueFile(configIniFile)
 
-      val avdName = configIni["avd.ini.displayname"] ?: avdId.replace('_', ' ')
+      val avdName = configIni["avd.ini.displayname"] ?: avdFolder.fileName.toString().removeSuffix(".avd").replace('_', ' ')
       val initialOrientation = when {
         "landscape".equals(configIni["hw.initialOrientation"], ignoreCase = true) -> 1
         else -> 0
