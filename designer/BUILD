@@ -136,6 +136,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
         "//tools/adt/idea/visual-lint:intellij.android.visual-lint",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose.tests",
     ],
     test_friends = ["//tools/adt/idea/designer:intellij.android.designer"],
     test_resources = ["testResources"],

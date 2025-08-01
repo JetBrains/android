@@ -91,6 +91,7 @@ iml_module(
         "//tools/base/common:studio.android.sdktools.common",
         "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose.tests",
     ],
     test_jvm_flags = [
         "-Djdk.attach.allowAttachSelf=true",

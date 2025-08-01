@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="JAVA_MODULE" version="4">
-<component name="FacetManager">
+  <component name="FacetManager">
     <facet type="kotlin-language" name="Kotlin">
       <configuration version="5" platform="JVM 17" allPlatforms="JVM [17]" useProjectSettings="false">
         <compilerSettings>
@@ -31,7 +31,7 @@
     <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
     <orderEntry type="module" module-name="android.sdktools.device-provisioner" />
     <orderEntry type="library" scope="TEST" name="junit4" level="project" />
-    <orderEntry type="module" module-name="intellij.android.adt.ui.compose" scope="TEST"/>
+    <orderEntry type="module" module-name="intellij.android.adt.ui.compose" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.adblib" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.ddmlib" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
@@ -56,6 +56,7 @@
     <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.compose.tests" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.adb" />
 </module>

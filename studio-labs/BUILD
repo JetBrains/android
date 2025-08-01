@@ -17,6 +17,7 @@ iml_module(
         "//tools/analytics-library/testing:android.sdktools.analytics-testing",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
         "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose.tests",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

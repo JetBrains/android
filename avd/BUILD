@@ -20,6 +20,7 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
         "//tools/adt/idea/intellij.android.device.tests",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose.tests",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

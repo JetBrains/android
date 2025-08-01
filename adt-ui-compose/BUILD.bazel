@@ -7,24 +7,31 @@ iml_module(
     iml_files = ["intellij.android.adt.ui.compose.iml"],
     kotlin_use_compose = True,
     resources = ["resources"],
-    # do not sort: must match IML order
-    test_deps = [
-        "//tools/adt/idea/.idea/libraries:junit4",
-        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
-        "@intellij//:test-framework",
-        "//prebuilts/tools/common/m2:compose-desktop-test",
-    ],
-    test_resources = ["testResources"],
-    test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    exports = [
-        "//tools/adt/idea/adt-ui-compose/jewel.sdkcompat",
-        "//prebuilts/tools/common/m2:compose-desktop-test",
-    ],
+    exports = ["//tools/adt/idea/adt-ui-compose/jewel.sdkcompat"],
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
         "//tools/adt/idea/adt-ui-compose/jewel.sdkcompat",
     ],
+)
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.adt.ui.compose.tests",
+    iml_files = ["intellij.android.adt.ui.compose.tests.iml"],
+    kotlin_use_compose = True,
+    # do not sort: must match IML order
+    test_deps = [
+        "@intellij//:intellij-sdk",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
+        "@intellij//:test-framework",
+    ],
+    test_friends = ["//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose"],
+    test_resources = ["testResources"],
+    test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
 )

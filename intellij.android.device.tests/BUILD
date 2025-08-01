@@ -18,6 +18,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/adt/idea/artwork-compose:intellij.android.artwork-compose",
         "@intellij//:test-framework",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose.tests",
     ],
     test_friends = ["//tools/adt/idea/intellij.android.device"],
     test_srcs = ["src"],
