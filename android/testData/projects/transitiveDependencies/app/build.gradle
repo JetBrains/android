@@ -20,7 +20,6 @@ android {
 }
 
 dependencies {
-    api fileTree(dir: 'libs', include: ['*.jar'])
     api project(':javalib1')
     api project(':library2')
 }
