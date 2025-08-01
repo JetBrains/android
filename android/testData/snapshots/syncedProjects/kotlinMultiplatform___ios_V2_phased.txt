@@ -1498,7 +1498,7 @@ PROJECT                       : kotlinMultiPlatform
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
             CompilerSettings
-                additionalArguments           : -nopack -nostdlib
+                additionalArguments           : -Xexport-kdoc -nopack -nostdlib
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
@@ -1722,7 +1722,7 @@ PROJECT                       : kotlinMultiPlatform
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
             CompilerSettings
-                additionalArguments           : -nopack -nostdlib
+                additionalArguments           : -Xexport-kdoc -nopack -nostdlib
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
@@ -2356,7 +2356,7 @@ PROJECT                       : kotlinMultiPlatform
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
             CompilerSettings
-                additionalArguments           : -nopack -nostdlib
+                additionalArguments           : -Xexport-kdoc -nopack -nostdlib
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
@@ -2580,7 +2580,7 @@ PROJECT                       : kotlinMultiPlatform
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
             CompilerSettings
-                additionalArguments           : -nopack -nostdlib
+                additionalArguments           : -Xexport-kdoc -nopack -nostdlib
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
@@ -3397,7 +3397,7 @@ PROJECT                       : kotlinMultiPlatform
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
             CompilerSettings
-                additionalArguments           : -nopack -nostdlib
+                additionalArguments           : -Xexport-kdoc -nopack -nostdlib
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
@@ -3621,7 +3621,7 @@ PROJECT                       : kotlinMultiPlatform
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
             CompilerSettings
-                additionalArguments           : -nopack -nostdlib
+                additionalArguments           : -Xexport-kdoc -nopack -nostdlib
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2

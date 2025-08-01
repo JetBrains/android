@@ -5225,6 +5225,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - unknownArgs                 : -o
                         - unknownArgs                 : -p
                         - unknownArgs                 : -target
+                        - unknownExtraFlags           : -Xexport-kdoc
                         - unknownExtraFlags           : -Xshort-module-name=module2
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
@@ -5362,6 +5363,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - unknownArgs                 : -o
                         - unknownArgs                 : -p
                         - unknownArgs                 : -target
+                        - unknownExtraFlags           : -Xexport-kdoc
                         - unknownExtraFlags           : -Xshort-module-name=module2_test
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
@@ -5439,6 +5441,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - unknownArgs                 : -o
                         - unknownArgs                 : -p
                         - unknownArgs                 : -target
+                        - unknownExtraFlags           : -Xexport-kdoc
                         - unknownExtraFlags           : -Xshort-module-name=module2
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
@@ -5510,6 +5513,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - unknownArgs                 : -o
                         - unknownArgs                 : -p
                         - unknownArgs                 : -target
+                        - unknownExtraFlags           : -Xexport-kdoc
                         - unknownExtraFlags           : -Xshort-module-name=module2_test
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
@@ -5587,6 +5591,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - unknownArgs                 : -o
                         - unknownArgs                 : -p
                         - unknownArgs                 : -target
+                        - unknownExtraFlags           : -Xexport-kdoc
                         - unknownExtraFlags           : -Xshort-module-name=module2
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
@@ -5658,6 +5663,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - unknownArgs                 : -o
                         - unknownArgs                 : -p
                         - unknownArgs                 : -target
+                        - unknownExtraFlags           : -Xexport-kdoc
                         - unknownExtraFlags           : -Xshort-module-name=module2_test
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
