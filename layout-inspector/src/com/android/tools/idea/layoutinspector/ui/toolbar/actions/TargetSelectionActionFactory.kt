@@ -41,10 +41,6 @@ val ICON_LEGACY_PHONE: Icon =
 val ICON_LEGACY_EMULATOR: Icon =
   LayeredIcon.layeredIcon { arrayOf(ICON_EMULATOR, AllIcons.General.WarningDecorator) }
 
-// TODO this class can be removed once the flag
-// DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED is removed
-//  and we stop using [SelectProcessAction].
-// A [DropDownAction] with a button.
 data class DropDownActionWithButton(
   val dropDownAction: DropDownAction,
   val getButton: () -> JComponent?,
@@ -82,8 +78,6 @@ object TargetSelectionActionFactory {
     )
   }
 
-  // TODO remove once the flag DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED
-  // is removed
   private fun getProcessSelectorAction(layoutInspector: LayoutInspector): SelectProcessAction? {
     val model = layoutInspector.processModel ?: return null
     return SelectProcessAction(
