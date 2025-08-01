@@ -94,16 +94,23 @@ def write_xml_files(workspace, sdk, ides):
 
   all_plugin_ids = set.union(*[set(ide.plugin_jars.keys()) for ide in ides.values()])
   common_plugins_with_jars = set()
+  v2_modules = set()
   for plugin in all_plugin_ids:
     sets = [ide.plugin_jars[plugin] if plugin in ide.plugin_jars else set() for ide in ides.values()]
     if set.intersection(*sets):
       common_plugins_with_jars.add(plugin)
     jars = sorted(set.union(*sets))
+    if len(jars) == 1 and "/lib/modules/" in jars[0]:
+      v2_modules.add(plugin)
     paths = [ rel_workspace + sdk + f"/$SDK_PLATFORM$" + j for j in jars]
     gen_lib(project_dir, "studio-plugin-" + plugin, paths, [workspace + sdk + "/android-studio-sources.zip"])
 
   common_platform_libs = ["studio-sdk"] + [f"studio-plugin-{plugin}" for plugin in sorted(common_plugins_with_jars)]
   gen_platform_module(f"{project_dir}/studio/studio-sdk-all-plugins.iml", common_platform_libs)
+
+  # b/376066654: studio-sdk-all-modules is currently needed until we model v2 module deps properly in Bazel.
+  v2_module_libs = [f"studio-plugin-{v2_module}" for v2_module in sorted(v2_modules)]
+  gen_platform_module(f"{project_dir}/studio/studio-sdk-all-modules.iml", v2_module_libs)
 
   updater_jar = rel_workspace + sdk + "/updater-full.jar"
   if os.path.exists(project_dir + "/" + updater_jar):

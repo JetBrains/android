@@ -22,6 +22,7 @@ class UpdateSdkTest(unittest.TestCase):
         "android-studio/plugins/only_linux/lib/foo.jar": {"META-INF/plugin.xml": "<xml><id>com.sample.only_linux</id></xml>"},
         "android-studio/plugins/linux_windows/lib/foo.jar": {"META-INF/plugin.xml": "<xml><id>com.sample.linux_windows</id></xml>"},
         "android-studio/plugins/common/lib/common.jar": {"META-INF/plugin.xml": "<xml><id>com.sample.common</id></xml>"},
+        "android-studio/plugins/common/lib/modules/com.sample.common.submodule.jar": {"META-INF/plugin.xml": "<idea-plugin></idea-plugin>"},
         "android-studio/product-info.json": {
             "launch": [{
                 "bootClassPathJarNames": [],
@@ -44,6 +45,7 @@ class UpdateSdkTest(unittest.TestCase):
         },
         "android-studio/plugins/linux_windows/lib/foo.jar": {"META-INF/plugin.xml": "<xml><id>com.sample.linux_windows</id></xml>"},
         "android-studio/plugins/common/lib/common.jar": {"META-INF/plugin.xml": "<xml><id>com.sample.common</id></xml>"},
+        "android-studio/plugins/common/lib/modules/com.sample.common.submodule.jar": {"META-INF/plugin.xml": "<idea-plugin></idea-plugin>"},
         "android-studio/plugins/plugin-classpath.txt": "data",
     })
     test_utils.create(download + "/android-studio-1.2.3.mac.aarch64-no-jdk.zip", {
@@ -60,6 +62,7 @@ class UpdateSdkTest(unittest.TestCase):
             }]
         },
         "Android Studio.app/Contents/plugins/common/lib/common.jar": {"META-INF/plugin.xml": "<xml><id>com.sample.common</id></xml>"},
+        "Android Studio.app/Contents/plugins/common/lib/modules/com.sample.common.submodule.jar": {"META-INF/plugin.xml": "<idea-plugin></idea-plugin>"},
         "Android Studio.app/Contents/plugins/plugin-classpath.txt": "data",
     })
     test_utils.create(download + "/android-studio-1.2.3.mac.x64-no-jdk.zip", {
@@ -76,6 +79,7 @@ class UpdateSdkTest(unittest.TestCase):
             }]
         },
         "Android Studio.app/Contents/plugins/common/lib/common.jar": {"META-INF/plugin.xml": "<xml><id>com.sample.common</id></xml>"},
+        "Android Studio.app/Contents/plugins/common/lib/modules/com.sample.common.submodule.jar": {"META-INF/plugin.xml": "<idea-plugin></idea-plugin>"},
         "Android Studio.app/Contents/plugins/plugin-classpath.txt": "data",
     })
 
@@ -110,6 +114,9 @@ SPEC = struct(
     plugin_jars = {
         "com.sample.common": [
             "plugins/common/lib/common.jar",
+        ],
+        "com.sample.common.submodule": [
+            "plugins/common/lib/modules/com.sample.common.submodule.jar",
         ],
     },
     plugin_jars_darwin = {
@@ -169,6 +176,14 @@ SPEC = struct(
     </SOURCES>
   </library>
 </component>""",
+      "tools/adt/idea/studio/studio-sdk-all-modules.iml" : """<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.sample.common.submodule" level="project" />
+  </component>
+</module>""",
       "tools/adt/idea/studio/studio-sdk-all-plugins.iml" : """<?xml version="1.0" encoding="UTF-8"?>
 <module type="JAVA_MODULE" version="4">
   <component name="NewModuleRootManager" inherit-compiler-output="true">
@@ -176,12 +191,24 @@ SPEC = struct(
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" scope="RUNTIME" name="studio-sdk" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.sample.common" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.sample.common.submodule" level="project" />
   </component>
 </module>""",
       "tools/adt/idea/.idea/libraries/studio_plugin_com.sample.common.xml" : """<component name="libraryTable">
   <library name="studio-plugin-com.sample.common">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/common/lib/common.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/android-studio-sources.zip!/" />
+    </SOURCES>
+  </library>
+</component>""",
+      "tools/adt/idea/.idea/libraries/studio_plugin_com.sample.common.submodule.xml" : """<component name="libraryTable">
+  <library name="studio-plugin-com.sample.common.submodule">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/common/lib/modules/com.sample.common.submodule.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
