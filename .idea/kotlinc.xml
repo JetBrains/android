@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="Kotlin2JsCompilerArguments">
+    <option name="moduleKind" value="plain" />
+  </component>
   <component name="Kotlin2JvmCompilerArguments">
     <option name="jvmTarget" value="17" />
   </component>
@@ -11,6 +14,6 @@
     <option name="additionalArguments" value="-version -Xjvm-default=all-compatibility -Xcontext-receivers -opt-in=org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction" />
   </component>
   <component name="KotlinJpsPluginSettings">
-    <option name="version" value="2.1.10" />
+    <option name="version" value="2.2.0" />
   </component>
 </project>
