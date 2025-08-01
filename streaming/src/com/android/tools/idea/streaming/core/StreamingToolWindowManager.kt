@@ -29,6 +29,7 @@ import com.android.sdklib.deviceprovisioner.mapStateNotNull
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction
 import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.avdmanager.RunningAvdTracker
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
@@ -117,6 +118,18 @@ import com.intellij.util.containers.ComparatorUtil.max
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Component
 import java.awt.EventQueue
 import java.awt.event.KeyEvent
@@ -126,15 +139,6 @@ import javax.swing.JComponent
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.jetbrains.annotations.TestOnly
-import org.jetbrains.annotations.VisibleForTesting
 
 private const val DEVICE_FRAME_VISIBLE_PROPERTY = "com.android.tools.idea.streaming.emulator.frame.visible"
 private const val DEVICE_FRAME_VISIBLE_DEFAULT = true
@@ -147,6 +151,7 @@ private val CONTENT_DEVICE_ID_KEY = Key.create<DeviceId>("DeviceId")
 private val ATTENTION_REQUEST_EXPIRATION = 30.seconds
 private val REMOTE_DEVICE_REQUEST_EXPIRATION = 60.seconds
 private val AUTO_RECONNECTION_TIMEOUT = 5.seconds // Auto reconnection timeout is just long enough to reconnect after adb kill-server.
+private val EMULATOR_TERMINATION_TIMEOUT = 20.seconds
 
 @VisibleForTesting
 internal val INACTIVE_ICON = StudioIcons.Shell.ToolWindows.EMULATOR
@@ -972,10 +977,11 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private suspend fun getStartableVirtualDevices(): List<AvdInfo> {
     return withContext(Dispatchers.IO) {
-      val runningAvdFolders = RunningEmulatorCatalog.getInstance().emulators.map { it.emulatorId.avdFolder }.toSet()
       val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
+      val runningAvdFolders = service<RunningAvdTracker>().runningAvds.filter { !it.value.isShuttingDown }.keys
       avdManager.getAvds(false).filter {
         it.dataFolderPath !in runningAvdFolders &&
+        findContentByAvdFolder(it.dataFolderPath) == null &&
         (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_HEADSET_AVD.get() || !it.isXrHeadsetDevice) &&
         (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_GLASSES_AVD.get() || !it.isXrGlassesDevice)
       }
@@ -1176,22 +1182,38 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   ) : DumbAwareAction(avd.displayNameWithApi, null, avd.icon) {
 
     override fun actionPerformed(event: AnActionEvent) {
-      val contentManager = event.contentManager
-      if (contentManager != null) {
-        recentAvdStartRequesters.put(avd.id, contentManager)
-        alarm.addRequest(recentAvdStartRequesters::cleanUp, ATTENTION_REQUEST_EXPIRATION.inWholeMicroseconds)
-      }
       toolWindowScope.launch(Dispatchers.IO) {
-        val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
         try {
+          val runningAvd = service<RunningAvdTracker>().runningAvds[avd.dataFolderPath]
+          if (runningAvd != null) {
+            if (runningAvd.isShuttingDown) {
+              try {
+                withTimeout(EMULATOR_TERMINATION_TIMEOUT) {
+                  runningAvd.processHandle.onExit().await()
+                }
+              }
+              catch (_: TimeoutCancellationException) {
+                throw RuntimeException("${avd.displayName} is shutting down but hasn't terminated yet")
+              }
+            }
+            else {
+              throw RuntimeException("${avd.displayName} is already running")
+            }
+          }
+          val contentManager = event.contentManager
+          if (contentManager != null) {
+            recentAvdStartRequesters.put(avd.id, contentManager)
+            alarm.addRequest(recentAvdStartRequesters::cleanUp, ATTENTION_REQUEST_EXPIRATION.inWholeMicroseconds)
+          }
+          val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
           // Delay the onEmulatorHeadsUp call slightly to make it more likely that the emulator will
           // have registered itself by the time of the call.
           alarm.addRequest({ onEmulatorHeadsUp(avd.dataFolderPath, ActivationLevel.ACTIVATE_TAB) }, 200)
           avdManager.startAvd(project, avd, forceLaunchInToolWindow = true)
         }
         catch (e: Exception) {
-          val message = e.message?.let { if (it.contains(avd.displayName)) it else "Unable to launch ${avd.displayName} - $it"} ?:
-              "Unable to launch ${avd.displayName}"
+          val avdName = avd.displayName
+          val message = e.message?.let { if (it.contains(avdName)) it else "Unable to launch $avdName - $it"} ?: "Unable to launch $avdName"
           withContext(Dispatchers.EDT) {
             showErrorDialog(toolWindow.component, message)
           }

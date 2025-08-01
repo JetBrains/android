@@ -39,6 +39,7 @@ import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.popup.FakeListPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
+import com.android.tools.idea.avdmanager.RunningAvdTracker
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.protobuf.TextFormat
@@ -88,6 +89,15 @@ import com.intellij.ui.content.ContentManager
 import com.intellij.util.ConcurrencyUtil.awaitQuiescence
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import icons.StudioIcons
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.runBlocking
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.awt.Dimension
 import java.awt.Point
 import java.util.concurrent.Executors
@@ -98,15 +108,6 @@ import javax.swing.JViewport
 import javax.swing.SwingConstants
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.runBlocking
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 
 /** Tests for [StreamingToolWindowManager] and [StreamingToolWindowFactory]. */
 @RunsInEdt
@@ -679,8 +680,8 @@ class StreamingToolWindowManagerTest {
     toolWindow.show()
 
     val avdRoot = emulatorRule.avdRoot
-    val phone = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(avdRoot))
     val tablet = emulatorRule.newEmulator(FakeEmulator.createTabletAvd(avdRoot))
+    val phone = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(avdRoot))
     tablet.start(standalone = true)
     runBlocking { RunningEmulatorCatalog.getInstance().updateNow().await() }
 
@@ -691,6 +692,25 @@ class StreamingToolWindowManagerTest {
     assertThat(popup.actions[1].templatePresentation.icon).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
 
     executeAction(popup.actions[1], toolWindow.component, project)
+    waitForCondition(2.seconds) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
+    assertThat(contentManager.contents[0].displayName).isEqualTo(phone.avdName)
+    assertThat(contentManager.selectedContent?.displayName).isEqualTo(phone.avdName)
+
+    // Already running AVD is not present in the popup.
+    assertThat(triggerAddDevicePopup().actions.find { it.templateText == phone.avdName }).isNull()
+
+    // Check that it is possible to start the phone AVD while it is running but is shutting down.
+    val emulatorController = (contentManager.contents[0].component as EmulatorToolWindowPanel).emulator
+    waitForCondition(2.seconds) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
+    phone.pauseGrpc() // Don't allow the phone AVD to terminate quickly.
+    contentManager.removeContent(contentManager.contents[0], true)
+    waitForCondition(2.seconds) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
+    assertThat(service<RunningAvdTracker>().runningAvds[phone.avdFolder]?.isShuttingDown).isTrue()
+    val startAction = triggerAddDevicePopup().actions.find { it.templateText == phone.avdName }
+    assertThat(startAction).isNotNull()
+    executeAction(startAction!!, toolWindow.component, project)
+    assertThat(phone.isRunning)
+    phone.resumeGrpc() // Allow the phone AVD to finish its shutdown sequence and terminate.
     waitForCondition(2.seconds) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo(phone.avdName)
     assertThat(contentManager.selectedContent?.displayName).isEqualTo(phone.avdName)
@@ -837,12 +857,6 @@ class StreamingToolWindowManagerTest {
     val newTabAction = toolWindow.tabActions[0]
     val testEvent = createTestEvent(toolWindow.component, project)
     executeAction(newTabAction, testEvent)
-    lateinit var popup: FakeListPopup<Any>
-    waitForCondition(4.seconds) {
-      executeAction(newTabAction, testEvent)
-      popup = popupRule.fakePopupFactory.getNextPopup(2.seconds)
-      popup.items.size >= 2
-    }
-    return popup
+    return popupRule.fakePopupFactory.getNextPopup(2.seconds)
   }
 }
