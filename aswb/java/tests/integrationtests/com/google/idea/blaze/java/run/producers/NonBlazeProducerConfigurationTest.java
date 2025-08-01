@@ -52,6 +52,7 @@ public class NonBlazeProducerConfigurationTest extends BlazeRunConfigurationProd
           "org.jetbrains.kotlin.idea.gradle.testing.common.KotlinMultiplatformCommonTestMethodGradleConfigurationProducer",
           "org.jetbrains.kotlin.idea.gradleJava.run.KotlinGradleTaskRunConfigurationProducer",
           "org.jetbrains.kotlin.idea.gradleJava.run.KotlinMultiplatformJvmRunConfigurationProducer",
+          "org.jetbrains.kotlin.idea.gradleJava.testing.KotlinAllInPackageGradleConfigurationProducer",
           "org.jetbrains.kotlin.ide.konan.KotlinNativeRunConfigurationProducer",
           "com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationProducer",
           "com.android.tools.idea.run.configuration.BaselineProfileConfigurationProducer",
