@@ -42,17 +42,17 @@ import org.jetbrains.annotations.TestOnly
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
 
-internal const val COMPOSABLE_ANNOTATION_FQN = "androidx.compose.runtime.Composable"
-internal const val PREVIEW_TOOLING_PACKAGE = "androidx.compose.ui.tooling.preview"
+const val COMPOSABLE_ANNOTATION_FQN = "androidx.compose.runtime.Composable"
+const val PREVIEW_TOOLING_PACKAGE = "androidx.compose.ui.tooling.preview"
 
 internal fun UFile.declaredMethods(): Sequence<UMethod> =
   classes.asSequence().flatMap { it.methods.asSequence() }
 
-internal fun UFile.method(name: String): UMethod? =
+fun UFile.method(name: String): UMethod? =
   declaredMethods().filter { it.name == name }.singleOrNull()
 
 /** Returns the [HighlightInfo] description adding the relative line number */
-internal fun HighlightInfo.descriptionWithLineNumber() =
+fun HighlightInfo.descriptionWithLineNumber() =
   ReadAction.compute<String, Throwable> {
     "${StringUtil.offsetToLineNumber(highlighter!!.document.text, startOffset)}: ${description}"
   }
@@ -60,7 +60,7 @@ internal fun HighlightInfo.descriptionWithLineNumber() =
 /**
  * Simulates the initialization of an editor and returns the corresponding [PreviewRepresentation].
  */
-internal fun getRepresentationForFile(
+fun getRepresentationForFile(
   file: PsiFile,
   project: Project,
   fixture: CodeInsightTestFixture,
@@ -81,7 +81,7 @@ internal fun getRepresentationForFile(
   return multiRepresentationPreview.currentRepresentation!!
 }
 
-internal data class DebugStatus(
+data class DebugStatus(
   val status: ComposePreviewManager.Status,
   val renderResult: List<RenderResult>,
   private val loggerContents: String,
@@ -106,7 +106,7 @@ private fun RenderLogger.toDebugString(): String {
  * to testing.
  */
 @TestOnly
-internal fun ComposePreviewRepresentation.debugStatusForTesting(): DebugStatus {
+fun ComposePreviewRepresentation.debugStatusForTesting(): DebugStatus {
   val renderResults =
     listOfNotNull(surface.model?.let { surface.getSceneManager(it) }?.renderResult)
 

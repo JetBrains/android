@@ -166,6 +166,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing",
         "//tools/adt/idea/.idea/libraries:layoutlib",
+        "//tools/adt/idea/compose-designer:intellij.android.compose-designer.testFramework",
     ],
     test_friends = ["//tools/adt/idea/compose-designer:intellij.android.compose-designer"],
     test_jvm_flags = ["-Dcom.google.testing.junit.runner.shouldInstallTestSecurityManager=false"],
@@ -304,4 +305,36 @@ iml_test(
         "noci:studio-win",  # TODO(b/383596974): flaky timeouts on Windows
     ],
     test_class = "com.android.tools.idea.compose.ComposePreviewKotlin",
+)
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.compose-designer.testFramework",
+    iml_files = ["intellij.android.compose-designer.testFramework.iml"],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
+        "//tools/adt/idea/android-common:intellij.android.common",
+        "//tools/adt/idea/compose-designer:intellij.android.compose-designer",
+        "//tools/adt/idea/android:intellij.android.core",
+        "//tools/adt/idea/android:intellij.android.core.tests",
+        "//tools/adt/idea/designer:intellij.android.designer",
+        "//tools/adt/idea/execution/common:intellij.android.execution.common",
+        "//tools/adt/idea/preview-designer:intellij.android.preview-designer",
+        "//tools/adt/idea/preview-designer:intellij.android.preview-designer.tests",
+        "//tools/adt/idea/preview-elements:intellij.android.preview-elements",
+        "//tools/adt/idea/rendering:intellij.android.rendering",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+    ],
+    test_srcs = ["testFramework"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "@intellij//:com.intellij.java",
+        "@intellij//:org.jetbrains.kotlin",
+        "@intellij//:intellij-sdk",
+    ],
 )
