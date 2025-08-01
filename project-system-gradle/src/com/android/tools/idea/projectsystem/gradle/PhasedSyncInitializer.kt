@@ -30,7 +30,8 @@ import com.intellij.platform.workspace.storage.entities
 import com.intellij.workspaceModel.ide.legacyBridge.findModule
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncContributor
-import org.jetbrains.plugins.gradle.service.syncContributor.entitites.GradleProjectEntitySource
+import org.jetbrains.plugins.gradle.service.syncAction.virtualFileUrl
+import org.jetbrains.plugins.gradle.service.syncContributor.bridge.GradleBridgeEntitySource
 
 /**
  * This is a sync contributor that runs after the platform's content root contributor to fix-up any issues caused by it and makes sure
@@ -53,7 +54,7 @@ class FixSyncContributorIssues: GradleSyncContributor {
     if (phase == GradleModelFetchPhase.PROJECT_MODEL_PHASE) {
 
       // Keep the root module as an iml based entity, because many things go wrong if there isn't at least one .iml based module
-      removeGradleBasedEntitiesForRootModule(storage)
+      removeGradleBasedEntitiesForRootModule(context, storage)
 
       reconcileExistingHolderModules(context, context.project, storage)
     }
@@ -87,14 +88,15 @@ class FixSyncContributorIssues: GradleSyncContributor {
    *
    * TODO(b/384022658): We should aim to delete this in the long term, but for now it should be fine to keep.
    */
-  private fun removeGradleBasedEntitiesForRootModule(storage: MutableEntityStorage) {
-    storage.entities<ModuleEntity>().filter {
-      it.entitySource is GradleProjectEntitySource
-      && (it.entitySource as GradleProjectEntitySource).buildEntitySource.linkedProjectEntitySource.projectRootUrl ==
-      (it.entitySource as GradleProjectEntitySource).projectRootUrl
-    }.forEach {
-      storage.removeEntity(it)
-    }
+  private fun removeGradleBasedEntitiesForRootModule(
+    context: ProjectResolverContext,
+    storage: MutableEntityStorage,
+  ) {
+    val projectRootUrl = context.virtualFileUrl(context.projectPath)
+    storage.entities<ModuleEntity>()
+      .filter { module -> module.entitySource is GradleBridgeEntitySource }
+      .filter { module -> module.contentRoots.any { it.url == projectRootUrl } }
+      .toList().forEach { module -> storage.removeEntity(module) }
   }
 }
 
