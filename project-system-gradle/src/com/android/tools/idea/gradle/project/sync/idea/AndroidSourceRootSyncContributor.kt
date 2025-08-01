@@ -105,6 +105,7 @@ import org.jetbrains.jps.model.module.JpsModuleSourceRootType
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import org.jetbrains.plugins.gradle.model.GradleLightBuild
 import org.jetbrains.plugins.gradle.model.GradleLightProject
+import org.jetbrains.plugins.gradle.model.GradleTaskModel
 import org.jetbrains.plugins.gradle.service.project.GradleContentRootIndex
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
@@ -118,7 +119,6 @@ import java.io.File
 import java.nio.file.Path
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import kotlin.collections.plus
-import org.jetbrains.plugins.gradle.model.GradleTaskModel
 
 private val LOG = logger<AndroidSourceRootSyncContributor>()
 
@@ -260,7 +260,7 @@ internal class SyncContributorAndroidProjectContext(
         gradleProject.buildScript.sourceFile,
         context.projectGradleVersion,
         versions.agpVersionAsString,
-        gradlePluginModel
+        gradlePluginModel,
       )
     }
 

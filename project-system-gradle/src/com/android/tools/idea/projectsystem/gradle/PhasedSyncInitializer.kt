@@ -16,7 +16,6 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectEntitySource
 import com.android.tools.idea.gradle.project.sync.idea.SyncContributorProjectContext
 import com.android.tools.idea.gradle.project.sync.idea.createModuleEntity
 import com.android.tools.idea.gradle.project.sync.idea.resolveHolderModuleName
@@ -30,7 +29,9 @@ import com.intellij.workspaceModel.ide.legacyBridge.findModule
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncExtension
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase
+import org.jetbrains.plugins.gradle.service.syncAction.impl.bridge.GradleBridgeEntitySource
 import org.jetbrains.plugins.gradle.service.syncAction.impl.extensions.GradleJpsSyncExtension
+import org.jetbrains.plugins.gradle.service.syncAction.virtualFileUrl
 
 /**
  * This is a sync contributor that runs after the platform's content root contributor to fix-up any issues caused by it and makes sure
@@ -55,7 +56,7 @@ internal class FixSyncContributorIssues : GradleSyncExtension {
     }
 
     // Keep the root module as an iml based entity, because many things go wrong if there isn't at least one .iml based module
-    removeGradleBasedEntitiesForRootModule(syncStorage)
+    removeGradleBasedEntitiesForRootModule(context, syncStorage)
 
     reconcileExistingHolderModules(context, syncStorage, phase)
   }
@@ -88,14 +89,14 @@ internal class FixSyncContributorIssues : GradleSyncExtension {
    *
    * TODO(b/384022658): We should aim to delete this in the long term, but for now it should be fine to keep.
    */
-  private fun removeGradleBasedEntitiesForRootModule(storage: MutableEntityStorage) {
-    storage.entities<ModuleEntity>().filter {
-      it.entitySource is AndroidGradleProjectEntitySource
-      // TODO: android merge
-      //&& (it.entitySource as AndroidGradleProjectEntitySource).buildEntitySource.linkedProjectEntitySource.projectRootUrl ==
-      //(it.entitySource as AndroidGradleProjectEntitySource).projectRootUrl
-    }.forEach {
-      storage.removeEntity(it)
-    }
+  private fun removeGradleBasedEntitiesForRootModule(
+    context: ProjectResolverContext,
+    storage: MutableEntityStorage,
+  ) {
+    val projectRootUrl = context.virtualFileUrl(context.projectPath)
+    storage.entities<ModuleEntity>()
+      .filter { module -> module.entitySource is GradleBridgeEntitySource }
+      .filter { module -> module.contentRoots.any { it.url == projectRootUrl } }
+      .toList().forEach { module -> storage.removeEntity(module) }
   }
 }
