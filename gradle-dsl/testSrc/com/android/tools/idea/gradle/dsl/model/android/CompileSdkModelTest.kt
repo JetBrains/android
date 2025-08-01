@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.api.android.CompileSdkReleaseModel
 import com.android.tools.idea.gradle.dsl.api.android.CompileSdkPreviewModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModelTest.TestFile
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.annotations.SystemDependent
@@ -94,10 +95,123 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
     assertThat(preview.getVersion().getValue(GradlePropertyModel.STRING_TYPE)).isEqualTo("Tiramisu")
   }
 
+  @Test
+  fun testUpdateCompileSdkVersionWithOldApi() {
+    writeToBuildFile(TestFile.EMPTY_ANDROID_BLOCK)
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    val compileSdkVersion = android.compileSdkVersion()
+    assertThat(compileSdkVersion).isNotNull()
+    compileSdkVersion.setValue(33)
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, TestFile.CREATE_MAJOR_VERSION_ONLY_EXPECTED)
+  }
+
+  @Test
+  fun testUpdateCompileSdkAllValuesVersionWithOldApi() {
+    writeToBuildFile(TestFile.EMPTY_ANDROID_BLOCK)
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    val compileSdkVersion = android.compileSdkVersion()
+    assertThat(compileSdkVersion).isNotNull()
+    compileSdkVersion.setValue("android-33.1-ext18")
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, TestFile.CREATE_WITH_MINOR_VERSION_AND_EXTENSION_EXPECTED)
+  }
+
+  @Test
+  fun testUpdateCompileSdkWithMinorVersionWithOldApi() {
+    writeToBuildFile(TestFile.EMPTY_ANDROID_BLOCK)
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    val compileSdkVersion = android.compileSdkVersion()
+    assertThat(compileSdkVersion).isNotNull()
+    compileSdkVersion.setValue("android-33.1")
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, TestFile.CREATE_WITH_MINOR_VERSION_EXPECTED)
+  }
+
+  @Test
+  fun testUpdateCompileSdkWithExtensionVersionWithOldApi() {
+    writeToBuildFile(TestFile.EMPTY_ANDROID_BLOCK)
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    val compileSdkVersion = android.compileSdkVersion()
+    assertThat(compileSdkVersion).isNotNull()
+    compileSdkVersion.setValue("android-33-ext1")
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, TestFile.CREATE_WITH_EXTENSION_VERSION_EXPECTED)
+  }
+
+  @Test
+  fun testUpdateCompileSdkWithPreviewWithOldApi() {
+    writeToBuildFile(TestFile.EMPTY_ANDROID_BLOCK)
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    val compileSdkVersion = android.compileSdkVersion()
+    assertThat(compileSdkVersion).isNotNull()
+    compileSdkVersion.setValue("Tiramisu")
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, TestFile.CREATE_WITH_PREVIEW_VERSION_EXPECTED)
+  }
+
+  @Test
+  fun testReadUpdateCompileSdkValuesWithOldApi() {
+    writeToBuildFile(TestFile.EMPTY_ANDROID_BLOCK)
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    val compileSdkVersion = android.compileSdkVersion()
+    assertThat(compileSdkVersion).isNotNull()
+
+    compileSdkVersion.setValue("android-33.1")
+    assertThat(compileSdkVersion.getValue(GradlePropertyModel.STRING_TYPE)).isEqualTo("android-33.1")
+    assertThat(compileSdkVersion.getValue(GradlePropertyModel.INTEGER_TYPE)).isNull()
+    assertThat(compileSdkVersion.toCompileSdkConfig()?.getVersion()).isInstanceOf(CompileSdkReleaseModel::class.java)
+
+    compileSdkVersion.setValue(33)
+    assertThat(compileSdkVersion.getValue(GradlePropertyModel.INTEGER_TYPE)).isEqualTo(33)
+    assertThat(compileSdkVersion.toCompileSdkConfig()?.getVersion()).isInstanceOf(CompileSdkReleaseModel::class.java)
+
+    compileSdkVersion.setValue("Tiramisu")
+    assertThat(compileSdkVersion.getValue(GradlePropertyModel.STRING_TYPE)).isEqualTo("Tiramisu")
+    assertThat(compileSdkVersion.toCompileSdkConfig()?.getVersion()).isInstanceOf(CompileSdkPreviewModel::class.java)
+    assertThat(compileSdkVersion.getValue(GradlePropertyModel.INTEGER_TYPE)).isNull()
+  }
+
   enum class TestFile(val path: @SystemDependent String) : TestFileName {
     READ_RELEASE_BLOCK("releaseBlock"),
     READ_RELEASE_METHOD("releaseMethod"),
     READ_PREVIEW_METHOD("previewMethod"),
+    EMPTY_ANDROID_BLOCK("emptyAndroidBlock"),
+    CREATE_MAJOR_VERSION_ONLY_EXPECTED("createMajorVersionOnlyExpected"),
+    CREATE_WITH_MINOR_VERSION_AND_EXTENSION_EXPECTED("createWithMinorAndExtensionExpected"),
+    CREATE_WITH_MINOR_VERSION_EXPECTED("createWithMinorVersionExpected"),
+    CREATE_WITH_EXTENSION_VERSION_EXPECTED("createWithExtensionVersionExpected"),
+    CREATE_WITH_PREVIEW_VERSION_EXPECTED("createWithPreviewVersionExpected"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

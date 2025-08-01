@@ -20,10 +20,15 @@ import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel
 
 interface CompileSdkBlockModel : GradleBlockModel {
   fun getVersion(): CompileSdkVersionModel?
+  fun setReleaseVersion(version: Int, minorApi: Int?, extension: Int?)
+  fun setPreviewVersion(version: String)
 }
 
 interface CompileSdkVersionModel {
+  fun toHash(): String?
+  fun toInt(): Int?
   fun getVersion(): ResolvedPropertyModel
+  fun delete()
 }
 
 interface CompileSdkReleaseModel : CompileSdkVersionModel {

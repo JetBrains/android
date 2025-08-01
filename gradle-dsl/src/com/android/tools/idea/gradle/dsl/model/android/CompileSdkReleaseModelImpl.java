@@ -22,11 +22,12 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CompileSdkReleaseModelImpl implements CompileSdkReleaseModel {
   public static String MINOR_API_LEVEL = "minorApiLevel";
   public static String SDK_EXTENSION = "sdkExtension";
-  private GradleDslMethodCall myMethodCall;
+  private final GradleDslMethodCall myMethodCall;
   GradleDslClosure myClosure;
 
   public CompileSdkReleaseModelImpl(@NotNull GradleDslMethodCall methodCall) {
@@ -49,5 +50,33 @@ public class CompileSdkReleaseModelImpl implements CompileSdkReleaseModel {
   @Override
   public @NotNull ResolvedPropertyModel getVersion() {
     return GradlePropertyModelBuilder.create(myMethodCall.getArguments().get(0)).buildResolved();
+  }
+
+  @Override
+  public void delete() {
+    myMethodCall.delete();
+  }
+
+  @Override
+  public @Nullable String toHash() {
+    Integer apiLevel = getVersion().toInt();
+    var compileSdkString = "android-" + apiLevel;
+    Integer minorApiLevel = getMinorApiLevel().toInt();
+    if (minorApiLevel != null) {
+      compileSdkString += "." + minorApiLevel;
+    }
+    Integer sdkExtension = getSdkExtension().toInt();
+    if (sdkExtension != null) {
+      compileSdkString += "-ext" + sdkExtension;
+    }
+    return compileSdkString;
+  }
+
+  @Override
+  public @Nullable Integer toInt() {
+    if (getMinorApiLevel().toInt() == null && getSdkExtension().toInt() == null) {
+      return getVersion().toInt();
+    }
+    else return null;
   }
 }

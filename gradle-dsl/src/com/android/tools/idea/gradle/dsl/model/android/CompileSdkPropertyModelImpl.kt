@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.api.android.CompileSdkPropertyModel.Com
 import com.android.tools.idea.gradle.dsl.api.android.CompileSdkPropertyModel.Companion.COMPILE_SDK_INTRODUCED_VERSION
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
+import com.android.tools.idea.gradle.dsl.api.util.TypeReference
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil
@@ -29,7 +30,8 @@ import com.android.tools.idea.gradle.dsl.parser.android.CompileSdkBlockDslElemen
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint
 
-class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyModel) : CompileSdkPropertyModel, ResolvedPropertyModel by internalModel {
+class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyModel) : CompileSdkPropertyModel,
+                                                                                      ResolvedPropertyModel by internalModel {
   companion object {
     @JvmStatic
     fun getOrCreateCompileSdkPropertyModel(parent: GradlePropertiesDslElement): CompileSdkPropertyModelImpl {
@@ -37,7 +39,8 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
       val agp410plus = VersionConstraint.agpFrom(COMPILE_SDK_INTRODUCED_VERSION)
       val compileSdkBlockVersion = VersionConstraint.agpFrom(COMPILE_SDK_BLOCK_VERSION)
       val compileSdkBlock = parent.getPropertyElement(
-        CompileSdkBlockDslElement.COMPILE_SDK)
+        CompileSdkBlockDslElement.COMPILE_SDK
+      )
       val oldModel = GradlePropertyModelBuilder.create(parent, AndroidModelImpl.COMPILE_SDK_VERSION).addTransform(
         SdkOrPreviewTransform(
           AndroidModelImpl.COMPILE_SDK_VERSION, "compileSdkVersion", "compileSdk", "compileSdkPreview", agp410plus
@@ -49,19 +52,17 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
         // new DSL is possible
         if (compileSdkBlock != null) {
           return CompileSdkPropertyModelImpl(CompileSdkBlockPropertyModel(compileSdkBlock))
-        }
-        else if (oldModel.psiElement != null) {
+        } else if (oldModel.psiElement != null) {
           // existing old DSL
           return CompileSdkPropertyModelImpl(oldModel)
-        }
-        else {
+        } else {
           // brand new element
           val newCompileSdkBlock: CompileSdkBlockDslElement = parent.ensurePropertyElement(
-            CompileSdkBlockDslElement.COMPILE_SDK)
+            CompileSdkBlockDslElement.COMPILE_SDK
+          )
           return CompileSdkPropertyModelImpl(CompileSdkBlockPropertyModel(newCompileSdkBlock))
         }
-      }
-      else {
+      } else {
         // AGP is old need to stick to old DSL
         return CompileSdkPropertyModelImpl(oldModel)
       }
@@ -70,17 +71,52 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
   }
 
   class CompileSdkBlockPropertyModel(val dslElement: CompileSdkBlockDslElement) : GradlePropertyModelImpl(
-    dslElement), ResolvedPropertyModel {
+    dslElement
+  ), ResolvedPropertyModel {
+    val sdkBlockModel = CompileSdkBlockModelImpl(dslElement)
     override fun getValueType(): GradlePropertyModel.ValueType = GradlePropertyModel.ValueType.CUSTOM
     override fun getResultModel(): GradlePropertyModel = PropertyUtil.resolveModel(this)
   }
 
   override fun toCompileSdkConfig(): CompileSdkBlockModel? {
     if (internalModel is CompileSdkBlockPropertyModel) {
-      return CompileSdkBlockModelImpl(internalModel.dslElement)
+      return internalModel.sdkBlockModel
     }
     return null
   }
+
+  override fun setValue(value: Any) {
+    if (internalModel is CompileSdkBlockPropertyModel) {
+      when (value) {
+        is Int -> toCompileSdkConfig()!!.setReleaseVersion(value, null, null)
+        else -> {
+          val stringValue = value.toString()
+          val androidRegexp = "android-(\\d+)(\\.(?<minor>\\d+))?(-ext(?<ext>\\d+))?".toRegex()
+          val matchResult = androidRegexp.find(stringValue)
+          if (matchResult != null) {
+            val releaseVersion = matchResult.groupValues[1].toInt()
+            val minorApi = matchResult.groups["minor"]?.value?.toInt()
+            val extension = matchResult.groups["ext"]?.value?.toInt()
+            toCompileSdkConfig()!!.setReleaseVersion(releaseVersion, minorApi, extension)
+          } else
+            // random string
+            toCompileSdkConfig()!!.setPreviewVersion(stringValue)
+        }
+      }
+    } else internalModel.setValue(value)
+  }
+
+  override fun <T : Any?> getValue(typeReference: TypeReference<T>): T? {
+    (internalModel as? CompileSdkBlockPropertyModel)?.let {
+      when (typeReference) {
+        GradlePropertyModel.STRING_TYPE -> return it.sdkBlockModel.getVersion()?.toHash() as T?
+        GradlePropertyModel.INTEGER_TYPE -> return it.sdkBlockModel.getVersion()?.toInt() as T?
+        else -> internalModel.getValue(typeReference)
+      }
+    }
+    return internalModel.getValue(typeReference)
+  }
+
 
   override fun toString(): String {
     return internalModel.toString()

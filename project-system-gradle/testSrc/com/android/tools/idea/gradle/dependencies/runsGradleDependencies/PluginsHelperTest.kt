@@ -880,7 +880,7 @@ class PluginsHelperTest{
 
   @Test
   fun testFindPlaceAndAddPluginNoCatalogPluginsBlock() {
-    doTest(MIGRATE_BUILD_CONFIG,
+    doTest(SIMPLE_APPLICATION_PLUGINS_DSL,
            { _, moduleModel, helper ->
              val changed = helper.findPlaceAndAddPlugin("com.google.gms.google-services",
                                                         "4.3.14",
