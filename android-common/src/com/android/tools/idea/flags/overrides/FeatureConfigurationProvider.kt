@@ -41,7 +41,7 @@ class FeatureConfigurationProvider private constructor(
 ): FlagValueProvider {
 
   private val currentConfig: FeatureConfiguration get() =
-      StudioFlags.FLAG_CHANNEL.get()
+      StudioFlags.FLAG_LEVEL.get()
 
   override fun get(flag: Flag<*>): String? = getValueById(flag.id)
 

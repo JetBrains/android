@@ -99,11 +99,11 @@ public final class StudioFlags {
 
   private static final FlagGroup META_FLAGS = new FlagGroup(FLAGS, "flags", "Studio Flags");
 
-  public static final EnumFlag<FeatureConfiguration> FLAG_CHANNEL = new EnumFlag<>(
+  public static final EnumFlag<FeatureConfiguration> FLAG_LEVEL = new EnumFlag<>(
     META_FLAGS,
-    "channel.override",
-    "Override the channel controlling flag defaults",
-    "Override the channel controlling flag defaults. Changing the value of this flag requires restarting Android Studio",
+    "configuration.level",
+    "Sets the flag configuration level",
+    "Changes the configuration level that controls the flag defaults. Changing the value of this flag requires restarting Android Studio",
     FeatureConfiguration.Companion.getCurrent());
 
   //region New Project Wizard

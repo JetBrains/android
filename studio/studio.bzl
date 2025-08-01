@@ -53,6 +53,7 @@ _ConfigurationInfo = provider(
         "version_suffix": "If None, auto computed, if provided used instead. Eg. Nightly 2024-10-10.",
         "application_icon": "The application icon to use.",
         "mac_app_name": "The application name on Mac, e.g. 'Android Studio Preview'",
+        "vm_options": "Custom vm options per configuration",
     },
 )
 
@@ -833,7 +834,7 @@ def _android_studio_os(ctx, platform, added_plugins, out):
 
     suffix = "64" if platform == LINUX else ("64.exe" if platform == WIN else "")
     vm_options_path = platform_prefix + platform.base_path + "bin/studio" + suffix + ".vmoptions"
-    vm_options = ctx.attr.vm_options + {
+    vm_options = config.vm_options + ctx.attr.vm_options + {
         LINUX: ctx.attr.vm_options_linux,
         MAC: ctx.attr.vm_options_mac,
         MAC_ARM: ctx.attr.vm_options_mac_arm,
@@ -1101,14 +1102,28 @@ def _android_studio_configuration_impl(ctx):
         version_type = ctx.attr.version_type,
         version_suffix = ctx.attr.version_suffix,
         mac_app_name = ctx.attr.mac_app_name,
+        vm_options = ctx.attr.vm_options,
     )]
 
-android_studio_configuration = rule(
+def android_studio_configuration(
+        name,
+        flag_level,
+        vm_options = [],
+        **kwargs):
+    _vm_options = vm_options + ["-Dflags.configuration.level=" + flag_level]
+    _android_studio_configuration(
+        name = name,
+        vm_options = _vm_options,
+        **kwargs
+    )
+
+_android_studio_configuration = rule(
     attrs = {
         "application_icon": attr.label(providers = [AppIconInfo], mandatory = True),
         "version_type": attr.string(),
         "version_suffix": attr.string(),
         "mac_app_name": attr.string(mandatory = True),
+        "vm_options": attr.string_list(),
     },
     implementation = _android_studio_configuration_impl,
 )

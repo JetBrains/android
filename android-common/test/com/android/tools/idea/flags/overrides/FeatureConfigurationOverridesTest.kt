@@ -30,7 +30,7 @@ import org.junit.Test
 class FeatureConfigurationOverridesTest {
 
   @get:Rule
-  val studioFlagRule = FlagRule(StudioFlags.FLAG_CHANNEL)
+  val studioFlagRule = FlagRule(StudioFlags.FLAG_LEVEL)
 
   @Test
   fun testEmpty() {
@@ -50,7 +50,7 @@ class FeatureConfigurationOverridesTest {
     group1.flag3=COMPLETE:2025
     """.trimIndent()
 
-    StudioFlags.FLAG_CHANNEL.override(FeatureConfiguration.INTERNAL)
+    StudioFlags.FLAG_LEVEL.override(FeatureConfiguration.INTERNAL)
     Truth.assertThat(
       FeatureConfigurationProvider.loadValues(content.byteInputStream()).toMap()
     ).containsExactly(
@@ -68,7 +68,7 @@ class FeatureConfigurationOverridesTest {
     group1.flag2=PREVIEW
     group1.flag3=COMPLETE:2025
     """.trimIndent()
-    StudioFlags.FLAG_CHANNEL.override(FeatureConfiguration.PREVIEW)
+    StudioFlags.FLAG_LEVEL.override(FeatureConfiguration.PREVIEW)
     Truth.assertThat(
       FeatureConfigurationProvider.loadValues(content.byteInputStream()).toMap()
     ).containsExactly(
@@ -86,7 +86,7 @@ class FeatureConfigurationOverridesTest {
     group1.flag2=PREVIEW
     group1.flag3=COMPLETE:2025
     """.trimIndent()
-    StudioFlags.FLAG_CHANNEL.override(FeatureConfiguration.COMPLETE)
+    StudioFlags.FLAG_LEVEL.override(FeatureConfiguration.COMPLETE)
     Truth.assertThat(
       FeatureConfigurationProvider.loadValues(content.byteInputStream()).toMap()
     ).containsExactly(
@@ -115,7 +115,7 @@ class FeatureConfigurationOverridesTest {
     val previewFlag = BooleanFlag(group, "flagPreview", "name_b", "description_b")
     val completeFlag = BooleanFlag(group, "flagComplete", "name_c", "description_c")
 
-    StudioFlags.FLAG_CHANNEL.override(FeatureConfiguration.INTERNAL)
+    StudioFlags.FLAG_LEVEL.override(FeatureConfiguration.INTERNAL)
     FeatureConfigurationProvider.loadValues(content.byteInputStream()).let { internal ->
       assertThat(internal.getConfigurationExplanation(offFlag)).isNull()
       assertThat(internal.getConfigurationExplanation(internalFlag)).isEqualTo("Enabled only in internal builds")
@@ -124,7 +124,7 @@ class FeatureConfigurationOverridesTest {
       assertThat(internal.getConfigurationExplanation(completeFlag)).isNull()
     }
 
-    StudioFlags.FLAG_CHANNEL.override(FeatureConfiguration.NIGHTLY)
+    StudioFlags.FLAG_LEVEL.override(FeatureConfiguration.NIGHTLY)
     FeatureConfigurationProvider.loadValues(content.byteInputStream()).let { nightly ->
       assertThat(nightly.getConfigurationExplanation(offFlag)).isNull()
       assertThat(nightly.getConfigurationExplanation(internalFlag)).isEqualTo("Disabled by default. Enabled only in internal builds")
@@ -133,7 +133,7 @@ class FeatureConfigurationOverridesTest {
       assertThat(nightly.getConfigurationExplanation(completeFlag)).isNull()
     }
 
-    StudioFlags.FLAG_CHANNEL.override(FeatureConfiguration.PREVIEW)
+    StudioFlags.FLAG_LEVEL.override(FeatureConfiguration.PREVIEW)
     FeatureConfigurationProvider.loadValues(content.byteInputStream()).let { preview ->
       assertThat(preview.getConfigurationExplanation(offFlag)).isNull()
       assertThat(preview.getConfigurationExplanation(internalFlag)).isEqualTo("Disabled by default. Enabled only in internal builds")
@@ -142,7 +142,7 @@ class FeatureConfigurationOverridesTest {
       assertThat(preview.getConfigurationExplanation(completeFlag)).isNull()
     }
 
-    StudioFlags.FLAG_CHANNEL.override(FeatureConfiguration.COMPLETE)
+    StudioFlags.FLAG_LEVEL.override(FeatureConfiguration.COMPLETE)
     FeatureConfigurationProvider.loadValues(content.byteInputStream()).let { complete ->
       assertThat(complete.getConfigurationExplanation(offFlag)).isNull()
       assertThat(complete.getConfigurationExplanation(internalFlag)).isEqualTo("Disabled by default. Enabled only in internal builds")
@@ -154,7 +154,7 @@ class FeatureConfigurationOverridesTest {
 
   @Test
   fun testUnitTest() {
-    StudioFlags.FLAG_CHANNEL.clearOverride()
+    StudioFlags.FLAG_LEVEL.clearOverride()
     // Unit test should match to DEV channel.
 
     val content = """

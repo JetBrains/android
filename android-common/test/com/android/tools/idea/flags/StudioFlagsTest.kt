@@ -27,6 +27,6 @@ class StudioFlagsTest {
 
   @Test
   fun testChannelDefault() {
-    Assert.assertEquals(FeatureConfiguration.INTERNAL, StudioFlags.FLAG_CHANNEL.get())
+    Assert.assertEquals(FeatureConfiguration.INTERNAL, StudioFlags.FLAG_LEVEL.get())
   }
 }
