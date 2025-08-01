@@ -71,6 +71,12 @@ object MeasurementPluginConfig {
     })
       apply<${MeasurementPlugin::class.simpleName}>()
     """.trimIndent())
+
+    // Create dummy Gradle init KTS as a workaround for KTIJ-35104
+    File(System.getProperty("gradle.user.home")).resolve("init.d").run {
+      mkdir()
+      resolve("dummy.init.gradle.kts").createNewFile()
+    }
   }
 }
 
