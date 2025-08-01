@@ -73,6 +73,8 @@ jvm_library(
     "//platform/refactoring",
     "//platform/service-container",
     "//platform/service-container:service-container_test_lib",
+    "//platform/smRunner",
+    "//platform/smRunner:smRunner_test_lib",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
