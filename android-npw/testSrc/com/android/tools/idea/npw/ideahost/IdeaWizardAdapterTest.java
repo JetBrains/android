@@ -35,7 +35,6 @@ import com.intellij.testFramework.RunsInEdt;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -102,11 +101,6 @@ public class IdeaWizardAdapterTest {
       firstStepValue = false;
     }
 
-    @Nullable
-    @Override
-    protected String getHelpID() {
-      return null;
-    }
 
     @Override
     public void updateButtons(boolean lastStep, boolean canGoNext, boolean firstStep) {

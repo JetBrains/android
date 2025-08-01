@@ -89,10 +89,11 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       this.name = name;
     }
 
+    @Override
     public String toString() {
       return name;
     }
-    private String name;
+    private final String name;
   }
   public static final TargetType BUNDLE = TargetType.BUNDLE;
   public static final TargetType APK = TargetType.APK;
@@ -221,7 +222,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   }
 
   @Override
-  protected String getHelpID() {
+  protected String getHelpId() {
     ExportSignedPackageWizardStep step = getCurrentStepObject();
     if (step != null) {
       return step.getHelpId();
@@ -347,7 +348,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     List<String> gradleTasks = getGradleTasks(gradleProjectPath.getPath(), androidModel, variants, targetType);
     buildResultHandler.consume(
       gradleBuildInvoker.executeAssembleTasks(
-        modules.toArray(new Module[0]),
+        modules.toArray(Module.EMPTY_ARRAY),
         ImmutableList.of(
           GradleBuildInvoker.Request.builder(gradleBuildInvoker.getProject(), rootProjectFile, gradleTasks, null)
             .setCommandLineArguments(signingProperties)

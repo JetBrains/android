@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.BoxLayout;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Custom wizard for the generate migration feature.
@@ -50,10 +49,10 @@ import org.jetbrains.annotations.Nullable;
 public class GenerateMigrationWizard extends AbstractWizard<GenerateMigrationWizardStep> {
   private static final String WIZARD_TITLE = "Generate a Room Migration";
 
-  private GenerateMigrationWizardData myWizardData;
-  private GenerateMigrationWizardStep selectDestinationStep;
-  private GenerateMigrationWizardStep renameTablesStep;
-  private GenerateMigrationWizardStep renameColumnsStep;
+  private final GenerateMigrationWizardData myWizardData;
+  private final GenerateMigrationWizardStep selectDestinationStep;
+  private final GenerateMigrationWizardStep renameTablesStep;
+  private final GenerateMigrationWizardStep renameColumnsStep;
 
   public GenerateMigrationWizard(@NotNull Project project,
                                  @NotNull PsiPackage targetPackage,
@@ -110,11 +109,6 @@ public class GenerateMigrationWizard extends AbstractWizard<GenerateMigrationWiz
     return previousStep;
   }
 
-  @Nullable
-  @Override
-  protected String getHelpID() {
-    return null;
-  }
 
   @NotNull
   public PsiPackage getTargetPackage() {
@@ -162,10 +156,10 @@ public class GenerateMigrationWizard extends AbstractWizard<GenerateMigrationWiz
     private static final String RENAMED = "renamed";
     private static final String[] STATUSES = {DELETED, RENAMED};
 
-    private JBLabel initialName;
-    private ComboBox<String> statusComboBox;
-    private ComboBox<String> newNamesComboBox;
-    private JBPanel renameStepElementPanel;
+    private final JBLabel initialName;
+    private final ComboBox<String> statusComboBox;
+    private final ComboBox<String> newNamesComboBox;
+    private final JBPanel renameStepElementPanel;
 
     public RenamePanelElement(@NotNull String initialName, @NotNull List<String> newNames) {
       this.initialName = new JBLabel(initialName);
@@ -233,8 +227,8 @@ public class GenerateMigrationWizard extends AbstractWizard<GenerateMigrationWiz
     private static final String HEADER_OPERATION_LABEL = "Operation";
     private static final String HEADER_NEW_NAME_LABEL = "New Name";
 
-    private List<RenamePanelElement> renameStepElements;
-    private JBPanel renameStepPanel;
+    private final List<RenamePanelElement> renameStepElements;
+    private final JBPanel renameStepPanel;
 
     public RenamePanel(@NotNull String label,
                        @NotNull List<String> oldNames,
