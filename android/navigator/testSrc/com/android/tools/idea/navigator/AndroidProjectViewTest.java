@@ -20,6 +20,10 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static org.jetbrains.android.AndroidTestBase.refreshProjectFiles;
+import static com.android.tools.idea.navigator.AndroidProjectViewPane.PROJECT_VIEW_DEFAULT_KEY;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.android.testutils.SystemPropertyOverrides;
@@ -33,10 +37,12 @@ import com.android.tools.idea.gradle.projectView.AndroidProjectViewSettingsImpl;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.android.tools.idea.testing.AndroidGradleTests;
+import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.tools.idea.util.CommonAndroidUtil;
 import com.android.utils.FileUtils;
@@ -50,7 +56,9 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.ProjectAbstractTreeStructureBase;
 import com.intellij.ide.projectView.impl.ProjectViewState;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -74,6 +82,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -81,8 +90,10 @@ import org.mockito.Mockito;
 @RunsInEdt
 public class AndroidProjectViewTest {
   AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
+  TemporaryFolder tempFolder = new TemporaryFolder();
+
   @Rule
-  public TestRule rule = RuleChain.outerRule(projectRule).around(new EdtRule());
+  public TestRule rule = RuleChain.outerRule(projectRule).around(new EdtRule()).around(tempFolder);
   private AndroidProjectViewPane myPane;
 
   @Test
@@ -281,8 +292,8 @@ public class AndroidProjectViewTest {
     assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault(GameTools)").isTrue();
 
     try (SystemPropertyOverrides override = new SystemPropertyOverrides()) {
-      override.setProperty("studio.projectview", "true");
-      assertThat(settings.isDefaultToProjectViewEnabled()).isFalse();
+      override.setProperty(PROJECT_VIEW_DEFAULT_KEY, "true");
+      assertThat(settings.isDefaultToProjectViewEnabled()).isTrue();
       when(ideInfo.isAndroidStudio()).thenReturn(false);
       when(ideInfo.isGameTools()).thenReturn(false);
       assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault(property)").isFalse();
@@ -296,7 +307,7 @@ public class AndroidProjectViewTest {
       assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault(GameTools, property)").isFalse();
 
       settings.setDefaultToProjectView(true);
-      override.setProperty("studio.projectview", "false");
+      override.setProperty(PROJECT_VIEW_DEFAULT_KEY, "false");
       assertThat(settings.isDefaultToProjectViewEnabled()).isTrue();
       when(ideInfo.isAndroidStudio()).thenReturn(false);
       when(ideInfo.isGameTools()).thenReturn(false);
@@ -360,6 +371,135 @@ public class AndroidProjectViewTest {
   }
 
   @Test
+  public void testAndroidViewIsDefaultCustomPropertyHandling() throws Exception {
+    Project project = projectRule.getProject();
+    IdeInfo ideInfo = Mockito.spy(IdeInfo.getInstance());
+    GradleProjectSystem mockGradleProjectSystem = Mockito.mock(GradleProjectSystem.class);
+    CommonAndroidUtil commonAndroidUtil = Mockito.mock(CommonAndroidUtil.class);
+    MockedStatic<ProjectSystemUtil> projectSystemUtilMockedStatic = Mockito.mockStatic(ProjectSystemUtil.class);
+    MockedStatic<CommonAndroidUtil> commonAndroidUtilMockedStatic = Mockito.mockStatic(CommonAndroidUtil.class);
+    projectSystemUtilMockedStatic.when(() -> ProjectSystemUtil.getProjectSystem(project)).thenReturn(mockGradleProjectSystem);
+    commonAndroidUtilMockedStatic.when(CommonAndroidUtil::getInstance).thenReturn(commonAndroidUtil);
+    AndroidNotification myMockNotification = Mockito.mock(AndroidNotification.class);
+    new IdeComponents(project).replaceProjectService(AndroidNotification.class, myMockNotification);
+    AndroidProjectViewSettingsImpl settings = new AndroidProjectViewSettingsImpl();
+    myPane = createPane();
+
+    when(mockGradleProjectSystem.isAndroidProjectViewSupported()).thenReturn(true);
+    when(commonAndroidUtil.isAndroidProject(project)).thenReturn(true);
+
+    try (SystemPropertyOverrides override = new SystemPropertyOverrides()) {
+      override.setProperty(PROJECT_VIEW_DEFAULT_KEY, "true");
+
+      // Assert that setting is set to true, custom property is removed, and user is notified
+      when(ideInfo.isAndroidStudio()).thenReturn(true);
+      when(ideInfo.isGameTools()).thenReturn(false);
+      assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault(AndroidStudio)").isFalse();
+      assertThat(settings.isDefaultToProjectViewEnabled()).isTrue();
+      assertThat(settings.isProjectViewDefault()).isTrue();
+      assertThat(java.lang.Boolean.getBoolean(PROJECT_VIEW_DEFAULT_KEY)).isFalse();
+
+      // Assert that no additional notifications are shown the next time isDefaultPane is called
+      myPane.isDefaultPane(project, ideInfo, settings);
+      verify(myMockNotification, times(1)).showBalloon("Default Project View Setting Updated",
+                                                       "'Set Project view as the default' advanced" +
+                                                       " setting was enabled due to the custom property `studio.projectview=true`. We recommend removing this property and using" +
+                                                       " 'Advanced Settings -> Project View -> Set Project view as the default` to configure the default project view.",
+                                                       NotificationType.INFORMATION);
+    }
+    projectSystemUtilMockedStatic.close();
+    commonAndroidUtilMockedStatic.close();
+  }
+
+  @Test
+  public void testAndroidViewIsDefaultCustomPropertyHandlingWithCustomPropertiesFile() throws Exception {
+    Project project = projectRule.getProject();
+    IdeInfo ideInfo = Mockito.spy(IdeInfo.getInstance());
+    GradleProjectSystem mockGradleProjectSystem = Mockito.mock(GradleProjectSystem.class);
+    CommonAndroidUtil commonAndroidUtil = Mockito.mock(CommonAndroidUtil.class);
+    MockedStatic<ProjectSystemUtil> projectSystemUtilMockedStatic = Mockito.mockStatic(ProjectSystemUtil.class);
+    MockedStatic<CommonAndroidUtil> commonAndroidUtilMockedStatic = Mockito.mockStatic(CommonAndroidUtil.class);
+    projectSystemUtilMockedStatic.when(() -> ProjectSystemUtil.getProjectSystem(project)).thenReturn(mockGradleProjectSystem);
+    commonAndroidUtilMockedStatic.when(CommonAndroidUtil::getInstance).thenReturn(commonAndroidUtil);
+    AndroidNotification myMockNotification = Mockito.mock(AndroidNotification.class);
+    new IdeComponents(project).replaceProjectService(AndroidNotification.class, myMockNotification);
+    AndroidProjectViewSettingsImpl settings = new AndroidProjectViewSettingsImpl();
+    myPane = createPane();
+
+    MockedStatic<PathManager> mockedPathManager = mockStatic(PathManager.class);
+    tempFolder.create();
+    File customTempDir = tempFolder.getRoot();
+    File ideaFile = tempFolder.newFile(PathManager.PROPERTIES_FILE_NAME);
+    java.nio.file.Files.writeString(ideaFile.toPath(), PROJECT_VIEW_DEFAULT_KEY + "=true");
+    mockedPathManager.when(PathManager::getCustomOptionsDirectory)
+      .thenReturn(customTempDir.getPath());
+
+    when(mockGradleProjectSystem.isAndroidProjectViewSupported()).thenReturn(true);
+    when(commonAndroidUtil.isAndroidProject(project)).thenReturn(true);
+
+    try (SystemPropertyOverrides override = new SystemPropertyOverrides()) {
+      override.setProperty(PROJECT_VIEW_DEFAULT_KEY, "true");
+
+      // Assert that setting is set to true, custom property is removed, file is updated, and user is notified
+      when(ideInfo.isAndroidStudio()).thenReturn(true);
+      when(ideInfo.isGameTools()).thenReturn(false);
+      assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault(AndroidStudio)").isFalse();
+      assertThat(settings.isDefaultToProjectViewEnabled()).isTrue();
+      assertThat(settings.isProjectViewDefault()).isTrue();
+      assertThat(java.lang.Boolean.getBoolean(PROJECT_VIEW_DEFAULT_KEY)).isFalse();
+      verify(myMockNotification).showBalloon("Default Project View Setting Updated", "'Set Project view as the default' advanced" +
+                                                                                     " setting was enabled due to the custom property `studio.projectview=true`. This property has been removed from " +
+                                                                                     ideaFile.getPath(), NotificationType.INFORMATION);
+      assertThat(java.nio.file.Files.readString(ideaFile.toPath())).doesNotContain(PROJECT_VIEW_DEFAULT_KEY + "=true");
+    }
+    mockedPathManager.close();
+    projectSystemUtilMockedStatic.close();
+    commonAndroidUtilMockedStatic.close();
+  }
+
+  @Test
+  public void testAndroidViewIsDefaultCustomPropertyHandlingWithCustomVMPropertiesFile() throws Exception {
+    Project project = projectRule.getProject();
+    IdeInfo ideInfo = Mockito.spy(IdeInfo.getInstance());
+    GradleProjectSystem mockGradleProjectSystem = Mockito.mock(GradleProjectSystem.class);
+    CommonAndroidUtil commonAndroidUtil = Mockito.mock(CommonAndroidUtil.class);
+    MockedStatic<ProjectSystemUtil> projectSystemUtilMockedStatic = Mockito.mockStatic(ProjectSystemUtil.class);
+    MockedStatic<CommonAndroidUtil> commonAndroidUtilMockedStatic = Mockito.mockStatic(CommonAndroidUtil.class);
+    projectSystemUtilMockedStatic.when(() -> ProjectSystemUtil.getProjectSystem(project)).thenReturn(mockGradleProjectSystem);
+    commonAndroidUtilMockedStatic.when(CommonAndroidUtil::getInstance).thenReturn(commonAndroidUtil);
+    AndroidNotification myMockNotification = Mockito.mock(AndroidNotification.class);
+    new IdeComponents(project).replaceProjectService(AndroidNotification.class, myMockNotification);
+    AndroidProjectViewSettingsImpl settings = new AndroidProjectViewSettingsImpl();
+    myPane = createPane();
+
+    tempFolder.create();
+    File vmPropertiesFile = tempFolder.newFile("studio64.vmoptions");
+    java.nio.file.Files.writeString(vmPropertiesFile.toPath(), "-D" + PROJECT_VIEW_DEFAULT_KEY + "=true");
+    when(mockGradleProjectSystem.isAndroidProjectViewSupported()).thenReturn(true);
+    when(commonAndroidUtil.isAndroidProject(project)).thenReturn(true);
+
+    try (SystemPropertyOverrides override = new SystemPropertyOverrides()) {
+      override.setProperty(PROJECT_VIEW_DEFAULT_KEY, "true");
+      override.setProperty("jb.vmOptionsFile", vmPropertiesFile.getPath());
+
+      // Assert that setting is set to true, custom property is removed, file is updated, and user is notified
+      when(ideInfo.isAndroidStudio()).thenReturn(true);
+      when(ideInfo.isGameTools()).thenReturn(false);
+      assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault(AndroidStudio)").isFalse();
+      assertThat(settings.isDefaultToProjectViewEnabled()).isTrue();
+      assertThat(settings.isProjectViewDefault()).isTrue();
+      assertThat(java.lang.Boolean.getBoolean(PROJECT_VIEW_DEFAULT_KEY)).isFalse();
+      verify(myMockNotification).showBalloon("Default Project View Setting Updated", "'Set Project view as the default' advanced" +
+                                                                                     " setting was enabled due to the custom property `studio.projectview=true`. This property has been removed from custom VM options.",
+                                             NotificationType.INFORMATION);
+      assertThat(java.nio.file.Files.readString(vmPropertiesFile.toPath())).doesNotContain(PROJECT_VIEW_DEFAULT_KEY + "=true");
+    }
+
+    projectSystemUtilMockedStatic.close();
+    commonAndroidUtilMockedStatic.close();
+  }
+
+  @Test
   public void testAndroidViewIsDefaultMetrics() throws Exception {
     myPane = createPane();
     IdeInfo ideInfo = Mockito.spy(IdeInfo.getInstance());
@@ -375,7 +515,7 @@ public class AndroidProjectViewTest {
     when(commonAndroidUtil.isAndroidProject(project)).thenReturn(true);
 
     try (SystemPropertyOverrides override = new SystemPropertyOverrides()) {
-      override.setProperty("studio.projectview", "false");
+      override.setProperty(PROJECT_VIEW_DEFAULT_KEY, "false");
       settings.setDefaultToProjectView(true);
 
       TestUsageTracker testUsageTracker = new TestUsageTracker(new VirtualTimeScheduler());
