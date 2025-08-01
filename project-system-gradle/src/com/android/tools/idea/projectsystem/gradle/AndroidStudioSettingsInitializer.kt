@@ -25,6 +25,6 @@ class AndroidStudioSettingsInitializer : ApplicationInitializedListener {
   override suspend fun execute() {
     // Disable all settings sections that we don't want to be present in Android Studio.
     // See AndroidStudioPreferences for a full list.
-    AndroidStudioPreferences.cleanUpPreferences(ProjectManager.getInstance().defaultProject)
+    AndroidStudioPreferences.unregisterUnnecessaryExtensions(ProjectManager.getInstance().defaultProject)
   }
 }

@@ -43,7 +43,7 @@ import javax.swing.JList
  * This is a replacement for [Settings | Build, Execution, Deployment | Build Tools] area, which offers IDEA sync project control
  * that we don't use. This configurable exposes control over [AutoSyncBehavior] instead.
  *
- * Hiding of the standard IDEA build tools setting happens via [com.android.tools.idea.gradle.util.AndroidStudioPreferences.cleanUpPreferences]
+ * Hiding of the standard IDEA build tools setting happens via [com.android.tools.idea.gradle.util.AndroidStudioPreferences.unregisterUnnecessaryExtensions]
  * that currently happens in [com.android.tools.idea.gradle.project.AndroidStudioProjectActivity] (for settings once a project is open) and in
  * [com.android.tools.idea.projectsystem.gradle.AndroidStudioSettingsInitializer] (for settings before any project is opened).
  */

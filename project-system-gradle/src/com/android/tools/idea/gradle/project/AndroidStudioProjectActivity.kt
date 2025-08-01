@@ -50,7 +50,7 @@ class AndroidStudioProjectActivity : ProjectActivity {
       runInitialization {
         // Disable all settings sections that we don't want to be present in Android Studio.
         // See AndroidStudioPreferences for a full list.
-        AndroidStudioPreferences.cleanUpPreferences(project)
+        AndroidStudioPreferences.unregisterUnnecessaryExtensions(project)
 
         // Custom notifications for Android Studio, un-wanted or un-needed when running as the Android IntelliJ plugin
         notifyOnLegacyAndroidProject(project)

@@ -25,6 +25,7 @@ import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTrack
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.EditorNotificationProvider;
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -39,10 +40,19 @@ public final class AndroidStudioPreferences {
     "com.intellij.openapi.externalSystem.service.settings.ExternalSystemGroupConfigurable"
   );
 
+  private static final List<String> NOTIFICATION_PROVIDERS_TO_REMOVE = List.of(
+    "org.jetbrains.kotlin.idea.gradleJava.scripting.GradleScriptNotificationProvider"
+  );
+
   /**
-   * Disables all settings that we don't require in Android Studio.
+   * Disables extensions (settings, notification providers) from Intellij that we don't need in Android Studio.
    */
-  public static void cleanUpPreferences(@NotNull Project project) {
+  public static void unregisterUnnecessaryExtensions(@NotNull Project project) {
+    disableUnnecessarySettings(project);
+    disableUnnecessaryNotificationProviders(project);
+  }
+
+  private static void disableUnnecessarySettings(@NotNull Project project) {
     // This option currently causes issues with external Gradle builds (see https://issuetracker.google.com/issues/183632446)
     // This option can not be set in Android Studio, this is to disable already set configurations.
     CompilerWorkspaceConfiguration.getInstance(project).MAKE_PROJECT_ON_SAVE = false;
@@ -65,8 +75,15 @@ public final class AndroidStudioPreferences {
 
     // Note: This unregisters the extensions when the predicate returns False.
     projectConfigurable.unregisterExtensions((s, adapter) -> {
+      // We need to create instances as given string is universally com.intellij.openapi.options.ConfigurableEP
       ConfigurableEP<Configurable> ep = adapter.createInstance(project);
       return ep == null || !PROJECT_PREFERENCES_TO_REMOVE.contains(ep.instanceClass);
     }, false);
+  }
+
+  private static void disableUnnecessaryNotificationProviders(@NotNull Project project) {
+    // We can use given string as it already tells use the class used
+    EditorNotificationProvider.EP_NAME.getPoint(project)
+      .unregisterExtensions((s, adapter) -> !NOTIFICATION_PROVIDERS_TO_REMOVE.contains(s), false);
   }
 }
