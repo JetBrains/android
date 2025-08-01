@@ -292,6 +292,44 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
       String aspectFileLabel,
       Optional<String> targetPatternFileWorkspaceRelativeFile) {}
 
+  protected Map<String, ByteSource> getBuildDependenciesAspectDepsFiles() {
+    ImmutableMap.Builder<String, ByteSource> files = ImmutableMap.builder();
+    files.put(
+      "build_dependencies_deps.bzl",
+      MoreFiles.asByteSource(getBundledAspectPath("build_dependencies_deps.bzl")));
+
+    if (snapshotHolder.getCurrent().map(it -> it.queryData().querySummary().getAllBuildIncludedFiles().contains(RULES_ANDROID_RULES_BZL1) ||
+                                              it.queryData().querySummary().getAllBuildIncludedFiles().contains(RULES_ANDROID_RULES_BZL2))
+      .orElse(false)) {
+      files.put(
+        "build_dependencies_android_deps.bzl",
+        MoreFiles.asByteSource(getBundledAspectPath("build_dependencies_android_rules_android_deps.bzl")));
+    }
+    else if (BlazeProjectDataManager.getInstance(project).getBlazeProjectData().getBlazeVersionData().bazelIsAtLeastVersion(7, 1, 0)) {
+      files.put(
+        "build_dependencies_android_deps.bzl",
+        MoreFiles.asByteSource(getBundledAspectPath("build_dependencies_android_deps.bzl")));
+    }
+    else {
+      files.put(
+        "build_dependencies_android_deps.bzl",
+        MoreFiles.asByteSource(getBundledAspectPath("build_dependencies_android_legacy_deps.bzl")));
+    }
+    files.put(
+      "build_dependencies_cc_deps.bzl",
+      MoreFiles.asByteSource(getBundledAspectPath("build_dependencies_cc_deps.bzl")));
+    files.put(
+      "build_dependencies_java_deps.bzl",
+      MoreFiles.asByteSource(getBundledAspectPath("build_dependencies_java_deps.bzl")));
+    files.put(
+      "build_dependencies_java_proto_deps.bzl",
+      MoreFiles.asByteSource(getBundledAspectPath("build_dependencies_java_proto_deps.bzl")));
+    files.put(
+      "build_dependencies_kotlin_deps.bzl",
+      MoreFiles.asByteSource(getBundledAspectPath("build_dependencies_kotlin_deps.bzl")));
+    return files.build();
+  }
+
   /**
    * Provides information about files that must be create in the workspace root for the aspect to
    * operate.
@@ -310,12 +348,9 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
     files.put(
         Path.of(INVOCATION_FILES_DIR + "/build_dependencies.bzl"),
         MoreFiles.asByteSource(getBundledAspectPath("build_dependencies.bzl")));
-    files.put(
-        Path.of(INVOCATION_FILES_DIR + "/build_dependencies_deps.bzl"),
-        MoreFiles.asByteSource(getBundledAspectDepsFilePath()));
-    files.put(
-        Path.of(INVOCATION_FILES_DIR + "/build_dependencies_android_deps.bzl"),
-        MoreFiles.asByteSource(getBundledAspectAndroidDepsFilePath()));
+    getBuildDependenciesAspectDepsFiles().forEach((file, content) -> {
+      files.put(Path.of(INVOCATION_FILES_DIR + "/" + file), content);
+    });
     files.put(
         Path.of(INVOCATION_FILES_DIR + "/" + aspectFileName),
         getByteSourceFromString(getBuildDependenciesParametersFileContent(parameters)));
@@ -335,21 +370,6 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
         files.build(),
         Label.of(String.format("//" + INVOCATION_FILES_DIR + ":" + aspectFileName)).toString(),
         targetPatternFileWorkspaceRelativeFile);
-  }
-
-  protected Path getBundledAspectDepsFilePath() {
-    return getBundledAspectPath("build_dependencies_deps.bzl");
-  }
-
-  protected Path getBundledAspectAndroidDepsFilePath() {
-    if (snapshotHolder.getCurrent().map(it -> it.queryData().querySummary().getAllBuildIncludedFiles().contains(RULES_ANDROID_RULES_BZL1) ||
-                                              it.queryData().querySummary().getAllBuildIncludedFiles().contains(RULES_ANDROID_RULES_BZL2))
-      .orElse(false)) {
-      return getBundledAspectPath("build_dependencies_android_rules_android_deps.bzl");
-    } else if (BlazeProjectDataManager.getInstance(project).getBlazeProjectData().getBlazeVersionData().bazelIsAtLeastVersion(7,1,0)) {
-      return getBundledAspectPath("build_dependencies_android_deps.bzl");
-    }
-    return getBundledAspectPath("build_dependencies_legacy_android_deps.bzl");
   }
 
   private ByteSource getByteSourceFromString(String content) {
