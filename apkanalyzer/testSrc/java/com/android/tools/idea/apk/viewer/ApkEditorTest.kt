@@ -65,6 +65,7 @@ import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.tree.DefaultMutableTreeNode
+import kotlin.io.path.bufferedWriter
 import kotlin.io.path.createParentDirectories
 import kotlin.io.path.pathString
 import kotlin.test.fail
@@ -281,7 +282,10 @@ class ApkEditorTest {
     apk.createParentDirectories()
     mapping.createParentDirectories()
     TestResources.getFile("/obfuscated-app.apk").copyTo(apk.toFile())
-    TestResources.getFile("/obfuscated-app-mapping.txt").copyTo(mapping.toFile())
+    mapping.bufferedWriter().use {
+      it.write(TestResources.getFile("/obfuscated-app-mapping-first-half-so-its-smaller-than-12mb.txt").readText())
+      it.write(TestResources.getFile("/obfuscated-app-mapping-second-half-so-its-smaller-than-12mb.txt").readText())
+    }
 
     val apkEditor = apkEditor(apk.pathString, isResource = false)
 
