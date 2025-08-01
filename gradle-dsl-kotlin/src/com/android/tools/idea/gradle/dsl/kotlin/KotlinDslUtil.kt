@@ -985,12 +985,13 @@ internal fun createAndAddClosure(closure : GradleDslClosure, element : GradleDsl
   // (ex: implementation(file())). In such case, element has as psiElement the part that corresponds to "file()" only, and we should not
   // add the block to it but rather to the parent element, which would result in implementation(file()) {}.
   var psiElement = element.psiElement
-  if (psiElement !is KtCallExpression || psiElement.name() != element.name) {
+  val elementName = if(element is GradleDslMethodCall) element.methodName else element.name
+  if (psiElement !is KtCallExpression || psiElement.name() != elementName) {
     psiElement =
       (if (element is GradleDslMethodCall) getNextValidParentPsiElement(psiElement, KtCallExpression::class) else element.psiElement)
       ?: return
   }
-  if (psiElement is KtCallExpression && psiElement.name() != element.name) return
+  if (psiElement is KtCallExpression && psiElement.name() != elementName) return
 
   val psiFactory = KtPsiFactory(psiElement.project)
   psiElement.addAfter(psiFactory.createWhiteSpace(), psiElement.lastChild)
