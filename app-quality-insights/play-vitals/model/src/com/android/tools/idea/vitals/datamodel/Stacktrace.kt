@@ -22,10 +22,11 @@ import com.android.tools.idea.insights.Frame
 import com.android.tools.idea.insights.Stacktrace
 import com.android.tools.idea.insights.StacktraceGroup
 import com.intellij.execution.filters.ExceptionWorker.parseExceptionLine
-import com.intellij.openapi.diagnostic.Logger
 import java.util.ArrayDeque
+import java.util.logging.Level
+import java.util.logging.Logger
 
-private val LOG = Logger.getInstance("datamodel.Stacktrace")
+private val LOG = Logger.getLogger("datamodel.Stacktrace")
 
 private const val AT_PREFIX = "at "
 private const val STANDALONE_AT = " at "
@@ -55,9 +56,10 @@ sealed class Line {
           blame = Blames.UNKNOWN_BLAMED,
         )
       } else {
-        LOG.debug(
+        LOG.log(
+          Level.FINE,
           "$value is not in a recognized format and can't be parsed, " +
-            "but we still build a frame for it, then at least we can display it in our stacktrace panel later."
+            "but we still build a frame for it, then at least we can display it in our stacktrace panel later.",
         )
         Frame(
           line = 0L,

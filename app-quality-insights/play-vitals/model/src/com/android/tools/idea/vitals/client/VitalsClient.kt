@@ -41,7 +41,6 @@ import com.android.tools.idea.insights.client.AiInsightClient
 import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsClient
-import com.android.tools.idea.insights.client.GeminiAiInsightClient
 import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.client.QueryFilters
@@ -57,8 +56,7 @@ import com.android.tools.idea.vitals.datamodel.MetricType
 import com.android.tools.idea.vitals.datamodel.extractValue
 import com.android.tools.idea.vitals.datamodel.fromDimensions
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.project.Project
+import io.grpc.Channel
 import io.grpc.ClientInterceptor
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -66,16 +64,15 @@ import kotlinx.coroutines.coroutineScope
 private const val NOT_SUPPORTED_ERROR_MSG = "Vitals doesn't support this."
 
 class VitalsClient(
-  project: Project,
-  parentDisposable: Disposable,
+  channelProvider: () -> Channel,
   private val cache: AppInsightsCache,
   private val interceptor: ClientInterceptor,
   private val grpcClientOverride: VitalsGrpcClient? = null,
-  private val aiInsightClient: AiInsightClient = GeminiAiInsightClient(project, cache),
+  private val aiInsightClient: AiInsightClient,
 ) : AppInsightsClient {
 
   private val grpcClient: VitalsGrpcClient by lazy {
-    grpcClientOverride ?: VitalsGrpcClientImpl.create(parentDisposable, interceptor)
+    grpcClientOverride ?: VitalsGrpcClientImpl(channelProvider(), interceptor)
   }
 
   override suspend fun listConnections(): LoadingState.Done<List<AppConnection>> =

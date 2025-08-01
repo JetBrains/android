@@ -16,16 +16,14 @@
 package com.android.tools.idea.vitals.client
 
 import com.android.testutils.time.FakeClock
-import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.Interval
-import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.vitals.TEST_CONNECTION_1
 import com.android.tools.idea.vitals.TEST_ISSUE1
 import com.android.tools.idea.vitals.client.grpc.DISTINCT_USERS
 import com.android.tools.idea.vitals.client.grpc.ERROR_REPORT_COUNT
-import com.android.tools.idea.vitals.client.grpc.VitalsGrpcClientImpl
 import com.android.tools.idea.vitals.client.grpc.VitalsGrpcConnectionRule
 import com.android.tools.idea.vitals.client.grpc.createIssueRequest
+import com.android.tools.idea.vitals.client.grpc.createVitalsClient
 import com.android.tools.idea.vitals.client.grpc.toProtoDateTime
 import com.android.tools.idea.vitals.datamodel.DimensionType
 import com.android.tools.idea.vitals.datamodel.TimeGranularity
@@ -37,16 +35,12 @@ import com.google.play.developer.reporting.QueryErrorCountMetricSetRequest
 import com.google.play.developer.reporting.SearchErrorIssuesRequest
 import com.google.play.developer.reporting.SearchErrorReportsRequest
 import com.google.play.developer.reporting.TimelineSpec
-import com.intellij.testFramework.ProjectRule
-import com.studiogrpc.testutils.ForwardingInterceptor
 import java.time.ZoneId
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 
 class VitalsClientRequestProtoTest {
-
-  @get:Rule val projectRule = ProjectRule()
 
   @get:Rule val grpcRule = VitalsGrpcConnectionRule(TEST_CONNECTION_1)
 
@@ -57,86 +51,71 @@ class VitalsClientRequestProtoTest {
   }
 
   @Test
-  fun `client sends correct proto in request to listTopOpenIssues`() =
-    runBlocking<Unit> {
-      val client =
-        VitalsClient(
-          projectRule.project,
-          projectRule.disposable,
-          AppInsightsCacheImpl(),
-          ForwardingInterceptor,
-          VitalsGrpcClientImpl(grpcRule.grpcChannel, ForwardingInterceptor),
-        )
+  fun `client sends correct proto in request to listTopOpenIssues`() = runBlocking {
+    val client = createVitalsClient { grpcRule.grpcChannel }
 
-      val request = createIssueRequest(TEST_CONNECTION_1, clock)
-      client.listTopOpenIssues(request)
+    val request = createIssueRequest(TEST_CONNECTION_1, clock)
+    client.listTopOpenIssues(request)
 
-      val events = grpcRule.collectEvents()
+    val events = grpcRule.collectEvents()
 
-      assertThat(events).hasSize(9)
+    assertThat(events).hasSize(9)
 
-      val errorIssueRequest = events.filterIsInstance<SearchErrorIssuesRequest>().single()
-      assertThat(errorIssueRequest.parent).isEqualTo(TEST_CONNECTION_1.clientId)
-      assertThat(errorIssueRequest.interval)
-        .isEqualTo(request.filters.interval.toProtoDateTime(TimeGranularity.HOURLY))
-      assertThat(errorIssueRequest.filter)
-        .isEqualTo("(errorIssueType = ANR OR errorIssueType = CRASH)")
+    val errorIssueRequest = events.filterIsInstance<SearchErrorIssuesRequest>().single()
+    assertThat(errorIssueRequest.parent).isEqualTo(TEST_CONNECTION_1.clientId)
+    assertThat(errorIssueRequest.interval)
+      .isEqualTo(request.filters.interval.toProtoDateTime(TimeGranularity.HOURLY))
+    assertThat(errorIssueRequest.filter)
+      .isEqualTo("(errorIssueType = ANR OR errorIssueType = CRASH)")
 
-      val errorReportRequest = events.filterIsInstance<SearchErrorReportsRequest>().single()
-      assertThat(errorReportRequest.interval)
-        .isEqualTo(request.filters.interval.toProtoDateTime(TimeGranularity.HOURLY))
-      assertThat(errorReportRequest.filter)
-        .isEqualTo("(errorReportId = ${TEST_ISSUE1.issueDetails.sampleEvent.split("/").last()})")
+    val errorReportRequest = events.filterIsInstance<SearchErrorReportsRequest>().single()
+    assertThat(errorReportRequest.interval)
+      .isEqualTo(request.filters.interval.toProtoDateTime(TimeGranularity.HOURLY))
+    assertThat(errorReportRequest.filter)
+      .isEqualTo("(errorReportId = ${TEST_ISSUE1.issueDetails.sampleEvent.split("/").last()})")
 
-      val releaseFilteringRequest =
-        events.filterIsInstance<FetchReleaseFilterOptionsRequest>().single()
-      assertThat(releaseFilteringRequest.name).isEqualTo(TEST_CONNECTION_1.clientId)
+    val releaseFilteringRequest =
+      events.filterIsInstance<FetchReleaseFilterOptionsRequest>().single()
+    assertThat(releaseFilteringRequest.name).isEqualTo(TEST_CONNECTION_1.clientId)
 
-      val getErrorCountMetricSetRequests = events.filterIsInstance<GetErrorCountMetricSetRequest>()
-      assertThat(getErrorCountMetricSetRequests).hasSize(3)
-      assertThat(getErrorCountMetricSetRequests.toSet())
-        .containsExactly(
-          GetErrorCountMetricSetRequest.newBuilder()
-            .apply { name = "apps/${TEST_CONNECTION_1.appId}/errorCountMetricSet" }
-            .build()
-        )
-
-      val queryErrorCountMetricSetRequests =
-        events.filterIsInstance<QueryErrorCountMetricSetRequest>()
-      assertThat(queryErrorCountMetricSetRequests).hasSize(3)
-      assertQueryErrorCountMetricSetRequest(
-        queryErrorCountMetricSetRequests.first {
-          it.dimensionsList.contains(DimensionType.API_LEVEL.value)
-        },
-        request.filters.interval,
-        ERROR_REPORT_COUNT,
+    val getErrorCountMetricSetRequests = events.filterIsInstance<GetErrorCountMetricSetRequest>()
+    assertThat(getErrorCountMetricSetRequests).hasSize(3)
+    assertThat(getErrorCountMetricSetRequests.toSet())
+      .containsExactly(
+        GetErrorCountMetricSetRequest.newBuilder()
+          .apply { name = "apps/${TEST_CONNECTION_1.appId}/errorCountMetricSet" }
+          .build()
       )
-      assertQueryErrorCountMetricSetRequest(
-        queryErrorCountMetricSetRequests.first {
-          it.dimensionsList.contains(DimensionType.DEVICE_MODEL.value)
-        },
-        request.filters.interval,
-        ERROR_REPORT_COUNT,
-      )
-      assertQueryErrorCountMetricSetRequest(
-        queryErrorCountMetricSetRequests.first {
-          it.dimensionsList.contains(DimensionType.VERSION_CODE.value)
-        },
-        request.filters.interval,
-        ERROR_REPORT_COUNT,
-      )
-    }
+
+    val queryErrorCountMetricSetRequests =
+      events.filterIsInstance<QueryErrorCountMetricSetRequest>()
+    assertThat(queryErrorCountMetricSetRequests).hasSize(3)
+    assertQueryErrorCountMetricSetRequest(
+      queryErrorCountMetricSetRequests.first {
+        it.dimensionsList.contains(DimensionType.API_LEVEL.value)
+      },
+      request.filters.interval,
+      ERROR_REPORT_COUNT,
+    )
+    assertQueryErrorCountMetricSetRequest(
+      queryErrorCountMetricSetRequests.first {
+        it.dimensionsList.contains(DimensionType.DEVICE_MODEL.value)
+      },
+      request.filters.interval,
+      ERROR_REPORT_COUNT,
+    )
+    assertQueryErrorCountMetricSetRequest(
+      queryErrorCountMetricSetRequests.first {
+        it.dimensionsList.contains(DimensionType.VERSION_CODE.value)
+      },
+      request.filters.interval,
+      ERROR_REPORT_COUNT,
+    )
+  }
 
   @Test
   fun `clients send correct proto in request to get distribution`() = runBlocking {
-    val client =
-      VitalsClient(
-        projectRule.project,
-        projectRule.disposable,
-        AppInsightsCacheImpl(),
-        ForwardingInterceptor,
-        VitalsGrpcClientImpl(grpcRule.grpcChannel, ForwardingInterceptor),
-      )
+    val client = createVitalsClient { grpcRule.grpcChannel }
 
     val request = createIssueRequest(TEST_CONNECTION_1, clock)
     client.getIssueDetails(TEST_ISSUE1.id, request)

@@ -18,9 +18,10 @@ package com.android.tools.idea.vitals.datamodel
 import com.android.tools.idea.insights.PlayTrack
 import com.android.tools.idea.insights.Version
 import com.google.play.developer.reporting.Track
-import com.intellij.openapi.diagnostic.Logger
+import java.util.logging.Level
+import java.util.logging.Logger
 
-private val LOG = Logger.getInstance("vitals.datamodel.Verion")
+private val LOG = Logger.getLogger("vitals.datamodel.Verion")
 
 internal fun PlayTrack.Companion.fromProto(proto: Track): PlayTrack? {
   return when (proto.type) {
@@ -29,7 +30,7 @@ internal fun PlayTrack.Companion.fromProto(proto: Track): PlayTrack? {
     "Open testing" -> PlayTrack.OPEN_TESTING
     "Closed testing" -> PlayTrack.CLOSED_TESTING
     else -> {
-      LOG.warn("${proto.type} is not of a supported Play Track type.")
+      LOG.log(Level.WARNING, "${proto.type} is not of a supported Play Track type.")
       null
     }
   }

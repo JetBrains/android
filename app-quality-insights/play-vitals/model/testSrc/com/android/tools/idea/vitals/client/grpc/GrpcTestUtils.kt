@@ -20,10 +20,17 @@ import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.Selection
+import com.android.tools.idea.insights.client.AiInsightClient
+import com.android.tools.idea.insights.client.AppInsightsCache
+import com.android.tools.idea.insights.client.AppInsightsCacheImpl
+import com.android.tools.idea.insights.client.FakeAiInsightClient
 import com.android.tools.idea.insights.toIssueRequest
 import com.android.tools.idea.vitals.TEST_CONNECTION_1
+import com.android.tools.idea.vitals.client.VitalsClient
 import com.android.tools.idea.vitals.createVitalsFilters
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
+import com.studiogrpc.testutils.ForwardingInterceptor
+import io.grpc.Channel
 import java.time.Clock
 
 const val ERROR_REPORT_COUNT = "errorReportCount"
@@ -43,3 +50,17 @@ fun createIssueRequest(connection: VitalsConnection = TEST_CONNECTION_1, clock: 
       ConnectionMode.ONLINE,
     )
     .toIssueRequest(clock)!!
+
+fun createVitalsClient(
+  cache: AppInsightsCache = AppInsightsCacheImpl(),
+  grpcClient: VitalsGrpcClient? = null,
+  aiInsightClient: AiInsightClient = FakeAiInsightClient,
+  channelProvider: () -> Channel,
+) =
+  VitalsClient(
+    channelProvider,
+    cache,
+    ForwardingInterceptor,
+    grpcClient ?: VitalsGrpcClientImpl(channelProvider(), ForwardingInterceptor),
+    aiInsightClient,
+  )

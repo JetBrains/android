@@ -17,6 +17,7 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerImpl
@@ -32,6 +33,8 @@ import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.AppInsightsClient
+import com.android.tools.idea.insights.client.GeminiAiInsightClient
+import com.android.tools.idea.insights.client.channelBuilderForAddress
 import com.android.tools.idea.insights.events.ExplicitRefresh
 import com.android.tools.idea.insights.getHolderModules
 import com.android.tools.idea.insights.isAndroidApp
@@ -52,6 +55,7 @@ import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.IncorrectOperationException
 import java.time.Clock
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
@@ -200,14 +204,28 @@ class VitalsConfigurationManager(
     fun start() {
       scope.launch {
         if (testClient == null) {
+          val channelProvider = {
+            val address = StudioFlags.PLAY_VITALS_GRPC_SERVER.get()
+            logger.info("Play Vitals gRpc server connected at $address")
+            channelBuilderForAddress(address).useTransportSecurity().build().also {
+              try {
+                Disposer.register(this@VitalsConfigurationManager) {
+                  it.shutdown()
+                  it.awaitTermination(1, TimeUnit.SECONDS)
+                }
+              } catch (e: IncorrectOperationException) {
+                it.shutdownNow()
+              }
+            }
+          }
           clientDeferred.complete(
             VitalsClient(
-              project,
-              this@VitalsConfigurationManager,
+              channelProvider,
               cache,
               GoogleLoginService.instance.getActiveUserAuthInterceptor(
                 LoginFeature.feature<VitalsLoginFeature>()
               ),
+              aiInsightClient = GeminiAiInsightClient(project, cache),
             )
           )
         } else {

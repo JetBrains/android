@@ -21,7 +21,8 @@ import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.VisibilityType
-import com.intellij.openapi.diagnostic.Logger
+import java.util.logging.Level
+import java.util.logging.Logger
 
 /**
  * `apiLevel`: Matches error issues that occurred in the requested Android versions (specified as
@@ -100,7 +101,7 @@ class FilterBuilder {
         FailureType.FATAL,
         FailureType.NON_FATAL -> rawFilters.add(Filter(DimensionType.REPORT_TYPE.value, "CRASH"))
         else -> {
-          LOG.warn("Unrecognized report type: $it.")
+          LOG.log(Level.WARNING, "Unrecognized report type: $it.")
           null
         }
       }
@@ -120,7 +121,7 @@ class FilterBuilder {
         FailureType.FATAL,
         FailureType.NON_FATAL -> rawFilters.add(Filter(ERROR_ISSUE_TYPE, "CRASH"))
         else -> {
-          LOG.warn("Unrecognized failure type: $it.")
+          LOG.log(Level.WARNING, "Unrecognized failure type: $it.")
           null
         }
       }
@@ -191,6 +192,6 @@ class FilterBuilder {
   }
 
   companion object {
-    private val LOG = Logger.getInstance(FilterBuilder::class.java)
+    private val LOG = Logger.getLogger(FilterBuilder::class.java.name)
   }
 }
