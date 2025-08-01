@@ -115,6 +115,9 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
   public static final Label RULES_ANDROID_RULES_BZL1 = Label.of("@@rules_android~//android:rules.bzl");
   public static final Label RULES_ANDROID_RULES_BZL2 = Label.of("@@rules_android+//android:rules.bzl");
 
+  // The following .bzl file defines the iml_module rule used by Android Studio
+  public static final Label STUDIO_IML_MODULE_RULE =  Label.of("//tools/base/bazel:bazel.bzl");
+
   public record BuildDependencyParameters(
       ImmutableList<String> include,
       ImmutableList<String> exclude,
@@ -298,6 +301,7 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
       "build_dependencies_deps.bzl",
       MoreFiles.asByteSource(getBundledAspectPath("build_dependencies_deps.bzl")));
 
+    // Aspects for Android support
     if (snapshotHolder.getCurrent().map(it -> it.queryData().querySummary().getAllBuildIncludedFiles().contains(RULES_ANDROID_RULES_BZL1) ||
                                               it.queryData().querySummary().getAllBuildIncludedFiles().contains(RULES_ANDROID_RULES_BZL2))
       .orElse(false)) {
@@ -315,12 +319,25 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
         "build_dependencies_android_deps.bzl",
         MoreFiles.asByteSource(getBundledAspectPath("build_dependencies_android_legacy_deps.bzl")));
     }
+
+    // Aspects for Java and ImlModule support
+    if (snapshotHolder.getCurrent().map(it -> it.queryData().querySummary().getAllBuildIncludedFiles()
+      .contains(STUDIO_IML_MODULE_RULE)).orElse(false)) {
+      files.put(
+        "build_dependencies_java_deps.bzl",
+        MoreFiles.asByteSource(getBundledAspectPath("build_dependencies_iml_module_java_deps.bzl")));
+      files.put(
+        "build_dependencies_java_deps_wrapped.bzl",
+        MoreFiles.asByteSource(getBundledAspectPath("build_dependencies_java_deps.bzl")));
+    } else {
+      files.put(
+        "build_dependencies_java_deps.bzl",
+        MoreFiles.asByteSource(getBundledAspectPath("build_dependencies_java_deps.bzl")));
+    }
+
     files.put(
       "build_dependencies_cc_deps.bzl",
       MoreFiles.asByteSource(getBundledAspectPath("build_dependencies_cc_deps.bzl")));
-    files.put(
-      "build_dependencies_java_deps.bzl",
-      MoreFiles.asByteSource(getBundledAspectPath("build_dependencies_java_deps.bzl")));
     files.put(
       "build_dependencies_java_proto_deps.bzl",
       MoreFiles.asByteSource(getBundledAspectPath("build_dependencies_java_proto_deps.bzl")));

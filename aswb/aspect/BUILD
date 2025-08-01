@@ -48,6 +48,7 @@ filegroup(
         "build_dependencies_android_rules_android_deps.bzl",
         "build_dependencies_cc_deps.bzl",
         "build_dependencies_deps.bzl",
+        "build_dependencies_iml_module_java_deps.bzl",
         "build_dependencies_java_deps.bzl",
         "build_dependencies_java_proto_deps.bzl",
         "build_dependencies_kotlin_deps.bzl",
