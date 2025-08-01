@@ -6,6 +6,12 @@ load(
     _C_COMPILE_ACTION_NAME = "C_COMPILE_ACTION_NAME",
 )
 
+load(
+    ":build_dependencies_android_deps.bzl",
+    _IDE_ANDROID = "IDE_ANDROID"
+)
+IDE_ANDROID = _IDE_ANDROID
+
 ZIP_TOOL_LABEL = "@bazel_tools//tools/zip:zipper"
 
 # JAVA

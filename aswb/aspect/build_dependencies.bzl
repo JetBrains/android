@@ -1,15 +1,11 @@
 """Aspects to build and collect project dependencies."""
 
-load(
-    ":build_dependencies_android_deps.bzl",
-    _ide_android_not_validated = "IDE_ANDROID",
-)
-
 # Load external dependencies of this aspect. These are loaded in a separate file and re-exported as necessary
 # to make supporting other versions of bazel easier, by replacing build_dependencies_deps.bzl.
 load(
     ":build_dependencies_deps.bzl",
     "ZIP_TOOL_LABEL",
+    _ide_android_not_validated = "IDE_ANDROID",
     _ide_cc_not_validated = "IDE_CC",
     _ide_java_not_validated = "IDE_JAVA",
     _ide_java_proto_not_validated = "IDE_JAVA_PROTO",
