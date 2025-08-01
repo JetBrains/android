@@ -48,9 +48,6 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.utils.PathUtils
-import com.google.common.annotations.VisibleForTesting
-import com.google.common.collect.ImmutableList
-import com.google.common.collect.Lists
 import com.intellij.credentialStore.isFulfilled
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.GeneralCommandLine
@@ -81,6 +78,7 @@ import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
@@ -119,7 +117,7 @@ constructor(
    */
   @Slow
   open fun getAvds(forceRefresh: Boolean): List<AvdInfo> {
-    avdManager ?: return ImmutableList.of()
+    avdManager ?: return listOf()
     if (forceRefresh) {
       try {
         avdManager.reloadAvds()
@@ -127,14 +125,13 @@ constructor(
         IJ_LOG.error("Could not find Android SDK!", e)
       }
     }
-    return Lists.newArrayList(*avdManager.allAvds)
+    return listOf(*avdManager.allAvds)
   }
 
   /** Delete the given AVD if it exists. */
   @Slow
-  fun deleteAvd(info: AvdInfo): Boolean {
-    return avdManager?.deleteAvd(info) ?: false
-  }
+  fun deleteAvd(info: AvdInfo): Boolean =
+    avdManager?.deleteAvd(info) ?: false
 
   /** Stops the emulator if it is running and waits for it to terminate. */
   @Slow
@@ -502,9 +499,8 @@ constructor(
       AvdManagerConnection(sdkHandler, IdeAvdManagers.getAvdManager(sdkHandler, avdHomeFolder))
 
     @JvmStatic
-    fun getDefaultAvdManagerConnection(): AvdManagerConnection {
-      return getAvdManagerConnection(AndroidSdks.getInstance().tryToChooseSdkHandler())
-    }
+    fun getDefaultAvdManagerConnection(): AvdManagerConnection =
+      getAvdManagerConnection(AndroidSdks.getInstance().tryToChooseSdkHandler())
 
     @Synchronized
     fun getAvdManagerConnection(handler: AndroidSdkHandler): AvdManagerConnection {
@@ -557,7 +553,7 @@ constructor(
      * @return The temporary file. This will be null if we could not create or write the file.
      */
     @JvmStatic
-    fun writeTempFile(fileContents: List<String>): File? {
+    private fun writeTempFile(fileContents: List<String>): File? {
       var tempFile: File? = null
       try {
         tempFile = FileUtil.createTempFile("emu", ".tmp", true)
