@@ -37,25 +37,28 @@ class CompileSdkBlockModelImpl(dslElement: GradlePropertiesDslElement) : GradleD
     const val VERSION = "mVersion"
     const val RELEASE_NAME = "release"
     const val PREVIEW_NAME = "preview"
+    const val ADDON_NAME = "addon"
   }
 
   override fun getVersion(): CompileSdkVersionModel? {
     val version = myDslElement.getPropertyElement(VERSION)
     if (version is GradleDslMethodCall) {
-      return if (version.methodName == RELEASE_NAME) {
-        CompileSdkReleaseModelImpl(version)
-      }
-      else {
-        val previewProperty = GradlePropertyModelBuilder.create(myDslElement, VERSION)
-          .addTransform(SingleArgumentMethodTransform(PREVIEW_NAME))
-          .buildResolved()
+      return when (version.methodName) {
+        RELEASE_NAME -> CompileSdkReleaseModelImpl(version)
+        PREVIEW_NAME -> {
+          val previewProperty = GradlePropertyModelBuilder.create(myDslElement, VERSION)
+            .addTransform(SingleArgumentMethodTransform(PREVIEW_NAME))
+            .buildResolved()
 
-        object : CompileSdkPreviewModel {
-          override fun toHash(): String? = previewProperty.resolve().valueAsString()
-          override fun toInt(): Int? = null
-          override fun getVersion(): ResolvedPropertyModel = previewProperty
-          override fun delete() = previewProperty.delete()
+          object : CompileSdkPreviewModel {
+            override fun toHash(): String? = previewProperty.resolve().valueAsString()
+            override fun toInt(): Int? = null
+            override fun getVersion(): ResolvedPropertyModel = previewProperty
+            override fun delete() = previewProperty.delete()
+          }
         }
+        ADDON_NAME -> CompileSdkAddonModelImpl(version)
+        else -> null
       }
     }
     return null
@@ -97,6 +100,21 @@ class CompileSdkBlockModelImpl(dslElement: GradlePropertiesDslElement) : GradleD
     myDslElement.setNewElement(methodCall)
     val versionLiteral = GradleDslLiteral(methodCall.argumentsElement, GradleNameElement.empty())
     versionLiteral.setValue(version)
+    methodCall.addNewArgument(versionLiteral)
+  }
+
+  override fun setAddon(vendorName: String, addonName: String, apiLevel: Int) {
+    myDslElement.removeProperty(VERSION)
+    val methodCall = GradleDslMethodCall(myDslElement, GradleNameElement.create(VERSION), ADDON_NAME)
+    myDslElement.setNewElement(methodCall)
+    addArgument(methodCall, vendorName)
+    addArgument(methodCall, addonName)
+    addArgument(methodCall, apiLevel)
+  }
+
+  private fun addArgument(methodCall: GradleDslMethodCall, value: Any){
+    val versionLiteral = GradleDslLiteral(methodCall.argumentsElement, GradleNameElement.empty())
+    versionLiteral.setValue(value)
     methodCall.addNewArgument(versionLiteral)
   }
 

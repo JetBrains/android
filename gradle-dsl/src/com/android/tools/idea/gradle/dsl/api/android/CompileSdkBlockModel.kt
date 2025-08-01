@@ -22,6 +22,7 @@ interface CompileSdkBlockModel : GradleBlockModel {
   fun getVersion(): CompileSdkVersionModel?
   fun setReleaseVersion(version: Int, minorApi: Int?, extension: Int?)
   fun setPreviewVersion(version: String)
+  fun setAddon(vendorName: String, addonName: String, apiLevel: Int)
 }
 
 interface CompileSdkVersionModel {
@@ -37,3 +38,8 @@ interface CompileSdkReleaseModel : CompileSdkVersionModel {
 }
 
 interface CompileSdkPreviewModel : CompileSdkVersionModel
+
+interface CompileSdkAddonModel : CompileSdkVersionModel {
+  fun getVendorName(): ResolvedPropertyModel
+  fun getAddonName(): ResolvedPropertyModel
+}

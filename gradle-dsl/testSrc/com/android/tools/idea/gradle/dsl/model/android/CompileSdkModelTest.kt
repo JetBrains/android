@@ -19,9 +19,9 @@ import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.android.CompileSdkPropertyModel
 import com.android.tools.idea.gradle.dsl.api.android.CompileSdkReleaseModel
 import com.android.tools.idea.gradle.dsl.api.android.CompileSdkPreviewModel
+import com.android.tools.idea.gradle.dsl.api.android.CompileSdkAddonModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
-import com.android.tools.idea.gradle.dsl.model.android.AndroidModelTest.TestFile
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.annotations.SystemDependent
@@ -93,6 +93,28 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
     assertThat(version).isInstanceOf(CompileSdkPreviewModel::class.java)
     val preview = (version as CompileSdkPreviewModel)
     assertThat(preview.getVersion().getValue(GradlePropertyModel.STRING_TYPE)).isEqualTo("Tiramisu")
+  }
+
+  @Test
+  fun testReadCompileSdkVersionAddonMethod() {
+    writeToBuildFile(TestFile.READ_ADDON_METHOD)
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    val compileSdkVersion = android.compileSdkVersion()
+    assertThat(compileSdkVersion).isNotNull()
+    val config = compileSdkVersion.toCompileSdkConfig()
+    assertThat(config).isNotNull()
+    val version = config!!.getVersion()
+    assertThat(version).isNotNull()
+    assertThat(version).isInstanceOf(CompileSdkAddonModel::class.java)
+    val addon = (version as CompileSdkAddonModel)
+    assertThat(addon.getVendorName().getValue(GradlePropertyModel.STRING_TYPE)).isEqualTo("vendor")
+    assertThat(addon.getAddonName().getValue(GradlePropertyModel.STRING_TYPE)).isEqualTo("addon")
+    assertThat(addon.getVersion().getValue(GradlePropertyModel.INTEGER_TYPE)).isEqualTo(1)
   }
 
   @Test
@@ -176,6 +198,22 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
   }
 
   @Test
+  fun testUpdateCompileSdkWithAddonWithOldApi() {
+    writeToBuildFile(TestFile.EMPTY_ANDROID_BLOCK)
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    val compileSdkVersion = android.compileSdkVersion()
+    assertThat(compileSdkVersion).isNotNull()
+    compileSdkVersion.setValue("vendorName:addonName:1")
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, TestFile.CREATE_WITH_ADDON_VERSION_EXPECTED)
+  }
+
+  @Test
   fun testReadUpdateCompileSdkValuesWithOldApi() {
     writeToBuildFile(TestFile.EMPTY_ANDROID_BLOCK)
     val buildModel = gradleBuildModel
@@ -200,18 +238,25 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
     assertThat(compileSdkVersion.getValue(GradlePropertyModel.STRING_TYPE)).isEqualTo("Tiramisu")
     assertThat(compileSdkVersion.toCompileSdkConfig()?.getVersion()).isInstanceOf(CompileSdkPreviewModel::class.java)
     assertThat(compileSdkVersion.getValue(GradlePropertyModel.INTEGER_TYPE)).isNull()
+
+    compileSdkVersion.setValue("vendorName:addonName:1")
+    assertThat(compileSdkVersion.getValue(GradlePropertyModel.STRING_TYPE)).isEqualTo("vendorName:addonName:1")
+    assertThat(compileSdkVersion.toCompileSdkConfig()?.getVersion()).isInstanceOf(CompileSdkAddonModel::class.java)
+    assertThat(compileSdkVersion.getValue(GradlePropertyModel.INTEGER_TYPE)).isNull()
   }
 
   enum class TestFile(val path: @SystemDependent String) : TestFileName {
     READ_RELEASE_BLOCK("releaseBlock"),
     READ_RELEASE_METHOD("releaseMethod"),
     READ_PREVIEW_METHOD("previewMethod"),
+    READ_ADDON_METHOD("addonMethod"),
     EMPTY_ANDROID_BLOCK("emptyAndroidBlock"),
     CREATE_MAJOR_VERSION_ONLY_EXPECTED("createMajorVersionOnlyExpected"),
     CREATE_WITH_MINOR_VERSION_AND_EXTENSION_EXPECTED("createWithMinorAndExtensionExpected"),
     CREATE_WITH_MINOR_VERSION_EXPECTED("createWithMinorVersionExpected"),
     CREATE_WITH_EXTENSION_VERSION_EXPECTED("createWithExtensionVersionExpected"),
     CREATE_WITH_PREVIEW_VERSION_EXPECTED("createWithPreviewVersionExpected"),
+    CREATE_WITH_ADDON_VERSION_EXPECTED("createWithAddonVersionExpected"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

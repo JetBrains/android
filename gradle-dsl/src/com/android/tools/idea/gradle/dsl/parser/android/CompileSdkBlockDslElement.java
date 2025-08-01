@@ -19,7 +19,6 @@ import static com.android.tools.idea.gradle.dsl.model.android.CompileSdkBlockMod
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
@@ -28,8 +27,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainCon
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
-import com.google.common.collect.ImmutableMap;
-import java.util.Map;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,6 +50,14 @@ import org.jetbrains.annotations.Nullable;
  * android {
  *   compileSdk {
  *     version = preview("Tiramisu")
+ *   }
+ * }
+ * ```
+ * or as addon
+ * ```
+ * android {
+ *   compileSdk {
+ *     version = addon("vendorName","addonName",31)
  *   }
  * }
  * ```

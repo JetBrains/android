@@ -33,6 +33,11 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint
 class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyModel) : CompileSdkPropertyModel,
                                                                                       ResolvedPropertyModel by internalModel {
   companion object {
+
+    private val ADDON_PATTERN = "([^:]+):([^:]+):(\\d+)".toRegex()
+    private val API_PATTERN = "android-(\\d+)(?:\\.(?<minor>\\d+))?(-ext(?<ext>\\d+))?".toRegex()
+
+
     @JvmStatic
     fun getOrCreateCompileSdkPropertyModel(parent: GradlePropertiesDslElement): CompileSdkPropertyModelImpl {
       val context = parent.dslFile.context
@@ -52,17 +57,20 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
         // new DSL is possible
         if (compileSdkBlock != null) {
           return CompileSdkPropertyModelImpl(CompileSdkBlockPropertyModel(compileSdkBlock))
-        } else if (oldModel.psiElement != null) {
+        }
+        else if (oldModel.psiElement != null) {
           // existing old DSL
           return CompileSdkPropertyModelImpl(oldModel)
-        } else {
+        }
+        else {
           // brand new element
           val newCompileSdkBlock: CompileSdkBlockDslElement = parent.ensurePropertyElement(
             CompileSdkBlockDslElement.COMPILE_SDK
           )
           return CompileSdkPropertyModelImpl(CompileSdkBlockPropertyModel(newCompileSdkBlock))
         }
-      } else {
+      }
+      else {
         // AGP is old need to stick to old DSL
         return CompileSdkPropertyModelImpl(oldModel)
       }
@@ -87,23 +95,35 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
 
   override fun setValue(value: Any) {
     if (internalModel is CompileSdkBlockPropertyModel) {
+      val compileSdkBlock = toCompileSdkConfig()!!
       when (value) {
-        is Int -> toCompileSdkConfig()!!.setReleaseVersion(value, null, null)
+        is Int -> compileSdkBlock.setReleaseVersion(value, null, null)
         else -> {
           val stringValue = value.toString()
-          val androidRegexp = "android-(\\d+)(\\.(?<minor>\\d+))?(-ext(?<ext>\\d+))?".toRegex()
-          val matchResult = androidRegexp.find(stringValue)
-          if (matchResult != null) {
-            val releaseVersion = matchResult.groupValues[1].toInt()
-            val minorApi = matchResult.groups["minor"]?.value?.toInt()
-            val extension = matchResult.groups["ext"]?.value?.toInt()
-            toCompileSdkConfig()!!.setReleaseVersion(releaseVersion, minorApi, extension)
-          } else
-            // random string
-            toCompileSdkConfig()!!.setPreviewVersion(stringValue)
+          val apiMatchResult = API_PATTERN.matchEntire(stringValue)
+          if (apiMatchResult != null) {
+            val releaseVersion = apiMatchResult.groupValues[1].toInt()
+            val minorApi = apiMatchResult.groups["minor"]?.value?.toInt()
+            val extension = apiMatchResult.groups["ext"]?.value?.toInt()
+            compileSdkBlock.setReleaseVersion(releaseVersion, minorApi, extension)
+            return
+          }
+
+          val addonMatchResult = ADDON_PATTERN.matchEntire(stringValue)
+          if (addonMatchResult != null) {
+            val vendorName = addonMatchResult.groupValues[1]
+            val addonName = addonMatchResult.groupValues[2]
+            val apiLevel = addonMatchResult.groupValues[3].toInt()
+            compileSdkBlock.setAddon(vendorName, addonName, apiLevel)
+            return
+          }
+
+          // random string
+          compileSdkBlock.setPreviewVersion(stringValue)
         }
       }
-    } else internalModel.setValue(value)
+    }
+    else internalModel.setValue(value)
   }
 
   override fun <T : Any?> getValue(typeReference: TypeReference<T>): T? {
