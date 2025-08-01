@@ -96,7 +96,7 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
   AGP_87(agpVersion = "8.7.0", gradleVersion = "8.9", jdkVersion = JDK_17, compileSdk = "35"),
   AGP_88(agpVersion = "8.8.0", gradleVersion = "8.10.2", jdkVersion = JDK_17, compileSdk = "35"),
   AGP_89(agpVersion = "8.9.0", gradleVersion = "8.11.1", jdkVersion = JDK_17, compileSdk = "35"),
-  AGP_8_10(agpVersion = "8.10.0-beta01", gradleVersion = "8.11.1", jdkVersion = JDK_17, compileSdk = "35"),
+  AGP_8_10_1(agpVersion = "8.10.1", gradleVersion = "8.11.1", jdkVersion = JDK_17, compileSdk = "35"),
   AGP_8_11(agpVersion = "8.11.0-rc02", gradleVersion = "8.13", jdkVersion = JDK_17, compileSdk = "35"),
 
   AGP_LATEST_KOTLIN_SNAPSHOT(agpVersion = null, gradleVersion = null, kotlinVersion = KOTLIN_SNAPSHOT_VERSION, compileSdk = "34"),
@@ -186,7 +186,7 @@ private fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String = when (
   AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_GRADLE_SNAPSHOT,
   AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_KOTLIN_SNAPSHOT -> "_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_8_11 -> "_Agp_8.11_"
-  AgpVersionSoftwareEnvironmentDescriptor.AGP_8_10 -> "_Agp_8.10_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_8_10_1 -> "_Agp_8.10_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_89 -> "_Agp_8.9_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_88 -> "_Agp_8.8_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_87 -> "_Agp_8.7_"

@@ -1137,7 +1137,7 @@ MODULE                        : kotlinMultiPlatform
                     qName                         : :app:testReleaseUnitTest
 MODULE                        : kotlinMultiPlatform.app
     GradleModuleModel
-        agpVersion                    : 8.10.0-beta01
+        agpVersion                    : 8.10.1
         gradlePath                    : :app
         gradleVersion                 : 8.11.1
         buildFile                     : <ROOT>/app/build.gradle
@@ -1158,7 +1158,7 @@ MODULE                        : kotlinMultiPlatform.app
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
-    ModelVersion                  : 8.10.0-beta01
+    ModelVersion                  : 8.10.1
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/app/build
@@ -2230,7 +2230,7 @@ MODULE                        : kotlinMultiPlatform.app.main
 MODULE                        : kotlinMultiPlatform.app.unitTest
 MODULE                        : kotlinMultiPlatform.module2
     GradleModuleModel
-        agpVersion                    : 8.10.0-beta01
+        agpVersion                    : 8.10.1
         gradlePath                    : :module2
         gradleVersion                 : 8.11.1
         buildFile                     : <ROOT>/module2/build.gradle
@@ -2251,7 +2251,7 @@ MODULE                        : kotlinMultiPlatform.module2
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :module2
-    ModelVersion                  : 8.10.0-beta01
+    ModelVersion                  : 8.10.1
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/module2/build

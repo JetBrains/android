@@ -1093,7 +1093,7 @@ MODULE                        : MultiFlavor
                     qName                         : :app:testFirstXyzSecondXyzReleaseUnitTest
 MODULE                        : MultiFlavor.app
     GradleModuleModel
-        agpVersion                    : 8.10.0-beta01
+        agpVersion                    : 8.10.1
         gradlePath                    : :app
         gradleVersion                 : 8.11.1
         buildFile                     : <ROOT>/app/build.gradle
@@ -1114,7 +1114,7 @@ MODULE                        : MultiFlavor.app
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
-    ModelVersion                  : 8.10.0-beta01
+    ModelVersion                  : 8.10.1
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/app/build
@@ -1322,7 +1322,7 @@ MODULE                        : MultiFlavor.app
             VersionNameSuffix             : -release
             ResValues
                 string/v_b                    : (string, v_b, release)
-            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.10.0-beta01 [-]
+            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.10.1 [-]
             ProguardFiles                 : <ROOT>/app/proguard-rules.pro
             ManifestPlaceholders
                 b                             : release

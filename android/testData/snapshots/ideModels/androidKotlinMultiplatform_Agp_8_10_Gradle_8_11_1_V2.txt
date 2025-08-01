@@ -1206,7 +1206,7 @@ MODULE                        : Kotlin_Multiplatform
                     qName                         : :androidLib:testTypetwoModetwoReleaseUnitTest
 MODULE                        : Kotlin_Multiplatform.androidLib
     GradleModuleModel
-        agpVersion                    : 8.10.0-beta01
+        agpVersion                    : 8.10.1
         gradlePath                    : :androidLib
         gradleVersion                 : 8.11.1
         buildFile                     : <ROOT>/androidLib/build.gradle.kts
@@ -1227,7 +1227,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :androidLib
-    ModelVersion                  : 8.10.0-beta01
+    ModelVersion                  : 8.10.1
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/androidLib/build
@@ -1810,7 +1810,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib.main
 MODULE                        : Kotlin_Multiplatform.androidLib.unitTest
 MODULE                        : Kotlin_Multiplatform.app
     GradleModuleModel
-        agpVersion                    : 8.10.0-beta01
+        agpVersion                    : 8.10.1
         gradlePath                    : :app
         gradleVersion                 : 8.11.1
         buildFile                     : <ROOT>/app/build.gradle.kts
@@ -1831,7 +1831,7 @@ MODULE                        : Kotlin_Multiplatform.app
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
-    ModelVersion                  : 8.10.0-beta01
+    ModelVersion                  : 8.10.1
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/app/build
@@ -2282,7 +2282,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :kmpFirstLib
-    ModelVersion                  : 8.10.0-beta01
+    ModelVersion                  : 8.10.1
     ProjectType                   : PROJECT_TYPE_KOTLIN_MULTIPLATFORM
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/kmpFirstLib/build
@@ -2396,7 +2396,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 CodeName                      :
                 ApiString                     :
             MaxSdkVersion                 : 0
-            ProguardFiles                 : <ROOT>/kmpFirstLib/build/intermediates/default_proguard_files/global/proguard-android.txt-8.10.0-beta01 [-]
+            ProguardFiles                 : <ROOT>/kmpFirstLib/build/intermediates/default_proguard_files/global/proguard-android.txt-8.10.1 [-]
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
             MainArtifact
                 Name                          : MAIN
@@ -3012,7 +3012,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :kmpSecondLib
-    ModelVersion                  : 8.10.0-beta01
+    ModelVersion                  : 8.10.1
     ProjectType                   : PROJECT_TYPE_KOTLIN_MULTIPLATFORM
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/kmpSecondLib/build
@@ -3098,7 +3098,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                 CodeName                      :
                 ApiString                     :
             MaxSdkVersion                 : 0
-            ProguardFiles                 : <ROOT>/kmpSecondLib/build/intermediates/default_proguard_files/global/proguard-android.txt-8.10.0-beta01 [-]
+            ProguardFiles                 : <ROOT>/kmpSecondLib/build/intermediates/default_proguard_files/global/proguard-android.txt-8.10.1 [-]
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileAndroidMain

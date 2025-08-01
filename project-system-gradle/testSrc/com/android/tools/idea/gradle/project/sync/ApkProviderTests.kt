@@ -649,7 +649,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         )
       }.toMap(),
       IGNORE = {
-        if(agpVersion == AgpVersionSoftwareEnvironmentDescriptor.AGP_8_10) TODO("b/407713905")
+        if(agpVersion == AgpVersionSoftwareEnvironmentDescriptor.AGP_8_10_1) TODO("b/407713905")
       }
     ),
     def(

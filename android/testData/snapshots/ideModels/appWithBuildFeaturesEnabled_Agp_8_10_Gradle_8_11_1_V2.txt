@@ -109,60 +109,60 @@ LIBRARY_TABLE
         resStaticLibrary              : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/res.apk [-]
         - runtimeJarFiles             : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/jars/classes.jar
         symbolFile                    : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/R.txt
-    - library                     : com.android.databinding:adapters:8.10.0-beta01@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.0-beta01/aidl [-]
-        artifact                      : <M2>/com/android/databinding/adapters/8.10.0-beta01/adapters-8.10.0-beta01.aar
-        artifactAddress               : com.android.databinding:adapters:8.10.0-beta01@aar
-        assetsFolder                  : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.0-beta01/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.0-beta01/jars/classes.jar
-        component                     : com.android.databinding:adapters:8.10.0-beta01
-        externalAnnotations           : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.0-beta01/annotations.zip [-]
-        folder                        : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.0-beta01
-        jniFolder                     : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.0-beta01/jni [-]
-        manifest                      : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.0-beta01/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.0-beta01/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.0-beta01/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.0-beta01/rs [-]
-        resFolder                     : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.0-beta01/res
-        resStaticLibrary              : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.0-beta01/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.0-beta01/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.0-beta01/R.txt
-    - library                     : com.android.databinding:library:8.10.0-beta01@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.0-beta01/aidl [-]
-        artifact                      : <M2>/com/android/databinding/library/8.10.0-beta01/library-8.10.0-beta01.aar
-        artifactAddress               : com.android.databinding:library:8.10.0-beta01@aar
-        assetsFolder                  : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.0-beta01/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.0-beta01/jars/classes.jar
-        component                     : com.android.databinding:library:8.10.0-beta01
-        externalAnnotations           : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.0-beta01/annotations.zip [-]
-        folder                        : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.0-beta01
-        jniFolder                     : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.0-beta01/jni [-]
-        manifest                      : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.0-beta01/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.0-beta01/proguard.txt
-        publicResources               : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.0-beta01/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.0-beta01/rs [-]
-        resFolder                     : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.0-beta01/res
-        resStaticLibrary              : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.0-beta01/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.0-beta01/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.0-beta01/R.txt
-    - library                     : com.android.databinding:viewbinding:8.10.0-beta01@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.0-beta01/aidl [-]
-        artifact                      : <M2>/com/android/databinding/viewbinding/8.10.0-beta01/viewbinding-8.10.0-beta01.aar
-        artifactAddress               : com.android.databinding:viewbinding:8.10.0-beta01@aar
-        assetsFolder                  : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.0-beta01/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.0-beta01/jars/classes.jar
-        component                     : com.android.databinding:viewbinding:8.10.0-beta01
-        externalAnnotations           : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.0-beta01/annotations.zip [-]
-        folder                        : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.0-beta01
-        jniFolder                     : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.0-beta01/jni [-]
-        manifest                      : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.0-beta01/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.0-beta01/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.0-beta01/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.0-beta01/rs [-]
-        resFolder                     : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.0-beta01/res [-]
-        resStaticLibrary              : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.0-beta01/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.0-beta01/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.0-beta01/R.txt
+    - library                     : com.android.databinding:adapters:8.10.1@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.1/aidl [-]
+        artifact                      : <M2>/com/android/databinding/adapters/8.10.1/adapters-8.10.1.aar
+        artifactAddress               : com.android.databinding:adapters:8.10.1@aar
+        assetsFolder                  : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.1/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.1/jars/classes.jar
+        component                     : com.android.databinding:adapters:8.10.1
+        externalAnnotations           : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.1/annotations.zip [-]
+        folder                        : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.1
+        jniFolder                     : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.1/jni [-]
+        manifest                      : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.1/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.1/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.1/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.1/rs [-]
+        resFolder                     : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.1/res
+        resStaticLibrary              : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.1/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.1/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-8.10.1/R.txt
+    - library                     : com.android.databinding:library:8.10.1@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.1/aidl [-]
+        artifact                      : <M2>/com/android/databinding/library/8.10.1/library-8.10.1.aar
+        artifactAddress               : com.android.databinding:library:8.10.1@aar
+        assetsFolder                  : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.1/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.1/jars/classes.jar
+        component                     : com.android.databinding:library:8.10.1
+        externalAnnotations           : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.1/annotations.zip [-]
+        folder                        : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.1
+        jniFolder                     : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.1/jni [-]
+        manifest                      : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.1/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.1/proguard.txt
+        publicResources               : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.1/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.1/rs [-]
+        resFolder                     : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.1/res
+        resStaticLibrary              : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.1/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.1/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-8.10.1/R.txt
+    - library                     : com.android.databinding:viewbinding:8.10.1@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.1/aidl [-]
+        artifact                      : <M2>/com/android/databinding/viewbinding/8.10.1/viewbinding-8.10.1.aar
+        artifactAddress               : com.android.databinding:viewbinding:8.10.1@aar
+        assetsFolder                  : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.1/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.1/jars/classes.jar
+        component                     : com.android.databinding:viewbinding:8.10.1
+        externalAnnotations           : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.1/annotations.zip [-]
+        folder                        : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.1
+        jniFolder                     : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.1/jni [-]
+        manifest                      : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.1/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.1/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.1/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.1/rs [-]
+        resFolder                     : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.1/res [-]
+        resStaticLibrary              : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.1/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.1/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.10.1/R.txt
     - library                     : com.android.support.constraint:constraint-layout:1.0.2@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2/aidl [-]
         artifact                      : <M2>/com/android/support/constraint/constraint-layout/1.0.2/constraint-layout-1.0.2.aar
@@ -642,10 +642,10 @@ LIBRARY_TABLE
         artifact                      : <M2>/android/arch/lifecycle/common/1.1.1/common-1.1.1.jar
         artifactAddress               : android.arch.lifecycle:common:1.1.1@jar
         component                     : android.arch.lifecycle:common:1.1.1
-    - library                     : com.android.databinding:baseLibrary:8.10.0-beta01 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/com/android/databinding/baseLibrary/8.10.0-beta01/baseLibrary-8.10.0-beta01.jar
-        artifactAddress               : com.android.databinding:baseLibrary:8.10.0-beta01@jar
-        component                     : com.android.databinding:baseLibrary:8.10.0-beta01
+    - library                     : com.android.databinding:baseLibrary:8.10.1 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/com/android/databinding/baseLibrary/<VERSION>/baseLibrary-<VERSION>.jar
+        artifactAddress               : com.android.databinding:baseLibrary:8.10.1@jar
+        component                     : com.android.databinding:baseLibrary:8.10.1
     - library                     : com.android.support.constraint:constraint-layout-solver:1.0.2 (IdeJavaLibraryImpl)
         artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
         artifactAddress               : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
@@ -857,7 +857,7 @@ MODULE                        : project
                     qName                         : :app:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
-        agpVersion                    : 8.10.0-beta01
+        agpVersion                    : 8.10.1
         gradlePath                    : :app
         gradleVersion                 : 8.11.1
         buildFile                     : <ROOT>/app/build.gradle
@@ -878,7 +878,7 @@ MODULE                        : project.app
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
-    ModelVersion                  : 8.10.0-beta01
+    ModelVersion                  : 8.10.1
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/app/build
@@ -1065,7 +1065,7 @@ MODULE                        : project.app
                     BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-8.10.0-beta01 [-]
+            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-8.10.1 [-]
             ProguardFiles                 : <ROOT>/app/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -1271,13 +1271,13 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        androidLibrary                : com.android.databinding:viewbinding:8.10.0-beta01@aar
+                        androidLibrary                : com.android.databinding:viewbinding:8.10.1@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        androidLibrary                : com.android.databinding:library:8.10.0-beta01@aar
-                            androidLibrary                : com.android.databinding:viewbinding:8.10.0-beta01@aar
+                        androidLibrary                : com.android.databinding:library:8.10.1@aar
+                            androidLibrary                : com.android.databinding:viewbinding:8.10.1@aar
                             androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
-                        androidLibrary                : com.android.databinding:adapters:8.10.0-beta01@aar
-                            javaLibrary                   : com.android.databinding:baseLibrary:8.10.0-beta01@jar
+                        androidLibrary                : com.android.databinding:adapters:8.10.1@aar
+                            javaLibrary                   : com.android.databinding:baseLibrary:8.10.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1287,7 +1287,7 @@ MODULE                        : project.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.google.guava:guava:19.0@jar
                         javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : com.android.databinding:baseLibrary:8.10.0-beta01@jar
+                        javaLibrary                   : com.android.databinding:baseLibrary:8.10.1@jar
                         javaLibrary                   : __local_jars__:<ANDROID_SDK>/platforms/android-35/optional/org.apache.http.legacy.jar:unspecified
                     runtimeClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -1400,16 +1400,16 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        androidLibrary                : com.android.databinding:viewbinding:8.10.0-beta01@aar
+                        androidLibrary                : com.android.databinding:viewbinding:8.10.1@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        androidLibrary                : com.android.databinding:library:8.10.0-beta01@aar
+                        androidLibrary                : com.android.databinding:library:8.10.1@aar
                             androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
-                            javaLibrary                   : com.android.databinding:baseLibrary:8.10.0-beta01@jar
-                            androidLibrary                : com.android.databinding:viewbinding:8.10.0-beta01@aar
+                            javaLibrary                   : com.android.databinding:baseLibrary:8.10.1@jar
+                            androidLibrary                : com.android.databinding:viewbinding:8.10.1@aar
                             androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
-                        androidLibrary                : com.android.databinding:adapters:8.10.0-beta01@aar
-                            androidLibrary                : com.android.databinding:library:8.10.0-beta01@aar
-                            javaLibrary                   : com.android.databinding:baseLibrary:8.10.0-beta01@jar
+                        androidLibrary                : com.android.databinding:adapters:8.10.1@aar
+                            androidLibrary                : com.android.databinding:library:8.10.1@aar
+                            javaLibrary                   : com.android.databinding:baseLibrary:8.10.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1419,7 +1419,7 @@ MODULE                        : project.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.google.guava:guava:19.0@jar
                         javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : com.android.databinding:baseLibrary:8.10.0-beta01@jar
+                        javaLibrary                   : com.android.databinding:baseLibrary:8.10.1@jar
                         javaLibrary                   : __local_jars__:<ANDROID_SDK>/platforms/android-35/optional/org.apache.http.legacy.jar:unspecified
                 ApplicationId                 : google.simpleapplication
                 SigningConfigName             : debug
@@ -1576,13 +1576,13 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        androidLibrary                : com.android.databinding:viewbinding:8.10.0-beta01@aar
+                        androidLibrary                : com.android.databinding:viewbinding:8.10.1@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        androidLibrary                : com.android.databinding:library:8.10.0-beta01@aar
-                            androidLibrary                : com.android.databinding:viewbinding:8.10.0-beta01@aar
+                        androidLibrary                : com.android.databinding:library:8.10.1@aar
+                            androidLibrary                : com.android.databinding:viewbinding:8.10.1@aar
                             androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
-                        androidLibrary                : com.android.databinding:adapters:8.10.0-beta01@aar
-                            javaLibrary                   : com.android.databinding:baseLibrary:8.10.0-beta01@jar
+                        androidLibrary                : com.android.databinding:adapters:8.10.1@aar
+                            javaLibrary                   : com.android.databinding:baseLibrary:8.10.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : junit:junit:4.12@jar
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -1603,16 +1603,16 @@ MODULE                        : project.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.google.guava:guava:19.0@jar
                         javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : com.android.databinding:baseLibrary:8.10.0-beta01@jar
+                        javaLibrary                   : com.android.databinding:baseLibrary:8.10.1@jar
                         javaLibrary                   : __local_jars__:<ANDROID_SDK>/platforms/android-35/optional/org.apache.http.legacy.jar:unspecified
                         module                        : <ROOT>-:app-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.google.guava:guava:19.0@jar
                             androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
-                            androidLibrary                : com.android.databinding:viewbinding:8.10.0-beta01@aar
-                            javaLibrary                   : com.android.databinding:baseLibrary:8.10.0-beta01@jar
-                            androidLibrary                : com.android.databinding:library:8.10.0-beta01@aar
-                            androidLibrary                : com.android.databinding:adapters:8.10.0-beta01@aar
+                            androidLibrary                : com.android.databinding:viewbinding:8.10.1@aar
+                            javaLibrary                   : com.android.databinding:baseLibrary:8.10.1@jar
+                            androidLibrary                : com.android.databinding:library:8.10.1@aar
+                            androidLibrary                : com.android.databinding:adapters:8.10.1@aar
                     runtimeClasspath
                         androidLibrary                : com.android.support.test:runner:1.0.2@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1651,10 +1651,10 @@ MODULE                        : project.app
                     - provided                    : android.arch.lifecycle:livedata:1.1.1@aar
                     - provided                    : android.arch.lifecycle:runtime:1.1.1@aar
                     - provided                    : android.arch.lifecycle:viewmodel:1.1.1@aar
-                    - provided                    : com.android.databinding:adapters:8.10.0-beta01@aar
-                    - provided                    : com.android.databinding:baseLibrary:8.10.0-beta01
-                    - provided                    : com.android.databinding:library:8.10.0-beta01@aar
-                    - provided                    : com.android.databinding:viewbinding:8.10.0-beta01@aar
+                    - provided                    : com.android.databinding:adapters:8.10.1@aar
+                    - provided                    : com.android.databinding:baseLibrary:8.10.1
+                    - provided                    : com.android.databinding:library:8.10.1@aar
+                    - provided                    : com.android.databinding:viewbinding:8.10.1@aar
                     - provided                    : com.android.support.constraint:constraint-layout-solver:1.0.2
                     - provided                    : com.android.support.constraint:constraint-layout:1.0.2@aar
                     - provided                    : com.android.support:animated-vector-drawable:28.0.0@aar
@@ -1815,13 +1815,13 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        androidLibrary                : com.android.databinding:viewbinding:8.10.0-beta01@aar
+                        androidLibrary                : com.android.databinding:viewbinding:8.10.1@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        androidLibrary                : com.android.databinding:library:8.10.0-beta01@aar
-                            androidLibrary                : com.android.databinding:viewbinding:8.10.0-beta01@aar
+                        androidLibrary                : com.android.databinding:library:8.10.1@aar
+                            androidLibrary                : com.android.databinding:viewbinding:8.10.1@aar
                             androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
-                        androidLibrary                : com.android.databinding:adapters:8.10.0-beta01@aar
-                            javaLibrary                   : com.android.databinding:baseLibrary:8.10.0-beta01@jar
+                        androidLibrary                : com.android.databinding:adapters:8.10.1@aar
+                            javaLibrary                   : com.android.databinding:baseLibrary:8.10.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1831,7 +1831,7 @@ MODULE                        : project.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.google.guava:guava:19.0@jar
                         javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : com.android.databinding:baseLibrary:8.10.0-beta01@jar
+                        javaLibrary                   : com.android.databinding:baseLibrary:8.10.1@jar
                         javaLibrary                   : junit:junit:4.12@jar
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -1840,10 +1840,10 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.google.guava:guava:19.0@jar
                             androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
-                            androidLibrary                : com.android.databinding:viewbinding:8.10.0-beta01@aar
-                            javaLibrary                   : com.android.databinding:baseLibrary:8.10.0-beta01@jar
-                            androidLibrary                : com.android.databinding:library:8.10.0-beta01@aar
-                            androidLibrary                : com.android.databinding:adapters:8.10.0-beta01@aar
+                            androidLibrary                : com.android.databinding:viewbinding:8.10.1@aar
+                            javaLibrary                   : com.android.databinding:baseLibrary:8.10.1@jar
+                            androidLibrary                : com.android.databinding:library:8.10.1@aar
+                            androidLibrary                : com.android.databinding:adapters:8.10.1@aar
                     runtimeClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1955,16 +1955,16 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        androidLibrary                : com.android.databinding:viewbinding:8.10.0-beta01@aar
+                        androidLibrary                : com.android.databinding:viewbinding:8.10.1@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        androidLibrary                : com.android.databinding:library:8.10.0-beta01@aar
+                        androidLibrary                : com.android.databinding:library:8.10.1@aar
                             androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
-                            javaLibrary                   : com.android.databinding:baseLibrary:8.10.0-beta01@jar
-                            androidLibrary                : com.android.databinding:viewbinding:8.10.0-beta01@aar
+                            javaLibrary                   : com.android.databinding:baseLibrary:8.10.1@jar
+                            androidLibrary                : com.android.databinding:viewbinding:8.10.1@aar
                             androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
-                        androidLibrary                : com.android.databinding:adapters:8.10.0-beta01@aar
-                            androidLibrary                : com.android.databinding:library:8.10.0-beta01@aar
-                            javaLibrary                   : com.android.databinding:baseLibrary:8.10.0-beta01@jar
+                        androidLibrary                : com.android.databinding:adapters:8.10.1@aar
+                            androidLibrary                : com.android.databinding:library:8.10.1@aar
+                            javaLibrary                   : com.android.databinding:baseLibrary:8.10.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1974,7 +1974,7 @@ MODULE                        : project.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.google.guava:guava:19.0@jar
                         javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : com.android.databinding:baseLibrary:8.10.0-beta01@jar
+                        javaLibrary                   : com.android.databinding:baseLibrary:8.10.1@jar
                         javaLibrary                   : junit:junit:4.12@jar
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -1983,10 +1983,10 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.google.guava:guava:19.0@jar
                             androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
-                            androidLibrary                : com.android.databinding:viewbinding:8.10.0-beta01@aar
-                            javaLibrary                   : com.android.databinding:baseLibrary:8.10.0-beta01@jar
-                            androidLibrary                : com.android.databinding:library:8.10.0-beta01@aar
-                            androidLibrary                : com.android.databinding:adapters:8.10.0-beta01@aar
+                            androidLibrary                : com.android.databinding:viewbinding:8.10.1@aar
+                            javaLibrary                   : com.android.databinding:baseLibrary:8.10.1@jar
+                            androidLibrary                : com.android.databinding:library:8.10.1@aar
+                            androidLibrary                : com.android.databinding:adapters:8.10.1@aar
                 MockablePlatformJar           : <GRADLE>/caches/8.11.1/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : project.app.androidTest
