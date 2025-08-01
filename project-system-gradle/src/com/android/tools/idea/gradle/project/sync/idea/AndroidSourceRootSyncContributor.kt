@@ -85,7 +85,6 @@ import org.jetbrains.plugins.gradle.service.project.GradleContentRootIndex
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncContributor
-import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncProjectConfigurator.project
 import org.jetbrains.plugins.gradle.service.syncAction.virtualFileUrl
 import org.jetbrains.plugins.gradle.service.syncContributor.bridge.GradleBridgeEntitySource
 import org.jetbrains.plugins.gradle.util.GradleConstants
@@ -222,7 +221,7 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
     storage: MutableEntityStorage,
     phase: GradleModelFetchPhase,
   ) {
-    performModuleActionsFromPreviousPhase(context.project())
+    performModuleActionsFromPreviousPhase(context.project)
     if (context.isPhasedSyncEnabled) {
       if (phase == GradleModelFetchPhase.PROJECT_SOURCE_SET_PHASE) {
         val result = configureModulesForSourceSets(context, storage.toSnapshot())
@@ -233,7 +232,7 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
     }
   }
   override suspend fun onModelFetchCompleted(context: ProjectResolverContext, storage: MutableEntityStorage) {
-    performModuleActionsFromPreviousPhase(context.project())
+    performModuleActionsFromPreviousPhase(context.project)
   }
 
   override suspend fun onModelFetchFailed(context: ProjectResolverContext,
@@ -271,7 +270,7 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
     context: ProjectResolverContext,
     storage: ImmutableEntityStorage
   ): SourceSetUpdateResult {
-    val project = context.project()
+    val project = context.project
     val syncOptions = context.getSyncOptions(project)
 
     val updatedEntities = MutableEntityStorage.from(storage)

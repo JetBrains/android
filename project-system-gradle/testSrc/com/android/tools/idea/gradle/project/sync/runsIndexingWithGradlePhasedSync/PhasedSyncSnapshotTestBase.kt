@@ -32,7 +32,6 @@ import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncContributor
-import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncProjectConfigurator.project
 import java.io.File
 
 abstract class PhasedSyncSnapshotTestBase {
@@ -194,6 +193,6 @@ internal class ModelDumpSyncContributor: GradleSyncContributor {
       }
     }.toMap()
 
-    intermediateDump = context.project().dumpModules(isAndroidByPath)
+    intermediateDump = context.project.dumpModules(isAndroidByPath)
   }
 }
