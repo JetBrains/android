@@ -24,10 +24,10 @@ import com.android.tools.idea.compose.gradle.SimpleComposeAppPaths
 import com.android.tools.idea.compose.gradle.activateAndWaitForRender
 import com.android.tools.idea.compose.gradle.clickPreviewImage
 import com.android.tools.idea.compose.gradle.clickPreviewName
-import com.android.tools.idea.compose.gradle.preview.TestComposePreviewView
-import com.android.tools.idea.compose.gradle.preview.displayName
 import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
+import com.android.tools.idea.compose.preview.TestComposePreviewView
+import com.android.tools.idea.compose.preview.displayName
 import com.android.tools.idea.compose.preview.navigation.findComponentHits
 import com.android.tools.idea.compose.preview.navigation.findNavigatableComponentHit
 import com.android.tools.idea.compose.preview.parseViewInfo

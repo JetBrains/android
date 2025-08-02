@@ -17,10 +17,10 @@ package com.android.tools.idea.compose.gradle
 
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
-import com.android.tools.idea.compose.gradle.preview.TestComposePreviewView
-import com.android.tools.idea.compose.gradle.preview.displayName
 import com.android.tools.idea.compose.preview.ComposePreviewRefreshType
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
+import com.android.tools.idea.compose.preview.TestComposePreviewView
+import com.android.tools.idea.compose.preview.displayName
 import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.awaitStatus
@@ -259,7 +259,7 @@ class ComposePreviewFakeUiGradleRule(
     }
   }
 
-  fun createComposePreviewRepresentation(
+  internal fun createComposePreviewRepresentation(
     psiFile: PsiFile,
     view: TestComposePreviewView,
   ): ComposePreviewRepresentation {

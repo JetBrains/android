@@ -42,7 +42,6 @@ import com.android.tools.idea.preview.analytics.PreviewRefreshTracker
 import com.android.tools.idea.preview.analytics.PreviewRefreshTrackerForTest
 import com.android.tools.idea.preview.fast.FastPreviewSurface
 import com.android.tools.idea.preview.flow.PreviewFlowManager
-import com.android.tools.idea.preview.focus.FocusMode
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.modes.DEFAULT_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
@@ -84,7 +83,6 @@ import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerKeys
 import com.intellij.openapi.fileEditor.FileEditorProvider
@@ -103,8 +101,6 @@ import com.intellij.testFramework.runInEdtAndWait
 import java.nio.file.Path
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
-import javax.swing.JComponent
-import javax.swing.JPanel
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -124,43 +120,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-
-internal class TestComposePreviewView(override val mainSurface: NlDesignSurface) :
-  ComposePreviewView {
-  override val component: JComponent
-    get() = JPanel()
-
-  override var bottomPanel: JComponent? = null
-  override val isMessageBeingDisplayed: Boolean = false
-  override var hasContent: Boolean = true
-  override var hasRendered: Boolean = true
-  override var focusMode: FocusMode? = null
-
-  val refreshCompletedListeners: MutableList<() -> Unit> = mutableListOf()
-
-  override fun updateNotifications(parentEditor: FileEditor) {}
-
-  override fun updateVisibilityAndNotifications() {}
-
-  override fun updateProgress(message: String) {}
-
-  override fun onRefreshCancelledByTheUser() {}
-
-  override fun onRefreshCompleted() {
-    refreshCompletedListeners.forEach { it.invoke() }
-  }
-
-  override fun onLayoutlibNativeCrash(onLayoutlibReEnable: () -> Unit) {}
-
-  suspend fun runAndWaitForRefresh(runnable: () -> Unit) {
-    var refreshCompleted = false
-    val listener = { refreshCompleted = true }
-    refreshCompletedListeners.add(listener)
-    runnable()
-    delayUntilCondition(250) { refreshCompleted }
-    refreshCompletedListeners.remove(listener)
-  }
-}
 
 class ComposePreviewRepresentationTest {
   private val logger = Logger.getInstance(ComposePreviewRepresentationTest::class.java)
@@ -476,7 +435,7 @@ class ComposePreviewRepresentationTest {
     val reopenTabAction = UiCheckReopenTabAction(preview)
     // Check that UiCheckReopenTabAction is disabled when the UI Check tab is visible and selected
     run {
-      val actionEvent = TestActionEvent.createTestEvent()
+      val actionEvent = withContext(uiThread) { TestActionEvent.createTestEvent() }
       reopenTabAction.update(actionEvent)
       assertFalse(actionEvent.presentation.isEnabled)
     }
@@ -485,7 +444,7 @@ class ComposePreviewRepresentationTest {
     contentManager.setSelectedContent(contentManager.getContent(0)!!)
     assertNotEquals(uiCheckElement.instanceId, contentManager.selectedContent?.tabName)
     run {
-      val actionEvent = TestActionEvent.createTestEvent()
+      val actionEvent = withContext(uiThread) { TestActionEvent.createTestEvent() }
       reopenTabAction.update(actionEvent)
       assertTrue(actionEvent.presentation.isEnabled)
     }
@@ -503,7 +462,7 @@ class ComposePreviewRepresentationTest {
     }
     assertEquals(1, contentManager.contents.size)
     run {
-      val actionEvent = TestActionEvent.createTestEvent()
+      val actionEvent = withContext(uiThread) { TestActionEvent.createTestEvent() }
       reopenTabAction.update(actionEvent)
       assertTrue(actionEvent.presentation.isEnabled)
     }
@@ -688,7 +647,7 @@ class ComposePreviewRepresentationTest {
       // Check that the rerun action is disabled
       val rerunAction = ReRunUiCheckModeAction()
       run {
-        val actionEvent = withContext(uiThread) { TestActionEvent.createTestEvent(dataContext) }
+        val actionEvent = TestActionEvent.createTestEvent(dataContext)
         rerunAction.update(actionEvent)
         assertTrue(actionEvent.presentation.isVisible)
         assertFalse(actionEvent.presentation.isEnabled)
@@ -703,7 +662,7 @@ class ComposePreviewRepresentationTest {
 
       // Check that the rerun action is enabled
       run {
-        val actionEvent = withContext(uiThread) { TestActionEvent.createTestEvent(dataContext) }
+        val actionEvent = TestActionEvent.createTestEvent(dataContext)
         rerunAction.update(actionEvent)
         assertTrue(actionEvent.presentation.isEnabledAndVisible)
       }
@@ -719,7 +678,7 @@ class ComposePreviewRepresentationTest {
 
       // Check that the rerun action is disabled
       run {
-        val actionEvent = withContext(uiThread) { TestActionEvent.createTestEvent(dataContext) }
+        val actionEvent = TestActionEvent.createTestEvent(dataContext)
         rerunAction.update(actionEvent)
         assertTrue(actionEvent.presentation.isVisible)
         assertFalse(actionEvent.presentation.isEnabled)
@@ -734,7 +693,7 @@ class ComposePreviewRepresentationTest {
 
       // Check that the rerun action is enabled
       run {
-        val actionEvent = withContext(uiThread) { TestActionEvent.createTestEvent(dataContext) }
+        val actionEvent = TestActionEvent.createTestEvent(dataContext)
         rerunAction.update(actionEvent)
         assertTrue(actionEvent.presentation.isEnabledAndVisible)
       }
@@ -750,7 +709,7 @@ class ComposePreviewRepresentationTest {
 
       // Check that the rerun action is hidden
       run {
-        val actionEvent = withContext(uiThread) { TestActionEvent.createTestEvent(dataContext) }
+        val actionEvent = TestActionEvent.createTestEvent(dataContext)
         rerunAction.update(actionEvent)
         assertFalse(actionEvent.presentation.isVisible)
       }

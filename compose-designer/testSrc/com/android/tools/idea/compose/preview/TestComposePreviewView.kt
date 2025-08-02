@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.gradle.preview
+package com.android.tools.idea.compose.preview
 
+import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
-import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.common.surface.SurfaceInteractable
-import com.android.tools.idea.compose.preview.ComposePreviewView
-import com.android.tools.idea.compose.preview.NopComposePreviewManager
-import com.android.tools.idea.compose.preview.createMainDesignSurfaceBuilder
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
-import com.android.tools.idea.preview.focus.FocusModeProperty
+import com.android.tools.idea.preview.focus.FocusMode
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.Disposable
@@ -35,50 +32,60 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlinx.coroutines.CompletableDeferred
 
-val SceneViewPeerPanel.displayName: String
-  get() = sceneView.sceneManager.model.displaySettings.modelDisplayName.value ?: ""
+/** A test implementation of [ComposePreviewView]. */
+class TestComposePreviewView : ComposePreviewView, JPanel {
+  override val mainSurface: NlDesignSurface
+  private val onRefreshCompletedCallback: () -> Unit
 
-class TestComposePreviewView(
-  parentDisposable: Disposable,
-  project: Project,
-  navigationHandler: NavigationHandler = ComposePreviewNavigationHandler(),
-) : ComposePreviewView, JPanel() {
   var interactionPaneProvider: () -> JComponent? = { null }
   var isInteractive = false
   val delegateInteractionHandler = DelegateInteractionHandler()
 
-  override val mainSurface: NlDesignSurface =
-    createMainDesignSurfaceBuilder(
-        project,
-        navigationHandler,
-        delegateInteractionHandler,
-        { null },
-        parentDisposable,
-        ComposeSceneComponentProvider(),
-        ComposeScreenViewProvider(NopComposePreviewManager()),
-        { isInteractive },
-      )
-      .setInteractableProvider {
-        object : SurfaceInteractable(it) {
-          override val interactionPane: JComponent
-            get() = interactionPaneProvider() ?: super.interactionPane
-        }
-      }
-      .build()
   override val component: JComponent
     get() = this
 
   override var bottomPanel: JComponent? = null
   override val isMessageBeingDisplayed: Boolean = false
-  override var hasContent: Boolean = false
-  override var hasRendered: Boolean = false
+  override var hasContent: Boolean = true
+  override var hasRendered: Boolean = true
+  override var focusMode: FocusMode? = null
 
   private val nextRefreshLock = Any()
   private var nextRefreshListener: CompletableDeferred<Unit>? = null
+  val refreshCompletedListeners: MutableList<() -> Unit> = mutableListOf()
 
-  override var focusMode by FocusModeProperty(this, mainSurface)
+  constructor(
+    parentDisposable: Disposable,
+    project: Project,
+    navigationHandler: NavigationHandler = ComposePreviewNavigationHandler(),
+    onRefreshCompletedCallback: () -> Unit = {},
+  ) {
+    this.onRefreshCompletedCallback = onRefreshCompletedCallback    
+    this.mainSurface =
+      createMainDesignSurfaceBuilder(
+          project,
+          navigationHandler,
+          delegateInteractionHandler,
+          { null },
+          parentDisposable,
+          ComposeSceneComponentProvider(),
+          ComposeScreenViewProvider(NopComposePreviewManager()),
+          { isInteractive },
+        )
+        .setInteractableProvider {
+          object : SurfaceInteractable(it) {
+            override val interactionPane: JComponent
+              get() = interactionPaneProvider() ?: super.interactionPane
+          }
+        }
+        .build()
+    layout = BorderLayout()
+    add(mainSurface, BorderLayout.CENTER)
+  }
 
-  init {
+  constructor(mainSurface: NlDesignSurface, onRefreshCompletedCallback: () -> Unit = {}) {
+    this.onRefreshCompletedCallback = onRefreshCompletedCallback
+    this.mainSurface = mainSurface
     layout = BorderLayout()
     add(mainSurface, BorderLayout.CENTER)
   }
@@ -92,12 +99,14 @@ class TestComposePreviewView(
   override fun onRefreshCancelledByTheUser() {}
 
   override fun onRefreshCompleted() {
+    onRefreshCompletedCallback()
     synchronized(nextRefreshLock) {
         val current = nextRefreshListener
         nextRefreshListener = null
         current
       }
       ?.complete(Unit)
+    refreshCompletedListeners.forEach { it.invoke() }
   }
 
   /**
@@ -111,4 +120,13 @@ class TestComposePreviewView(
     }
 
   override fun onLayoutlibNativeCrash(onLayoutlibReEnable: () -> Unit) {}
+
+  suspend fun runAndWaitForRefresh(runnable: () -> Unit) {
+    var refreshCompleted = false
+    val listener = { refreshCompleted = true }
+    refreshCompletedListeners.add(listener)
+    runnable()
+    delayUntilCondition(250) { refreshCompleted }
+    refreshCompletedListeners.remove(listener)
+  }
 }

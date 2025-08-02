@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.preview.PreviewRefreshManager
@@ -123,3 +124,6 @@ suspend fun waitForAllRefreshesToFinish(timeout: Duration) =
       .refreshingTypeFlow
       .awaitStatus("Timeout waiting for all pending refreshes to finish", timeout) { it == null }
   }
+
+val SceneViewPeerPanel.displayName: String
+  get() = sceneView.sceneManager.model.displaySettings.modelDisplayName.value ?: ""
