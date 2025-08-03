@@ -130,6 +130,7 @@ iml_module(
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements",
         "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile",
         "//tools/adt/idea/visual-lint:intellij.android.visual-lint",
+        "//tools/adt/idea/compose-designer:intellij.android.compose-designer.testFramework",
     ],
     test_jvm_flags = [
         "-Djdk.attach.allowAttachSelf=true",

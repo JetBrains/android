@@ -329,6 +329,7 @@ iml_module(
         "//tools/adt/idea/rendering:intellij.android.rendering",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
     ],
+    test_friends = ["//tools/adt/idea/compose-designer:intellij.android.compose-designer"],
     test_srcs = ["testFramework"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
