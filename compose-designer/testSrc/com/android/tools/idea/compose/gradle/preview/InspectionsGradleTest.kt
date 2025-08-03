@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.compose.gradle.preview
 
-import com.android.tools.idea.compose.gradle.SIMPLE_COMPOSE_PROJECT_PATH
-import com.android.tools.idea.compose.gradle.SimpleComposeAppPaths
-import com.android.tools.idea.compose.gradle.TEST_DATA_PATH
+import com.android.tools.idea.compose.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.SimpleComposeAppPaths
+import com.android.tools.idea.compose.TEST_DATA_PATH
 import com.android.tools.idea.compose.preview.ComposePreviewNotSupportedInUnitTestFiles
 import com.android.tools.idea.compose.preview.descriptionWithLineNumber
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT

@@ -16,9 +16,9 @@
 package com.android.tools.idea.compose.gradle.uicheck
 
 import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
-import com.android.tools.idea.compose.gradle.SIMPLE_COMPOSE_PROJECT_PATH
-import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForResult
+import com.android.tools.idea.compose.ComposeGradleProjectRule
+import com.android.tools.idea.compose.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.renderer.renderPreviewElementForResult
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
@@ -51,15 +51,16 @@ class WearMarginAnalyzerComposeTest {
         )
         .get()
     val file = renderResult.lightVirtualFile
+    val result = renderResult.result!!
     val nlModel =
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
         AndroidBuildTargetReference.gradleOnly(facet),
         file,
-        renderResult.result!!.renderContext!!.configuration,
+        result.renderContext!!.configuration,
       )
-    val issues = WearMarginAnalyzer.findIssues(renderResult.result, nlModel.configuration)
+    val issues = WearMarginAnalyzer.findIssues(result, nlModel.configuration)
     Assert.assertEquals(0, issues.size)
   }
 
@@ -81,15 +82,16 @@ class WearMarginAnalyzerComposeTest {
         )
         .get()
     val file = renderResult.lightVirtualFile
+    val result = renderResult.result!!
     val nlModel =
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
         AndroidBuildTargetReference.gradleOnly(facet),
         file,
-        renderResult.result!!.renderContext!!.configuration,
+        result.renderContext!!.configuration,
       )
-    val issues = WearMarginAnalyzer.findIssues(renderResult.result, nlModel.configuration)
+    val issues = WearMarginAnalyzer.findIssues(result, nlModel.configuration)
     Assert.assertEquals(1, issues.size)
     Assert.assertEquals(
       "The view TextView is too close to the side of the device",

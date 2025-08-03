@@ -16,9 +16,9 @@
 package com.android.tools.idea.compose.gradle.preview
 
 import com.android.testutils.TestUtils
-import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
-import com.android.tools.idea.compose.gradle.SIMPLE_COMPOSE_PROJECT_PATH
-import com.android.tools.idea.compose.gradle.SimpleComposeAppPaths
+import com.android.tools.idea.compose.ComposeGradleProjectRule
+import com.android.tools.idea.compose.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText

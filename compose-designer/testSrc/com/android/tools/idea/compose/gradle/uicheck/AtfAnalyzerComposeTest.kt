@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.compose.gradle.uicheck
 
+import com.android.tools.idea.compose.ComposeGradleProjectRule
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
-import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
-import com.android.tools.idea.compose.gradle.SIMPLE_COMPOSE_PROJECT_PATH
-import com.android.tools.idea.compose.gradle.createNlModelForCompose
-import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForResult
+import com.android.tools.idea.compose.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.createNlModelForCompose
+import com.android.tools.idea.compose.renderer.renderPreviewElementForResult
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater
@@ -197,8 +197,9 @@ class AtfAnalyzerComposeTest {
 
       // We need to update the hierarchy with the render result so that ATF can link the result with
       // the NlModel
-      NlModelHierarchyUpdater.updateHierarchy(renderResult.result!!, nlModel)
-      AtfAnalyzer.findIssues(renderResult.result, nlModel.configuration).map {
+      val result = renderResult.result!!
+      NlModelHierarchyUpdater.updateHierarchy(result, nlModel)
+      AtfAnalyzer.findIssues(result, nlModel.configuration).map {
         createVisualLintRenderIssue(it, nlModel, VisualLintErrorType.ATF)
       }
     }

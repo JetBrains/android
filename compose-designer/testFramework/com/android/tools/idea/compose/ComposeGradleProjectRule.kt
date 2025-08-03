@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.gradle
+package com.android.tools.idea.compose
 
 import com.android.flags.junit.FlagRule
 import com.android.testutils.TestUtils.resolveWorkspacePath

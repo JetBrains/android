@@ -16,9 +16,9 @@
 package com.android.tools.idea.compose.gradle.preview
 
 import com.android.testutils.delayUntilCondition
-import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
-import com.android.tools.idea.compose.gradle.SIMPLE_COMPOSE_PROJECT_PATH
-import com.android.tools.idea.compose.gradle.SimpleComposeAppPaths
+import com.android.tools.idea.compose.ComposeGradleProjectRule
+import com.android.tools.idea.compose.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.SimpleComposeAppPaths
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.build.RenderingBuildStatus

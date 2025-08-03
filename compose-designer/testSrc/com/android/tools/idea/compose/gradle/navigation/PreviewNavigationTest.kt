@@ -18,13 +18,12 @@ package com.android.tools.idea.compose.gradle.navigation
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
-import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
-import com.android.tools.idea.compose.gradle.SIMPLE_COMPOSE_PROJECT_PATH
-import com.android.tools.idea.compose.gradle.SimpleComposeAppPaths
-import com.android.tools.idea.compose.gradle.activateAndWaitForRender
-import com.android.tools.idea.compose.gradle.clickPreviewImage
-import com.android.tools.idea.compose.gradle.clickPreviewName
-import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForResult
+import com.android.tools.idea.compose.ComposeGradleProjectRule
+import com.android.tools.idea.compose.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.SimpleComposeAppPaths
+import com.android.tools.idea.compose.activateAndWaitForRender
+import com.android.tools.idea.compose.clickPreviewImage
+import com.android.tools.idea.compose.clickPreviewName
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.TestComposePreviewView
 import com.android.tools.idea.compose.preview.displayName
@@ -32,6 +31,7 @@ import com.android.tools.idea.compose.preview.navigation.findComponentHits
 import com.android.tools.idea.compose.preview.navigation.findNavigatableComponentHit
 import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.compose.preview.util.getRootComponent
+import com.android.tools.idea.compose.renderer.renderPreviewElementForResult
 import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility

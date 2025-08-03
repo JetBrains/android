@@ -314,6 +314,7 @@ iml_module(
     # do not sort: must match IML order
     test_deps = [
         "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/base/testutils:studio.android.sdktools.testutils",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
@@ -326,6 +327,8 @@ iml_module(
         "//tools/adt/idea/preview-designer:intellij.android.preview-designer",
         "//tools/adt/idea/preview-designer:intellij.android.preview-designer.tests",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources",
         "//tools/adt/idea/rendering:intellij.android.rendering",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
     ],

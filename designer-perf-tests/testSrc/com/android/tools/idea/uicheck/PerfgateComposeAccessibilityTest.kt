@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uicheck
 
-import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForResult
+import com.android.tools.idea.compose.renderer.renderPreviewElementForResult
 import com.android.tools.idea.rendering.ComposeRenderTestBase
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement
 import com.android.tools.idea.rendering.HeapSnapshotMemoryUseMeasurement

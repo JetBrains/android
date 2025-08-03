@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering.gradle
 
-import com.android.tools.idea.compose.gradle.ComposePreviewFakeUiGradleRule
+import com.android.tools.idea.compose.ComposePreviewFakeUiGradleRule
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.TestComposePreviewView
 import com.android.tools.idea.concurrency.asCollection

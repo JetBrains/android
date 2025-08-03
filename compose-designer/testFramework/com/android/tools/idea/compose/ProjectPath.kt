@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.gradle
+package com.android.tools.idea.compose
 
 const val TEST_DATA_PATH = "tools/adt/idea/compose-designer/testData"
 const val SIMPLE_COMPOSE_PROJECT_PATH = "projects/SimpleComposeApplication"
@@ -22,7 +22,7 @@ const val SIMPLE_COMPOSE_PROJECT_PATH = "projects/SimpleComposeApplication"
  * Relative paths to some useful files in the SimpleComposeApplication (
  * [SIMPLE_COMPOSE_PROJECT_PATH]) test project
  */
-internal enum class SimpleComposeAppPaths(val path: String) {
+enum class SimpleComposeAppPaths(val path: String) {
   APP_MAIN_ACTIVITY("app/src/main/java/google/simpleapplication/MainActivity.kt"),
   APP_OTHER_PREVIEWS("app/src/main/java/google/simpleapplication/OtherPreviews.kt"),
   APP_PARAMETRIZED_PREVIEWS("app/src/main/java/google/simpleapplication/ParametrizedPreviews.kt"),

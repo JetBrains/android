@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.compose.gradle.renderer
 
-import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
-import com.android.tools.idea.compose.gradle.SIMPLE_COMPOSE_PROJECT_PATH
-import com.android.tools.idea.compose.gradle.SimpleComposeAppPaths
+import com.android.tools.idea.compose.ComposeGradleProjectRule
+import com.android.tools.idea.compose.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.SimpleComposeAppPaths
 import com.android.tools.idea.compose.gradle.navigation.PreviewNavigationTest
 import com.android.tools.idea.compose.preview.ComposeViewInfo
 import com.android.tools.idea.compose.preview.parseViewInfo
+import com.android.tools.idea.compose.renderer.renderPreviewElementForResult
 import com.android.tools.idea.testing.virtualFile
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.intellij.openapi.application.ReadAction

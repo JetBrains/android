@@ -18,7 +18,7 @@ package com.android.tools.idea.uicheck
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForResult
+import com.android.tools.idea.compose.renderer.renderPreviewElementForResult
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.ComposeRenderTestBase
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement

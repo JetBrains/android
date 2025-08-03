@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.compose.gradle.uicheck
 
-import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
-import com.android.tools.idea.compose.gradle.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.ComposeGradleProjectRule
+import com.android.tools.idea.compose.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.intellij.psi.PsiElement

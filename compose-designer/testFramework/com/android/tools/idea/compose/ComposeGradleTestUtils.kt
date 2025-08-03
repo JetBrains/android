@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.gradle
+package com.android.tools.idea.compose
 
 import com.android.tools.adtui.swing.FakeMouse
 import com.android.tools.adtui.swing.FakeUi
@@ -56,7 +56,7 @@ import org.jetbrains.android.facet.AndroidFacet
  * Find the [PsiFile] corresponding to a file that is part of the given [project], whose location is
  * defined by the given [relativePath] from the [project]'s root directory.
  */
-internal fun getPsiFile(project: Project, relativePath: String): PsiFile {
+fun getPsiFile(project: Project, relativePath: String): PsiFile {
   val vFile = project.guessProjectDir()!!.findFileByRelativePath(relativePath)!!
   return runReadAction { PsiManager.getInstance(project).findFile(vFile)!! }
 }
@@ -133,12 +133,12 @@ suspend fun waitForRender(
     }
   }
 
-internal fun FakeUi.clickPreviewName(sceneViewPanel: SceneViewPeerPanel) {
+fun FakeUi.clickPreviewName(sceneViewPanel: SceneViewPeerPanel) {
   val nameLabel = sceneViewPanel.sceneViewTopPanel.components.single { it is JLabel }
   runInEdtAndWait { clickRelativeTo(nameLabel, 1, 1) }
 }
 
-internal fun FakeUi.clickPreviewImage(
+fun FakeUi.clickPreviewImage(
   sceneViewPanel: SceneViewPeerPanel,
   rightClick: Boolean = false,
   pressingShift: Boolean = false,
@@ -156,11 +156,7 @@ internal fun FakeUi.clickPreviewImage(
   }
 }
 
-internal fun createNlModelForCompose(
-  parent: Disposable,
-  facet: AndroidFacet,
-  file: VirtualFile,
-): NlModel {
+fun createNlModelForCompose(parent: Disposable, facet: AndroidFacet, file: VirtualFile): NlModel {
   val nlModel =
     create(parent, NlComponentRegistrar, AndroidBuildTargetReference.gradleOnly(facet), file)
   // Sets the correct model update for Compose

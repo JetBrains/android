@@ -18,10 +18,10 @@ package com.android.tools.idea.compose.gradle.fast
 import com.android.testutils.delayUntilCondition
 import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.compile.fast.isSuccess
-import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
-import com.android.tools.idea.compose.gradle.SIMPLE_COMPOSE_PROJECT_PATH
-import com.android.tools.idea.compose.gradle.SimpleComposeAppPaths
-import com.android.tools.idea.compose.gradle.renderer.renderPreviewElement
+import com.android.tools.idea.compose.ComposeGradleProjectRule
+import com.android.tools.idea.compose.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.SimpleComposeAppPaths
+import com.android.tools.idea.compose.renderer.renderPreviewElement
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager

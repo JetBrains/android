@@ -18,10 +18,10 @@ package com.android.tools.idea.compose.gradle.preview
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.AccessibilityModelUpdater
 import com.android.tools.idea.common.model.NlDataProvider
+import com.android.tools.idea.compose.ComposeGradleProjectRule
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
-import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
-import com.android.tools.idea.compose.gradle.SIMPLE_COMPOSE_PROJECT_PATH
-import com.android.tools.idea.compose.gradle.getPsiFile
+import com.android.tools.idea.compose.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.getPsiFile
 import com.android.tools.idea.compose.preview.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.ComposeVisualLintIssueProvider
 import com.android.tools.idea.compose.preview.ComposeVisualLintSuppressTask
