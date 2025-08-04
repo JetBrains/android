@@ -37,7 +37,7 @@ class PhasedSyncProjectModelProvider : ProjectImportModelProvider {
     * The source of the clash is the mismatch between the platform models and our models. Platform models for the projects don't have source
     * set information whereas Android models do, so some sort of inconsistency will always be there with the current definition of phases.
    */
-  override fun getPhase() =  GradleModelFetchPhase.PROJECT_SOURCE_SET_PHASE
+  override fun getPhase(): GradleModelFetchPhase = GradleModelFetchPhase.PROJECT_SOURCE_SET_PHASE
 
   override fun populateModels(controller: BuildController,
                               buildModels: MutableCollection<out GradleBuild>,
