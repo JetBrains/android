@@ -50,7 +50,8 @@ class StudioLabsFeaturePanelUiTest {
 
   @Test
   fun featurePanel_onButtonClick_updatesButtonText() {
-    val unused = createFeaturePanel()
+    createFeaturePanel()
+
     composeTestRule.onNodeWithTag("enable_disable_button").assertTextEquals("Disable")
 
     composeTestRule.onNodeWithTag("enable_disable_button").performClick()
@@ -101,8 +102,7 @@ class StudioLabsFeaturePanelUiTest {
         description =
           "Allows to store frequently used prompts for quick access." +
             " Optionally share prompts with other people working on a same project.",
-        imageSourceDefault = "images/studio_labs/prompt-library-settings.png",
-        imageSourceDark = "images/studio_labs/prompt-library-settings_dark.png",
+        imageKey = StudioLabsIcons.Features.PromptLibrarySettings,
         imageDescription = "Prompt Library settings",
       )
     composeTestRule.setContent { featurePanel.PanelContent() }

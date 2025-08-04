@@ -16,13 +16,16 @@
 package com.android.tools.studio.labs
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -34,62 +37,68 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.STUDIO_LABS_EVENT
 import com.google.wireless.android.sdk.stats.StudioLabsEvent
 import com.google.wireless.android.sdk.stats.StudioLabsEvent.PageInteraction
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.options.BoundSearchableConfigurable
+import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.Configurable.Promo
-import com.intellij.openapi.ui.DialogPanel
-import com.intellij.ui.dsl.builder.panel
+import com.intellij.openapi.options.SearchableConfigurable
+import com.intellij.openapi.util.NlsContexts
 import icons.StudioIcons
 import javax.swing.Icon
+import javax.swing.JComponent
+import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.VerticallyScrollableContainer
 
 class StudioLabsSettingsConfigurable :
-  BoundSearchableConfigurable(
-    displayName = "Studio Labs",
-    helpTopic = "Sign up for new features",
-    _id = "studio.settings.StudioLabsConfigurable",
-  ),
-  Promo,
-  Disposable {
+  SearchableConfigurable, Promo, Configurable.NoScroll, Configurable.NoMargin {
   @VisibleForTesting val panelList = getStudioLabsFeaturePanelList()
 
-  override fun createPanel(): DialogPanel {
+  override fun getDisplayName(): @NlsContexts.ConfigurableName String = "Studio Labs"
+
+  override fun getId(): @NonNls String = "studio.settings.StudioLabsConfigurable"
+
+  override fun getHelpTopic(): String =
+    AndroidWebHelpProvider.HELP_PREFIX + "studio/preview/gemini/labs"
+
+  override fun createComponent(): JComponent {
     log(PageInteraction.OPENED)
-    return panel { row { cell(StudioComposePanel { StudioLabsPanel() }) } }
+    return StudioComposePanel { StudioLabsPanel() }
   }
 
-  override fun getHelpTopic(): String? {
-    return AndroidWebHelpProvider.HELP_PREFIX + "studio/preview/gemini/labs"
-  }
-
+  @OptIn(ExperimentalJewelApi::class)
   @Composable
-  fun StudioLabsPanel() {
-    val scrollState = rememberScrollState()
-    Column(modifier = Modifier.background(JewelTheme.globalColors.panelBackground)) {
+  private fun StudioLabsPanel() {
+    Column(
+      modifier =
+        Modifier.fillMaxSize()
+          .background(JewelTheme.globalColors.panelBackground)
+          // Matches the borders applied in ConfigurableCardPanel.createConfigurableComponent
+          .padding(start = 16.dp, top = 5.dp, end = 16.dp, bottom = 10.dp)
+    ) {
       Text("Opt in to Studio Labs to get early access to experimental features.")
-      Column(modifier = Modifier.verticalScroll(scrollState)) {
-        Spacer(modifier = Modifier.size(12.dp))
-        panelList.chunked(2).forEach { item ->
-          Row(modifier = Modifier.padding(bottom = 8.dp)) {
-            item.forEach {
-              it.PanelContent()
-              Spacer(modifier = Modifier.size(8.dp))
-            }
-          }
+
+      Spacer(modifier = Modifier.height(12.dp))
+
+      val state = rememberLazyGridState()
+      VerticallyScrollableContainer(state, Modifier.fillMaxWidth()) {
+        LazyVerticalGrid(
+          GridCells.Adaptive(300.dp),
+          Modifier.fillMaxWidth(),
+          state,
+          verticalArrangement = Arrangement.spacedBy(12.dp),
+          horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+          items(panelList.size) { index -> panelList[index].PanelContent() }
         }
       }
     }
   }
 
-  override fun getPromoIcon(): Icon {
-    return StudioIcons.Shell.Menu.STUDIO_LABS
-  }
+  override fun getPromoIcon(): Icon = StudioIcons.Shell.Menu.STUDIO_LABS
 
-  override fun isModified(): Boolean {
-    return panelList.any { it.isModified() }
-  }
+  override fun isModified(): Boolean = panelList.any { it.isModified() }
 
   override fun apply() { // Handles both apply and Ok button clicks
     log(PageInteraction.APPLY_BUTTON_CLICKED)
@@ -100,12 +109,8 @@ class StudioLabsSettingsConfigurable :
     panelList.forEach { it.reset() }
   }
 
-  override fun dispose() {}
-
   companion object {
-    fun isThereAnyFeatureInLabs(): Boolean {
-      return getStudioLabsFeaturePanelList().isNotEmpty()
-    }
+    fun isThereAnyFeatureInLabs(): Boolean = getStudioLabsFeaturePanelList().isNotEmpty()
 
     private fun log(pageInteraction: PageInteraction) {
       UsageTracker.log(
@@ -122,7 +127,7 @@ class StudioLabsSettingsConfigurable :
      */
     private fun getStudioLabsFeaturePanelList(): List<StudioLabsFeaturePanelUi> {
       val labsFeatures =
-        listOf<StudioLabsFeaturePanelUi>(
+        listOf(
           // Add a pane for every feature that should be in labs.
           // e.g.,
           //    StudioLabsFeaturePanelUi(
@@ -143,8 +148,7 @@ class StudioLabsSettingsConfigurable :
                 Allows the generation of new Compose Previews for existing Composables.
               """
                 .trimIndent(),
-            imageSourceDefault = "images/studio_labs/generate-compose-preview.png",
-            imageSourceDark = "images/studio_labs/generate-compose-preview_dark.png",
+            imageKey = StudioLabsIcons.Features.GenerateComposePreview,
             imageDescription = "Generate Compose Preview menu",
           ),
           StudioLabsFeaturePanelUi(
@@ -155,8 +159,7 @@ class StudioLabsSettingsConfigurable :
               Allows the transformation of existing UI within the Compose Preview environment using Gemini.
             """
                 .trimIndent(),
-            imageSourceDefault = "images/studio_labs/transform-compose-preview.png",
-            imageSourceDark = "images/studio_labs/transform-compose-preview_dark.png",
+            imageKey = StudioLabsIcons.Features.TransformComposePreview,
             imageDescription = "Transform UI with Gemini action",
           ),
           StudioLabsFeaturePanelUi(
@@ -167,8 +170,7 @@ class StudioLabsSettingsConfigurable :
                 Allows attaching images to the Gemini queries.
               """
                 .trimIndent(),
-            imageSourceDefault = "images/studio_labs/attach-image.png",
-            imageSourceDark = "images/studio_labs/attach-image_dark.png",
+            imageKey = StudioLabsIcons.Features.AttachImage,
             imageDescription = "Image attaching menu",
           ),
           StudioLabsFeaturePanelUi(
@@ -179,8 +181,7 @@ class StudioLabsSettingsConfigurable :
                 Allows attaching files from your project to Gemini queries, and storing them in a context drawer.
               """
                 .trimIndent(),
-            imageSourceDefault = "images/studio_labs/at-file.png",
-            imageSourceDark = "images/studio_labs/at-file_dark.png",
+            imageKey = StudioLabsIcons.Features.AtFile,
             imageDescription = "@file attaching menu",
           ),
           /*
@@ -193,8 +194,7 @@ class StudioLabsSettingsConfigurable :
                 Enables AQI to generate suggested fixes based on Gemini insight.
               """
                 .trimIndent(),
-            imageSourceDefault = "images/studio_labs/suggested-fix.png",
-            imageSourceDark = "images/studio_labs/suggested-fix_dark.png",
+            imageKey = StudioLabsIcons.Features.SuggestedFix,
             imageDescription = "Suggested Fix in AQI",
           ),
           */
@@ -211,8 +211,7 @@ class StudioLabsSettingsConfigurable :
               description =
                 "Allows to store frequently used prompts for quick access." +
                   " Optionally share prompts with other people working on a same project.",
-              imageSourceDefault = "images/studio_labs/prompt-library-settings.png",
-              imageSourceDark = "images/studio_labs/prompt-library-settings_dark.png",
+              imageKey = StudioLabsIcons.Features.PromptLibrarySettings,
               imageDescription = "Prompt Library settings",
             )
           )

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -42,15 +44,16 @@ import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.Typography
-import org.jetbrains.jewel.ui.component.painterResource
+import org.jetbrains.jewel.ui.icon.IconKey
+import org.jetbrains.jewel.ui.icon.newUiChecker
+import org.jetbrains.jewel.ui.painter.rememberResourcePainterProvider
 
 /** Class representing a Studio Labs Feature Panel. */
 open class StudioLabsFeaturePanelUi(
   val flag: Flag<Boolean>,
   val heading: String,
   val description: String,
-  val imageSourceDefault: String,
-  val imageSourceDark: String,
+  val imageKey: IconKey,
   val imageDescription: String,
 ) {
   private val currentState = mutableStateOf(flag.get())
@@ -71,17 +74,8 @@ open class StudioLabsFeaturePanelUi(
             )
           )
     ) {
-      Image(
-        painter =
-          if (JewelTheme.isDark) {
-            painterResource(imageSourceDark)
-          } else {
-            painterResource(imageSourceDefault)
-          },
-        imageDescription,
-        modifier = Modifier.fillMaxWidth().height(200.dp),
-        contentScale = ContentScale.FillWidth,
-      )
+      FeatureImage(imageKey, imageDescription, modifier = Modifier.fillMaxWidth().height(200.dp))
+
       Column(modifier = Modifier.padding(16.dp)) {
         Text(heading, style = Typography.h2TextStyle(), fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.size(12.dp))
@@ -97,9 +91,21 @@ open class StudioLabsFeaturePanelUi(
     }
   }
 
-  fun isModified(): Boolean {
-    return flag.get() != currentState.value
+  @Composable
+  private fun FeatureImage(
+    key: IconKey,
+    contentDescription: String,
+    modifier: Modifier = Modifier,
+  ) {
+    val isNewUi = JewelTheme.newUiChecker.isNewUi()
+    val path = remember(key, isNewUi) { key.path(isNewUi) }
+    val painterProvider = rememberResourcePainterProvider(path, key.iconClass)
+    val painter by painterProvider.getPainter()
+
+    Image(painter, contentDescription, modifier, contentScale = ContentScale.Crop)
   }
+
+  fun isModified(): Boolean = flag.get() != currentState.value
 
   fun apply() {
     val newValue = currentState.value
@@ -119,15 +125,6 @@ class FakeStudioLabsFeaturePanelUi(
   flag: Flag<Boolean>,
   heading: String,
   description: String,
-  imageSourceDefault: String,
-  imageSourceDark: String,
+  imageKey: IconKey,
   imageDescription: String,
-) :
-  StudioLabsFeaturePanelUi(
-    flag,
-    heading,
-    description,
-    imageSourceDefault,
-    imageSourceDark,
-    imageDescription,
-  )
+) : StudioLabsFeaturePanelUi(flag, heading, description, imageKey, imageDescription)

@@ -22,9 +22,7 @@ import com.intellij.openapi.options.ConfigurableProvider
 
 // In Android plugin, "Studio Labs" is a top-level configurable
 class StudioLabsConfigurableProvider : ConfigurableProvider() {
-  override fun createConfigurable(): Configurable? {
-    return StudioLabsSettingsConfigurable()
-  }
+  override fun createConfigurable(): Configurable = StudioLabsSettingsConfigurable()
 
   override fun canCreateConfigurable(): Boolean {
     if (!IdeInfo.getInstance().isAndroidStudio) {

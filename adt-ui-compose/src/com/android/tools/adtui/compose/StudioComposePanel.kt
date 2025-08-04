@@ -16,20 +16,12 @@
 package com.android.tools.adtui.compose
 
 import androidx.compose.runtime.Composable
-import javax.swing.JComponent
 import org.jetbrains.jewel.bridge.JewelComposeNoThemePanel
-import org.jetbrains.jewel.bridge.JewelToolWindowNoThemeComposePanel
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
+import javax.swing.JComponent
 
 @Suppress("FunctionName")
 @OptIn(ExperimentalJewelApi::class)
 fun StudioComposePanel(content: @Composable () -> Unit): JComponent = JewelComposeNoThemePanel {
   StudioTheme(content)
 }
-
-@Suppress("FunctionName")
-@OptIn(ExperimentalJewelApi::class)
-fun StudioToolWindowComposePanel(content: @Composable () -> Unit): JComponent =
-  JewelToolWindowNoThemeComposePanel {
-    StudioTheme(content)
-  }

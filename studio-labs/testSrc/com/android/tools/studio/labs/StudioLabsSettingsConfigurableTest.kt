@@ -20,11 +20,9 @@ import com.android.tools.idea.flags.StudioFlags.STUDIO_LABS_SETTINGS_FAKE_FEATUR
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.StudioLabsEvent
-import com.intellij.openapi.application.EDT
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import icons.StudioIcons
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 
@@ -33,29 +31,30 @@ class StudioLabsSettingsConfigurableTest {
   @get:Rule val applicationRule = ApplicationRule()
   @get:Rule val usageTrackerRule = UsageTrackerRule()
 
-  private val configurable: StudioLabsSettingsConfigurable = StudioLabsSettingsConfigurable()
-
   @Test
   fun configurable_hasStudioLabsIcon() {
+    val configurable = StudioLabsSettingsConfigurable()
     assertThat(configurable.promoIcon).isEqualTo(StudioIcons.Shell.Menu.STUDIO_LABS)
   }
 
   @Test
-  fun configurable_createPanel_logsOpenedEvent(): Unit =
+  fun configurable_createPanel_logsOpenedEvent() {
+    val configurable = StudioLabsSettingsConfigurable()
     // ComposePanel can only be created inside AWT Event Dispatch Thread.
-    runBlocking(Dispatchers.EDT) {
-      configurable.createPanel()
+    val application = ApplicationManager.getApplication()
+    application.invokeAndWait { configurable.createComponent() }
 
-      assertThat(usageTrackerRule.studioLabsUsageEvents())
-        .containsExactly(
-          StudioLabsEvent.newBuilder()
-            .setPageInteraction(StudioLabsEvent.PageInteraction.OPENED)
-            .build()
-        )
-    }
+    assertThat(usageTrackerRule.studioLabsUsageEvents())
+      .containsExactly(
+        StudioLabsEvent.newBuilder()
+          .setPageInteraction(StudioLabsEvent.PageInteraction.OPENED)
+          .build()
+      )
+  }
 
   @Test
   fun configurable_onApply_logsApplyEvent() {
+    val configurable = StudioLabsSettingsConfigurable()
     configurable.apply()
 
     assertThat(usageTrackerRule.studioLabsUsageEvents())
