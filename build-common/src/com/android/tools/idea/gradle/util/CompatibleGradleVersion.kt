@@ -47,6 +47,7 @@ enum class CompatibleGradleVersion(val version: GradleVersion) {
   VERSION_8_9(GradleVersion.version("8.9")),
   VERSION_8_10_2(GradleVersion.version("8.10.2")),
   VERSION_8_11_1(GradleVersion.version("8.11.1")),
+  VERSION_8_13(GradleVersion.version("8.13")),
   VERSION_FOR_DEV(GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION)),
 
   ;
@@ -80,6 +81,8 @@ enum class CompatibleGradleVersion(val version: GradleVersion) {
         AgpVersion.parse("8.8.0") >= agpVersionMajorMinor -> VERSION_8_10_2
         AgpVersion.parse("8.9.0") >= agpVersionMajorMinor -> VERSION_8_11_1
         AgpVersion.parse("8.10.0") >= agpVersionMajorMinor -> VERSION_8_11_1
+        AgpVersion.parse("8.11.0") >= agpVersionMajorMinor -> VERSION_8_13
+        AgpVersion.parse("8.12.0") >= agpVersionMajorMinor -> VERSION_8_13
         else -> VERSION_FOR_DEV
       }
     }
