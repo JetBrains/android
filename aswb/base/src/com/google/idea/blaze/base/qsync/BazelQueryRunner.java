@@ -16,7 +16,6 @@
 package com.google.idea.blaze.base.qsync;
 
 import com.google.common.base.Stopwatch;
-import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
@@ -30,7 +29,6 @@ import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.query.QuerySpec;
 import com.google.idea.blaze.qsync.query.QuerySummary;
 import com.google.idea.blaze.qsync.query.QuerySummaryImpl;
-import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.IOException;
@@ -64,7 +62,6 @@ public class BazelQueryRunner implements QueryRunner {
       context.output(PrintOutput.output("Project is empty, not running a query"));
       return QuerySummary.EMPTY;
     }
-    ImmutableSet.Builder<BuildInvoker.Capability> capabilityBuilder = new ImmutableSet.Builder<>();
     BuildInvoker invoker = buildSystem.getBuildInvoker(project);
     Optional<SyncQueryStats.Builder> syncQueryStatsBuilder = SyncQueryStatsScope.fromContext(context);
     syncQueryStatsBuilder.ifPresent(stats -> stats.setBlazeBinaryType(invoker.getType()));
