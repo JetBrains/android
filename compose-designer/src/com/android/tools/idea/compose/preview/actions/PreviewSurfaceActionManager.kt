@@ -74,6 +74,15 @@ internal class PreviewSurfaceActionManager(
         }
       }
     }
+    if (StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.get()) {
+      ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull()?.let {
+        // TODO(b/436827844): Remove empty list when we change the agent to be used as a loop agent
+        // rather than a one-shot agent.
+        it.fixComposeAccessibilityAction(emptyList())?.let { action ->
+          actionGroup.add(action.visibleOnlyInStaticPreview())
+        }
+      }
+    }
     // Add an action to rewrite UI from Image.
     if (StudioFlags.COMPOSE_CRITIQUE_AGENT_CODE_REWRITE.get()) {
       ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull()?.let {

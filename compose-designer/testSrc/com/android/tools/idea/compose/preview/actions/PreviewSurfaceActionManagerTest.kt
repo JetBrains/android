@@ -55,9 +55,10 @@ import org.mockito.kotlin.whenever
 // EnableInteractiveAction(),
 // DeployToDeviceAction(),
 // TransformPreviewAction(),
+// FixComposeAccessibilityAction(),
 // AlignUiToTargetImageAction(),
 // in wrappers
-private const val EXPECTED_NUMBER_OF_ACTIONS = 9
+private const val EXPECTED_NUMBER_OF_ACTIONS = 10
 
 // SavePreviewInNewSize()
 // EnableUiCheckAction(),
@@ -89,12 +90,14 @@ class PreviewSurfaceActionManagerTest {
   fun tearDown() {
     StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI.clearOverride()
     StudioFlags.COMPOSE_CRITIQUE_AGENT_CODE_REWRITE.clearOverride()
+    StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.clearOverride()
   }
 
   @Test
   fun testAvailableActionsOnPreviewContextMenu() {
     StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI.override(true)
     StudioFlags.COMPOSE_CRITIQUE_AGENT_CODE_REWRITE.override(true)
+    StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.override(true)
     ExtensionTestUtil.maskExtensions(
       ComposeStudioBotActionFactory.EP_NAME,
       listOf(FakeStudioBotActionFactory()),
@@ -136,9 +139,15 @@ class PreviewSurfaceActionManagerTest {
       (actions[7] as ShowGroupUnderConditionWrapper).getChildren(null).single()
     assertThat(transformPreviewAction.templatePresentation.text).isEqualTo("transformPreview")
 
+    // Fix Compose Accessibility action.
+    val fixComposeAccessibilityAction =
+      (actions[8] as ShowGroupUnderConditionWrapper).getChildren(null).single()
+    assertThat(fixComposeAccessibilityAction.templatePresentation.text)
+      .isEqualTo("fixComposeAccessibility")
+
     // Align Ui to Image action.
     val alignUiImageAction =
-      (actions[8] as ShowGroupUnderConditionWrapper).getChildren(null).single()
+      (actions[9] as ShowGroupUnderConditionWrapper).getChildren(null).single()
     assertThat(alignUiImageAction.templatePresentation.text).isEqualTo("alignUi")
   }
 
