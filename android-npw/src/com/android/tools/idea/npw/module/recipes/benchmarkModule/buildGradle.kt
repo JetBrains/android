@@ -18,24 +18,18 @@ package com.android.tools.idea.npw.module.recipes.benchmarkModule
 
 import com.android.ide.common.repository.AgpVersion
 import com.android.sdklib.AndroidMajorVersion
-import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.npw.module.recipes.androidModule.gradleToKtsIfKts
-import com.android.tools.idea.npw.module.recipes.compileSdk
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.npw.module.recipes.minSdk
 import com.android.tools.idea.npw.module.recipes.targetSdk
-import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.renderIf
 
 fun buildGradle(
   packageName: String,
-  buildApi: AndroidVersion,
   minApi: AndroidMajorVersion,
   targetApi: AndroidMajorVersion,
-  language: Language,
   agpVersion: AgpVersion,
   useGradleKts: Boolean,
-  useVersionCatalog: Boolean,
 ): String {
   val isNewAGP = agpVersion.compareIgnoringQualifiers("3.6.0") >= 0
 
@@ -56,7 +50,6 @@ ${emptyPluginsBlock()}
 
 android {
     namespace '$packageName'
-    ${compileSdk(buildApi, agpVersion)}
 
     defaultConfig {
         ${minSdk(minApi, agpVersion)}

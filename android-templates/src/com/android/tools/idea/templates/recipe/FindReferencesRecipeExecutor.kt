@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates.recipe
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.SourceSetType
@@ -156,4 +157,5 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
   }
 
   override fun useLibrary(name: String) {}
+  override fun addCompileSdk(androidVersion: AndroidVersion) {}
 }

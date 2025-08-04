@@ -50,17 +50,15 @@ fun RecipeExecutor.generateBenchmarkModule(
   val bg =
     buildGradle(
       packageName = packageName,
-      buildApi = buildApi,
       minApi = minApi,
       targetApi = targetApi,
-      language = language,
       agpVersion = projectData.agpVersion,
       useGradleKts = useGradleKts,
-      useVersionCatalog = useVersionCatalog,
     )
   val buildFile = if (useGradleKts) FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
 
   save(bg, moduleOut.resolve(buildFile))
+  addCompileSdk(buildApi)
   addPlugin(
     "com.android.library",
     "com.android.tools.build:gradle",

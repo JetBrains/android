@@ -22,6 +22,7 @@ import com.android.SdkConstants.GRADLE_IMPLEMENTATION_CONFIGURATION
 import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.gradle.Dependency
 import com.android.resources.ResourceFolderType
+import com.android.sdklib.AndroidVersion
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.gradle.dependencies.DependenciesHelper
 import com.android.tools.idea.gradle.dependencies.GroupNameDependencyMatcher
@@ -29,6 +30,7 @@ import com.android.tools.idea.gradle.dependencies.PluginsHelper
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.api.android.CompileSdkPropertyModel.Companion.COMPILE_SDK_BLOCK_VERSION
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
@@ -38,6 +40,7 @@ import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsBlockModel
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
+import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint
 import com.android.tools.idea.gradle.project.sync.quickFixes.getTargetJavaVersion
 import com.android.tools.idea.gradle.project.sync.quickFixes.setJavaKotlinCompileOptions
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
@@ -61,7 +64,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Charsets
 import com.intellij.diff.comparison.ComparisonManager
 import com.intellij.diff.comparison.ComparisonPolicy.IGNORE_WHITESPACES
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -76,8 +78,6 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.XmlElementFactory
 import java.io.File
 import com.android.tools.idea.templates.mergeXml as mergeXmlUtil
-
-private val LOG = Logger.getInstance(DefaultRecipeExecutor::class.java)
 
 /**
  * Executor support for recipe instructions.
@@ -691,6 +691,37 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   override fun useLibrary(name: String) {
     val buildModel = moduleGradleBuildModel ?: return
     buildModel.android().useLibraries().create(name)
+  }
+
+  override fun addCompileSdk(androidVersion: AndroidVersion) {
+    val agpVersion = AndroidGradlePluginVersion.parse(projectTemplateData.agpVersion.toString())
+    val compileSdkBlockVersion = VersionConstraint.agpFrom(COMPILE_SDK_BLOCK_VERSION)
+
+    // AGP 8.13 supports new syntax for specifying compileSdk as a block
+    val isBlockAllowedAGP = compileSdkBlockVersion.isOkWith(agpVersion)
+    val apiLevelMajor = androidVersion.androidApiLevel.majorVersion
+    val apiLevelMinor = androidVersion.androidApiLevel.minorVersion
+    val android = moduleGradleBuildModel?.android() ?: return
+    val afterElement: ResolvedPropertyModel? =
+      android.namespace().takeIf { it.psiElement != null }
+
+    if (isBlockAllowedAGP) {
+      val config = android.compileSdkVersion(afterElement).toCompileSdkConfig() ?: return
+      when {
+        androidVersion.isPreview ->
+          config.setPreviewVersion(androidVersion.apiStringWithExtension)
+
+        else -> config.setReleaseVersion(apiLevelMajor, apiLevelMinor, null)
+      }
+    }
+    else {
+      val resolvedVersion = android.compileSdkVersion(afterElement)
+      when {
+        androidVersion.isPreview ->
+          resolvedVersion.setValue(androidVersion.apiStringWithExtension)
+        else -> resolvedVersion.setValue(apiLevelMajor)
+      }
+    }
   }
 
   fun applyChanges() {

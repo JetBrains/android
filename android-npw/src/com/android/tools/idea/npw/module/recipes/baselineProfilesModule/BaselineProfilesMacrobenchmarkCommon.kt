@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.module.recipes.baselineProfilesModule
 
 import com.android.SdkConstants
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
 import com.android.tools.idea.npw.module.recipes.gitignore
@@ -41,6 +42,7 @@ object BaselineProfilesMacrobenchmarkCommon {
     useGradleKts: Boolean,
     macrobenchmarkMinRev: String,
     buildGradleContent: String,
+    minCompileSdk: AndroidVersion? = null,
     customizeModule: RecipeExecutor.() -> Unit = {},
   ) {
     addIncludeToSettings(newModule.name)
@@ -50,6 +52,7 @@ object BaselineProfilesMacrobenchmarkCommon {
       if (useGradleKts) SdkConstants.FN_BUILD_GRADLE_KTS else SdkConstants.FN_BUILD_GRADLE
     save(buildGradleContent, newModule.rootDir.resolve(buildFile))
 
+    addCompileSdk(listOfNotNull(minCompileSdk, newModule.apis.buildApi).max())
     // Apply all required dependencies
     addPlugin(
       "com.android.test",

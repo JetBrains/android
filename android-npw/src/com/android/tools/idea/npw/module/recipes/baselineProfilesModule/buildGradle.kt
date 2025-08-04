@@ -19,7 +19,6 @@ import com.android.sdklib.AndroidMajorVersion
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.npw.module.recipes.androidModule.gradleToKtsIfKts
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.flavorsConfigurationsBuildGradle
-import com.android.tools.idea.npw.module.recipes.compileSdk
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.npw.module.recipes.minSdk
 import com.android.tools.idea.npw.module.recipes.targetSdk
@@ -29,7 +28,7 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.renderIf
 import com.intellij.openapi.module.Module
 
-private val BENCHMARK_MIN_COMPILE_SDK = AndroidVersion(34, 0)
+val BENCHMARK_MIN_COMPILE_SDK = AndroidVersion(34, 0)
 private val BENCHMARK_MIN_API = AndroidMajorVersion(28)
 
 fun baselineProfilesBuildGradle(
@@ -123,7 +122,6 @@ ${emptyPluginsBlock()}
 
 android {
   namespace '$packageName'
-  ${compileSdk(maxOf(BENCHMARK_MIN_COMPILE_SDK, apis.buildApi), agpVersion)}
 
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11

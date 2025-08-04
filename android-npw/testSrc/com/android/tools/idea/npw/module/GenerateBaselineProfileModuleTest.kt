@@ -208,14 +208,17 @@ class GenerateBaselineProfileModuleTest {
 
     val newModuleTemplateData =
       ModuleTemplateData(
-        projectTemplateData = ProjectTemplateDataBuilder(false).apply {
-          androidXSupport = true
-          this.agpVersion = agpVersion
-          language = sourceCodeLanguage
-          this.kotlinVersion = kotlinVersion
-          topOut = tmpFolderRule.root
-          applicationPackage = packageName
-        }.build(),
+        projectTemplateData =
+          ProjectTemplateDataBuilder(false)
+            .apply {
+              androidXSupport = true
+              this.agpVersion = agpVersion
+              language = sourceCodeLanguage
+              this.kotlinVersion = kotlinVersion
+              topOut = tmpFolderRule.root
+              applicationPackage = packageName
+            }
+            .build(),
         themesData = ThemesData("appname"),
         apis =
           ApiTemplateData(
@@ -268,7 +271,6 @@ plugins {
 
 android {
   namespace 'com.test.packagename'
-  compileSdk ${AGP_CURRENT_WITH_UPDATED_SDK.compileSdk}
 
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11
@@ -316,7 +318,6 @@ plugins {
 
 android {
   namespace = "com.test.packagename"
-  compileSdk = ${AGP_CURRENT_WITH_UPDATED_SDK.compileSdk}
 
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11
@@ -704,7 +705,6 @@ plugins {
 
 android {
   namespace 'com.test.packagename'
-  compileSdk $SDK_VERSION_FOR_NPW_TESTS
 
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11
@@ -742,7 +742,6 @@ plugins {
 
 android {
   namespace = "com.test.packagename"
-  compileSdk = $SDK_VERSION_FOR_NPW_TESTS
 
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11

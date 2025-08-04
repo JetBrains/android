@@ -52,8 +52,18 @@ class NewModuleCompileSdkSelectionTest {
       agpVersion = agpVersionToTest,
     )
     generateTestLibraryModuleFiles()
-    assertThat(libraryBuildGradleKts).contains("compileSdk = 33")
+    assertThat(libraryBuildGradleKts.removeSpaces())
+      .contains(
+        """
+      compileSdk {
+          version = release(33)
+      }
+    """
+          .removeSpaces()
+      )
   }
+
+  private fun String.removeSpaces() = replace("[ \\r\\t]+".toRegex(), "")
 
   private val libraryBuildGradleKts: String
     get() = File(projectRule.project.basePath, "$TEST_LIBRARY_NAME/$FN_BUILD_GRADLE_KTS").readText()

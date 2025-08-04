@@ -280,25 +280,30 @@ abstract class AddNewModulesToAppTest(
 
   private fun checkModuleCompileSdkVersion(moduleName: String) {
     val project = projectRule.project
-    if (useGradleKts) {
-      assertTrue(
-        File(project.basePath!!)
-          .resolve(moduleName)
-          .resolve("build.gradle.kts")
-          .readText()
-          .contains("compileSdk = " + getAgpVersion().compileSdk)
-      )
-    } else {
-      assertTrue(
-        File(project.basePath!!)
-          .resolve(moduleName)
-          .resolve("build.gradle")
-          .readText()
-          .contains("compileSdk " + getAgpVersion().compileSdk)
-      )
-    }
+    val buildGradleFileName = "build.gradle"
+    val text =
+      if (useGradleKts) {
+        File(project.basePath!!).resolve(moduleName).resolve("$buildGradleFileName.kts").readText()
+      } else {
+        File(project.basePath!!).resolve(moduleName).resolve(buildGradleFileName).readText()
+      }
+    assertTrue(
+      text
+        .removeSpaces()
+        .contains(
+          """
+            compileSdk {
+              version = release(${getAgpVersion().compileSdk})
+            }
+          """
+            .trimIndent()
+            .removeSpaces()
+        )
+    )
   }
 }
+
+private fun String.removeSpaces() = replace("[ \\r\\t]+".toRegex(), "")
 
 private fun createDefaultDynamicFeatureModel(
   project: Project,

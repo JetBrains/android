@@ -84,6 +84,7 @@ fun RecipeExecutor.generateDynamicFeatureModule(
     moduleOut.resolve(buildFile),
   )
 
+  addCompileSdk(buildApi)
   addPlugin(
     "com.android.dynamic-feature",
     "com.android.tools.build:gradle",

@@ -91,6 +91,7 @@ fun RecipeExecutor.generateCommonModule(
     ),
     moduleOut.resolve(buildFile),
   )
+  addCompileSdk(apis.buildApi)
 
   // Note: com.android.* needs to be applied before kotlin
   val classpathModule = "com.android.tools.build:gradle"

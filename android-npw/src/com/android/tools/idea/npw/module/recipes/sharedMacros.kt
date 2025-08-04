@@ -101,6 +101,7 @@ fun proguardConfig(
     """
   }
 
+// Still need this for KMP as it's DSL model needs to be enhanced
 fun compileSdk(androidVersion: AndroidVersion, agpVersion: AgpVersion): String {
   val isNewAGP = agpVersion.compareIgnoringQualifiers("7.0.0") >= 0
   // TODO(b/409390818): Include minor version when AGP supports it
@@ -207,7 +208,6 @@ fun androidConfig(
   return """
     android {
     namespace '$applicationId'
-    ${compileSdk(buildApi, agpVersion)}
 
     defaultConfig {
       $propertiesBlock

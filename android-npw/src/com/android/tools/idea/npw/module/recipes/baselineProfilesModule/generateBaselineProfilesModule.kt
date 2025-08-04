@@ -114,6 +114,7 @@ fun RecipeExecutor.generateBaselineProfilesModule(
         useInstrumentationArgumentForAppId = useInstrumentationArgumentForAppId,
       )
     },
+    minCompileSdk = BENCHMARK_MIN_COMPILE_SDK,
   )
 
   updateTargetModule(newModule, targetModule)
