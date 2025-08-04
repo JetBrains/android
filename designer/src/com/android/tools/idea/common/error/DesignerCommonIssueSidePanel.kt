@@ -184,15 +184,6 @@ class DesignerCommonIssueDetailPanel(
       )
     }
 
-  private fun VisualLintRenderIssue.getAffectedFiles(): List<VirtualFile> {
-    val navigatableFile = (navigatable as? OpenFileDescriptor)?.file
-    return if (navigatableFile == null || affectedFiles.contains(navigatableFile)) {
-      affectedFiles
-    } else {
-      affectedFiles.toMutableList().apply { add(navigatableFile) }
-    }
-  }
-
   private fun JPanel.addVisualRenderIssue(
     issue: VisualLintRenderIssue,
     project: Project,
@@ -203,7 +194,7 @@ class DesignerCommonIssueDetailPanel(
 
     val projectBasePath = project.basePath
     if (projectBasePath != null) {
-      val relatedFiles = issue.getAffectedFiles()
+      val relatedFiles = issue.affectedFilesWithNavigatable
       if (relatedFiles.isNotEmpty()) {
         affectedFilePanel.add(
           JBLabel("Affected Files:").apply {

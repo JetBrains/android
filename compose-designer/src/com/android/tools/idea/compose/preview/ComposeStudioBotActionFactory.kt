@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.extensions.ExtensionPointName
 
@@ -27,6 +28,9 @@ interface ComposeStudioBotActionFactory {
    * the preview image and its corresponding code into account.
    */
   fun transformPreviewAction(): AnAction?
+
+  /** An action to fix accessibility issues found by UI Check for a Compose Preview. */
+  fun fixComposeAccessibilityAction(visualLintIssues: List<VisualLintRenderIssue>): AnAction?
 
   /**
    * An action to analyze UI images, critique them, and then rewrite the corresponding code to match

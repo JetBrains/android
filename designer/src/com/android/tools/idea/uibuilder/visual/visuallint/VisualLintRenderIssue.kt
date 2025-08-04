@@ -38,6 +38,7 @@ import com.intellij.designer.model.EmptyXmlTag
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
@@ -114,6 +115,16 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
           }
           .distinct()
       }
+
+  val affectedFilesWithNavigatable: List<VirtualFile>
+    get() {
+      val navigatableFile = (navigatable as? OpenFileDescriptor)?.file
+      return if (navigatableFile == null || affectedFiles.contains(navigatableFile)) {
+        affectedFiles
+      } else {
+        affectedFiles.toMutableList().apply { add(navigatableFile) }
+      }
+    }
 
   init {
     runReadAction { updateRange() }

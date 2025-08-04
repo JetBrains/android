@@ -19,6 +19,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
@@ -32,7 +33,6 @@ import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.TestActionEvent.createTestEvent
 import java.awt.event.MouseEvent
 import javax.swing.JPanel
-import kotlin.collections.filter
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import org.junit.After
@@ -288,6 +288,9 @@ class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
     if (isNullPreviewGeneratorAction) null else fakeAction("previewGenerator")
 
   override fun transformPreviewAction() = fakeAction("transformPreview")
+
+  override fun fixComposeAccessibilityAction(visualLintIssues: List<VisualLintRenderIssue>) =
+    fakeAction("fixComposeAccessibility")
 
   override fun alignUiToTargetImageAction(): AnAction? = fakeAction("alignUi")
 

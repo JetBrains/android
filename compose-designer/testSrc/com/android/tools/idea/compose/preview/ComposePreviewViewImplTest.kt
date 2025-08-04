@@ -50,6 +50,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.preview.PreviewDisplaySettings
@@ -623,6 +624,9 @@ class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
   override fun createPreviewGenerator() = if (isNullPreviewGeneratorAction) null else fakeAction
 
   override fun transformPreviewAction() = fakeAction
+
+  override fun fixComposeAccessibilityAction(visualLintIssues: List<VisualLintRenderIssue>) =
+    fakeAction
 
   override fun alignUiToTargetImageAction(): AnAction? = fakeAction
 
