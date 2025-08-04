@@ -59,6 +59,7 @@ fun createBenchmarkTestRule(projectName: String,
     })
     .around(CollectDaemonLogsRule())
     .around(DisableLibraryConstraintsRule())
+    .around(DisablePhasedSyncDependencyRule())
     .maybeAddCaptureJfrRule(projectSetupRule)
   return object : BenchmarkTestRule,
                   ProjectSetupRule by projectSetupRule,
