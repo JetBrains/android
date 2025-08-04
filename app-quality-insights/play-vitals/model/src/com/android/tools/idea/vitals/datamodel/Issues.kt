@@ -23,6 +23,7 @@ import com.android.tools.idea.insights.IssueAnnotation
 import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.OperatingSystemInfo
+import com.android.tools.idea.insights.StackTraceGroupParser
 import com.android.tools.idea.insights.client.toJavaInstant
 import com.google.play.developer.reporting.ErrorIssue
 import com.google.play.developer.reporting.ErrorReport
@@ -48,7 +49,7 @@ internal fun ErrorIssue.toIssueDetails(): IssueDetails {
   )
 }
 
-internal fun ErrorReport.toSampleEvent(): Event {
+internal fun ErrorReport.toSampleEvent(parser: StackTraceGroupParser): Event {
   return Event(
     name = name,
     eventData =
@@ -58,8 +59,8 @@ internal fun ErrorReport.toSampleEvent(): Event {
         eventTime = eventTime.toJavaInstant(),
       ),
     stacktraceGroup =
-      if (type == ErrorType.APPLICATION_NOT_RESPONDING) reportText.extractThreadDump()
-      else reportText.extractException(),
+      if (type == ErrorType.APPLICATION_NOT_RESPONDING) parser.parseThreadDump(reportText)
+      else parser.parseException(reportText),
     appVcsInfo = AppVcsInfo.fromProto(vcsInformation),
   )
 }

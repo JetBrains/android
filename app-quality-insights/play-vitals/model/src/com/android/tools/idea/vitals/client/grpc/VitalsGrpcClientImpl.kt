@@ -19,6 +19,7 @@ import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.IssueId
+import com.android.tools.idea.insights.StackTraceGroupParser
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.QueryFilters
@@ -208,6 +209,7 @@ class VitalsGrpcClientImpl(channel: Channel, authTokenInterceptor: ClientInterce
     connection: Connection,
     filters: QueryFilters,
     reportIds: List<String>,
+    stackTraceGroupParser: StackTraceGroupParser,
   ): List<Event> {
     val errorReports = mutableListOf<Event>()
     val requestBase =
@@ -230,7 +232,7 @@ class VitalsGrpcClientImpl(channel: Channel, authTokenInterceptor: ClientInterce
     do {
       val request = requestBase.apply { pageToken = nextPageToken }.build()
       val response = retryRpc { vitalsErrorGrpcClient.searchErrorReports(request).await() }
-      errorReports.addAll(response.errorReportsList.map { it.toSampleEvent() })
+      errorReports.addAll(response.errorReportsList.map { it.toSampleEvent(stackTraceGroupParser) })
       nextPageToken = response.nextPageToken
     } while (nextPageToken.isNotEmpty())
     return errorReports
@@ -240,6 +242,7 @@ class VitalsGrpcClientImpl(channel: Channel, authTokenInterceptor: ClientInterce
     connection: Connection,
     filters: QueryFilters,
     issueId: IssueId,
+    stackTraceGroupParser: StackTraceGroupParser,
   ): Event {
     val searchErrorReportsRequest =
       SearchErrorReportsRequest.newBuilder()
@@ -262,7 +265,7 @@ class VitalsGrpcClientImpl(channel: Channel, authTokenInterceptor: ClientInterce
 
     return retryRpc { vitalsErrorGrpcClient.searchErrorReports(searchErrorReportsRequest).await() }
       .errorReportsList
-      .map { it.toSampleEvent() }
+      .map { it.toSampleEvent(stackTraceGroupParser) }
       .firstOrNull() ?: Event.EMPTY
   }
 }

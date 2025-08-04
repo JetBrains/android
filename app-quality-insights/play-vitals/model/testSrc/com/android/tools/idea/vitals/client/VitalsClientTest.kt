@@ -36,6 +36,7 @@ import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.PlayTrack
 import com.android.tools.idea.insights.SignalType
+import com.android.tools.idea.insights.StackTraceGroupParser
 import com.android.tools.idea.insights.Stacktrace
 import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.StatsGroup
@@ -179,6 +180,7 @@ class VitalsClientTest {
           connection: Connection,
           filters: QueryFilters,
           reportIds: List<String>,
+          stackTraceGroupParser: StackTraceGroupParser,
         ): List<Event> = listOf(ISSUE1.sampleEvent)
 
         override suspend fun listTopIssues(
@@ -286,6 +288,7 @@ class VitalsClientTest {
             connection: Connection,
             filters: QueryFilters,
             reportIds: List<String>,
+            stackTraceGroupParser: StackTraceGroupParser,
           ): List<Event> {
             fail("Test should not call searchErrorReports")
             return emptyList()
@@ -323,6 +326,7 @@ class VitalsClientTest {
           connection: Connection,
           filters: QueryFilters,
           reportIds: List<String>,
+          stackTraceGroupParser: StackTraceGroupParser,
         ): List<Event> {
           return emptyList()
         }
@@ -331,6 +335,7 @@ class VitalsClientTest {
           connection: Connection,
           filters: QueryFilters,
           issueId: IssueId,
+          stackTraceGroupParser: StackTraceGroupParser,
         ): Event {
           return Event("123")
         }
@@ -355,7 +360,7 @@ class VitalsClientTest {
   }
 
   @Test
-  fun `list top open issues returns correct issues, events, versions, oses, and devices`() =
+  fun `list top open issues returns correct issues, versions, oses, and devices`() =
     runBlocking<Unit> {
       val client = createClient()
 
@@ -366,18 +371,6 @@ class VitalsClientTest {
 
       assertThat(value.issues.map { it.issueDetails })
         .containsExactly(TEST_ISSUE1.issueDetails, TEST_ISSUE2.issueDetails)
-
-      // The fake errors service does not reverse engineer the stack trace exactly,
-      // so we cannot use == to compare the sample event here.
-      val events = value.issues.map { it.sampleEvent.toString() }
-      assertThat(events[0])
-        .contains(
-          "dev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.build(ResponseWrapper.kt:23)"
-        )
-      assertThat(events[1])
-        .contains(
-          "com.android.org.conscrypt.ConscryptEngine.convertException(ConscryptEngine.java:1134)"
-        )
 
       assertThat(value.devices)
         .containsExactly(
@@ -467,6 +460,7 @@ class VitalsClientTest {
           connection: Connection,
           filters: QueryFilters,
           reportIds: List<String>,
+          stackTraceGroupParser: StackTraceGroupParser,
         ): List<Event> = listOf(ISSUE1.sampleEvent)
 
         override suspend fun listTopIssues(

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.vitals.datamodel
+package com.android.tools.idea.vitals
 
 import com.android.tools.idea.insights.Blames
 import com.android.tools.idea.insights.Caption
@@ -81,10 +81,12 @@ private val THREAD_DUMP =
   """
     .trimIndent()
 
-class StacktraceKtTest {
+private val parser = IntellijStackTraceGroupParser()
+
+class IntellijStackTraceGroupParserTest {
   @Test
   fun `extract native crash from string blob`() {
-    val extracted = NATIVE_CRASH.extractException()
+    val extracted = parser.parseException(NATIVE_CRASH)
     assertThat(extracted.exceptions.size).isEqualTo(1)
     assertThat(extracted.exceptions)
       .containsExactly(
@@ -130,7 +132,7 @@ class StacktraceKtTest {
 
   @Test
   fun `multiple trace groups without AT identifier from string blob`() {
-    val extracted = MULTIPLE_TRACE_GROUPS_NO_AT_IDENTIFIER.extractException()
+    val extracted = parser.parseException(MULTIPLE_TRACE_GROUPS_NO_AT_IDENTIFIER)
     assertThat(extracted.exceptions.size).isEqualTo(2)
     assertThat(extracted.exceptions)
       .containsExactly(
@@ -201,7 +203,7 @@ class StacktraceKtTest {
 
   @Test
   fun `multiple trace groups from string blob`() {
-    val extracted = MULTIPLE_TRACE_GROUPS.extractException()
+    val extracted = parser.parseException(MULTIPLE_TRACE_GROUPS)
     assertThat(extracted.exceptions.size).isEqualTo(2)
     assertThat(extracted.exceptions)
       .containsExactly(
@@ -272,7 +274,7 @@ class StacktraceKtTest {
 
   @Test
   fun `single trace group from string blob`() {
-    val extracted = SINGLE_TRACE_GROUP.extractException()
+    val extracted = parser.parseException(SINGLE_TRACE_GROUP)
     assertThat(extracted.exceptions.size).isEqualTo(1)
     assertThat(extracted.exceptions.first())
       .isEqualTo(
@@ -403,7 +405,7 @@ class StacktraceKtTest {
 
   @Test
   fun `thread dump from string blob`() {
-    val extracted = THREAD_DUMP.extractThreadDump()
+    val extracted = parser.parseThreadDump(THREAD_DUMP)
     assertThat(extracted.exceptions)
       .containsExactly(
         ExceptionStack(

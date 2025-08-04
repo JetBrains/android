@@ -20,6 +20,8 @@ import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.Selection
+import com.android.tools.idea.insights.StackTraceGroupParser
+import com.android.tools.idea.insights.StubStackTraceGroupParser
 import com.android.tools.idea.insights.client.AiInsightClient
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
@@ -55,6 +57,7 @@ fun createVitalsClient(
   cache: AppInsightsCache = AppInsightsCacheImpl(),
   grpcClient: VitalsGrpcClient? = null,
   aiInsightClient: AiInsightClient = FakeAiInsightClient,
+  stackTraceParser: StackTraceGroupParser = StubStackTraceGroupParser(),
   channelProvider: () -> Channel,
 ) =
   VitalsClient(
@@ -63,4 +66,5 @@ fun createVitalsClient(
     ForwardingInterceptor,
     grpcClient ?: VitalsGrpcClientImpl(channelProvider(), ForwardingInterceptor),
     aiInsightClient,
+    stackTraceParser,
   )

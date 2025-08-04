@@ -19,6 +19,7 @@ import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.IssueId
+import com.android.tools.idea.insights.StackTraceGroupParser
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.QueryFilters
@@ -56,6 +57,7 @@ open class TestVitalsGrpcClient : VitalsGrpcClient {
     connection: Connection,
     filters: QueryFilters,
     reportIds: List<String>,
+    stackTraceGroupParser: StackTraceGroupParser,
   ): List<Event> {
     return emptyList()
   }
@@ -64,6 +66,7 @@ open class TestVitalsGrpcClient : VitalsGrpcClient {
     connection: Connection,
     filters: QueryFilters,
     issueId: IssueId,
+    stackTraceGroupParser: StackTraceGroupParser,
   ): Event {
     return Event.EMPTY
   }

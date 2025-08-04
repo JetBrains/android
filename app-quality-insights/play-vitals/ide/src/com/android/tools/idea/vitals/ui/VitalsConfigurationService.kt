@@ -40,6 +40,7 @@ import com.android.tools.idea.insights.getHolderModules
 import com.android.tools.idea.insights.isAndroidApp
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowFactory
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.vitals.IntellijStackTraceGroupParser
 import com.android.tools.idea.vitals.VitalsInsightsProvider
 import com.android.tools.idea.vitals.VitalsLoginFeature
 import com.android.tools.idea.vitals.client.VitalsClient
@@ -226,6 +227,7 @@ class VitalsConfigurationManager(
                 LoginFeature.feature<VitalsLoginFeature>()
               ),
               aiInsightClient = GeminiAiInsightClient(project, cache),
+              stackTraceGroupParser = IntellijStackTraceGroupParser(),
             )
           )
         } else {

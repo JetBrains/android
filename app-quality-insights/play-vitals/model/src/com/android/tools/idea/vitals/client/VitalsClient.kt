@@ -33,6 +33,7 @@ import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
 import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.Permission
+import com.android.tools.idea.insights.StackTraceGroupParser
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.WithCount
@@ -69,6 +70,7 @@ class VitalsClient(
   private val interceptor: ClientInterceptor,
   private val grpcClientOverride: VitalsGrpcClient? = null,
   private val aiInsightClient: AiInsightClient,
+  private val stackTraceGroupParser: StackTraceGroupParser,
 ) : AppInsightsClient {
 
   private val grpcClient: VitalsGrpcClient by lazy {
@@ -262,6 +264,7 @@ class VitalsClient(
             request.connection,
             request.filters,
             sampleErrorReportIdList,
+            stackTraceGroupParser,
           )
           .associateBy { it.name }
       } else {
@@ -277,6 +280,7 @@ class VitalsClient(
               request.connection,
               request.filters,
               issueDetails.id,
+              stackTraceGroupParser,
             )
         AppInsightsIssue(issueDetails, event)
       }
