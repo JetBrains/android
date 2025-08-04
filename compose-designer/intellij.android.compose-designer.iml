@@ -29,22 +29,32 @@
       <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" />
     </content>
     <orderEntry type="inheritedJdk" />
-    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
     <orderEntry type="library" name="studio-plugin-org.jetbrains.kotlin" level="project" />
-    <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.android.core" />
-    <orderEntry type="module" module-name="intellij.android.designer" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="module" module-name="analytics-tracker" />
+    <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.compose" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
-    <orderEntry type="module" module-name="intellij.android.projectSystem" />
-    <orderEntry type="module" module-name="android.sdktools.flags" />
-    <orderEntry type="module" module-name="intellij.android.common" />
-    <orderEntry type="module" module-name="intellij.android.layout-ui" />
-    <orderEntry type="module" module-name="analytics-tracker" />
-    <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
+    <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="module" module-name="intellij.android.compose-common" />
+    <orderEntry type="module" module-name="intellij.android.core" />
+    <orderEntry type="module" module-name="intellij.android.designer" />
+    <orderEntry type="module" module-name="intellij.android.environment-services" />
+    <orderEntry type="module" module-name="intellij.android.execution.common" />
+    <orderEntry type="module" module-name="intellij.android.layout-ui" />
+    <orderEntry type="module" module-name="intellij.android.ml-api" />
+    <orderEntry type="module" module-name="intellij.android.preview-designer" />
+    <orderEntry type="module" module-name="intellij.android.preview-elements" />
+    <orderEntry type="module" module-name="intellij.android.preview-fast-compile" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="module" module-name="intellij.android.render-resources" />
+    <orderEntry type="module" module-name="intellij.android.rendering" />
+    <orderEntry type="module" module-name="intellij.android.visual-lint" />
     <orderEntry type="module-library">
       <library name="ui-animation-tooling-internal">
         <CLASSES>
@@ -54,15 +64,5 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="intellij.android.compose-common" />
-    <orderEntry type="module" module-name="intellij.android.preview-designer" />
-    <orderEntry type="module" module-name="intellij.android.execution.common" />
-    <orderEntry type="module" module-name="intellij.android.render-resources" />
-    <orderEntry type="module" module-name="intellij.android.rendering" />
-    <orderEntry type="module" module-name="intellij.android.preview-elements" />
-    <orderEntry type="module" module-name="intellij.android.environment-services" />
-    <orderEntry type="module" module-name="intellij.android.ml-api" />
-    <orderEntry type="module" module-name="intellij.android.preview-fast-compile" />
-    <orderEntry type="module" module-name="intellij.android.visual-lint" />
   </component>
 </module>
