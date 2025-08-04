@@ -21,7 +21,7 @@ iml_module(
             ],
         },
         "Benchmark2000MemoryMac": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000MemoryTest",
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000MemoryMacTest",
             "tags": [
                 "noci:studio-win",
                 "noci:studio-linux",
@@ -55,7 +55,7 @@ iml_module(
             ],
         },
         "Benchmark2000CpuMac": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuTest",
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuMacTest",
             "additional_jvm_args": ["-Xmx6g"],
             "tags": [
                 "noci:studio-win",

@@ -50,11 +50,18 @@ class Benchmark2000KotlinMultiplatformMemoryTest {
   @Test fun testMemory() = benchmarkTestRule.openProject()
 }
 
-class Benchmark2000MemoryTest {
+open class Benchmark2000MemoryTest {
   @get:Rule val benchmarkTestRule = createMemoryBenchmarkTestRule(SUBSET_2000_NAME, STANDARD_2000)
   @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
   @Test fun testMemory() = benchmarkTestRule.openProject()
 }
+
+/**
+ * This is a workaround way to overcome how split test targets are defined that they would execute the test in 'test_filter' once if used
+ * in different targets.
+ * this test class is to use for the studio-mac target to run exactly the same tests for the 2000 Memory benchmarks.
+ */
+class Benchmark2000MemoryMacTest: Benchmark2000MemoryTest()
 
 class Benchmark4200MemoryTest {
   @get:Rule val benchmarkTestRule = createMemoryBenchmarkTestRule(SUBSET_4200_NAME, STANDARD_4200)

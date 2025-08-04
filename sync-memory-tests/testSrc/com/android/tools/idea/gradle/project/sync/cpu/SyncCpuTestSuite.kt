@@ -69,12 +69,20 @@ class Benchmark2000KotlinMultiplatformCpuTest {
   @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
 }
 
-class Benchmark2000CpuTest {
+open class Benchmark2000CpuTest {
   @get:Rule val benchmarkProjectSetupRule = createCpuBenchmarkTestRule(SUBSET_2000_NAME, STANDARD_2000)
   @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5)
   @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(7.minutes)
-  @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
+  @Test
+  fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
 }
+
+/**
+ * This is a workaround way to overcome how split test targets are defined that they would execute the test in 'test_filter' once if used
+ * in different targets.
+ * this test class is to use for the studio-mac target to run exactly the same tests for the 2000 CPU benchmarks.
+ */
+class Benchmark2000CpuMacTest : Benchmark2000CpuTest()
 
 class Benchmark4200CpuTest {
   @get:Rule val benchmarkProjectSetupRule = createCpuBenchmarkTestRule(SUBSET_4200_NAME, STANDARD_4200)
