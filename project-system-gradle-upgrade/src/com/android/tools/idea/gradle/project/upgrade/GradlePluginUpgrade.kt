@@ -293,7 +293,7 @@ fun computeGradlePluginUpgradeState(
       ?.takeIf { it > latestKnown } ?: latestKnown
   }
   else {
-    // Don't recommend upgrade for future point releases (e.g. don't suggest 9.0.1 where latestKnown=9.0.0)
+    // Don't recommend upgrade for future point releases (e.g. don't suggest 9.1.1 where latestKnown=9.0.0)
     latestKnown
   }
   // Don't propose a no-op upgrade
