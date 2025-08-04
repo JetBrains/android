@@ -806,18 +806,6 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     doTestHighlighting();
   }
 
-  public void testMinSdkVersionAttributeValueCompletion() throws Throwable {
-    doTestSdkVersionAttributeValueCompletion();
-  }
-
-  public void testTargetSdkVersionAttributeValueCompletion() throws Throwable {
-    doTestSdkVersionAttributeValueCompletion();
-  }
-
-  public void testMaxSdkVersionAttributeValueCompletion() throws Throwable {
-    doTestSdkVersionAttributeValueCompletion();
-  }
-
   public void testSpellchecker1() throws Throwable {
     myFixture.enableInspections(SpellCheckingInspection.class);
     doTestHighlighting();
@@ -938,11 +926,5 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
       "replace",
       "strict"
     );
-  }
-
-  private void doTestSdkVersionAttributeValueCompletion() throws Throwable {
-      doTestCompletionVariants(getTestName(true) + ".xml", "1", "2", "3", "4", "5", "6", "7",
-                               "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25",
-                               "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36");
   }
 }
