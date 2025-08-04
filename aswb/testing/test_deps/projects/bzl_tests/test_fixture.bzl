@@ -1,11 +1,8 @@
 """Rules for writing tests for the IntelliJ aspect."""
 
 load(
-    ":build_dependencies_android_deps.bzl",
-    "IDE_ANDROID",
-)
-load(
     ":build_dependencies_deps.bzl",
+    "IDE_ANDROID",
     "IDE_CC",
     "IDE_JAVA",
     "IDE_JAVA_PROTO",
