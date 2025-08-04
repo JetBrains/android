@@ -19,12 +19,16 @@ import com.android.tools.idea.common.error.DesignerCommonIssuePanel
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.error.NotSuppressedFilter
 import com.android.tools.idea.common.error.UICheckNodeFactory
+import com.android.tools.idea.compose.preview.ComposeStudioBotActionFactory
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanelProvider
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewTab
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils.addTab
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils.getTabById
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.psi.SmartPsiElementPointer
@@ -42,6 +46,7 @@ class UiCheckPanelProvider(
 ) : ProblemsViewPanelProvider {
   override fun create(): ProblemsViewTab? {
     val problemsViewWindow = ProblemsView.getToolWindow(project) ?: return null
+
     return DesignerCommonIssuePanel(
       problemsViewWindow.disposable,
       project,
@@ -51,7 +56,7 @@ class UiCheckPanelProvider(
       { UICheckNodeFactory },
       NotSuppressedFilter,
       { "UI Check did not find any issues to report" },
-      { /* TODO(b/429618186): Add the Agent in this callback */ },
+      ::fixWithAiActionProvider,
     ) { content ->
       (instance.previewElementDefinition as? SmartPsiElementPointer<*>)?.let {
         content.putUserData(TAB_PREVIEW_DEFINITION, it)
@@ -71,4 +76,17 @@ class UiCheckPanelProvider(
     addTab(project, this)
     return getTabById(project, id) as DesignerCommonIssuePanel
   }
+
+  /**
+   * Fixes the given [visualLintRenderIssue] using StudioBot. The [visualLintRenderIssue] is
+   * expected to be an accessibility issue found in the UI Check Panel.
+   *
+   * @param visualLintRenderIssue The [VisualLintRenderIssue] to fix.
+   */
+  private fun fixWithAiActionProvider(visualLintRenderIssue: VisualLintRenderIssue): AnAction? =
+    if (StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.get())
+      ComposeStudioBotActionFactory.EP_NAME.extensionList
+        .firstOrNull()
+        ?.fixComposeAccessibilityAction(listOf(visualLintRenderIssue))
+    else null
 }

@@ -23,11 +23,14 @@ import com.android.tools.visuallint.VisualLintErrorType
 import com.android.utils.HtmlBuilder
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.profile.codeInspection.ui.DescriptionEditorPane
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.tree.LeafState
 import com.intellij.util.ui.UIUtil
-import javax.swing.JButton
 import javax.swing.event.HyperlinkListener
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -52,7 +55,7 @@ class DesignerCommonIssueSidePanelTest {
   fun testHyperlinkListener() {
     val listener = HyperlinkListener {}
     val issue = TestIssue(hyperlinkListener = listener)
-    val panel = DesignerCommonIssueSidePanel(rule.project, rule.testRootDisposable) {}
+    val panel = DesignerCommonIssueSidePanel(rule.project, rule.testRootDisposable) { null }
     panel.loadIssueNode(TestIssueNode(issue))
 
     val descriptionPane = UIUtil.findComponentOfType(panel, DescriptionEditorPane::class.java)
@@ -61,7 +64,7 @@ class DesignerCommonIssueSidePanelTest {
 
   @Test
   fun testLoadIssue() {
-    val panel = DesignerCommonIssueSidePanel(rule.project, rule.testRootDisposable) {}
+    val panel = DesignerCommonIssueSidePanel(rule.project, rule.testRootDisposable) { null }
     assertFalse(panel.loadIssueNode(null))
     assertFalse(panel.hasFirstComponent())
 
@@ -102,25 +105,39 @@ class DesignerCommonIssueSidePanelTest {
         .type(VisualLintErrorType.BOUNDS)
         .build()
 
-    var actualVisualLintIssue: VisualLintRenderIssue? = null
+    val expectedActionText = "FixWithAiButton"
+    var currentVisualLintIssue: VisualLintRenderIssue? = null
+    var currentActionEvent: AnActionEvent? = null
     val panel =
-      DesignerCommonIssueSidePanel(rule.project, rule.testRootDisposable) {
-        actualVisualLintIssue = it
+      DesignerCommonIssueSidePanel(rule.project, rule.testRootDisposable) { issue ->
+        object : AnAction(expectedActionText) {
+          override fun actionPerformed(e: AnActionEvent) {
+            currentActionEvent = e
+            currentVisualLintIssue = issue
+          }
+        }
       }
     panel.loadIssueNode(createIssueNode(expectedVisualLintRenderIssue))
 
-    val fixWithAiButton = panel.findDescendant<JButton> { it.name == FIX_WITH_AI_BUTTON_NAME }
-
+    val actionToolbar = panel.findDescendant(ActionToolbar::class.java)
     if (fixWithAiFlagEnabled) {
+      assertNotNull(actionToolbar) { "ActionToolbar not found!" }
+
+      // Validate only 1 button is added to the toolbar
+      val actions = actionToolbar.actionGroup.getChildren(null)
+      assertEquals(1, actions.size)
+
       // Check the button has been created (not null).
-      assertNotNull(fixWithAiButton)
+      val fixWithAiActionButton = actions.first()
+      assertEquals(expectedActionText, fixWithAiActionButton.templateText)
 
       // Simulate a click and verify the action handler receives the expected issue.
-      fixWithAiButton.doClick()
-      assertEquals(expectedVisualLintRenderIssue, actualVisualLintIssue)
+      val expectedActionEvent = TestActionEvent.createTestEvent(fixWithAiActionButton)
+      fixWithAiActionButton.actionPerformed(expectedActionEvent)
+      assertEquals(expectedVisualLintRenderIssue, currentVisualLintIssue)
+      assertEquals(expectedActionEvent, currentActionEvent)
     } else {
-      // If the button is not visible is not created, thus is null.
-      assertNull(fixWithAiButton)
+      assertNull(actionToolbar)
     }
   }
 

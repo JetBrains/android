@@ -30,6 +30,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.WeakReferenceDisposableWrapper
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataSink
@@ -80,7 +81,7 @@ class DesignerCommonIssuePanel(
   nodeFactoryProvider: () -> NodeFactory,
   issueFilter: DesignerCommonIssueProvider.Filter,
   private val emptyMessageProvider: suspend () -> String,
-  fixWithAiAction: (VisualLintRenderIssue) -> Unit = {},
+  fixWithAiActionProvider: (VisualLintRenderIssue) -> AnAction? = { null },
   private val onContentPopulated: (Content) -> Unit = {},
 ) : SimpleToolWindowPanel(vertical), ProblemsViewTab, Disposable {
 
@@ -137,7 +138,7 @@ class DesignerCommonIssuePanel(
         toolbar = component
       }
 
-    sidePanel = DesignerCommonIssueSidePanel(project, this, fixWithAiAction)
+    sidePanel = DesignerCommonIssueSidePanel(project, this, fixWithAiActionProvider)
 
     splitter = OnePixelSplitter(vertical, 0.5f, 0.3f, 0.7f)
     splitter.proportion = 0.5f

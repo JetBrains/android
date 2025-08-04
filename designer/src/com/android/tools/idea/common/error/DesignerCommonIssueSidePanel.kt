@@ -21,6 +21,11 @@ import com.android.tools.idea.rendering.errors.ui.MessageTip
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.utils.HtmlBuilder
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -44,7 +49,6 @@ import java.awt.BorderLayout
 import java.awt.Font
 import java.io.File
 import javax.swing.BoxLayout
-import javax.swing.JButton
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
 import javax.swing.SwingConstants
@@ -59,7 +63,7 @@ import org.jetbrains.annotations.TestOnly
 class DesignerCommonIssueSidePanel(
   private val project: Project,
   parentDisposable: Disposable,
-  private val onFixWitAiButtonClicked: (VisualLintRenderIssue) -> Unit,
+  private val fixWithAiActionProvider: (VisualLintRenderIssue) -> AnAction?,
 ) : JPanel(BorderLayout()), Disposable {
 
   private val splitter: OnePixelSplitter = OnePixelSplitter(true, 0.5f, 0.1f, 0.9f)
@@ -93,7 +97,7 @@ class DesignerCommonIssueSidePanel(
   fun loadIssueNode(issueNode: DesignerCommonIssueNode?): Boolean {
     splitter.firstComponent =
       (issueNode as? IssueNode)?.let { node ->
-        DesignerCommonIssueDetailPanel(project, node.issue, onFixWitAiButtonClicked)
+        DesignerCommonIssueDetailPanel(project, node.issue, fixWithAiActionProvider)
       }
     return splitter.firstComponent != null
   }
@@ -113,17 +117,17 @@ class DesignerCommonIssueSidePanel(
 class DesignerCommonIssueDetailPanel(
   project: Project,
   issue: Issue,
-  onFixWitAiButtonClicked: (VisualLintRenderIssue) -> Unit,
+  fixWithAiActionProvider: (VisualLintRenderIssue) -> AnAction?,
 ) : JPanel() {
 
   init {
-    border = JBUI.Borders.empty(18, 12, 0, 0)
     layout = BorderLayout()
 
     val title =
       JBLabel().apply {
         text = issue.summary
         font = font.deriveFont(Font.BOLD)
+        border = JBUI.Borders.empty(12, 12, 0, 0)
       }
     add(title, BorderLayout.NORTH)
 
@@ -135,11 +139,11 @@ class DesignerCommonIssueDetailPanel(
     contentPanel.layout = BorderLayout()
     val scrollPane =
       JBScrollPane(
-        contentPanel,
-        ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER,
-      )
-    scrollPane.border = JBUI.Borders.emptyTop(12)
+          contentPanel,
+          ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+          ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER,
+        )
+        .apply { border = JBUI.Borders.empty(12, 12, 0, 0) }
     add(scrollPane, BorderLayout.CENTER)
 
     val descriptionEditorPane = DescriptionEditorPane()
@@ -151,8 +155,27 @@ class DesignerCommonIssueDetailPanel(
     descriptionEditorPane.readHTML(description)
 
     if (issue is VisualLintRenderIssue) {
-      contentPanel.addVisualRenderIssue(issue, project, onFixWitAiButtonClicked)
+      contentPanel.addVisualRenderIssue(issue, project)
+
+      if (StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.get()) {
+        fixWithAiActionProvider(issue)?.let { fixWithAiAction ->
+          val actionToolbar = createToolbar(fixWithAiAction)
+          add(actionToolbar.component, BorderLayout.SOUTH)
+        }
+      }
     }
+  }
+
+  private fun createToolbar(fixWithAiAction: AnAction): ActionToolbar {
+    fixWithAiAction.templatePresentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
+    val actionGroup = DefaultActionGroup().apply { add(fixWithAiAction) }
+    return ActionManager.getInstance()
+      .createActionToolbar("DesignerCommonIssuesToolbar", actionGroup, true)
+      .apply {
+        targetComponent = this@DesignerCommonIssueDetailPanel
+        border = JBUI.Borders.emptyBottom(4)
+        component.isOpaque = true
+      }
   }
 
   private fun createBottomPanel(issues: List<MessageTip>?, hyperlinkListener: HyperlinkListener?) =
@@ -184,11 +207,7 @@ class DesignerCommonIssueDetailPanel(
       )
     }
 
-  private fun JPanel.addVisualRenderIssue(
-    issue: VisualLintRenderIssue,
-    project: Project,
-    onFixWitAiButtonClicked: (VisualLintRenderIssue) -> Unit,
-  ) {
+  private fun JPanel.addVisualRenderIssue(issue: VisualLintRenderIssue, project: Project) {
     val affectedFilePanel = JPanel().apply { border = JBUI.Borders.empty(4, 0) }
     affectedFilePanel.layout = BoxLayout(affectedFilePanel, BoxLayout.Y_AXIS)
 
@@ -225,15 +244,6 @@ class DesignerCommonIssueDetailPanel(
         ToolTipManager.sharedInstance().registerComponent(link)
         affectedFilePanel.add(link)
       }
-    }
-    if (StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.get()) {
-      affectedFilePanel.add(
-        JButton("Fix with AI").apply {
-          name = FIX_WITH_AI_BUTTON_NAME
-          alignmentX = LEFT_ALIGNMENT
-          addActionListener { onFixWitAiButtonClicked(issue) }
-        }
-      )
     }
     add(affectedFilePanel, BorderLayout.CENTER)
   }
