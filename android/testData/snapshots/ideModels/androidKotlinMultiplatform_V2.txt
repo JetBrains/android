@@ -1378,7 +1378,6 @@ MODULE                        : Kotlin_Multiplatform
                         allTestSourceSetsCompileDependenciesMetadata      : <empty>
                         androidApiElements            : <empty>
                         - androidApiElements-published          : <ROOT>/kmpFirstLib/build/outputs/aar/kmpFirstLib.aar [-]
-                        androidApis                   : <empty>
                         androidCompilationApi         : <empty>
                         androidCompilationCompileOnly : <empty>
                         androidCompilationImplementation        : <empty>
@@ -1670,7 +1669,6 @@ MODULE                        : Kotlin_Multiplatform
                         allTestSourceSetsCompileDependenciesMetadata      : <empty>
                         androidApiElements            : <empty>
                         - androidApiElements-published          : <ROOT>/kmpSecondLib/build/outputs/aar/kmpSecondLib.aar [-]
-                        androidApis                   : <empty>
                         androidCompilationApi         : <empty>
                         androidCompilationCompileOnly : <empty>
                         androidCompilationImplementation        : <empty>
