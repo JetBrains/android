@@ -15,12 +15,14 @@
  */
 package com.android.tools.profilers
 
+import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.sessions.SessionsManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.util.io.FileUtil
 import java.io.File
 import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Paths
 
 /**
  * This utility class extracts and exposes common functions needed to import a file and convert it to a session + artifact
@@ -29,22 +31,6 @@ import java.io.IOException
 object ImportedSessionUtils {
 
   private fun getLogger() = Logger.getInstance(ImportedSessionUtils.javaClass)
-
-  /**
-   * Helper function to copy an imported file to a temporary location.
-   * @return The copied file. If the copy fails, it logs a warning and returns the original file as a fallback.
-   */
-  private fun copyToTemp(file: File): File {
-    return try {
-      val tempFile = FileUtil.createTempFile("profiler-import-${file.nameWithoutExtension}", ".${file.extension}", true)
-      FileUtil.copy(file, tempFile)
-      tempFile
-    }
-    catch (e: IOException) {
-      getLogger().warn("Failed to create a temporary copy of the imported file: ${file.path}. Using original file.", e)
-      file
-    }
-  }
 
   /**
    * This method takes in a file imported by the user, and generates a fake session + child artifact to recreate the imported data
@@ -57,14 +43,13 @@ object ImportedSessionUtils {
     sessionType: Common.SessionData.SessionStarted.SessionType,
     makeEvent: (Long, Long) -> Common.Event
   ) {
-    withFileImportedOnce(sessionsManager, file) { startTimestampsEpochMs, startTime, endTime ->
-      val copiedFile = copyToTemp(file)
+    withFileImportedOnce(sessionsManager, file) { bytes, startTimestampsEpochMs, startTime, endTime ->
       sessionsManager.createImportedSession(
         file.name,
         sessionType,
         startTime, endTime,
         startTimestampsEpochMs,
-        mapOf(startTime.toString() to copiedFile.absolutePath),
+        mapOf(startTime.toString() to ByteString.copyFrom(bytes)),
         makeEvent(startTime, endTime)
       )
     }
@@ -80,14 +65,13 @@ object ImportedSessionUtils {
     file: File,
     sessionType: Common.SessionData.SessionStarted.SessionType,
   ) {
-    withFileImportedOnce(sessionsManager, file) { startTimestampsEpochMs, startTime, endTime ->
-      val copiedFile = copyToTemp(file)
+    withFileImportedOnce(sessionsManager, file) { bytes, startTimestampsEpochMs, startTime, endTime ->
       sessionsManager.createImportedSession(
         file.name,
         sessionType,
         startTime, endTime,
         startTimestampsEpochMs,
-        mapOf(startTime.toString() to copiedFile.absolutePath),
+        mapOf(startTime.toString() to ByteString.copyFrom(bytes)),
       )
     }
   }
@@ -109,7 +93,7 @@ object ImportedSessionUtils {
   /**
    * The following helper method reads the bytes of the imported file and sends the resulting bytes to a custom handler.
    */
-  private fun withFileImportedOnce(sessionsManager: SessionsManager, file: File, handle: (Long, Long, Long) -> Unit) {
+  private fun withFileImportedOnce(sessionsManager: SessionsManager, file: File, handle: (ByteArray, Long, Long, Long) -> Unit) {
     // The time when the session is created. Will determine the order in sessions panel.
     val startTimestampEpochNs = System.currentTimeMillis()
     val timestampsNs = StudioProfilers.computeImportedFileStartEndTimestampsNs(file)
@@ -128,7 +112,13 @@ object ImportedSessionUtils {
           sessionsManager.setSessionById(sessionStartTimeNs)
         }
       }
-      else -> handle(startTimestampEpochNs, sessionStartTimeNs, sessionEndTimeNs)
+      else ->
+        try {
+          Files.readAllBytes(Paths.get(file.path))
+        } catch (e: IOException) {
+          getLogger().error("Importing Session Failed: cannot read from ${file.path}")
+          null
+        }?.let { bytes -> handle(bytes, startTimestampEpochNs, sessionStartTimeNs, sessionEndTimeNs) }
     }
   }
 }

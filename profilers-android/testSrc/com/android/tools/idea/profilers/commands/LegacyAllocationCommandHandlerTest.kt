@@ -26,8 +26,6 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.After
 import org.junit.Test
 import org.mockito.Mockito.mock
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.util.concurrent.Executor
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.function.BiFunction
@@ -43,10 +41,10 @@ class LegacyAllocationCommandHandlerTest {
     val allocTracker = FakeLegacyAllocationTracker()
     val device = mock(IDevice::class.java)
     val eventQueue = LinkedBlockingDeque<Common.Event>()
-    val filePathCache = HashMap<String, String>()
+    val byteCache = HashMap<String, ByteString>()
     val commandHandler = LegacyAllocationCommandHandler(device,
                                                         eventQueue,
-                                                        filePathCache,
+                                                        byteCache,
                                                         Executor { it.run() },
                                                         BiFunction { _, _ -> allocTracker })
 
@@ -77,7 +75,7 @@ class LegacyAllocationCommandHandlerTest {
     assertThat(eventQueue).containsExactly(startTrackingEvent, startStatusEvent)
 
     // Verify that query for bytes on at ongoing session does not return any byte contents
-    assertThat(filePathCache).isEmpty()
+    assertThat(byteCache).isEmpty()
 
     eventQueue.clear()
     val stopTrackComand = Commands.Command.newBuilder().apply {
@@ -108,14 +106,12 @@ class LegacyAllocationCommandHandlerTest {
     assertThat(eventQueue).containsExactly(stopTrackingEvent, stopStatusEvent)
 
     // Verify that query for bytes on at ongoing session does not return any byte contents until the fake tracker returns
-    assertThat(filePathCache).isEmpty()
+    assertThat(byteCache).isEmpty()
 
     // Mock completion of the parsing process and the resulting data.
     allocTracker.parsingWaitLatch.countDown()
     allocTracker.parsingDoneLatch.await()
-    val path = filePathCache[time1.toString()]!!
-    val bytes = ByteString.copyFrom(Files.readAllBytes(Paths.get(path)))
-    assertThat(bytes).isEqualTo(ByteString.copyFrom(FakeLegacyAllocationTracker.RAW_DATA))
+    assertThat(byteCache.get(time1.toString())).isEqualTo(ByteString.copyFrom(FakeLegacyAllocationTracker.RAW_DATA))
   }
 
   @Test
@@ -128,10 +124,10 @@ class LegacyAllocationCommandHandlerTest {
     val allocTracker = FakeLegacyAllocationTracker()
     val device = mock(IDevice::class.java)
     val eventQueue = LinkedBlockingDeque<Common.Event>()
-    val filePathCache = HashMap<String, String>()
+    val byteCache = HashMap<String, ByteString>()
     val commandHandler = LegacyAllocationCommandHandler(device,
                                                         eventQueue,
-                                                        filePathCache,
+                                                        byteCache,
                                                         Executor { it.run() },
                                                         BiFunction { _, _ -> allocTracker })
 
@@ -162,7 +158,7 @@ class LegacyAllocationCommandHandlerTest {
     assertThat(eventQueue).containsExactly(expectedStartStatusEvent, expectedStartTrackingEvent)
 
     // Verify that query for bytes on at ongoing session does not return any byte contents
-    assertThat(filePathCache).isEmpty()
+    assertThat(byteCache).isEmpty()
 
     eventQueue.clear()
     val stopTrackComand = Commands.Command.newBuilder().apply {
@@ -201,30 +197,29 @@ class LegacyAllocationCommandHandlerTest {
     assertThat(eventQueue).containsExactly(stopTrackingEvent, stopStatusEvent, endSessionEvent)
 
     // Verify that query for bytes on at ongoing session does not return any byte contents until the fake tracker returns
-    assertThat(filePathCache).isEmpty()
+    assertThat(byteCache).isEmpty()
 
     // Mock completion of the parsing process and the resulting data.
     allocTracker.parsingWaitLatch.countDown()
     allocTracker.parsingDoneLatch.await()
-    val path = filePathCache[time1.toString()]!!
-    val bytes = ByteString.copyFrom(Files.readAllBytes(Paths.get(path)))
-    assertThat(bytes).isEqualTo(ByteString.copyFrom(FakeLegacyAllocationTracker.RAW_DATA))
+    assertThat(byteCache.get(time1.toString())).isEqualTo(ByteString.copyFrom(FakeLegacyAllocationTracker.RAW_DATA))
   }
 
   @Test
   fun testLegacyAllocationTrackingReturningNullData() {
+
     val time1 = 5L
     val time2 = 10L
 
     val allocTracker = FakeLegacyAllocationTracker()
     val device = mock(IDevice::class.java)
     val eventQueue = LinkedBlockingDeque<Common.Event>()
-    val filePathCache = HashMap<String, String>()
+    val byteCache = HashMap<String, ByteString>()
     val commandHandler = LegacyAllocationCommandHandler(device,
                                                         eventQueue,
-                                                        filePathCache,
+                                                        byteCache,
                                                         Executor { it.run() },
-                                                        BiFunction { _, _ -> allocTracker})
+                                                        BiFunction { _, _ -> allocTracker })
 
     val startTrackCommand = Commands.Command.newBuilder().apply {
       type = Commands.Command.CommandType.START_ALLOC_TRACKING
@@ -244,8 +239,7 @@ class LegacyAllocationCommandHandlerTest {
     allocTracker.returnNullTrackingData = true
     allocTracker.parsingWaitLatch.countDown()
     allocTracker.parsingDoneLatch.await()
-    // An empty path indicates that tracking finished but no data was returned, so no file was created.
-    assertThat(filePathCache).containsExactly(time1.toString(), "")
+    assertThat(byteCache.get(time1.toString())).isEqualTo(ByteString.EMPTY)
   }
 
   @After

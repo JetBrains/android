@@ -25,7 +25,6 @@ import static org.junit.Assert.assertTrue;
 
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.protobuf.ByteString;
-import com.android.tools.idea.transport.TransportServiceUtils;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.perflib.heap.SnapshotBuilder;
@@ -43,11 +42,8 @@ import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.adapters.instancefilters.ActivityFragmentLeakInstanceFilter;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.google.common.truth.Truth;
-import java.io.File;
-import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Collection;
@@ -110,7 +106,7 @@ public class HeapDumpCaptureObjectTest {
       .addReferences(1, 2)
       .addRoot(1);
     byte[] buffer = snapshotBuilder.getByteBuffer();
-    myTransportService.addFile(Long.toString(startTimeNs), TransportServiceUtils.createTempFile("temp_heap", ".hprof", ByteString.copyFrom(buffer)).getAbsolutePath());
+    myTransportService.addFile(Long.toString(startTimeNs), ByteString.copyFrom(buffer));
     capture.load(null, null);
     assertTrue(capture.isDoneLoading());
     assertFalse(capture.isError());
@@ -173,7 +169,7 @@ public class HeapDumpCaptureObjectTest {
       .addReferences(1, 2).setDefaultHeapInstanceCount(1)
       .addRoot(1);
     byte[] buffer = snapshotBuilder.getByteBuffer();
-    myTransportService.addFile(Long.toString(startTimeNs), TransportServiceUtils.createTempFile("temp_heap", ".hprof", ByteString.copyFrom(buffer)).getAbsolutePath());
+    myTransportService.addFile(Long.toString(startTimeNs), ByteString.copyFrom(buffer));
     capture.load(null, null);
 
     assertTrue(capture.isDoneLoading());
@@ -213,8 +209,11 @@ public class HeapDumpCaptureObjectTest {
                                 myStage.getStudioProfilers().getIdeServices());
 
     Path hprof = resolveWorkspacePath("tools/adt/idea/profilers/testData/hprofs/displayingbitmaps_leakedActivity.hprof");
-    byte[] bytes = Files.readAllBytes(hprof);
-    myTransportService.addFile(Long.toString(0), TransportServiceUtils.createTempFile("temp_heap_leak", ".hprof", ByteString.copyFrom(bytes)).getAbsolutePath());
+    FileChannel fileChannel = FileChannel.open(hprof, StandardOpenOption.READ);
+    MappedByteBuffer buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size());
+    buffer.load();
+
+    myTransportService.addFile(Long.toString(0), ByteString.copyFrom(buffer));
     capture.load(null, null);
     assertTrue(capture.isDoneLoading());
     assertFalse(capture.isError());

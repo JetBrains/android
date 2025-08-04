@@ -25,7 +25,7 @@ import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findDes
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.getRootClassifierSet;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assume.assumeTrue;
-import java.nio.file.Files;
+
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TreeWalker;
@@ -34,7 +34,6 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.ContextMenuItem;
 import com.android.tools.idea.protobuf.ByteString;
-import com.android.tools.idea.transport.TransportServiceUtils;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
@@ -71,6 +70,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.ApplicationRule;
 import com.intellij.testFramework.DisposableRule;
 import com.intellij.testFramework.ServiceContainerUtil;
@@ -78,6 +78,7 @@ import icons.StudioIcons;
 import java.awt.Component;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
+import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.util.HashSet;
 import java.util.Map;
@@ -445,8 +446,13 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
     // Create a temp file
     String data = "random_string_~!@#$%^&*()_+";
-    File file = TransportServiceUtils.createTempFile("fake.heap.dump", ".hprof",
-                                                     ByteString.copyFrom(data, Charset.defaultCharset()));
+    // The '.' in the file name from the following line is useful to test we can handle file names with
+    // multiple dots correctly.
+    File file = FileUtil.createTempFile("fake.heap.dump", ".hprof", false);
+    PrintWriter printWriter = new PrintWriter(file);
+    printWriter.write(data);
+    printWriter.close();
+
     // Import heap dump from file
     assertThat(sessionsManager.importSessionFromFile(file)).isTrue();
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
@@ -458,9 +464,8 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
       .setStreamId(session.getStreamId())
       .setId(Long.toString(dumpTime))
       .build();
-    Transport.FileResponse response = myProfilers.getClient().getTransportClient().getFile(request);
-    ByteString fileContents = ByteString.copyFrom(Files.readAllBytes(new File(response.getFilePath()).toPath()));
-    assertThat(fileContents).isEqualTo(ByteString.copyFrom(data, Charset.defaultCharset()));
+    Transport.BytesResponse response = myProfilers.getClient().getTransportClient().getBytes(request);
+    assertThat(response.getContents()).isEqualTo(ByteString.copyFrom(data, Charset.defaultCharset()));
   }
 
   @Ignore("b/277717905")
@@ -469,7 +474,8 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
 
     // Create a temp file
-    File file = TransportServiceUtils.createTempFile("fake_allocation_records", ".alloc", ByteString.EMPTY);
+    File file = FileUtil.createTempFile("fake_allocation_records", ".alloc", true);
+
     // Import allocation records from file
     assertThat(sessionsManager.importSessionFromFile(file)).isTrue();
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
@@ -741,8 +747,6 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
                                                                       myStage.getStudioProfilers().getIdeServices());
     myStage.selectCaptureDuration(
       new CaptureDurationData<>(1, false, false, new CaptureEntry<>(new Object(), () -> heapDumpCapture)), joiner);
-    // Manually refresh the UI, since the test loader bypasses the real async-load notification pipeline.
-    myStage.getCaptureSelection().refreshSelectedHeap();
     assertThat(stageView.getCaptureInfoMessage().isVisible()).isFalse();
   }
 

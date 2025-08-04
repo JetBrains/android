@@ -17,7 +17,7 @@ package com.android.tools.datastore.database
 
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport.BytesRequest
-import com.android.tools.profiler.proto.Transport.FileResponse
+import com.android.tools.profiler.proto.Transport.BytesResponse
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -68,8 +68,8 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
             10).build())
       }),
       (Consumer { it.queryUnifiedEvents() }),
-      (Consumer { assertThat(it.getFile(BytesRequest.getDefaultInstance())).isEqualTo(null) }),
-      (Consumer { it.insertFile(0, "id", FileResponse.getDefaultInstance()) }))
+      (Consumer { assertThat(it.getBytes(BytesRequest.getDefaultInstance())).isEqualTo(null) }),
+      (Consumer { it.insertBytes(0, "id", BytesResponse.getDefaultInstance()) }))
   }
 
   private fun insertData(count: Int, incrementGroupId: Boolean): List<Common.Event> {
@@ -121,25 +121,6 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
       table.deleteEvents(1, 1, i + 1L, Common.Event.Kind.SESSION, i + 1L, i + 1L)
       assertThat(table.queryUnifiedEvents()).hasSize(i)
     }
-  }
-
-  @Test
-  fun `getFile gets previously inserted file path`() {
-    val streamId = 1L
-    val id = "TestId"
-    val path = "Test/Path"
-    val request = BytesRequest.newBuilder().setStreamId(streamId).setId(id).build()
-    // Initially, no file path should be found.
-    var response = table.getFile(request)
-    assertThat(response).isNull()
-
-    // Insert a file path.
-    table.insertFile(streamId, id, FileResponse.newBuilder().setFilePath(path).build())
-
-    // Now, the file path should be retrievable.
-    response = table.getFile(request)
-    assertThat(response).isNotNull()
-    assertThat(response!!.filePath).isEqualTo(path)
   }
 
   @Test

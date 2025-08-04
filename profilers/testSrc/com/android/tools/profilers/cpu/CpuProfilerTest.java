@@ -240,24 +240,24 @@ public final class CpuProfilerTest {
     Common.Session session2 = sessionsManager.getSelectedSession();
 
     // Session 1 references trace 1.
-    String session1Path = myProfilers.getClient().getTransportClient().getFile(
+    ByteString session1Bytes = myProfilers.getClient().getTransportClient().getBytes(
       Transport.BytesRequest.newBuilder()
         .setStreamId(session1.getStreamId())
         .setId(String.valueOf(session1.getStartTimestamp()))
         .build()
-    ).getFilePath();
-    ByteString trace1Bytes = ByteString.copyFrom(Files.readAllBytes(new File(session1Path).toPath()));
-    assertThat(trace1Bytes).isEqualTo(ByteString.copyFrom(Files.readAllBytes(trace1.toPath())));
+    ).getContents();
+    ByteString trace1Bytes = ByteString.copyFrom(Files.readAllBytes(trace1.toPath()));
+    assertThat(session1Bytes).isEqualTo(trace1Bytes);
 
     // Session 2 references trace 2.
-    String session2Path = myProfilers.getClient().getTransportClient().getFile(
+    ByteString session2Bytes = myProfilers.getClient().getTransportClient().getBytes(
       Transport.BytesRequest.newBuilder()
         .setStreamId(session2.getStreamId())
         .setId(String.valueOf(session2.getStartTimestamp()))
         .build()
-    ).getFilePath();
-    ByteString trace2Bytes = ByteString.copyFrom(Files.readAllBytes(new File(session2Path).toPath()));
-    assertThat(trace2Bytes).isEqualTo(ByteString.copyFrom(Files.readAllBytes(trace2.toPath())));
+    ).getContents();
+    ByteString trace2Bytes = ByteString.copyFrom(Files.readAllBytes(trace2.toPath()));
+    assertThat(session2Bytes).isEqualTo(trace2Bytes);
   }
 
   @Test

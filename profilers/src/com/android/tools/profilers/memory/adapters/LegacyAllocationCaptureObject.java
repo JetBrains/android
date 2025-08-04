@@ -25,10 +25,7 @@ import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.LegacyAllocationConverter;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
-import java.io.File;
-import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -125,14 +122,13 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
       return false;
     }
 
-    Transport.FileResponse response;
+    Transport.BytesResponse response;
     while (true) {
-      response = myClient.getTransportClient().getFile(Transport.BytesRequest.newBuilder()
+      response = myClient.getTransportClient().getBytes(Transport.BytesRequest.newBuilder()
                                                           .setStreamId(mySession.getStreamId())
                                                           .setId(Long.toString(myInfo.getStartTime()))
                                                           .build());
-      // The transport service now returns a file path instead of the raw bytes.
-      if (!response.getFilePath().isEmpty()) {
+      if (!response.getContents().isEmpty()) {
         break;
       }
       else {
@@ -147,19 +143,10 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
       }
     }
 
-    byte[] allocationBytes;
-    try {
-      allocationBytes = Files.readAllBytes(new File(response.getFilePath()).toPath());
-    }
-    catch (IOException e) {
-      myIsLoadingError = true;
-      return false;
-    }
-
     // TODO remove this map, since we have built-in functionality in ClassDb now.
     Map<Integer, ClassDb.ClassEntry> classEntryMap = new HashMap<>();
     Map<Integer, Memory.AllocationStack> callStacks = new HashMap<>();
-    myAllocationConverter.parseDump(allocationBytes);
+    myAllocationConverter.parseDump(response.getContents().toByteArray());
     myAllocationConverter.getAllocationStacks().forEach(stack -> callStacks.putIfAbsent(stack.getStackId(), stack));
     myAllocationConverter.getClassNames().forEach(
       // We don't have super class information so just assign invalid id as the super class id.

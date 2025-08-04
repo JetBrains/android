@@ -535,7 +535,7 @@ class SessionsViewTest {
       .setTraceData(Trace.TraceData.newBuilder()
                      .setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
       .build())
-    myTransportService.addFile(traceInfoId.toString(), resolveWorkspacePath(VALID_TRACE_PATH).toFile().absolutePath)
+    myTransportService.addFile(traceInfoId.toString(), ByteString.copyFrom(Files.readAllBytes(resolveWorkspacePath(VALID_TRACE_PATH))))
 
     myTimer.currentTimeNs = 0
     mySessionsManager.beginSession(device.deviceId, device, process)

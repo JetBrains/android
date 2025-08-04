@@ -149,23 +149,35 @@ public class CpuCaptureStage extends Stage<Timeline> {
     ANALYZING,
   }
 
+  /**
+   * Helper function to save trace data to disk. The file is put in to the users temp directory with the format cpu_trace_[traceid].trace.
+   * If the file exists FileUtil will append numbers to the end making it unique.
+   */
+  @NotNull
+  public static File saveCapture(long traceId, ByteString data) {
+    try {
+      File trace = FileUtil.createTempFile(String.format(Locale.US, "cpu_trace_%d", traceId), ".trace", true);
+      try (FileOutputStream out = new FileOutputStream(trace)) {
+        out.write(data.toByteArray());
+      }
+      return trace;
+    }
+    catch (IOException io) {
+      throw new IllegalStateException("Unable to save trace to disk");
+    }
+  }
+
   @Nullable
   private static File getAndSaveCapture(@NotNull StudioProfilers profilers, long traceId) {
     Transport.BytesRequest traceRequest = Transport.BytesRequest.newBuilder()
       .setStreamId(profilers.getSession().getStreamId())
       .setId(String.valueOf(traceId))
       .build();
-    Transport.FileResponse traceResponse = profilers.getClient().getTransportClient().getFile(traceRequest);
-
-    if (traceResponse.getFilePath().isEmpty()) {
-      return null;
+    Transport.BytesResponse traceResponse = profilers.getClient().getTransportClient().getBytes(traceRequest);
+    if (!traceResponse.getContents().isEmpty()) {
+      return saveCapture(traceId, traceResponse.getContents());
     }
-    File captureFile = new File(traceResponse.getFilePath());
-    if (!captureFile.exists() || captureFile.length() == 0) {
-      return null;
-    }
-
-    return captureFile;
+    return null;
   }
 
   /**

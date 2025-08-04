@@ -89,7 +89,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
 
   private final Map<Long, Common.Device> myDevices;
   private final MultiMap<Common.Device, Common.Process> myProcesses;
-  private final Map<String, String> myCache;
+  private final Map<String, ByteString> myCache;
   @GuardedBy("myStreamEvents")
   private final Map<Long, List<Common.Event>> myStreamEvents;
   private final Map<Command.CommandType, CommandHandler> myCommandHandlers;
@@ -303,8 +303,8 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     }
   }
 
-  public void addFile(String id, String contentsPath) {
-    myCache.put(id, contentsPath);
+  public void addFile(String id, ByteString contents) {
+    myCache.put(id, contents);
   }
 
   public void connectToStreamServer(Common.Stream stream, EventStreamServer streamServer) {
@@ -358,17 +358,17 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
   }
 
   @Override
-  public void getFile(Transport.BytesRequest request, StreamObserver<Transport.FileResponse> responseObserver) {
-    Transport.FileResponse.Builder builder = Transport.FileResponse.newBuilder();
-    String path;
+  public void getBytes(Transport.BytesRequest request, StreamObserver<Transport.BytesResponse> responseObserver) {
+    Transport.BytesResponse.Builder builder = Transport.BytesResponse.newBuilder();
+    ByteString bytes;
     if (myStreamServerMap.containsKey(request.getStreamId())) {
-      path = myStreamServerMap.get(request.getStreamId()).getFilePathCache().get(request.getId());
+      bytes = myStreamServerMap.get(request.getStreamId()).getByteCacheMap().get(request.getId());
     }
     else {
-      path = myCache.get(request.getId());
+      bytes = myCache.get(request.getId());
     }
-    if (path != null) {
-      builder.setFilePath(path);
+    if (bytes != null) {
+      builder.setContents(bytes);
     }
     responseObserver.onNext(builder.build());
     responseObserver.onCompleted();

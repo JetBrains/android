@@ -58,9 +58,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.idea.io.grpc.stub.StreamObserver;
-import com.intellij.openapi.util.io.FileUtil;
-import java.io.File;
-import java.io.IOException;
 import java.sql.Connection;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -169,42 +166,10 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   @Override
   public void importHeapDump(ImportHeapDumpRequest request, StreamObserver<ImportHeapDumpResponse> responseObserver) {
     ImportHeapDumpResponse.Builder responseBuilder = ImportHeapDumpResponse.newBuilder();
-    try {
-      // Save the heap dump to a temp file to avoid loading the entire content into memory, which can cause OOM errors.
-      File heapDumpFile = FileUtil.createTempFile("heapdump-" + request.getInfo().getStartTime(), ".hprof", true);
-      FileUtil.writeToFile(heapDumpFile, request.getData().toByteArray());
-      myStatsTable.insertOrReplaceHeapInfo(request.getSession(), request.getInfo());
-      // The table expects a response object containing the file path.
-      myUnifiedTable.insertFile(request.getSession().getStreamId(), Long.toString(request.getInfo().getStartTime()),
-                                Transport.FileResponse.newBuilder().setFilePath(heapDumpFile.getAbsolutePath()).build());
-      responseBuilder.setStatus(ImportHeapDumpResponse.Status.SUCCESS);
-    }
-    catch (IOException e) {
-      myLogService.getLogger(e.getClass());
-      responseBuilder.setStatus(ImportHeapDumpResponse.Status.FAILURE);
-    }
-    responseObserver.onNext(responseBuilder.build());
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void importLegacyAllocations(ImportLegacyAllocationsRequest request,
-                                      StreamObserver<ImportLegacyAllocationsResponse> responseObserver) {
-    assert request.getInfo().getLegacy();
-    ImportLegacyAllocationsResponse.Builder responseBuilder = ImportLegacyAllocationsResponse.newBuilder();
-    try {
-      // Save the legacy allocation data to a temp file to avoid loading the entire content into memory.
-      File legacyAllocFile = FileUtil.createTempFile("legacy-allocs-" + request.getInfo().getStartTime(), ".alloc", true);
-      FileUtil.writeToFile(legacyAllocFile, request.getData().toByteArray());
-      myUnifiedTable.insertFile(request.getSession().getStreamId(), Long.toString(request.getInfo().getStartTime()),
-                                Transport.FileResponse.newBuilder().setFilePath(legacyAllocFile.getAbsolutePath()).build());
-      myStatsTable.insertOrReplaceAllocationsInfo(request.getSession(), request.getInfo());
-      responseBuilder.setStatus(ImportLegacyAllocationsResponse.Status.SUCCESS);
-    }
-    catch (IOException e) {
-      myLogService.getLogger(e.getClass());
-      responseBuilder.setStatus(ImportLegacyAllocationsResponse.Status.FAILURE);
-    }
+    myStatsTable.insertOrReplaceHeapInfo(request.getSession(), request.getInfo());
+    myUnifiedTable.insertBytes(request.getSession().getStreamId(), Long.toString(request.getInfo().getStartTime()),
+                               Transport.BytesResponse.newBuilder().setContents(request.getData()).build());
+    responseBuilder.setStatus(ImportHeapDumpResponse.Status.SUCCESS);
     responseObserver.onNext(responseBuilder.build());
     responseObserver.onCompleted();
   }
@@ -224,6 +189,17 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       }
     }
     responseObserver.onNext(response);
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void importLegacyAllocations(ImportLegacyAllocationsRequest request,
+                                      StreamObserver<ImportLegacyAllocationsResponse> responseObserver) {
+    assert request.getInfo().getLegacy();
+    myUnifiedTable.insertBytes(request.getSession().getStreamId(), Long.toString(request.getInfo().getStartTime()),
+                               Transport.BytesResponse.newBuilder().setContents(request.getData()).build());
+    myStatsTable.insertOrReplaceAllocationsInfo(request.getSession(), request.getInfo());
+    responseObserver.onNext(ImportLegacyAllocationsResponse.newBuilder().setStatus(ImportLegacyAllocationsResponse.Status.SUCCESS).build());
     responseObserver.onCompleted();
   }
 

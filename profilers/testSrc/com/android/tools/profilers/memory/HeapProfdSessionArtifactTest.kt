@@ -17,7 +17,6 @@ package com.android.tools.profilers.memory
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.protobuf.ByteString
-import com.android.tools.idea.transport.TransportServiceUtils
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
@@ -34,6 +33,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileOutputStream
 
 class HeapProfdSessionArtifactTest {
 
@@ -81,13 +81,13 @@ class HeapProfdSessionArtifactTest {
     val artifact = generateSessionArtifacts()[0] as HeapProfdSessionArtifact
     val stream = ByteArrayOutputStream()
     val contents = ByteString.copyFromUtf8("TestData")
-    val heapProfdFile = TransportServiceUtils.createTempFile("heap-profd", "dump", contents)
-    transportService.addFile(artifact.startTime.toString(), heapProfdFile.absolutePath)
-    val symbolData = ByteString.copyFromUtf8("SymbolData")
-    File(FileUtil.getTempDirectory(), "${artifact.startTime}.symbols").apply {
-      deleteOnExit()
-      writeBytes(symbolData.toByteArray())
-    }
+    transportService.addFile(artifact.startTime.toString(), contents)
+    val symbolData = ByteString.copyFromUtf8("SymbolData");
+    val symbolsFile = File("${FileUtil.getTempDirectory()}${File.separator}${artifact.startTime}.symbols")
+    symbolsFile.deleteOnExit()
+    val outputStream = FileOutputStream(symbolsFile)
+    outputStream.write(symbolData.toByteArray())
+    outputStream.close()
     artifact.export(stream)
     val output = contents.concat(symbolData)
     assertThat(stream.toByteArray()).isEqualTo(output.toByteArray())
@@ -98,8 +98,7 @@ class HeapProfdSessionArtifactTest {
     val artifact = generateSessionArtifacts()[0] as HeapProfdSessionArtifact
     val stream = ByteArrayOutputStream()
     val contents = ByteString.copyFromUtf8("TestData")
-    val heapProfdFile = TransportServiceUtils.createTempFile("heap-profd", "dump", contents)
-    transportService.addFile(artifact.startTime.toString(), heapProfdFile.absolutePath)
+    transportService.addFile(artifact.startTime.toString(), contents)
     artifact.export(stream)
     assertThat(stream.toByteArray()).isEqualTo(contents.toByteArray())
   }

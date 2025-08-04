@@ -28,12 +28,16 @@ import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
+import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -124,14 +128,14 @@ public final class NativeAllocationSampleCaptureObject implements CaptureObject 
 
   @Override
   public boolean load(@Nullable Range queryRange, @Nullable Executor queryJoiner) {
-    Transport.FileResponse response = Transport.FileResponse.getDefaultInstance();
+    Transport.BytesResponse response = Transport.BytesResponse.getDefaultInstance();
     int retryCount = 100; // ~10 seconds.
-    while (response.getFilePath().isEmpty()) {
-      response = myClient.getTransportClient().getFile(Transport.BytesRequest.newBuilder()
+    while (response.getContents().isEmpty()) {
+      response = myClient.getTransportClient().getBytes(Transport.BytesRequest.newBuilder()
                                                           .setStreamId(mySession.getStreamId())
                                                           .setId(Long.toString(myStartTimeNs))
                                                           .build());
-      if (!response.getFilePath().isEmpty()) {
+      if (!response.getContents().isEmpty()) {
         break;
       }
 
@@ -149,13 +153,18 @@ public final class NativeAllocationSampleCaptureObject implements CaptureObject 
         return false;
       }
     }
-
-    if (response.getFilePath().isEmpty()) {
-      myIsLoadingError = true;
+    File trace;
+    try {
+      trace = FileUtil.createTempFile(String.format(Locale.US, "heap_trace_%d", myStartTimeNs), "." + getExportableExtension(), true);
+      try (FileOutputStream out = new FileOutputStream(trace)) {
+        out.write(response.getContents().toByteArray());
+        out.flush();
+      }
+    }
+    catch (IOException ex) {
       return false;
     }
 
-    File trace = new File(response.getFilePath());
     String abi = myStage.getStudioProfilers().getSessionsManager().getSelectedSessionMetaData().getProcessAbi();
     TraceProcessorService service = myStage.getStudioProfilers().getIdeServices().getTraceProcessorService();
     IdeProfilerServices profilerServices = myStage.getStudioProfilers().getIdeServices();

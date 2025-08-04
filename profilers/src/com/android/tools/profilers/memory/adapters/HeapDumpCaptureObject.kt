@@ -52,7 +52,6 @@ import com.google.wireless.android.sdk.stats.AndroidProfilerEvent.Loading
 import it.unimi.dsi.fastutil.Hash
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import java.io.OutputStream
-import java.io.File
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import java.util.stream.Collectors
@@ -106,17 +105,12 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
   override fun getSession() = _session
 
   override fun load(queryRange: Range?, queryJoiner: Executor?) = doGetBytesRequest().let { response ->
-    val file = if (response.filePath.isEmpty()) null else File(response.filePath)
-
-    if (file == null || !file.exists() || file.length() == 0L) {
-      // If any check fails, enter the error state and return false.
-      false.also { isLoadingError = true }
-    } else {
-      true.also {
-        ideProfilerServices.featureTracker.trackLoading(Loading.Type.HPROF, sizeKb = (file.length() / 1024).toInt(),
-                                                        measure = { instanceIndex.size.toLong() }) {
-          load(InMemoryBuffer(file))
-        }
+    if (response.contents === ByteString.EMPTY) false.also { isLoadingError = true }
+    else true.also {
+      ideProfilerServices.featureTracker.trackLoading(Loading.Type.HPROF,
+                                                      sizeKb = countBytes() / 1024,
+                                                      measure = { instanceIndex.size.toLong() }) {
+        load(InMemoryBuffer(response.contents.asReadOnlyByteBuffer()))
       }
     }
   }
@@ -232,11 +226,7 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
     return null
   }
 
-  override fun canSafelyLoad(): Boolean {
-    val response = doGetBytesRequest()
-    return if (response.filePath.isEmpty()) false
-    else MainMemoryProfilerStage.canSafelyLoadHprof(File(response.filePath).length())
-  }
+  override fun canSafelyLoad() = MainMemoryProfilerStage.canSafelyLoadHprof(countBytes().toLong())
 
   override fun isGroupingSupported(grouping: ClassGrouping?): Boolean {
     return when (grouping) {
@@ -245,10 +235,12 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
     }
   }
 
-  private fun doGetBytesRequest() = client.transportClient.getFile(Transport.BytesRequest.newBuilder()
+  private fun doGetBytesRequest() = client.transportClient.getBytes(Transport.BytesRequest.newBuilder()
                                                                       .setStreamId(_session.streamId)
                                                                       .setId(heapDumpInfo.startTime.toString())
                                                                       .build())
+
+  private fun countBytes() = doGetBytesRequest().serializedSize
 
   private fun ClassObj.makeEntry(name: String = this.className) =
     if (superClassObj != null) classDb.registerClass(id, superClassObj!!.id, name, totalRetainedSize)

@@ -43,7 +43,6 @@ import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -186,7 +185,7 @@ public class CpuProfiler implements StudioProfiler {
         .setStreamId(session.getStreamId())
         .setId(String.valueOf(info.getTraceId()))
         .build();
-      Transport.FileResponse traceResponse = profilers.getClient().getTransportClient().getFile(traceRequest);
+      Transport.BytesResponse traceResponse = profilers.getClient().getTransportClient().getBytes(traceRequest);
 
       // Atrace Format = [HEADER|ZlibData][HEADER|ZlibData]
       // Systrace Expected format = [HEADER|ZlipData]
@@ -198,12 +197,12 @@ public class CpuProfiler implements StudioProfiler {
       if (TraceType.from(info.getConfiguration()) == TraceType.ATRACE) {
         File trace = FileUtil.createTempFile(String.format("cpu_trace_%d", info.getTraceId()), ".trace", true);
         try (FileOutputStream out = new FileOutputStream(trace)) {
-          FileUtil.copy(new FileInputStream(traceResponse.getFilePath()), out);
+          out.write(traceResponse.getContents().toByteArray());
         }
         AtraceExporter.export(trace, outputStream);
       }
       else {
-        FileUtil.copy(new FileInputStream(traceResponse.getFilePath()), outputStream);
+        FileUtil.copy(new ByteArrayInputStream(traceResponse.getContents().toByteArray()), outputStream);
         if (TraceType.from(info.getConfiguration()) == TraceType.PERFETTO) {
           // TODO (b/184681183): Uncomment this when we know what we want the user experience to be.
           //PerfettoTrace.Trace trace = PerfettoTrace.Trace.newBuilder()

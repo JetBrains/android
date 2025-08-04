@@ -16,15 +16,13 @@
 package com.android.tools.idea.profilers.commands
 
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.profilers.LegacyAllocationTracker
+import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.TransportProxy
-import com.android.tools.idea.transport.TransportServiceUtils
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory
 import com.android.tools.profiler.proto.Transport
-import java.io.IOException
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import java.util.concurrent.BlockingDeque
 import java.util.concurrent.Executor
@@ -33,7 +31,7 @@ import java.util.function.Consumer
 
 class LegacyAllocationCommandHandler(val device: IDevice,
                                      val eventQueue: BlockingDeque<Common.Event>,
-                                     val filePathCache: MutableMap<String, String>,
+                                     val byteCache: MutableMap<String, ByteString>,
                                      val fetchExecutor: Executor,
                                      val legacyTrackerSupplier: BiFunction<IDevice, Int, LegacyAllocationTracker>)
   : TransportProxy.ProxyCommandHandler {
@@ -116,15 +114,9 @@ class LegacyAllocationCommandHandler(val device: IDevice,
       val lastInfo = myInProgressTrackingInfo.get(command.pid)
       val success = tracker.trackAllocations(false, fetchExecutor,
                                              Consumer { bytes ->
-                                               val path = if (bytes == null || bytes.isEmpty()) {
-                                                 ""
-                                               }
-                                               else {
-                                                 TransportServiceUtils.createTempFile("legacy_allocs_${lastInfo.startTime}",
-                                                                                      ".alloc",
-                                                                                      ByteString.copyFrom(bytes)).absolutePath
-                                               }
-                                               filePathCache.put(lastInfo.startTime.toString(), path)
+                                               byteCache.put(lastInfo.startTime.toString(),
+                                                             if (bytes == null) ByteString.EMPTY
+                                                             else ByteString.copyFrom(bytes))
                                              })
       val lastInfoBuilder = lastInfo.toBuilder()
       lastInfoBuilder.endTime = requestTime
