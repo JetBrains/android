@@ -86,7 +86,6 @@ class BuildConfigDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPro
     }
   }
 
-  // TODO(xof): find target for redirect
   override val readMoreUrlRedirect = ReadMoreUrlRedirect("build-config-default")
 
   companion object {
