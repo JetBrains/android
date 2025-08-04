@@ -46,6 +46,7 @@ jvm_library(
     "@lib//:android-tools-sdklib",
     "//android/android-common:common",
     "//android/intellij.android.testutils:testutils_test_lib",
+    "//libraries/hamcrest",
   ],
   runtime_deps = [":transport-database_test_resources"]
 )

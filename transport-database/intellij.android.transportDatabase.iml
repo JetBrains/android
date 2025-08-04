@@ -24,5 +24,6 @@
     <orderEntry type="library" scope="TEST" name="android.tools.sdklib" level="project" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.libraries.hamcrest" scope="TEST" />
   </component>
 </module>

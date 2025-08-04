@@ -13,5 +13,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.repositorySearch" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.libraries.hamcrest" scope="TEST" />
   </component>
 </module>

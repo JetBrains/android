@@ -38,6 +38,7 @@ jvm_library(
     "@lib//:guava",
     "@lib//:junit4",
     "//android/project-system-gradle-repository-search:projectSystem-gradle-repositorySearch",
+    "//libraries/hamcrest",
   ]
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.repositorySearch.tests` end

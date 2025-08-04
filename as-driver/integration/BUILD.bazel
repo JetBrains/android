@@ -18,6 +18,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "//android/as-driver/utils:utils_test_lib",
+    "//libraries/hamcrest",
   ]
 )
 ### auto-generated section `build intellij.android.as-driver.integration` end

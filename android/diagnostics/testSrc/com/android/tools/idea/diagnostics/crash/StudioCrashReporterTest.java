@@ -454,18 +454,13 @@ public class StudioCrashReporterTest {
     private final Pattern myPattern;
 
     public RegexMatcher(@NotNull String patternString) {
-      super(patternString);
+      super("matches regular expression", false, patternString);
       myPattern = Pattern.compile(patternString);
     }
 
     @Override
     protected boolean evalSubstringOf(String string) {
       return myPattern.matcher(string).matches();
-    }
-
-    @Override
-    protected String relationship() {
-      return "matches regular expression";
     }
   }
 }
