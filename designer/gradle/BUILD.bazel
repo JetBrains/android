@@ -1,0 +1,26 @@
+### auto-generated section `build intellij.android.designer.gradle` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "gradle_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "gradle",
+  module_name = "intellij.android.designer.gradle",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:kotlin-stdlib",
+    "//platform/core-api:core",
+    "//platform/util",
+    "@lib//:studio-platform-provided",
+    "//android/project-system",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//android/designer",
+  ],
+  runtime_deps = [":gradle_resources"]
+)
+### auto-generated section `build intellij.android.designer.gradle` end
