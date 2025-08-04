@@ -126,7 +126,6 @@ iml_module(
         "//tools/adt/idea/rendering:intellij.android.rendering",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models",
-        "//tools/adt/idea/compose-designer:intellij.android.compose-designer.tests",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements",
         "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile",
         "//tools/adt/idea/visual-lint:intellij.android.visual-lint",
