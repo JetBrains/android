@@ -41,7 +41,7 @@ fun StudioTheme(content: @Composable () -> Unit) {
       remember(JewelTheme.name, provider) {
         provider.createDefaultStyling(retrieveDefaultTextStyle(), retrieveEditorTextStyle())
       }
-    val markdownProcessor = remember { MarkdownProcessor() }
+    val markdownProcessor = remember { MarkdownProcessorReflectiveFactory.create() }
     val blockRenderer = remember(markdownStyling) { MarkdownBlockRenderer.create(markdownStyling) }
 
     CompositionLocalProvider(
