@@ -92,6 +92,11 @@ def nested_struct_factory(actual, *, meta, attrs):
     """
     if actual == None:
         return subjects_str_factory(actual = actual, meta = meta)
+
+    actual_attrs = [attr for attr in dir(actual) if not attr.startswith("__")]
+    if len(actual_attrs) != len(attrs.keys()):
+        meta.add_failure("Struct missing attributes. Actual: {}. Expected: {}".format(actual_attrs, attrs.keys()), "")
+
     _struct_subject = StructSubject.new(
         actual,
         meta = meta,
