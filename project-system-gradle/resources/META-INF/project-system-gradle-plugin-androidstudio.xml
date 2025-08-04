@@ -29,10 +29,9 @@
     <projectConfigurable groupId="build" id="build.tools"
                          instance="com.android.tools.idea.projectsystem.gradle.AndroidStudioBuildToolsConfigurable"
                          key="settings.build.tools.display.name" bundle="messages.ExternalSystemBundle"/>
-    <advancedSetting default="false" id="project.view.default" bundle="messages.AndroidBundle"
-                     groupKey="group.advanced.settings.project.view"
-                     service="com.android.tools.idea.gradle.projectView.AndroidProjectViewSettings"
-                     property="defaultToProjectView"/>
+    <applicationConfigurable parentId="advanced.settings" id="advanced.settings.project.view.configurable" bundle="messages.AndroidBundle"
+                             key="group.advanced.settings.project.view"
+                             provider="com.android.tools.idea.gradle.projectView.ProjectViewSettingConfigurableProvider"/>
     <applicationService
         serviceInterface="com.android.tools.idea.gradle.projectView.AndroidProjectViewSettings"
         serviceImplementation="com.android.tools.idea.gradle.projectView.AndroidProjectViewSettingsImpl"/>
