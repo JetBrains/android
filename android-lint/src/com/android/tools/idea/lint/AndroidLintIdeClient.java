@@ -18,6 +18,9 @@ package com.android.tools.idea.lint;
 import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION;
 import static com.android.ide.common.repository.GoogleMavenRepository.MAVEN_GOOGLE_CACHE_DIR_KEY;
+import static com.android.tools.idea.lint.PlayPolicyInsightsDeprecationUtilKt.isPlayPolicyIssue;
+import static com.android.tools.idea.lint.PlayPolicyInsightsDeprecationUtilKt.isPlayPolicyInsightsUnsupported;
+import static com.android.tools.idea.lint.PlayPolicyInsightsDeprecationUtilKt.updateMessageWithDeprecationInfo;
 import static com.android.tools.lint.checks.GooglePlaySdkIndex.GOOGLE_PLAY_SDK_INDEX_KEY;
 import static com.android.tools.lint.checks.GradleDetector.KEY_IDE_AGP_VERSION;
 
@@ -49,11 +52,14 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.PlatformLookup;
 import com.android.tools.lint.client.api.ResourceRepositoryScope;
+import com.android.tools.lint.detector.api.Context;
 import com.android.tools.lint.detector.api.DefaultPosition;
 import com.android.tools.lint.detector.api.Desugaring;
+import com.android.tools.lint.detector.api.Incident;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Position;
+import com.android.tools.lint.detector.api.TextFormat;
 import com.android.tools.res.FileResourceReader;
 import com.android.tools.sdk.AndroidSdkData;
 import com.android.utils.Pair;
@@ -97,12 +103,27 @@ import org.xmlpull.v1.XmlPullParser;
  * Android specific implementation of {@linkplain LintIdeClient}
  */
 public class AndroidLintIdeClient extends LintIdeClient {
+  private final boolean myIsPlayPolicyInsightsObsolete;
+  private final boolean myIsPlayPolicyInsightsEnabled;
   @NotNull protected Project myProject;
   private PlayPolicyInsightsJarCache myCache;
+
+  @Override
+  public void report(@NotNull Context context, @NotNull Incident incident, @NotNull TextFormat format) {
+    if (isPlayPolicyIssue(incident.getIssue())) {
+      if (!myIsPlayPolicyInsightsEnabled) return;
+      if (myIsPlayPolicyInsightsObsolete) {
+        updateMessageWithDeprecationInfo(incident);
+      }
+    }
+    super.report(context, incident, format);
+  }
 
   public AndroidLintIdeClient(@NotNull Project project, @NotNull LintResult lintResult) {
     super(project, lintResult);
     myProject = project;
+    myIsPlayPolicyInsightsEnabled = StudioFlags.ENABLE_PLAY_POLICY_INSIGHTS.get();
+    myIsPlayPolicyInsightsObsolete = isPlayPolicyInsightsUnsupported();
   }
 
   @Override
@@ -486,7 +507,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
   }
 
   private class LocationHandle extends Location.ResourceItemHandle
-      implements Location.Handle, Computable<Location> {
+    implements Location.Handle, Computable<Location> {
     private final Supplier<Location> myDefaultLocationProvider;
     private Object myClientData;
 

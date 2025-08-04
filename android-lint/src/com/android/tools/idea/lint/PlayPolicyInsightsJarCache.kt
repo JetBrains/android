@@ -26,7 +26,6 @@ import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.flags.FeatureConfiguration
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.ui.GuiTestingService
 import com.android.tools.idea.util.StudioPathManager
@@ -38,7 +37,6 @@ import com.google.common.hash.Hashing
 import com.google.common.io.Files
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
-import com.intellij.openapi.components.service
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.text.nullize
 import java.io.File
@@ -58,9 +56,6 @@ private const val ARTIFACT_ID = "insights-lint"
 private const val BUNDLED_JAR_PATH = "insights-lint-0.1.2.jar"
 private const val MIN_UPDATE_BACKOFF_MINUTES = 10L
 private const val CACHE_EXPIRY_DAYS = 7L
-
-private const val DEPRECATION_SERVICE_NAME = "aqi/policy"
-private const val DEPRECATION_USER_FRIENDLY_SERVICE_NAME = "Play Policy Insights"
 
 /** Load and cache the custom lint rule jars for play policy insights. */
 class PlayPolicyInsightsJarCache(
@@ -173,16 +168,7 @@ class PlayPolicyInsightsJarCache(
   /** Starts a new job to update the cached file. */
   private fun updateCachedJar() {
     // Check service deprecation status if target version is not specified.
-    if (
-      targetLibraryVersion.isEmpty() &&
-        service<DevServicesDeprecationDataProvider>()
-          .getCurrentDeprecationData(
-            DEPRECATION_SERVICE_NAME,
-            DEPRECATION_USER_FRIENDLY_SERVICE_NAME,
-          )
-          .isUnsupported()
-    )
-      return
+    if (targetLibraryVersion.isEmpty() && isPlayPolicyInsightsUnsupported) return
 
     val dir = cachedDir ?: return
 

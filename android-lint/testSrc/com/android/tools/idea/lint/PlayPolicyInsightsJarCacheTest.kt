@@ -69,6 +69,7 @@ class PlayPolicyInsightsJarCacheTest {
 
   @Before
   fun setUp() {
+    StudioFlags.ENABLE_PLAY_POLICY_INSIGHTS.override(true)
     temporaryFolder.create()
     client = AndroidLintIdeClient(projectRule.project, LintIgnoredResult())
     downloader =
@@ -113,6 +114,7 @@ class PlayPolicyInsightsJarCacheTest {
   @After
   fun tearDown() {
     temporaryFolder.delete()
+    StudioFlags.ENABLE_PLAY_POLICY_INSIGHTS.clearOverride()
     StudioFlags.PLAY_POLICY_INSIGHTS_TARGET_LIBRARY_VERSION.clearOverride()
   }
 
