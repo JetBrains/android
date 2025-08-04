@@ -81,6 +81,7 @@ jvm_library(
     "//android/android:core",
     "//android/designer",
     "//android/designer:designer_test_lib",
+    "//android/designer/gradle",
     "//android/designer/customview",
     "//android/preview-designer",
     "//android/project-system",

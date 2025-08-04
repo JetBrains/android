@@ -10,6 +10,7 @@
     <orderEntry type="library" scope="RUNTIME" name="layoutlib" level="project" />
     <orderEntry type="module" module-name="intellij.android.compose-designer" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.designer" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.designer.gradle" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.designer.customview" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.glance-designer" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.layoutlib" scope="RUNTIME" />

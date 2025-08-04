@@ -10,6 +10,7 @@
   - name: intellij.android.compose-designer
   - name: intellij.android.designer.customview
   - name: intellij.android.designer
+  - name: intellij.android.designer.gradle
   - name: intellij.android.glance-designer
   - name: intellij.android.layoutlib
   - name: intellij.android.nav.editor

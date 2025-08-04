@@ -10,6 +10,7 @@ jvm_library(
     "@lib//:layoutlib",
     "//android/compose-designer",
     "//android/designer",
+    "//android/designer/gradle",
     "//android/designer/customview",
     "//android/glance-designer",
     "//android/layoutlib",
