@@ -327,6 +327,7 @@ iml_module(
         "//tools/adt/idea/preview-designer:intellij.android.preview-designer",
         "//tools/adt/idea/preview-designer:intellij.android.preview-designer.tests",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
         "//tools/adt/idea/rendering:intellij.android.rendering",

@@ -24,13 +24,13 @@ import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.State
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.updateScreenSize
+import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runTest
 import org.intellij.lang.annotations.Language
-import org.jetbrains.android.compose.ComposeProjectRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith

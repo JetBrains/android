@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
@@ -25,7 +26,6 @@ import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.RuleChain
 import kotlin.test.assertFalse
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.android.compose.ComposeProjectRule
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.android.uipreview.AndroidEditorSettings.EditorMode
 import org.junit.Assert.assertEquals

@@ -24,6 +24,7 @@ import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.State
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
+import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.preview.ComposePreviewElementInstance
@@ -37,7 +38,6 @@ import com.android.tools.preview.config.DEFAULT_DEVICE_ID
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.TruthJUnit.assume
 import kotlinx.coroutines.test.runTest
-import org.jetbrains.android.compose.ComposeProjectRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith

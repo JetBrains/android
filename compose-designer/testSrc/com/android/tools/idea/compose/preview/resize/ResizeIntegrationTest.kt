@@ -23,6 +23,7 @@ import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.adtui.swing.popup.PopupRule
 import com.android.tools.configurations.deviceSizeDp
 import com.android.tools.idea.common.fixtures.MouseEventBuilder
+import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.ComposePreviewView
 import com.android.tools.idea.compose.preview.ComposePreviewViewImpl
@@ -55,7 +56,6 @@ import javax.swing.JPopupMenu
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
-import org.jetbrains.android.compose.ComposeProjectRule
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Before

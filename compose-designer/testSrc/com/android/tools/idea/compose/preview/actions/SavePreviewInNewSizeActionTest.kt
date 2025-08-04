@@ -31,6 +31,7 @@ import com.android.tools.configurations.updateScreenSize
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
@@ -64,7 +65,6 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.intellij.lang.annotations.Language
-import org.jetbrains.android.compose.ComposeProjectRule
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.junit.After
 import org.junit.Before
