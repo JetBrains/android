@@ -153,10 +153,9 @@ public class CpuAnalysisPanel extends AspectObserver {
     if (selectedIndex >= 0) {
       myTabs.selectTab(pinnedModels.size() + selectedIndex);
     } else if (myTabs.countTabs() > 0) {
-      myTabs.selectTab(0);
+      myTabs.selectTab(pinnedModels.indexOf(mySelectedModel));
     }
   }
-
   /**
    * This function is called when the user selects an analysis tab (eg "All threads").
    * We update and display the child tabs (eg "Summary", "Flame Chart").
