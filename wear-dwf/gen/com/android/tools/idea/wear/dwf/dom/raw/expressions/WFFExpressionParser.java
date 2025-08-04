@@ -276,7 +276,7 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
         r = expr(b, l, 1);
         exit_section_(b, l, m, CONDITIONAL_EXPR, r, true, null);
       }
-      else if (g < 1 && leftMarkerIs(b, CONDITIONAL_EXPR) && consumeTokenSmart(b, "?")) {
+      else if (g < 1 && consumeTokenSmart(b, QUESTION_MARK)) {
         r = report_error_(b, expr(b, l, 1));
         r = elvis_expr_1(b, l + 1) && r;
         exit_section_(b, l, m, ELVIS_EXPR, r, true, null);
@@ -331,12 +331,12 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
     return r || p;
   }
 
-  // ':' expr
+  // COLON expr
   private static boolean elvis_expr_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "elvis_expr_1")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ":");
+    r = consumeToken(b, COLON);
     r = r && expr(b, l + 1, -1);
     exit_section_(b, m, null, r);
     return r;

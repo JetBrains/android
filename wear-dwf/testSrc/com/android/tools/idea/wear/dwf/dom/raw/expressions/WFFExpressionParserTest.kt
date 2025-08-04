@@ -259,4 +259,95 @@ FILE
       toParseTreeText("[WEATHER.HOURS.0.CONDITION]"),
     )
   }
+  // Regression test for b/436190988
+  fun testParseTernary() {
+    assertEquals(
+      """
+FILE
+  WFFExpressionElvisExprImpl(ELVIS_EXPR)
+    WFFExpressionConditionalExprImpl(CONDITIONAL_EXPR)
+      WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+        PsiElement(NUMBER)('0')
+      WFFExpressionConditionalOpImpl(CONDITIONAL_OP)
+        PsiElement(OPERATORS)('==')
+      WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+        PsiElement(NUMBER)('0')
+    PsiElement(?)('?')
+    WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+      WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+        PsiElement([)('[')
+        PsiElement(ID)('HOUR_0_23_Z')
+        PsiElement(])(']')
+    PsiElement(:)(':')
+    WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+      WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+        PsiElement([)('[')
+        PsiElement(ID)('HOUR_1_12_Z')
+        PsiElement(])(']')
+          """
+        .trimIndent(),
+      toParseTreeText("0 == 0 ?[HOUR_0_23_Z] : [HOUR_1_12_Z]"),
+    )
+}
+
+  // Regression test for b/436190988
+  fun testParseComplexTernary() {
+    assertEquals(
+      """
+FILE
+  WFFExpressionElvisExprImpl(ELVIS_EXPR)
+    WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+      WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+        PsiElement([)('[')
+        PsiElement(ID)('CONFIGURATION.leadingZero')
+        PsiElement(])(']')
+    PsiElement(?)('?')
+    WFFExpressionParenExprImpl(PAREN_EXPR)
+      PsiElement(()('(')
+      WFFExpressionElvisExprImpl(ELVIS_EXPR)
+        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+          WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+            PsiElement([)('[')
+            PsiElement(ID)('IS_24_HOUR_MODE')
+            PsiElement(])(']')
+        PsiElement(?)('?')
+        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+          WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+            PsiElement([)('[')
+            PsiElement(ID)('HOUR_0_23_Z')
+            PsiElement(])(']')
+        PsiElement(:)(':')
+        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+          WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+            PsiElement([)('[')
+            PsiElement(ID)('HOUR_1_12_Z')
+            PsiElement(])(']')
+      PsiElement())(')')
+    PsiElement(:)(':')
+    WFFExpressionParenExprImpl(PAREN_EXPR)
+      PsiElement(()('(')
+      WFFExpressionElvisExprImpl(ELVIS_EXPR)
+        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+          WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+            PsiElement([)('[')
+            PsiElement(ID)('IS_24_HOUR_MODE')
+            PsiElement(])(']')
+        PsiElement(?)('?')
+        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+          WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+            PsiElement([)('[')
+            PsiElement(ID)('HOUR_0_23')
+            PsiElement(])(']')
+        PsiElement(:)(':')
+        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+          WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+            PsiElement([)('[')
+            PsiElement(ID)('HOUR_1_12')
+            PsiElement(])(']')
+      PsiElement())(')')
+          """
+        .trimIndent(),
+      toParseTreeText("[CONFIGURATION.leadingZero] ? ([IS_24_HOUR_MODE] ? [HOUR_0_23_Z] : [HOUR_1_12_Z]) : ([IS_24_HOUR_MODE] ? [HOUR_0_23] : [HOUR_1_12])"),
+    )
+  }
 }

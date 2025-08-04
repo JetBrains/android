@@ -50,6 +50,7 @@ public interface WFFExpressionTypes {
 
   IElementType CLOSE_BRACKET = new WFFExpressionTokenType("]");
   IElementType CLOSE_PAREN = new WFFExpressionTokenType(")");
+  IElementType COLON = new WFFExpressionTokenType(":");
   IElementType COMMA = new WFFExpressionTokenType(",");
   IElementType ID = new WFFExpressionTokenType("ID");
   IElementType NULL = new WFFExpressionTokenType("null");
@@ -57,6 +58,7 @@ public interface WFFExpressionTypes {
   IElementType OPEN_BRACKET = new WFFExpressionTokenType("[");
   IElementType OPEN_PAREN = new WFFExpressionTokenType("(");
   IElementType OPERATORS = new WFFExpressionTokenType("OPERATORS");
+  IElementType QUESTION_MARK = new WFFExpressionTokenType("?");
   IElementType QUOTED_STRING = new WFFExpressionTokenType("QUOTED_STRING");
 
   class Factory {

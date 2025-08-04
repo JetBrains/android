@@ -41,6 +41,8 @@
     OPEN_BRACKET='['
     CLOSE_BRACKET=']'
     COMMA = ','
+    QUESTION_MARK = '?'
+    COLON = ':'
     NULL = 'null'
     QUOTED_STRING="regexp:('([^'\\]|\\.)*'|\"([^\"\\]|\\.)*\")"
   ]
@@ -86,7 +88,7 @@ minus_expr ::= expr '-' expr
 plus_expr ::= expr '+' expr
 mod_expr ::= expr '%' expr
 paren_expr ::= OPEN_PAREN expr CLOSE_PAREN
-elvis_expr ::= conditional_expr '?' expr ':' expr
+elvis_expr ::= expr QUESTION_MARK expr COLON expr
 
 data_source_or_configuration ::= OPEN_BRACKET ID CLOSE_BRACKET {
  pin=2

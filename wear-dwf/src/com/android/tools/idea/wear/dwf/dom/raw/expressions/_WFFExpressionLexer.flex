@@ -55,6 +55,8 @@ QUOTED_STRING=('([^'\\]|\\.)*'|\"([^\"\\]|\\.)*\")
   "["                   { return OPEN_BRACKET; }
   "]"                   { return CLOSE_BRACKET; }
   ","                   { return COMMA; }
+  "?"                   { return QUESTION_MARK; }
+  ":"                   { return COLON; }
   "null"                { return NULL; }
 
   {SPACE}               { return SPACE; }
