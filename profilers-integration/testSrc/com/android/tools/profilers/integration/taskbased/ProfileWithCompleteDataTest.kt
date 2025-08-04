@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.integration.sessionbased
+package com.android.tools.profilers.integration.taskbased
 
 import com.android.tools.profilers.integration.ProfilersTestBase
 import org.junit.Test
@@ -31,26 +31,23 @@ class ProfileWithCompleteDataTest : ProfilersTestBase() {
    *   Test Steps:
    *   1. Import minapp in the testData directory of this module.
    *   2. Start profile 'app' with complete data.
-   *   3. Stop profile session.
    *   Verify:
-   *   1. Verify if the complete data session started.
-   *   2. Verify UI Components in profiler tool window.
-   *   3. Verify if the session is stopped.
+   *   1. Verify if the complete data task started.
+   *   2. Verify in the logs that the running debuggable process is found.
    *   </pre>
    * <p>
    */
   @Test
   fun testProfileAppWithComplete() {
-    sessionBasedProfiling(
+    taskBasedProfiling(
+      deployApp=false,
       testFunction = { studio, adb ->
         profileWithCompleteData(studio, adb)
 
         verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 120)
         verifyIdeaLog(".*StudioMonitorStage.*PROFILER\\:\\s+Enter\\s+StudioMonitorStage\$", 120)
 
-        studio.waitForComponentByClass("TooltipLayeredPane", "TimelineScrollbar")
-
-        stopProfilingSession(studio)
+        verifyIdeaLog("Found running project process: \\d+, Debuggable", 120)
       }
     )
   }

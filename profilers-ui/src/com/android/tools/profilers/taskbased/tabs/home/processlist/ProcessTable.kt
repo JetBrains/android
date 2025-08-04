@@ -26,7 +26,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,6 +43,7 @@ import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedU
 import com.android.tools.profilers.taskbased.common.table.LeftAlignedColumnText
 import com.android.tools.profilers.taskbased.common.table.RightAlignedColumnText
 import icons.StudioIconsCompose
+import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
 import org.jetbrains.jewel.foundation.lazy.SelectionMode
 import org.jetbrains.jewel.foundation.lazy.items
@@ -51,6 +51,7 @@ import org.jetbrains.jewel.foundation.lazy.rememberSelectableLazyListState
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 
+private val logger = Logger.getInstance("ProcessTable")
 @Composable
 private fun ProcessListRow(selectedProcess: Common.Process, process: Common.Process, isPreferredProcess: Boolean) {
   val processName = process.name
@@ -75,6 +76,7 @@ private fun ProcessListRow(selectedProcess: Common.Process, process: Common.Proc
   ) {
 
     val isRunning = process.state == Common.Process.State.ALIVE
+
     val pidText = if (isRunning) pid.toString() else ""
     val configurationText =
       if (isRunning)
@@ -83,6 +85,12 @@ private fun ProcessListRow(selectedProcess: Common.Process, process: Common.Proc
     // The android head icon to indicate the preferred process
     if (isPreferredProcess) {
       LeftAlignedColumnText(processName, StudioIconsCompose.Common.AndroidHead, rowScope = this)
+      if(isRunning){
+        logger.warn("Found running project process: ${process.pid}, ${
+          if(process.isProfileable()) TaskBasedUxStrings.PROFILEABLE_PROCESS_TITLE 
+          else TaskBasedUxStrings.DEBUGGABLE_PROCESS_TITLE
+        }")
+      }
     }
     else {
       LeftAlignedColumnText(processName, rowScope = this)

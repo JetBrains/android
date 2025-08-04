@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.integration.sessionbased
+package com.android.tools.profilers.integration.taskbased
 
-import com.android.tools.testlib.Emulator
 import com.android.tools.profilers.integration.ProfilersTestBase
+import com.android.tools.testlib.Emulator
 import org.junit.Test
 
 class ProfileWithLowOverheadTest: ProfilersTestBase() {
@@ -34,17 +34,16 @@ class ProfileWithLowOverheadTest: ProfilersTestBase() {
    *   Test Steps:
    *   1. Import minapp in the testData directory of this module.
    *   2. Start profile 'app' with lowOverhead.
-   *   3. Stop profile session.
    *   Verify:
-   *   1. Verify if the low overhead session started.
-   *   2. Verify UI Components in profiler tool window.
-   *   3. Verify if the session is stopped.
+   *   1. Verify if the low overhead task started.
+   *   2. Verify in the logs that the running profileable process is found.
    *  </pre>
    * <p>
    */
   @Test
   fun testLowOverheadSession() {
-    sessionBasedProfiling(
+    taskBasedProfiling(
+      deployApp=false,
       testFunction = { studio, adb ->
         // Since there is no definitive way to tell that the emulator is ready
         // TODO(b/260867011): Remove the wait, once there is a definitive way to tell that the emulator is ready to deploy the app.
@@ -56,9 +55,7 @@ class ProfileWithLowOverheadTest: ProfilersTestBase() {
         verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=PROFILEABLE\$", 480)
         verifyIdeaLog(".*StudioMonitorStage.*PROFILER\\:\\s+Enter\\s+StudioMonitorStage\$", 300)
 
-        studio.waitForComponentByClass("TooltipLayeredPane", "TimelineScrollbar")
-
-        stopProfilingSession(studio)
+        verifyIdeaLog("Found running project process: \\d+, Profileable", 120)
       }
     )
   }

@@ -49,7 +49,7 @@ iml_test(
         "block-network",
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
-    test_class = "com.android.tools.profilers.integration.sessionbased.ProfileWithCompleteDataTest",
+    test_class = "com.android.tools.profilers.integration.taskbased.ProfileWithCompleteDataTest",
 )
 
 iml_test(
@@ -70,7 +70,7 @@ iml_test(
         "block-network",
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
-    test_class = "com.android.tools.profilers.integration.sessionbased.ProfileWithLowOverheadTest",
+    test_class = "com.android.tools.profilers.integration.taskbased.ProfileWithLowOverheadTest",
 )
 
 iml_test(
