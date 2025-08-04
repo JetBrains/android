@@ -325,6 +325,8 @@ class ComputeGradlePluginUpgradeStateTest(val case: Case, val flags: Flags) {
         Flags(RECOMMEND_FUTURE_PATCHES) to RECOMMEND.upgradeTo("8.0.3"),
       )),
       UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_TO_NEXT_SERIES_PATCH_2("7.3.0", "8.0.3", publishedVersions, RECOMMEND.upgradeTo("8.0.3")),
+      NO_UPGRADE_WITH_NEWER_PREVIEWS("9.0.0-alpha06", "9.0.0-alpha06", agpVersions("9.0.0-alpha07"), NO_UPGRADE.upgradeTo("9.0.0-alpha06")),
+      NO_UPGRADE_WITH_STABLE_RELEASE("9.0.0-alpha06", "9.0.0-alpha06", agpVersions("9.0.0"), NO_UPGRADE.upgradeTo("9.0.0-alpha06")),
       ;
       constructor(current:String, latestKnown: String, published: Set<AgpVersion>, results: Results) : this(agpVersion(current), agpVersion(latestKnown), published, results)
       constructor(current:String, latestKnown: String, published: Set<AgpVersion>, result: GradlePluginUpgradeState) : this(current, latestKnown, published, Results(result))

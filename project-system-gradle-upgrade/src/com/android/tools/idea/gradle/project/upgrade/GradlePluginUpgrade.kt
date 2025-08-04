@@ -285,7 +285,7 @@ fun computeGradlePluginUpgradeState(
     AFTER_MAXIMUM -> return GradlePluginUpgradeState(FORCE, latestKnown)
     COMPATIBLE, DEPRECATED -> Unit
   }
-  val latestKnown = if (recommendAgpPatchReleases) {
+  val latestKnown = if (recommendAgpPatchReleases && !latestKnown.isPreview) {
     // Discover future point releases of the same series as the latest known. (e.g. suggest 9.0.1 if published and latestKnown=9.0.0)
     published
       .filter { AgpVersion(it.major, it.minor) == AgpVersion(latestKnown.major, latestKnown.minor) }
