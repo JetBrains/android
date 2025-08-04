@@ -39,18 +39,19 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
 
 
     @JvmStatic
-    fun getOrCreateCompileSdkPropertyModel(parent: GradlePropertiesDslElement): CompileSdkPropertyModelImpl {
+    fun getOrCreateCompileSdkPropertyModel(parent: GradlePropertiesDslElement, maybeCreateAfter: ResolvedPropertyModel? = null): CompileSdkPropertyModelImpl {
       val context = parent.dslFile.context
       val agp410plus = VersionConstraint.agpFrom(COMPILE_SDK_INTRODUCED_VERSION)
       val compileSdkBlockVersion = VersionConstraint.agpFrom(COMPILE_SDK_BLOCK_VERSION)
       val compileSdkBlock = parent.getPropertyElement(
         CompileSdkBlockDslElement.COMPILE_SDK
       )
-      val oldModel = GradlePropertyModelBuilder.create(parent, AndroidModelImpl.COMPILE_SDK_VERSION).addTransform(
-        SdkOrPreviewTransform(
-          AndroidModelImpl.COMPILE_SDK_VERSION, "compileSdkVersion", "compileSdk", "compileSdkPreview", agp410plus
-        )
-      ).buildResolved()
+      val oldModel =
+          GradlePropertyModelBuilder.create(parent, AndroidModelImpl.COMPILE_SDK_VERSION).addTransform(
+            SdkOrPreviewTransform(
+              AndroidModelImpl.COMPILE_SDK_VERSION, "compileSdkVersion", "compileSdk", "compileSdkPreview", agp410plus
+            )
+          ).buildResolved()
 
       // agpVersion is null for oldDsl tests
       if (context.agpVersion != null && compileSdkBlockVersion.isOkWith(context.agpVersion)) {
@@ -64,9 +65,15 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
         }
         else {
           // brand new element
-          val newCompileSdkBlock: CompileSdkBlockDslElement = parent.ensurePropertyElement(
-            CompileSdkBlockDslElement.COMPILE_SDK
-          )
+          val createAfterPosition = maybeCreateAfter?.let { parent.children.indexOf(it.rawElement) } ?: -1
+          val newCompileSdkBlock = if (createAfterPosition == -1) {
+            parent.ensurePropertyElement(CompileSdkBlockDslElement.COMPILE_SDK)
+          }
+          else {
+            parent.ensurePropertyElementAt(
+              CompileSdkBlockDslElement.COMPILE_SDK, createAfterPosition + 1
+            )
+          }
           return CompileSdkPropertyModelImpl(CompileSdkBlockPropertyModel(newCompileSdkBlock))
         }
       }

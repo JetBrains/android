@@ -245,18 +245,36 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
     assertThat(compileSdkVersion.getValue(GradlePropertyModel.INTEGER_TYPE)).isNull()
   }
 
+  @Test
+  fun testWriteCompileSdkAfterElement() {
+    writeToBuildFile(TestFile.WRITE_RELEASE_BLOCK_AFTER_ELEMENT)
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    val compileSdkVersion = android.compileSdkVersion(android.namespace());
+    assertThat(compileSdkVersion).isNotNull()
+    compileSdkVersion.setValue("android-33")
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, TestFile.WRITE_RELEASE_BLOCK_AFTER_ELEMENT_EXPECTED)
+  }
+
   enum class TestFile(val path: @SystemDependent String) : TestFileName {
     READ_RELEASE_BLOCK("releaseBlock"),
     READ_RELEASE_METHOD("releaseMethod"),
     READ_PREVIEW_METHOD("previewMethod"),
     READ_ADDON_METHOD("addonMethod"),
     EMPTY_ANDROID_BLOCK("emptyAndroidBlock"),
+    WRITE_RELEASE_BLOCK_AFTER_ELEMENT("releaseBlockAfterElement"),
     CREATE_MAJOR_VERSION_ONLY_EXPECTED("createMajorVersionOnlyExpected"),
     CREATE_WITH_MINOR_VERSION_AND_EXTENSION_EXPECTED("createWithMinorAndExtensionExpected"),
     CREATE_WITH_MINOR_VERSION_EXPECTED("createWithMinorVersionExpected"),
     CREATE_WITH_EXTENSION_VERSION_EXPECTED("createWithExtensionVersionExpected"),
     CREATE_WITH_PREVIEW_VERSION_EXPECTED("createWithPreviewVersionExpected"),
     CREATE_WITH_ADDON_VERSION_EXPECTED("createWithAddonVersionExpected"),
+    WRITE_RELEASE_BLOCK_AFTER_ELEMENT_EXPECTED("releaseBlockAfterElementExpected"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

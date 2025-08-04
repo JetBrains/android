@@ -245,7 +245,13 @@ public class AndroidModelImpl extends GradleDslBlockModel implements AndroidMode
   @NotNull
   @Override
   public CompileSdkPropertyModel compileSdkVersion() {
-    return CompileSdkPropertyModelImpl.getOrCreateCompileSdkPropertyModel(myDslElement);
+    return CompileSdkPropertyModelImpl.getOrCreateCompileSdkPropertyModel(myDslElement, null);
+  }
+
+  @NotNull
+  @Override
+  public CompileSdkPropertyModel compileSdkVersion(ResolvedPropertyModel maybeCreateAfter) {
+    return CompileSdkPropertyModelImpl.getOrCreateCompileSdkPropertyModel(myDslElement, maybeCreateAfter);
   }
 
   @NotNull

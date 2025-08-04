@@ -58,6 +58,9 @@ public interface AndroidModel extends GradleBlockModel {
   CompileSdkPropertyModel compileSdkVersion();
 
   @NotNull
+  CompileSdkPropertyModel compileSdkVersion(ResolvedPropertyModel maybeCreateAfter);
+
+  @NotNull
   ResolvedPropertyModel compileSdkMinor();
 
   @NotNull
