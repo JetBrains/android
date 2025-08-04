@@ -63,10 +63,10 @@ jvm_library(
     "//platform/lang-impl",
     "//platform/projectModel-api:projectModel",
     "//platform/util:util-ui",
-    "//xml/xml-frontback-impl:frontback-impl",
     "//xml/dom-openapi:dom",
     "//plugins/kotlin/base/resources:kotlin-base-resources",
     "//plugins/kotlin/gradle/gradle-tooling/impl",
+    "//xml/xml-psi-impl:psi-impl",
   ],
   runtime_deps = [":newProjectWizard_resources"]
 )
