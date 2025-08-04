@@ -273,7 +273,6 @@ class DeviceMenuAction(
     selectionMade = addTvDeviceSection(groupedDevices, currentDevice, selectionMade)
     selectionMade = addAutomotiveDeviceSection(groupedDevices, currentDevice, selectionMade)
     selectionMade = addXrDeviceSection(groupedDevices, currentDevice, selectionMade)
-    selectionMade = addCustomDeviceSection(currentDevice, selectionMade)
     selectionMade =
       addAvdDeviceSection(configuration.settings.avdDevices, currentDevice, selectionMade)
     addGenericDeviceAndNewDefinitionSection(groupedDevices, currentDevice, selectionMade)
@@ -493,26 +492,6 @@ class DeviceMenuAction(
         )
       )
     }
-    addSeparator()
-    return newSelectionMade
-  }
-
-  /**
-   * Adds the custom device section to the device menu.
-   *
-   * @param currentDevice The currently selected device.
-   * @param selectionMade A boolean indicating whether a selection has already been made.
-   * @return A boolean indicating whether a selection was made in this section.
-   */
-  private fun addCustomDeviceSection(currentDevice: Device?, selectionMade: Boolean): Boolean {
-    var newSelectionMade = selectionMade
-    val isMatch = Configuration.CUSTOM_DEVICE_ID == currentDevice?.id
-    var selected = false
-    if (isMatch && !newSelectionMade) {
-      newSelectionMade = true
-      selected = true
-    }
-    add(SetCustomDeviceAction({ updatePresentation(it) }, currentDevice, selected))
     addSeparator()
     return newSelectionMade
   }
@@ -944,33 +923,6 @@ private class SetWearDeviceAction(
     }
     configuration.setDevice(device, true)
     deviceChangeListener.onDeviceChanged(prevDevice, device)
-  }
-}
-
-private const val CUSTOM_DEVICE_NAME = "Custom"
-
-private class SetCustomDeviceAction(
-  updatePresentationCallback: Consumer<AnActionEvent>,
-  private val baseDevice: Device?,
-  private val selected: Boolean,
-) : DeviceAction(CUSTOM_DEVICE_NAME, updatePresentationCallback, null) {
-  var customDevice: Device? = null
-  override val device: Device?
-    get() = customDevice
-
-  override fun update(event: AnActionEvent) {
-    super.update(event)
-    Toggleable.setSelected(event.presentation, selected)
-  }
-
-  override fun updateConfiguration(configuration: Configuration, commit: Boolean) {
-    baseDevice?.let {
-      val customBuilder = Device.Builder(it)
-      customBuilder.setName(CUSTOM_DEVICE_NAME)
-      customBuilder.setId(Configuration.CUSTOM_DEVICE_ID)
-      customDevice = customBuilder.build()
-      configuration.setDevice(customDevice, false)
-    }
   }
 }
 

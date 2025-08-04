@@ -17,8 +17,14 @@ package com.android.tools.idea.actions
 
 import com.android.ide.common.resources.Locale
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.resources.ScreenRatio
+import com.android.resources.ScreenSize
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
+import com.android.sdklib.devices.Hardware
+import com.android.sdklib.devices.Screen
+import com.android.sdklib.devices.Software
+import com.android.sdklib.devices.State
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.adtui.actions.findActionByText
 import com.android.tools.adtui.actions.prettyPrintActions
@@ -166,8 +172,6 @@ class DeviceMenuActionTest {
               XR
               XR Headset (1280 × 1279 dp, xhdpi)
               ------------------------------------------------------
-              Custom
-              ------------------------------------------------------
               Generic Devices
                   Small Phone (360 × 640 dp, xhdpi)
                   Resizable (Experimental) (411 × 914 dp, 420dpi)
@@ -303,17 +307,75 @@ class DeviceMenuActionTest {
     menuAction.updateActions(dataContext)
 
     val foldableAction = menuAction.findActionByText("Foldable (673 × 841 dp, 420dpi)")!!
-    val customAction = menuAction.findActionByText("Custom")!!
 
     val event = TestActionEvent.createTestEvent()
     withContext(Dispatchers.EDT) {
       foldableAction.update(event)
       assertThat(Toggleable.isSelected(event.presentation)).isTrue()
-
-      customAction.update(event)
-      assertThat(Toggleable.isSelected(event.presentation)).isFalse()
     }
     return@runBlocking
+  }
+
+  @Test
+  fun testCustomDeviceShowsCustomTitle() = runBlocking {
+    val layoutFile =
+      projectRule.fixture.addFileToProject(
+        "res/layout/layout.xml",
+        // language=xml
+        """
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          android:orientation="vertical">
+         </LinearLayout>
+      """
+          .trimIndent(),
+      )
+
+    val configuration = readAction {
+      ConfigurationManager.getOrCreateInstance(layoutFile.module!!)
+        .getConfiguration(layoutFile.virtualFile)
+    }
+
+    val menuAction = DeviceMenuAction()
+    val dataContext = SimpleDataContext.getSimpleContext(CONFIGURATIONS, listOf(configuration))
+    menuAction.updateActions(dataContext)
+
+    // Set a custom device that does not match any reference device
+    val builder = Device.Builder()
+    builder.setId(Configuration.CUSTOM_DEVICE_ID)
+    builder.setName("Custom Device")
+    builder.setManufacturer("Google")
+    val hardware = Hardware()
+    val screen = Screen()
+    screen.xDimension = 1000
+    screen.yDimension = 2000
+    screen.pixelDensity = com.android.resources.Density.HIGH
+    screen.size = ScreenSize.NORMAL
+    screen.ratio = ScreenRatio.LONG
+    hardware.screen = screen
+    val state = State()
+    state.hardware = hardware
+    state.isDefaultState = true
+    builder.addState(state)
+    builder.addSoftware(Software())
+    val customDevice = builder.build()
+    configuration.setEffectiveDevice(customDevice, customDevice.defaultState)
+
+    menuAction.updateActions(dataContext)
+
+    val event = TestActionEvent.createTestEvent(dataContext)
+    menuAction.update(event)
+
+    assertThat(event.presentation.text).isEqualTo("Custom Device")
+
+    val selectedActions =
+      menuAction.flattenActions().filter {
+        val updateEvent = TestActionEvent.createTestEvent()
+        it.update(updateEvent)
+        Toggleable.isSelected(updateEvent.presentation)
+      }
+    assertThat(selectedActions).isEmpty()
   }
 }
 
