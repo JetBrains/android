@@ -1672,7 +1672,7 @@ class ComposePreviewRepresentation(
       if (StudioFlags.COMPOSE_PREVIEW_CODE_TO_PREVIEW_NAVIGATION.get() && !isNavigatingToCode) {
         if (isModificationTriggered) {
           // if the user is typing clear the highlight
-          staticNavHandler.clearHighlight();
+          staticNavHandler.clearHighlight()
         } else {
           staticNavHandler.onCaretMoved(event.newPosition.line + 1)
         }

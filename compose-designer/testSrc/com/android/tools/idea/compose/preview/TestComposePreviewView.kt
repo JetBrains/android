@@ -60,7 +60,7 @@ class TestComposePreviewView : ComposePreviewView, JPanel {
     navigationHandler: NavigationHandler = ComposePreviewNavigationHandler(),
     onRefreshCompletedCallback: () -> Unit = {},
   ) {
-    this.onRefreshCompletedCallback = onRefreshCompletedCallback    
+    this.onRefreshCompletedCallback = onRefreshCompletedCallback
     this.mainSurface =
       createMainDesignSurfaceBuilder(
           project,

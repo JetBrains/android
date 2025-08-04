@@ -123,7 +123,6 @@ class ComposeViewInfoTest {
     assertEquals(8, hits[4].sourceLocation.lineNumber)
     assertEquals("fileA", hits[5].sourceLocation.fileName)
     assertEquals(8, hits[3].sourceLocation.lineNumber)
-
   }
 
   @Test
