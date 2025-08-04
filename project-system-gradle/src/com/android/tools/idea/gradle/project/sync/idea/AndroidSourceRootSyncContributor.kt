@@ -46,6 +46,8 @@ import com.intellij.openapi.module.ModulePointerManager
 import com.intellij.openapi.progress.checkCanceled
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
+import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.getAndUpdateUserData
 import com.intellij.openapi.util.io.CanonicalPathPrefixTree
 import com.intellij.openapi.util.io.toCanonicalPath
 import com.intellij.openapi.vfs.VfsUtilCore.pathToUrl
@@ -85,6 +87,7 @@ import org.jetbrains.plugins.gradle.service.project.GradleContentRootIndex
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncContributor
+import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncListener
 import org.jetbrains.plugins.gradle.service.syncAction.virtualFileUrl
 import org.jetbrains.plugins.gradle.service.syncContributor.bridge.GradleBridgeEntitySource
 import org.jetbrains.plugins.gradle.util.GradleConstants
@@ -212,33 +215,13 @@ internal class SyncContributorAndroidProjectContext(
 }
 
 @ApiStatus.Internal
-@Order(GradleSyncContributor.Order.SOURCE_ROOT_CONTRIBUTOR)
-class AndroidSourceRootSyncContributor : GradleSyncContributor {
-  var moduleActionsFromPreviousPhase: Map<String, List<ModuleAction>>? = null
+class AndroidSourceRootSyncListener : GradleSyncListener {
 
-  override suspend fun onModelFetchPhaseCompleted(
+  override fun onModelFetchPhaseCompleted(
     context: ProjectResolverContext,
-    storage: MutableEntityStorage,
     phase: GradleModelFetchPhase,
   ) {
-    performModuleActionsFromPreviousPhase(context.project)
-    if (context.isPhasedSyncEnabled) {
-      if (phase == GradleModelFetchPhase.PROJECT_SOURCE_SET_PHASE) {
-        val result = configureModulesForSourceSets(context, storage.toSnapshot())
-        // Only replace the android related source sets
-        storage.replaceBySource({ it in result.knownEntitySources }, result.updatedStorage)
-        moduleActionsFromPreviousPhase = result.allModuleActions
-      }
-    }
-  }
-  override suspend fun onModelFetchCompleted(context: ProjectResolverContext, storage: MutableEntityStorage) {
-    performModuleActionsFromPreviousPhase(context.project)
-  }
-
-  override suspend fun onModelFetchFailed(context: ProjectResolverContext,
-                                          storage: MutableEntityStorage,
-                                          exception: Throwable) {
-    moduleActionsFromPreviousPhase = null
+    performModuleActions(context)
   }
 
   /**
@@ -246,18 +229,39 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
    *
    * This method performs any module operations registered earlier after the instances are created.
    */
-  private fun performModuleActionsFromPreviousPhase(project: Project) {
-    if (moduleActionsFromPreviousPhase != null) {
-      val modulesByName = project.modules.associateBy { it.name }
-      // This is fine, it will not be modified as we're being executed in a single-threaded context
-      moduleActionsFromPreviousPhase!!.forEach { (moduleName, actions) ->
-        val module = checkNotNull(modulesByName[moduleName]) { "No module found for module with registered actions!" }
-        actions.forEach { it(module) }
-      }
-      moduleActionsFromPreviousPhase = null
+  private fun performModuleActions(context: ProjectResolverContext) {
+    val moduleActions = context.getAndUpdateUserData(MODULE_ACTION_KEY, { null }) ?: return
+    val modulesByName = context.project.modules.associateBy { it.name }
+    moduleActions.forEach { (moduleName, actions) ->
+      val module = checkNotNull(modulesByName[moduleName]) { "No module found for module with registered actions!" }
+      actions.forEach { it(module) }
     }
   }
 
+  companion object {
+
+    val MODULE_ACTION_KEY: Key<Map<String, List<ModuleAction>>> = Key.create("AndroidSourceRootSyncContributor.moduleActionKey")
+  }
+}
+
+@ApiStatus.Internal
+@Order(GradleSyncContributor.Order.SOURCE_ROOT_CONTRIBUTOR)
+class AndroidSourceRootSyncContributor : GradleSyncContributor {
+
+  override suspend fun onModelFetchPhaseCompleted(
+    context: ProjectResolverContext,
+    storage: MutableEntityStorage,
+    phase: GradleModelFetchPhase,
+  ) {
+    if (!context.isPhasedSyncEnabled) return
+
+    if (phase == GradleModelFetchPhase.PROJECT_SOURCE_SET_PHASE) {
+      val result = configureModulesForSourceSets(context, storage.toSnapshot())
+      // Only replace the android related source sets
+      storage.replaceBySource({ it in result.knownEntitySources }, result.updatedStorage)
+      context.putUserData(AndroidSourceRootSyncListener.MODULE_ACTION_KEY, result.allModuleActions)
+    }
+  }
 
   /**
    * Duplicates the existing entity storage and mutates it by

@@ -87,6 +87,8 @@
   <applicationListeners>
     <listener class="com.android.tools.idea.startup.GradleSpecificInitializer"
               topic="com.intellij.ide.AppLifecycleListener"/>
+    <listener class="com.android.tools.idea.gradle.project.sync.idea.AndroidSourceRootSyncListener"
+              topic="org.jetbrains.plugins.gradle.service.syncAction.GradleSyncListener"/>
   </applicationListeners>
   <projectListeners>
     <listener class="com.android.tools.idea.gradle.project.sync.listeners.MigrateGradleJvmFromMacrosSyncListener"

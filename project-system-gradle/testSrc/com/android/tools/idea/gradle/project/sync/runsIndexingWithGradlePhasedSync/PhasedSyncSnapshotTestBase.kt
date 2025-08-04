@@ -24,14 +24,13 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.testing.nameProperties
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
-import com.intellij.openapi.externalSystem.util.Order
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.roots.ProjectRootManager
-import com.intellij.platform.workspace.storage.MutableEntityStorage
+import com.intellij.util.application
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
-import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncContributor
+import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncListener
 import java.io.File
 
 abstract class PhasedSyncSnapshotTestBase {
@@ -43,7 +42,8 @@ abstract class PhasedSyncSnapshotTestBase {
 
   @Suppress("UnstableApiUsage")
   fun setupPhasedSyncIntermediateStateCollector(disposable: Disposable) {
-    GradleSyncContributor.EP_NAME.point.registerExtension(modelDumpSyncContributor, disposable)
+    application.messageBus.connect(disposable)
+      .subscribe(GradleSyncListener.TOPIC, modelDumpSyncContributor)
   }
 
   companion object {
@@ -179,13 +179,11 @@ private fun ModuleDumpWithType.includeByModuleName(names: List<String>) = copy (
 )
 
 @Suppress("UnstableApiUsage")
-@Order(Int.MAX_VALUE)
-internal class ModelDumpSyncContributor: GradleSyncContributor {
+internal class ModelDumpSyncContributor : GradleSyncListener {
   lateinit var isAndroidByPath:  Map<File, Boolean>
   lateinit var intermediateDump: ModuleDumpWithType
 
-  override suspend fun onModelFetchCompleted(context: ProjectResolverContext,
-                                             storage: MutableEntityStorage) {
+  override fun onModelFetchCompleted(context: ProjectResolverContext) {
     isAndroidByPath = context.allBuilds.flatMap { buildModel ->
       buildModel.projects.map { projectModel ->
         val isAndroidProject = context.getProjectModel(projectModel, Versions::class.java) != null
