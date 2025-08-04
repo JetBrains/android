@@ -89,9 +89,7 @@ class UserCounterModelTest {
 
   @Before
   fun setUp() {
-    val services = FakeIdeProfilerServices().apply {
-      enableCustomEventVisualization(true)
-    }
+    val services = FakeIdeProfilerServices()
     fakeData.forEach { event -> transportService.addEventToStream(1, event) }
 
     myUserCounterModelGroup1 = UserCounterModel(

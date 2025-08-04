@@ -86,9 +86,7 @@ class UserCounterDataSeriesTest {
 
   @Before
   fun setUp() {
-    val services = FakeIdeProfilerServices().apply {
-      enableCustomEventVisualization(true)
-    }
+    val services = FakeIdeProfilerServices()
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     USER_EVENTS.forEach { event -> transportService.addEventToStream(1, event) }
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)

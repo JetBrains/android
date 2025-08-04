@@ -234,13 +234,11 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
     // Add context menu for source navigation.
     IdeProfilerServices ideServices = myProfilersView.getStudioProfilers().getStage().getStudioProfilers().getIdeServices();
     FeatureConfig featureConfig = ideServices.getFeatureConfig();
-    if (callChartModel.getCapture().getSystemTraceData() == null || featureConfig.isComposeTracingNavigateToSourceEnabled()) {
-      CodeNavigator navigator = ideServices.getCodeNavigator();
-      CodeNavigationHandler handler = new CodeNavigationHandler(chart, navigator, featureConfig);
-      chart.addMouseListener(handler);
-      myProfilersView.getIdeProfilerComponents().createContextMenuInstaller()
-        .installNavigationContextMenu(chart, navigator, handler::getCodeLocation);
-    }
+    CodeNavigator navigator = ideServices.getCodeNavigator();
+    CodeNavigationHandler handler = new CodeNavigationHandler(chart, navigator, featureConfig);
+    chart.addMouseListener(handler);
+    myProfilersView.getIdeProfilerComponents().createContextMenuInstaller()
+      .installNavigationContextMenu(chart, navigator, handler::getCodeLocation);
     if (node != null) {
       // Force the call chart to update when a filter is applied to the root node. By setting the root to the same node we're not changing
       // the tree model but just triggering a model-changed event.

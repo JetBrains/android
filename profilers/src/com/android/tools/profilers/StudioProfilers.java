@@ -315,11 +315,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     // Order in which events are added to profilersBuilder will be order they appear in monitor stage
     ImmutableList.Builder<StudioProfiler> profilersBuilder = new ImmutableList.Builder<>();
     profilersBuilder.add(new EventProfiler(this));
-
-    // Show the custom event monitor in the monitor stage view when enabled right under the activity bar
-    if (myIdeServices.getFeatureConfig().isCustomEventVisualizationEnabled()) {
-      profilersBuilder.add(new CustomEventProfiler(this));
-    }
     profilersBuilder.add(new CpuProfiler(this));
     profilersBuilder.add(new MemoryProfiler(this));
     myProfilers = profilersBuilder.build();
@@ -1194,11 +1189,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     listBuilder.add(MainMemoryProfilerStage.class);
     boolean isPowerProfilerDisabled =
       getIdeServices().getFeatureConfig().getSystemTracePowerProfilerDisplayMode() == PowerProfilerDisplayMode.HIDE;
-
-    // Show the custom event stage in the dropdown list of profiling options when enabled
-    if (getIdeServices().getFeatureConfig().isCustomEventVisualizationEnabled()) {
-      listBuilder.add(CustomEventProfilerStage.class);
-    }
     return listBuilder.build();
   }
 

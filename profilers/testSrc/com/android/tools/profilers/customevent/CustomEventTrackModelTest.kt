@@ -78,10 +78,7 @@ class CustomEventTrackModelTest {
 
   @Before
   fun setUp() {
-    val services = FakeIdeProfilerServices().apply {
-      enableCustomEventVisualization(true)
-    }
-
+    val services = FakeIdeProfilerServices()
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     userCounterModel = UserCounterModel(profilers, "group1")
     customEventTrackModel = CustomEventTrackModel(userCounterModel, profilers.timeline.dataRange)

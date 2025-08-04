@@ -46,12 +46,10 @@ class ProfilerTransportConfigContributorTest : HeavyPlatformTestCase() {
     super.tearDown()
     // We need to clear any override we use inside tests here.
     // We should do this during tear down, in case any test case fails or throws an exception.
-    StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.clearOverride()
     StudioFlags.PROFILER_TRACEBOX.clearOverride()
   }
 
   fun testProfilerServiceTriggeredOnceForMultipleToolWindows() {
-    StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.override(false)
     val mockProxy = mockTransportProxy()
     val windowManager = ToolWindowManager.getInstance(myProject)
     val toolWindow = windowManager.registerToolWindow(AndroidProfilerToolWindowFactory.ID, false, ToolWindowAnchor.BOTTOM)
@@ -67,7 +65,6 @@ class ProfilerTransportConfigContributorTest : HeavyPlatformTestCase() {
       extension.customizeProxyService(mockProxy)
     }
     verify(mockProxy, times(1)).registerDataPreprocessor(any())
-
   }
 
   fun testCustomizeDaemonConfig() {
@@ -152,8 +149,6 @@ class ProfilerTransportConfigContributorTest : HeavyPlatformTestCase() {
   }
 
   fun testCustomizeProxyService() {
-    // We don't mock out the TransportService so we need to disable the energy profiler to prevent a null pointer exception.
-    StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.override(false)
     val mockProxy = mockTransportProxy()
     ProfilerTransportConfigContributor().customizeProxyService(mockProxy)
     verify(mockProxy, times(1)).registerDataPreprocessor(any())

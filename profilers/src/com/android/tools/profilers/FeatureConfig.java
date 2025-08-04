@@ -22,9 +22,6 @@ import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
  * to allow the IDE to communicate to the profilers that a feature should be on or off.
  */
 public interface FeatureConfig {
-  boolean isComposeTracingNavigateToSourceEnabled();
-  boolean isCustomEventVisualizationEnabled();
-  boolean isJankDetectionUiEnabled();
   boolean isMemoryCSVExportEnabled();
   boolean isPerformanceMonitoringEnabled();
   boolean isTestingModeEnabled();

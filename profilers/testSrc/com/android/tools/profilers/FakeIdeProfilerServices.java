@@ -99,11 +99,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   };
 
   /**
-   * Whether jank detection UI is enabled
-   */
-  private boolean myIsJankDetectionUiEnabled = true;
-
-  /**
    * Whether a native CPU profiling configuration is preferred over a Java one.
    */
   private boolean myNativeProfilingConfigurationPreferred = false;
@@ -112,11 +107,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
    * Whether long trace files should be parsed.
    */
   private boolean myShouldProceedYesNoDialog = false;
-
-  /**
-   * Whether custom event visualization should be visible
-   */
-  private boolean myCustomEventVisualizationEnabled = false;
 
   /**
    * Whether the task-based UX should be visible.
@@ -143,11 +133,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
    * which graph display style will be used for the power and battery tracks.
    */
   private PowerProfilerDisplayMode mySystemTracePowerProfilerDisplayMode = PowerProfilerDisplayMode.DELTA;
-
-  /**
-   * Whether we support navigate-to-source action for Compose Tracing
-   */
-  private boolean myComposeTracingNavigateToSourceEnabled = true;
 
   /**
    * List of custom CPU profiling configurations.
@@ -244,11 +229,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
     return new FeatureConfig() {
 
       @Override
-      public boolean isJankDetectionUiEnabled() {
-        return myIsJankDetectionUiEnabled;
-      }
-
-      @Override
       public boolean isMemoryCSVExportEnabled() {
         return false;
       }
@@ -266,16 +246,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public PowerProfilerDisplayMode getSystemTracePowerProfilerDisplayMode() {
         return mySystemTracePowerProfilerDisplayMode;
-      }
-
-      @Override
-      public boolean isCustomEventVisualizationEnabled() {
-        return myCustomEventVisualizationEnabled;
-      }
-
-      @Override
-      public boolean isComposeTracingNavigateToSourceEnabled() {
-        return myComposeTracingNavigateToSourceEnabled;
       }
 
       @Override
@@ -469,12 +439,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   public void setNativeProfilingConfigurationPreferred(boolean nativeProfilingConfigurationPreferred) {
     myNativeProfilingConfigurationPreferred = nativeProfilingConfigurationPreferred;
   }
-
-  public void enableJankDetectionUi(boolean enabled) {
-    myIsJankDetectionUiEnabled = enabled;
-  }
-
-  public void enableCustomEventVisualization(boolean enabled) { myCustomEventVisualizationEnabled = enabled; }
 
   public void setSystemTracePowerProfilerDisplayMode(PowerProfilerDisplayMode mode) {
     mySystemTracePowerProfilerDisplayMode = mode;

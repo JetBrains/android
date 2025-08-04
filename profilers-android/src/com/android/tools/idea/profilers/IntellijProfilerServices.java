@@ -457,11 +457,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @VisibleForTesting
   public static class FeatureConfigProd implements FeatureConfig {
     @Override
-    public boolean isJankDetectionUiEnabled() {
-      return StudioFlags.PROFILER_JANK_DETECTION_UI.get();
-    }
-
-    @Override
     public boolean isMemoryCSVExportEnabled() {
       return StudioFlags.PROFILER_MEMORY_CSV_EXPORT.get();
     }
@@ -479,16 +474,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     @Override
     public PowerProfilerDisplayMode getSystemTracePowerProfilerDisplayMode() {
       return StudioFlags.PROFILER_SYSTEM_TRACE_POWER_PROFILER_DISPLAY_MODE.get();
-    }
-
-    @Override
-    public boolean isCustomEventVisualizationEnabled() {
-      return StudioFlags.PROFILER_CUSTOM_EVENT_VISUALIZATION.get();
-    }
-
-    @Override
-    public boolean isComposeTracingNavigateToSourceEnabled() {
-      return StudioFlags.COMPOSE_TRACING_NAVIGATE_TO_SOURCE.get();
     }
 
     @Override

@@ -208,10 +208,6 @@ public final class StudioFlags {
   //region Profiler
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
 
-  public static final Flag<Boolean> PROFILER_ENERGY_PROFILER_ENABLED = new BooleanFlag(
-    PROFILER, "energy", "Enable Energy profiling",
-    "Enable the new energy profiler. It monitors battery usage of the selected app.");
-
   public static final Flag<Boolean> PROFILER_MEMORY_CSV_EXPORT = new BooleanFlag(
     PROFILER, "memory.csv", "Allow exporting entries in memory profiler",
     "Allow exporting entries in the views for heap dump and native/JVM recordings in CSV format.");
@@ -226,15 +222,6 @@ public final class StudioFlags {
     "Toggles the testing mode for more logging and Actions to facilitate automatic testing."
   );
 
-  public static final Flag<Boolean> PROFILER_JANK_DETECTION_UI = new BooleanFlag(
-    PROFILER, "jank.ui", "Enable jank detection UI",
-    "Add a track in the display group showing frame janks."
-  );
-
-  public static final Flag<Boolean> PROFILER_CUSTOM_EVENT_VISUALIZATION = new BooleanFlag(
-    PROFILER, "custom.event.visualization", "Enable Profiler Custom Event Visualization",
-    "When enabled, profiler will track and display events defined through developer APIs");
-
   public static final Flag<PowerProfilerDisplayMode> PROFILER_SYSTEM_TRACE_POWER_PROFILER_DISPLAY_MODE = new EnumFlag<>(
     PROFILER, "power.tracks", "Set display mode of power rails and battery counters in system trace UI",
     "Allows users to customize whether the power rail and battery counter tracks are shown in the system trace UI, " +
@@ -243,21 +230,6 @@ public final class StudioFlags {
     "When set to CUMULATIVE, shows power rails and battery counters in their raw view (cumulative counters). " +
     "When set to DELTA, shows the power rails in a delta view and battery counters in their raw view (cumulative counters).",
     PowerProfilerDisplayMode.DELTA);
-
-  // TODO(b/211154220): Pending user's feedback, either completely remove the keyboard event functionality in
-  //                    Event Timeline or find a proper way to support it for Android S and newer.
-  public static final Flag<Boolean> PROFILER_KEYBOARD_EVENT = new BooleanFlag(
-    PROFILER, "keyboard.event", "Enable keyboard event",
-    "Enable the keyboard event functionality in Event Timeline");
-
-  public static final Flag<Boolean> PERFETTO_SDK_TRACING = new BooleanFlag(
-    PROFILER, "perfetto.sdk.tracing", "Automatically instrument perfetto sdk builds",
-    "A cpu trace intercept command is added that will enable perfetto instrumentation for apps" +
-    " that use the perfetto SDK");
-
-  public static final Flag<Boolean> COMPOSE_TRACING_NAVIGATE_TO_SOURCE = new BooleanFlag(
-    PROFILER, "perfetto.sdk.tracing.compose.navigation", "Navigate-to-source action for Compose Tracing",
-    "Enables navigate-to-source action in Profiler for Compose Tracing slices");
 
   public static final Flag<Boolean> PROFILER_TASK_BASED_UX = new BooleanFlag(
     PROFILER, "task.based.ux", "Task-based UX",

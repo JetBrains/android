@@ -69,13 +69,6 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     binder.bind(CpuMonitor.class, CpuMonitorView::new);
     binder.bind(MemoryMonitor.class, MemoryMonitorView::new);
     binder.bind(EventMonitor.class, EventMonitorView::new);
-
-    boolean isCustomEventVisualizationEnabled =
-      getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCustomEventVisualizationEnabled();
-    if (isCustomEventVisualizationEnabled) {
-      binder.bind(CustomEventMonitor.class, CustomEventMonitorView::new);
-    }
-
     // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
     // that attempts to read the same range instance.
     TimelineScrollbar sb = new TimelineScrollbar(getStage().getTimeline(), getComponent());
@@ -100,9 +93,6 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     getTooltipBinder().bind(MemoryMonitorTooltip.class, MemoryMonitorTooltipView::new);
     getTooltipBinder().bind(LifecycleTooltip.class, (stageView, tooltip) -> new LifecycleTooltipView(stageView.getComponent(), tooltip));
     getTooltipBinder().bind(UserEventTooltip.class, (stageView, tooltip) -> new UserEventTooltipView(stageView.getComponent(), tooltip));
-    if (isCustomEventVisualizationEnabled) {
-      getTooltipBinder().bind(CustomEventMonitorTooltip.class, CustomEventMonitorTooltipView::new);
-    }
 
     myViews = new ArrayList<>(stage.getMonitors().size());
     int rowIndex = 0;

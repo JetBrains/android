@@ -1425,15 +1425,6 @@ public final class StudioProfilersTest {
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
       MainMemoryProfilerStage.class).inOrder();
-
-    // When custom event flag is enabled and device is O, GetDirectStages returns Custom Event stage.
-    myIdeProfilerServices.enableCustomEventVisualization(true);
-    assertThat(myProfilers.getDevice().getSerial()).isEqualTo("FakeDeviceO");
-
-    assertThat(myProfilers.getDirectStages()).containsExactly(
-      CpuProfilerStage.class,
-      MainMemoryProfilerStage.class,
-      CustomEventProfilerStage.class).inOrder();
   }
 
   @Test

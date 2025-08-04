@@ -163,16 +163,14 @@ public abstract class ChartDetailsView extends CaptureDetailsView {
     }
     else if (model instanceof SystemTraceNodeModel) {
       // for SystemTraceNodeModel, only handle Compose Tracing nodes
-      if (featureConfig.isComposeTracingNavigateToSourceEnabled()) {
-        SystemTraceNodeModel systemTraceNodeModel = (SystemTraceNodeModel)model;
-        var matcher = COMPOSABLE_TRACE_EVENT_PATTERN.matcher(systemTraceNodeModel.getName());
-        if (!matcher.find()) return null;
-        return new CodeLocation.Builder((String)null)
-          .setFullComposableName(matcher.group(1))
-          .setFileName(matcher.group(2))
-          .setLineNumber(Integer.parseInt(matcher.group(4)))
-          .build();
-      }
+      SystemTraceNodeModel systemTraceNodeModel = (SystemTraceNodeModel)model;
+      var matcher = COMPOSABLE_TRACE_EVENT_PATTERN.matcher(systemTraceNodeModel.getName());
+      if (!matcher.find()) return null;
+      return new CodeLocation.Builder((String)null)
+        .setFullComposableName(matcher.group(1))
+        .setFileName(matcher.group(2))
+        .setLineNumber(Integer.parseInt(matcher.group(4)))
+        .build();
     }
     // Code is not navigatable.
     return null;
