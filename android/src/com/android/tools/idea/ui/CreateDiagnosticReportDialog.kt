@@ -325,8 +325,8 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
   }
 
   private class FileTreeRenderer : CheckboxTree.CheckboxTreeCellRenderer() {
-    override fun customizeRenderer(tree: JTree?,
-                                   value: Any?,
+    override fun customizeRenderer(tree: JTree,
+                                   value: Any,
                                    selected: Boolean,
                                    expanded: Boolean,
                                    leaf: Boolean,

@@ -24,8 +24,8 @@ import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 
 class UpgradeAssistantTreeCellRenderer(val project: Project) : CheckboxTree.CheckboxTreeCellRenderer(true, true) {
-  override fun customizeRenderer(tree: JTree?,
-                                 value: Any?,
+  override fun customizeRenderer(tree: JTree,
+                                 value: Any,
                                  selected: Boolean,
                                  expanded: Boolean,
                                  leaf: Boolean,
