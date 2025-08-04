@@ -68,6 +68,7 @@ import com.intellij.testFramework.UsefulTestCase.assertSize
 import org.junit.After
 import org.junit.Test
 import com.android.tools.idea.gradle.project.upgrade.REWRITE_DEPRECATED_OPERATORS as REWRITE_DEPRECATED_OPERATORS_INFO
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.JCENTER_TO_MAVEN_CENTRAL
 
 @RunsInEdt
 class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
@@ -770,6 +771,23 @@ class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
         .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(
           UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.USES_SDK_IN_MANIFEST_DISALLOWED_DEFAULT).setIsEnabled(true))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(1).setFiles(2))
+        .build(),
+    )
+  }
+
+  fun testJCenterToMavenCentralUsageTracker() {
+    writeToBuildFile(TestFileName("JCenterToMavenCentral/BuildWithJCenterOnly"))
+    val processor = JCenterToMavenCentralRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
+    processor.run()
+
+    checkComponentEvents(
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("8.0.0").setNewAgpVersion("9.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(JCENTER_TO_MAVEN_CENTRAL).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(4).setFiles(2))
+        .build(),
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("8.0.0").setNewAgpVersion("9.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(JCENTER_TO_MAVEN_CENTRAL).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(4).setFiles(2))
         .build(),
     )
   }

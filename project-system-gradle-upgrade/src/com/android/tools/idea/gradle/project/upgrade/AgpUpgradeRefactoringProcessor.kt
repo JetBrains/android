@@ -294,6 +294,7 @@ class AgpUpgradeRefactoringProcessor(
     NonConstantRClassDefaultRefactoringProcessor(this),
     REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(this),
     // AGP 9.x
+    JCenterToMavenCentralRefactoringProcessor(this),
     MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor(this),
     MIGRATE_FAILURE_RETENTION_TO_EMULATOR_SNAPSHOTS.RefactoringProcessor(this),
     MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES.RefactoringProcessor(this),
