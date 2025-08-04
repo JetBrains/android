@@ -36,7 +36,7 @@ import org.junit.Test
 class ShellCommandRecordingProviderTest {
 
   private val projectRule = ProjectRule()
-  private val fakeAdbRule = FakeAdbServerProviderRule { installDefaultCommandHandlers() }
+  private val fakeAdbRule = FakeAdbServerProviderRule()
   private val temporaryDirectoryRule = TemporaryDirectory()
 
   @get:Rule

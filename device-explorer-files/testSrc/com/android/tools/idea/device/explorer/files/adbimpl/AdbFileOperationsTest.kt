@@ -19,7 +19,6 @@ import com.android.adblib.connectedDevicesTracker
 import com.android.adblib.testingutils.FakeAdbServerProviderRule
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.ShellProtocolType.SHELL
-import com.android.fakeadbserver.devicecommandhandlers.SyncCommandHandler
 import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.adb.AdbShellCommandException
 import com.android.tools.idea.testing.DebugLoggerRule
@@ -51,7 +50,6 @@ class AdbFileOperationsTest(private val testDevice: TestDevices) {
   @Rule
   val fakeAdbRule = FakeAdbServerProviderRule {
     installDefaultCommandHandlers()
-    installDeviceHandler(SyncCommandHandler())
     installDeviceHandler(TestShellCommandHandler(SHELL, shellCommands))
   }
 

@@ -22,7 +22,6 @@ import com.android.ddmlib.FileListingService
 import com.android.fakeadbserver.DeviceFileState
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.ShellProtocolType.SHELL
-import com.android.fakeadbserver.devicecommandhandlers.SyncCommandHandler
 import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
@@ -82,7 +81,6 @@ class AdbDeviceFileSystemTest {
   @Rule
   val deviceProvisionerRule = DeviceProvisionerRule {
     installDefaultCommandHandlers()
-    installDeviceHandler(SyncCommandHandler())
     installDeviceHandler(TestShellCommandHandler(SHELL, shellCommands))
   }
 

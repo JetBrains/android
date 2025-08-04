@@ -21,7 +21,6 @@ import com.android.adblib.testingutils.FakeAdbServerProviderRule
 import com.android.ddmlib.DdmPreferences
 import com.android.ddmlib.ShellCommandUnresponsiveException
 import com.android.fakeadbserver.ShellProtocolType.SHELL
-import com.android.fakeadbserver.devicecommandhandlers.SyncCommandHandler
 import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.device.explorer.files.adbimpl.AdbFileListingEntry.EntryKind
 import com.google.common.truth.Truth.assertThat
@@ -56,7 +55,6 @@ class AdbFileListingTest {
   @Rule
   val fakeAdbRule = FakeAdbServerProviderRule {
     installDefaultCommandHandlers()
-    installDeviceHandler(SyncCommandHandler())
     installDeviceHandler(TestShellCommandHandler(SHELL, commands))
   }
 

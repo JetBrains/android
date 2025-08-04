@@ -63,7 +63,7 @@ import kotlin.time.Duration.Companion.seconds
 class ScreenshotActionTest {
 
   private val projectRule = ProjectRule()
-  private val fakeAdbRule = FakeAdbServerProviderRule { installDefaultCommandHandlers() }
+  private val fakeAdbRule = FakeAdbServerProviderRule()
   private val temporaryDirectoryRule = TemporaryDirectory()
   private val fakeAdbSessionRule = FakeAdbSessionRule(projectRule)
 
