@@ -37,6 +37,8 @@ import org.junit.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.concurrent.LinkedBlockingDeque
 
 class LegacyCpuTraceCommandHandlerTest {
@@ -59,11 +61,11 @@ class LegacyCpuTraceCommandHandlerTest {
 
     val mockClient = createMockClient(testPid)
     val eventQueue = LinkedBlockingDeque<Common.Event>()
-    val byteCache = HashMap<String, ByteString>()
+    val filePathCache = HashMap<String, String>()
     val commandHandler = LegacyCpuTraceCommandHandler(mockClient.device,
                                                       TransportServiceGrpc.newBlockingStub(channel),
                                                       eventQueue,
-                                                      byteCache)
+                                                      filePathCache)
 
     timer.currentTimeNs = startTimestamp
     commandHandler.execute(buildStartCommand(testPid, 1))
@@ -126,7 +128,9 @@ class LegacyCpuTraceCommandHandlerTest {
     }.build()
     assertThat(eventQueue).containsExactly(stopStatusEvent, stopTrackingEvent)
     // Also assert that the bytes are stored in the cache.
-    assertThat(byteCache[startTimestamp.toString()]).isEqualTo(ByteString.copyFrom(FAKE_TRACE_BYTES))
+    val path = filePathCache[startTimestamp.toString()]!!
+    val bytes = ByteString.copyFrom(Files.readAllBytes(Paths.get(path)))
+    assertThat(bytes).isEqualTo(ByteString.copyFrom(FAKE_TRACE_BYTES))
   }
 
   @Test
@@ -139,11 +143,11 @@ class LegacyCpuTraceCommandHandlerTest {
 
     val mockClient = createMockClient(testPid)
     val eventQueue = LinkedBlockingDeque<Common.Event>()
-    val byteCache = HashMap<String, ByteString>()
+    val filePathCache = HashMap<String, String>()
     val commandHandler = LegacyCpuTraceCommandHandler(mockClient.device,
                                                       TransportServiceGrpc.newBlockingStub(channel),
                                                       eventQueue,
-                                                      byteCache)
+                                                      filePathCache)
 
     timer.currentTimeNs = startTimestamp
     commandHandler.execute(buildStartCommand(testPid, 1))
@@ -208,7 +212,9 @@ class LegacyCpuTraceCommandHandlerTest {
     assertThat(eventQueue).containsAllOf(stopStatusEvent, stopTrackingEvent)
     assertThat(eventQueue.find { it.kind == Common.Event.Kind.SESSION && it.isEnded }).isNotNull()
     // Also assert that the bytes are stored in the cache.
-    assertThat(byteCache[startTimestamp.toString()]).isEqualTo(ByteString.copyFrom(FAKE_TRACE_BYTES))
+    val path = filePathCache[startTimestamp.toString()]!!
+    val bytes = ByteString.copyFrom(Files.readAllBytes(Paths.get(path)))
+    assertThat(bytes).isEqualTo(ByteString.copyFrom(FAKE_TRACE_BYTES))
   }
 
   @Test
@@ -220,17 +226,19 @@ class LegacyCpuTraceCommandHandlerTest {
 
     val mockClient1 = createMockClient(testPid1)
     val eventQueue1 = LinkedBlockingDeque<Common.Event>()
-    val byteCache1 = HashMap<String, ByteString>()
+    val filePathCache1 = HashMap<String, String>()
     val commandHandler1 = LegacyCpuTraceCommandHandler(mockClient1.device,
                                                        TransportServiceGrpc.newBlockingStub(channel),
                                                        eventQueue1,
-                                                       byteCache1)
+                                                       filePathCache1)
     timer.currentTimeNs = startTimestamp
     commandHandler1.execute(buildStartCommand(testPid1, 1))
     eventQueue1.clear()
     timer.currentTimeNs = endTimestamp
     commandHandler1.execute(buildStopCommand(testPid1, 2))
-    assertThat(byteCache1[startTimestamp.toString()]).isEqualTo(ByteString.copyFrom(FAKE_TRACE_BYTES))
+    val path1 = filePathCache1[startTimestamp.toString()]!!
+    val bytes1 = ByteString.copyFrom(Files.readAllBytes(Paths.get(path1)))
+    assertThat(bytes1).isEqualTo(ByteString.copyFrom(FAKE_TRACE_BYTES))
 
     // Start and stop recording on Device 2.
     val testPid2 = 2
@@ -239,17 +247,19 @@ class LegacyCpuTraceCommandHandlerTest {
     // Return different trace bytes.
     val mockClient2 = createMockClient(testPid2, traceBytes)
     val eventQueue2 = LinkedBlockingDeque<Common.Event>()
-    val byteCache2 = HashMap<String, ByteString>()
+    val filePathCache2 = HashMap<String, String>()
     val commandHandler2 = LegacyCpuTraceCommandHandler(mockClient2.device,
                                                        TransportServiceGrpc.newBlockingStub(channel),
                                                        eventQueue2,
-                                                       byteCache2)
+                                                       filePathCache2)
     timer.currentTimeNs = startTimestamp2
     commandHandler2.execute(buildStartCommand(testPid2, 3))
     eventQueue2.clear()
     timer.currentTimeNs = 40L
     commandHandler2.execute(buildStopCommand(testPid2, 4))
-    assertThat(byteCache2[startTimestamp2.toString()]).isEqualTo(ByteString.copyFrom(traceBytes))
+    val path2 = filePathCache2[startTimestamp2.toString()]!!
+    val bytes2 = ByteString.copyFrom(Files.readAllBytes(Paths.get(path2)))
+    assertThat(bytes2).isEqualTo(ByteString.copyFrom(traceBytes))
   }
 
   @After

@@ -55,7 +55,7 @@ public class ProfilerTransportConfigContributor implements TransportConfigContri
       LegacyAllocationCommandHandler trackAllocationHandler =
         new LegacyAllocationCommandHandler(device,
                                            proxy.getEventQueue(),
-                                           proxy.getBytesCache(),
+                                           proxy.getFilePathCache(),
                                            Executors.newSingleThreadExecutor(
                                              new ThreadFactoryBuilder().setNameFormat(MEMORY_PROXY_EXECUTOR_NAME).build()),
                                            StudioLegacyAllocationTracker::new);
@@ -67,7 +67,7 @@ public class ProfilerTransportConfigContributor implements TransportConfigContri
         new LegacyCpuTraceCommandHandler(device,
                                          TransportServiceGrpc.newBlockingStub(proxy.getTransportChannel()),
                                          proxy.getEventQueue(),
-                                         proxy.getBytesCache());
+                                         proxy.getFilePathCache());
       proxy.registerProxyCommandHandler(Commands.Command.CommandType.START_TRACE, cpuTraceHandler);
       proxy.registerProxyCommandHandler(Commands.Command.CommandType.STOP_TRACE, cpuTraceHandler);
     } else if (StudioFlags.PERFETTO_SDK_TRACING.get() &&

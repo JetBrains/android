@@ -21,6 +21,7 @@ import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.database.DeviceProcessTable;
 import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.datastore.poller.UnifiedEventsDataPoller;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Common.Event;
@@ -29,7 +30,7 @@ import com.android.tools.profiler.proto.Common.StreamData;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.AgentStatusRequest;
 import com.android.tools.profiler.proto.Transport.BytesRequest;
-import com.android.tools.profiler.proto.Transport.BytesResponse;
+import com.android.tools.profiler.proto.Transport.FileResponse;
 import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profiler.proto.Transport.ExecuteRequest;
 import com.android.tools.profiler.proto.Transport.ExecuteResponse;
@@ -47,11 +48,14 @@ import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.android.tools.idea.io.grpc.Channel;
+import com.android.tools.idea.io.grpc.StatusRuntimeException;
+import com.intellij.openapi.diagnostic.Logger;
 import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import java.sql.Connection;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -63,6 +67,8 @@ import org.jetbrains.annotations.NotNull;
  * {@link #getDevices(GetDevicesRequest, StreamObserver)}, {@link #getProcesses(GetProcessesRequest, StreamObserver)}, etc.
  */
 public class TransportService extends TransportServiceGrpc.TransportServiceImplBase implements ServicePassThrough {
+  private static final Logger LOG = Logger.getInstance(TransportService.class);
+
   private final Consumer<Runnable> myFetchExecutor;
   @NotNull private final UnifiedEventsTable myTable;
   @NotNull private final DeviceProcessTable myLegacyTable;
@@ -190,20 +196,29 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
   }
 
   @Override
-  public void getBytes(BytesRequest request, StreamObserver<BytesResponse> responseObserver) {
-    // TODO: Currently the cache is on demand, we want to look into caching all available files.
-    BytesResponse response = myTable.getBytes(request);
+  public void getFile(BytesRequest request, StreamObserver<FileResponse> responseObserver) {
+    // First, check the local database to see if we have a cached path for this file ID.
+    // This avoids re-downloading large files from the device.
+    FileResponse response = myTable.getFile(request);
     long streamId = request.getStreamId();
     TransportServiceGrpc.TransportServiceBlockingStub client = myService.getTransportClient(streamId);
 
+    // If it's a cache miss and we have a connection to the device, fetch the file.
     if (response == null && client != null) {
-      response = client.getBytes(request);
-      if (!response.getContents().isEmpty()) {
-        myTable.insertBytes(streamId, request.getId(), response);
+      try {
+        response = client.getFile(request);
+        if (!response.getFilePath().isEmpty()) {
+          // Cache the new file's path in our database for future requests.
+          myTable.insertFile(streamId, request.getId(), response);
+        }
+      }
+      catch (StatusRuntimeException ex) {
+        // The call to the device failed. Log the error and fall through to return a default response.
+        LOG.warn(String.format(Locale.US, "Failed to get bytes for stream %d, id %s", streamId, request.getId()), ex);
       }
     }
     else if (response == null) {
-      response = BytesResponse.getDefaultInstance();
+      response = FileResponse.getDefaultInstance();
     }
 
     responseObserver.onNext(response);

@@ -24,7 +24,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
+import java.io.File;
+import java.nio.file.Files;
 import com.android.SdkConstants;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
@@ -47,6 +48,7 @@ import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
+import com.android.tools.idea.transport.TransportServiceUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -330,7 +332,7 @@ public class TransportServiceProxyTest {
     TransportServiceProxy proxy =
       new TransportServiceProxy(mockDevice, transportMockDevice, thruChannel, new LinkedBlockingDeque<>(), new HashMap<>());
     // Fake Data Preprocessor.
-    List<ByteString> receivedData = new ArrayList<>();
+    List<String> receivedData = new ArrayList<>();
     TransportBytesPreprocessor preprocessor = new TransportBytesPreprocessor() {
       @Override
       public boolean shouldPreprocess(Transport.BytesRequest request) {
@@ -347,10 +349,10 @@ public class TransportServiceProxyTest {
 
     // Handle returning data to proxy service.
     Transport.BytesRequest.Builder request = Transport.BytesRequest.newBuilder();
-    StreamObserver<Transport.BytesResponse> validation = new StreamObserver<Transport.BytesResponse>() {
+    StreamObserver<Transport.FileResponse> validation = new StreamObserver<Transport.FileResponse>() {
       @Override
-      public void onNext(Transport.BytesResponse response) {
-        receivedData.add(response.getContents());
+      public void onNext(Transport.FileResponse response) {
+        receivedData.add(response.getFilePath());
       }
 
       @Override
@@ -361,16 +363,19 @@ public class TransportServiceProxyTest {
     };
 
     // Run test.
-    proxy.getBytes(request.build(), validation);
+    proxy.getFile(request.build(), validation);
     request.setId("1");
-    proxy.getBytes(request.build(), validation);
+    proxy.getFile(request.build(), validation);
     // Clean up
     thruService.stopEventThread();
     thruChannel.shutdownNow();
     proxy.disconnect();
     // Validate
-    assertThat(receivedData.get(0)).isEqualTo(FakeTransportService.TEST_BYTES);
-    assertThat(receivedData.get(1)).isEqualTo(preprocessor.preprocessBytes("1", FakeTransportService.TEST_BYTES));
+    // For both assertions, we need to read the content from the returned file path and compare it to the expected bytes.
+    ByteString content1 = ByteString.copyFrom(Files.readAllBytes(new File(receivedData.get(0)).toPath()));
+    assertThat(content1).isEqualTo(FakeTransportService.TEST_BYTES);
+    ByteString content2 = ByteString.copyFrom(Files.readAllBytes(new File(receivedData.get(1)).toPath()));
+    assertThat(content2).isEqualTo(preprocessor.preprocessBytes("1", FakeTransportService.TEST_BYTES));
   }
 
   @Test
@@ -489,8 +494,20 @@ public class TransportServiceProxyTest {
     }
 
     @Override
-    public void getBytes(Transport.BytesRequest request, StreamObserver<Transport.BytesResponse> responseObserver) {
-      responseObserver.onNext(Transport.BytesResponse.newBuilder().setContents(TEST_BYTES).build());
+    public void getFile(Transport.BytesRequest request, StreamObserver<Transport.FileResponse> responseObserver) {
+      try {
+        File tempFile = TransportServiceUtils.createTempFile("transport", ".dat", TEST_BYTES);
+        responseObserver.onNext(Transport.FileResponse.newBuilder().setFilePath(tempFile.getAbsolutePath()).build());
+        responseObserver.onCompleted();
+      } catch (IOException e) {
+        responseObserver.onError(e);
+      }
+    }
+
+    @Override
+    public void getBytesInChunks(Transport.BytesRequest request, StreamObserver<Transport.BytesInChunksResponse> responseObserver) {
+      // The BytesInChunksResponse message uses the "chunk" field to send data.
+      responseObserver.onNext(Transport.BytesInChunksResponse.newBuilder().setChunk(TEST_BYTES).build());
       responseObserver.onCompleted();
     }
 

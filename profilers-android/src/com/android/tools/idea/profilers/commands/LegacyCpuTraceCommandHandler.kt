@@ -19,7 +19,6 @@ import com.android.ddmlib.DdmPreferences
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.profilers.LegacyCpuProfilingHandler
 import com.android.tools.idea.profilers.LegacyCpuTraceRecord
-import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.TransportProxy
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
@@ -35,7 +34,7 @@ import java.util.concurrent.TimeUnit
 class LegacyCpuTraceCommandHandler(val device: IDevice,
                                    private val transportStub: TransportServiceGrpc.TransportServiceBlockingStub,
                                    private val eventQueue: BlockingDeque<Common.Event>,
-                                   byteCache: MutableMap<String, ByteString>)
+                                   filePathCache: MutableMap<String, String>)
   : TransportProxy.ProxyCommandHandler {
 
   private fun getLogger(): Logger {
@@ -54,7 +53,7 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
 
   init {
     // Register this command handler's device and associated metadata on the singleton ddmlib profiling handler.
-    LegacyCpuProfilingHandler.registerDevice(device, legacyProfilingRecord, byteCache)
+    LegacyCpuProfilingHandler.registerDevice(device, legacyProfilingRecord, filePathCache)
   }
 
   override fun shouldHandle(command: Commands.Command): Boolean {

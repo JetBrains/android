@@ -464,7 +464,7 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
     // Trace ID handled by the Profiler
     if (myCompletedTraceIdToInfoMap.containsKey(traceId)) {
       // The creation of the CpuCaptureStage has been offloaded to a separate thread and therefore computed asynchronously so that
-      // (1) it does not block the main thread with some of the downstream, potentially blocking grpc calls (e.g. call to getBytes()) and
+      // (1) it does not block the main thread with some of the downstream, potentially blocking grpc calls (e.g. call to getFile()) and
       // (2) it allows us to set a time limitation/timeout on the creation of the capture stage to prevent indefinite freezing in cases
       // where creating the CpuCaptureStage failed.
       getStudioProfilers().getIdeServices().runAsync(
@@ -483,7 +483,7 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
             setCaptureState(CaptureState.IDLE);
             getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
           }
-        }, 10000);
+        }, 300000); //Set a 5 minutes timeout to retrieve and parse a potentially large trace file.
     }
   }
 

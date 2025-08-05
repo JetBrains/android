@@ -21,6 +21,7 @@ import com.android.testutils.TestUtils;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.protobuf.ByteString;
+import com.android.tools.idea.transport.TransportServiceUtils;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.idea.transport.faketransport.commands.StartTrace;
 import com.android.tools.idea.transport.faketransport.commands.StopTrace;
@@ -233,7 +234,14 @@ public class CpuProfilerTestUtils {
     }
     stage.stopCapturing();
 
-    transportService.addFile(Long.toString(traceId), traceContent);
+    try {
+      ByteString content = traceContent != null ? traceContent : ByteString.EMPTY;
+      File file = TransportServiceUtils.createTempFile("temp_trace", ".trace", content);
+      transportService.addFile(Long.toString(traceId), file.getAbsolutePath());
+    }
+    catch (IOException e) {
+      throw new RuntimeException(e);
+    }
     // Trigger the TransportEventPoller to run and the CpuTraceInfo to be picked up by the CpuProfilerStage.
     stage.getStudioProfilers().getUpdater().getTimer().tick(FakeTimer.ONE_SECOND_IN_NS);
     stopLatch.await();

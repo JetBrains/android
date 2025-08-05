@@ -18,10 +18,11 @@ package com.android.tools.idea.profilers
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.profilers.LegacyCpuProfilingHandler.registerDevice
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.idea.transport.TransportServiceUtils
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Trace
+import java.io.IOException
 
 /**
  * A singleton handler that implements [ClientData.setMethodProfilingHandler] since ddmlib only supports one such handler at a time.
@@ -30,9 +31,9 @@ import com.android.tools.profiler.proto.Trace
  */
 internal object LegacyCpuProfilingHandler : ClientData.IMethodProfilingHandler {
   /**
-   * A device-to-(traceRecords, byteCache) map to for routing callbacks based on [Client]'s device.
+   * A device-to-(traceRecords, filePathCache) map to for routing callbacks based on [Client]'s device.
    */
-  private val deviceToProfilingMetadata = mutableMapOf<IDevice, Pair<Map<Int, LegacyCpuTraceRecord>, MutableMap<String, ByteString>>>()
+  private val deviceToProfilingMetadata = mutableMapOf<IDevice, Pair<Map<Int, LegacyCpuTraceRecord>, MutableMap<String, String>>>()
 
   init {
     // ddmlib only supports one method profiling handler at a time.
@@ -42,8 +43,8 @@ internal object LegacyCpuProfilingHandler : ClientData.IMethodProfilingHandler {
   /**
    * Register a device with its associated trace records and byte cache so the handler knows where to route the callbacks.
    */
-  fun registerDevice(device: IDevice, profilingRecords: Map<Int, LegacyCpuTraceRecord>, byteCache: MutableMap<String, ByteString>) {
-    deviceToProfilingMetadata[device] = Pair(profilingRecords, byteCache)
+  fun registerDevice(device: IDevice, profilingRecords: Map<Int, LegacyCpuTraceRecord>, filePathCache: MutableMap<String, String>) {
+    deviceToProfilingMetadata[device] = Pair(profilingRecords, filePathCache)
   }
 
   override fun onSuccess(remoteFilePath: String, client: Client) {
@@ -62,11 +63,12 @@ internal object LegacyCpuProfilingHandler : ClientData.IMethodProfilingHandler {
   }
 
   override fun onSuccess(data: ByteArray, client: Client) {
-    deviceToProfilingMetadata[client.device]?.let { (traceRecords, byteCache) ->
+    deviceToProfilingMetadata[client.device]?.let { (traceRecords, filePathCache) ->
       traceRecords[client.clientData.pid]?.let { record ->
         val traceInfo = record.traceInfo!!
         traceInfo.stopStatus = Trace.TraceStopStatus.newBuilder().setStatus(Trace.TraceStopStatus.Status.SUCCESS).build()
-        byteCache[traceInfo.traceId.toString()] = ByteString.copyFrom(data)
+        val tempFile = TransportServiceUtils.createTempFile("legacy_trace_${traceInfo.traceId}", ".trace", ByteString.copyFrom(data))
+        filePathCache[traceInfo.traceId.toString()] = tempFile.absolutePath
         record.stopLatch.countDown()
       }
     }

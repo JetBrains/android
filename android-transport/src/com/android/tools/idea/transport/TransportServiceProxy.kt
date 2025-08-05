@@ -40,8 +40,9 @@ import com.android.tools.idea.transport.TransportProxy.ProxyCommandHandler
 import com.android.tools.profiler.proto.Commands.Command.CommandType
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Process.ExposureLevel
+import com.android.tools.profiler.proto.Transport.BytesInChunksResponse
 import com.android.tools.profiler.proto.Transport.BytesRequest
-import com.android.tools.profiler.proto.Transport.BytesResponse
+import com.android.tools.profiler.proto.Transport.FileResponse
 import com.android.tools.profiler.proto.Transport.ExecuteRequest
 import com.android.tools.profiler.proto.Transport.ExecuteResponse
 import com.android.tools.profiler.proto.Transport.GetEventsRequest
@@ -53,11 +54,14 @@ import com.android.tools.profiler.proto.Transport.VersionRequest
 import com.android.tools.profiler.proto.Transport.VersionResponse
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.security.MessageDigest
@@ -72,18 +76,18 @@ import kotlin.math.max
  * A proxy TransportService on host that intercepts grpc requests from transport-database to device perfd.
  * This enables us to support legacy workflows based on device's API levels.
  *
- * @param ddmlibDevice    the [IDevice] for retrieving process information.
- * @param transportDevice the [Common.Device] corresponding to the device,
+ * @param ddmlibDevice        the [IDevice] for retrieving process information.
+ * @param transportDevice     the [Common.Device] corresponding to the device,
  * as generated via [.transportDeviceFromIDevice]
- * @param channel         the channel that is used for communicating with the device daemon.
- * @param proxyEventQueue event queue shared by the proxy layer.
- * @param proxyBytesCache byte cache shared by the proxy layer.
+ * @param channel             the channel that is used for communicating with the device daemon.
+ * @param proxyEventQueue     event queue shared by the proxy layer.
+ * @param proxyFilePathCache  filePath cache shared by the proxy layer.
  */
 class TransportServiceProxy(private val ddmlibDevice: IDevice,
                             private val transportDevice: Common.Device,
                             channel: ManagedChannel,
                             private val proxyEventQueue: BlockingDeque<Common.Event>,
-                            private val proxyBytesCache: MutableMap<String, ByteString>)
+                            private val proxyFilePathCache: MutableMap<String, String>)
   : ServiceProxy(TransportServiceGrpc.getServiceDescriptor()), IClientChangeListener, IDeviceChangeListener {
   private val serviceStub = TransportServiceGrpc.newBlockingStub(channel)
   @TestOnly val cachedProcesses: MutableMap<Int, Common.Process> = Collections.synchronizedMap(HashMap())
@@ -184,17 +188,52 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
   }
 
   @VisibleForTesting
-  fun getBytes(request: BytesRequest, responseObserver: StreamObserver<BytesResponse>) = synchronized(proxyBytesCache) {
-    // Removes cache to save memory once it has been requested/cached by the datastore.
-    val response = when (val cached = proxyBytesCache.remove(request.id)) {
-      null -> serviceStub.getBytes(request).toBuilder()
-      else -> BytesResponse.newBuilder().setContents(cached)
+  fun getFile(request: BytesRequest, responseObserver: StreamObserver<FileResponse>) = synchronized(proxyFilePathCache) {
+    val startTimeNs = System.nanoTime()
+    // Step 1: Get the initial content, either from the device or the cache.
+    var content = when (val cachedPath = proxyFilePathCache.remove(request.id)) {
+      null -> {
+        // Not in cache, fetch from device
+        TransportServiceUtils.aggregateByteChunks(serviceStub.getBytesInChunks(request))
+      }
+      else -> {
+        // In cache, read from file
+        try {
+          ByteString.readFrom(FileInputStream(cachedPath))
+        }
+        catch (e: IOException) {
+          log.warn("Failed to read from cached file: $cachedPath", e)
+          ByteString.EMPTY
+        }
+      }
     }
-    // Run registered preprocessors.
-    response.contents = dataPreprocessors.fold(response.contents) { contents, preprocessor ->
+
+    // Step 2: Run registered preprocessors on the content.
+    content = dataPreprocessors.fold(content) { contents, preprocessor ->
       if (preprocessor.shouldPreprocess(request)) preprocessor.preprocessBytes(request.id, contents) else contents
     }
-    responseObserver.onLast(response.build())
+
+    // Step 3: Save the final (possibly preprocessed) content to a file and return the path.
+    val path = if (content.isEmpty) {
+      log.warn("Content for stream ${request.streamId}, id ${request.id} is empty after fetch/preprocessing. Not saving to file.")
+      "" // Return an empty string for the path
+    }
+    else {
+      FileUtil.createTempFile("transport-bytes-${request.streamId}-${request.id}", ".tmp", true).absolutePath.also {
+        content.writeTo(FileOutputStream(it))
+        val totalDurationMs = (System.nanoTime() - startTimeNs) / 1_000_000
+        val seconds = totalDurationMs / 1000
+        val remainingMs = totalDurationMs % 1000
+        log.info("Processed bytes (stream ${request.streamId}, id ${request.id}),\nsize ${StringUtil.formatFileSize(content.size().toLong())}, saved in file\n$it. " +
+                 "Total time was ${seconds}s and ${remainingMs}ms.")
+      }
+    }
+
+    responseObserver.onLast(FileResponse.newBuilder().setFilePath(path).build())
+  }
+
+  fun getBytesInChunks(request: BytesRequest, responseObserver: StreamObserver<BytesInChunksResponse>) {
+    throw Exception("`getBytesInChunks` is designed for the inter-machine transportation. Use `getFile` for same-machine usage.")
   }
 
   private fun generateEndEvent(previousEvent: Common.Event) = Common.Event.newBuilder()
@@ -271,7 +310,8 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
       TransportServiceGrpc.getGetProcessesMethod() to ::getProcesses,
       TransportServiceGrpc.getGetCurrentTimeMethod() to ::getCurrentTime,
       TransportServiceGrpc.getGetEventsMethod() to ::getEvents,
-      TransportServiceGrpc.getGetBytesMethod() to ::getBytes,
+      TransportServiceGrpc.getGetFileMethod() to ::getFile,
+      TransportServiceGrpc.getGetBytesInChunksMethod() to ::getBytesInChunks,
       TransportServiceGrpc.getExecuteMethod() to ::execute
     )
     return generatePassThroughDefinitions(overrides, serviceStub)

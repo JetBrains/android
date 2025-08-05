@@ -29,6 +29,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.idea.protobuf.ByteString;
+import com.android.tools.idea.transport.TransportServiceUtils;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.idea.transport.faketransport.commands.MemoryAllocTracking;
@@ -49,6 +50,8 @@ import com.android.tools.profilers.tasks.taskhandlers.singleartifact.LiveTaskHan
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory.JavaKotlinAllocationsTaskHandler;
 import com.google.common.truth.Truth;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Rule;
@@ -330,7 +333,7 @@ public final class MemoryProfilerTest {
   }
 
   @Test
-  public void testSaveHeapDumpToFile() {
+  public void testSaveHeapDumpToFile() throws IOException {
     long startTimeNs = 3;
     long endTimeNs = 8;
     HeapDumpInfo dumpInfo = HeapDumpInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
@@ -341,7 +344,8 @@ public final class MemoryProfilerTest {
       .addReferences(1, 2)
       .addRoot(1);
     byte[] buffer = snapshotBuilder.getByteBuffer();
-    myTransportService.addFile(Long.toString(startTimeNs), ByteString.copyFrom(buffer));
+    File file = TransportServiceUtils.createTempFile("temp_heap", ".hprof", ByteString.copyFrom(buffer));
+    myTransportService.addFile(Long.toString(startTimeNs), file.getAbsolutePath());
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     MemoryProfiler.saveHeapDumpToFile(myStudioProfiler.getClient(), ProfilersTestData.SESSION_DATA, dumpInfo, baos,
                                       myStudioProfiler.getIdeServices().getFeatureTracker());
@@ -349,11 +353,12 @@ public final class MemoryProfilerTest {
   }
 
   @Test
-  public void testSaveHeapProfdSampleToFile() {
+  public void testSaveHeapProfdSampleToFile() throws IOException {
     long startTimeNs = 3;
     Trace.TraceInfo data = Trace.TraceInfo.newBuilder().setFromTimestamp(startTimeNs).build();
     byte[] buffer = data.toByteArray();
-    myTransportService.addFile(Long.toString(startTimeNs), ByteString.copyFrom(buffer));
+    File file = TransportServiceUtils.createTempFile("temp_heap_prof", ".trace", ByteString.copyFrom(buffer));
+    myTransportService.addFile(Long.toString(startTimeNs), file.getAbsolutePath());
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     MemoryProfiler.saveHeapProfdSampleToFile(myStudioProfiler.getClient(), ProfilersTestData.SESSION_DATA, data, baos);
     assertArrayEquals(buffer, baos.toByteArray());

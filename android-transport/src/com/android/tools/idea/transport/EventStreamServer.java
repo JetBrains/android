@@ -45,7 +45,7 @@ import org.jetbrains.annotations.Nullable;
  *   server.start();
  *
  *   server.getEventDeque().offer(event);
- *   server.getByteCacheMap().put(byteId, bytes);
+ *   server.getFilePathCache().put(byteId, bytes);
  *   Common.Stream stream = TransportService.getInstance().registerStreamServer(server);
  *
  *   // event and bytes can now be queried using the result stream's id.
@@ -61,7 +61,7 @@ public class EventStreamServer implements Disposable {
 
   @NotNull private final String myServerName;
   @NotNull private final BlockingDeque<Common.Event> myEventQueue = new LinkedBlockingDeque<Common.Event>();
-  @NotNull private final Map<String, ByteString> myByteCache = new HashMap<>();
+  @NotNull private final Map<String, String> myFilePathCache = new HashMap<>(); //map from a byte ID to a file path where the corresponding bytes are stored
 
   @NotNull private final Object myServerLock = new Object();
   @GuardedBy("myServerLock") private Server myServer;
@@ -82,8 +82,8 @@ public class EventStreamServer implements Disposable {
   }
 
   @NotNull
-  public Map<String, ByteString> getByteCacheMap() {
-    return myByteCache;
+  public Map<String, String> getFilePathCache() {
+    return myFilePathCache;
   }
 
   public void start() throws IOException {
@@ -155,13 +155,13 @@ public class EventStreamServer implements Disposable {
     }
 
     @Override
-    public void getBytes(Transport.BytesRequest request, StreamObserver<Transport.BytesResponse> responseObserver) {
-      if (myByteCache.containsKey(request.getId())) {
-        responseObserver.onNext(Transport.BytesResponse.newBuilder().setContents(myByteCache.get(request.getId())).build());
-        myByteCache.remove(request.getId());
+    public void getFile(Transport.BytesRequest request, StreamObserver<Transport.FileResponse> responseObserver) {
+      String path = myFilePathCache.remove(request.getId());
+      if (path != null) {
+        responseObserver.onNext(Transport.FileResponse.newBuilder().setFilePath(path).build());
       }
       else {
-        responseObserver.onNext(Transport.BytesResponse.getDefaultInstance());
+        responseObserver.onNext(Transport.FileResponse.getDefaultInstance());
       }
       responseObserver.onCompleted();
     }

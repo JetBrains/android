@@ -18,7 +18,6 @@ package com.android.tools.profilers.cpu
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode
-import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -38,9 +37,7 @@ import com.intellij.testFramework.registerServiceInstance
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.io.BufferedReader
-import java.io.FileInputStream
-import java.io.FileReader
+import java.io.File
 
 class CpuCaptureStageTest {
   private val timer = FakeTimer()
@@ -62,16 +59,6 @@ class CpuCaptureStageTest {
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     // One second must be enough for new devices (and processes) to be picked up
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
-  }
-
-  @Test
-  fun savingCaptureHasData() {
-    val data = "Some Data"
-    val traceId = 1234L
-    val file = CpuCaptureStage.saveCapture(traceId, ByteString.copyFromUtf8(data))
-    assertThat(file.name).matches("cpu_trace_$traceId.trace")
-    val reader = BufferedReader(FileReader(file))
-    assertThat(reader.readLine()).isEqualTo(data)
   }
 
   @Test
@@ -325,8 +312,7 @@ class CpuCaptureStageTest {
   @Test
   fun validTraceIdReturnsCaptureStage() {
     val trace = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
-    val traceBytes = ByteString.readFrom(FileInputStream(trace))
-    transportService.addFile("1", traceBytes)
+    transportService.addFile("1", trace.absolutePath)
     val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG, 1)
     assertThat(stage).isNotNull()
   }

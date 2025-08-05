@@ -633,9 +633,10 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   /**
    * Create and a new session with a specific type. Note that this function will generate the corresponding session begin and end event
    * pair, so the caller does not have to include those into the input events list.
-   *
+   * @param sessionName           the name of the session to be created.
+   * @param sessionType           the type of the session (e.g. HPROF, CPU_CAPTURE).
    * @param startTimestampEpochMs epoch timestamp of the session - this is used for ordering in the sessions panel.
-   * @param byteCacheMap          the byte cache for the session.
+   * @param filePathCacheMap      A map of artifact ID to the absolute path of the file on disk.
    * @param events                the list of events which can be queried for the session.
    */
   public void createImportedSession(@NotNull String sessionName,
@@ -643,7 +644,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
                                     long startTimestampNs,
                                     long endTimestampNs,
                                     long startTimestampEpochMs,
-                                    Map<String, ByteString> byteCacheMap,
+                                    Map<String, String> filePathCacheMap,
                                     Common.Event... events) {
     EventStreamServer streamServer = new EventStreamServer(Long.toString(startTimestampEpochMs));
     try {
@@ -655,7 +656,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     }
     Common.Stream stream = TransportService.getInstance().registerStreamServer(Common.Stream.Type.FILE, streamServer);
     myStreamIdToStreamServerMap.put(stream.getStreamId(), streamServer);
-    streamServer.getByteCacheMap().putAll(byteCacheMap);
+    streamServer.getFilePathCache().putAll(filePathCacheMap);
     BlockingDeque<Event> deque = streamServer.getEventDeque();
     for (Event event : events) {
       deque.offer(event);

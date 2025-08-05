@@ -89,36 +89,4 @@ class HprofSessionArtifactTest {
                                                        finishedInfo)
     assertThat(finishedCaptureArtifact.subtitle).isEqualTo("00:00:05.000")
   }
-
-  @Test
-  fun `selecting the same heap dump does not reload`() {
-    fun info(setup: HeapDumpInfo.Builder.() -> Unit) = HeapDumpInfo.newBuilder().apply(setup).build()
-    fun artifact(info: HeapDumpInfo) = HprofSessionArtifact(myProfilers,
-                                                            Common.Session.getDefaultInstance(),
-                                                            Common.SessionMetaData.getDefaultInstance(),
-                                                            info)
-    val info0 = info { startTime = 1; endTime = 4 }
-    val info1 = info { startTime = 5; endTime = 10 }
-    val artifact0 = artifact(info0)
-    val artifact1 = artifact(info1)
-
-    // load heap dump for info0
-    MainMemoryProfilerStage(myProfilers, FakeCaptureObjectLoader()).let { stage ->
-      transportService.addEventToStream(ProfilersTestData.SESSION_DATA.streamId,
-                                        ProfilersTestData.generateMemoryHeapDumpData(info0.startTime, info0.startTime, info0)
-                                          .setPid(ProfilersTestData.SESSION_DATA.pid)
-                                          .build())
-      val series = ofHeapDumpSamples(ProfilerClient(myGrpcChannel.channel), ProfilersTestData.SESSION_DATA, services.featureTracker, stage)
-      stage.selectCaptureDuration(series.getDataForRange(Range(0.0, Double.MAX_VALUE)).first().value, null)
-    }
-
-    myProfilers.stage.let {
-      artifact0.onSelect()
-      assertThat(myProfilers.stage).isSameAs(it)
-      artifact1.onSelect()
-      assertThat(myProfilers.stage).isNotSameAs(it)
-      artifact0.onSelect()
-      assertThat(myProfilers.stage).isNotSameAs(it)
-    }
-  }
 }

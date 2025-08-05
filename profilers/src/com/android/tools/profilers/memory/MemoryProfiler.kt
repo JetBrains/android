@@ -206,10 +206,11 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
     private fun saveToFile(client: ProfilerClient, session: Common.Session, startTime: Long, outputStream: OutputStream,
                            onFinished: () -> Unit, errorMsg: String) {
       val response = client.transportClient
-        .getBytes(Transport.BytesRequest.newBuilder().setStreamId(session.streamId).setId(startTime.toString()).build())
-      if (response.contents !== ByteString.EMPTY) {
+        .getFile(Transport.BytesRequest.newBuilder().setStreamId(session.streamId).setId(startTime.toString()).build())
+
+      if (response.filePath.isNotEmpty()) {
         try {
-          response.contents.writeTo(outputStream)
+          File(response.filePath).inputStream().use { it.copyTo(outputStream) }
           onFinished()
         }
         catch (exception: IOException) {

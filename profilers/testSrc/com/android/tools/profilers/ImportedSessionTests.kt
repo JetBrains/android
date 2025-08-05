@@ -16,7 +16,6 @@
 package com.android.tools.profilers
 
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
@@ -32,11 +31,9 @@ import com.google.common.truth.Truth
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.ExpectedException
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameters
-import java.io.FileInputStream
 import java.util.Arrays
 
 @RunWith(Parameterized::class)
@@ -95,8 +92,7 @@ class ImportedSessionTests(
     ideProfilerServices.enableTaskBasedUx(isTaskBasedUxEnabled)
 
     val trace = CpuProfilerTestUtils.getTraceFile("art_streaming.trace")
-    val traceBytes = ByteString.readFrom(FileInputStream(trace))
-    myTransportService.addFile("1", traceBytes)
+    myTransportService.addFile("1", trace.absolutePath)
 
     val sessionTimestamp = 1L
     val sessionStartedEvent = ProfilersTestData.generateSessionStartEvent(1, 1, sessionTimestamp, sessionType, 1).build()
