@@ -1,1 +1,2 @@
-file:../../../../../../../../../src/com/android/tools/idea/run/deployment/liveedit/OWNERS
+# Bug component: 327883
+include platform/tools/base:/owners/deploy_OWNERS
