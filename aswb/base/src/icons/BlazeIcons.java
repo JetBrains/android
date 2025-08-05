@@ -27,14 +27,14 @@ public class BlazeIcons {
 
   private static final String BASE = "resources/icons/";
 
-  public static final Icon Logo = loadForBuildSystem("logo.svg");
-  public static final Icon BazelLogo = load("bazel/blaze-configuration.svg");
+  public static final Icon Logo = loadForBuildSystem("logo.png");
+  public static final Icon BazelLogo = load("bazel/logo.png");
   public static final Icon BlazeSlow = load("blaze_slow.png"); // 16x16
   public static final Icon Failed = loadForBuildSystem("failed.png"); // 16x16
 
   public static final Icon BlazeRerun = load("blazeRerun.png"); // 16x16
 
-  public static final Icon ToolWindow = loadForBuildSystem("tool_window.svg");
+  public static final Icon ToolWindow = loadForBuildSystem("tool_window.png");
 
   // Build file support icons
   public static final Icon BuildFile = load("build_file.png"); // 16x16
@@ -53,12 +53,7 @@ public class BlazeIcons {
       // Default to the blaze icons.
       return load("blaze/" + basename);
     } else {
-      String buildSystem = Blaze.guessBuildSystemName();
-      if (!buildSystem.equals("blaze") && basename.endsWith(".svg")) {
-        // Haven't updated bazel icons to svgs yet
-        basename = basename.substring(0, basename.length() - 3) + "png";
-      }
-      return load(Ascii.toLowerCase(buildSystem) + "/" + basename);
+      return load(Ascii.toLowerCase(Blaze.guessBuildSystemName()) + "/" + basename);
     }
   }
 }

@@ -27,7 +27,7 @@ public class BlazeAndroidIcons {
       load("aswb/resources/icons/mobileInstallRun.png"); // 16x16
   public static final Icon MobileInstallDebug =
       load("aswb/resources/icons/mobileInstallDebug.png"); // 16x16
-  public static final Icon Crow = load("aswb/resources/icons/crow-emulator.svg"); // 16x16
+  public static final Icon Crow = load("aswb/resources/icons/crow-emulator.png"); // 16x16
   public static final Icon CrowToolWindow =
       load("aswb/resources/icons/crowToolWindow.png"); // 13x13
 
