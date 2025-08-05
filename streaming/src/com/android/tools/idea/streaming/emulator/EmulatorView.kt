@@ -73,6 +73,7 @@ import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionWrapperUtil
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
@@ -584,7 +585,7 @@ class EmulatorView(
       override fun actionPerformed(event: AnActionEvent, notification: Notification) {
         notification.expire()
         val action = ActionManager.getInstance().getAction("CheckForUpdate")
-        action.actionPerformed(event)
+        ActionWrapperUtil.actionPerformed(event, this, action)
       }
     })
     notification.notify(project)
