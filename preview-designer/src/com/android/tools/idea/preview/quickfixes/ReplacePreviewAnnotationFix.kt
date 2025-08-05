@@ -91,7 +91,7 @@ class ReplacePreviewAnnotationFix(
     val invalidPreviewAnnotation = element as? PsiAnnotation ?: return
     val invalidPreviewAnnotationFqn = invalidPreviewAnnotation.qualifiedName ?: ""
     val parent = invalidPreviewAnnotation.parentOfType<PsiModifierListOwner>() ?: return
-    val annotationAttributes = invalidPreviewAnnotation.parameterList.attributes
+    val annotationAttributes = (invalidPreviewAnnotation.copy() as? PsiAnnotation)?.parameterList?.attributes ?: return
 
     val delegateFix =
       AddAnnotationPsiFix(
