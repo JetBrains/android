@@ -69,7 +69,7 @@ public class AndroidStudio extends Ide {
   public void waitForEmulatorStart(LogFile log, Emulator emulator, String appRegex, long timeout, TimeUnit timeUnit)
       throws IOException, InterruptedException {
     log.waitForMatchingLine(
-      String.format(".*AndroidProcessHandler - Adding .*emulator-%s.* to monitor for launched app: %s", emulator.getPortString(), appRegex),
+      String.format(".*AndroidProcessHandler - Adding .*%s.* to monitor for launched app: %s", emulator.getSerialNumber(), appRegex),
       timeout,
       timeUnit
     );

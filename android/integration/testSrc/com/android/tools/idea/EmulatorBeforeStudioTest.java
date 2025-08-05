@@ -39,7 +39,7 @@ public class EmulatorBeforeStudioTest {
 
       try (AndroidStudio studio = system.runStudio(project)) {
         system.getInstallation().getIdeaLog()
-          .waitForMatchingLine(String.format(".*Device \\[emulator-%s\\] has come online", emulator.getPortString()), 180, TimeUnit.SECONDS);
+          .waitForMatchingLine(String.format(".*Device \\[%s\\] has come online", emulator.getSerialNumber()), 180, TimeUnit.SECONDS);
       }
     }
   }

@@ -38,7 +38,7 @@ public class EmulatorAfterStudioTest {
       emulator.waitForBoot();
       adb.waitForDevice(emulator);
       system.getInstallation().getIdeaLog()
-        .waitForMatchingLine(String.format(".*Device \\[emulator-%s\\] has come online", emulator.getPortString()), 300, TimeUnit.SECONDS);
+        .waitForMatchingLine(String.format(".*Device \\[%s\\] has come online", emulator.getSerialNumber()), 300, TimeUnit.SECONDS);
     }
   }
 }
