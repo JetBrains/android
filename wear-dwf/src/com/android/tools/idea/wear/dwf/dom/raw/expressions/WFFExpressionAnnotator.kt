@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wear.dwf.dom.raw.expressions
 
+import com.android.SdkConstants.ATTR_TYPE
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.wear.dwf.WFFConstants
 import com.android.tools.idea.wear.dwf.WFFConstants.DataSources
@@ -64,8 +65,11 @@ class WFFExpressionAnnotator() : Annotator {
     holder: AnnotationHolder,
   ) {
     val dataSource =
-      DataSources.ALL_STATIC_BY_ID[dataSourceId.text]
-        ?: DataSources.ALL_PATTERNS.find { it.pattern.matches(dataSourceId.text) }
+      if (dataSourceId.isComplicationDataSource()) {
+        dataSourceId.findComplicationDataSource()
+      } else {
+        dataSourceId.findStaticDataSource() ?: dataSourceId.findPatternDataSource()
+      }
     if (dataSource == null) {
       holder
         .newAnnotation(
@@ -148,4 +152,17 @@ class WFFExpressionAnnotator() : Annotator {
       .textAttributes(WFFExpressionTextAttributes.CONFIGURATION.key)
       .create()
   }
+
+  private fun PsiElement.isComplicationDataSource() =
+    text.startsWith(WFFConstants.COMPLICATION_PREFIX)
+
+  private fun PsiElement.findComplicationDataSource(): StaticDataSource? {
+    val complicationType = getParentComplicationTag(this)?.getAttribute(ATTR_TYPE)?.value
+    return DataSources.COMPLICATION_BY_TYPE[complicationType]?.find { it.id == text }
+  }
+
+  private fun PsiElement.findStaticDataSource() = DataSources.ALL_STATIC_BY_ID[text]
+
+  private fun PsiElement.findPatternDataSource() =
+    DataSources.ALL_PATTERNS.find { it.pattern.matches(text) }
 }

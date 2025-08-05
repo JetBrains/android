@@ -26,6 +26,7 @@ import com.android.tools.wear.wff.WFFVersion.WFFVersion4
 
 object WFFConstants {
   const val CONFIGURATION_PREFIX = "CONFIGURATION."
+  const val COMPLICATION_PREFIX = "COMPLICATION."
 
   const val ATTRIBUTE_ID = "id"
   const val ATTRIBUTE_COLORS = "colors"
@@ -419,6 +420,11 @@ object WFFConstants {
 
     val COMPLICATION_ALL = COMPLICATION_BY_TYPE.values.flatten().toSet()
 
+    /**
+     * Contains all static data sources, such as `[STEP_COUNT]`, does not include patterned data
+     * sources, such as `[WEATHER.DAYS.<days>.IS_AVAILABLE]`, and does not contain complication data
+     * sources, such as `[COMPLICATION.TEXT]` which depend on the type of complication.
+     */
     val ALL_STATIC =
       TIME_UNIT +
         TIME_SOURCE +
@@ -428,8 +434,7 @@ object WFFConstants {
         SENSOR +
         HEALTH +
         NOTIFICATION +
-        WEATHER +
-        COMPLICATION_ALL
+        WEATHER
 
     val ALL_STATIC_BY_ID = ALL_STATIC.associateBy { it.id }
 

@@ -19,6 +19,7 @@ import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
 import com.android.tools.idea.wear.dwf.dom.raw.overrideCurrentWFFVersion
+import com.android.tools.wear.wff.WFFVersion.WFFVersion1
 import com.android.tools.wear.wff.WFFVersion.WFFVersion2
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity
@@ -222,5 +223,89 @@ class WFFExpressionAnnotatorTest {
     assertThat(errors[1].forcedTextAttributesKey)
       .isEqualTo(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
     assertThat(errors[1].toolTip).isEqualTo("<html>Unknown data source</html>")
+  }
+
+  // Regression test for b/436552607
+  @Test
+  fun `complication data source is not reported as requiring version 2`() {
+    // wrap in a watch face file to get the complication type
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+      <WatchFace>
+        <Scene>
+          <ComplicationSlot>
+            <Complication type="SHORT_TEXT">
+              <PartText>
+                  <Text>
+                      <BitmapFont>
+                          <Template>%s
+                              <Parameter expression="[COMPLICATION.TEXT]" />
+                          </Template>
+                      </BitmapFont>
+                  </Text>
+              </PartText>
+            </Complication>
+          </ComplicationSlot>
+        </Scene>
+      </WatchFace>
+      """
+          .trimIndent(),
+      )
+
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    overrideCurrentWFFVersion(WFFVersion1, projectRule.testRootDisposable)
+
+    fixture.checkHighlighting()
+  }
+
+  // Regression test for b/436552607
+  @Test
+  fun `complication data source is reported as requiring version 2`() {
+    // wrap in a watch face file to get the complication type
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+      <WatchFace>
+        <Scene>
+          <ComplicationSlot>
+            <Complication type="WEIGHTED_ELEMENTS">
+              <PartText>
+                  <Text>
+                      <BitmapFont>
+                          <Template>%s
+                              <Parameter expression="[COMPLICATION.TEXT]" />
+                          </Template>
+                      </BitmapFont>
+                  </Text>
+              </PartText>
+            </Complication>
+          </ComplicationSlot>
+        </Scene>
+      </WatchFace>
+      """
+          .trimIndent(),
+      )
+
+    overrideCurrentWFFVersion(WFFVersion1, projectRule.testRootDisposable)
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    var errors = fixture.doHighlighting().filter { it.severity == HighlightSeverity.ERROR }
+    assertThat(errors).hasSize(1)
+    assertThat(errors[0].text).isEqualTo("COMPLICATION.TEXT")
+    assertThat(errors[0].forcedTextAttributesKey).isEqualTo(CodeInsightColors.ERRORS_ATTRIBUTES)
+    assertThat(errors[0].toolTip).isEqualTo("<html>This data source requires WFF version 2</html>")
+
+    // Once we use version 2, there should no longer be any errors
+    overrideCurrentWFFVersion(WFFVersion2, projectRule.testRootDisposable)
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    errors = fixture.doHighlighting().filter { it.severity == HighlightSeverity.ERROR }
+    assertThat(errors).isEmpty()
   }
 }
