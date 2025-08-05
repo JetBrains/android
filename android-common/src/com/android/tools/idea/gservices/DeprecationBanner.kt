@@ -37,7 +37,7 @@ import javax.swing.SwingConstants
 /** Banner for showing the deprecated state. */
 abstract class DeprecationBanner(
   private val project: Project,
-  private val deprecationData: DevServicesDeprecationData,
+  val deprecationData: DevServicesDeprecationData,
   private val moveActions: Boolean,
   private val closeAction: () -> Unit = {},
 ) :

@@ -25,7 +25,7 @@ import com.intellij.openapi.project.Project
 
 class AppInsightsDeprecationBanner(
   project: Project,
-  private val deprecationData: DevServicesDeprecationData,
+  deprecationData: DevServicesDeprecationData,
   private val tracker: AppInsightsTracker,
   closeAction: () -> Unit,
 ) : DeprecationBanner(project, deprecationData, false, closeAction) {
