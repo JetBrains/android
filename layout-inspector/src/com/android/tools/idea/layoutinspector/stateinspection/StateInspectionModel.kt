@@ -73,6 +73,9 @@ internal interface StateInspectionModel {
 
   /** An update count. Can be used to indicate action mode changes, and for tests */
   val updates: StateFlow<Int>
+
+  /** Specifies which composable that we are showing state reads for. */
+  val composableInspected: StateFlow<ComposableDefinition?>
 }
 
 internal class StateInspectionModelImpl(
@@ -115,6 +118,9 @@ internal class StateInspectionModelImpl(
 
   private val _stackTraceText = MutableStateFlow("")
   override val stackTraceText = _stackTraceText.asStateFlow()
+
+  private val _composableInspected = MutableStateFlow<ComposableDefinition?>(null)
+  override val composableInspected = _composableInspected.asStateFlow()
 
   private val _updates = MutableStateFlow(0)
   override val updates = _updates.asStateFlow()
@@ -159,6 +165,8 @@ internal class StateInspectionModelImpl(
       _recompositionText.value = generateRecompositionText()
       _stateReadsText.value = generateStateReadsText(result.reads.size)
       _stackTraceText.value = generateStackTraces(result.reads)
+      _composableInspected.value =
+        ComposableDefinition(composable.qualifiedName, composable.composeFilename)
       _updates.value += 1
     }
   }
@@ -242,7 +250,11 @@ internal class StateInspectionModelImpl(
     if (invalidated) {
       message.append(" \uD83D\uDFE2")
     }
-    builder.appendLine(message.toString())
+    var read = message.toString()
+    LayoutInspectorStateReadRewriter.EP_NAME.extensionList.forEach {
+      read = it.rewriteStateRead(model.project, read)
+    }
+    builder.appendLine(read)
 
     // Write the full value if we cut off the end of the value expression:
     if (maxLengthReached) {

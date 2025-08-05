@@ -138,6 +138,20 @@ class StateInspectionPanelTest {
     testButton(model.minimizeAction)
   }
 
+  @Test
+  fun testStateInspectionData() {
+    val panel = StateInspectionPanel(model, projectRule.project, testScope, disposable)
+    model.show.value = true
+    testDispatcher.scheduler.advanceUntilIdle()
+    val editor = panel.getUserData(STATE_READ_EDITOR_KEY)!!
+    assertThat(editor.getUserData(LAYOUT_INSPECTOR_COMPOSABLE_INSPECTED_KEY)).isNull()
+
+    val data = ComposableDefinition("composable", "MyFile.kt")
+    model.composableInspected.value = data
+    testDispatcher.scheduler.advanceUntilIdle()
+    assertThat(editor.getUserData(LAYOUT_INSPECTOR_COMPOSABLE_INSPECTED_KEY)).isEqualTo(data)
+  }
+
   private fun testButton(buttonAction: TestAction) {
     val panel = StateInspectionPanel(model, projectRule.project, testScope, disposable)
     model.show.value = true
@@ -174,6 +188,7 @@ class StateInspectionPanelTest {
     override val stateReadsText = MutableStateFlow("")
     override val stackTraceText = MutableStateFlow("")
     override val updates = MutableStateFlow(0)
+    override val composableInspected = MutableStateFlow<ComposableDefinition?>(null)
   }
 
   class TestAction : AnAction() {

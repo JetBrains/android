@@ -170,12 +170,17 @@ private class InnerStateInspectionPanel(
     scope.launch { model.recompositionText.collect { recompositionText.text = it } }
     scope.launch { model.stateReadsText.collect { stateReadCountText.text = it } }
     scope.launch { model.stackTraceText.collect { setTextInEditor(it) } }
+    scope.launch { model.composableInspected.collect { setComposableInspectedInEditor(it) } }
     scope.launch { model.updates.collect { updateButtons(prev, next, minimize) } }
   }
 
   override fun dispose() {
     scope.cancel()
     parent.putUserData(STATE_READ_EDITOR_KEY, null)
+  }
+
+  private fun setComposableInspectedInEditor(data: ComposableDefinition?) {
+    editor.putUserData(LAYOUT_INSPECTOR_COMPOSABLE_INSPECTED_KEY, data)
   }
 
   private fun updateButtons(vararg buttons: ActionButton) {
