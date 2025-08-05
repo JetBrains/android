@@ -308,4 +308,42 @@ class WFFExpressionAnnotatorTest {
     errors = fixture.doHighlighting().filter { it.severity == HighlightSeverity.ERROR }
     assertThat(errors).isEmpty()
   }
+
+  // Regression test for b/436562054
+  @Test
+  fun `known complication data source in wrong location is not reported as unknown`() {
+    overrideCurrentWFFVersion(WFFVersion1, projectRule.testRootDisposable)
+
+    // wrap in a watch face file to get the complication type
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+      <WatchFace>
+        <Scene>
+          <ComplicationSlot>
+            <Complication type="SHORT_TEXT">
+              <PartText>
+                  <Text>
+                      <BitmapFont>
+                          <Template>%s
+                              <Parameter expression="[COMPLICATION.SMALL_IMAGE]" />
+                          </Template>
+                      </BitmapFont>
+                  </Text>
+              </PartText>
+            </Complication>
+          </ComplicationSlot>
+        </Scene>
+      </WatchFace>
+      """
+          .trimIndent(),
+      )
+
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    val errors = fixture.doHighlighting().filter { it.severity == HighlightSeverity.ERROR }
+    assertThat(errors).isEmpty()
+  }
 }

@@ -72,7 +72,7 @@ class InvalidComplicationDataSourceLocationInspectionTest {
         // language=XML
         """
         <WatchFace>
-          <Parameter expression="<error descr="Complication data sources must be used within a <Complication> tag">[<error descr="Unknown data source">COMPLICATION.RANGED_VALUE_MAX</error>]</error>" />
+          <Parameter expression="<error descr="Complication data sources must be used within a <Complication> tag">[COMPLICATION.RANGED_VALUE_MAX]</error>" />
         </WatchFace>
       """
           .trimIndent(),
@@ -92,8 +92,8 @@ class InvalidComplicationDataSourceLocationInspectionTest {
         """
         <WatchFace>
           <Complication>
-            <Parameter expression="<error descr="This complication data source can only be used in complications with the following type(s): \"LONG_TEXT\", \"RANGED_VALUE\", \"SHORT_TEXT\", \"GOAL_PROGRESS\", \"WEIGHTED_ELEMENTS\"">[<error descr="Unknown data source">COMPLICATION.TEXT</error>]</error>" />
-            <Parameter expression="<error descr="This complication data source can only be used in complications with the following type(s): \"RANGED_VALUE\"">[<error descr="Unknown data source">COMPLICATION.RANGED_VALUE_MAX</error>]</error>" />
+            <Parameter expression="<error descr="This complication data source can only be used in complications with the following type(s): \"LONG_TEXT\", \"RANGED_VALUE\", \"SHORT_TEXT\", \"GOAL_PROGRESS\", \"WEIGHTED_ELEMENTS\"">[COMPLICATION.TEXT]</error>" />
+            <Parameter expression="<error descr="This complication data source can only be used in complications with the following type(s): \"RANGED_VALUE\"">[COMPLICATION.RANGED_VALUE_MAX]</error>" />
           </Complication>
         </WatchFace>
       """
@@ -114,7 +114,7 @@ class InvalidComplicationDataSourceLocationInspectionTest {
         """
         <WatchFace>
           <Complication type="">
-            <Parameter expression="<error descr="This complication data source can only be used in complications with the following type(s): \"RANGED_VALUE\"">[<error descr="Unknown data source">COMPLICATION.RANGED_VALUE_MAX</error>]</error>" />
+            <Parameter expression="<error descr="This complication data source can only be used in complications with the following type(s): \"RANGED_VALUE\"">[COMPLICATION.RANGED_VALUE_MAX]</error>" />
           </Complication>
         </WatchFace>
       """
@@ -135,7 +135,7 @@ class InvalidComplicationDataSourceLocationInspectionTest {
         """
         <WatchFace>
           <Complication type="SHORT_TEXT">
-            <Parameter expression="<error descr="This complication data source can only be used in complications with the following type(s): \"RANGED_VALUE\"">[<error descr="Unknown data source">COMPLICATION.RANGED_VALUE_MAX</error>]</error>" />
+            <Parameter expression="<error descr="This complication data source can only be used in complications with the following type(s): \"RANGED_VALUE\"">[COMPLICATION.RANGED_VALUE_MAX]</error>" />
           </Complication>
         </WatchFace>
       """
@@ -172,7 +172,7 @@ class InvalidComplicationDataSourceLocationInspectionTest {
 
   @Test
   fun `errors are not reported when the WFF expression is not injected in a declarative watch face`() {
-    fixture.configureByText(WFFExpressionFileType, "[<error descr=\"Unknown data source\">COMPLICATION.RANGED_VALUE_MAX</error>]")
+    fixture.configureByText(WFFExpressionFileType, "[COMPLICATION.RANGED_VALUE_MAX]")
 
     fixture.checkHighlighting(true, false, false)
   }

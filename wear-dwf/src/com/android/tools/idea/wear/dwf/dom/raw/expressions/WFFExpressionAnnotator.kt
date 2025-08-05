@@ -70,7 +70,11 @@ class WFFExpressionAnnotator() : Annotator {
       } else {
         dataSourceId.findStaticDataSource() ?: dataSourceId.findPatternDataSource()
       }
-    if (dataSource == null) {
+    // The data source can be a complication data source used under the wrong type. This will
+    // be reported as an error by InvalidComplicationDataSourceLocationInspection
+    val isDataSourceUnknown =
+      dataSource == null && DataSources.COMPLICATION_ALL.none { it.id == dataSourceId.text }
+    if (isDataSourceUnknown) {
       holder
         .newAnnotation(
           HighlightSeverity.ERROR,
@@ -79,7 +83,11 @@ class WFFExpressionAnnotator() : Annotator {
         .highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL)
         .range(dataSourceId)
         .create()
-    } else if (wffVersion != null && wffVersion < dataSource.requiredVersion) {
+    } else if (
+      dataSource != null && wffVersion != null && wffVersion < dataSource.requiredVersion
+    ) {
+      // TODO(b/436560081): move this to a local inspection, this annotator should only highlight
+      // unknown data sources
       holder
         .newAnnotation(
           HighlightSeverity.ERROR,
