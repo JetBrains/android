@@ -10,5 +10,6 @@ iml_module(
     runtime_deps = [
         "@intellij//:com.intellij.properties",
         "@intellij//:com.intellij.modules.json",
+        "@intellij//:Git4Idea",
     ],
 )

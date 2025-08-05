@@ -1353,7 +1353,6 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
-        "@intellij//:Git4Idea",
         "@intellij//:intellij.grid",
         "@intellij//:intellij.grid.core.impl",
         "@intellij//:intellij.grid.csv.core.impl",
