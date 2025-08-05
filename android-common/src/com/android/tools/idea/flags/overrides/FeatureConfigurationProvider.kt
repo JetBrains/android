@@ -16,7 +16,7 @@
 package com.android.tools.idea.flags.overrides
 
 import com.android.flags.Flag
-import com.android.flags.ImmutableFlagOverrides
+import com.android.flags.FlagValueProvider
 import com.android.tools.idea.flags.FeatureConfiguration
 import com.android.utils.associateNotNull
 import com.google.common.annotations.VisibleForTesting
@@ -29,28 +29,35 @@ import java.io.InputStream
  * constructor because they are (mostly) used for feature flags,
  * and we want to control these better during the feature lifecycle.
  *
- * Therefore, this [ImmutableFlagOverrides] is used to provide default values
+ * Therefore, this [FlagValueProvider] is used to provide default values
  * by reading the values from a file.
  *
  * It must be added to [com.android.flags.Flags] as the *last* override in the list
  * since it's not actually an override.
  */
-class FeatureConfigurationOverrides: ImmutableFlagOverrides {
+class FeatureConfigurationProvider private constructor(
+  private val values: Map<String, String>
+): FlagValueProvider {
 
-  override fun get(flag: Flag<*>): String? = defaultValues[flag.id]
+  override fun get(flag: Flag<*>): String? = values[flag.id]
+
+  @VisibleForTesting
+  fun getEntries(): Set<String> {
+    return values.keys
+  }
+
+  @VisibleForTesting
+  fun getValueById(flagId: String): String? = values[flagId]
 
   companion object {
     /** Returns the current IDE feature flags configuration as a stream. */
     private fun featureFlagsResourceStream(): InputStream =
-      requireNotNull(FeatureConfigurationOverrides::class.java.getResourceAsStream(FEATURE_FLAGS_FILE))
+      requireNotNull(FeatureConfigurationProvider::class.java.getResourceAsStream(FEATURE_FLAGS_FILE))
 
     /**
-     * The map that contains the default values. The values are already applied to the
-     * current configuration, so that the value can be used directly.
-     *
-     * The map is from flag id (group + name) to a serialized boolean value
+     * The default provider for feature flags.
      */
-    private val defaultValues: Map<String, String> by lazy {
+    val currentFlags: FeatureConfigurationProvider by lazy {
       loadValues()
     }
 
@@ -58,10 +65,10 @@ class FeatureConfigurationOverrides: ImmutableFlagOverrides {
     fun loadValues(
       inputStream: InputStream = featureFlagsResourceStream(),
       currentConfig: FeatureConfiguration = FeatureConfiguration.current,
-    ): Map<String, String> {
+    ): FeatureConfigurationProvider {
       val configsByName = FeatureConfiguration.entries.associateBy { it.name }
 
-      return inputStream.use { stream ->
+      val map = inputStream.use { stream ->
         stream.reader(Charsets.UTF_8).use { reader ->
           reader.readLines().filter { !it.startsWith("#") }.associateNotNull {
             val tokens = parseLine(it) ?: return@associateNotNull null
@@ -70,6 +77,13 @@ class FeatureConfigurationOverrides: ImmutableFlagOverrides {
           }
         }
       }
+
+      return FeatureConfigurationProvider(map)
+    }
+
+    @VisibleForTesting
+    fun loadValuesForTesting(currentConfig: FeatureConfiguration): FeatureConfigurationProvider {
+      return loadValues(currentConfig = currentConfig)
     }
 
     @VisibleForTesting

@@ -18,7 +18,8 @@ package com.android.tools.idea.flags;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.flags.Flag;
-import com.android.flags.FlagOverrides;
+import com.android.flags.FlagValueContainer;
+import com.android.flags.FlagValueProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
@@ -37,7 +38,7 @@ import java.util.Map;
   storages = @Storage("studioFlags.xml"),
   reloadable = false
 )
-public final class StudioFlagSettings implements FlagOverrides, PersistentStateComponent<StudioFlagSettings> {
+public final class StudioFlagSettings implements FlagValueContainer, PersistentStateComponent<StudioFlagSettings> {
   public Map<String, String> data = new HashMap<>();
 
   /**

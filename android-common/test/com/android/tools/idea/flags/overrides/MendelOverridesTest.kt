@@ -18,7 +18,7 @@ package com.android.tools.idea.flags.overrides
 import com.android.flags.BooleanFlag
 import com.android.flags.FlagGroup
 import com.android.flags.Flags
-import com.android.flags.ImmutableFlagOverrides
+import com.android.flags.FlagValueProvider
 import com.android.flags.MendelFlag
 import com.android.tools.idea.mendel.MendelFlagsProvider
 import com.google.common.truth.Truth.assertThat
@@ -52,7 +52,7 @@ class MendelOverridesTest {
 
   @Test
   fun testMendelOverrides() {
-    val overrides: ImmutableFlagOverrides = MendelOverrides()
+    val overrides: FlagValueProvider = MendelOverrides()
     val flags = Flags(overrides)
     val group = FlagGroup(flags, TEST_GROUP, "display")
     val flagA = MendelFlag(group, "a", 1, "name_a", "description_a", false)

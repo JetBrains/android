@@ -17,7 +17,7 @@ package com.android.tools.idea.flags.overrides
 
 import com.android.flags.BooleanFlag
 import com.android.flags.Flag
-import com.android.flags.ImmutableFlagOverrides
+import com.android.flags.FlagValueProvider
 import com.android.flags.IntFlag
 import com.android.tools.idea.serverflags.ServerFlagService
 
@@ -26,7 +26,7 @@ ServerFlagOverrides is used to override StudioFlags from
 the server. The server flag name is equal to the studio
 flag name prefaced by "studio_flags/".
  */
-class ServerFlagOverrides : ImmutableFlagOverrides {
+class ServerFlagOverrides : FlagValueProvider {
   override fun get(flag: Flag<*>): String? {
     val service = ServerFlagService.instance
     val id = flag.id

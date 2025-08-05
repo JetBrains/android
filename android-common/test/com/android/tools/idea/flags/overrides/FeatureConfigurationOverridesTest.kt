@@ -16,6 +16,7 @@
 package com.android.tools.idea.flags.overrides
 
 import com.android.tools.idea.flags.FeatureConfiguration
+import com.android.utils.associateNotNull
 import com.google.common.truth.Truth
 import org.junit.Test
 
@@ -27,7 +28,7 @@ class FeatureConfigurationOverridesTest {
     #some comments
     """.trimIndent()
 
-    Truth.assertThat(FeatureConfigurationOverrides.loadValues(content.byteInputStream())).isEmpty()
+    Truth.assertThat(FeatureConfigurationProvider.loadValues(content.byteInputStream()).toMap()).isEmpty()
   }
 
   @Test
@@ -40,7 +41,7 @@ class FeatureConfigurationOverridesTest {
     """.trimIndent()
 
     Truth.assertThat(
-      FeatureConfigurationOverrides.loadValues(content.byteInputStream(), FeatureConfiguration.INTERNAL)
+      FeatureConfigurationProvider.loadValues(content.byteInputStream(), FeatureConfiguration.INTERNAL).toMap()
     ).containsExactly(
       "group1.flag1", "true",
       "group1.flag2", "true",
@@ -58,7 +59,7 @@ class FeatureConfigurationOverridesTest {
     """.trimIndent()
 
     Truth.assertThat(
-      FeatureConfigurationOverrides.loadValues(content.byteInputStream(), FeatureConfiguration.PREVIEW)
+      FeatureConfigurationProvider.loadValues(content.byteInputStream(), FeatureConfiguration.PREVIEW).toMap()
     ).containsExactly(
       "group1.flag1", "false",
       "group1.flag2", "true",
@@ -76,7 +77,7 @@ class FeatureConfigurationOverridesTest {
     """.trimIndent()
 
     Truth.assertThat(
-      FeatureConfigurationOverrides.loadValues(content.byteInputStream(), FeatureConfiguration.COMPLETE)
+      FeatureConfigurationProvider.loadValues(content.byteInputStream(), FeatureConfiguration.COMPLETE).toMap()
     ).containsExactly(
       "group1.flag1", "false",
       "group1.flag2", "false",
@@ -97,7 +98,7 @@ class FeatureConfigurationOverridesTest {
 
     // make sure to use the default param for loadValues
     Truth.assertThat(
-      FeatureConfigurationOverrides.loadValues(content.byteInputStream())
+      FeatureConfigurationProvider.loadValues(content.byteInputStream()).toMap()
     ).containsExactly(
       "group1.flag1", "true",
       "group1.flag2", "true",
@@ -117,7 +118,7 @@ class FeatureConfigurationOverridesTest {
     """.trimIndent()
 
     Truth.assertThat(
-      FeatureConfigurationOverrides.loadValues(content.byteInputStream(), FeatureConfiguration.INTERNAL)
+      FeatureConfigurationProvider.loadValues(content.byteInputStream(), FeatureConfiguration.INTERNAL).toMap()
     ).containsExactly(
       "group1.flag1", "true",
       "group1.flag2", "true",
@@ -125,4 +126,11 @@ class FeatureConfigurationOverridesTest {
     )
   }
 
+  private fun FeatureConfigurationProvider.toMap(): Map<String, String> {
+    return this.getEntries().associateNotNull { entry ->
+      getValueById(entry)?.let { value ->
+        entry to value
+      }
+    }
+  }
 }

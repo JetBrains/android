@@ -19,9 +19,9 @@ import static com.android.tools.idea.observable.expressions.bool.BooleanExpressi
 
 import com.android.flags.Flag;
 import com.android.flags.FlagGroup;
-import com.android.flags.FlagOverrides;
-import com.android.flags.ImmutableFlagOverrides;
-import com.android.flags.overrides.DefaultFlagOverrides;
+import com.android.flags.FlagValueContainer;
+import com.android.flags.FlagValueProvider;
+import com.android.flags.overrides.InMemoryFlagValueContainer;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
@@ -100,7 +100,7 @@ public final class StudioFlagsDialog extends DialogWrapper {
    */
   private static final String DIMENSION_KEY = StudioFlagsDialog.class.getSimpleName();
   public static final String TITLE = "Edit Studio Flags";
-  private final FlagOverrides myBackupOverrides = new DefaultFlagOverrides();
+  private final FlagValueContainer myBackupOverrides = new InMemoryFlagValueContainer();
 
   private final BindingsManager myBindings = new BindingsManager();
   private final ListMultimap<FlagGroup, Flag<?>> myGroupedFlags;
@@ -312,7 +312,7 @@ public final class StudioFlagsDialog extends DialogWrapper {
            StringUtil.containsIgnoreCase(flag.getDescription(), searchText);
   }
 
-  private void replaceOverrides(FlagOverrides overridesDest, ImmutableFlagOverrides overridesSrc) {
+  private void replaceOverrides(FlagValueContainer overridesDest, FlagValueProvider overridesSrc) {
     overridesDest.clear();
     for (Flag<?> flag : myGroupedFlags.values()) {
       String flagValue = overridesSrc.get(flag);
@@ -536,7 +536,7 @@ public final class StudioFlagsDialog extends DialogWrapper {
 
     private FlagProperty(Flag<T> flag) {
       myFlag = flag;
-      myOverridden = new BoolValueProperty(myFlag.isOverridden());
+      myOverridden = new BoolValueProperty(myFlag.isUserOverridden());
     }
 
     @NotNull

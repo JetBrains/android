@@ -16,11 +16,11 @@
 package com.android.tools.idea.flags.overrides
 
 import com.android.flags.Flag
-import com.android.flags.ImmutableFlagOverrides
+import com.android.flags.FlagValueProvider
 import com.android.flags.MendelFlag
 import com.android.tools.idea.mendel.MendelFlagsProvider
 
-class MendelOverrides: ImmutableFlagOverrides {
+class MendelOverrides: FlagValueProvider {
   override fun get(flag: Flag<*>): String? =
     (flag as? MendelFlag)?.mendelId?.let {
       MendelFlagsProvider.isExperimentEnabled(it).toString()

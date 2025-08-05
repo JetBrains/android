@@ -17,7 +17,7 @@ package com.android.tools.idea.flags
 
 import com.android.flags.BooleanFlag
 import com.android.flags.Flag
-import com.android.tools.idea.flags.overrides.FeatureConfigurationOverrides
+import com.android.tools.idea.flags.overrides.FeatureConfigurationProvider
 import com.android.tools.idea.flags.overrides.FEATURE_FLAGS_FILE
 import com.google.common.truth.Truth
 import org.junit.Test
@@ -50,7 +50,7 @@ class FeatureValidationTest {
   fun validate_no_obsolete_entries() {
     val flagsFromFile = readFile().map {
       // this will not return null but we need to handle it somehow to please the compiler
-      val tokens = FeatureConfigurationOverrides.parseLine(it, throwOnInvalidValue = true) ?: return@map null
+      val tokens = FeatureConfigurationProvider.parseLine(it, throwOnInvalidValue = true) ?: return@map null
       tokens.first
     }
     val flagsFromClass = getFields()
@@ -66,7 +66,7 @@ class FeatureValidationTest {
   @Test
   fun validate_stable_has_date() {
     val completeFlagsFromFile = readFile().mapNotNull {
-      val tokens = FeatureConfigurationOverrides.parseLine(it, removeDate = false, throwOnInvalidValue = true)
+      val tokens = FeatureConfigurationProvider.parseLine(it, removeDate = false, throwOnInvalidValue = true)
                    ?: return@mapNotNull null
 
       if (!tokens.second.startsWith(FeatureConfiguration.COMPLETE.name)) return@mapNotNull null
@@ -88,7 +88,7 @@ class FeatureValidationTest {
   companion object {
 
     fun readFile(): List<String> {
-      val flagsStream = FeatureConfigurationOverrides::class.java.getResourceAsStream(FEATURE_FLAGS_FILE)
+      val flagsStream = FeatureConfigurationProvider::class.java.getResourceAsStream(FEATURE_FLAGS_FILE)
 
       Truth.assertWithMessage("Check loading of $FEATURE_FLAGS_FILE").that(flagsStream).isNotNull()
       flagsStream!! // to please kotlin compiler

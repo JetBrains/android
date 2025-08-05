@@ -19,16 +19,16 @@ import com.android.flags.BooleanFlag;
 import com.android.flags.EnumFlag;
 import com.android.flags.Flag;
 import com.android.flags.FlagGroup;
-import com.android.flags.FlagOverrides;
+import com.android.flags.FlagValueContainer;
 import com.android.flags.Flags;
 import com.android.flags.IntFlag;
 import com.android.flags.LongFlag;
 import com.android.flags.StringFlag;
-import com.android.flags.overrides.DefaultFlagOverrides;
+import com.android.flags.overrides.InMemoryFlagValueContainer;
 import com.android.flags.overrides.PropertyOverrides;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
-import com.android.tools.idea.flags.overrides.FeatureConfigurationOverrides;
+import com.android.tools.idea.flags.overrides.FeatureConfigurationProvider;
 import com.android.tools.idea.flags.overrides.MendelOverrides;
 import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
 import com.intellij.openapi.application.ApplicationManager;
@@ -51,23 +51,23 @@ public final class StudioFlags {
 
   @NotNull
   private static Flags createFlags() {
-    FlagOverrides userOverrides;
+    FlagValueContainer userOverrides;
     if (isUnitTestMode()) {
-      userOverrides = new DefaultFlagOverrides();
+      userOverrides = new InMemoryFlagValueContainer();
     }
     else {
       userOverrides = new LazyStudioFlagSettings();
     }
     return new Flags(
+      FeatureConfigurationProvider.Companion.getCurrentFlags(),
       userOverrides,
       new PropertyOverrides(),
       new MendelOverrides(),
-      new ServerFlagOverrides(),
-      new FeatureConfigurationOverrides());
+      new ServerFlagOverrides());
   }
 
   // This class is a workaround for b/355292387: IntelliJ 2024.2 does not allow services to be instantiated inside static initializers.
-  private static class LazyStudioFlagSettings implements FlagOverrides {
+  private static class LazyStudioFlagSettings implements FlagValueContainer {
     @Override
     public void clear() {
       StudioFlagSettings.getInstance().clear();
@@ -93,6 +93,25 @@ public final class StudioFlags {
   @TestOnly
   public static void validate() {
     FLAGS.validate();
+  }
+
+  /**
+   * Overrides the current boolean feature flags with the values coming from a different configuration.
+   * @param config the feature configuration to use
+   */
+  @TestOnly
+  public static void overrideFeatureFlagsForTesting(@NotNull FeatureConfiguration config) {
+    @NotNull FeatureConfigurationProvider values = FeatureConfigurationProvider.Companion.loadValuesForTesting(config);
+
+    for (String entry : values.getEntries()) {
+      Flag<?> flag = FLAGS.getFlag(entry);
+      if (flag != null) {
+        String value = values.get(flag);
+        if (value != null) {
+          FLAGS.getUserOverrides().put(flag, value);
+        }
+      }
+    }
   }
 
   //region New Project Wizard
@@ -2407,7 +2426,7 @@ public final class StudioFlags {
   public static Boolean isBuildOutputShowsDownloadInfo() {
     // In Android Studio: enabled if BUILD_OUTPUT_DOWNLOADS_INFORMATION=true.
     // In IDEA: disables unless the user explicitly overrides BUILD_OUTPUT_DOWNLOADS_INFORMATION.
-    return IdeInfo.getInstance().isAndroidStudio() || BUILD_OUTPUT_DOWNLOADS_INFORMATION.isOverridden()
+    return IdeInfo.getInstance().isAndroidStudio() || BUILD_OUTPUT_DOWNLOADS_INFORMATION.isUserOverridden()
            ? BUILD_OUTPUT_DOWNLOADS_INFORMATION.get()
            : false;
   }

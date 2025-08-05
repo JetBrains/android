@@ -18,7 +18,7 @@ package com.android.tools.idea.flags.overrides
 import com.android.flags.BooleanFlag
 import com.android.flags.FlagGroup
 import com.android.flags.Flags
-import com.android.flags.ImmutableFlagOverrides
+import com.android.flags.FlagValueProvider
 import com.android.flags.IntFlag
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.android.tools.idea.testing.registerServiceInstance
@@ -41,7 +41,7 @@ class ServerFlagOverridesTest {
 
   @Test
   fun testServerFlagOverrides() {
-    val overrides: ImmutableFlagOverrides = ServerFlagOverrides()
+    val overrides: FlagValueProvider = ServerFlagOverrides()
     val flags = Flags(overrides)
     val group = FlagGroup(flags, TEST_GROUP, "display")
     val flagA = BooleanFlag(group, "a", "name_a", "description_a")
@@ -66,7 +66,7 @@ class ServerFlagOverridesTest {
 
   @Test
   fun testIntServerFlagOverrides() {
-    val overrides: ImmutableFlagOverrides = ServerFlagOverrides()
+    val overrides: FlagValueProvider = ServerFlagOverrides()
     val flags = Flags(overrides)
     val group = FlagGroup(flags, TEST_GROUP, "display")
     val flagD = IntFlag(group, "d", "name_d", "description_d", 0)
