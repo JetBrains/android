@@ -17,6 +17,7 @@ package com.android.tools.idea.wear.dwf.dom.raw.expressions
 
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.wear.dwf.WFFConstants
+import com.android.tools.idea.wear.dwf.WFFConstants.DataSources
 import com.android.tools.idea.wear.dwf.WearDwfBundle.message
 import com.android.tools.idea.wear.dwf.dom.raw.CurrentWFFVersionService
 import com.android.tools.idea.wear.dwf.dom.raw.configurations.UserConfigurationReference
@@ -62,7 +63,9 @@ class WFFExpressionAnnotator() : Annotator {
     dataSourceId: PsiElement,
     holder: AnnotationHolder,
   ) {
-    val dataSource = findDataSource(dataSourceId.text)
+    val dataSource =
+      DataSources.ALL_STATIC_BY_ID[dataSourceId.text]
+        ?: DataSources.ALL_PATTERNS.find { it.pattern.matches(dataSourceId.text) }
     if (dataSource == null) {
       holder
         .newAnnotation(

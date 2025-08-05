@@ -49,8 +49,3 @@ data class PatternedDataSource(
   val lookupCursorToken: String,
   override val requiredVersion: WFFVersion,
 ) : DataSource(requiredVersion)
-
-/** Finds a [DataSource] by an ID or a pattern. */
-fun findDataSource(idOrPattern: String) =
-  DataSources.ALL_STATIC_BY_ID[idOrPattern]
-    ?: DataSources.ALL_PATTERNS.find { it.pattern.matches(idOrPattern) }
