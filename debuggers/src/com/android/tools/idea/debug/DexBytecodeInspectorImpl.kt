@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.debug
 
-import com.android.tools.analytics.UsageTracker
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.DebuggerEvent
-import com.google.wireless.android.sdk.stats.DebuggerEvent.SmartStepTargetFilteringPerformed.DexSearchStatus
 import com.intellij.debugger.PositionManager
 import com.intellij.debugger.engine.DebugProcessImpl
 import com.intellij.openapi.application.readAction
@@ -109,38 +105,13 @@ class DexBytecodeInspectorImpl : DexBytecodeInspector {
     val location =
       debugProcess.suspendManager.pausedContext?.frameProxy?.safeLocation() ?: return targets
     val method = location.safeMethod() ?: return targets
-    val start = System.currentTimeMillis()
-    val (dex, status) = DexFinder.findDex(debugProcess, expression, location)
-    val time = System.currentTimeMillis() - start
 
-    // TODO: b/430271228
-    // Statistics are temporarily disabled until the corresponding proto is updated in G3.
-    //logSmartStepTargetFilteringEvent(status, time)
-
-    if (dex == null) {
-      return targets
-    }
+    val dex = DexFinder.findDex(debugProcess, expression, location) ?: return targets
 
     val filterer = KotlinSmartStepTargetFilterer(targets, debugProcess)
     filterer.visitMethodUntilLocation(debugProcess, method, location, dex)
     return filterer.getUnvisitedTargets()
   }
-}
-
-private fun logSmartStepTargetFilteringEvent(status: DexSearchStatus, timeMs: Long) {
-  val event =
-    AndroidStudioEvent.newBuilder()
-      .setKind(AndroidStudioEvent.EventKind.DEBUGGER_EVENT)
-      .setDebuggerEvent(
-        DebuggerEvent.newBuilder()
-          .setType(DebuggerEvent.Type.SMART_STEP_TARGET_FILTERING)
-          .setSmartStepTargetFilteringPerformed(
-            DebuggerEvent.SmartStepTargetFilteringPerformed.newBuilder()
-              .setDexFetchTimeMs(timeMs)
-              .setStatus(status)
-          )
-      )
-  UsageTracker.log(event)
 }
 
 private suspend fun KotlinSmartStepTargetFilterer.visitMethodUntilLocation(
