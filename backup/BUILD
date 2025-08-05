@@ -61,6 +61,7 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/base/backup:studio.android.sdktools.backup",
+        "//tools/base/backup/bmgr-parser:studio.android.sdktools.backup.bmgr.parser",
         "//tools/base/testutils:studio.android.sdktools.testutils",
         "//tools/base/flags:studio.android.sdktools.flags",
     ],

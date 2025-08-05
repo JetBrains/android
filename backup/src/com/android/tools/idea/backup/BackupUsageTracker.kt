@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.backup
 
+import com.android.backup.BackupException
 import com.android.backup.BackupResult
 import com.android.backup.BackupResult.Success
 import com.android.backup.BackupResult.WithoutAppData
 import com.android.backup.BackupType
 import com.android.backup.BmgrException
 import com.android.backup.ErrorCode
+import com.android.backup.ErrorCode.UNEXPECTED_ERROR
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.backup.BackupManager.Source
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -70,5 +72,13 @@ private fun BackupResult.getErrorCode() =
     WithoutAppData -> "WithoutAppData"
   }
 
-private fun BackupResult.Error.errorCodeString() =
-  (throwable.cause as? BmgrException)?.errorCodes ?: errorCode.name
+private fun BackupResult.Error.errorCodeString(): String {
+  return when {
+    throwable.cause is BmgrException -> (throwable.cause as BmgrException).errorCodes
+    errorCode != UNEXPECTED_ERROR -> errorCode.name
+    throwable !is BackupException -> throwable.name()
+    else -> throwable.cause?.name() ?: UNEXPECTED_ERROR.name
+  }
+}
+
+private fun Throwable.name() = this::class.java.simpleName
