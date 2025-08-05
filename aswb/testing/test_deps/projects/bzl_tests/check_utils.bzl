@@ -93,7 +93,7 @@ def nested_struct_factory(actual, *, meta, attrs):
     if actual == None:
         return subjects_str_factory(actual = actual, meta = meta)
 
-    actual_attrs = [attr for attr in dir(actual) if not attr.startswith("__")]
+    actual_attrs = [attr for attr in dir(actual) if not attr.startswith("__") and type(getattr(actual, attr)) != "builtin_function_or_method"]
     if len(actual_attrs) != len(attrs.keys()):
         meta.add_failure("Struct missing attributes. Actual: {}. Expected: {}".format(actual_attrs, attrs.keys()), "")
 
