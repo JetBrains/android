@@ -120,6 +120,7 @@ class AdbLibApplicationService : Disposable {
     host: AndroidAdbSessionHost,
     private val adbFileLocationTracker: AdbFileLocationTracker,
   ) : Disposable {
+    private val logger = thisLogger()
 
     val adbServerConfiguration =
       MutableStateFlow(
@@ -136,6 +137,7 @@ class AdbLibApplicationService : Disposable {
 
     val adbServerController =
       if (adbLibMigrationFlagValue) {
+        logger.info("'adblib.migration.ddmlib.androiddebugbridgedelegate' flag is set to true")
         AdbServerController.createServerController(host, adbServerConfiguration)
       } else {
         null
