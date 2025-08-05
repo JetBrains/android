@@ -1518,6 +1518,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW_RENDER_TOOL = new BooleanFlag(
     COMPOSE, "preview.render.tool", "Enable the Compose Preview render agent tool",
     "If enabled, an agent tool to render Compose Previews will be available for agents.");
+
+  public static final Flag<Boolean> COMPOSE_PREVIEW_XR_GLASSES_PREVIEW = new BooleanFlag(
+    COMPOSE, "preview.xr.glasses.preview", "Enable Compose Preview for XR Glasses",
+    "If enabled, Compose Preview will have limited support for XR Glasses when glasses are set as the preview device.");
   //endregion
 
   // region Wear surfaces
