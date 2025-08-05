@@ -310,7 +310,6 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     querySyncActionStats: QuerySyncActionStatsScope,
     taskOrigin: TaskOrigin,
   ): ListenableFuture<Boolean> {
-    assertProjectLoaded()
     return runOperation(
       querySyncActionStats, taskOrigin,
       syncQueryDataIfNeededOperation(workspaceRelativePaths)
@@ -324,6 +323,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       operationType = OperationType.SYNC,
       applyProjectStructureChanges = false
     ) { context ->
+      assertProjectLoaded()
       if (fileListener.hasModifiedBuildFiles() ||
           getTargetsToBuildByPaths(workspaceRelativePaths).any { it.requiresQueryDataRefresh() }) {
         val result = reloadProjectIfDefinitionHasChanged(context)
@@ -570,7 +570,6 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   fun enableAnalysis(
     targets: Set<Label>, querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin,
   ): ListenableFuture<Boolean> {
-    assertProjectLoaded()
     if (targets.isEmpty()) {
       return Futures.immediateFuture(true)
     }
@@ -587,6 +586,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       subTitle = "Building...",
       operationType = OperationType.BUILD_DEPS
     ) { context ->
+      assertProjectLoaded()
       context.output(
         PrintOutput.output(
           "Building dependencies for:\n  " + Joiner.on("\n  ").join(targets)
@@ -599,7 +599,6 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   fun enableAnalysisForReverseDeps(
     targets: Set<Label>, querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin,
   ): ListenableFuture<Boolean> {
-    assertProjectLoaded()
     if (targets.isEmpty()) {
       return Futures.immediateFuture(true)
     }
@@ -631,7 +630,6 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   fun enableAnalysisForWholeProject(
     querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin,
   ): ListenableFuture<Boolean> {
-    assertProjectLoaded()
     return runOperation(
       querySyncActionStats,
       taskOrigin,
