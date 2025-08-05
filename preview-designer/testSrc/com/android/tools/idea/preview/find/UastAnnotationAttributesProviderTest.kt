@@ -22,7 +22,6 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.DumbModeTestUtils
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
@@ -99,22 +98,10 @@ class UastAnnotationAttributesProviderTest {
 
     // This checks the result when UastAnnotationAttributesProvider runs without the index being
     // ready.
-    // This behaviour differs from K1 to K2 so the test has different expectations.
-    // In K1, there is no use of the index, so the resolution is expected to proceed as in the case
-    // above.
-    val expectedOutput =
-      if (KotlinPluginModeProvider.isK2Mode())
-        """
-        <null>
-        <null>
-      """
-          .trimIndent()
-      else
-        """
+    val expectedOutput = """
         preview1
         preview2
-      """
-          .trimIndent()
+      """.trimIndent()
     Assert.assertEquals(expectedOutput, output)
   }
 }
