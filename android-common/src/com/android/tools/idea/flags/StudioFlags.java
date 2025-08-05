@@ -2417,6 +2417,11 @@ public final class StudioFlags {
                     "Enable build-related instructions in the prompt",
                     "Enable build-related instructions in the prompt");
 
+  public static final Flag<Boolean> GEMINI_STATE_INSPECTION_AGENT =
+    new BooleanFlag(STUDIOBOT, "layout.inspector.state.inspection.agent",
+                    "Enable Gemini State Inspection Agent for the Layout Inspector.",
+                    "Enables the agent that helps with explaining state read exception traces.");
+
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI

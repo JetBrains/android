@@ -61,6 +61,11 @@ internal class StateInspectionHyperLinkDetector(
               GlobalSearchScope.allScope(project),
             )
           }
+        // Allow custom extensions to add hyperlinks:
+        LayoutInspectorStateInspectionFilterProvider.EP_NAME.extensionList
+          .map { it.create(editor) }
+          .forEach { filter.addFilter(it) }
+
         filters.forEach { filter.addFilter(it) }
       }
   }
