@@ -19,14 +19,6 @@ import org.jetbrains.jewel.ui.icon.IntelliJIconKey
 
 internal object StudioLabsIcons {
   object Features {
-    val AtFile =
-      IntelliJIconKey("images/studio_labs/at-file.png", "images/studio_labs/at-file.png", javaClass)
-    val AttachImage =
-      IntelliJIconKey(
-        "images/studio_labs/attach-image.png",
-        "images/studio_labs/attach-image.png",
-        javaClass,
-      )
     val GenerateComposePreview =
       IntelliJIconKey(
         "images/studio_labs/generate-compose-preview.png",

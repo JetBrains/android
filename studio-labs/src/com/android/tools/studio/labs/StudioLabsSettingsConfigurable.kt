@@ -162,28 +162,6 @@ class StudioLabsSettingsConfigurable :
             imageKey = StudioLabsIcons.Features.TransformComposePreview,
             imageDescription = "Transform UI with Gemini action",
           ),
-          StudioLabsFeaturePanelUi(
-            flag = StudioFlags.STUDIOBOT_ATTACHMENTS,
-            heading = "Attach Images",
-            description =
-              """
-                Allows attaching images to the Gemini queries.
-              """
-                .trimIndent(),
-            imageKey = StudioLabsIcons.Features.AttachImage,
-            imageDescription = "Image attaching menu",
-          ),
-          StudioLabsFeaturePanelUi(
-            flag = StudioFlags.STUDIOBOT_CONTEXT_ATTACHMENT_ENABLED,
-            heading = "Context Management",
-            description =
-              """
-                Allows attaching files from your project to Gemini queries, and storing them in a context drawer.
-              """
-                .trimIndent(),
-            imageKey = StudioLabsIcons.Features.AtFile,
-            imageDescription = "@file attaching menu",
-          ),
           /*
           Disabled pending move to agent
           StudioLabsFeaturePanelUi(
