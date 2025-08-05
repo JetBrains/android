@@ -310,7 +310,7 @@ class BlockR8IntegratedResourceShrinkingProcessor: AbstractBlockPropertyUnlessNo
   override val propertyRemovedVersion = AgpVersion.parse("9.0.0-alpha01")
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_R8_INTEGRATED_RESOURCE_SHRINKING_PRESENT
   override val noOpValue = true
-  override fun getRefactoringId() = "com.android.tools.agp.upgrade.strictFullModeForKeepRulesBlockProperty"
+  override fun getRefactoringId() = "com.android.tools.agp.upgrade.r8IntegratedResourceShrinkingBlockProperty"
 }
 
 /**
@@ -323,9 +323,9 @@ class BlockBuildFeaturesBuildConfigProcessor: AbstractBlockPropertyWithPreviousD
   override val propertyKey = "android.defaults.buildfeatures.buildconfig"
   override val propertyRemovedVersion = AgpVersion.parse("9.0.0-alpha01")
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_BUILD_FEATURE_BUILD_CONFIG_PRESENT
-  override val defaultChangedVersion = RenderScriptDefaultRefactoringProcessor.DEFAULT_CHANGED
+  override val defaultChangedVersion = BuildConfigDefaultRefactoringProcessor.DEFAULT_CHANGED
   override val noOpValue = true
-  override fun getRefactoringId() = "com.android.tools.agp.upgrade.renderScriptBlockProperty"
+  override fun getRefactoringId() = "com.android.tools.agp.upgrade.buildFeaturesBuildConfigBlockProperty"
 }
 
 /**
@@ -340,7 +340,7 @@ class BlockR8OptimizedResourceShrinkingProcessor: AbstractBlockPropertyUnlessNoO
   override val propertyRemovedVersion = AgpVersion.parse("10.0.0-alpha01")
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_R8_OPTIMIZED_RESOURCE_SHRINKING_PRESENT
   override val noOpValue = true
-  override fun getRefactoringId() = "com.android.tools.agp.upgrade.unifiedTestPlatformBlockProperty"
+  override fun getRefactoringId() = "com.android.tools.agp.upgrade.r8OptimizedResourceShrinkingBlockProperty"
 }
 
 /**

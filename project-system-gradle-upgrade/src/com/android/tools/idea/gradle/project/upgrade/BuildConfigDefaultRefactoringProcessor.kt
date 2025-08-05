@@ -90,6 +90,7 @@ class BuildConfigDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPro
 
   companion object {
     val INSERT_PROPERTY = UsageType(AndroidBundle.messagePointer("project.upgrade.buildConfigDefaultRefactoringProcessor.enable.usageType"))
+    val DEFAULT_CHANGED = AgpVersion.parse("8.0.0-alpha02")
   }
 }
 
