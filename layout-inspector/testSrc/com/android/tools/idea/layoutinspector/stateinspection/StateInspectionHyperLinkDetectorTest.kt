@@ -52,6 +52,7 @@ class StateInspectionHyperLinkDetectorTest {
       "src/androidx/compose/runtime/internal/ComposableLambda.kt",
       "",
     )
+    installFakeExtensionPoints(projectRule.testRootDisposable)
   }
 
   @Test
@@ -69,6 +70,7 @@ class StateInspectionHyperLinkDetectorTest {
       detector.detectHyperlinks()
     }
     validateMarkupModel(editor.markupModel) {
+      region(1, "(Ask Gemini)")
       region(13, "Composition.kt:1015")
       region(14, "Recomposer.kt:1519")
       region(17, "Snapshot.kt:2081")
@@ -103,6 +105,7 @@ class StateInspectionHyperLinkDetectorTest {
       region(58, "Recomposer.kt:1400")
       region(59, "Recomposer.kt:156")
       region(60, "Recomposer.kt:635")
+      region(81, "(Ask Gemini)")
       region(82, "Composition.kt:1015")
       region(83, "Recomposer.kt:1519")
       region(86, "Snapshot.kt:2081")
