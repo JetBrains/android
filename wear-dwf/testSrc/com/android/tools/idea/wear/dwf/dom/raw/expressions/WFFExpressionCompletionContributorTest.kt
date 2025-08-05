@@ -372,6 +372,52 @@ class WFFExpressionCompletionContributorTest {
       .containsNoneIn(DataSources.COMPLICATION_BY_TYPE["SMALL_IMAGE"]?.map { it.id })
   }
 
+  @Test
+  fun `does not autocomplete complication data source that require a higher WFF version`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+      <WatchFace>
+        <Complication type="RANGED_VALUE">
+          <PartText>
+              <Text>
+                  <BitmapFont>
+                      <Template>%s
+                          <Parameter expression="$caret" />
+                      </Template>
+                  </BitmapFont>
+              </Text>
+          </PartText>
+        </Complication>
+      </WatchFace>
+    """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    overrideCurrentWFFVersion(WFFVersion1, projectRule.testRootDisposable)
+
+    assertThat(fixture.completeBasic().map { it.lookupString })
+      .containsAllOf("COMPLICATION.MONOCHROMATIC_IMAGE", "COMPLICATION.TEXT")
+    assertThat(fixture.completeBasic().map { it.lookupString })
+      // these require version 2
+      .containsNoneOf(
+        "COMPLICATION.RANGED_VALUE_COLORS",
+        "COMPLICATION.RANGED_VALUE_COLORS_INTERPOLATE",
+      )
+
+    overrideCurrentWFFVersion(WFFVersion2, projectRule.testRootDisposable)
+    assertThat(fixture.completeBasic().map { it.lookupString })
+      .containsAllOf(
+        "COMPLICATION.MONOCHROMATIC_IMAGE",
+        "COMPLICATION.TEXT",
+        "COMPLICATION.RANGED_VALUE_COLORS",
+        "COMPLICATION.RANGED_VALUE_COLORS_INTERPOLATE",
+      )
+  }
+
   private fun configureExpression(wffExpression: String) {
     // wrap in the watch face file for references to be created
     val watchFaceFile =

@@ -142,6 +142,7 @@ class WFFExpressionCompletionContributor : CompletionContributor() {
     val complicationsForType =
       DataSources.COMPLICATION_BY_TYPE[
           complicationParentTag?.getAttribute(SdkConstants.ATTR_TYPE)?.value]
+        ?.filter { wffVersion == null || it.requiredVersion <= wffVersion }
     if (complicationsForType == null) {
       return allStaticDataSourcesWithoutComplications
     }
