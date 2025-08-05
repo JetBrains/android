@@ -448,13 +448,13 @@ class DeviceToolWindowPanelTest {
 
     fakeUi.mouse.press(50, 70)
     fakeUi.mouse.dragTo(200, 70)
-    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrRotationMessage(x = 0.0, y = -0.019084575)")
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrRotationMessage(x = 0.0, y = -1.77826)")
     fakeUi.mouse.dragTo(200, 200)
-    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrRotationMessage(x = -0.016539965, y = 0.0)")
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrRotationMessage(x = -1.5411587, y = 0.0)")
     fakeUi.mouse.dragTo(200, 10) // Exit the DeviceView component.
     fakeUi.mouse.dragTo(100, 70) // Enter the DeviceView component in a different location.
     fakeUi.mouse.dragTo(150, 200)
-    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrRotationMessage(x = -0.016539965, y = -0.0063615246)")
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrRotationMessage(x = -1.5411587, y = -0.59275335)")
   }
 
   @Test
@@ -476,14 +476,13 @@ class DeviceToolWindowPanelTest {
 
     fakeUi.mouse.press(50, 70)
     fakeUi.mouse.dragTo(200, 70)
-    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = -0.024299234, y = 0.0, z = 0.0)")
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = -2.264151, y = 0.0, z = 0.0)")
     fakeUi.mouse.dragTo(200, 200)
-    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = 0.0, y = 0.021059336, z = 0.0)")
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = 0.0, y = 1.9622642, z = 0.0)")
     fakeUi.mouse.dragTo(200, 10) // Exit the DeviceView component.
     fakeUi.mouse.dragTo(100, 70) // Enter the DeviceView component in a different location.
     fakeUi.mouse.dragTo(150, 200)
-    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo(
-        "XrTranslationMessage(x = -0.008099744, y = 0.021059336, z = 0.0)")
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = -0.754717, y = 1.9622642, z = 0.0)")
     fakeUi.mouse.release()
 
     // Moving forward and backward by rotating the mouse wheel.
@@ -499,7 +498,7 @@ class DeviceToolWindowPanelTest {
 
     fakeUi.mouse.press(50, 70)
     fakeUi.mouse.dragTo(100, 200)
-    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = 0.0, y = 0.0, z = 0.021059336)")
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = 0.0, y = 0.0, z = 1.9622642)")
     fakeUi.mouse.release()
   }
 

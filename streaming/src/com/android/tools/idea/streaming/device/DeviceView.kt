@@ -467,12 +467,13 @@ internal class DeviceView(
       }
       val rotatedDisplaySize = displayFrame.displaySize.rotatedByQuadrants(displayFrame.orientation)
       val maxSize = computeMaxImageSize()
-      deviceScaleFactor = roundScale(min(maxSize.width.toDouble() / rotatedDisplaySize.width,
-                                                maxSize.height.toDouble() / rotatedDisplaySize.height))
-      val w = rotatedDisplaySize.width.scaled(deviceScaleFactor).coerceAtMost(physicalWidth)
-      val h = rotatedDisplaySize.height.scaled(deviceScaleFactor).coerceAtMost(physicalHeight)
+      val scaleFactor = roundScale(min(maxSize.width.toDouble() / rotatedDisplaySize.width,
+                                              maxSize.height.toDouble() / rotatedDisplaySize.height))
+      val w = rotatedDisplaySize.width.scaled(scaleFactor).coerceAtMost(physicalWidth)
+      val h = rotatedDisplaySize.height.scaled(scaleFactor).coerceAtMost(physicalHeight)
       val displayRect = Rectangle((physicalWidth - w) / 2, (physicalHeight - h) / 2, w, h)
       displayRectangle = displayRect
+
       val image = displayFrame.image
       val g = createAdjustedGraphicsContext(graphics)
       if (displayRect.width == image.width && displayRect.height == image.height) {
@@ -502,8 +503,10 @@ internal class DeviceView(
         displayOrientationQuadrants = displayFrame.orientation
         ActivityTracker.getInstance().inc() // Size and orientation changes may affect enablement of zoom actions.
       }
+      deviceScaleFactor = min(deviceDisplaySize.width, deviceDisplaySize.height) * screenScale / min(displayRect.width, displayRect.height)
       displayOrientationCorrectionQuadrants = displayFrame.orientationCorrection
       frameNumber = displayFrame.frameNumber
+
       notifyFrameListeners(displayRect, displayFrame.image)
 
       if (multiTouchMode) {
