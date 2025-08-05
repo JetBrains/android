@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("UnstableApiUsage")
 package com.google.idea.blaze.base.qsync
 
 import com.google.common.annotations.VisibleForTesting
@@ -20,11 +21,8 @@ import com.google.common.base.Joiner
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import com.google.common.io.ByteSource
-import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.MoreExecutors
-import com.google.common.util.concurrent.SettableFuture
 import com.google.errorprone.annotations.CanIgnoreReturnValue
 import com.google.idea.blaze.base.async.executor.ProgressiveTaskWithProgressIndicator
 import com.google.idea.blaze.base.bazel.BuildSystemProvider
@@ -65,6 +63,8 @@ import com.intellij.notification.Notifications
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.progress.blockingContext
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
@@ -82,6 +82,10 @@ import java.util.zip.GZIPOutputStream
 import kotlin.concurrent.Volatile
 import kotlin.jvm.optionals.getOrDefault
 import kotlin.jvm.optionals.getOrNull
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.guava.asListenableFuture
+import kotlinx.coroutines.guava.await
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
@@ -108,9 +112,10 @@ import kotlinx.datetime.Instant
  */
 class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   private val project: Project,
+  private val coroutineScope: CoroutineScope,
   private val loader: ProjectLoader,
 ) : Disposable {
-  constructor(project: Project) : this(project, createProjectLoader(project))
+  constructor(project: Project, coroutineScope: CoroutineScope) : this(project, coroutineScope, createProjectLoader(project))
 
   val ideProject: Project get() = project
   private val logger = thisLogger()
@@ -331,66 +336,85 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       }
     }
 
-  fun runOperation(
+  suspend fun runOperation(
     statsScope: QuerySyncActionStatsScope?,
     taskOrigin: TaskOrigin,
     operation: QuerySyncOperation,
-  ): ListenableFuture<Boolean> {
-    val result = SettableFuture.create<Boolean>()
+    contextScope: suspend (suspend (BlazeContext) -> Unit) -> Boolean,
+  ): Boolean {
     syncStatus.operationStarted(operation.operationType)
-    Futures.addCallback(
-      result,
-      object : FutureCallback<Boolean> {
-        override fun onSuccess(success: Boolean) {
-          if (success) {
+    statsScope?.builder?.setTaskOrigin(taskOrigin)
+    return contextScope { context ->
+      withSyncEventsPublished(context) {
+        statsScope?.let { context.push(it) }
+        operation.execute(context, this)
+        logSyncStats(context, loadedProject, currentSnapshot.getOrNull()) // Not logging new project stats on exception.
+      }
+    }
+  }
+
+  suspend fun CoroutineScope.bazelOutputToolWindowScope(
+    title: String,
+    subTitle: String,
+    taskOrigin: TaskOrigin,
+    operation: suspend CoroutineScope.(BlazeContext) -> Unit,
+  ): Boolean {
+    val resultFuture = blockingContext {
+      ProgressiveTaskWithProgressIndicator.builder(project, title)
+        .submitTaskWithResult { indicator ->
+          runTaskWithToolWindow(
+            project,
+            title,
+            subTitle,
+            taskOrigin,
+            BlazeUserSettings.getInstance()
+          ) { context ->
+            withSyncEventsPublished(context) {
+              context.push(ProgressIndicatorScope(indicator))
+              context.addCancellationHandler { indicator.cancel() }
+              runBlockingCancellable { operation(context) }
+              logSyncStats(context, loadedProject, currentSnapshot.getOrNull()) // Not logging new project stats on exception.
+            }
+          }
+        }
+    }
+
+    return runCatching { resultFuture.await() }
+      .fold(
+        onSuccess = { operationSucceeded ->
+          if (operationSucceeded) {
             syncStatus.operationEnded()
           }
           else {
             syncStatus.operationFailed()
           }
-        }
-
-        override fun onFailure(throwable: Throwable) {
-          if (result.isCancelled) {
+          operationSucceeded
+        },
+        onFailure = { throwable ->
+          if (resultFuture.isCancelled) {
             syncStatus.operationCancelled()
           }
           else {
             syncStatus.operationFailed()
             logger.error("Sync failed", throwable)
           }
+          false
         }
-      },
-      MoreExecutors.directExecutor()
-    )
-    try {
-      statsScope?.builder?.setTaskOrigin(taskOrigin)
-      val innerResultFuture =
-        ProgressiveTaskWithProgressIndicator.builder(project, operation.title)
-          .submitTaskWithResult { indicator ->
-            runTaskWithToolWindow(
-              project,
-              operation.title,
-              operation.subTitle,
-              taskOrigin,
-              BlazeUserSettings.getInstance()
-            ) { context ->
-              withSyncEventsPublished(context) {
-                context.push(ProgressIndicatorScope(indicator))
-                context.addCancellationHandler { indicator.cancel() }
-                statsScope?.let { context.push(it) }
-                operation.execute(context, this)
-                logSyncStats(context, loadedProject, currentSnapshot.getOrNull()) // Not logging new project stats on exception.
-              }
-            }
-          }
+      )
+  }
 
-      result.setFuture(innerResultFuture)
-    }
-    catch (t: Throwable) {
-      result.setException(t)
-      throw t
-    }
-    return result
+  fun runOperation(
+    statsScope: QuerySyncActionStatsScope?,
+    taskOrigin: TaskOrigin,
+    operation: QuerySyncOperation,
+  ): ListenableFuture<Boolean> {
+    return coroutineScope.async {
+      runOperation(statsScope, taskOrigin, operation) { op ->
+        bazelOutputToolWindowScope(operation.title, operation.subTitle, taskOrigin) { context ->
+          op(context)
+        }
+      }
+    }.asListenableFuture()
   }
 
   private fun <T> withSyncEventsPublished(context: BlazeContext, block: () -> T): T {
