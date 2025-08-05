@@ -33,6 +33,7 @@
     <mapping directory="$PROJECT_DIR$/../../studio/google/cloud/tools" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../../swing-testing" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../../vendor/google" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../vendor/modelcontextprotocol/kotlin-sdk" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../../vendor/redhat-developer/lsp4ij" vcs="Git" />
   </component>
 </project>

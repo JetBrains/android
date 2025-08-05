@@ -450,6 +450,7 @@ filegroup(
         "//tools/vendor/google/ml/aiplugin/core/aicore:gemini_plugin_proto",
         "//tools/vendor/google/ml/aiplugin/mcp/client:mcp-kotlin-sdk",
         "//tools/vendor/google/url-assistant:urlassistant_proto",
+        "//tools/vendor/modelcontextprotocol/kotlin-sdk:filtered_kotlin_stdlib_atomics",
     ],
     visibility = ["//visibility:public"],
 )
