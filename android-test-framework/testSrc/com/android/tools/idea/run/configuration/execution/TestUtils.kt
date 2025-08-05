@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
-
 
 fun createApp(
   device: IDevice, appId: String, servicesName: List<String> = emptyList(), activitiesName: List<String> = emptyList()
@@ -75,18 +74,21 @@ class TestApplicationInstaller : ApplicationDeployer {
   }
 
   override fun fullDeploy(
-    device: IDevice, app: ApkInfo, deployOptions: DeployOptions, hasMakeBeforeRun: Boolean, indicator: ProgressIndicator): Deployer.Result {
+    device: IDevice, app: ApkInfo, deployOptions: DeployOptions, hasMakeBeforeRun: Boolean, indicator: ProgressIndicator
+  ): Deployer.Result {
     val appId = app.applicationId
     return Deployer.Result(false, false, false, appIdToApp[appId]!!)
   }
 
   override fun applyChangesDeploy(
-    device: IDevice, app: ApkInfo, deployOptions: DeployOptions, hasMakeBeforeRun: Boolean, indicator: ProgressIndicator): Deployer.Result {
+    device: IDevice, app: ApkInfo, deployOptions: DeployOptions, hasMakeBeforeRun: Boolean, indicator: ProgressIndicator
+  ): Deployer.Result {
     TODO("Not yet implemented")
   }
 
   override fun applyCodeChangesDeploy(
-    device: IDevice, app: ApkInfo, deployOptions: DeployOptions, hasMakeBeforeRun: Boolean, indicator: ProgressIndicator): Deployer.Result {
+    device: IDevice, app: ApkInfo, deployOptions: DeployOptions, hasMakeBeforeRun: Boolean, indicator: ProgressIndicator
+  ): Deployer.Result {
     TODO("Not yet implemented")
   }
 }

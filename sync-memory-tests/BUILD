@@ -280,7 +280,6 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils",
         "//tools/base/perf-logger:studio.perf-logger",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
-        "//tools/adt/idea/android:intellij.android.core.tests",
         "//tools/adt/idea/android:intellij.android.core",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
         "//tools/adt/idea/memory-usage",

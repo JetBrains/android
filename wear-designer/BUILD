@@ -53,7 +53,6 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
         "//tools/adt/idea/.idea/libraries:mockito",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
-        "//tools/adt/idea/android:intellij.android.core.tests",
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/rendering:intellij.android.rendering",

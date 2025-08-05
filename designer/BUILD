@@ -131,7 +131,6 @@ iml_module(
         "//tools/base/lint:studio.android.sdktools.lint-api",
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
         "//tools/adt/idea/rendering:intellij.android.rendering",
-        "//tools/adt/idea/android:intellij.android.core.tests",
         "//tools/adt/idea/ml-api:intellij.android.ml-api",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
