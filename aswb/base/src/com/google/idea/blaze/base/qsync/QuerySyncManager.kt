@@ -604,7 +604,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     )
   }
 
-  private fun enableAnalysisOperation(targets: Set<Label>): QuerySyncOperation =
+  fun enableAnalysisOperation(targets: Set<Label>): QuerySyncOperation =
     operation(
       title = "Building dependencies",
       subTitle = "Building...",
