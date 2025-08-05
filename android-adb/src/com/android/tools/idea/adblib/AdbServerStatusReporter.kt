@@ -33,6 +33,8 @@ import kotlinx.coroutines.launch
 class AdbServerStatusReporter(val statusReporter: (ServerStatus) -> Unit) : ProjectActivity {
   @Suppress("unused") constructor() : this(::reportAdbStatus)
 
+  private val logger = thisLogger()
+
   override suspend fun execute(project: Project) {
     if (!isAndroidEnvironment(project)) {
       return
@@ -42,6 +44,7 @@ class AdbServerStatusReporter(val statusReporter: (ServerStatus) -> Unit) : Proj
       runCatching {
         val serverStatus = retrieveServerStatus(session)
         statusReporter(serverStatus)
+        logger.info("ADB server logs can be found at: ${serverStatus.absoluteLogPath}")
       }.onFailure { e ->
         if (e !is CancellationException) {
           thisLogger().warn("Cannot report `AdbServerStatus` due to a problem with adb server", e)
