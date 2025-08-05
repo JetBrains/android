@@ -74,7 +74,6 @@ gradle.ide.gradle.build.runtime.classpath.for.library.screenshot.tests=COMPLETE:
 gradle.ide.gradle.build.runtime.classpath.for.library.unit.tests=COMPLETE:2024
 gradle.ide.gradle.multi.variant.additional.artifact.support=COMPLETE:2023
 gradle.ide.gradle.skip.runtime.classpath.for.libraries=COMPLETE:2023
-gradle.ide.gradle.sync.control.enabled.stable=COMPLETE:2025
 gradle.ide.gradle.sync.control.enabled=COMPLETE:2025
 gradle.ide.gradle.sync.enable.cached.variants=COMPLETE:2021
 gradle.ide.gradle.sync.fetch.kotlin.models.in.parallel=COMPLETE:2023

@@ -16,7 +16,7 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.flags.StudioFlags.SHOW_GRADLE_AUTO_SYNC_SETTING_IN_NON_EXPERIMENTAL_UI
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.SYNC_DUE_APP_WIDE_SNOOZE_EXPIRATION_DATE
 import com.android.tools.idea.gradle.project.SYNC_DUE_DIALOG_SHOWN
 import com.android.tools.idea.gradle.project.SyncDueMessage
@@ -53,7 +53,7 @@ class AndroidStudioBuildToolsConfigurable :
   private lateinit var autoSyncBehaviorComboBox: ComboBox<AutoSyncBehavior>
   private lateinit var autoSyncBehaviorNote: JEditorPane
   private var autoSyncBehaviorAwaitingSetting: AutoSyncBehavior? = null
-  private val showAutoSyncControl = SHOW_GRADLE_AUTO_SYNC_SETTING_IN_NON_EXPERIMENTAL_UI.get()
+  private val showAutoSyncControl = StudioFlags.SHOW_GRADLE_AUTO_SYNC_SETTING_UI.get()
 
   override fun createPanel(): DialogPanel = panel {
     if (showAutoSyncControl) {

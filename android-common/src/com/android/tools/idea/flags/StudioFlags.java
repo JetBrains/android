@@ -949,10 +949,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> SHOW_GRADLE_AUTO_SYNC_SETTING_UI =
     new BooleanFlag(GRADLE_IDE, "gradle.sync.control.enabled", "Allow disabling of Auto Sync", "Allow opting-out from Gradle Auto Syncing.");
 
-  public static final Flag<Boolean> SHOW_GRADLE_AUTO_SYNC_SETTING_IN_NON_EXPERIMENTAL_UI =
-    new BooleanFlag(GRADLE_IDE, "gradle.sync.control.enabled.stable", "Allow disabling of Auto Sync via non-experimental settings",
-                    "Allow opting-out from Gradle Auto Syncing via non-experimental part of settings.");
-
   public static final Flag<Boolean> EXECUTE_GRADLE_JVM_COMPATIBILITY_CHECK = new BooleanFlag(
     GRADLE_IDE, "execute.gradle.jvm.compatibility.check", "Execute Gradle JVM compatibility check",
     "Run during project opening the Gradle JVM compatibility check to ensure configuration is compatible with selected Gradle and AGP versions.");
