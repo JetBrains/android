@@ -30,7 +30,6 @@ import com.android.tools.idea.gradle.project.sync.convert
 import com.android.tools.idea.projectsystem.gradle.LINKED_ANDROID_GRADLE_MODULE_GROUP
 import com.android.tools.idea.projectsystem.gradle.LinkedAndroidGradleModuleGroup
 import com.android.tools.idea.sdk.AndroidSdks
-import com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase
 import com.intellij.java.workspace.entities.JavaModuleSettingsEntity
 import com.intellij.java.workspace.entities.JavaResourceRootPropertiesEntity
 import com.intellij.java.workspace.entities.JavaSourceRootPropertiesEntity
@@ -88,6 +87,7 @@ import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncContributor
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncListener
+import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase
 import org.jetbrains.plugins.gradle.service.syncAction.virtualFileUrl
 import org.jetbrains.plugins.gradle.service.syncContributor.bridge.GradleBridgeEntitySource
 import org.jetbrains.plugins.gradle.util.GradleConstants
@@ -217,9 +217,9 @@ internal class SyncContributorAndroidProjectContext(
 @ApiStatus.Internal
 class AndroidSourceRootSyncListener : GradleSyncListener {
 
-  override fun onModelFetchPhaseCompleted(
+  override fun onSyncPhaseCompleted(
     context: ProjectResolverContext,
-    phase: GradleModelFetchPhase,
+    phase: GradleSyncPhase,
   ) {
     performModuleActions(context)
   }
@@ -248,19 +248,18 @@ class AndroidSourceRootSyncListener : GradleSyncListener {
 @Order(GradleSyncContributor.Order.SOURCE_ROOT_CONTRIBUTOR)
 class AndroidSourceRootSyncContributor : GradleSyncContributor {
 
-  override suspend fun onModelFetchPhaseCompleted(
+  override val phase: GradleSyncPhase = GradleSyncPhase.SOURCE_SET_MODEL_PHASE
+
+  override suspend fun configureProjectModel(
     context: ProjectResolverContext,
     storage: MutableEntityStorage,
-    phase: GradleModelFetchPhase,
   ) {
     if (!context.isPhasedSyncEnabled) return
 
-    if (phase == GradleModelFetchPhase.SOURCE_SET_MODEL_PHASE) {
-      val result = configureModulesForSourceSets(context, storage.toSnapshot())
-      // Only replace the android related source sets
-      storage.replaceBySource({ it in result.knownEntitySources }, result.updatedStorage)
-      context.putUserData(AndroidSourceRootSyncListener.MODULE_ACTION_KEY, result.allModuleActions)
-    }
+    val result = configureModulesForSourceSets(context, storage.toSnapshot())
+    // Only replace the android related source sets
+    storage.replaceBySource({ it in result.knownEntitySources }, result.updatedStorage)
+    context.putUserData(AndroidSourceRootSyncListener.MODULE_ACTION_KEY, result.allModuleActions)
   }
 
   /**

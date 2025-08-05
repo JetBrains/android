@@ -19,7 +19,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.idea.SyncContributorProjectContext
 import com.android.tools.idea.gradle.project.sync.idea.createModuleEntity
 import com.android.tools.idea.gradle.project.sync.idea.resolveModuleName
-import com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase
 import com.intellij.openapi.externalSystem.util.Order
 import com.intellij.openapi.project.Project
 import com.intellij.platform.workspace.jps.entities.ContentRootEntity
@@ -30,6 +29,7 @@ import com.intellij.platform.workspace.storage.entities
 import com.intellij.workspaceModel.ide.legacyBridge.findModule
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncContributor
+import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase
 import org.jetbrains.plugins.gradle.service.syncAction.virtualFileUrl
 import org.jetbrains.plugins.gradle.service.syncContributor.bridge.GradleBridgeEntitySource
 
@@ -43,21 +43,22 @@ import org.jetbrains.plugins.gradle.service.syncContributor.bridge.GradleBridgeE
 @Suppress("UnstableApiUsage")
 @Order(GradleSyncContributor.Order.CONTENT_ROOT_CONTRIBUTOR + 1)
 class FixSyncContributorIssues: GradleSyncContributor {
-  override suspend fun onModelFetchPhaseCompleted(context: ProjectResolverContext,
-                                                  storage: MutableEntityStorage,
-                                                  phase: GradleModelFetchPhase) {
+
+  override val phase: GradleSyncPhase = GradleSyncPhase.PROJECT_MODEL_PHASE
+
+  override suspend fun configureProjectModel(
+    context: ProjectResolverContext,
+    storage: MutableEntityStorage,
+  ) {
     if (!context.isPhasedSyncEnabled || !StudioFlags.PHASED_SYNC_BRIDGE_DATA_SERVICE_DISABLED.get()) {
       // If data bridge is not disabled, everything that was set up by phased sync will be removed, so no need to do anything.
       return
     }
 
-    if (phase == GradleModelFetchPhase.PROJECT_MODEL_PHASE) {
+    // Keep the root module as an iml based entity, because many things go wrong if there isn't at least one .iml based module
+    removeGradleBasedEntitiesForRootModule(context, storage)
 
-      // Keep the root module as an iml based entity, because many things go wrong if there isn't at least one .iml based module
-      removeGradleBasedEntitiesForRootModule(context, storage)
-
-      reconcileExistingHolderModules(context, context.project, storage)
-    }
+    reconcileExistingHolderModules(context, context.project, storage)
   }
 
   private fun reconcileExistingHolderModules(context: ProjectResolverContext, project: Project, storage: MutableEntityStorage) {
