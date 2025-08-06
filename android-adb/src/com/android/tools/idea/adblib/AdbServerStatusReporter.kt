@@ -42,9 +42,10 @@ class AdbServerStatusReporter(val statusReporter: (ServerStatus) -> Unit) : Proj
     val session = AdbLibService.getInstance(project).session
     session.scope.launch {
       runCatching {
-        val serverStatus = retrieveServerStatus(session)
-        statusReporter(serverStatus)
-        logger.info("ADB server logs can be found at: ${serverStatus.absoluteLogPath}")
+        retrieveServerStatus(session)?.let { serverStatus ->
+          statusReporter(serverStatus)
+          logger.info("ADB server logs can be found at: ${serverStatus.absoluteLogPath}")
+        }
       }.onFailure { e ->
         if (e !is CancellationException) {
           thisLogger().warn("Cannot report `AdbServerStatus` due to a problem with adb server", e)
@@ -53,11 +54,10 @@ class AdbServerStatusReporter(val statusReporter: (ServerStatus) -> Unit) : Proj
     }
   }
 
-  private suspend fun retrieveServerStatus(session: AdbSession): ServerStatus {
-    if (!session.hostServices.hostFeatures().contains(AdbFeatures.SERVER_STATUS)) {
-      return ServerStatus()
-    }
-    return session.hostServices.serverStatus()
+  private suspend fun retrieveServerStatus(session: AdbSession): ServerStatus? {
+    return if (session.hostServices.hostFeatures().contains(AdbFeatures.SERVER_STATUS)) {
+      session.hostServices.serverStatus()
+    } else null
   }
 }
 
@@ -70,21 +70,23 @@ private fun reportAdbStatus(serverStatus: ServerStatus) {
           .setIsManaged(AdbOptionsService.getInstance().optionsUpdater.useUserManagedAdb())
           .setVersion(serverStatus.version)
           .setIsUsbBackendForced(serverStatus.usbBackendForced)
-          .setUsbBackend(
-            when (serverStatus.usbBackend) {
-              ServerStatus.UsbBackend.UNKNOWN -> AdbServerStatus.USBBackend.TYPE_USB_UNKNOWN
-              ServerStatus.UsbBackend.LIBUSB -> AdbServerStatus.USBBackend.TYPE_LIBUSB
-              ServerStatus.UsbBackend.NATIVE -> AdbServerStatus.USBBackend.TYPE_NATIVE
-            }
-          )
-          .setMdnsBackend(
-            when (serverStatus.mdnsBackEnd) {
-              ServerStatus.MdnsBackend.UNKNOWN -> AdbServerStatus.MDNSBackend.TYPE_MDNS_UNKNOWN
-              ServerStatus.MdnsBackend.BONJOUR -> AdbServerStatus.MDNSBackend.TYPE_BONJOUR
-              ServerStatus.MdnsBackend.OPENSCREEN -> AdbServerStatus.MDNSBackend.TYPE_OPENSCREEN
-            }
-          )
+          .setUsbBackend(serverStatus.usbBackend.toProto())
+          .setMdnsBackend(serverStatus.mdnsBackEnd.toProto())
           .setIsMdnsBackendForced(serverStatus.mdnsBackEndForced)
       )
   )
 }
+
+private fun ServerStatus.UsbBackend.toProto(): AdbServerStatus.USBBackend =
+  when (this) {
+    ServerStatus.UsbBackend.UNKNOWN -> AdbServerStatus.USBBackend.TYPE_USB_UNKNOWN
+    ServerStatus.UsbBackend.LIBUSB -> AdbServerStatus.USBBackend.TYPE_LIBUSB
+    ServerStatus.UsbBackend.NATIVE -> AdbServerStatus.USBBackend.TYPE_NATIVE
+  }
+
+private fun ServerStatus.MdnsBackend.toProto(): AdbServerStatus.MDNSBackend =
+  when (this) {
+    ServerStatus.MdnsBackend.UNKNOWN -> AdbServerStatus.MDNSBackend.TYPE_MDNS_UNKNOWN
+    ServerStatus.MdnsBackend.BONJOUR -> AdbServerStatus.MDNSBackend.TYPE_BONJOUR
+    ServerStatus.MdnsBackend.OPENSCREEN -> AdbServerStatus.MDNSBackend.TYPE_OPENSCREEN
+  }
