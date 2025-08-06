@@ -2248,6 +2248,11 @@ public final class StudioFlags {
                     "Enable next edit/action prediction in the IDE",
                     "Enable next edit/action prediction in the IDE");
 
+  public static final Flag<Boolean> STUDIOBOT_AGENT_EXPERIMENTAL_BUILD_PROMPT =
+    new BooleanFlag(STUDIOBOT, "agent.experimental.build.prompt",
+                    "Enable build-related instructions in the prompt",
+                    "Enable build-related instructions in the prompt");
+
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI
