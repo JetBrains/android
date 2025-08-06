@@ -42,6 +42,10 @@ class SafeArgsModeGradleToken : SafeArgsModeToken<GradleProjectSystem>, GradleTo
         GoogleMavenArtifactId.ANDROIDX_NAVIGATION_COMMON.getModule(),
         DependencyScopeType.MAIN,
       )
+        ?: moduleSystem.getResolvedDependency(
+          GoogleMavenArtifactId.ANDROIDX_NAVIGATION_COMMON_ANDROID.getModule(),
+          DependencyScopeType.MAIN,
+        )
     return component?.version?.toSafeArgsFeatures() ?: setOf()
   }
 
