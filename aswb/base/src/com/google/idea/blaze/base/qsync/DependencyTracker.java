@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
  */
 public interface DependencyTracker {
   BoolExperiment gatherJdeps =
-    new BoolExperiment("qsync.gather.jdeps", false);
+    new BoolExperiment("qsync.gather.jdeps", true);
 
   /**
    * Builds the external dependencies of the given target(s), putting the resultant libraries in the

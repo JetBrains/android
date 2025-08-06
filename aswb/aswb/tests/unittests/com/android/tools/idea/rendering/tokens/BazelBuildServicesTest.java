@@ -76,6 +76,7 @@ public final class BazelBuildServicesTest {
                               OutputGroup.TRANSITIVE_RUNTIME_JARS,
                               OutputGroup.AARS,
                               OutputGroup.GENSRCS,
+                              OutputGroup.JDEPS,
                               OutputGroup.ARTIFACT_INFO_FILE);
 
       assertEquals(1, builds.size());

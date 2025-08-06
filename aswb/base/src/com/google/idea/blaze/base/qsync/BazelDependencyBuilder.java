@@ -65,6 +65,7 @@ import com.google.idea.blaze.common.proto.ProtoStringInterner;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.BlazeQueryParser;
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext;
+import com.google.idea.blaze.qsync.deps.NewArtifactTracker;
 import com.google.idea.blaze.qsync.deps.OutputGroup;
 import com.google.idea.blaze.qsync.deps.OutputInfo;
 import com.google.idea.blaze.qsync.java.JavaTargetInfo.JavaArtifacts;
@@ -85,6 +86,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.AbstractMap;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -492,7 +494,9 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
     Map<Path, CcCompilationInfo> ccInfos =
         readAndTransformInfoFiles(context, ccArtifactInfoFiles, this::readCcInfoFile);
     Map<Path, Deps.Dependencies> jdeps =
-      readAndTransformInfoFiles(context, compileJdepsFiles, this::readJdepsFile);
+      NewArtifactTracker.enableJdepsDependencyGraph.isEnabled() ?
+      readAndTransformInfoFiles(context, compileJdepsFiles, this::readJdepsFile)
+                                                                : Collections.emptyMap();
 
     ccInfoBuilder.addAll(ccInfos.values());
 
