@@ -23,11 +23,14 @@ import com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase
 import com.intellij.openapi.externalSystem.util.Order
 import com.intellij.openapi.project.Project
 import com.intellij.platform.workspace.jps.entities.ContentRootEntity
+import com.intellij.platform.workspace.jps.entities.ModuleEntity
 import com.intellij.platform.workspace.jps.entities.ModuleId
 import com.intellij.platform.workspace.storage.MutableEntityStorage
+import com.intellij.platform.workspace.storage.entities
 import com.intellij.workspaceModel.ide.legacyBridge.findModule
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncContributor
+import org.jetbrains.plugins.gradle.service.syncContributor.entitites.GradleProjectEntitySource
 
 /**
  * This is a sync contributor that runs after the platform's content root contributor to fix-up any issues caused by it and makes sure
@@ -48,6 +51,10 @@ class FixSyncContributorIssues: GradleSyncContributor {
     }
 
     if (phase == GradleModelFetchPhase.PROJECT_MODEL_PHASE) {
+
+      // Keep the root module as an iml based entity, because many things go wrong if there isn't at least one .iml based module
+      removeGradleBasedEntitiesForRootModule(storage)
+
       reconcileExistingHolderModules(context, context.project, storage)
     }
   }
@@ -67,6 +74,26 @@ class FixSyncContributorIssues: GradleSyncContributor {
           storage addEntity createModuleEntity(resolveModuleName(), projectEntitySource)
         }
       }
+    }
+  }
+
+  /**
+   * We keep the root module as an iml based entity, because a lot of things go wrong if we don't.
+   * Specifically [com.intellij.workspaceModel.ide.impl.legacyBridge.module.ModuleBridgeLoaderService] currently disregards
+   * the entire workspace model if there are no iml based entities at all.
+   *
+   * Also see for more context:
+   * [com.intellij.workspaceModel.ide.impl.jps.serialization.JpsProjectModelSynchronizer.hasNoSerializedJpsModules]
+   *
+   * TODO(b/384022658): We should aim to delete this in the long term, but for now it should be fine to keep.
+   */
+  private fun removeGradleBasedEntitiesForRootModule(storage: MutableEntityStorage) {
+    storage.entities<ModuleEntity>().filter {
+      it.entitySource is GradleProjectEntitySource
+      && (it.entitySource as GradleProjectEntitySource).buildEntitySource.linkedProjectEntitySource.projectRootUrl ==
+      (it.entitySource as GradleProjectEntitySource).projectRootUrl
+    }.forEach {
+      storage.removeEntity(it)
     }
   }
 }
