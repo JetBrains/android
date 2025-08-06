@@ -150,7 +150,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_8_10_2 -> Version.parse("1.6.21")
         VERSION_8_11_1 -> Version.parse("1.6.21")
         VERSION_8_13 -> Version.parse("1.6.21")
-        VERSION_FOR_DEV -> Version.parse("1.6.21")
+        VERSION_FOR_DEV -> Version.parse("2.0.0")
       }
 
     fun `androidx-navigation-safeargs-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
@@ -197,7 +197,8 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_4_4, VERSION_4_6, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
         VERSION_6_5, VERSION_6_7_1, VERSION_7_0_2 -> Version.parse("1.2.1")
         VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_7_5, VERSION_8_0, VERSION_8_2, VERSION_8_4, VERSION_8_6,
-        VERSION_8_7, VERSION_8_9, VERSION_8_10_2, VERSION_8_11_1, VERSION_8_13, VERSION_FOR_DEV -> Version.parse("1.4.1")
+        VERSION_8_7, VERSION_8_9, VERSION_8_10_2, VERSION_8_11_1, VERSION_8_13 -> Version.parse("1.4.1")
+        VERSION_FOR_DEV -> Version.parse("2.0.0")
       }
 
     fun `com-google-android-gms-oss-licenses-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
