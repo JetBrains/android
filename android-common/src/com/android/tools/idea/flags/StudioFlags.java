@@ -2190,6 +2190,11 @@ public final class StudioFlags {
                     "Enable using Deployment Agent tools by default",
                     "When enabled, a set of tools allowing the agent to use deployment tools like Live Edit will be included by default.");
 
+  public static final Flag<Boolean> STUDIOBOT_DEPLOY_VIBE_EDIT_AGENT =
+    new BooleanFlag(STUDIOBOT, "deploy.vibe.edit.agent",
+                    "Enable Vibe Edit Agent",
+                    "When enabled, allow launch of Vibe Edit agent.");
+
   public static final Flag<Boolean> GEMINI_AGENT_MODE =
     new BooleanFlag(STUDIOBOT, "agent.mode",
                     "Enable agent mode.",

@@ -30,6 +30,7 @@ import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE
 import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.PIGGYBACK_ACTION_ID
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.flags.StudioFlags.STUDIOBOT_DEPLOY_VIBE_EDIT_AGENT
 import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
@@ -197,7 +198,15 @@ private fun createInformationPopup(project: Project, dataContext: DataContext) :
         null
       }
 
+    val vibeEditAgent =
+      if (STUDIOBOT_DEPLOY_VIBE_EDIT_AGENT.get()) {
+        AnActionLink("Vibe Edit Agent", LiveEditStudioBotActionFactory.EP_NAME.extensionList.get(0).vibeEditAgentAction())
+      } else {
+        null
+      }
+
     val configureLiveEditAction = ConfigureLiveEditAction()
+
     return@let InformationPopupImpl(
       null,
       if (LiveEditService.isLeTriggerManual()) status.descriptionManualMode ?: status.description else status.description,
@@ -206,6 +215,7 @@ private fun createInformationPopup(project: Project, dataContext: DataContext) :
         redeployLink,
         statusActionLink,
         upgradeAssistant,
+        vibeEditAgent,
         AnActionLink("View Docs",
                      BrowserHelpAction("Live Edit Docs",
                                        "https://developer.android.com/jetpack/compose/tooling/iterative-development#live-edit")),

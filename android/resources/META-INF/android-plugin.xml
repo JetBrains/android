@@ -681,6 +681,8 @@
     <extensionPoint qualifiedName="com.android.ide.sdkEventListener"
                     interface="com.android.tools.idea.sdk.IdeSdks$AndroidSdkEventListener"/>
     <extensionPoint qualifiedName="com.android.run.deployTargetProvider" interface="com.android.tools.idea.run.editor.DeployTargetProvider" />
+    <extensionPoint qualifiedName="com.android.tools.idea.run.deployment.liveedit.liveEditStudioBotActionFactory"
+                    interface="com.android.tools.idea.editors.liveedit.ui.LiveEditStudioBotActionFactory" />
     <extensionPoint qualifiedName="com.android.tools.idea.run.deployment.liveedit.vibeTransformerProvider"
                     interface="com.android.tools.idea.run.deployment.liveedit.VibeTransformerProvider" />
     <extensionPoint qualifiedName="com.android.ide.androidConfigurableContributor"
