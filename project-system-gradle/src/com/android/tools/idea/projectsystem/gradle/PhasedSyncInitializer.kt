@@ -16,13 +16,16 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectEntitySource
 import com.android.tools.idea.gradle.project.sync.idea.SyncContributorProjectContext
 import com.android.tools.idea.gradle.project.sync.idea.createModuleEntity
 import com.android.tools.idea.gradle.project.sync.idea.resolveHolderModuleName
 import com.intellij.openapi.externalSystem.util.Order
 import com.intellij.platform.workspace.jps.entities.ContentRootEntity
+import com.intellij.platform.workspace.jps.entities.ModuleEntity
 import com.intellij.platform.workspace.jps.entities.ModuleId
 import com.intellij.platform.workspace.storage.MutableEntityStorage
+import com.intellij.platform.workspace.storage.entities
 import com.intellij.workspaceModel.ide.legacyBridge.findModule
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncExtension
@@ -51,6 +54,9 @@ internal class FixSyncContributorIssues : GradleSyncExtension {
       return
     }
 
+    // Keep the root module as an iml based entity, because many things go wrong if there isn't at least one .iml based module
+    removeGradleBasedEntitiesForRootModule(syncStorage)
+
     reconcileExistingHolderModules(context, syncStorage, phase)
   }
 
@@ -69,6 +75,27 @@ internal class FixSyncContributorIssues : GradleSyncExtension {
           storage addEntity createModuleEntity(resolveHolderModuleName(), projectEntitySource)
         }
       }
+    }
+  }
+
+  /**
+   * We keep the root module as an iml based entity, because a lot of things go wrong if we don't.
+   * Specifically [com.intellij.workspaceModel.ide.impl.legacyBridge.module.ModuleBridgeLoaderService] currently disregards
+   * the entire workspace model if there are no iml based entities at all.
+   *
+   * Also see for more context:
+   * [com.intellij.workspaceModel.ide.impl.jps.serialization.JpsProjectModelSynchronizer.hasNoSerializedJpsModules]
+   *
+   * TODO(b/384022658): We should aim to delete this in the long term, but for now it should be fine to keep.
+   */
+  private fun removeGradleBasedEntitiesForRootModule(storage: MutableEntityStorage) {
+    storage.entities<ModuleEntity>().filter {
+      it.entitySource is AndroidGradleProjectEntitySource
+      // TODO: android merge
+      //&& (it.entitySource as AndroidGradleProjectEntitySource).buildEntitySource.linkedProjectEntitySource.projectRootUrl ==
+      //(it.entitySource as AndroidGradleProjectEntitySource).projectRootUrl
+    }.forEach {
+      storage.removeEntity(it)
     }
   }
 }
