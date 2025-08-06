@@ -33,6 +33,7 @@ import com.google.devrel.gmscore.tools.apk.arsc.Chunk
 import com.google.devrel.gmscore.tools.apk.arsc.ChunkWithChunks
 import com.intellij.diff.util.FileEditorBase
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager
@@ -135,8 +136,11 @@ class ApkEditorTest {
     Files.copy(apk2, apk, REPLACE_EXISTING)
     val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(apk.toFile()) ?: fail("Can't find file")
     @Suppress("UnstableApiUsage")
-    ApplicationManager.getApplication().messageBus.syncPublisher(VirtualFileManager.VFS_CHANGES).after(
-      listOf(VFileContentChangeEvent(this, virtualFile, 0, 0)))
+    runWriteAction {
+      ApplicationManager.getApplication().messageBus.syncPublisher(VirtualFileManager.VFS_CHANGES).after(
+        listOf(VFileContentChangeEvent(this, virtualFile, 0, 0)))
+    }
+
 
     waitForCondition {
       apkEditor.getNodes().sorted() == listOf(
