@@ -82,9 +82,6 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
 import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons
-import org.jetbrains.annotations.Nls
-import org.jetbrains.annotations.NonNls
-import org.jetbrains.kotlin.utils.SmartSet
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
@@ -125,6 +122,9 @@ import javax.swing.table.TableRowSorter
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 import kotlin.math.max
+import org.jetbrains.annotations.Nls
+import org.jetbrains.annotations.NonNls
+import org.jetbrains.kotlin.utils.SmartSet
 
 /**
  * Dialog for managing emulator snapshots.

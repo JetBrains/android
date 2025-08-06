@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.streaming.device
 
-import kotlinx.coroutines.CancellableContinuation
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withContext
 import java.io.EOFException
 import java.io.IOException
 import java.net.SocketAddress
@@ -30,6 +26,10 @@ import java.nio.channels.InterruptedByTimeoutException
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import kotlinx.coroutines.CancellableContinuation
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 
 /**
  * Coroutine-friendly wrapper around an [AsynchronousSocketChannel] with suspending read and write

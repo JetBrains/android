@@ -65,12 +65,12 @@ import com.intellij.util.xmlb.XmlSerializerUtil
 import com.intellij.util.xmlb.annotations.Property
 import icons.StudioIcons
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap
-import org.jetbrains.annotations.TestOnly
 import java.awt.EventQueue
 import java.util.function.IntFunction
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
+import org.jetbrains.annotations.TestOnly
 
 private val LOG get() = Logger.getInstance(EmulatorToolWindowPanel::class.java)
 

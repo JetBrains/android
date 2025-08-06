@@ -48,14 +48,14 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.platform.ide.progress.withBackgroundProgress
 import com.intellij.platform.ide.progress.withModalProgress
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.io.IOException
 import javax.imageio.IIOException
 import javax.imageio.ImageIO
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 /** Takes a screenshot of the Emulator display, saves it to a file, and opens it in editor. */
 class EmulatorScreenshotAction : AbstractEmulatorAction() {

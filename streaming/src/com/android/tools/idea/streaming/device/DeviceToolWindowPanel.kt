@@ -51,13 +51,13 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBColor
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap
-import kotlinx.coroutines.launch
 import java.awt.EventQueue
 import java.util.concurrent.TimeoutException
 import java.util.function.IntFunction
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlinx.coroutines.launch
 
 /**
  * Provides view of one physical device in the Running Devices tool window.

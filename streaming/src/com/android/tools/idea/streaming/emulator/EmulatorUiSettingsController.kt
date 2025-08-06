@@ -32,13 +32,13 @@ import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
 import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.util.Locale
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
-import java.text.DecimalFormat
-import java.text.DecimalFormatSymbols
-import java.util.Locale
 
 private const val DIVIDER_PREFIX = "-- "
 private const val DARK_MODE_DIVIDER = "-- Dark Mode --"

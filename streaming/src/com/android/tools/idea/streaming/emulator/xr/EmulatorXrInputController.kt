@@ -36,13 +36,13 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import io.ktor.util.collections.ConcurrentMap
-import kotlinx.coroutines.suspendCancellableCoroutine
 import java.awt.Dimension
 import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.math.min
+import kotlinx.coroutines.suspendCancellableCoroutine
 
 /**
  * Orchestrates mouse and keyboard input for XR devices. Keeps track of XR environment and passthrough.

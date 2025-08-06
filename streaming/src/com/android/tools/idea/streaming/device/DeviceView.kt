@@ -85,7 +85,6 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.Alarm
 import com.intellij.util.ui.UIUtil
 import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap
-import kotlinx.coroutines.launch
 import java.awt.Dimension
 import java.awt.EventQueue
 import java.awt.Graphics
@@ -126,6 +125,7 @@ import java.util.concurrent.atomic.AtomicReference
 import javax.swing.KeyStroke
 import kotlin.math.absoluteValue
 import kotlin.math.min
+import kotlinx.coroutines.launch
 
 /**
  * A view of a mirrored device display.

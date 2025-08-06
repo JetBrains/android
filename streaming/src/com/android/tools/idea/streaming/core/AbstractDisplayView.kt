@@ -44,7 +44,6 @@ import com.intellij.ui.PopupHandler
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.JBUI
-import kotlinx.coroutines.launch
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
@@ -93,6 +92,7 @@ import kotlin.math.log2
 import kotlin.math.max
 import kotlin.math.round
 import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 
 /**
  * Common base class for [com.android.tools.idea.streaming.emulator.EmulatorView] and

@@ -4,7 +4,6 @@ package com.android.tools.idea.streaming.core
 import com.intellij.ui.paint.PaintUtil
 import com.intellij.ui.scale.ScaleContext
 import com.intellij.util.ui.GraphicsUtil
-import org.intellij.lang.annotations.MagicConstant
 import java.awt.AWTException
 import java.awt.AlphaComposite
 import java.awt.Dimension
@@ -14,6 +13,7 @@ import java.awt.GraphicsConfiguration
 import java.awt.ImageCapabilities
 import java.awt.Transparency
 import java.awt.image.VolatileImage
+import org.intellij.lang.annotations.MagicConstant
 
 /**
  * Allows painting with the help of an intermediate buffer

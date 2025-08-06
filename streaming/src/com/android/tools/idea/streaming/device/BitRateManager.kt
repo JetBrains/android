@@ -27,8 +27,8 @@ import com.intellij.openapi.components.service
 import com.intellij.util.xmlb.Constants
 import com.intellij.util.xmlb.XmlSerializerUtil
 import com.intellij.util.xmlb.annotations.XCollection
-import org.jetbrains.annotations.TestOnly
 import java.io.StringWriter
+import org.jetbrains.annotations.TestOnly
 
 private const val MAX_DEVICE_TYPES = 200
 private const val PROMOTION_THRESHOLD = 1000

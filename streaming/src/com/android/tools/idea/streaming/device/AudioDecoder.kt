@@ -19,6 +19,14 @@ import com.android.annotations.concurrency.GuardedBy
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
+import java.io.EOFException
+import java.lang.Long.toHexString
+import java.nio.ByteBuffer
+import java.nio.ByteOrder.LITTLE_ENDIAN
+import java.nio.channels.ClosedChannelException
+import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.atomic.AtomicReference
+import javax.sound.sampled.AudioFormat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
@@ -60,14 +68,6 @@ import org.bytedeco.javacpp.BytePointer
 import org.bytedeco.javacpp.IntPointer
 import org.bytedeco.javacpp.Pointer
 import org.bytedeco.javacpp.Pointer.memcpy
-import java.io.EOFException
-import java.lang.Long.toHexString
-import java.nio.ByteBuffer
-import java.nio.ByteOrder.LITTLE_ENDIAN
-import java.nio.channels.ClosedChannelException
-import java.util.concurrent.ArrayBlockingQueue
-import java.util.concurrent.atomic.AtomicReference
-import javax.sound.sampled.AudioFormat
 
 internal class AudioDecoder(
   private val audioChannel: SuspendingSocketChannel,

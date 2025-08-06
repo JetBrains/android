@@ -35,9 +35,6 @@ import com.intellij.util.ui.GraphicsUtil.setupAAPainting
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.CurrentTheme.Toolbar.SEPARATOR_COLOR
 import com.intellij.util.ui.components.BorderLayoutPanel
-import org.intellij.lang.annotations.MagicConstant
-import org.jetbrains.annotations.NonNls
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.AlphaComposite
 import java.awt.Component
 import java.awt.Container
@@ -62,6 +59,9 @@ import javax.swing.SwingConstants.HORIZONTAL
 import javax.swing.SwingConstants.VERTICAL
 import kotlin.math.max
 import kotlin.math.min
+import org.intellij.lang.annotations.MagicConstant
+import org.jetbrains.annotations.NonNls
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * A container a floating toolbars that may change their appearance depending on current mouse

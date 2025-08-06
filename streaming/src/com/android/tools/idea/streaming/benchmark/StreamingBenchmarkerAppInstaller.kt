@@ -30,11 +30,11 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.project.modules
-import kotlinx.coroutines.flow.first
-import org.jetbrains.android.facet.AndroidFacet
 import java.nio.file.Path
 import java.util.Base64
 import kotlin.time.Duration.Companion.hours
+import kotlinx.coroutines.flow.first
+import org.jetbrains.android.facet.AndroidFacet
 
 private const val APK_NAME = "streaming-benchmarker.apk"
 private const val PROJECT_NAME = "streaming-benchmarker"

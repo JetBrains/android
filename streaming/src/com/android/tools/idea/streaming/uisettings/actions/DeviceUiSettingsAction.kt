@@ -27,10 +27,10 @@ import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.EDT
+import java.awt.Dimension
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.awt.Dimension
 
 /** Opens a picker with UI settings of a physical device. */
 internal class DeviceUiSettingsAction : AbstractDeviceAction(

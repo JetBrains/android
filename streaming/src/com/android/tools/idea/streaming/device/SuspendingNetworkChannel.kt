@@ -16,16 +16,16 @@
 package com.android.tools.idea.streaming.device
 
 import com.intellij.openapi.diagnostic.thisLogger
-import kotlinx.coroutines.CancellableContinuation
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.net.SocketAddress
 import java.net.SocketOption
 import java.nio.channels.ClosedChannelException
 import java.nio.channels.NetworkChannel
 import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.CancellableContinuation
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.withContext
 
 /**
  * Base class for [SuspendingSocketChannel] and [SuspendingServerSocketChannel].

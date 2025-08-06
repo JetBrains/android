@@ -49,18 +49,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.Strings.capitalize
 import com.intellij.util.containers.ContainerUtil.createLockFreeCopyOnWriteList
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.async
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.withTimeout
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import java.io.EOFException
 import java.io.IOException
@@ -77,6 +65,18 @@ import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.IntFunction
 import kotlin.math.min
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.withTimeout
+import org.jetbrains.android.facet.AndroidFacet
 
 // Predefined agent's exit codes. Other exit codes are possible.
 internal const val AGENT_GENERIC_FAILURE = 1

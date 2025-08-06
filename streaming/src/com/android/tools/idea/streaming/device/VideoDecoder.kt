@@ -31,6 +31,23 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.text.StringUtil.toHexString
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.io.toByteArray
+import java.awt.Dimension
+import java.awt.Point
+import java.awt.color.ColorSpace
+import java.awt.image.BufferedImage
+import java.awt.image.DataBuffer
+import java.awt.image.DataBufferInt
+import java.awt.image.DirectColorModel
+import java.awt.image.Raster
+import java.awt.image.SinglePixelPackedSampleModel
+import java.io.EOFException
+import java.lang.Long.toHexString
+import java.nio.ByteBuffer
+import java.nio.ByteOrder.LITTLE_ENDIAN
+import java.nio.channels.ClosedChannelException
+import java.util.concurrent.ConcurrentHashMap
+import java.util.function.Consumer
+import kotlin.text.Charsets.UTF_8
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -78,23 +95,6 @@ import org.bytedeco.javacpp.IntPointer
 import org.bytedeco.javacpp.Pointer
 import org.bytedeco.javacpp.Pointer.memcpy
 import org.jetbrains.annotations.VisibleForTesting
-import java.awt.Dimension
-import java.awt.Point
-import java.awt.color.ColorSpace
-import java.awt.image.BufferedImage
-import java.awt.image.DataBuffer
-import java.awt.image.DataBufferInt
-import java.awt.image.DirectColorModel
-import java.awt.image.Raster
-import java.awt.image.SinglePixelPackedSampleModel
-import java.io.EOFException
-import java.lang.Long.toHexString
-import java.nio.ByteBuffer
-import java.nio.ByteOrder.LITTLE_ENDIAN
-import java.nio.channels.ClosedChannelException
-import java.util.concurrent.ConcurrentHashMap
-import java.util.function.Consumer
-import kotlin.text.Charsets.UTF_8
 
 class VideoDecoder internal constructor(
   private val videoChannel: SuspendingSocketChannel,

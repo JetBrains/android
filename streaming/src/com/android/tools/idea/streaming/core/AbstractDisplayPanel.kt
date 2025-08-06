@@ -34,7 +34,6 @@ import com.intellij.ui.components.JBScrollBar
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
-import org.intellij.lang.annotations.JdkConstants.AdjustableOrientation
 import java.awt.Adjustable
 import java.awt.BorderLayout
 import java.awt.Component
@@ -50,6 +49,7 @@ import javax.swing.JScrollPane
 import javax.swing.border.Border
 import javax.swing.border.EmptyBorder
 import javax.swing.plaf.ScrollBarUI
+import org.intellij.lang.annotations.JdkConstants.AdjustableOrientation
 
 /**
  * Represents a single display of an Android device.

@@ -24,7 +24,6 @@ import com.intellij.ui.PopupBorder
 import com.intellij.ui.WindowMoveListener
 import com.intellij.ui.WindowRoundedCornersManager
 import com.intellij.util.ui.JBUI
-import org.jetbrains.android.util.runOnDisposalOfAnyOf
 import java.awt.Component
 import java.awt.Container
 import java.awt.KeyboardFocusManager
@@ -35,6 +34,7 @@ import javax.swing.JComponent
 import javax.swing.JRootPane
 import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.SwingUtilities
+import org.jetbrains.android.util.runOnDisposalOfAnyOf
 
 private const val HORIZONTAL_MARGIN = 20
 private const val VERTICAL_MARGIN = 8

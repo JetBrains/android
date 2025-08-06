@@ -28,14 +28,14 @@ import com.intellij.ide.dnd.FileCopyPasteUtil
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.project.Project
 import com.intellij.util.ui.UIUtil
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.EnumSet
 import javax.swing.JComponent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 private const val DEVICE_DOWNLOAD_DIR = "/sdcard/Download"
 

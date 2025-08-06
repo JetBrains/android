@@ -35,9 +35,6 @@ import com.intellij.openapi.util.io.FileUtil.getTempDirectory
 import com.intellij.openapi.util.text.StringUtil.parseInt
 import com.intellij.util.Alarm
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Deferred
-import org.jetbrains.annotations.TestOnly
 import java.io.IOException
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
@@ -52,6 +49,9 @@ import java.util.regex.Pattern
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 import kotlin.io.path.deleteIfExists
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
+import org.jetbrains.annotations.TestOnly
 
 /**
  * Keeps track of Android Emulators running on the local machine under the current user account.

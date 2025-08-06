@@ -23,8 +23,12 @@ import com.android.emulator.ImageConverter
 import com.android.emulator.control.DisplayConfiguration
 import com.android.emulator.control.DisplayConfigurationsChangedNotification
 import com.android.emulator.control.DisplayModeValue
+import com.android.emulator.control.Image as ImageMessage
 import com.android.emulator.control.ImageFormat
+import com.android.emulator.control.InputEvent as InputEventMessage
 import com.android.emulator.control.KeyboardEvent.KeyEventType
+import com.android.emulator.control.MouseEvent as MouseEventMessage
+import com.android.emulator.control.Notification as EmulatorNotification
 import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.RotationRadian
 import com.android.emulator.control.Touch
@@ -126,8 +130,6 @@ import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.containers.DisposableWrapperList
 import com.intellij.util.ui.UIUtil
 import com.intellij.xml.util.XmlStringUtil
-import org.HdrHistogram.Histogram
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Dimension
 import java.awt.EventQueue
 import java.awt.Graphics
@@ -184,10 +186,8 @@ import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.roundToInt
-import com.android.emulator.control.Image as ImageMessage
-import com.android.emulator.control.InputEvent as InputEventMessage
-import com.android.emulator.control.MouseEvent as MouseEventMessage
-import com.android.emulator.control.Notification as EmulatorNotification
+import org.HdrHistogram.Histogram
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * A view of the Emulator display optionally encased in the device frame.

@@ -81,7 +81,6 @@ import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.util.Alarm
 import com.intellij.util.containers.DisposableWrapperList
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap
-import org.jetbrains.annotations.TestOnly
 import java.io.IOException
 import java.io.InputStream
 import java.lang.ref.Reference
@@ -94,6 +93,7 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.max
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
+import org.jetbrains.annotations.TestOnly
 
 /** Controls a running Emulator. */
 class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposable) : UserDataHolderBase(), Disposable {

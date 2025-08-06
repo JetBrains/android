@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.streaming.device
 
-import kotlinx.coroutines.runBlocking
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.nio.channels.InterruptedByTimeoutException
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.runBlocking
 
 /**
  * Creates a new output stream backed by the given [SuspendingSocketChannel].

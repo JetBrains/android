@@ -47,9 +47,6 @@ import com.intellij.util.IncorrectOperationException
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIllustrations
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import org.jetbrains.annotations.TestOnly
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.event.MouseAdapter
@@ -57,6 +54,9 @@ import java.awt.event.MouseEvent
 import java.util.concurrent.atomic.AtomicInteger
 import javax.swing.SwingConstants
 import javax.swing.event.HyperlinkEvent
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.jetbrains.annotations.TestOnly
 
 private const val MIN_REQUIRED_EMULATOR_VERSION = "35.1.3"
 

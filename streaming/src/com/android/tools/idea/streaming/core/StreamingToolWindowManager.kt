@@ -118,6 +118,15 @@ import com.intellij.util.containers.ComparatorUtil.max
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
+import java.awt.Component
+import java.awt.EventQueue
+import java.awt.event.KeyEvent
+import java.nio.file.Path
+import java.util.function.Supplier
+import javax.swing.JComponent
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
@@ -130,15 +139,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
-import java.awt.Component
-import java.awt.EventQueue
-import java.awt.event.KeyEvent
-import java.nio.file.Path
-import java.util.function.Supplier
-import javax.swing.JComponent
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.toJavaDuration
 
 private const val DEVICE_FRAME_VISIBLE_PROPERTY = "com.android.tools.idea.streaming.emulator.frame.visible"
 private const val DEVICE_FRAME_VISIBLE_DEFAULT = true

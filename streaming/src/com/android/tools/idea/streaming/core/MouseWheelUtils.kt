@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.streaming.core
 
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.event.MouseWheelEvent
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Returns the scroll amount normalized to feel natural.
