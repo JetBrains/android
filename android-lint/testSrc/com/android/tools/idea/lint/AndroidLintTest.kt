@@ -1706,7 +1706,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     createManifest()
     doTestWithFix(
       AndroidLintNewApiInspection(),
-      "Surround with if (VERSION.SDK_INT >= VERSION_CODES_FULL.99_000_09) { ... }",
+      "Surround with if (VERSION.SDK_INT_FULL >= VERSION_CODES_FULL.99_000_09) { ... }",
       "/src/androidx/annotation/RequiresApi.java",
       "java",
     )
@@ -1719,7 +1719,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     createManifest()
     doTestWithFix(
       AndroidLintNewApiInspection(),
-      "Surround with if (VERSION.SDK_INT >= VERSION_CODES_FULL.VANILLA_ICE_CREAM_2) { ... }",
+      "Surround with if (VERSION.SDK_INT_FULL >= VERSION_CODES_FULL.VANILLA_ICE_CREAM_2) { ... }",
       "/src/androidx/annotation/RequiresApi.java",
       "java",
     )
@@ -1732,7 +1732,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     createManifest()
     doTestWithFix(
       AndroidLintNewApiInspection(),
-      "Surround with if (VERSION.SDK_INT >= VERSION_CODES_FULL.99_000_09) { ... }",
+      "Surround with if (VERSION.SDK_INT_FULL >= VERSION_CODES_FULL.99_000_09) { ... }",
       "/src/androidx/annotation/RequiresApi.java",
       "java",
     )
@@ -1745,7 +1745,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     createManifest()
     doTestWithFix(
       AndroidLintNewApiInspection(),
-      "Surround with if (VERSION.SDK_INT >= VERSION_CODES_FULL.99_000_09) { ... }",
+      "Surround with if (VERSION.SDK_INT_FULL >= VERSION_CODES_FULL.99_000_09) { ... }",
       "/src/androidx/annotation/RequiresApi.kt",
       "kt",
     )
@@ -1758,7 +1758,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     createManifest()
     doTestWithFix(
       AndroidLintNewApiInspection(),
-      "Surround with if (VERSION.SDK_INT >= VERSION_CODES_FULL.99_000_09) { ... }",
+      "Surround with if (VERSION.SDK_INT_FULL >= VERSION_CODES_FULL.99_000_09) { ... }",
       "/src/androidx/annotation/RequiresApi.kt",
       "kt",
     )
@@ -1771,7 +1771,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     createManifest()
     doTestWithFix(
       AndroidLintNewApiInspection(),
-      "Surround with if (VERSION.SDK_INT >= VERSION_CODES_FULL.VANILLA_ICE_CREAM_2) { ... }",
+      "Surround with if (VERSION.SDK_INT_FULL >= VERSION_CODES_FULL.VANILLA_ICE_CREAM_2) { ... }",
       "/src/androidx/annotation/RequiresApi.kt",
       "kt",
     )

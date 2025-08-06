@@ -70,7 +70,7 @@ class AddTargetVersionCheckQuickFix(
     if (sdkId == ANDROID_SDK_ID) {
       if (minor > 0) {
         val versionField = getVersionField(api, minor, false)
-        "Surround with if (VERSION.SDK_INT >= VERSION_CODES_FULL.$versionField) { ... }"
+        "Surround with if (VERSION.SDK_INT_FULL >= VERSION_CODES_FULL.$versionField) { ... }"
       } else {
         val versionField = getVersionField(api, false)
         "Surround with if (VERSION.SDK_INT >= ${
