@@ -73,7 +73,7 @@ class CompileSdkBlockModelImpl(dslElement: GradlePropertiesDslElement) : GradleD
     versionLiteral.setValue(version)
     methodCall.addNewArgument(versionLiteral)
 
-    if (minorApi != null || extension != null) {
+    if (checkMinorApiMeaningful(minorApi) || extension != null) {
       val closure = GradleDslClosure(methodCall, null, GradleNameElement.create(RELEASE_NAME))
       methodCall.setNewClosureElement(closure)
 
@@ -85,6 +85,8 @@ class CompileSdkBlockModelImpl(dslElement: GradlePropertiesDslElement) : GradleD
       }
     }
   }
+
+  private fun checkMinorApiMeaningful(minorApi: Int?) = minorApi != null && minorApi != 0
 
   private fun createAssignment(parent: GradleDslElement, value: Int, name: String): GradleDslSimpleExpression {
     val newElement = GradleDslLiteral(parent, GradleNameElement.create(name))
