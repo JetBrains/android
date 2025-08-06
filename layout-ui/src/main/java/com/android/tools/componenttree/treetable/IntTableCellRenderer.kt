@@ -21,7 +21,8 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Component
-import javax.swing.JLabel
+import java.awt.Font
+import java.awt.font.TextAttribute
 import javax.swing.JTable
 import javax.swing.border.Border
 import javax.swing.table.TableCellRenderer
@@ -33,7 +34,7 @@ fun ColumnInfo.createBorder(): Border =
 /** Renderer used each [IntColumn] specified. */
 class IntTableCellRenderer(private val columnInfo: IntColumn) : TableCellRenderer, JBLabel() {
   init {
-    horizontalAlignment = JLabel.CENTER
+    horizontalAlignment = CENTER
     border = columnInfo.createBorder()
   }
 
@@ -47,12 +48,24 @@ class IntTableCellRenderer(private val columnInfo: IntColumn) : TableCellRendere
   ): Component {
     val intValue = columnInfo.getInt(value).takeIf { it != 0 }
     val focused = table.hasFocus()
+    val asLink = columnInfo.isActionEnabled(value)
     text = intValue?.toString() ?: ""
     background = UIUtil.getTableBackground(isSelected, focused)
     foreground =
-      columnInfo.foreground.takeIf { !isSelected || !focused }
-        ?: UIUtil.getTableForeground(isSelected, focused)
+      when {
+        asLink -> JBUI.CurrentTheme.Link.Foreground.ENABLED
+        isSelected && focused -> UIUtil.getTableForeground(true, true)
+        else -> columnInfo.foreground ?: UIUtil.getTableForeground(isSelected, focused)
+      }
+    font = UIUtil.getLabelFont().withUnderline(asLink)
     toolTipText = columnInfo.getTooltipText(value)
     return this
+  }
+
+  private fun Font.withUnderline(underline: Boolean): Font {
+    if (!underline) {
+      return this
+    }
+    return deriveFont(attributes + (TextAttribute.UNDERLINE to TextAttribute.UNDERLINE_ON))
   }
 }

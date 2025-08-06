@@ -29,4 +29,7 @@ interface BadgeItem : ColumnInfo {
    * (The icon from getIcon will be hidden while this hover icon is displayed.)
    */
   fun getHoverIcon(item: Any): Icon? = null
+
+  /** BadgeItems cannot display enabled/disabled badges */
+  override fun isActionEnabled(item: Any): Boolean = true
 }

@@ -30,6 +30,7 @@ import javax.swing.table.TableCellRenderer
  * @param name the name of the column
  * @param getter extractor of the [Int] from the given tree item [T].
  * @param maxInt optional specify the largest (absolute) integer in the column.
+ * @param actionEnabled if true: show the [Int] as a hyperlink to indicate [action] is enabled.
  * @param action to be performed on a single click on the column.
  * @param popup action to be performed on mouse popup on the column.
  * @param tooltip tooltip to show when hovering over the column.
@@ -44,6 +45,7 @@ inline fun <reified T> createIntColumn(
   noinline getter: (T) -> Int?,
   noinline maxInt: () -> Int? = { null },
   noinline minInt: () -> Int? = { null },
+  noinline actionEnabled: (item: T) -> Boolean = { false },
   noinline action: (item: T, component: JComponent, bounds: Rectangle) -> Unit = { _, _, _ -> },
   noinline popup: (item: T, component: JComponent, x: Int, y: Int) -> Unit = { _, _, _, _ -> },
   noinline tooltip: (item: T) -> String? = { _ -> null },
@@ -57,6 +59,7 @@ inline fun <reified T> createIntColumn(
     getter,
     maxInt,
     minInt,
+    actionEnabled,
     action,
     popup,
     tooltip,
@@ -76,6 +79,7 @@ class SingleTypeIntColumn<T>(
   private val getter: (T) -> Int?,
   private val getMaxInt: () -> Int?,
   private val getMinInt: () -> Int?,
+  private val actionEnabled: (item: T) -> Boolean,
   private val action: (item: T, component: JComponent, bounds: Rectangle) -> Unit,
   private val popup: (item: T, component: JComponent, x: Int, y: Int) -> Unit,
   private val tooltip: (item: T) -> String?,
@@ -90,6 +94,10 @@ class SingleTypeIntColumn<T>(
 
   override val minInt: Int?
     get() = getMinInt()
+
+  override fun isActionEnabled(item: Any): Boolean {
+    return cast(item)?.let { actionEnabled(it) } ?: false
+  }
 
   override fun performAction(item: Any, component: JComponent, bounds: Rectangle) {
     cast(item)?.let { action(it, component, bounds) }

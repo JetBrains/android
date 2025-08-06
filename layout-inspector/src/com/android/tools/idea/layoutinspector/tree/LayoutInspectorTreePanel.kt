@@ -190,6 +190,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
         maxInt = { inspectorModel?.maxRecomposition?.count ?: 0 },
         minInt = { 0 },
         headerRenderer = createCountsHeader(),
+        actionEnabled = { item -> isShowRecompositionDetailsEnabled(item.view) },
         action = { item, _, _ -> showRecompositionDetails(item.view) },
       )
 

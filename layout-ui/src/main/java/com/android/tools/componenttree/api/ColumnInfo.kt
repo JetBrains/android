@@ -69,6 +69,9 @@ interface ColumnInfo {
   val insets: Insets
     get() = DEFAULT_INSETS
 
+  /** Return true if the performAction can be performed. */
+  fun isActionEnabled(item: Any): Boolean
+
   /**
    * Perform this action when a cell in this column is clicked on.
    *
