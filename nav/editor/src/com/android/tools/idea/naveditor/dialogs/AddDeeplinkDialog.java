@@ -71,8 +71,8 @@ public class AddDeeplinkDialog extends DialogWrapper {
   @VisibleForTesting
   public CommonTextField<ActionTextFieldModel> myActionField;
 
-  JBLabel myMimeTypeLabel;
-  JBLabel myActionLabel;
+  public JBLabel myMimeTypeLabel;
+  public JBLabel myActionLabel;
 
   private JPanel myContentPanel;
   @Nullable private final NlComponent myExistingComponent;
