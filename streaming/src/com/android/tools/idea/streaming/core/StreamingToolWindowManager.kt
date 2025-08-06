@@ -699,7 +699,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
         emulators.remove(emulator)
         removeEmulatorPanel(emulator)
-        updateLiveIndicator()
       }
     }
   }
