@@ -41,6 +41,8 @@ import java.awt.Dimension
 import java.awt.Point
 import java.awt.datatransfer.DataFlavor
 import java.awt.event.ComponentEvent
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -131,6 +133,49 @@ class DesignSurfaceTest : LayoutTestCase() {
     }
     // Compare as sets because order is not guaranteed due to concurrent additions
     assertEquals(setOf(model1, model2), surface.models.toSet())
+  }
+
+  fun testSetDuplicatedModelConcurrently() {
+    val surface = TestDesignSurface(myModule.project, myModule.project)
+
+    val modelChangeCountDown = CountDownLatch(2)
+    surface.addListener(
+      object : DesignSurfaceListener {
+        override fun modelsChanged(surface: DesignSurface<*>, models: List<NlModel?>) {
+          modelChangeCountDown.countDown()
+        }
+      }
+    )
+
+    val model = model("model.xml", component(RELATIVE_LAYOUT)).build()
+    surface.setModel(model)
+    surface.setModel(model)
+
+    modelChangeCountDown.await(2, TimeUnit.SECONDS)
+    assertEquals(listOf(model), surface.models)
+    assertFalse(model.isDisposed)
+  }
+
+  fun testSetDifferentModelConcurrently() {
+    val surface = TestDesignSurface(myModule.project, myModule.project)
+
+    val modelChangeCountDown = CountDownLatch(2)
+    surface.addListener(
+      object : DesignSurfaceListener {
+        override fun modelsChanged(surface: DesignSurface<*>, models: List<NlModel?>) {
+          modelChangeCountDown.countDown()
+        }
+      }
+    )
+
+    val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).build()
+    val model2 = model("model2.xml", component(RELATIVE_LAYOUT)).build()
+
+    surface.setModel(model1)
+    surface.setModel(model2)
+
+    modelChangeCountDown.await(2, TimeUnit.SECONDS)
+    assertEquals(1, surface.models.size)
   }
 
   fun testRemoveIllegalModel() {
