@@ -54,6 +54,24 @@ public class SdkOrPreviewTransform extends PropertyTransform {
    * no constraint).
    */
   @Nullable private VersionConstraint versionConstraint;
+  @Nullable private Integer position;
+
+  public SdkOrPreviewTransform(
+    @NotNull ModelPropertyDescription propertyDescription,
+    @NotNull String genericSetter,
+    @NotNull String sdkSetter,
+    @NotNull String previewSetter,
+    @Nullable VersionConstraint versionConstraint,
+    @Nullable Integer position
+  ) {
+    super();
+    this.propertyDescription = propertyDescription;
+    this.genericSetter = genericSetter;
+    this.sdkSetter = sdkSetter;
+    this.previewSetter = previewSetter;
+    this.versionConstraint = versionConstraint;
+    this.position = position;
+  }
 
   public SdkOrPreviewTransform(
     @NotNull ModelPropertyDescription propertyDescription,
@@ -62,12 +80,7 @@ public class SdkOrPreviewTransform extends PropertyTransform {
     @NotNull String previewSetter,
     @Nullable VersionConstraint versionConstraint
   ) {
-    super();
-    this.propertyDescription = propertyDescription;
-    this.genericSetter = genericSetter;
-    this.sdkSetter = sdkSetter;
-    this.previewSetter = previewSetter;
-    this.versionConstraint = versionConstraint;
+    this(propertyDescription, genericSetter, sdkSetter, previewSetter, versionConstraint, null);
   }
 
   @Override
@@ -167,7 +180,12 @@ public class SdkOrPreviewTransform extends PropertyTransform {
       propertiesHolder.replaceElement(oldElement, newElement);
     }
     else {
-      propertiesHolder.setNewElement(newElement);
+      if (position != null) {
+        propertiesHolder.addNewElementAt(position, newElement);
+      }
+      else {
+        propertiesHolder.setNewElement(newElement);
+      }
     }
     return newElement;
   }

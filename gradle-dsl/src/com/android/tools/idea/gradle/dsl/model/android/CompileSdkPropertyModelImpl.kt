@@ -41,15 +41,23 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
     @JvmStatic
     fun getOrCreateCompileSdkPropertyModel(parent: GradlePropertiesDslElement, maybeCreateAfter: ResolvedPropertyModel? = null): CompileSdkPropertyModelImpl {
       val context = parent.dslFile.context
-      val agp410plus = VersionConstraint.agpFrom(COMPILE_SDK_INTRODUCED_VERSION)
       val compileSdkBlockVersion = VersionConstraint.agpFrom(COMPILE_SDK_BLOCK_VERSION)
       val compileSdkBlock = parent.getPropertyElement(
         CompileSdkBlockDslElement.COMPILE_SDK
       )
+      val createInPosition = maybeCreateAfter?.let {
+        parent.children.indexOf(it.rawElement).takeIf { it >= 0 }
+      }?.plus(1)
+
       val oldModel =
           GradlePropertyModelBuilder.create(parent, AndroidModelImpl.COMPILE_SDK_VERSION).addTransform(
             SdkOrPreviewTransform(
-              AndroidModelImpl.COMPILE_SDK_VERSION, "compileSdkVersion", "compileSdk", "compileSdkPreview", agp410plus
+              AndroidModelImpl.COMPILE_SDK_VERSION,
+              "compileSdkVersion",
+              "compileSdk",
+              "compileSdkPreview",
+              VersionConstraint.agpFrom(COMPILE_SDK_INTRODUCED_VERSION),
+              createInPosition
             )
           ).buildResolved()
 
@@ -65,13 +73,12 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
         }
         else {
           // brand new element
-          val createAfterPosition = maybeCreateAfter?.let { parent.children.indexOf(it.rawElement) } ?: -1
-          val newCompileSdkBlock = if (createAfterPosition == -1) {
+          val newCompileSdkBlock = if (createInPosition == null) {
             parent.ensurePropertyElement(CompileSdkBlockDslElement.COMPILE_SDK)
           }
           else {
             parent.ensurePropertyElementAt(
-              CompileSdkBlockDslElement.COMPILE_SDK, createAfterPosition + 1
+              CompileSdkBlockDslElement.COMPILE_SDK, createInPosition
             )
           }
           return CompileSdkPropertyModelImpl(CompileSdkBlockPropertyModel(newCompileSdkBlock))

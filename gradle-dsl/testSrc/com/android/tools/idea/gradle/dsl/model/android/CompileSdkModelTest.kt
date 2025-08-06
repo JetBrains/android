@@ -278,6 +278,22 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, TestFile.WRITE_RELEASE_BLOCK_AFTER_ELEMENT_EXPECTED)
   }
 
+  @Test
+  fun testWriteCompileSdkAfterElementForOldAgp() {
+    writeToBuildFile(TestFile.WRITE_RELEASE_BLOCK_AFTER_ELEMENT)
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse("8.12.0")
+
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    val compileSdkVersion = android.compileSdkVersion(android.namespace());
+    assertThat(compileSdkVersion).isNotNull()
+    compileSdkVersion.setValue("android-33")
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, TestFile.WRITE_RELEASE_BLOCK_AFTER_ELEMENT_OLD_AGP_EXPECTED)
+  }
+
   enum class TestFile(val path: @SystemDependent String) : TestFileName {
     READ_RELEASE_BLOCK("releaseBlock"),
     READ_RELEASE_METHOD("releaseMethod"),
@@ -293,6 +309,7 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
     CREATE_WITH_ADDON_VERSION_EXPECTED("createWithAddonVersionExpected"),
     CREATE_WITH_ZERO_MINOR_VERSION_EXPECTED("createWithZeroNumberVersionExpected"),
     WRITE_RELEASE_BLOCK_AFTER_ELEMENT_EXPECTED("releaseBlockAfterElementExpected"),
+    WRITE_RELEASE_BLOCK_AFTER_ELEMENT_OLD_AGP_EXPECTED("releaseBlockAfterElementOldAgpExpected"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
