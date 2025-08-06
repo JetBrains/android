@@ -87,7 +87,6 @@ SPEC = struct(
     },
     plugin_jars_linux = {
     },
-    mac_bundle_name = "",
     add_exports = [
         "java.base/java.lang",
     ],
@@ -135,7 +134,6 @@ SPEC = struct(
     },
     plugin_jars_linux = {
     },
-    mac_bundle_name = "",
     add_exports = [
     ],
     add_opens = [

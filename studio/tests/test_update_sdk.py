@@ -49,38 +49,38 @@ class UpdateSdkTest(unittest.TestCase):
         "android-studio/plugins/plugin-classpath.txt": "data",
     })
     test_utils.create(download + "/android-studio-1.2.3.mac.aarch64-no-jdk.zip", {
-        "Android Studio.app/Contents/lib/app.jar": {
+        "android-studio/Contents/lib/app.jar": {
             "__index__": "data",
         },
-        "Android Studio.app/Contents/lib/resources.jar": {
+        "android-studio/Contents/lib/resources.jar": {
             "idea/AndroidStudioApplicationInfo.xml": "<version major=\"2024\" minor=\"1\">",
         },
-        "Android Studio.app/Contents/Resources/product-info.json": {
+        "android-studio/Contents/Resources/product-info.json": {
             "launch": [{
                 "bootClassPathJarNames": [],
                 "additionalJvmArguments": ["-Didea.platform.prefix=AndroidStudio"],
             }]
         },
-        "Android Studio.app/Contents/plugins/common/lib/common.jar": {"META-INF/plugin.xml": "<xml><id>com.sample.common</id></xml>"},
-        "Android Studio.app/Contents/plugins/common/lib/modules/com.sample.common.submodule.jar": {"META-INF/plugin.xml": "<idea-plugin></idea-plugin>"},
-        "Android Studio.app/Contents/plugins/plugin-classpath.txt": "data",
+        "android-studio/Contents/plugins/common/lib/common.jar": {"META-INF/plugin.xml": "<xml><id>com.sample.common</id></xml>"},
+        "android-studio/Contents/plugins/common/lib/modules/com.sample.common.submodule.jar": {"META-INF/plugin.xml": "<idea-plugin></idea-plugin>"},
+        "android-studio/Contents/plugins/plugin-classpath.txt": "data",
     })
     test_utils.create(download + "/android-studio-1.2.3.mac.x64-no-jdk.zip", {
-        "Android Studio.app/Contents/lib/app.jar": {
+        "android-studio/Contents/lib/app.jar": {
             "__index__": "data",
         },
-        "Android Studio.app/Contents/lib/resources.jar": {
+        "android-studio/Contents/lib/resources.jar": {
             "idea/AndroidStudioApplicationInfo.xml": "<version major=\"2024\" minor=\"1\">",
         },
-        "Android Studio.app/Contents/Resources/product-info.json": {
+        "android-studio/Contents/Resources/product-info.json": {
             "launch": [{
                 "bootClassPathJarNames": [],
                 "additionalJvmArguments": ["-Didea.platform.prefix=AndroidStudio"],
             }]
         },
-        "Android Studio.app/Contents/plugins/common/lib/common.jar": {"META-INF/plugin.xml": "<xml><id>com.sample.common</id></xml>"},
-        "Android Studio.app/Contents/plugins/common/lib/modules/com.sample.common.submodule.jar": {"META-INF/plugin.xml": "<idea-plugin></idea-plugin>"},
-        "Android Studio.app/Contents/plugins/plugin-classpath.txt": "data",
+        "android-studio/Contents/plugins/common/lib/common.jar": {"META-INF/plugin.xml": "<xml><id>com.sample.common</id></xml>"},
+        "android-studio/Contents/plugins/common/lib/modules/com.sample.common.submodule.jar": {"META-INF/plugin.xml": "<idea-plugin></idea-plugin>"},
+        "android-studio/Contents/plugins/plugin-classpath.txt": "data",
     })
 
     test_utils.create(download + "/android-studio-1.2.3-sources.zip", {})
@@ -136,7 +136,6 @@ SPEC = struct(
             "plugins/linux_windows/lib/foo.jar",
         ],
     },
-    mac_bundle_name = "Android Studio.app",
     add_exports = [
     ],
     add_opens = [

@@ -30,14 +30,6 @@ HOME_PATHS = {
     WIN: "/windows/android-studio",
 }
 
-# When running in --existing_version mode, the mac bundle name must be extracted
-# from the preexisting spec.bzl file (since the original mac bundle artifact
-# has already been renamed by this point).
-def extract_preexisting_mac_bundle_name(workspace, version):
-  with open(workspace + "/prebuilts/studio/intellij-sdk/" + version + "/spec.bzl", "r") as spec:
-    search = re.search(r"mac_bundle_name = \"(.*)\"", spec.read())
-    return search.group(1) if search else sys.exit("Failed to find existing mac bundle name")
-
 
 def gen_lib(project_dir, name, jars, srcs):
   xml = f'<component name="libraryTable">\n  <library name="{name}">\n    <CLASSES>\n'
@@ -120,7 +112,7 @@ def write_xml_files(workspace, sdk, ides):
   gen_lib(project_dir, "intellij-test-framework", [test_framework_jar], [workspace + sdk + "/android-studio-sources.zip"])
 
 
-def update_files(workspace, version, mac_bundle_name):
+def update_files(workspace, version):
   sdk = "/prebuilts/studio/intellij-sdk/" + version
 
   ides = {}
@@ -128,7 +120,7 @@ def update_files(workspace, version, mac_bundle_name):
     ides[platform] = intellij.IntelliJ.create(platform, Path(f'{workspace}{sdk}/{platform}/android-studio'))
 
   write_xml_files(workspace, sdk, ides)
-  mkspec.write_spec_file(workspace + sdk + "/spec.bzl", mac_bundle_name, ides)
+  mkspec.write_spec_file(workspace + sdk + "/spec.bzl", ides)
 
 
 def check_artifacts(dir):
@@ -218,20 +210,11 @@ def extract(workspace, dir, delete_after, metadata):
   shutil.copyfile(dir + "/" + sources, path + "/android-studio-sources.zip")
   shutil.copyfile(dir + "/" + updater, path + "/updater-full.jar")
 
-  print("Unzipping mac distribution...")
   # Call to unzip to preserve mac symlinks
+  print("Unzipping mac distribution...")
   subprocess.check_call(["unzip", "-q", "-d", path + "/darwin", dir + "/" + mac])
   print("Unzipping mac aarch64 distribution...")
-  # Call to unzip to preserve mac symlinks
   subprocess.check_call(["unzip", "-q", "-d", path + "/darwin_aarch64", dir + "/" + mac_arm])
-  # Mac is the only one that contains the version in the directory, rename for
-  # consistency with other platforms and easier tooling
-  apps = ["/darwin/" + app for app in os.listdir(path + "/darwin") if app.startswith("Android Studio")]
-  if len(apps) != 1:
-    sys.exit("Only one directory starting with Android Studio expected for Mac")
-  os.rename(path + apps[0], path + "/darwin/android-studio")
-  os.rename(path + apps[0].replace("darwin", "darwin_aarch64"), path + "/darwin_aarch64/android-studio")
-  mac_bundle_name = os.path.basename(apps[0])
 
   print("Unzipping windows distribution...")
   with zipfile.ZipFile(dir + "/" + win, "r") as zip:
@@ -257,11 +240,10 @@ def extract(workspace, dir, delete_after, metadata):
 
   write_metadata(path, metadata)
 
-  return version, mac_bundle_name
+  return version
 
 def main(workspace, args):
   metadata = {}
-  mac_bundle_name = None
   version = args.version
   path = args.path
   bid = args.download
@@ -273,14 +255,11 @@ def main(workspace, args):
     path = download(workspace, bid)
     delete_path = not args.debug_download
   if path:
-    version, mac_bundle_name = extract(workspace, path, delete_path, metadata)
+    version = extract(workspace, path, delete_path, metadata)
     if args.debug_download:
       print("Dowloaded artifacts kept at " + path)
-  else:
-    mac_bundle_name = extract_preexisting_mac_bundle_name(workspace, version)
 
-
-  update_files(workspace, version, mac_bundle_name)
+  update_files(workspace, version)
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()

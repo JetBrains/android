@@ -5,7 +5,7 @@ from pathlib import Path
 import intellij
 
 
-def write_spec_file(out, mac_bundle_name, ides):
+def write_spec_file(out, ides):
   sdk_versions = {}
   for platform, ide in ides.items():
     sdk_versions[platform] = ide.version()
@@ -64,8 +64,6 @@ def write_spec_file(out, mac_bundle_name, ides):
           file.write("        ],\n")
       file.write("    },\n")
 
-    file.write(f'    mac_bundle_name = "{mac_bundle_name}",\n')
-
     file.write(f"    add_exports = [\n")
     for entry in sorted({item for ide in ides.values() for item in ide.jvm_add_exports}):
       file.write('        "' + entry + '",\n')
@@ -80,7 +78,7 @@ def write_spec_file(out, mac_bundle_name, ides):
 
 def main(args):
   ide = intellij.IntelliJ.create(intellij.LINUX, args.path.absolute())
-  write_spec_file(args.out.absolute(), "", {intellij.LINUX: ide})
+  write_spec_file(args.out.absolute(), {intellij.LINUX: ide})
 
 
 if __name__ == "__main__":

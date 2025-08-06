@@ -33,7 +33,6 @@ IntellijInfo = provider(
         "minor_version": "The minor IntelliJ version",
         "base": "A map from final studio location to the file (all non plugin files)",
         "plugins": "The file maps for all the bundled plugins",
-        "mac_bundle_name": "The application name on Mac, e.g. 'Android Studio Preview.app'",
     },
 )
 
@@ -54,6 +53,7 @@ _ConfigurationInfo = provider(
         "version_type": "Nightly, Canary, Beta, etc.",
         "version_suffix": "If None, auto computed, if provided used instead. Eg. Nightly 2024-10-10.",
         "application_icon": "The application icon to use.",
+        "mac_app_name": "The application name on Mac, e.g. 'Android Studio Preview'",
     },
 )
 
@@ -775,11 +775,6 @@ def _stamp_plugin(ctx, platform, platform_files, files, overwrite_plugin_version
 
     return ret
 
-def _android_studio_prefix(ctx, platform):
-    if platform == MAC or platform == MAC_ARM:
-        return ctx.attr.platform[IntellijInfo].mac_bundle_name + "/"
-    return "android-studio/"
-
 def _get_external_attributes(all_files):
     attrs = {}
     for zip_path, file in all_files.items():
@@ -801,8 +796,8 @@ def _android_studio_os(ctx, platform, added_plugins, out):
     files = []
     all_files = {}
 
-    platform_prefix = _android_studio_prefix(ctx, platform)
     config = ctx.attr.configuration[_ConfigurationInfo]
+    platform_prefix = config.mac_app_name + ".app/" if platform in [MAC, MAC_ARM] else "android-studio/"
 
     platform_files = platform.get(ctx.attr.platform[IntellijInfo].base)
     if config.application_icon:
@@ -1135,6 +1130,7 @@ def _android_studio_configuration_impl(ctx):
         application_icon = ctx.attr.application_icon,
         version_type = ctx.attr.version_type,
         version_suffix = ctx.attr.version_suffix,
+        mac_app_name = ctx.attr.mac_app_name,
     )]
 
 android_studio_configuration = rule(
@@ -1142,6 +1138,7 @@ android_studio_configuration = rule(
         "application_icon": attr.label(providers = [AppIconInfo]),
         "version_type": attr.string(),
         "version_suffix": attr.string(),
+        "mac_app_name": attr.string(mandatory = True),
     },
     implementation = _android_studio_configuration_impl,
 )
@@ -1301,7 +1298,6 @@ def _intellij_platform_impl(ctx):
                 mac_arm = plugin_files_mac_arm,
                 win = plugin_files_win,
             ),
-            mac_bundle_name = ctx.attr.mac_bundle_name,
         ),
     ]
 
@@ -1314,7 +1310,6 @@ _intellij_platform = rule(
         "data": attr.label_list(allow_files = True),
         "studio_data": attr.label(providers = [_StudioDataInfo]),
         "compress": attr.bool(),
-        "mac_bundle_name": attr.string(),
         "_zipper": attr.label(
             default = Label("@bazel_tools//tools/zip:zipper"),
             cfg = "exec",
@@ -1438,7 +1433,6 @@ def intellij_platform(
         minor_version = spec.minor_version,
         exports = [":" + name + "_jars"],
         compress = is_release(),
-        mac_bundle_name = spec.mac_bundle_name,
         package_metadata = [
             ":" + name + "_prebuilt_metadata",
         ],
