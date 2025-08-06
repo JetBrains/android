@@ -74,90 +74,6 @@ iml_test(
 )
 
 iml_test(
-    name = "SystemTraceTest",
-    timeout = "long",
-    data = profilers_test_common_data + [
-        "@system_image_android-33PlayStore_default_x86_64//:x86_64-android-33PlayStore-images",
-    ],
-    module = ":intellij.android.profilers.integration",
-    tags = ["studio-e2e-test"],
-    tags_linux = [
-        "noci:studio-linux",
-        "ci:studio-linux_very_flaky",  # b/260867011
-        "block-network",
-    ],
-    tags_mac = ["manual"],  # b/260867011: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
-    tags_windows = [
-        "block-network",
-        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
-    ],
-    test_class = "com.android.tools.profilers.integration.sessionbased.SystemTraceTest",
-)
-
-iml_test(
-    name = "CallstackSampleTest",
-    timeout = "long",
-    data = profilers_test_common_data + [
-        "@system_image_android-31_default_x86_64//:x86_64-android-31-images",
-    ],
-    module = ":intellij.android.profilers.integration",
-    tags = ["studio-e2e-test"],
-    tags_linux = [
-        "noci:studio-linux",
-        "ci:studio-linux_very_flaky",  # b/260867011
-        "block-network",
-    ],
-    tags_mac = ["manual"],  # b/260867011: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
-    tags_windows = [
-        "block-network",
-        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
-    ],
-    test_class = "com.android.tools.profilers.integration.sessionbased.CallstackSampleTest",
-)
-
-iml_test(
-    name = "HeapDumpTest",
-    timeout = "long",
-    data = profilers_test_common_data + [
-        "@system_image_android-33PlayStore_default_x86_64//:x86_64-android-33PlayStore-images",
-    ],
-    module = ":intellij.android.profilers.integration",
-    tags = ["studio-e2e-test"],
-    tags_linux = [
-        "noci:studio-linux",
-        "ci:studio-linux_very_flaky",  # b/260867011
-        "block-network",
-    ],
-    tags_mac = ["manual"],  # b/260867011: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
-    tags_windows = [
-        "block-network",
-        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
-    ],
-    test_class = "com.android.tools.profilers.integration.sessionbased.HeapDumpTest",
-)
-
-iml_test(
-    name = "NativeAllocationsTest",
-    timeout = "long",
-    data = profilers_test_common_data + [
-        "@system_image_android-31_default_x86_64//:x86_64-android-31-images",
-    ],
-    module = ":intellij.android.profilers.integration",
-    tags = ["studio-e2e-test"],
-    tags_linux = [
-        "noci:studio-linux",
-        "ci:studio-linux_very_flaky",  # b/260867011
-        "block-network",
-    ],
-    tags_mac = ["manual"],  # b/260867011: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
-    tags_windows = [
-        "block-network",
-        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
-    ],
-    test_class = "com.android.tools.profilers.integration.sessionbased.NativeAllocationsTest",
-)
-
-iml_test(
     name = "SystemTraceTaskTest",
     timeout = "long",
     data = profilers_test_common_data,
@@ -328,28 +244,6 @@ iml_test(
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
     test_class = "com.android.tools.profilers.integration.taskbased.StartupNativeAllocationsTaskTest",
-)
-
-iml_test(
-    name = "SessionBasedProfilingWithApkTest",
-    timeout = "long",
-    data = profilers_test_common_data + [
-        ":helloworldapk",
-        "//prebuilts/studio/sdk:build-tools/latest",
-        "//prebuilts/studio/sdk:platforms/android-31",
-    ],
-    module = ":intellij.android.profilers.integration",
-    tags = ["studio-e2e-test"],
-    tags_linux = [
-        "block-network",
-        "noci:studio-linux",
-        "ci:studio-linux_very_flaky",  # b/260867011
-    ],
-    tags_windows = [
-        # TODO(b/287284693): Add Windows support for this test.
-        "noci:studio-win",
-    ],
-    test_class = "com.android.tools.profilers.integration.sessionbased.SessionBasedProfilingWithApkTest",
 )
 
 iml_test(
