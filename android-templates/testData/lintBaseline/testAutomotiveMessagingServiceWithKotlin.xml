@@ -42,7 +42,7 @@
         errorLine2="        ~~~~~~~~~~~~">
         <location
             file="build.gradle"
-            line="13"
+            line="15"
             column="9"/>
     </issue>
 

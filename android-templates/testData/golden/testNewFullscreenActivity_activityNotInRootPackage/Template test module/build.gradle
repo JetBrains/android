@@ -4,7 +4,9 @@ plugins {
 
 android {
     namespace 'com.mycompany.myapp'
-    compileSdk 35
+    compileSdk {
+        version = release(35)
+    }
 
     defaultConfig {
         applicationId "com.mycompany.myapp"

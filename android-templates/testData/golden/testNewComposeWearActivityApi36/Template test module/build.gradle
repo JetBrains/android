@@ -6,7 +6,9 @@ plugins {
 
 android {
     namespace 'template.test.in'
-    compileSdk 36
+    compileSdk {
+        version = release(36)
+    }
 
     defaultConfig {
         applicationId "template.test.in"
