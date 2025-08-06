@@ -105,7 +105,6 @@ iml_module(
     tags = ["noci:studio-win"],
     test_class = "com.android.tools.idea.compose.preview.ComposePreviewTestSuite",
     test_data = [
-        ":test_deps",
         "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
         "//prebuilts/studio/layoutlib:runtime",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
@@ -115,6 +114,7 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/compose-designer/testData:classloader",
+        "//tools/adt/idea/compose-designer/testData:simple_compose_application_test_deps",
         "//tools/adt/idea/compose-designer/testData:test_projects",
         "//tools/adt/idea/compose-ide-plugin/testData",
         "//tools/base/build-system:android_gradle_plugin.zip",
@@ -191,47 +191,6 @@ jvm_import(
     name = "ui-animation-tooling-internal",
     jars = ["lib/ui-animation-tooling-internal.jar"],
     visibility = ["//visibility:public"],
-)
-
-maven_repository(
-    name = "test_deps",
-    # keep sorted: for buildifier
-    artifacts = [
-        "@maven//:androidx.activity.activity-compose_1.9.3",
-        "@maven//:androidx.annotation.annotation_1.2.0-rc01",
-        "@maven//:androidx.appcompat.appcompat_1.7.0",
-        "@maven//:androidx.collection.collection-ktx_1.5.0-alpha06",
-        "@maven//:androidx.collection.collection_1.5.0-alpha06",
-        "@maven//:androidx.compose.animation.animation_1.8.0-alpha06",
-        "@maven//:androidx.compose.foundation.foundation_1.8.0-alpha06",
-        "@maven//:androidx.compose.material.material_1.8.0-alpha06",
-        "@maven//:androidx.compose.ui.ui-tooling_1.8.0-alpha06",
-        "@maven//:androidx.core.core-ktx_1.13.1",
-        "@maven//:androidx.emoji2.emoji2-views-helper_1.4.0",
-        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.4.0",
-        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.5.1",
-        "@maven//:androidx.lifecycle.lifecycle-common_2.4.0",
-        "@maven//:androidx.lifecycle.lifecycle-livedata_2.8.7",
-        "@maven//:androidx.lifecycle.lifecycle-process_2.8.7",
-        "@maven//:androidx.lifecycle.lifecycle-runtime-ktx_2.8.7",
-        "@maven//:androidx.lifecycle.lifecycle-viewmodel-savedstate_2.8.7",
-        "@maven//:androidx.savedstate.savedstate_1.1.0-rc01",
-        "@maven//:com.google.auto.value.auto-value_1.6.2",
-        "@maven//:com.google.errorprone.error_prone_annotations_2.3.2",
-        "@maven//:com.google.jimfs.jimfs_1.1",
-        "@maven//:com.sun.activation.javax.activation_1.2.0",
-        "@maven//:commons-lang.commons-lang_2.4",
-        "@maven//:javax.inject.javax.inject_1",
-        "@maven//:junit.junit_4.12",
-        "@maven//:org.codehaus.mojo.animal-sniffer-annotations_1.17",
-        "@maven//:org.hamcrest.hamcrest-library_1.3",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.9.23",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.23",
-        "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.9.23",
-        "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.9.23",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_1.9.23",
-        "@maven//:xmlpull.xmlpull_1.1.3.1",
-    ],
 )
 
 # managed by go/iml_to_build
