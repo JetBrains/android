@@ -1208,8 +1208,7 @@ abstract class DesignSurface<T : SceneManager>(
 
     /**
      * Removes a model from the internal map. This method must be called within a [modelsLock]
-     * [write] block. Returns the [SceneManager] associated with the [model], or null if no such
-     * manager exists.
+     * [write] block.
      */
     @GuardedBy("modelsLock")
     private fun removeModel(model: NlModel): ModelChange? {
