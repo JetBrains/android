@@ -99,6 +99,7 @@ import com.intellij.usages.impl.rules.UsageTypeProvider
 import com.intellij.usages.rules.PsiElementUsage
 import com.intellij.util.Processor
 import com.intellij.util.ThreeState
+import com.intellij.util.concurrency.ThreadingAssertions
 import com.intellij.util.containers.toArray
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet
 import org.jetbrains.android.util.AndroidBundle
@@ -665,11 +666,8 @@ class AgpUpgradeRefactoringProcessor(
     // being done; on the other hand it is cancellable, shows numeric progress and takes around 30 seconds for a project with 1k modules.
     //
     // Moving to an asynchronous process would involve modifying callers to do the subsequent work after parsing in callbacks.
-    val future = CompletableFuture<Unit>()
 
-    DumbService.getInstance(project).runWhenSmart {
-      // we must be in smart mode before starting the modal progress display, otherwise attempts to use indexes in
-      // processors (with e.g. runReadActionInSmartMode) will softlock if indexes are not ready.
+    val runnable = {
       progressManager.runProcessWithProgressSynchronously(
         {
           val indicator = progressManager.progressIndicator
@@ -687,9 +685,19 @@ class AgpUpgradeRefactoringProcessor(
           componentRefactoringProcessors.forEach { it.initializeComponentCaches() }
         },
         commandName, true, project)
-      future.complete(Unit)
     }
-    future.join()
+    if (ApplicationManager.getApplication().isUnitTestMode) {
+      runnable.invoke()
+    }
+    else {
+      ThreadingAssertions.assertBackgroundThread()
+      val future = CompletableFuture<Unit>()
+      DumbService.getInstance(project).runWhenSmart {
+        runnable.invoke()
+        future.complete(Unit)
+      }
+      future.join()
+    }
   }
 }
 
