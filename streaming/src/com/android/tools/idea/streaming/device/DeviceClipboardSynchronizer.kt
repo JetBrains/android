@@ -16,9 +16,12 @@
 package com.android.tools.idea.streaming.device
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.core.AbstractClipboardSynchronizer
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.debug
+import com.intellij.openapi.diagnostic.thisLogger
 
 /**
  * Synchronizes clipboards between the host and a connected device.
@@ -47,6 +50,9 @@ internal class DeviceClipboardSynchronizer(
   override fun setDeviceClipboard(text: String, forceSend: Boolean) {
     if (isDisposed) {
       return
+    }
+    if (StudioFlags.DEVICE_MIRRORING_TRACE_CLIPBOARD_SYNCHRONIZATION.get()) {
+      thisLogger().debug { "DeviceClipboardSynchronizer.setDeviceClipboard(\"$text\", $forceSend)" }
     }
     val maxSyncedClipboardLength = DeviceMirroringSettings.getInstance().maxSyncedClipboardLength
     if (forceSend || (text.isNotEmpty() && text != lastClipboardText)) {

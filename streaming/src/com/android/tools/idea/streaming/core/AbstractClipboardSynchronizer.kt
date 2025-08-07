@@ -26,7 +26,6 @@ import com.intellij.util.ui.UIUtil
 import java.awt.EventQueue
 import java.awt.KeyboardFocusManager
 import java.awt.datatransfer.DataFlavor
-import java.awt.datatransfer.DataFlavor.stringFlavor
 import java.awt.datatransfer.StringSelection
 import java.awt.datatransfer.Transferable
 import java.awt.datatransfer.UnsupportedFlavorException
@@ -82,7 +81,7 @@ internal abstract class AbstractClipboardSynchronizer(
 
   @WorkerThread
   private fun doSynchronizeDeviceClipboard(forceSend: Boolean) {
-    val text = copyPasteManager.getContents(stringFlavor) ?: ""
+    val text = copyPasteManager.getContents(DataFlavor.stringFlavor) ?: ""
     if (forceSend || text.isNotEmpty()) {
       EventQueue.invokeLater {
         setDeviceClipboard(text, forceSend = forceSend)

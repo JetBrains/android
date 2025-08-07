@@ -737,6 +737,10 @@ bool Controller::ControlDisplayPower(Jni jni, int state) {
 
 void Controller::StartClipboardSync(const StartClipboardSyncMessage& message) {
   ClipboardManager* clipboard_manager = ClipboardManager::GetInstance(jni_);
+  if (Agent::flags() & TRACE_CLIPBOARD_SYNCHRONIZATION) {
+    Log::D("Controller::StartClipboardSync: message.text=\"%s\" last_clipboard_text_=\"%s\"",
+           message.text().c_str(), last_clipboard_text_.c_str());
+  }
   if (message.text() != last_clipboard_text_) {
     last_clipboard_text_ = message.text();
     clipboard_manager->SetText(last_clipboard_text_);
@@ -749,6 +753,9 @@ void Controller::StartClipboardSync(const StartClipboardSyncMessage& message) {
 }
 
 void Controller::StopClipboardSync() {
+  if (Agent::flags() & TRACE_CLIPBOARD_SYNCHRONIZATION) {
+    Log::D("Controller::StopClipboardSync");
+  }
   if (max_synced_clipboard_length_ != 0) {
     ClipboardManager* clipboard_manager = ClipboardManager::GetInstance(jni_);
     clipboard_manager->RemoveClipboardListener(this);
@@ -766,9 +773,13 @@ void Controller::SendClipboardChangedNotification() {
   if (!clipboard_changed_.exchange(false)) {
     return;
   }
-  Log::D("Controller::SendClipboardChangedNotification");
   ClipboardManager* clipboard_manager = ClipboardManager::GetInstance(jni_);
   string text = clipboard_manager->GetText();
+  if (Agent::flags() & TRACE_CLIPBOARD_SYNCHRONIZATION) {
+    Log::D("Controller::SendClipboardChangedNotification: text=\"%s\" last_clipboard_text_=\"%s\"", text.c_str(), last_clipboard_text_.c_str());
+  } else {
+    Log::D("Controller::SendClipboardChangedNotification");
+  }
   if (text.empty() || text == last_clipboard_text_) {
     return;
   }

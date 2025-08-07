@@ -1108,6 +1108,9 @@ public final class StudioFlags {
     "The log level used by the screen sharing agent, one of \"verbose\", \"debug\", \"info\", \"warn\" or \"error\";" +
     " the default is \"info\"",
     "");
+  public static final Flag<Boolean> DEVICE_MIRRORING_TRACE_CLIPBOARD_SYNCHRONIZATION = new BooleanFlag(
+    DEVICE_MIRRORING, "trace.clipboard.synchronization", "Enable tracing of clipboard synchronization",
+    "Enable logging of clipboard contents. May include sensitive data. Use with caution.");
   public static final Flag<Integer> DEVICE_MIRRORING_CONNECTION_TIMEOUT_MILLIS = new IntFlag(
     DEVICE_MIRRORING, "connection.timeout", "Connection Timeout for Mirroring",
     "Connection timeout for mirroring in milliseconds",
