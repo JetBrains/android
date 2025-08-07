@@ -30,7 +30,8 @@ public abstract class QuerySyncAutoConversionStats {
     UNKNOWN,
     NOT_CONVERTED,
     CONVERTED,
-    REVERTED
+    REVERTED,
+    NOT_NEEDED
   }
 
   public abstract Status status();

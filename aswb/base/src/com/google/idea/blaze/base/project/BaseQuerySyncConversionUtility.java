@@ -72,13 +72,13 @@ public class BaseQuerySyncConversionUtility implements QuerySyncConversionUtilit
   public boolean canConvert(Path projectViewFilePath, int legacySyncShardCount) {
     var conversionProjectFields = parseProjectFields(projectViewFilePath);
     return AUTO_CONVERT_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT.isEnabled() &&
-           !isConverted(projectViewFilePath) &&
+           !hasConversionIndicator(projectViewFilePath) &&
            conversionProjectFields.isPresent() &&
            !conversionProjectFields.get().useQuerySync() &&
            (!conversionProjectFields.get().shardSync() || legacySyncShardCount == 1);
   }
 
-  private boolean isConverted(Path projectViewFilePath) {
+  private boolean hasConversionIndicator(Path projectViewFilePath) {
     try {
       return Files.readAllLines(projectViewFilePath).contains(BaseQuerySyncConversionUtility.AUTO_CONVERSION_INDICATOR);
     }
@@ -94,11 +94,17 @@ public class BaseQuerySyncConversionUtility implements QuerySyncConversionUtilit
 
   @Override
   public QuerySyncAutoConversionStats.Status calculateStatus(BlazeImportSettings blazeImportSettings, Path projectViewFilePath) {
-    if (isConverted(projectViewFilePath) || canConvert(projectViewFilePath, blazeImportSettings.getLegacySyncShardCount())) {
+    if (hasConversionIndicator(projectViewFilePath)) {
       return blazeImportSettings.getProjectType() == BlazeImportSettings.ProjectType.QUERY_SYNC ?
              QuerySyncAutoConversionStats.Status.CONVERTED : QuerySyncAutoConversionStats.Status.REVERTED;
     }
-    return QuerySyncAutoConversionStats.Status.NOT_CONVERTED;
+    // Though conversion is not yet complete, the CONVERTED status is returned as this method is invoked by
+    // `BlazeImportSettingsManager::initImportSettings` which runs before the conversion happens eventually
+    if (canConvert(projectViewFilePath, blazeImportSettings.getLegacySyncShardCount())) {
+      return QuerySyncAutoConversionStats.Status.CONVERTED;
+    }
+    return blazeImportSettings.getProjectType() == BlazeImportSettings.ProjectType.ASPECT_SYNC ?
+           QuerySyncAutoConversionStats.Status.NOT_CONVERTED : QuerySyncAutoConversionStats.Status.NOT_NEEDED;
   }
 
   private Optional<ConversionProjectFields> parseProjectFields(Path projectViewFilePath) {
