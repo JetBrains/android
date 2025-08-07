@@ -43,6 +43,7 @@ WHITE_SPACE=\s+
 SPACE=[ \t\n\x0B\f\r]+
 NUMBER=[0-9]+(\.[0-9]+)?
 ID=[:letter:][\w\\.]*
+HEX_COLOR=#([:letter:]|[:digit:])*
 OPERATORS=\+|-|%|\*|==|=|>=|<=|>|<|\||\|\||&&|&|\~|\!|\!=|"/"
 QUOTED_STRING=('([^'\\]|\\.)*'|\"([^\"\\]|\\.)*\")
 
@@ -62,6 +63,7 @@ QUOTED_STRING=('([^'\\]|\\.)*'|\"([^\"\\]|\\.)*\")
   {SPACE}               { return SPACE; }
   {NUMBER}              { return NUMBER; }
   {ID}                  { return ID; }
+  {HEX_COLOR}           { return HEX_COLOR; }
   {OPERATORS}           { return OPERATORS; }
   {QUOTED_STRING}       { return QUOTED_STRING; }
 

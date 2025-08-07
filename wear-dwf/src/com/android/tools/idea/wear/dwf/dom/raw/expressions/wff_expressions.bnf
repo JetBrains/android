@@ -35,6 +35,7 @@
     SPACE='regexp:\s+'
     NUMBER='regexp:\d+(\.\d+)?'
     ID='regexp:\p{Alpha}[\w\\.]*'
+    HEX_COLOR='regexp:#\p{Alnum}*'
     OPERATORS='regexp:\+|-|%|\*|==|=|>=|<=|>|<|\||\|\||&&|&|\~|\!|\!=|/'
     OPEN_PAREN='('
     CLOSE_PAREN=')'
@@ -71,7 +72,7 @@ private primary_group ::= literal_expr | paren_expr
 function_id ::= ID &OPEN_PAREN
 call_expr ::= function_id arg_list
 arg_list ::= OPEN_PAREN [ !CLOSE_PAREN expr  (',' expr) * ] CLOSE_PAREN
-literal_expr ::= NUMBER | QUOTED_STRING | ID | data_source_or_configuration | NULL {
+literal_expr ::= NUMBER | QUOTED_STRING | ID | data_source_or_configuration | NULL | HEX_COLOR {
   methods=[getReferences]
 }
 unary_min_expr ::= '-' expr

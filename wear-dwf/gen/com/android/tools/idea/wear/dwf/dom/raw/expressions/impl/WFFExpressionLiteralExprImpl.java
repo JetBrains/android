@@ -54,6 +54,12 @@ public class WFFExpressionLiteralExprImpl extends WFFExpressionExprImpl implemen
 
   @Override
   @Nullable
+  public PsiElement getHexColor() {
+    return findChildByType(HEX_COLOR);
+  }
+
+  @Override
+  @Nullable
   public PsiElement getId() {
     return findChildByType(ID);
   }

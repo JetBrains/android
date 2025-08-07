@@ -394,7 +394,7 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // NUMBER | QUOTED_STRING | ID | data_source_or_configuration | NULL
+  // NUMBER | QUOTED_STRING | ID | data_source_or_configuration | NULL | HEX_COLOR
   public static boolean literal_expr(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "literal_expr")) return false;
     boolean r;
@@ -404,6 +404,7 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
     if (!r) r = consumeTokenSmart(b, ID);
     if (!r) r = data_source_or_configuration(b, l + 1);
     if (!r) r = consumeTokenSmart(b, NULL);
+    if (!r) r = consumeTokenSmart(b, HEX_COLOR);
     exit_section_(b, l, m, r, false, null);
     return r;
   }

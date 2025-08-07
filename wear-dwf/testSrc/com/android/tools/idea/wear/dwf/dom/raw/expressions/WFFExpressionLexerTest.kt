@@ -152,4 +152,12 @@ class WFFExpressionLexerTest : AndroidLexerTestCase(WFFExpressionLexer()) {
       "]" to WFFExpressionTypes.CLOSE_BRACKET,
     )
   }
+
+  // Regression test for b/437039903
+  fun testHexColor() {
+    assertTokenTypes(
+      "#ff0000",
+      "#ff0000" to WFFExpressionTypes.HEX_COLOR,
+    )
+  }
 }

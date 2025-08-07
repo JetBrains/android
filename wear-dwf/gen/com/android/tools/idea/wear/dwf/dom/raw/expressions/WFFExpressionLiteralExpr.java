@@ -30,6 +30,9 @@ public interface WFFExpressionLiteralExpr extends WFFExpressionExpr {
   WFFExpressionDataSourceOrConfiguration getDataSourceOrConfiguration();
 
   @Nullable
+  PsiElement getHexColor();
+
+  @Nullable
   PsiElement getId();
 
   @Nullable

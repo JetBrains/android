@@ -259,6 +259,7 @@ FILE
       toParseTreeText("[WEATHER.HOURS.0.CONDITION]"),
     )
   }
+
   // Regression test for b/436190988
   fun testParseTernary() {
     assertEquals(
@@ -288,7 +289,7 @@ FILE
         .trimIndent(),
       toParseTreeText("0 == 0 ?[HOUR_0_23_Z] : [HOUR_1_12_Z]"),
     )
-}
+  }
 
   // Regression test for b/436190988
   fun testParseComplexTernary() {
@@ -348,6 +349,19 @@ FILE
           """
         .trimIndent(),
       toParseTreeText("[CONFIGURATION.leadingZero] ? ([IS_24_HOUR_MODE] ? [HOUR_0_23_Z] : [HOUR_1_12_Z]) : ([IS_24_HOUR_MODE] ? [HOUR_0_23] : [HOUR_1_12])"),
+    )
+  }
+
+  // Regression test for b/437039903
+  fun testParseHexColor() {
+    assertEquals(
+      """
+FILE
+  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+    PsiElement(HEX_COLOR)('#abc012')
+          """
+        .trimIndent(),
+      toParseTreeText("#abc012"),
     )
   }
 }

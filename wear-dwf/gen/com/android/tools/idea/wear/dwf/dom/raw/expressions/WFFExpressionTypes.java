@@ -52,6 +52,7 @@ public interface WFFExpressionTypes {
   IElementType CLOSE_PAREN = new WFFExpressionTokenType(")");
   IElementType COLON = new WFFExpressionTokenType(":");
   IElementType COMMA = new WFFExpressionTokenType(",");
+  IElementType HEX_COLOR = new WFFExpressionTokenType("HEX_COLOR");
   IElementType ID = new WFFExpressionTokenType("ID");
   IElementType NULL = new WFFExpressionTokenType("null");
   IElementType NUMBER = new WFFExpressionTokenType("NUMBER");
