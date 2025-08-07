@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.gradle.repositories;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import com.android.ide.common.gradle.Component;
 import com.android.ide.common.gradle.Dependency;
 import com.android.ide.common.gradle.Version;
@@ -29,10 +33,10 @@ import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.testutils.file.InMemoryFileSystems;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.utils.PathUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.testFramework.ApplicationRule;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -40,12 +44,15 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.function.Predicate;
 import com.android.tools.sdk.AndroidSdkData;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.mockito.Mockito;
 
 /**
  * Tests for the local repository utility class
  */
-public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
+public class RepositoryUrlManagerTest {
   private static final String SDK_DIR = "sdk";
   private static final String ANDROID_PREFS_ROOT = "android-home";
 
@@ -99,9 +106,8 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
   private final GoogleMavenRepositoryV2 googleMavenRepositoryV2 =
     GoogleMavenRepositoryV2.Companion.create(new FakeGoogleMavenRepositoryV2Host());
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @Before
+  public void setup() throws Exception {
     myRepositoryUrlManager = new RepositoryUrlManager(new StubGoogleMavenRepository(OFFLINE_CACHE),
                                                       new StubGoogleMavenRepository(OFFLINE_CACHE),
                                                       googleMavenRepositoryV2,
@@ -111,6 +117,9 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
     AndroidSdkData sdk = Mockito.mock(AndroidSdkData.class);
     Mockito.when(sdk.getLocationFile()).thenReturn(new File(SDK_DIR));
   }
+
+  @Rule
+  public ApplicationRule rule = new ApplicationRule();
 
   /**
    * Common boilerplate code for invoking getLibraryRevision.
@@ -124,11 +133,13 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
       .getLibraryRevision(artifactId.getMavenGroupId(), artifactId.getMavenArtifactId(), filter, preview, myRoot.getFileSystem());
   }
 
+  @Test
   public void testgetLibraryRevision() {
     // Check missing Maven metadata file. We should fall back to scanning the files.
     assertEquals("26.0.2", getLibraryRevision(GoogleMavenArtifactId.SUPPORT_V4, true));
   }
 
+  @Test
   public void testgetLibraryRevision_thirdPartyLibrary() {
     assertNull(myRepositoryUrlManager.getLibraryRevision("com.actionbarsherlock",
                                                          "actionbarsherlock",
@@ -137,15 +148,18 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
                                                          myRoot.getFileSystem()));
   }
 
+  @Test
   public void testgetLibraryRevision_SdkOnly() {
     assertNull(getLibraryRevision(GoogleMavenArtifactId.SUPPORT_V4, true, v -> v.getMajor() == 24));
   }
 
+  @Test
   public void testgetLibraryRevision_missingSdk() throws IOException {
     PathUtils.deleteRecursivelyIfExists(myRoot.resolve(SDK_DIR));
     assertNull(getLibraryRevision(GoogleMavenArtifactId.SUPPORT_V4, true, v -> v.getMajor() == 24));
   }
 
+  @Test
   public void testgetLibraryRevision_offlineIndex() throws Exception {
     PathUtils.deleteRecursivelyIfExists(myRoot.resolve(SDK_DIR));
     assertEquals("26.0.2", getLibraryRevision(GoogleMavenArtifactId.SUPPORT_V4, true));
@@ -154,6 +168,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
   /**
    * @see com.android.ide.common.repository.MavenRepositories#isPreview(Component)
    */
+  @Test
   public void testgetLibraryRevision_playServices_preview() {
     // Check without metadata file.
     assertEquals("11.1.0", getLibraryRevision(GoogleMavenArtifactId.PLAY_SERVICES_ADS, false));
@@ -170,11 +185,13 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
     assertEquals(expectedFile, myRepositoryUrlManager.getArchiveForComponent(supportComponent, new File(SDK_DIR), myRoot.getFileSystem()));
   }
 
+  @Test
   public void testGetArchiveForCoordinate_missingSdk() throws Exception {
     PathUtils.deleteRecursivelyIfExists(myRoot.resolve(SDK_DIR));
     checkGetArchiveForComponent("com.android.support:support-v4:20.0.0", null);
   }
 
+  @Test
   public void testResolvedCoordinate() {
     Dependency dependency = Dependency.parse("com.google.android.gms:play-services:4.+");
     assertNotNull(dependency);
@@ -211,6 +228,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
     return myRepositoryUrlManager.resolveDependency(dependency, null, mySdkHandler);
   }
 
+  @Test
   public void testResolvedCoordinateLocalFirst() {
     RemotePackage pkg = new FakePackage.FakeRemotePackage("extras;m2repository;com;google;android;gms;play-services;4.5.0");
     RepositoryPackages pkgs = new RepositoryPackages(ImmutableList.of(), ImmutableList.of(pkg));
@@ -221,6 +239,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
     assertEquals("4.4.52", resolveDependencyRichVersion(dependency));
   }
 
+  @Test
   public void testResolveDynamicSdkDepsFuture() {
     // Regression test for b/74180487
     String revision = myRepositoryUrlManager.getLibraryRevision(GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7.getMavenGroupId(),

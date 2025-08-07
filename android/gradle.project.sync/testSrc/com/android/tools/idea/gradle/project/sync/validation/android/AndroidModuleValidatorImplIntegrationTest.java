@@ -16,17 +16,24 @@
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator.AndroidModuleValidatorImpl;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.ProjectRule;
+import org.junit.Rule;
+import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertSame;
 
 /**
  * Tests for {@link AndroidModuleValidatorImpl}.
  */
-public class AndroidModuleValidatorImplIntegrationTest extends AndroidGradleTestCase {
+public class AndroidModuleValidatorImplIntegrationTest {
+  @Rule
+  public ProjectRule rule = new ProjectRule();
+
+  @Test
   public void testDefaultConstructor() {
-    Project project = getProject();
+    Project project = rule.getProject();
     AndroidModuleValidatorImpl validator = new AndroidModuleValidatorImpl(project);
 
     Class<?>[] expectedStrategyTypes = new Class[]{

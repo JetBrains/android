@@ -19,7 +19,8 @@ import com.android.repository.api.RepoManager
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
@@ -34,15 +35,22 @@ import org.mockito.kotlin.spy
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.io.File
+import org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Rule
 
-class SdkSyncUtilTest : AndroidGradleTestCase() {
+class SdkSyncUtilTest {
   private val androidSdks = mock<AndroidSdks>()
   private val sdk = mock<Sdk>()
   private val ideSdks = mock<IdeSdks>()
 
-  override fun setUp() {
-    super.setUp()
-    loadSimpleApplication()
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+  val project by lazy { projectRule.project }
+
+  @Before
+  fun setup() {
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION)
 
     whenever(sdk.name).thenReturn("WantedSdkName")
     whenever(ideSdks.androidSdkPath).thenReturn(File("some/sdk/path/for/test"))

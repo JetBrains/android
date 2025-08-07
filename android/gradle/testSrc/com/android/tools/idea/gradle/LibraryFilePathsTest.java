@@ -21,7 +21,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.ide.gradle.model.ArtifactIdentifier;
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifacts;
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.intellij.testFramework.ProjectRule;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
@@ -29,24 +29,32 @@ import java.util.Collections;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Rule;
+import org.junit.Test;
 
 /**
  * Tests for {@link LibraryFilePaths}.
  */
-public class LibraryFilePathsTest extends AndroidGradleTestCase {
+public class LibraryFilePathsTest {
+  @Rule
+  public ProjectRule projectRule = new ProjectRule();
+
+  @Test
   public void testGetLibraryId() {
     assertThat(getLibraryId("Gradle: junit:junit:4.12@jar")).isEqualTo("junit:junit:4.12");
     assertThat(getLibraryId("androidx.fragment:fragment:1.0.0@aar")).isEqualTo("androidx.fragment:fragment:1.0.0");
   }
 
+  @Test
   public void testPopulateAndRetrieve() {
-    LibraryFilePaths libraryFilePaths = LibraryFilePaths.getInstance(getProject());
+    LibraryFilePaths libraryFilePaths = LibraryFilePaths.getInstance(projectRule.getProject());
     libraryFilePaths.populate(createArtifacts());
     assertThat(libraryFilePaths.retrieveCachedLibs()).containsExactly("junit:junit:4.12", "androidx.fragment:fragment:1.0.0");
   }
 
+  @Test
   public void testFindJarPath() {
-    LibraryFilePaths libraryFilePaths = LibraryFilePaths.getInstance(getProject());
+    LibraryFilePaths libraryFilePaths = LibraryFilePaths.getInstance(projectRule.getProject());
     libraryFilePaths.populate(createArtifacts());
     assertThat(libraryFilePaths.getCachedPathsForArtifact("Gradle: junit:junit:4.12@jar").javaDoc.getPath())
       .isEqualTo(new File("/cache/junit-javadoc.jar").getPath());

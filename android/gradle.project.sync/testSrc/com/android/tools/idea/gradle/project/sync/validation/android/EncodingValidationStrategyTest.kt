@@ -19,11 +19,12 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.InternedModels
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
-import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager
+import com.intellij.testFramework.ProjectRule
 import org.mockito.ArgumentMatchers
 import org.mockito.Mock
 import org.mockito.Mockito.mock
@@ -35,23 +36,30 @@ import org.mockito.invocation.InvocationOnMock
 import org.mockito.kotlin.whenever
 import java.io.File
 import java.nio.charset.Charset
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 /**
  * Tests for [EncodingValidationStrategy].
  */
-class EncodingValidationStrategyTest : AndroidGradleTestCase() {
+class EncodingValidationStrategyTest {
   @Mock
   private val myEncodings: EncodingProjectManager? = null
   private var myStrategy: EncodingValidationStrategy? = null
 
-  @Throws(Exception::class)
-  override fun setUp() {
-    super.setUp()
+  @get:Rule
+  val projectRule = ProjectRule()
+  val project by lazy { projectRule.project }
+
+  @Before
+  fun setup() {
     MockitoAnnotations.initMocks(this)
     whenever(myEncodings!!.defaultCharset).thenReturn(Charset.forName("ISO-8859-1"))
     myStrategy = EncodingValidationStrategy(project, myEncodings)
   }
 
+  @Test
   fun testValidate() {
     val modelEncoding = "UTF-8"
     val androidModel = mock(GradleAndroidModel::class.java)
@@ -74,28 +82,30 @@ class EncodingValidationStrategyTest : AndroidGradleTestCase() {
       }
     whenever(androidModel.androidProject).thenAnswer { invocation: InvocationOnMock? -> ideAndroidProject }
     myStrategy!!.validate(mock(Module::class.java), androidModel)
-    assertEquals(modelEncoding, myStrategy!!.mismatchingEncoding)
+    assertThat(myStrategy!!.mismatchingEncoding).isEqualTo(modelEncoding)
   }
 
+  @Test
   fun testFixAndReportFoundIssues() {
     val syncMessages = GradleSyncMessages.getInstance(project)
     val mismatchingEncoding = "UTF-8"
     myStrategy!!.mismatchingEncoding = mismatchingEncoding
     myStrategy!!.fixAndReportFoundIssues()
     val message = syncMessages.reportedMessages.firstOrNull()
-    assertNotNull(message)
+    assertThat(message).isNotNull()
     val text = message!!.text
     Truth.assertThat(text.split('\n')).hasSize(2)
     Truth.assertThat(text).startsWith("The project encoding (ISO-8859-1) has been reset")
     verify(myEncodings, times(1))?.let { it.defaultCharsetName = mismatchingEncoding }
   }
 
+  @Test
   fun testFixAndReportFoundIssuesWithNoMismatch() {
     val syncMessages = GradleSyncMessages.getInstance(project)
     myStrategy!!.mismatchingEncoding = null
     myStrategy!!.fixAndReportFoundIssues()
     val message = syncMessages.reportedMessages.firstOrNull()
-    assertNull(message)
+    assertThat(message).isNull()
     verify(myEncodings, never())?.let { it.defaultCharsetName = ArgumentMatchers.anyString() }
   }
 }

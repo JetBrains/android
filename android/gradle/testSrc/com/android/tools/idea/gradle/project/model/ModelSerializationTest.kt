@@ -59,7 +59,6 @@ import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
 import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub
-import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.JavaModuleModelBuilder
@@ -72,16 +71,27 @@ import com.intellij.serialization.ObjectSerializer
 import com.intellij.serialization.ReadConfiguration
 import com.intellij.serialization.SkipNullAndEmptySerializationFilter
 import com.intellij.serialization.WriteConfiguration
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Test
 import java.io.File
 import java.io.Serializable
+import org.junit.Rule
 
 /**
  * This test ensures that all model classes within sdk-common.gradle.model can be serialized and deserialized using Intellijs
  * serialization mechanisms for DataNodes. This is used to cache the results of sync when we load the project structure from cache.
  */
-class ModelSerializationTest : AndroidGradleTestCase() {
+class ModelSerializationTest {
+  val projectRule = ProjectRule()
+  @get:Rule
+  val rule = RuleChain(projectRule, EdtRule())
+
+  val project by lazy { projectRule.project }
+  val projectFolderPath by lazy { File(project.basePath!!) }
 
   /*
    * BEGIN IDE ONLY MODULES
@@ -110,6 +120,7 @@ class ModelSerializationTest : AndroidGradleTestCase() {
   }
 
   @Test
+  @RunsInEdt
   fun testAndroidModuleModel() = assertSerializable {
     setupTestProjectFromAndroidModel(
       project,
@@ -126,9 +137,9 @@ class ModelSerializationTest : AndroidGradleTestCase() {
     val externalInfo = ProjectDataManager.getInstance().getExternalProjectData(
       project, GradleConstants.SYSTEM_ID, projectFolderPath.path
     )
-    assertNotNull("Initial import failed", externalInfo)
+    Truth.assertThat(externalInfo).named("Initial import failed").isNotNull()
     val projectStructure = externalInfo!!.externalProjectStructure
-    assertNotNull("No project structure was found", projectStructure)
+    Truth.assertThat(projectStructure).named("No project structure was found").isNotNull()
 
     val androidModelNode = ExternalSystemApiUtil.findFirstRecursively(projectStructure!!) { node ->
       AndroidProjectKeys.ANDROID_MODEL == node.key
@@ -357,9 +368,9 @@ class ModelSerializationTest : AndroidGradleTestCase() {
     val bytes = ObjectSerializer.instance.writeAsBytes(value, configuration)
     val o = ObjectSerializer.instance.read(T::class.java, bytes, ReadConfiguration(allowAnySubTypes = true))
     val bytes2 = ObjectSerializer.instance.writeAsBytes(o, configuration)
-    assertEquals(String(bytes), String(bytes2))
+    Truth.assertThat(String(bytes2)).isEqualTo(String(bytes))
     if (!disableEqualsCheck) {
-      assertEquals(value, o)
+      Truth.assertThat(o).isEqualTo(value)
     }
   }
 }
