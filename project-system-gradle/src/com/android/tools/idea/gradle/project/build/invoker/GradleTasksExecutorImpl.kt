@@ -50,6 +50,7 @@ import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_STALE_CHANGES
 import com.intellij.compiler.CompilerConfiguration
 import com.intellij.compiler.CompilerManagerImpl
+import com.intellij.execution.process.ProcessOutputType
 import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
@@ -226,7 +227,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
         val cancellationToken = cancellationTokenSource.token()
         myBuildStopper.register(id, cancellationTokenSource)
         taskListener.onStart(gradleRootProjectPath, id)
-        taskListener.onTaskOutput(id, executingTasksText + System.lineSeparator() + System.lineSeparator(), true)
+        taskListener.onTaskOutput(id, executingTasksText + System.lineSeparator() + System.lineSeparator(), ProcessOutputType.STDOUT)
         val buildState = GradleBuildState.getInstance(project)
         val buildCompleter = buildState.buildStarted(BuildContext(myRequest))
         var buildEnvironment: BuildEnvironment? = null
@@ -288,7 +289,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
               }
             }
 
-            override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
+            override fun onTaskOutput(id: ExternalSystemTaskId, text: String, processOutputType: ProcessOutputType) {
               // For test use only: save the logs to a file. Note that if there are multiple tasks at once
               // the output will be interleaved.
               if (StudioFlags.GRADLE_SAVE_LOG_TO_FILE.get()) {
@@ -300,7 +301,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
                 }
               }
               if (myBuildStopper.contains(id)) {
-                taskListener.onTaskOutput(id, text, stdOut)
+                taskListener.onTaskOutput(id, text, processOutputType)
               }
             }
           }

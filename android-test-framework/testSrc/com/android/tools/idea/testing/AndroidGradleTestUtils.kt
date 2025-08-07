@@ -151,6 +151,7 @@ import com.intellij.build.events.FinishBuildEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.FinishBuildEventImpl
 import com.intellij.build.internal.DummySyncViewManager
+import com.intellij.execution.process.ProcessOutputType
 import com.intellij.externalSystem.JavaProjectData
 import com.intellij.gradle.toolingExtension.impl.model.sourceSetModel.DefaultGradleSourceSetModel
 import com.intellij.gradle.toolingExtension.impl.model.taskModel.DefaultGradleTaskModel
@@ -2591,7 +2592,7 @@ fun injectSyncOutputDumper(
   val projectId = ExternalSystemTaskId.getProjectId(project)
   ExternalSystemProgressNotificationManager.getInstance().addNotificationListener(
     object : ExternalSystemTaskNotificationListener {
-      override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
+      override fun onTaskOutput(id: ExternalSystemTaskId, text: String, processOutputType: ProcessOutputType) {
         if (id.ideProjectId != projectId) return
         outputHandler(project, text)
       }

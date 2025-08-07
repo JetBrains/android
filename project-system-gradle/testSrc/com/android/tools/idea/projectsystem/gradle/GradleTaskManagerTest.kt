@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.google.common.truth.Truth
+import com.intellij.execution.process.ProcessOutputType
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
@@ -45,7 +46,7 @@ data class GradleTaskManagerTest(
         val settings = GradleProjectSystemUtil.getOrCreateGradleExecutionSettings(project)
         val sb = StringBuilder()
         val listener = object : ExternalSystemTaskNotificationListener {
-          override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
+          override fun onTaskOutput(id: ExternalSystemTaskId, text: String, processOutputType: ProcessOutputType) {
             sb.append(text)
           }
         }
