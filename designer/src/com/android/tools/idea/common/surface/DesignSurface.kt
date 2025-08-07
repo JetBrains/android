@@ -104,7 +104,9 @@ import javax.swing.JScrollPane
 import javax.swing.OverlayLayout
 import javax.swing.SwingUtilities
 import javax.swing.Timer
+import kotlin.concurrent.read
 import kotlin.concurrent.withLock
+import kotlin.concurrent.write
 import kotlin.math.max
 import kotlin.math.min
 import kotlinx.coroutines.CoroutineScope
@@ -117,9 +119,6 @@ import org.jetbrains.annotations.TestOnly
 
 private val LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10
 private val LAYER_MOUSE_CLICK = LAYER_PROGRESS + 10
-
-/** Filter got [DesignSurface.models] to avoid returning disposed elements */
-val FILTER_DISPOSED_MODELS = { input: NlModel? -> input != null && !input.module.isDisposed }
 
 /**
  * A generic design surface for use in a graphical editor.
@@ -507,21 +506,6 @@ abstract class DesignSurface<T : SceneManager>(
     }
   }
 
-  private val modelListener: ModelListener =
-    object : ModelListener {
-      override fun modelDerivedDataChanged(model: NlModel) {
-        updateNotifications()
-      }
-
-      override fun modelChanged(model: NlModel) {
-        updateNotifications()
-      }
-
-      override fun modelChangedOnLayout(model: NlModel, animate: Boolean) {
-        repaint()
-      }
-    }
-
   private val listenersLock = ReentrantLock()
 
   @GuardedBy("listenersLock") private val listeners = mutableListOf<DesignSurfaceListener>()
@@ -838,15 +822,7 @@ abstract class DesignSurface<T : SceneManager>(
     return true
   }
 
-  private val modelToSceneManagersLock = ReentrantReadWriteLock()
-
-  @GuardedBy("modelToSceneManagersLock")
-  private val modelToSceneManagers = LinkedHashMap<NlModel, T>()
-
-  /** Filter got [sceneManagers] to avoid returning disposed elements */
-  private val filterDisposedSceneManagers = { input: T? ->
-    input != null && FILTER_DISPOSED_MODELS.invoke(input.model)
-  }
+  private val modelsManager = ModelsManager()
 
   @Slow
   /** Some implementations might be slow */
@@ -862,67 +838,14 @@ abstract class DesignSurface<T : SceneManager>(
 
   /** @return the list of added non-disposed [NlModel]s. */
   val models: List<NlModel>
-    get() {
-      modelToSceneManagersLock.readLock().withLock {
-        return modelToSceneManagers.keys.filter(FILTER_DISPOSED_MODELS)
-      }
-    }
+    get() = modelsManager.getModels()
 
   /** @return the list of all non-disposed [SceneManager]s */
   val sceneManagers: List<T>
-    get() {
-      modelToSceneManagersLock.readLock().withLock {
-        return modelToSceneManagers.values.filter(filterDisposedSceneManagers)
-      }
-    }
+    get() = modelsManager.getSceneManagers()
 
   /** @return The [SceneManager] associated to the given [NlModel]. */
-  fun getSceneManager(model: NlModel): T? {
-    if (model.module.isDisposed) {
-      return null
-    }
-    modelToSceneManagersLock.readLock().withLock {
-      return modelToSceneManagers.get(model)
-    }
-  }
-
-  /**
-   * Add the [model] or update its associated [SceneManager], and dispose the older manager
-   * associated with the [model], if exists.
-   *
-   * See [addModelImpl] and [onModelAdded].
-   */
-  @Slow
-  private fun addModelAndNotify(model: NlModel, newManager: T) {
-    val oldManager: T? = addModelImpl(model, newManager)
-    onModelAdded(model, oldManager, newManager)
-  }
-
-  /**
-   * Add the [model] to the DesignSurface and associate it with the [newManager]. If the [model] was
-   * already present, then it is associated with the [newManager] and moved to the last position,
-   * affecting the rendering order.
-   *
-   * Returns the older manager associated with the [model], or null if no such manager exists.
-   */
-  private fun addModelImpl(model: NlModel, newManager: T): T? =
-    modelToSceneManagersLock.writeLock().withLock {
-      val oldManager = modelToSceneManagers.remove(model)
-      modelToSceneManagers[model] = newManager
-      return oldManager
-    }
-
-  /**
-   * Computes the required side effects after adding a model, making sure not to hold the
-   * [modelToSceneManagersLock] to avoid deadlocks.
-   */
-  private fun onModelAdded(model: NlModel, oldManager: T?, newManager: T) {
-    if (oldManager == null) model.addListener(modelListener)
-    else if (oldManager !== newManager) Disposer.dispose(oldManager)
-    if (isActive) {
-      newManager.activate(this)
-    }
-  }
+  fun getSceneManager(model: NlModel): T? = modelsManager.getSceneManager(model)
 
   /**
    * Remove the [NlModel]s in [models] from DesignSurface.
@@ -930,48 +853,7 @@ abstract class DesignSurface<T : SceneManager>(
    * Any model not present in the surface is ignored.
    */
   fun removeModels(models: List<NlModel>) {
-    removeModelsAndNotify(models)
-  }
-
-  /**
-   * Remove th [models] from the surface, and dispose them together with their associated
-   * [SceneManager]s.
-   *
-   * See [removeModelsImpl] and [onModelsRemoved].
-   */
-  private fun removeModelsAndNotify(models: List<NlModel>) {
-    val removedModelsAndSceneManagers = removeModelsImpl(models)
-    onModelsRemoved(removedModelsAndSceneManagers)
-  }
-
-  /** Remove the [models] from DesignSurface. */
-  private fun removeModelsImpl(models: List<NlModel>): List<Pair<NlModel, T?>> =
-    modelToSceneManagersLock.writeLock().withLock {
-      models.map { it to modelToSceneManagers.remove(it) }
-    }
-
-  /**
-   * Computes the required side effects after removing a set of [NlModel]s and their associated
-   * [SceneManager]s from the surface, making sure not to hold the [modelToSceneManagersLock] to
-   * avoid deadlocks.
-   */
-  private fun onModelsRemoved(modelsToManagers: List<Pair<NlModel, T?>>) {
-    val modelSet = modelsToManagers.map { it.first }
-    // Remove any selection that belows to any of these models.
-    selectionModel.setSelection(selectionModel.selection.filter { !modelSet.contains(it.model) })
-    modelsToManagers.forEach { (model, manager) ->
-      // Ignore model if not manager associated with it (i.e. model not present in this surface)
-      if (manager == null) return@forEach
-      model.deactivate(this)
-      model.removeListener(modelListener)
-      Disposer.dispose(model)
-      Disposer.dispose(manager)
-    }
-    if (!isDisposed()) {
-      // Mark the scene view panel as invalid to force the scene views to be updated
-      UIUtil.invokeLaterIfNeeded { this.revalidateScrollArea() }
-      reactivateGuiInputHandler()
-    }
+    modelsManager.removeModels(models)
   }
 
   override val focusedSceneView: SceneView?
@@ -1125,29 +1007,11 @@ abstract class DesignSurface<T : SceneManager>(
    */
   open fun setModel(newModel: NlModel?) {
     scope.launch {
-      val newManager: T? = newModel?.let { getOrCreateSceneManager(it) }
-      var oldManager: T? = null
-      val removedModels: List<Pair<NlModel, T?>>
-      modelToSceneManagersLock.writeLock().withLock {
-        // Remove and add models under the same lock to provide an atomic replacement logic and
-        // avoid race conditions
-        removedModels = removeModelsImpl(models.filter { it != newModel })
-        newModel?.let { oldManager = addModelImpl(it, newManager!!) }
-      }
-      onModelsRemoved(removedModels)
-      if (newModel == null) return@launch
-      onModelAdded(newModel, oldManager, newManager!!)
+      modelsManager.replaceAllModels(
+        newModel?.let { listOf(it to getOrCreateSceneManager(it)) } ?: emptyList()
+      )
       sceneManagers.forEach { it.requestRenderAndWait() }
-      // Mark the scene view panel as invalid to force the scene views to be updated
-      sceneViewPanel.invalidate()
-
-      reactivateGuiInputHandler()
-      withContext(uiThread) {
-        restoreZoomOrZoomToFit()
-        revalidateScrollArea()
-      }
-
-      notifyModelsChanged(listOf(newModel))
+      withContext(uiThread) { restoreZoomOrZoomToFit() }
     }
   }
 
@@ -1162,13 +1026,9 @@ abstract class DesignSurface<T : SceneManager>(
    */
   @RequiresBackgroundThread
   fun addModelsWithoutRender(models: List<NlModel>): List<T> {
-    val sceneManagers =
-      models.map { model ->
-        getOrCreateSceneManager(model).also { manager -> addModelAndNotify(model, manager) }
-      }
-    notifyModelsChanged(models)
-    reactivateGuiInputHandler()
-    return sceneManagers
+    val modelsAndManagers = models.map { model -> model to getOrCreateSceneManager(model) }
+    modelsManager.addModels(modelsAndManagers)
+    return modelsAndManagers.map { it.second }
   }
 
   private fun getOrCreateSceneManager(model: NlModel): T =
@@ -1191,7 +1051,7 @@ abstract class DesignSurface<T : SceneManager>(
 
   override fun updateUI() {
     super.updateUI()
-    if (modelToSceneManagers != null) {
+    if (modelsManager != null) {
       // updateUI() is called in the parent constructor, at that time all class member in this class
       // has not initialized.
       for (manager in sceneManagers) {
@@ -1289,6 +1149,179 @@ abstract class DesignSurface<T : SceneManager>(
 
   final override fun add(comp: Component?): Component {
     return super.add(comp)
+  }
+
+  /**
+   * Manages the lifecycle of [NlModel]s and their associated [SceneManager]s within the design
+   * surface. This class is responsible for adding, removing, and replacing models, and ensures
+   * resources are disposed, and that listeners are correctly attached/detached and notified in
+   * response to these changes.
+   *
+   * This class is thread-safe.
+   */
+  private inner class ModelsManager {
+    private val filterDisposedModels = { input: NlModel? ->
+      input != null && !input.module.isDisposed
+    }
+
+    private val filterDisposedSceneManagers = { input: T? ->
+      input != null && filterDisposedModels.invoke(input.model)
+    }
+
+    private val modelListener: ModelListener =
+      object : ModelListener {
+        override fun modelDerivedDataChanged(model: NlModel) {
+          updateNotifications()
+        }
+
+        override fun modelChanged(model: NlModel) {
+          updateNotifications()
+        }
+
+        override fun modelChangedOnLayout(model: NlModel, animate: Boolean) {
+          repaint()
+        }
+      }
+
+    /**
+     * Represents a state transition for a [NlModel], capturing the [model] itself, its previous
+     * [SceneManager] (if any), and its new [SceneManager] (if any).
+     *
+     * See [onModelsChanged].
+     */
+    private inner class ModelChange(val model: NlModel, val oldManager: T?, val newManager: T?)
+
+    private val modelsLock = ReentrantReadWriteLock()
+
+    @GuardedBy("modelsLock") private val modelToSceneManagers = LinkedHashMap<NlModel, T>()
+
+    /**
+     * Adds or replaces a model and its manager in the internal map. This method must be called
+     * within a [modelsLock] [write] block.
+     */
+    @GuardedBy("modelsLock")
+    private fun addModel(model: NlModel, manager: T): ModelChange {
+      val oldManager = modelToSceneManagers.remove(model)
+      modelToSceneManagers[model] = manager
+      return ModelChange(model, oldManager, manager)
+    }
+
+    /**
+     * Removes a model from the internal map. This method must be called within a [modelsLock]
+     * [write] block. Returns the [SceneManager] associated with the [model], or null if no such
+     * manager exists.
+     */
+    @GuardedBy("modelsLock")
+    private fun removeModel(model: NlModel): ModelChange? {
+      val oldManager = modelToSceneManagers.remove(model)
+      return oldManager?.let { ModelChange(model, it, null) }
+    }
+
+    /**
+     * Processes a list of model changes, handling resource disposal, listener registration and
+     * notification. This method must be called without holding the [modelsLock] to prevent
+     * deadlocks.
+     */
+    private fun onModelsChanged(modelChanges: List<ModelChange>) {
+      // Assertion to prevent introducing deadlocks/freezes
+      assert(!modelsLock.isWriteLockedByCurrentThread)
+
+      if (modelChanges.isEmpty()) return
+
+      // First, handle selection update for all removals at once
+      val removedModels = modelChanges.mapNotNull { if (it.newManager == null) it.model else null }
+      if (removedModels.isNotEmpty()) {
+        selectionModel.setSelection(selectionModel.selection.filter { it.model !in removedModels })
+      }
+
+      // Then, process each change individually
+      for (change in modelChanges) {
+        with(change) {
+          when {
+            // Case 1: model removal (oldManager exists, newManager is null)
+            oldManager != null && newManager == null -> {
+              model.deactivate(this@DesignSurface)
+              model.removeListener(modelListener)
+              Disposer.dispose(model)
+              Disposer.dispose(oldManager)
+            }
+            // Case 2: model addition (oldManager is null, newManager exists)
+            oldManager == null && newManager != null -> {
+              model.addListener(modelListener)
+              if (isActive) {
+                newManager.activate(this@DesignSurface)
+              }
+            }
+            // Case 3: model manager replacement (both exist)
+            oldManager != null && newManager != null -> {
+              if (oldManager !== newManager) {
+                Disposer.dispose(oldManager)
+              }
+              if (isActive) {
+                newManager.activate(this@DesignSurface)
+              }
+            }
+          }
+        }
+      }
+
+      // Finally, notify listeners and trigger some needed updates
+      if (!isDisposed()) {
+        // Mark the scene view panel as invalid to force the scene views to be updated
+        UIUtil.invokeLaterIfNeeded { this@DesignSurface.revalidateScrollArea() }
+        reactivateGuiInputHandler()
+        notifyModelsChanged(models)
+      }
+    }
+
+    /**
+     * Adds the [models] to the surface with their associated [SceneManager]s. If a [model] was
+     * already present, then its previously associated manager is replaced.
+     *
+     * The models (pre-existing and new) will also be moved to the last positions in the surface,
+     * affecting the rendering order.
+     */
+    fun addModels(modelsAndManagers: List<Pair<NlModel, T>>) {
+      val changes =
+        modelsLock.write { modelsAndManagers.map { (model, manager) -> addModel(model, manager) } }
+      onModelsChanged(changes)
+    }
+
+    /**
+     * Removes a list of models from the surface. Any model not present in the surface is ignored.
+     */
+    fun removeModels(models: List<NlModel>) {
+      val changes = modelsLock.write { models.mapNotNull { model -> removeModel(model) } }
+      onModelsChanged(changes)
+    }
+
+    /**
+     * Replaces all models on the surface with the given new set of models and their associated
+     * managers.
+     */
+    fun replaceAllModels(newModelsAndManagers: List<Pair<NlModel, T>>) {
+      val changes =
+        modelsLock.write {
+          // Remove and add models under the same lock to provide an atomic replacement logic and
+          // avoid race conditions
+          val newModelsSet = newModelsAndManagers.map { it.first }.toSet()
+          val removals =
+            modelToSceneManagers.keys.filter { it !in newModelsSet }.mapNotNull { removeModel(it) }
+          val additionsAndReplacements =
+            newModelsAndManagers.map { (model, manager) -> addModel(model, manager) }
+          removals + additionsAndReplacements
+        }
+      onModelsChanged(changes)
+    }
+
+    fun getModels(): List<NlModel> =
+      modelsLock.read { modelToSceneManagers.keys.filter(filterDisposedModels) }
+
+    fun getSceneManagers(): List<T> =
+      modelsLock.read { modelToSceneManagers.values.filter(filterDisposedSceneManagers) }
+
+    fun getSceneManager(model: NlModel): T? =
+      modelsLock.read { modelToSceneManagers.get(model) }.takeIf { !isDisposed() }
   }
 
   /**
