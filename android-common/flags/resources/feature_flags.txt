@@ -221,6 +221,7 @@ testing.additional.testing.gradle.options=PREVIEW
 testing.print.instrumentation.status=COMPLETE:2018
 testing.screenshot.testing=INTERNAL
 transport.conservative.copy=COMPLETE:2024
+tsdkvua.api.next.enable=PREVIEW
 tsdkvua.filters.onstart.reset=COMPLETE:2025
 tsdkvua.filters.onstart=COMPLETE:2025
 uab.enable.ia.run.configs=COMPLETE:2018
