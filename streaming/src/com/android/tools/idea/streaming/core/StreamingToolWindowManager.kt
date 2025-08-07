@@ -975,15 +975,13 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private suspend fun getStartableVirtualDevices(): List<AvdInfo> {
-    return withContext(Dispatchers.IO) {
-      val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
-      val runningAvdFolders = service<RunningAvdTracker>().runningAvds.filter { !it.value.isShuttingDown }.keys
-      avdManager.getAvds(false).filter {
-        it.dataFolderPath !in runningAvdFolders &&
-        findContentByAvdFolder(it.dataFolderPath) == null &&
-        (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_HEADSET_AVD.get() || !it.isXrHeadsetDevice) &&
-        (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_GLASSES_AVD.get() || !it.isXrGlassesDevice)
-      }
+    val avds = withContext(Dispatchers.IO) { AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false) }
+    val runningAvdFolders = service<RunningAvdTracker>().runningAvds.filter { !it.value.isShuttingDown }.keys
+    return avds.filter {
+      it.dataFolderPath !in runningAvdFolders &&
+      findContentByAvdFolder(it.dataFolderPath) == null &&
+      (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_HEADSET_AVD.get() || !it.isXrHeadsetDevice) &&
+      (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_GLASSES_AVD.get() || !it.isXrGlassesDevice)
     }
   }
 
