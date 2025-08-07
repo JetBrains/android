@@ -3017,7 +3017,7 @@ Android Studio Preview.app/Contents/plugins/gemini/lib/libgoogle_auth_intellij_l
 Android Studio Preview.app/Contents/plugins/gemini/lib/libserviceusage_v1_java_lib.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/libv1internal_java_rest.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/lucene-queryparser-9.12.0.jar
-Android Studio Preview.app/Contents/plugins/gemini/lib/mcp-kotlin-sdk.jar
+Android Studio Preview.app/Contents/plugins/gemini/lib/mcp-sdk-libraries.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/openai-java-client-okhttp-2.19.1.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/openai-java-core-2.19.1.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/proto-models-1.0.jar

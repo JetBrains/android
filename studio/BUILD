@@ -730,7 +730,7 @@ studio_plugin(
         "//tools/vendor/google/ml/aiplugin/core/aicore:aida_proto",
         "//tools/vendor/google/ml/aiplugin/core/aicore:aida_protobuf",
         "//tools/vendor/google/ml/aiplugin/core/aicore:gemini_plugin_proto",
-        "//tools/vendor/google/ml/aiplugin/mcp/client:mcp-kotlin-sdk",
+        "//tools/vendor/modelcontextprotocol/kotlin-sdk:mcp-sdk-libraries",
     ],
     modules = {
         "aiplugin.jar": [
@@ -747,12 +747,13 @@ studio_plugin(
             "//tools/vendor/google/ml/aiplugin/android-plugin/descriptor:aiplugin.android-plugin.descriptor",
             "//tools/vendor/google/ml/aiplugin/backends/local:aiplugin.backends.local",
             "//tools/vendor/google/ml/aiplugin/lang/kotlin:aiplugin.lang.kotlin",
-            "//tools/vendor/google/ml/aiplugin/mcp/client:aiplugin.mcp.client",
+            "//tools/vendor/google/ml/aiplugin/mcp/client:aiplugin.mcp.client.sdkcompat",
             "//tools/vendor/google/ml/aiplugin/rag/indexer:aiplugin.rag.indexer",
             "//tools/vendor/google/ml/aiplugin/sdkcompat:aiplugin.sdkcompat",
             "//tools/vendor/google/ml/aiplugin/cloudcode-core:aiplugin.cloudcode-core",
             "//tools/vendor/google/ml/aiplugin/ij-platform:aiplugin.ij-platform",
             "//tools/vendor/google/ml:aiplugin.login.sdkcompat",
+            "//tools/vendor/modelcontextprotocol/kotlin-sdk:mcp.kotlin-sdk.sdkcompat",
         ],
     },
     resources = {
@@ -767,6 +768,8 @@ studio_plugin(
         ":org.jetbrains.android",
         "@intellij//:com.intellij.java",
         "@intellij//:intellij.libraries.compose.foundation.desktop",
+        "@intellij//:intellij.libraries.ktor.client",
+        "@intellij//:intellij.libraries.ktor.client.cio",
         "@intellij//:intellij.libraries.skiko",
         "@intellij//:intellij.platform.jewel.foundation",
         "@intellij//:intellij.platform.jewel.ideLafBridge",

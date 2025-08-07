@@ -40,8 +40,8 @@
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/lang/kotlin/aiplugin.lang.kotlin-test-utils.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/lang/kotlin/aiplugin.lang.kotlin-test-utils.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/lang/kotlin/aiplugin.lang.kotlin-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/lang/kotlin/aiplugin.lang.kotlin-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/login-compat/aiplugin.login.sdkcompat.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/login-compat/aiplugin.login.sdkcompat.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/mcp/client/aiplugin.mcp.client.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/mcp/client/aiplugin.mcp.client.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/mcp/client-tests/aiplugin.mcp.client-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/mcp/client-tests/aiplugin.mcp.client-tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/mcp/client/aiplugin.mcp.client.sdkcompat.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/mcp/client/aiplugin.mcp.client.sdkcompat.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/mcp/server/aiplugin.mcp.server.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/mcp/server/aiplugin.mcp.server.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/mcp/server-tests/aiplugin.mcp.server-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/mcp/server-tests/aiplugin.mcp.server-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/model/api/aiplugin.model.api.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/model/api/aiplugin.model.api.iml" />
@@ -462,7 +462,7 @@
       <module fileurl="file://$PROJECT_DIR$/lint/tests/intellij.lint.tests.iml" filepath="$PROJECT_DIR$/lint/tests/intellij.lint.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/adt-ui-compose/jewel.sdkcompat/jewel.sdkcompat.iml" filepath="$PROJECT_DIR$/adt-ui-compose/jewel.sdkcompat/jewel.sdkcompat.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/lldb-integration-tests/lldb-integration-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/lldb-integration-tests/lldb-integration-tests.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../vendor/modelcontextprotocol/kotlin-sdk/mcp.kotlin-sdk.iml" filepath="$PROJECT_DIR$/../../vendor/modelcontextprotocol/kotlin-sdk/mcp.kotlin-sdk.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/modelcontextprotocol/kotlin-sdk/mcp.kotlin-sdk.sdkcompat.iml" filepath="$PROJECT_DIR$/../../vendor/modelcontextprotocol/kotlin-sdk/mcp.kotlin-sdk.sdkcompat.iml" />
       <module fileurl="file://$PROJECT_DIR$/memory-usage/memory-usage.iml" filepath="$PROJECT_DIR$/memory-usage/memory-usage.iml" />
       <module fileurl="file://$PROJECT_DIR$/native-symbolizer/native-symbolizer.iml" filepath="$PROJECT_DIR$/native-symbolizer/native-symbolizer.iml" />
       <module fileurl="file://$PROJECT_DIR$/native-symbolizer/gradle/native-symbolizer.gradle.iml" filepath="$PROJECT_DIR$/native-symbolizer/gradle/native-symbolizer.gradle.iml" />
