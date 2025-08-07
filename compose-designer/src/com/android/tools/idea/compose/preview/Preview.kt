@@ -1628,7 +1628,7 @@ class ComposePreviewRepresentation(
       is PreviewMode.Focus -> {
         withContext(uiThread) {
           composeWorkBench.focusMode = null
-          Disposer.dispose(activeResizePanelInFocusMode!!)
+          activeResizePanelInFocusMode?.let { Disposer.dispose(it) }
           activeResizePanelInFocusMode = null
         }
       }
