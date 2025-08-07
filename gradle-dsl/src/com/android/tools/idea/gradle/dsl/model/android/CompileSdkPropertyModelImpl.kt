@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.android.CompileSdkPropertyModel.Com
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.COMPILE_SDK_VERSION
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil
@@ -42,54 +43,55 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
     fun getOrCreateCompileSdkPropertyModel(parent: GradlePropertiesDslElement, maybeCreateAfter: ResolvedPropertyModel? = null): CompileSdkPropertyModelImpl {
       val context = parent.dslFile.context
       val compileSdkBlockVersion = VersionConstraint.agpFrom(COMPILE_SDK_BLOCK_VERSION)
-      val compileSdkBlock = parent.getPropertyElement(
-        CompileSdkBlockDslElement.COMPILE_SDK
-      )
+
       val createInPosition = maybeCreateAfter?.let {
         parent.children.indexOf(it.rawElement).takeIf { it >= 0 }
       }?.plus(1)
 
-      val oldModel =
-          GradlePropertyModelBuilder.create(parent, AndroidModelImpl.COMPILE_SDK_VERSION).addTransform(
-            SdkOrPreviewTransform(
-              AndroidModelImpl.COMPILE_SDK_VERSION,
-              "compileSdkVersion",
-              "compileSdk",
-              "compileSdkPreview",
-              VersionConstraint.agpFrom(COMPILE_SDK_INTRODUCED_VERSION),
-              createInPosition
-            )
-          ).buildResolved()
+      val compileSdkBlock = parent.getPropertyElement(
+        CompileSdkBlockDslElement.COMPILE_SDK
+      )
+
+      // DSL element already exists
+      parent.getPropertyElement(COMPILE_SDK_VERSION)?.let{
+        return CompileSdkPropertyModelImpl(createOldResolvedPropertyModel(parent, createInPosition))
+      }
+
+      if (compileSdkBlock != null) {
+        return CompileSdkPropertyModelImpl(CompileSdkBlockPropertyModel(compileSdkBlock))
+      }
 
       // agpVersion is null for oldDsl tests
       if (context.agpVersion != null && compileSdkBlockVersion.isOkWith(context.agpVersion)) {
         // new DSL is possible
-        if (compileSdkBlock != null) {
-          return CompileSdkPropertyModelImpl(CompileSdkBlockPropertyModel(compileSdkBlock))
-        }
-        else if (oldModel.psiElement != null) {
-          // existing old DSL
-          return CompileSdkPropertyModelImpl(oldModel)
+        val newCompileSdkBlock = if (createInPosition == null) {
+          parent.ensurePropertyElement(CompileSdkBlockDslElement.COMPILE_SDK)
         }
         else {
-          // brand new element
-          val newCompileSdkBlock = if (createInPosition == null) {
-            parent.ensurePropertyElement(CompileSdkBlockDslElement.COMPILE_SDK)
-          }
-          else {
-            parent.ensurePropertyElementAt(
-              CompileSdkBlockDslElement.COMPILE_SDK, createInPosition
-            )
-          }
-          return CompileSdkPropertyModelImpl(CompileSdkBlockPropertyModel(newCompileSdkBlock))
+          parent.ensurePropertyElementAt(CompileSdkBlockDslElement.COMPILE_SDK, createInPosition)
         }
+        return CompileSdkPropertyModelImpl(CompileSdkBlockPropertyModel(newCompileSdkBlock))
       }
       else {
         // AGP is old need to stick to old DSL
-        return CompileSdkPropertyModelImpl(oldModel)
+        return CompileSdkPropertyModelImpl(createOldResolvedPropertyModel(parent, createInPosition))
       }
     }
 
+    private fun createOldResolvedPropertyModel(
+      parent: GradlePropertiesDslElement,
+      createInPosition: Int?
+    ): ResolvedPropertyModel =
+      GradlePropertyModelBuilder.create(parent, COMPILE_SDK_VERSION).addTransform(
+        SdkOrPreviewTransform(
+          COMPILE_SDK_VERSION,
+          "compileSdkVersion",
+          "compileSdk",
+          "compileSdkPreview",
+          VersionConstraint.agpFrom(COMPILE_SDK_INTRODUCED_VERSION),
+          createInPosition
+        )
+      ).buildResolved()
   }
 
   class CompileSdkBlockPropertyModel(val dslElement: CompileSdkBlockDslElement) : GradlePropertyModelImpl(
