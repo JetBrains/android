@@ -19,7 +19,8 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 
 interface CompileSdkPropertyModel : ResolvedPropertyModel {
   companion object {
-    const val COMPILE_SDK_BLOCK_VERSION = "8.13.0"
+    // support added in the earliest 8.13
+    const val COMPILE_SDK_BLOCK_VERSION = "8.13.0-alpha01"
     const val COMPILE_SDK_INTRODUCED_VERSION = "4.1.0"
   }
 
