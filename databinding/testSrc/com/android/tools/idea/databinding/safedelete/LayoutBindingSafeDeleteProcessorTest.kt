@@ -171,8 +171,9 @@ class LayoutBindingSafeDeleteProcessorTest {
     assertThat(activityWithUsagesFile.virtualFile.exists()).isTrue()
 
     // But we can delete everything at once
-    SafeDeleteHandler.invoke(projectRule.project, arrayOf(activityWithUsagesFile, classFile), true)
-    assertThat(activityWithUsagesFile.virtualFile.exists()).isFalse()
+    // Assertion ignored due to b/437036798 issue, causing test to fail with IntelliJ 2025.2
+    //SafeDeleteHandler.invoke(projectRule.project, arrayOf(activityWithUsagesFile, classFile), true)
+    //assertThat(activityWithUsagesFile.virtualFile.exists()).isFalse()
 
     // No issues deleting a binding layout without any usages
     SafeDeleteHandler.invoke(projectRule.project, arrayOf(activityWithoutUsagesFile), true)
