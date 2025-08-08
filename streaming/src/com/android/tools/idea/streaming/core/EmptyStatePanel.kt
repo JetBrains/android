@@ -15,16 +15,9 @@
  */
 package com.android.tools.idea.streaming.core
 
-import com.android.SdkConstants
-import com.android.annotations.concurrency.AnyThread
-import com.android.repository.Revision
-import com.android.repository.api.RepoManager.RepoLoadedListener
-import com.android.repository.impl.meta.RepositoryPackages
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.stdui.StandardColors
-import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
-import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
 import com.android.tools.idea.streaming.EmulatorSettings
@@ -32,20 +25,15 @@ import com.android.tools.idea.streaming.EmulatorSettingsListener
 import com.android.tools.idea.streaming.device.settings.DeviceMirroringSettingsPage
 import com.android.tools.idea.streaming.emulator.settings.EmulatorSettingsPage
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.ex.ActionUtil
-import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.dsl.builder.HyperlinkEventAction
-import com.intellij.util.IncorrectOperationException
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
 import icons.StudioIllustrations
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -54,11 +42,7 @@ import java.awt.event.MouseEvent
 import java.util.concurrent.atomic.AtomicInteger
 import javax.swing.SwingConstants
 import javax.swing.event.HyperlinkEvent
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
-
-private const val MIN_REQUIRED_EMULATOR_VERSION = "35.1.3"
 
 // As recommended at https://jetbrains.github.io/ui/principles/empty_state/#21.
 private const val TOP_MARGIN = 0.45
@@ -77,7 +61,6 @@ internal class EmptyStatePanel(
     get()= EmulatorSettings.getInstance().launchInToolWindow
   private val activateOnConnection: Boolean
     get() = DeviceMirroringSettings.getInstance().activateOnConnection
-  private var emulatorVersionIsInsufficient: Boolean
 
   init {
     Disposer.register(disposableParent, this)
@@ -86,8 +69,6 @@ internal class EmptyStatePanel(
     border = JBUI.Borders.empty()
     // Allow the panel to receive focus so that the framework considers the tool window active (b/157181475).
     isFocusable = true
-
-    emulatorVersionIsInsufficient = false
 
     addMouseListener(object : MouseAdapter() {
       override fun mousePressed(event: MouseEvent) {
@@ -103,40 +84,8 @@ internal class EmptyStatePanel(
     Disposer.register(this) {
       progress.cancel()
     }
-    val scope = createCoroutineScope(Dispatchers.IO)
-    scope.launch {
-      asyncActivityCount?.incrementAndGet() // Keep track of asynchronous activities for tests.
-      try {
-        val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-        val sdkManager = sdkHandler.getRepoManagerAndLoadSynchronously(progress)
-        val listener = RepoLoadedListener { packages -> localPackagesUpdated(packages) }
-        try {
-          Disposer.register(this@EmptyStatePanel) { sdkManager.removeLocalChangeListener(listener) }
-          sdkManager.addLocalChangeListener(listener)
-          localPackagesUpdated(sdkManager.packages)
-        }
-        catch (_: IncorrectOperationException) {
-          // Disposed already.
-        }
-      }
-      finally {
-        asyncActivityCount?.decrementAndGet()
-      }
-    }
 
     updateContent()
-  }
-
-  @AnyThread
-  private fun localPackagesUpdated(packages: RepositoryPackages) {
-    val emulatorPackage = packages.localPackages[SdkConstants.FD_EMULATOR] ?: return
-    UIUtil.invokeLaterIfNeeded { // This is safe because this code doesn't touch PSI or VFS.
-      val insufficient = emulatorPackage.version < Revision.parseRevision(MIN_REQUIRED_EMULATOR_VERSION)
-      if (emulatorVersionIsInsufficient != insufficient) {
-        emulatorVersionIsInsufficient = insufficient
-        updateContent()
-      }
-    }
   }
 
   private fun createContent() {
@@ -144,11 +93,6 @@ internal class EmptyStatePanel(
     val titleColorString = (AdtUiUtils.TITLE_COLOR.rgb and 0xFFFFFF).toString(16)
     val plusSign = "<font color = $titleColorString size=\"+1\"><b>&#xFF0B;</b></font>"
     val virtualFragment: String = when {
-      emulatorVersionIsInsufficient ->
-        "To launch virtual devices in this window, install Android Emulator $MIN_REQUIRED_EMULATOR_VERSION or higher. " +
-        "Please <font color = $linkColorString><a href='CheckForUpdate'>check for&nbsp;updates</a></font> and install " +
-        "the&nbsp;latest version of the&nbsp;Android&nbsp;Emulator."
-
       emulatorLaunchesInToolWindow ->
         "To launch a&nbsp;virtual device, click $plusSign and select the device from the list, or use the&nbsp;" +
         "<font color = $linkColorString><a href='DeviceManager'>Device&nbsp;Manager</a></font>."
@@ -181,13 +125,8 @@ internal class EmptyStatePanel(
       if (event.eventType == HyperlinkEvent.EventType.ACTIVATED) {
         when (event.description) {
           "DeviceManager" -> {
-            // Action id is from com.android.tools.idea.devicemanager2.DeviceManager2Action.
-            val action = ActionManager.getInstance().getAction("Android.DeviceManager2")
-            ActionUtil.invokeAction(action, SimpleDataContext.getProjectContext(project), ActionPlaces.UNKNOWN, null, null)
-          }
-          "CheckForUpdate" -> {
-            val action = ActionManager.getInstance().getAction("CheckForUpdate")
-            ActionUtil.invokeAction(action, SimpleDataContext.getProjectContext(project), ActionPlaces.UNKNOWN, null, null)
+            // See `DeviceManager2ToolWindowFactory.ID`.
+            ToolWindowManager.getInstance(project).getToolWindow("Device Manager 2")?.show(null)
           }
           "EmulatorSettings" -> {
             ShowSettingsUtil.getInstance().showSettingsDialog(project, EmulatorSettingsPage::class.java)
