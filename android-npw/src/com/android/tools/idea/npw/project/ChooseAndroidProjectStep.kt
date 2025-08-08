@@ -15,69 +15,28 @@
  */
 package com.android.tools.idea.npw.project
 
-import com.android.tools.adtui.ASGallery
 import com.android.tools.adtui.compose.StudioComposePanel
-import com.android.tools.adtui.stdui.KeyStrokes
-import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.model.NewProjectModuleModel
-import com.android.tools.idea.npw.template.ChooseGalleryItemStep
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep
 import com.android.tools.idea.npw.template.TemplateResolver
-import com.android.tools.idea.npw.template.getDefaultSelectedTemplateIndex
-import com.android.tools.idea.npw.ui.WizardGallery
-import com.android.tools.idea.npw.ui.getTemplateIcon
-import com.android.tools.idea.npw.ui.getTemplateTitle
-import com.android.tools.idea.observable.ListenerManager
+import com.android.tools.idea.npw.toWizardFormFactor
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
-import com.android.tools.idea.observable.ui.SelectedListValueProperty
 import com.android.tools.idea.wizard.model.ModelWizard.Facade
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.WizardUiContext
 import com.google.common.base.Suppliers
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ModalityState
-import com.intellij.openapi.progress.util.BackgroundTaskUtil
-import com.intellij.ui.JBColor
-import com.intellij.ui.components.JBLabel
-import com.intellij.ui.components.JBList
-import com.intellij.ui.components.JBLoadingPanel
-import com.intellij.util.ModalityUiUtil
-import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
-import com.intellij.util.ui.accessibility.AccessibleContextUtil
-import icons.StudioIcons
-import java.awt.BorderLayout
-import java.awt.Component
-import java.awt.event.ActionEvent
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
 import java.util.function.Supplier
-import javax.swing.AbstractAction
-import javax.swing.BoxLayout
-import javax.swing.Icon
 import javax.swing.JComponent
-import javax.swing.JPanel
-import javax.swing.JSeparator
-import javax.swing.ListSelectionModel
-import javax.swing.SwingConstants
-import javax.swing.event.ListSelectionListener
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.android.util.AndroidBundle.message
-
-const val TABLE_CELL_WIDTH = 260
-const val TABLE_CELL_HEIGHT = 32
-const val TABLE_CELL_LEFT_PADDING = 20
-const val TABLE_TITLE_PADDING = 20
 
 /**
  * First page in the New Project wizard that allows user to select the [FormFactor] (Mobile, Wear,
@@ -85,17 +44,11 @@ const val TABLE_TITLE_PADDING = 20
  */
 class ChooseAndroidProjectStep(model: NewProjectModel) :
   ModelWizardStep<NewProjectModel>(model, message("android.wizard.project.new.choose")) {
-  private var loadingPanel = JBLoadingPanel(BorderLayout(), this)
-  private val leftList = JBList<FormFactorInfo>()
-  private val rightPanel = JPanel(BorderLayout())
-  // Gemini label should be integrated with templates
-  private val geminiLabel = JBLabel()
-  private val listEntriesListeners = ListenerManager()
-  private val formFactors: Supplier<List<FormFactorInfo>> =
-    Suppliers.memoize { createFormFactors(title) }
+  private val formFactors: Supplier<List<FormFactor>> = Suppliers.memoize { createFormFactors() }
+  private val uiModel = ChooseAndroidProjectStepModel(formFactors)
+  private val rootView = StudioComposePanel { ChooseAndroidProjectStepUI(model = uiModel) }
   private val canGoForward = BoolValueProperty()
   private var newProjectModuleModel: NewProjectModuleModel? = null
-  private val geminiTextState = MutableStateFlow("")
   private val coroutineScope = this.createCoroutineScope(Dispatchers.Main)
 
   override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
@@ -112,274 +65,36 @@ class ChooseAndroidProjectStep(model: NewProjectModel) :
   }
 
   override fun onWizardStarting(wizard: Facade) {
-    loadingPanel.startLoading()
-    // Constructing FormFactors performs disk access and XML parsing, so let's do it in background
-    // thread.
-    BackgroundTaskUtil.executeOnPooledThread(
-      this,
-      {
-        val formFactors = formFactors.get()
+    coroutineScope.launch { uiModel.canGoForward.collect { canGoForward.set(it) } }
 
-        // Update UI with the loaded formFactors. Switch back to UI thread.
-        ModalityUiUtil.invokeLaterIfNeeded(ModalityState.any()) { updateUi(wizard, formFactors) }
-      },
-    )
+    coroutineScope.launch { uiModel.getAndroidProjectEntries() }
 
-    if (StudioFlags.GEMINI_NEW_PROJECT_AGENT.get()) {
-      coroutineScope.launch {
-        geminiTextState.collect {
-          canGoForward.set(
-            GeminiPluginApi.getInstance().isAvailable() &&
-              it.isNotEmpty() &&
-              leftList.selectedIndex == -1
-          )
-        }
-      }
-    }
-  }
-
-  /**
-   * Updates UI with a given form factors. This method must be executed on event dispatch thread.
-   */
-  private fun updateUi(wizard: Facade, formFactors: List<FormFactorInfo>) {
-    ApplicationManager.getApplication().assertIsDispatchThread()
-
-    formFactors.forEach {
-      val tabPanel = it.tabPanel
-      val gallery = tabPanel.myGallery
-      gallery.setDefaultAction(
-        object : AbstractAction() {
-          override fun actionPerformed(actionEvent: ActionEvent?) {
-            wizard.goForward()
-          }
-        }
-      )
-      val activitySelectedListener = ListSelectionListener {
-        gallery.selectedElement?.let { renderer ->
-          tabPanel.myTemplateName.isVisible = false
-          tabPanel.myTemplateDesc.parent.isVisible =
-            false // Hides both myTemplateDesc/myDocumentationLink and removes panel padding
-
-          canGoForward.set(true)
-        } ?: canGoForward.set(false)
-      }
-      gallery.addListSelectionListener(activitySelectedListener)
-      activitySelectedListener.valueChanged(null)
-    }
-
-    leftList.setCellRenderer { _, value, _, isSelected, cellHasFocus ->
-      JBLabel(value.formFactor.toString()).apply {
-        isOpaque = true
-        background = UIUtil.getListBackground(isSelected, cellHasFocus)
-        foreground = UIUtil.getListForeground(isSelected, cellHasFocus)
-        border = JBUI.Borders.emptyLeft(TABLE_CELL_LEFT_PADDING)
-
-        val size = JBUI.size(TABLE_CELL_WIDTH, TABLE_CELL_HEIGHT)
-        preferredSize = size
-      }
-    }
-    AccessibleContextUtil.setName(leftList, message("android.wizard.project.new.choose"))
-    leftList.selectionMode = ListSelectionModel.SINGLE_SELECTION
-    leftList.setListData(formFactors.toTypedArray())
-    leftList.selectedIndex = 0
-    leftList.alignmentX = Component.LEFT_ALIGNMENT
-    listEntriesListeners.listenAndFire(SelectedListValueProperty(leftList)) { formFactorInfo ->
-      if (formFactorInfo.isEmpty) return@listenAndFire
-
-      rightPanel.removeAll()
-      rightPanel.add(formFactorInfo.get().tabPanel.myRootPanel, BorderLayout.CENTER)
-      rightPanel.revalidate()
-      rightPanel.repaint()
-      canGoForward.set(formFactorInfo.get().tabPanel.myGallery.selectedElement != null)
-
-      if (StudioFlags.GEMINI_NEW_PROJECT_AGENT.get()) {
-        geminiLabel.apply {
-          background = UIUtil.getListBackground(false, false)
-          foreground = UIUtil.getListForeground(false, false)
-        }
-      }
-    }
-
-    val leftPanel =
-      JPanel(BorderLayout()).apply {
-        val optionList = JPanel()
-        optionList.layout = BoxLayout(optionList, BoxLayout.Y_AXIS)
-        optionList.apply {
-          add(leftList)
-
-          if (StudioFlags.GEMINI_NEW_PROJECT_AGENT.get()) {
-            leftList.registerActionKey({ selectNextRow() }, KeyStrokes.DOWN, "selectNextRow")
-            leftList.registerActionKey({ selectPreviousRow() }, KeyStrokes.UP, "selectPreviousRow")
-
-            add(
-              JSeparator(SwingConstants.HORIZONTAL).apply {
-                alignmentX = Component.LEFT_ALIGNMENT
-                maximumSize = JBUI.size(TABLE_CELL_WIDTH, JBUI.scale(3))
-              }
-            )
-            add(
-              geminiLabel.apply {
-                icon = StudioIcons.StudioBot.LOGO
-                text = "Create with Gemini..."
-                isOpaque = true
-                alignmentX = Component.LEFT_ALIGNMENT
-                background = UIUtil.getListBackground(false, false)
-                foreground = UIUtil.getListForeground(false, false)
-                border = JBUI.Borders.emptyLeft(TABLE_CELL_LEFT_PADDING)
-                minimumSize = JBUI.size(TABLE_CELL_WIDTH, TABLE_CELL_HEIGHT)
-                maximumSize = JBUI.size(TABLE_CELL_WIDTH, TABLE_CELL_HEIGHT)
-                addMouseListener(
-                  object : MouseAdapter() {
-                    override fun mouseClicked(e: MouseEvent?) {
-                      geminiLabelClicked()
-                    }
-                  }
-                )
-              }
-            )
-          }
-        }
-
-        add(createTitle(), BorderLayout.NORTH)
-        add(optionList, BorderLayout.CENTER)
-      }
-
-    val mainPanel =
-      JPanel(BorderLayout()).apply {
-        add(leftPanel, BorderLayout.WEST)
-        add(rightPanel, BorderLayout.CENTER)
-      }
-
-    loadingPanel.add(mainPanel)
-
-    FormScalingUtil.scaleComponentTree(this.javaClass, loadingPanel)
-    loadingPanel.apply {
-      revalidate() // We may have called add(component) after being displayed
-      stopLoading()
-    }
+    // Might not be needed
+    FormScalingUtil.scaleComponentTree(this.javaClass, rootView)
   }
 
   override fun onProceeding() {
-    val selectedIndex = leftList.selectedIndex
-    if (selectedIndex == -1) {
-      val newProjectModuleModel = newProjectModuleModel!!
-      val baseTemplateName =
-        if (StudioFlags.NPW_ENABLE_ARCHITECTURE_SAMPLE_TEMPLATE.get()) "Architecture Sample"
-        else "Empty Activity"
-      val templateToUse =
-        TemplateResolver.getAllTemplates().firstOrNull { it.name == baseTemplateName }
-      newProjectModuleModel.newRenderTemplate.setNullableValue(templateToUse ?: Template.NoActivity)
-      model.prompt.set(geminiTextState.value)
-    } else {
-      val selectedFormFactorInfo = formFactors.get()[selectedIndex]
-      val selectedTemplate = selectedFormFactorInfo.tabPanel.myGallery.selectedElement!!
-      val newProjectModuleModel = newProjectModuleModel!!
-      newProjectModuleModel.formFactor.set(selectedFormFactorInfo.formFactor)
-      when (selectedTemplate) {
-        is NewTemplateRendererWithDescription -> {
-          newProjectModuleModel.newRenderTemplate.setNullableValue(selectedTemplate.template)
-          val hasExtraDetailStep =
-            selectedTemplate.template.uiContexts.contains(WizardUiContext.NewProjectExtraDetail)
-          newProjectModuleModel.extraRenderTemplateModel.newTemplate =
-            if (hasExtraDetailStep) selectedTemplate.template else Template.NoActivity
-        }
-        else -> throw IllegalArgumentException("Add support for additional template renderer")
-      }
-    }
-  }
-
-  private fun selectNextRow() {
-    if (leftList.selectedIndex == leftList.itemsCount - 1) {
-      geminiLabelClicked()
-    } else if (leftList.selectedIndex < leftList.itemsCount - 1) {
-      leftList.selectedIndex += 1
-    }
-  }
-
-  private fun selectPreviousRow() {
-    if (leftList.selectedIndex == 0) {
-      geminiLabelClicked()
-    } else if (leftList.selectedIndex > 0) {
-      leftList.selectedIndex -= 1
-    } else {
-      leftList.selectedIndex = leftList.itemsCount - 1
-    }
-  }
-
-  private fun geminiLabelClicked() {
-    val geminiPlugin = GeminiPluginApi.getInstance()
-
-    geminiLabel.background = UIUtil.getListBackground(true, true)
-    geminiLabel.foreground = UIUtil.getListForeground(true, true)
-    leftList.clearSelection()
-
-    rightPanel.removeAll()
-    rightPanel.add(
-      StudioComposePanel { GeminiRightPanel(geminiTextState, geminiPlugin.isAvailable(), true) }
-    )
-    rightPanel.revalidate()
-    rightPanel.repaint()
-    canGoForward.set(
-      GeminiPluginApi.getInstance().isAvailable() && geminiTextState.value.isNotEmpty()
-    )
+    uiModel.selectedAndroidProjectEntry?.onProceeding(newProjectModuleModel!!, model)
   }
 
   override fun canGoForward(): ObservableBool = canGoForward
 
-  override fun getComponent(): JComponent = loadingPanel
+  override fun getComponent(): JComponent = rootView
 
-  override fun getPreferredFocusComponent(): JComponent = loadingPanel
-
-  override fun dispose() {
-    listEntriesListeners.releaseAll()
-  }
-
-  interface FormFactorInfo {
-    val formFactor: FormFactor
-    val tabPanel: ChooseAndroidProjectPanel<TemplateRendererWithDescription>
-  }
-
-  private class NewFormFactorInfo(
-    override val formFactor: FormFactor,
-    override val tabPanel: ChooseAndroidProjectPanel<TemplateRendererWithDescription>,
-  ) : FormFactorInfo
-
-  interface TemplateRendererWithDescription : ChooseGalleryItemStep.TemplateRenderer {
-    val description: String
-    val documentationUrl: String?
-  }
-
-  private class NewTemplateRendererWithDescription(template: Template) :
-    TemplateRendererWithDescription, ChooseGalleryItemStep.NewTemplateRenderer(template) {
-    override val label: String
-      get() = getTemplateTitle(template)
-
-    override val icon: Icon?
-      get() = getTemplateIcon(template)
-
-    override val description: String
-      get() = template.description
-
-    override val documentationUrl: String? = template.documentationUrl
-  }
+  override fun getPreferredFocusComponent(): JComponent = rootView
 
   companion object {
-    fun createTitle(): JBLabel {
-      return JBLabel("Templates").apply {
-        isOpaque = true
-        background = UIUtil.getListBackground()
-        foreground = JBColor(0x999999, 0x787878)
-        border =
-          JBUI.Borders.empty(
-            TABLE_TITLE_PADDING,
-            TABLE_CELL_LEFT_PADDING,
-            TABLE_TITLE_PADDING,
-            TABLE_TITLE_PADDING,
-          )
+    fun FormFactor.getProjectTemplates() =
+      if (includeNoActivity) {
+        listOf(Template.NoActivity) + this.getNewProjectTemplates()
+      } else {
+        this.getNewProjectTemplates()
       }
-    }
 
-    private fun FormFactor.getProjectTemplates() =
+    fun Template.getTemplateTitle(): String =
+      name.replace("${formFactor.toWizardFormFactor().displayName} ", "")
+
+    private fun FormFactor.getNewProjectTemplates() =
       TemplateResolver.getAllTemplates().filter {
         WizardUiContext.NewProject in it.uiContexts &&
           it.formFactor == this &&
@@ -387,31 +102,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) :
             StudioFlags.NPW_ENABLE_ARCHITECTURE_SAMPLE_TEMPLATE.get())
       }
 
-    private fun createFormFactors(wizardTitle: String): List<FormFactorInfo> =
-      FormFactor.values()
-        .filterNot { it.getProjectTemplates().isEmpty() }
-        .map { NewFormFactorInfo(it, ChooseAndroidProjectPanel(createGallery(wizardTitle, it))) }
-
-    private fun createGallery(
-      title: String,
-      formFactor: FormFactor,
-    ): ASGallery<TemplateRendererWithDescription> {
-      val listItems =
-        sequence {
-            if (formFactor.includeNoActivity) {
-              yield(NewTemplateRendererWithDescription(Template.NoActivity))
-            }
-            formFactor.getProjectTemplates().forEach {
-              yield(NewTemplateRendererWithDescription(it))
-            }
-          }
-          .toList()
-
-      return WizardGallery<TemplateRendererWithDescription>(title, { it!!.icon }, { it!!.label })
-        .apply {
-          model = JBList.createDefaultListModel(listItems)
-          selectedIndex = getDefaultSelectedTemplateIndex(listItems)
-        }
-    }
+    private fun createFormFactors(): List<FormFactor> =
+      FormFactor.values().filterNot { it.getProjectTemplates().isEmpty() }
   }
 }

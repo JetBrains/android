@@ -20,6 +20,7 @@ iml_module(
         "//tools/adt/idea/observable:intellij.android.observable",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model",
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
+        "//tools/adt/idea/artwork-compose:intellij.android.artwork-compose",
         "//tools/adt/idea/android-adb:intellij.android.adb",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
         "//tools/adt/idea/observable-ui:intellij.android.observable.ui",
@@ -52,6 +53,7 @@ iml_module(
 iml_module(
     name = "intellij.android.newProjectWizard.tests",
     iml_files = ["intellij.android.newProjectWizard.tests.iml"],
+    kotlin_use_compose = True,
     split_test_targets = {
         "npw.assetstudio": {
             "test_filter": "com.android.tools.idea.npw.assetstudio.ui",
@@ -170,6 +172,10 @@ iml_module(
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
         "//tools/adt/idea/android-templates:intellij.android.templates",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose.tests",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
+        "//tools/adt/idea/ml-api:intellij.android.ml-api",
     ],
     test_resources = ["testResources"],
     test_srcs = ["testSrc"],
