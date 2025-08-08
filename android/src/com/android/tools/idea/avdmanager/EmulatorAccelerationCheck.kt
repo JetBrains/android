@@ -91,4 +91,5 @@ private val progressIndicator =
   StudioLoggerProgressIndicator(EmulatorAccelerationChecks::class.java)
 private val PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("23.1.0")
 
-@JvmField internal val MINIMUM_EMULATOR_VERSION = Revision.parseRevision("34.1.20") // 2024/04/01
+@JvmField internal val MINIMUM_EMULATOR_VERSION =
+  Revision.parseRevision("35.6.11") // https://developer.android.com/studio/releases/emulator#35-6-11
