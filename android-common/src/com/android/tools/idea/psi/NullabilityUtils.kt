@@ -19,10 +19,12 @@ package com.android.tools.idea.psi
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnnotation
+import com.intellij.psi.PsiArrayType
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFactory
 import com.intellij.psi.PsiType
+import com.intellij.psi.TypeAnnotationProvider
 import com.intellij.psi.search.GlobalSearchScope
 
 private const val PREFIX_ANDROIDX = "androidx.annotation"
@@ -49,8 +51,13 @@ fun Project.createNullabilityAnnotation(isNonNull: Boolean, context: PsiElement?
   return PsiElementFactory.getInstance(this).createAnnotationFromText("@$prefix.$suffix", context)
 }
 
-@Suppress("UNCHECKED_CAST") // Passed in PsiType is returned directly or cloned
-fun <T : PsiType> Project.annotateType(type: T, isNonNull: Boolean, context: PsiElement?): T {
-  val annotation = arrayOf(createNullabilityAnnotation(isNonNull, context))
-  return type.annotate { annotation } as T
+fun Project.annotateType(type: PsiType, isNonNull: Boolean, context: PsiElement?): PsiType {
+  // Note: all other type annotations are removed.
+  val annotations = arrayOf(createNullabilityAnnotation(isNonNull, context))
+  // Ideally we would call type.annotate() in all cases. Unfortunately, some PsiType
+  // subclasses do not recompute nullability when annotations change (IDEA-377644).
+  return when (type) {
+    is PsiArrayType -> PsiArrayType(type.componentType, annotations)
+    else -> type.annotate(TypeAnnotationProvider.Static.create(annotations))
+  }
 }
