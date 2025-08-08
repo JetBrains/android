@@ -84,7 +84,9 @@ class InvalidColorIndexWFFExpressionInspection : LocalInspectionTool() {
 
     return object : WFFExpressionVisitor() {
       override fun visitLiteralExpr(literalExpr: WFFExpressionLiteralExpr) {
-        val reference = literalExpr.reference as? UserConfigurationReference ?: return
+        val reference =
+          literalExpr.references.filterIsInstance<UserConfigurationReference>().firstOrNull()
+            ?: return
         val colorIndexTextRange =
           reference.colorIndex?.let { colorIndex ->
             val colorIndexStartOffset =

@@ -39,6 +39,8 @@ object WFFConstants {
   const val TAG_BOOLEAN_CONFIGURATION = "BooleanConfiguration"
   const val TAG_PHOTOS_CONFIGURATION = "PhotosConfiguration"
   const val TAG_PHOTOS = "Photos"
+  const val TAG_PARAMETER = "Parameter"
+  const val TAG_TEMPLATE = "Template"
 
   /**
    * Attributes that can reference drawable resources.

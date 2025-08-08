@@ -71,8 +71,8 @@ public class WFFExpressionLiteralExprImpl extends WFFExpressionExprImpl implemen
   }
 
   @Override
-  public @Nullable PsiReference getReference() {
-    return PsiImplUtilKt.getReference(this);
+  public @NotNull PsiReference @NotNull [] getReferences() {
+    return PsiImplUtilKt.getReferences(this);
   }
 
 }

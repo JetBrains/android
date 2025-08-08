@@ -105,3 +105,6 @@ fun XmlFile.extractUserConfigurations(): List<UserConfiguration> {
     }
   }
 }
+
+/** Removes both surrounding and single and double quotes from a given string. */
+fun String.removeSurroundingQuotes() = removeSurrounding("\"").removeSurrounding("'")

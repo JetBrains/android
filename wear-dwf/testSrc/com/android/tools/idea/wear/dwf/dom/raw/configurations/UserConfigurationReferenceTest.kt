@@ -324,15 +324,15 @@ class UserConfigurationReferenceTest {
     val dataSource =
       findInjectedElementAtCaret()?.parentOfType<WFFExpressionLiteralExpr>(withSelf = true)
     assertThat(dataSource).isNotNull()
-    assertThat(dataSource?.reference).isNotNull()
-    assertThat(dataSource?.reference?.resolve()).isNull()
+    assertThat(dataSource?.userConfigurationReference).isNotNull()
+    assertThat(dataSource?.userConfigurationReference?.resolve()).isNull()
 
     fixture.moveCaret("[CONFIGURATION.boolean|_configuration]")
     val configuration =
       findInjectedElementAtCaret()?.parentOfType<WFFExpressionLiteralExpr>(withSelf = true)
     assertThat(configuration).isNotNull()
-    assertThat(configuration?.reference).isNotNull()
-    assertThat(configuration?.reference?.resolve())
+    assertThat(configuration?.userConfigurationReference).isNotNull()
+    assertThat(configuration?.userConfigurationReference?.resolve())
       .isEqualTo(
         fixture.findElementByText(
           "<BooleanConfiguration id=\"boolean_configuration\" />",
@@ -344,8 +344,8 @@ class UserConfigurationReferenceTest {
     val unknownConfiguration =
       findInjectedElementAtCaret()?.parentOfType<WFFExpressionLiteralExpr>(withSelf = true)
     assertThat(unknownConfiguration).isNotNull()
-    assertThat(unknownConfiguration?.reference).isNotNull()
-    assertThat(unknownConfiguration?.reference?.resolve()).isNull()
+    assertThat(unknownConfiguration?.userConfigurationReference).isNotNull()
+    assertThat(unknownConfiguration?.userConfigurationReference?.resolve()).isNull()
   }
 
   @Test
@@ -542,7 +542,7 @@ class UserConfigurationReferenceTest {
     val validBooleanConfig =
       findInjectedElementAtCaret()?.parentOfType<WFFExpressionLiteralExpr>(withSelf = true)
     assertThat(validBooleanConfig).isNotNull()
-    assertThat(validBooleanConfig?.reference?.resolve())
+    assertThat(validBooleanConfig?.userConfigurationReference?.resolve())
       .isEqualTo(
         fixture.findElementByText(
           "<BooleanConfiguration id=\"boolean_config\" />",
@@ -554,7 +554,7 @@ class UserConfigurationReferenceTest {
     val invalidBooleanConfig =
       findInjectedElementAtCaret()?.parentOfType<WFFExpressionLiteralExpr>(withSelf = true)
     assertThat(invalidBooleanConfig).isNotNull()
-    assertThat(invalidBooleanConfig?.reference?.resolve()).isNull()
+    assertThat(invalidBooleanConfig?.userConfigurationReference?.resolve()).isNull()
   }
 
   @Test
@@ -579,7 +579,7 @@ class UserConfigurationReferenceTest {
     val validListConfig =
       findInjectedElementAtCaret()?.parentOfType<WFFExpressionLiteralExpr>(withSelf = true)
     assertThat(validListConfig).isNotNull()
-    assertThat(validListConfig?.reference?.resolve())
+    assertThat(validListConfig?.userConfigurationReference?.resolve())
       .isEqualTo(
         fixture.findElementByText("<ListConfiguration id=\"list_config\" />", XmlTag::class.java)
       )
@@ -588,7 +588,7 @@ class UserConfigurationReferenceTest {
     val invalidListConfig =
       findInjectedElementAtCaret()?.parentOfType<WFFExpressionLiteralExpr>(withSelf = true)
     assertThat(invalidListConfig).isNotNull()
-    assertThat(invalidListConfig?.reference?.resolve()).isNull()
+    assertThat(invalidListConfig?.userConfigurationReference?.resolve()).isNull()
   }
 
   @Test
@@ -657,4 +657,8 @@ class UserConfigurationReferenceTest {
   private fun findInjectedElementAtCaret() =
     InjectedLanguageManager.getInstance(projectRule.project)
       .findInjectedElementAt(fixture.file, fixture.caretOffset)
+
+  private val WFFExpressionLiteralExpr.userConfigurationReference
+    get() =
+      references.firstOrNull { it is UserConfigurationReference } as UserConfigurationReference?
 }

@@ -16,17 +16,28 @@
 package com.android.tools.idea.wear.dwf.dom.raw.expressions
 
 import com.android.SdkConstants.TAG_COMPLICATION
+import com.android.tools.idea.wear.dwf.WFFConstants.TAG_PARAMETER
+import com.android.tools.idea.wear.dwf.WFFConstants.TAG_TEMPLATE
 import com.android.tools.idea.wear.dwf.dom.raw.configurations.UserConfigurationReference
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
+import com.intellij.psi.tree.IFileElementType
+import com.intellij.psi.util.elementType
 import com.intellij.psi.util.findParentInFile
+import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 
-fun getReference(literalExpr: WFFExpressionLiteralExpr): PsiReference? {
-  val watchFaceFile = getWatchFaceFile(literalExpr) ?: return null
-  return UserConfigurationReference(literalExpr, watchFaceFile, literalExpr.text)
+fun getReferences(literalExpr: WFFExpressionLiteralExpr): Array<PsiReference> {
+  val userConfigurationReference =
+    getWatchFaceFile(literalExpr)
+      ?.let { watchFaceFile ->
+        UserConfigurationReference(literalExpr, watchFaceFile, literalExpr.text)
+      }
+      ?.takeIf { literalExpr.id != null || literalExpr.dataSourceOrConfiguration != null }
+  return listOfNotNull(userConfigurationReference, templateParameterStringReference(literalExpr))
+    .toTypedArray()
 }
 
 /**
@@ -51,4 +62,41 @@ fun getParentComplicationTag(element: PsiElement): XmlTag? {
   return injectedHost.findParentInFile(withSelf = true) {
     (it as? XmlTag)?.name == TAG_COMPLICATION
   } as? XmlTag
+}
+
+/**
+ * Expressions in `<Parameter>` tags can reference a string resource. However, to do so, the whole
+ * expression must be the reference to the string. If there are other elements in the expression,
+ * then the resource name will be used.
+ *
+ * This method returns a [TemplateParameterStringReference] if the given [literalExpr] is the only
+ * element in the expression, is inside a `<Template>`'s `<Parameter>` tag and, is an ID or a
+ * string.
+ *
+ * @see <a
+ *   href="https://developer.android.com/reference/wear-os/wff/group/part/text/formatter/template">Template</a>
+ */
+private fun templateParameterStringReference(
+  literalExpr: WFFExpressionLiteralExpr
+): TemplateParameterStringReference? {
+  if (literalExpr.id == null && literalExpr.quotedString == null) return null
+  if (!isOnlyElementInExpression(literalExpr)) return null
+  if (!isInjectedInTemplateParameterTag(literalExpr)) return null
+
+  return TemplateParameterStringReference(literalExpr)
+}
+
+/** Returns whether the given [element] is the only element in the WFF expression */
+private fun isOnlyElementInExpression(element: WFFExpressionLiteralExpr): Boolean {
+  return element.parent.elementType is IFileElementType
+}
+
+/** Returns whether the element is inside a `<Parameter>` tag within a `<Template>` tag. */
+private fun isInjectedInTemplateParameterTag(element: WFFExpressionLiteralExpr): Boolean {
+  val injectedHost =
+    InjectedLanguageManager.getInstance(element.project).getInjectionHost(element.containingFile)
+      ?: return false
+
+  val xmlTag = injectedHost.parentOfType<XmlTag>() as? XmlTag ?: return false
+  return xmlTag.name == TAG_PARAMETER && xmlTag.parentTag?.name == TAG_TEMPLATE
 }

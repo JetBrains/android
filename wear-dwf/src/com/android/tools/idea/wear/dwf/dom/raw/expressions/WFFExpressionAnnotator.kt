@@ -142,8 +142,11 @@ class WFFExpressionAnnotator() : Annotator {
     holder: AnnotationHolder,
   ) {
     val reference =
-      configuration.parentOfType<WFFExpressionLiteralExpr>(withSelf = true)?.reference
-        as? UserConfigurationReference
+      configuration
+        .parentOfType<WFFExpressionLiteralExpr>(withSelf = true)
+        ?.references
+        ?.filterIsInstance<UserConfigurationReference>()
+        ?.firstOrNull()
     if (reference?.resolve() == null) {
       holder
         .newAnnotation(

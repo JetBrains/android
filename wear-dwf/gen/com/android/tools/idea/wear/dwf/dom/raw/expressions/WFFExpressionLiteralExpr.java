@@ -38,6 +38,6 @@ public interface WFFExpressionLiteralExpr extends WFFExpressionExpr {
   @Nullable
   PsiElement getQuotedString();
 
-  @Nullable PsiReference getReference();
+  @NotNull PsiReference @NotNull [] getReferences();
 
 }
