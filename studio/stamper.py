@@ -55,13 +55,11 @@ def _stamp_app_info(version_file, build_txt, micro, patch, full, eap, content):
   return content
 
 
-def _stamp_product_info(info_file, build_txt, added_plugins, content):
-  build_info = _read_status_file(info_file)
+def _stamp_product_info(build_txt, added_plugins, content):
   build_number = utils.read_file(build_txt)
-  bid = _get_build_id(build_info)
 
   json_data = json.loads(content)
-  json_data["buildNumber"] = json_data["buildNumber"].replace("__BUILD_NUMBER__", bid)
+  json_data["buildNumber"] = build_number[3:] # Without the product code, e.g. 'AI-'
   json_data["version"] = build_number
 
   # Add metadata for non-platform plugins built by Bazel.
@@ -128,10 +126,12 @@ def _overwrite_since_until_builds(build_txt, content):
 
   return content
 
-def _replace_build_number(content, info_file):
+def _replace_build_number(content, info_file, version_component):
+  # The first 3 build number components come from IntelliJ Platform.
+  # We insert the 4th and 5th components at the '__BUILD_NUMBER__' placeholder position.
   build_info = _read_status_file(info_file)
   bid = _get_build_id(build_info)
-  return content.replace("__BUILD_NUMBER__", bid)
+  return content.replace("__BUILD_NUMBER__", version_component + "." + bid)
 
 def _replace_selector(content, selector):
   return content.replace("_ANDROID_STUDIO_SYSTEM_SELECTOR_", selector)
@@ -185,7 +185,7 @@ def main(argv):
   parser.add_argument(
       "--replace_build_number",
       action="store_true",
-      help="Replaces __BUILD_NUMBER__ on the given file using --info_file.")
+      help="Replaces __BUILD_NUMBER__ on the given file using --version_component and --info_file.")
   parser.add_argument(
       "--replace_selector",
       help="Replaces _ANDROID_STUDIO_SYSTEM_SELECTOR_ with the given value")
@@ -248,6 +248,10 @@ def main(argv):
       required = "--stamp_app_info" in sys.argv,
       help="The descriptive form of the version. Can use {0} to refer to version components, like \"{0}.{1} Canary 2\"")
   parser.add_argument(
+      "--version_component",
+      required = "--replace_build_number" in sys.argv,
+      help="The 4th component of the full 5-component build number, identifying a specific Studio release")
+  parser.add_argument(
       "--eap",
       default="",
       dest="eap",
@@ -257,7 +261,7 @@ def main(argv):
       "--info_file",
       default="",
       dest="info_file",
-      required = "--replace_build_number" in sys.argv or "--stamp_product_info" in sys.argv,
+      required = "--replace_build_number" in sys.argv,
       help="Path to the bazel build info file (bazel-out/stable-status.txt).")
   parser.add_argument(
       "--version_file",
@@ -279,7 +283,7 @@ def main(argv):
 
   if content:
     if args.replace_build_number:
-      content = _replace_build_number(content, args.info_file)
+      content = _replace_build_number(content, args.info_file, args.version_component)
 
     if args.replace_selector:
       content= _replace_selector(content, args.replace_selector)
@@ -297,7 +301,7 @@ def main(argv):
       content = _overwrite_since_until_builds(args.build_txt, content)
 
     if args.stamp_product_info:
-      content = _stamp_product_info(args.info_file, args.build_txt, args.added_plugins, content)
+      content = _stamp_product_info(args.build_txt, args.added_plugins, content)
 
     if args.subs:
       content = _replace_subs(args.subs, content)

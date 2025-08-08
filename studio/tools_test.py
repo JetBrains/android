@@ -142,11 +142,10 @@ class ToolsTest(unittest.TestCase):
 
   def test_stamp_product_info(self):
     build_txt = create_file("build.txt", "AI-1234.3333")
-    stable = create_file("info.txt", "BUILD_EMBED_LABEL 3333")
     before = create_file("product-info.json", json.dumps({
       "name": "Studio",
       "version": "dev build",
-      "buildNumber": "AI-1234.__BUILD_NUMBER__",
+      "buildNumber": "__BUILD_NUMBER__",
       "bundledPlugins": [
         "some.platform.plugin",
       ],
@@ -160,7 +159,6 @@ class ToolsTest(unittest.TestCase):
     }))
     after = get_path("res.json")
     stamper.main([
-        "--info_file", stable,
         "--build_txt", build_txt,
         "--stamp", before, after,
         "--stamp_product_info",
@@ -169,7 +167,7 @@ class ToolsTest(unittest.TestCase):
     expected = json.dumps({
       "name": "Studio",
       "version": "AI-1234.3333",
-      "buildNumber": "AI-1234.3333",
+      "buildNumber": "1234.3333",
       "bundledPlugins": [
         "some.platform.plugin",
         "org.jetbrains.android",
@@ -346,10 +344,11 @@ FORMATTED_DATE 2025 May 05 20 54 54 Mon""",
 
   def test_replace_build_number(self):
     stable = create_file("info.txt", "BUILD_EMBED_LABEL 3333")
-    before = create_file("like_build.txt", "AI-1234.__BUILD_NUMBER__")
+    before = create_file("like_build.txt", "AI-__BUILD_NUMBER__")
     after = get_path("res.txt")
     stamper.main([
         "--info_file", stable,
+        "--version_component", "1234",
         "--stamp", before, after,
         "--replace_build_number"
     ])

@@ -564,6 +564,10 @@ def _form_version_full(ctx):
             " " +
             str(ctx.attr.version_release_number))
 
+def _form_studio_version_component(intellij_info, studio_micro):
+    """Returns the 4th component of the full 5-component build number, identifying a specific Studio release"""
+    return intellij_info.major_version[2:] + intellij_info.minor_version + studio_micro
+
 def _full_display_version(ctx):
     """Returns the output of _form_version_full with versions applied."""
     intellij_info = ctx.attr.platform[IntellijInfo]
@@ -666,15 +670,18 @@ def _stamp_platform(ctx, platform, platform_files, added_plugins):
     ret = {}
     ret.update(platform_files)
 
+    (micro, patch) = _split_version(ctx.attr.version_micro_patch)
+    version_component = _form_studio_version_component(ctx.attr.platform[IntellijInfo], micro)
+
     build_txt, stamped_build_txt = _declare_stamped_file(ctx, ret, platform, platform.resource_path + "build.txt")
     args = ctx.actions.args()
     args.add("--info_file", ctx.info_file)
+    args.add("--version_component", version_component)
     args.add("--replace_build_number")
     _stamp(ctx, args, [ctx.info_file], build_txt, stamped_build_txt)
 
     resources_jar, stamped_resources_jar = _declare_stamped_file(ctx, ret, platform, platform.base_path + "lib/resources.jar")
     (_, is_eap) = _get_channel_info(config.version_type)
-    (micro, patch) = _split_version(ctx.attr.version_micro_patch)
     args = ctx.actions.args()
     args.add("--entry", "idea/AndroidStudioApplicationInfo.xml")
     args.add("--version_file", ctx.version_file)
@@ -719,6 +726,7 @@ def _stamp_platform(ctx, platform, platform_files, added_plugins):
         info_plist, stamped_info_plist = _declare_stamped_file(ctx, ret, platform, platform.base_path + "Info.plist")
         args = ctx.actions.args()
         args.add("--info_file", ctx.info_file)
+        args.add("--version_component", version_component)
         args.add("--replace_build_number")
         args.add("--replace_selector", system_selector)
         _stamp(ctx, args, [ctx.info_file], info_plist, stamped_info_plist)
@@ -741,7 +749,6 @@ def _stamp_platform(ctx, platform, platform_files, added_plugins):
 
     product_info_json, stamped_product_info_json = _declare_stamped_file(ctx, ret, platform, platform.resource_path + "product-info.json")
     args = ctx.actions.args()
-    args.add("--info_file", ctx.info_file)
     args.add("--build_txt", stamped_build_txt)
     args.add("--stamp_product_info")
     args.add("--replace_selector", system_selector)
@@ -758,6 +765,9 @@ def _stamp_plugin(ctx, platform, platform_files, files, overwrite_plugin_version
     ret.update(files)
     build_txt = platform_files[platform.resource_path + "build.txt"]
 
+    (micro, _) = _split_version(ctx.attr.version_micro_patch)
+    version_component = _form_studio_version_component(ctx.attr.platform[IntellijInfo], micro)
+
     for rel, file in files.items():
         if rel.endswith(".jar"):
             stamped_jar = ctx.actions.declare_file(ctx.attr.name + ".plugin.%s.stamped." % platform.name + rel.replace("/", "_"))
@@ -766,6 +776,7 @@ def _stamp_plugin(ctx, platform, platform_files, files, overwrite_plugin_version
             args = ctx.actions.args()
             args.add("--build_txt", build_txt)
             args.add("--info_file", ctx.info_file)
+            args.add("--version_component", version_component)
             args.add("--entry", "META-INF/plugin.xml")
             args.add("--optional_entry")
             args.add("--replace_build_number")
