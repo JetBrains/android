@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.actions
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.projectView.ProjectToolWindowSettings
 import com.android.tools.idea.navigator.ANDROID_VIEW_ID
@@ -27,7 +28,9 @@ import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.testFramework.HeavyPlatformTestCase
+import com.intellij.util.ThrowableRunnable
 import org.mockito.Mock
 import org.mockito.MockedStatic
 import org.mockito.Mockito.mockStatic
@@ -57,6 +60,14 @@ class ShowBuildFilesInModuleActionTest : HeavyPlatformTestCase() {
      myPresentation = Presentation()
     `when`(myEvent.presentation).thenReturn(myPresentation)
     `when`(myEvent.project).thenReturn(myProject)
+  }
+
+  override fun runTestRunnable(testRunnable: ThrowableRunnable<Throwable>) {
+    if (!IdeInfo.getInstance().isAndroidStudio) {
+      logger<ShowBuildFilesInModuleActionTest>().warn("Skipping test ${name} - only applicable in Android Studio")
+      return
+    }
+    super.runTestRunnable(testRunnable)
   }
 
   fun testActionVisibility() {
