@@ -202,7 +202,7 @@ MODULE                        : project_sm_src.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>_sm_src/app/build
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 35.0.0
     IsBaseSplit                   : true
     GroupId                       : project_sm_src
     Namespace                     : google.simpleapplication

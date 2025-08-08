@@ -1110,7 +1110,7 @@ MODULE                        : My_First_App.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/firstapp/app/build
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 35.0.0
     IsBaseSplit                   : true
     GroupId                       : My First App
     Namespace                     : com.example.firstapp
@@ -2199,7 +2199,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/shared/mysharedlibrary/build
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 35.0.0
     IsBaseSplit                   : false
     GroupId                       : My First App.app
     Namespace                     : com.example.mysharedlibrary

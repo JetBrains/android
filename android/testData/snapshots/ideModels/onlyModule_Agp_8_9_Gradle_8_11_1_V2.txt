@@ -1017,7 +1017,7 @@ MODULE                        : project.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/app/build
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 35.0.0
     IsBaseSplit                   : true
     GroupId                       : project
     Namespace                     : com.example.android.app
@@ -1401,7 +1401,7 @@ MODULE                        : project.benchmark
     ProjectType                   : PROJECT_TYPE_TEST
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/benchmark/build
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 35.0.0
     IsBaseSplit                   : false
     GroupId                       : project
     Namespace                     : com.example.android.benchmark
@@ -1870,7 +1870,7 @@ MODULE                        : project.test
     ProjectType                   : PROJECT_TYPE_TEST
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/test/build
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 35.0.0
     IsBaseSplit                   : false
     GroupId                       : project
     Namespace                     : com.example.android.app.benchmark
@@ -2330,7 +2330,7 @@ MODULE                        : project.test2
     ProjectType                   : PROJECT_TYPE_TEST
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/test2/build
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 35.0.0
     IsBaseSplit                   : false
     GroupId                       : project
     Namespace                     : com.example.android.test2
