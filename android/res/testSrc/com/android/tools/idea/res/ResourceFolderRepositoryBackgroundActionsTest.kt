@@ -23,6 +23,7 @@ import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.application
+import kotlinx.coroutines.CoroutineExceptionHandler
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -44,10 +45,12 @@ class ResourceFolderRepositoryBackgroundActionsTest {
     // Enabling tracing ensures all the log lines show up in the test log, and that there aren't any
     // exceptions there.
     ResourceUpdateTracer.getInstance().startTracing()
+    ResourceFolderRepositoryBackgroundActions.testOverriddenBackgroundTaskContext = CoroutineExceptionHandler { _, t -> t.printStackTrace() }
   }
 
   @After
   fun tearDown() {
+    ResourceFolderRepositoryBackgroundActions.testOverriddenBackgroundTaskContext = null
     val resourceUpdateTracer = ResourceUpdateTracer.getInstance()
     resourceUpdateTracer.dumpTrace("ResourceFolderRepositoryBackgroundActionsTest")
     resourceUpdateTracer.stopTracing()

@@ -32,8 +32,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import org.jetbrains.annotations.TestOnly
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * Module service responsible for managing background actions taken by [ResourceFolderRepository].
@@ -108,12 +112,17 @@ class ResourceFolderRepositoryBackgroundActions : Disposable.Default {
     private val coroutineScope
       get() = application.service<ScopeService>().coroutineScope
 
+    @TestOnly // Please don't ever take inspiration from this class and/or change. This is just a minimum-change solution to fix AS merge
+    var testOverriddenBackgroundTaskContext: CoroutineContext? = null
+
     @JvmStatic
     fun getInstance(module: Module) = module.service<ResourceFolderRepositoryBackgroundActions>()
 
     @JvmStatic
     fun runInBackground(action: Runnable) {
-      coroutineScope.launch(Dispatchers.Default) { supervisorScope { launch { action.run() } } }
+      coroutineScope.launch((testOverriddenBackgroundTaskContext ?: EmptyCoroutineContext) + Dispatchers.Default) {
+        supervisorScope { launch { action.run() } }
+      }
     }
   }
 
