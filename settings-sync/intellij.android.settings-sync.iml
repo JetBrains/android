@@ -43,7 +43,7 @@
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
-    <orderEntry type="module" module-name="google-login-as" />
+    <orderEntry type="module" module-name="google-login" />
     <orderEntry type="library" name="studio-plugin-intellij.settingsSync.core" level="project" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.compose" />
     <orderEntry type="module" module-name="intellij.android.artwork-compose" />

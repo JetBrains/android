@@ -222,6 +222,7 @@ studio_plugin(
             "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector.gradle",
             "//tools/adt/idea/layout-ui:intellij.android.layout-ui",
             "//tools/adt/idea/logcat:intellij.android.logcat",
+            "//tools/vendor/google/login:google-login",
             "//tools/adt/idea/mlkit:intellij.android.mlkit",
             "//tools/adt/idea/nav/safeargs:intellij.android.nav.safeargs",
             "//tools/adt/idea/nav/safeargs/common:intellij.android.nav.safeargs.common",
@@ -379,9 +380,6 @@ studio_plugin(
         ],
         "memory-usage.jar": [
             "//tools/adt/idea/memory-usage",
-        ],
-        "google-login.jar": [
-            "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as",
         ],
     },
     resources = {
@@ -1078,7 +1076,7 @@ iml_module(
         "//tools/vendor/google/firebase",
         "//tools/studio/google/cloud/testing/directaccess",
         "//tools/studio/google/cloud/testing/firebase-testing",
-        "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as",
+        "//tools/vendor/google/login:google-login",
         "//tools/adt/idea/smali:intellij.android.smali",
         "//tools/studio/google/cloud/testing/test-recorder",
         "//tools/vendor/google/url-assistant",

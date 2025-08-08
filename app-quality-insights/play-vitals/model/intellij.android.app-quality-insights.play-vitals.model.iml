@@ -21,7 +21,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="google-login-as" />
+    <orderEntry type="module" module-name="google-login" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.android.common" />

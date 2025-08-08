@@ -27,7 +27,7 @@ iml_module(
         "//tools/adt/idea/app-quality-insights/api:intellij.android.app-quality-insights.api",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:libplay_vitals_java_proto",
-        "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as",
+        "//tools/vendor/google/login:google-login",
         "//tools/base/annotations:studio.android.sdktools.android-annotations",
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/adt/idea/android-common:intellij.android.common",

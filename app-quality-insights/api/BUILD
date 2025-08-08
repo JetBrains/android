@@ -33,7 +33,7 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/adt/idea/artwork:intellij.android.artwork",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
-        "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as",
+        "//tools/vendor/google/login:google-login",
         "//tools/adt/idea/.idea/libraries:gradle-shared-proto",
         "//tools/adt/idea/.idea/libraries:google-api-client",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common",

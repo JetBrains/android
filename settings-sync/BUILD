@@ -31,7 +31,7 @@ iml_module(
         "@intellij//:intellij-sdk",
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/base/flags:studio.android.sdktools.flags",
-        "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as",
+        "//tools/vendor/google/login:google-login",
         "@intellij//:intellij.settingsSync.core",
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
         "//tools/adt/idea/artwork-compose:intellij.android.artwork-compose",

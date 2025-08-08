@@ -3,7 +3,6 @@ directories:
   tools/adt/idea
   tools/base
   tools/studio/google/cloud/testing
-  tools/studio/google/cloud/tools
   tools/vendor/google
   -.out
   -tools/idea/out

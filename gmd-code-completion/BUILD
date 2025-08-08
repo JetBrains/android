@@ -38,7 +38,7 @@ iml_module(
         "//tools/base/sdklib:studio.android.sdktools.sdklib",
         "//tools/adt/idea/android:intellij.android.core",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl",
-        "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as",
+        "//tools/vendor/google/login:google-login",
         "@intellij//:org.intellij.groovy",
         "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",

@@ -2256,7 +2256,6 @@ android-studio/plugins/android/lib/google-auth-library-credentials-1.24.0.jar
 android-studio/plugins/android/lib/google-auth-library-oauth2-http-1.24.0.jar
 android-studio/plugins/android/lib/google-http-client-1.42.3.jar
 android-studio/plugins/android/lib/google-http-client-gson-1.42.3.jar
-android-studio/plugins/android/lib/google-login.jar
 android-studio/plugins/android/lib/google-oauth-client-1.35.0.jar
 android-studio/plugins/android/lib/google-oauth-client-java6-1.35.0.jar
 android-studio/plugins/android/lib/inspectors-common.jar
