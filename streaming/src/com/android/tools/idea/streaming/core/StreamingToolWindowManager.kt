@@ -103,6 +103,7 @@ import com.intellij.openapi.wm.impl.InternalDecorator
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
 import com.intellij.ui.BadgeIconSupplier
 import com.intellij.ui.ComponentUtil
+import com.intellij.ui.JBColor
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentFactory
 import com.intellij.ui.content.ContentManager
@@ -934,7 +935,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private suspend fun createDeviceActions(): DefaultActionGroup {
     return DefaultActionGroup().apply {
-      val deviceDescriptions = devicesExcludedFromMirroring.values.toTypedArray().sortedBy { it.deviceName }
+      val deviceDescriptions = devicesExcludedFromMirroring.values.toTypedArray().sorted()
       if (deviceDescriptions.isNotEmpty()) {
         add(Separator("Connected Devices"))
         for (deviceDescription in deviceDescriptions) {
@@ -1137,7 +1138,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private inner class StartDeviceMirroringAction(
     private val device: DeviceDescription,
-  ) : DumbAwareAction(device.deviceName, null, device.config.deviceProperties.icon) {
+  ) : DumbAwareAction(device.htmlDisplayName, null, device.config.deviceProperties.icon) {
 
     override fun actionPerformed(event: AnActionEvent) {
       activateMirroring(device, event.contentManager)
@@ -1250,7 +1251,16 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private class DeviceDescription(val deviceName: String, val serialNumber: String, val handle: DeviceHandle,
-                                  val config: DeviceConfiguration)
+                                  val config: DeviceConfiguration) : Comparable<DeviceDescription> {
+
+    val htmlDisplayName: String
+      get() = "<html>$deviceName ${"($serialNumber)".htmlColored(JBColor.GRAY)}</html>"
+
+    override fun compareTo(other: DeviceDescription): Int {
+      val c = deviceName.compareTo(other.deviceName)
+      return if (c != 0) c else serialNumber.compareTo(other.serialNumber)
+    }
+  }
 }
 
 private val logger = Logger.getInstance(StreamingToolWindowManager::class.java)

@@ -89,15 +89,6 @@ import com.intellij.ui.content.ContentManager
 import com.intellij.util.ConcurrencyUtil.awaitQuiescence
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import icons.StudioIcons
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.runBlocking
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 import java.awt.Dimension
 import java.awt.Point
 import java.util.concurrent.Executors
@@ -108,6 +99,15 @@ import javax.swing.JViewport
 import javax.swing.SwingConstants
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.runBlocking
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /** Tests for [StreamingToolWindowManager] and [StreamingToolWindowFactory]. */
 @RunsInEdt
@@ -566,7 +566,7 @@ class StreamingToolWindowManagerTest {
 
     executeAction(newTabAction, createTestEvent(toolWindow.component, project))
     var popup: FakeListPopup<Any> = popupRule.fakePopupFactory.getNextPopup(2.seconds)
-    assertThat(popup.actions.toString()).isEqualTo(
+    assertThat(popup.actions.toString().htmlToPlainText()).isEqualTo(
         "[Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
 
     contentManager.removeContent(contentManager.contents[0], true)
@@ -574,8 +574,8 @@ class StreamingToolWindowManagerTest {
 
     executeAction(newTabAction, toolWindow.component, project)
     popup = popupRule.fakePopupFactory.getNextPopup(2.seconds)
-    assertThat(popup.actions.toString()).isEqualTo(
-        "[Separator (Connected Devices), Pixel 4 API 30 (null), Pixel 7 API 33 (null), " +
+    assertThat(popup.actions.toString().htmlToPlainText()).isEqualTo(
+        "[Separator (Connected Devices), Pixel 4 API 30 (1) (null), Pixel 7 API 33 (2) (null), " +
         "Separator (null), Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
     assertThat(popup.actions[1].templatePresentation.icon).isEqualTo(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
     assertThat(popup.actions[2].templatePresentation.icon).isEqualTo(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
@@ -588,8 +588,8 @@ class StreamingToolWindowManagerTest {
 
     executeAction(newTabAction, toolWindow.component, project)
     popup = popupRule.fakePopupFactory.getNextPopup(2.seconds)
-    assertThat(popup.actions.toString()).isEqualTo(
-        "[Separator (Connected Devices), Pixel 4 API 30 (null), " +
+    assertThat(popup.actions.toString().htmlToPlainText()).isEqualTo(
+        "[Separator (Connected Devices), Pixel 4 API 30 (1) (null), " +
                 "Separator (null), Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
 
     // Activate mirroring of Pixel 4 API 30.
@@ -600,7 +600,7 @@ class StreamingToolWindowManagerTest {
 
     executeAction(newTabAction, toolWindow.component, project)
     popup = popupRule.fakePopupFactory.getNextPopup(2.seconds)
-    assertThat(popup.actions.toString()).isEqualTo(
+    assertThat(popup.actions.toString().htmlToPlainText()).isEqualTo(
         "[Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
   }
 
@@ -840,13 +840,13 @@ class StreamingToolWindowManagerTest {
     return displayView.frameNumber
   }
 
-  private fun getAddDeviceAction(actionName: String): AnAction =
-      waitForAddDeviceAction(2.seconds, actionName)
+  private fun getAddDeviceAction(deviceNameName: String): AnAction =
+      waitForAddDeviceAction(2.seconds, deviceNameName)
 
-  private fun waitForAddDeviceAction(timeout: Duration, actionName: String): AnAction {
+  private fun waitForAddDeviceAction(timeout: Duration, deviceName: String): AnAction {
     var action: AnAction? = null
     waitForCondition(timeout) {
-      action = triggerAddDevicePopup().actions.find { it.templateText == actionName }
+      action = triggerAddDevicePopup().actions.find { it.templateText?.htmlToPlainText()?.startsWith(deviceName) == true }
       action != null
     }
     return action!!
@@ -860,3 +860,6 @@ class StreamingToolWindowManagerTest {
     return popupRule.fakePopupFactory.getNextPopup(2.seconds)
   }
 }
+
+private fun String.htmlToPlainText(): String =
+    replace(Regex("<[^>]+>"), "").trim().replace("&gt;", ">").replace("&lt;", "<").replace("&nbsp;", " ").replace(Regex("\\s+"), " ")
