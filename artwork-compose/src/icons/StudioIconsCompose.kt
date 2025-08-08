@@ -307,6 +307,7 @@ object StudioIconsCompose {
       val EnvironmentNight: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/xr/environment-night.svg", "/studio/icons/emulator/xr/environment-night.svg", StudioIconsCompose.javaClass) // 16x16
       val Environment: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/xr/environment.svg", "/studio/icons/emulator/xr/environment.svg", StudioIconsCompose.javaClass) // 16x16
       val EyeGaze: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/xr/eye-gaze.svg", "/studio/icons/emulator/xr/eye-gaze.svg", StudioIconsCompose.javaClass) // 16x16
+      val GlassesButton: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/xr/glasses-button.svg", "/studio/icons/emulator/xr/glasses-button.svg", StudioIconsCompose.javaClass) // 16x16
       val HandTracking: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/xr/hand-tracking.svg", "/studio/icons/emulator/xr/hand-tracking.svg", StudioIconsCompose.javaClass) // 16x16
       val MouseKeyboardMode: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/xr/mouse-keyboard-mode.svg", "/studio/icons/emulator/xr/mouse-keyboard-mode.svg", StudioIconsCompose.javaClass) // 16x16
       val Pan: IntelliJIconKey = IntelliJIconKey("/studio/icons/emulator/xr/pan.svg", "/studio/icons/emulator/xr/pan.svg", StudioIconsCompose.javaClass) // 16x16
