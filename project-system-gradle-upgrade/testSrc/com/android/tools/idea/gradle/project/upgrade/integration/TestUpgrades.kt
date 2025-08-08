@@ -103,11 +103,11 @@ class ManualUtilityTest : ProjectsUpgradeTestBase() {
 
   @Test
   fun testProjectUpgrade() {
-    doTestMinimalUpgrade(AUATestProjectState.ALL_DEPRECATIONS_DEV_MIN, AUATestProjectState.ALL_DEPRECATIONS_DEV_MIN)
+    doTestMinimalUpgrade(AUATestProjectState.ALL_DEPRECATIONS_8_11_MIN, AUATestProjectState.ALL_DEPRECATIONS_8_11_MIN)
   }
 
   @Test
   fun testProjectSyncs() {
-    loadAUATestProject(AUATestProjectState.ALL_DEPRECATIONS_DEV_MIN)
+    loadAUATestProject(AUATestProjectState.ALL_DEPRECATIONS_8_11_MIN)
   }
 }
