@@ -178,4 +178,7 @@ private fun addRenderDefaultTemplateValues(
 
 private fun getModuleName(formFactor: FormFactor): String =
   // Form factors like Android Auto build upon another form factor
-  formFactor.name.replace("\\s".toRegex(), "_").lowercase(Locale.US)
+  when (formFactor) {
+    FormFactor.Car -> "automotive"
+    else -> formFactor.name.lowercase(Locale.US)
+  }
