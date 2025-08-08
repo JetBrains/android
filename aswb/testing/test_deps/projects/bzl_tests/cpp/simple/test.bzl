@@ -30,22 +30,12 @@ def _cc_library_test_impl(env, target):
     actual.compilation_context().contains_exactly(
         struct(
             defines = ["VERSION2"],
-            direct_headers = ["{}/simple.h".format(TEST_TARGET_PACKAGE)],
-            direct_private_headers = [],
-            direct_public_headers = ["{}/simple.h".format(TEST_TARGET_PACKAGE)],
-            direct_textual_headers = ["{}/simple_textual.h".format(TEST_TARGET_PACKAGE)],
             external_includes = [],
             framework_includes = [],
             headers = ["*"],
             includes = [],
-            local_defines = [],
             quote_includes = ["*"],
             system_includes = ["*"],
-            # aswb:bazel-only-begin(java_package is not available in bazel)
-            validation_artifacts = [],
-            # aswb:bazel-only-end-and-replace-begin
-            # validation_artifacts = ["*"],
-            # aswb:replace-end
         ),
     )
     actual.toolchain_target().equals(CC_TOOLCHAIN_TARGET)
@@ -66,25 +56,18 @@ def _cc_binary_test_impl(env, target):
     actual.label().equals("//{}:{}".format(TEST_TARGET_PACKAGE, CC_BINARY_TARGET))
     actual.compilation_context().contains_exactly(
         struct(
-            direct_headers = [],
-            direct_private_headers = [],
-            direct_public_headers = [],
-            direct_textual_headers = [],
             external_includes = [],
             framework_includes = [],
             includes = [],
-            local_defines = [],
             quote_includes = ["*"],
             # aswb:bazel-only-begin(java_package is not available in bazel)
             defines = [],
             headers = [],
             system_includes = [],
-            validation_artifacts = [],
             # aswb:bazel-only-end-and-replace-begin
             # defines = ["*"],
             # headers = ["*"],
             # system_includes = ["*"],
-            # validation_artifacts = ["*"],
             # aswb:replace-end
         ),
     )

@@ -69,7 +69,16 @@ def _get_cc_toolchain_info(target, ctx):
 
 def _get_cc_compilation_context(target):
     if CcInfo in target:
-        return target[CcInfo].compilation_context
+        compilation_context = target[CcInfo].compilation_context
+        return struct(
+            headers = compilation_context.headers,
+            defines = compilation_context.defines,
+            includes = compilation_context.includes,
+            quote_includes = compilation_context.quote_includes,
+            system_includes = compilation_context.system_includes,
+            external_includes = compilation_context.external_includes,
+            framework_includes = compilation_context.framework_includes,
+        )
     return None
 
 IDE_CC = struct(

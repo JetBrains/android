@@ -8,18 +8,12 @@ def compilation_context_factory(actual, *, meta):
         meta = meta,
         attrs = dict(
             defines = subjects_depset_factory,
-            direct_headers = subjects_depset_factory,
-            direct_private_headers = subjects_depset_factory,
-            direct_public_headers = subjects_depset_factory,
-            direct_textual_headers = subjects_depset_factory,
             external_includes = subjects_depset_factory,
             framework_includes = subjects_depset_factory,
             headers = subjects_depset_factory,
             includes = subjects_depset_factory,
-            local_defines = subjects_depset_factory,
             quote_includes = subjects_depset_factory,
             system_includes = subjects_depset_factory,
-            validation_artifacts = subjects_depset_factory,
         ),
     )
 
