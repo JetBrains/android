@@ -212,6 +212,9 @@ public class AndroidSystem implements AutoCloseable, TestRule {
                         Consumer<AndroidStudio> callback) throws Exception {
     try (AndroidStudio studio = runStudio(project)) {
       callback.accept(studio);
+      if (SystemInfo.isWindows) {
+        Thread.sleep(5000);
+      }
     }
   }
 

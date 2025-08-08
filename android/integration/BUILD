@@ -809,7 +809,6 @@ iml_test(
     tags_mac = [],
     tags_windows = [
         "block-network",
-        "manual",  # b/403085785
     ],
     test_class = "com.android.tools.idea.MultiProjectTest",
 )
