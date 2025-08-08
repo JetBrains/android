@@ -32,7 +32,6 @@ class AddWatchFaceFormatVersionPropertyQuickFixTest : AbstractAndroidLintTest() 
         """
       <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="test.pkg">
-          <uses-sdk android:minSdkVersion="33" />
           <uses-feature android:name="android.hardware.type.watch" />
           <application
               android:icon="@mipmap/ic_launcher"
@@ -44,7 +43,7 @@ class AddWatchFaceFormatVersionPropertyQuickFixTest : AbstractAndroidLintTest() 
           .trimIndent(),
       expectedDiff =
         """
-        @@ -8,2 +8,5 @@
+        @@ -7,2 +7,5 @@
                  android:hasCode="false">
         +        <property
         +            android:name="com.google.wear.watchface.format.version"
@@ -61,7 +60,6 @@ class AddWatchFaceFormatVersionPropertyQuickFixTest : AbstractAndroidLintTest() 
         """
       <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="test.pkg">
-          <uses-sdk android:minSdkVersion="33" />
           <uses-feature android:name="android.hardware.type.watch" />
           <application
               android:icon="@mipmap/ic_launcher"
@@ -74,7 +72,7 @@ class AddWatchFaceFormatVersionPropertyQuickFixTest : AbstractAndroidLintTest() 
           .trimIndent(),
       expectedDiff =
         """
-        @@ -9,2 +9,5 @@
+        @@ -8,2 +8,5 @@
                  <property android:name="some other property" android:value="some value" />
         +        <property
         +            android:name="com.google.wear.watchface.format.version"
