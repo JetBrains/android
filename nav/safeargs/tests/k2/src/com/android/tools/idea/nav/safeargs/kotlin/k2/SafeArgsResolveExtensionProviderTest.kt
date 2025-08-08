@@ -86,13 +86,13 @@ class SafeArgsResolveExtensionProviderTest : AbstractSafeArgsResolveExtensionTes
   }
 
   @Test
-  fun nonSourceModule_doesNotCreateExtension_doesNotRegisterListener() {
+  fun nonSourceModule_doesNotCreateExtension_registerListener() {
     sourceModule
       .directRegularDependenciesOfType<KaLibraryModule>()
       .single { it.libraryName == KotlinAdtTestProjectDescriptor.LIBRARY_NAME }
       .useExtensions { assertThat(this).isEmpty() }
 
-    assertThat(isChangeListenerRegistered).isFalse()
+    assertThat(isChangeListenerRegistered).isTrue()
   }
 
   @Test
