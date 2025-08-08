@@ -20,6 +20,7 @@ import com.android.tools.idea.Projects
 import com.android.tools.idea.flags.StudioFlags.GRADLE_USES_LOCAL_JAVA_HOME_FOR_NEW_CREATED_PROJECTS
 import com.android.tools.idea.gradle.config.GradleConfigManager
 import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.gradle.project.ProjectMigrationsPersistentState
 import com.android.tools.idea.gradle.project.sync.SdkSync
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.android.tools.idea.gradle.project.ProjectMigrationsPersistentState

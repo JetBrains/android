@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.importing
 
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags.GRADLE_USES_LOCAL_JAVA_HOME_FOR_NEW_CREATED_PROJECTS
 import com.android.tools.idea.gradle.config.GradleConfigManager
 import com.android.tools.idea.gradle.extensions.isDaemonJvmCriteriaRequiredForNewProjects
@@ -94,8 +95,10 @@ class GradleJdkConfigurationInitializer private constructor() {
   ) {
     projectSettings.gradleJvm = USE_GRADLE_LOCAL_JAVA_HOME
     GradleConfigManager.initializeJavaHome(project, externalProjectPath)
-    val projectMigration = ProjectMigrationsPersistentState.getInstance(project)
-    projectMigration.migratedGradleRootsToGradleLocalJavaHome.add(externalProjectPath)
+    if (IdeInfo.getInstance().isAndroidStudio) {
+      val projectMigration = ProjectMigrationsPersistentState.getInstance(project)
+      projectMigration.migratedGradleRootsToGradleLocalJavaHome.add(externalProjectPath)
+    }
   }
 
   private fun setUpProjectJdkAsGradleJvm(project: Project, projectSettings: GradleProjectSettings) {
