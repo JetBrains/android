@@ -205,6 +205,7 @@ studiobot.project.facts.context.enabled=INTERNAL
 studiobot.prompt.library.chat.lookup=COMPLETE:2025
 studiobot.prompt.library.rules=COMPLETE:2025
 studiobot.prompt.library=COMPLETE:2025
+studiobot.remote.models.enabled=INTERNAL
 studiobot.show.shimmer.placeholder=PREVIEW
 studiobot.studiobot.apply.changes.action=INTERNAL
 studiobot.suggestion.smart.grouping.enabled=INTERNAL

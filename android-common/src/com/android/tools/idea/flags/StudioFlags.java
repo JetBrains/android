@@ -2155,6 +2155,12 @@ public final class StudioFlags {
                     "When enabled, a setting and various UI is made visible to configure local models, and when provided and" +
                     "enabled it add local model option to Chat model picker.");
 
+  public static Flag<Boolean> REMOTE_MODELS_ENABLED =
+    new BooleanFlag(STUDIOBOT, "remote.models.enabled",
+                    "Add remote models for Chat.",
+                    "When enabled, a setting and various UI is made visible to configure remote models, and when provided and" +
+                    "enabled it add remote model option to Chat model picker.");
+
   public static final Flag<Boolean> STUDIOBOT_INCLUDE_GRADLE_PROJECT_STRUCTURE_TOOLS_BY_DEFAULT =
     new BooleanFlag(STUDIOBOT, "include.gradle.project.structure.tools.by.default",
                     "Enable using Gradle project structure Agent tools by default",
