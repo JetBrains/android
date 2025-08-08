@@ -263,8 +263,11 @@ class ChooseAndroidProjectStep(model: NewProjectModel) :
     val selectedIndex = leftList.selectedIndex
     if (selectedIndex == -1) {
       val newProjectModuleModel = newProjectModuleModel!!
+      val baseTemplateName =
+        if (StudioFlags.NPW_ENABLE_ARCHITECTURE_SAMPLE_TEMPLATE.get()) "Architecture Sample"
+        else "Empty Activity"
       val templateToUse =
-        FormFactor.Mobile.getProjectTemplates().firstOrNull { it.name == "Empty Activity" }
+        TemplateResolver.getAllTemplates().firstOrNull { it.name == baseTemplateName }
       newProjectModuleModel.newRenderTemplate.setNullableValue(templateToUse ?: Template.NoActivity)
       model.prompt.set(geminiTextState.value)
     } else {
@@ -378,7 +381,10 @@ class ChooseAndroidProjectStep(model: NewProjectModel) :
 
     private fun FormFactor.getProjectTemplates() =
       TemplateResolver.getAllTemplates().filter {
-        WizardUiContext.NewProject in it.uiContexts && it.formFactor == this
+        WizardUiContext.NewProject in it.uiContexts &&
+          it.formFactor == this &&
+          (it.name != "Architecture Sample" ||
+            StudioFlags.NPW_ENABLE_ARCHITECTURE_SAMPLE_TEMPLATE.get())
       }
 
     private fun createFormFactors(wizardTitle: String): List<FormFactorInfo> =
