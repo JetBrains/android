@@ -210,6 +210,7 @@ studiobot.show.shimmer.placeholder=PREVIEW
 studiobot.studiobot.apply.changes.action=INTERNAL
 studiobot.suggestion.smart.grouping.enabled=INTERNAL
 studiobot.support.gias.enterprise=COMPLETE:2025
+studiobot.use.unified.onboarder=INTERNAL
 studiobot.verify.user.tier.in.aida.rpcs=COMPLETE:2025
 studiobot.version.upgrade.agent=INTERNAL
 studiolabs.enabled=COMPLETE:2025
