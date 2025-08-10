@@ -714,6 +714,7 @@ studio_plugin(
     name = "com.google.tools.ij.aiplugin",
     directory = "gemini",
     libs = [
+        "//prebuilts/tools/common/m2:anthropic-openai-common-deps",
         "//prebuilts/tools/common/m2:libgoogle_auth_transitive_deps",
         "//prebuilts/tools/common/m2:openai-java-sdk",
         "//prebuilts/tools/common/m2:sqlite-jdbc-3.43.0.0",
