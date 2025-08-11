@@ -20,61 +20,76 @@ import com.android.ide.common.rendering.api.ResourceValueImpl
 import com.android.resources.ResourceType
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.projectsystem.gradle.getMainModule
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.findAppModule
+import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.res.ResourceNamespacing
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiDocumentManager
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
 
-class NamespacesIntegrationTest : AndroidGradleTestCase() {
+@RunsInEdt
+class NamespacesIntegrationTest {
+  val projectRule = AndroidGradleProjectRule()
+  @get:Rule
+  val rule = RuleChain.outerRule(projectRule).around(EdtRule())
+  val project by lazy { projectRule.project }
+  val fixture by lazy { projectRule.fixture }
+
   private val appPackageName = "com.example.app"
   private val libPackageName = "com.example.lib"
   private val otherLibPackageName = "com.example.otherlib"
 
   private fun getMainAndroidFacet() = project.findAppModule().getMainModule().androidFacet!!
 
+  @Test
   fun testNamespaceChoosing() {
-    loadProject(TestProjectPaths.NAMESPACES)
+    projectRule.loadProject(TestProjectPaths.NAMESPACES)
     val resourceRepositoryManager = StudioResourceRepositoryManager.getInstance(getMainAndroidFacet())
-    assertEquals(ResourceNamespacing.REQUIRED, resourceRepositoryManager.namespacing)
-    assertEquals("com.example.app", resourceRepositoryManager.namespace.packageName)
-    assertTrue(ProjectNamespacingStatusService.getInstance(project).namespacesUsed)
+    assertThat(resourceRepositoryManager.namespacing).isEqualTo(ResourceNamespacing.REQUIRED)
+    assertThat(resourceRepositoryManager.namespace.packageName).isEqualTo("com.example.app")
+    assertThat(ProjectNamespacingStatusService.getInstance(project).namespacesUsed).isTrue()
 
     WriteCommandAction.runWriteCommandAction(project) {
-      myFixture.openFileInEditor(VfsUtil.findRelativeFile(myFixture.project.baseDir, "app", "build.gradle")!!)
-      val manifest = myFixture.editor.document
+      fixture.openFileInEditor(VfsUtil.findRelativeFile(fixture.project.baseDir, "app", "build.gradle")!!)
+      val manifest = fixture.editor.document
       manifest.setText(manifest.text.replace(appPackageName, "com.example.change"))
       PsiDocumentManager.getInstance(project).commitDocument(manifest)
     }
 
     // Changing module package name now requires a sync event to propagate to Resource Repositories and R classes.
-    requestSyncAndWait()
-    assertEquals("com.example.change", resourceRepositoryManager.namespace.packageName)
+    projectRule.requestSyncAndWait()
+    assertThat(resourceRepositoryManager.namespace.packageName).isEqualTo("com.example.change")
   }
 
+  @Test
   fun testNonNamespaced() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION)
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION)
     val resourceRepositoryManager = StudioResourceRepositoryManager.getInstance(getMainAndroidFacet())
-    assertEquals(ResourceNamespacing.DISABLED, resourceRepositoryManager.namespacing)
-    assertSame(ResourceNamespace.RES_AUTO, resourceRepositoryManager.namespace)
-    assertFalse(ProjectNamespacingStatusService.getInstance(project).namespacesUsed)
+    assertThat(resourceRepositoryManager.namespacing).isEqualTo(ResourceNamespacing.DISABLED)
+    assertThat(resourceRepositoryManager.namespace).isSameAs(ResourceNamespace.RES_AUTO)
+    assertThat(ProjectNamespacingStatusService.getInstance(project).namespacesUsed).isFalse()
   }
 
+  @Test
   fun testResolver() {
-    loadProject(TestProjectPaths.NAMESPACES)
-    val layout = VfsUtil.findRelativeFile(myFixture.project.baseDir, "app", "src", "main", "res", "layout", "simple_strings.xml")!!
+    projectRule.loadProject(TestProjectPaths.NAMESPACES)
+    val layout = VfsUtil.findRelativeFile(fixture.project.baseDir, "app", "src", "main", "res", "layout", "simple_strings.xml")!!
     val resourceResolver = ConfigurationManager.getOrCreateInstance(getMainAndroidFacet().module)
       .getConfiguration(layout).resourceResolver
     val appNs = StudioResourceRepositoryManager.getInstance(getMainAndroidFacet()).namespace
 
     fun check(reference: String, resolvesTo: String) {
-      assertEquals(
-        resolvesTo,
-        resourceResolver.resolveResValue(ResourceValueImpl(appNs, ResourceType.STRING, "dummy", reference))!!.value
-      )
+      assertThat(resourceResolver.resolveResValue(ResourceValueImpl(appNs, ResourceType.STRING, "dummy", reference))!!.value)
+        .isEqualTo(resolvesTo)
     }
 
     check("@$libPackageName:string/lib_string", resolvesTo = "Hello, this is lib.")
@@ -85,12 +100,12 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
     check("@$appPackageName:string/lib_string", resolvesTo = "@$appPackageName:string/lib_string")
   }
 
+  @Test
   fun testAppResources() {
-    loadProject(TestProjectPaths.NAMESPACES)
+    projectRule.loadProject(TestProjectPaths.NAMESPACES)
     val appResources = StudioResourceRepositoryManager.getInstance(getMainAndroidFacet()).appResources
 
-    assertSameElements(
-      appResources.namespaces,
+    assertThat(appResources.namespaces).containsExactly(
       ResourceNamespace.fromPackageName(appPackageName),
       ResourceNamespace.fromPackageName(libPackageName),
       ResourceNamespace.fromPackageName(otherLibPackageName),

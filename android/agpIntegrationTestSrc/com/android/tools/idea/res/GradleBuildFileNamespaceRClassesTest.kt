@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res
 
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.executeAndSave
@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.insertText
 import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.replaceText
 import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
 import com.google.common.truth.Truth
@@ -30,98 +31,106 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiClass
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.VfsTestUtil
 import org.jetbrains.android.dom.inspections.AndroidDomInspection
 import java.io.File
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 /**
  * Tests focussing on users setting library module package name via the new build.gradle "namespace" and "testNamespace" DSL.
  */
-class GradleBuildFileNamespaceRClassesTest : AndroidGradleTestCase() {
-  override fun setUp() {
-    super.setUp()
+@RunsInEdt
+class GradleBuildFileNamespaceRClassesTest {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule().onEdt()
+  val project by lazy { projectRule.project }
+  val fixture by lazy { projectRule.fixture }
+  
+  @Before
+  fun setup() {
+    projectRule.loadProject(TestProjectPaths.PROJECT_WITH_APP_AND_LIB_DEPENDENCY) { projectRoot ->
 
-    val projectRoot = prepareProjectForImport(TestProjectPaths.PROJECT_WITH_APP_AND_LIB_DEPENDENCY)
+      VfsTestUtil.createFile(
+        project.guessProjectDir()!!,
+        "app/src/androidTest/res/values/strings.xml",
+        // language=xml
+        """
+          <resources>
+            <string name='appTestResource'>app test resource</string>
+            <string name='anotherAppTestResource'>another app test resource</string>
+            <color name='appTestColor'>#000000</color>
+          </resources>
+        """.trimIndent()
+      )
 
-    VfsTestUtil.createFile(
-      project.guessProjectDir()!!,
-      "app/src/androidTest/res/values/strings.xml",
-      // language=xml
-      """
-        <resources>
-          <string name='appTestResource'>app test resource</string>
-          <string name='anotherAppTestResource'>another app test resource</string>
-          <color name='appTestColor'>#000000</color>
-        </resources>
-      """.trimIndent()
-    )
+      VfsTestUtil.createFile(
+        project.guessProjectDir()!!,
+        "lib/src/androidTest/res/values/strings.xml",
+        // language=xml
+        """
+          <resources>
+            <string name='libTestResource'>lib test resource</string>
+            <string name='anotherLibTestResource'>another lib test resource</string>
+            <color name='libTestColor'>#000000</color>
+          </resources>
+        """.trimIndent()
+      )
 
-    VfsTestUtil.createFile(
-      project.guessProjectDir()!!,
-      "lib/src/androidTest/res/values/strings.xml",
-      // language=xml
-      """
-        <resources>
-          <string name='libTestResource'>lib test resource</string>
-          <string name='anotherLibTestResource'>another lib test resource</string>
-          <color name='libTestColor'>#000000</color>
-        </resources>
-      """.trimIndent()
-    )
+      VfsTestUtil.createFile(
+        project.guessProjectDir()!!,
+        "lib/src/main/res/values/strings.xml",
+        // language=xml
+        """
+          <resources>
+            <string name='libResource'>lib resource</string>
+          </resources>
+        """.trimIndent()
+      )
 
-    VfsTestUtil.createFile(
-      project.guessProjectDir()!!,
-      "lib/src/main/res/values/strings.xml",
-      // language=xml
-      """
-        <resources>
-          <string name='libResource'>lib resource</string>
-        </resources>
-      """.trimIndent()
-    )
+      VfsTestUtil.createFile(
+        project.guessProjectDir()!!,
+        "lib/src/main/java/com/example/foo/libmodule/BasicActivity.java",
+        // language=Java
+        """
+          package com.example.foo.libmodule;
 
-    VfsTestUtil.createFile(
-      project.guessProjectDir()!!,
-      "lib/src/main/java/com/example/foo/libmodule/BasicActivity.java",
-      // language=Java
-      """
-        package com.example.foo.libmodule;
+          import android.app.Activity;
 
-        import android.app.Activity;
+          public class BasicActivity extends Activity {
+          }
+        """.trimIndent()
+      )
 
-        public class BasicActivity extends Activity {
+      // Setting the library module namespace via the build.gradle, which should take priority over the package name in AndroidManifest.xml
+      File(projectRoot, "lib/build.gradle").appendText("""
+        android {
+          namespace "com.example.foo.libmodule"
+          testNamespace "com.example.foo.libmodule.test"
         }
-      """.trimIndent()
-    )
-
-    // Setting the library module namespace via the build.gradle, which should take priority over the package name in AndroidManifest.xml
-    File(projectRoot, "lib/build.gradle").appendText("""
-      android {
-        namespace "com.example.foo.libmodule"
-        testNamespace "com.example.foo.libmodule.test"
-      }
-      """.trimIndent())
-
-    importProject()
-    prepareProjectForTest(project, null)
-    myFixture.allowTreeAccessForAllFiles()
+        """.trimIndent())
+    }
+    fixture.allowTreeAccessForAllFiles()
     waitForResourceRepositoryUpdates(project.findAppModule())
 
-    myFixture.enableInspections(AndroidDomInspection())
+    fixture.enableInspections(AndroidDomInspection())
   }
 
   // Regression test for b/202006729
+  @Test
   fun testManifestActivityXml() {
     val virtualFile = project.guessProjectDir()!!.findFileByRelativePath("lib/src/main/AndroidManifest.xml")
-    myFixture.openFileInEditor(virtualFile!!)
+    fixture.openFileInEditor(virtualFile!!)
 
     // Checking that the basic AndroidManifest.xml file resolves correctly.
-    myFixture.checkHighlighting()
+    fixture.checkHighlighting()
 
 
     // Add activity to the Manifest tag.
-    myFixture.moveCaret("""xmlns:android="http://schemas.android.com/apk/res/android">|""")
-    myFixture.editor.executeAndSave {
+    fixture.moveCaret("""xmlns:android="http://schemas.android.com/apk/res/android">|""")
+    fixture.editor.executeAndSave {
       insertText("""
 
         <application>
@@ -130,24 +139,25 @@ class GradleBuildFileNamespaceRClassesTest : AndroidGradleTestCase() {
         </application>
       """.trimIndent())
     }
-    myFixture.checkHighlighting()
+    fixture.checkHighlighting()
 
-    myFixture.checkHighlighting()
+    fixture.checkHighlighting()
 
     // Remove the package prefix to the class name
-    myFixture.editor.executeAndSave {
+    fixture.editor.executeAndSave {
       replaceText(
         """com.example.foo.libmodule.BasicActivity""",
         """.BasicActivity""")
     }
 
-    myFixture.checkHighlighting()
-    myFixture.moveCaret("Basic|Activity")
-    val elementAtCaret = myFixture.elementAtCaret
+    fixture.checkHighlighting()
+    fixture.moveCaret("Basic|Activity")
+    val elementAtCaret = fixture.elementAtCaret
     assertThat(elementAtCaret).isInstanceOf(PsiClass::class.java)
     assertThat((elementAtCaret as PsiClass).name).isEqualTo("BasicActivity")
   }
 
+  @Test
   fun testAppResources() {
     val rClassUsageFile = VfsTestUtil.createFile(
       project.guessProjectDir()!!,
@@ -175,10 +185,11 @@ class GradleBuildFileNamespaceRClassesTest : AndroidGradleTestCase() {
       """.trimIndent()
     )
 
-    myFixture.configureFromExistingVirtualFile(rClassUsageFile)
-    myFixture.checkHighlighting()
+    fixture.configureFromExistingVirtualFile(rClassUsageFile)
+    fixture.checkHighlighting()
   }
 
+  @Test
   fun testAppTestResources() {
     val androidTest = VfsTestUtil.createFile(
       project.guessProjectDir()!!,
@@ -213,19 +224,20 @@ class GradleBuildFileNamespaceRClassesTest : AndroidGradleTestCase() {
       """.trimIndent()
     )
 
-    myFixture.configureFromExistingVirtualFile(androidTest)
-    myFixture.checkHighlighting()
+    fixture.configureFromExistingVirtualFile(androidTest)
+    fixture.checkHighlighting()
 
-    myFixture.completeBasic()
-    Truth.assertThat(myFixture.lookupElementStrings).contains(
+    fixture.completeBasic()
+    Truth.assertThat(fixture.lookupElementStrings).contains(
       "appTestResource" // app test resources
     )
 
     // Private resources are filtered out.
-    Truth.assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
-    Truth.assertThat(myFixture.lookupElementStrings).doesNotContain("libResource")
+    Truth.assertThat(fixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
+    Truth.assertThat(fixture.lookupElementStrings).doesNotContain("libResource")
   }
 
+  @Test
   fun testLibTestResources() {
     val androidTest = VfsTestUtil.createFile(
       project.guessProjectDir()!!,
@@ -252,16 +264,16 @@ class GradleBuildFileNamespaceRClassesTest : AndroidGradleTestCase() {
       """.trimIndent()
     )
 
-    myFixture.configureFromExistingVirtualFile(androidTest)
-    myFixture.checkHighlighting()
+    fixture.configureFromExistingVirtualFile(androidTest)
+    fixture.checkHighlighting()
 
-    myFixture.completeBasic()
-    Truth.assertThat(myFixture.lookupElementStrings).contains(
+    fixture.completeBasic()
+    Truth.assertThat(fixture.lookupElementStrings).contains(
       "libTestResource" // lib test resources
     )
 
     // Private resources are filtered out.
-    Truth.assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
-    Truth.assertThat(myFixture.lookupElementStrings).doesNotContain("libResource")
+    Truth.assertThat(fixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
+    Truth.assertThat(fixture.lookupElementStrings).doesNotContain("libResource")
   }
 }
