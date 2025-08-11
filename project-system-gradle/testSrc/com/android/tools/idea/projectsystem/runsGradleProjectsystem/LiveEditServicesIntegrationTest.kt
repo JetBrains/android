@@ -17,13 +17,15 @@ package com.android.tools.idea.projectsystem.runsGradleProjectsystem
 
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
-import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider.Companion.getApplicationProjectContext
+import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider.RunningApplicationIdentity
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.run.deployment.liveedit.tokens.BuildSystemBytecodeTransformation
 import com.android.tools.idea.run.deployment.liveedit.tokens.BuildSystemLiveEditServices.Companion.getBuildSystemLiveEditServices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
-import com.android.tools.idea.testing.findAppModule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.project.Project
 import org.junit.Rule
 import org.junit.Test
 
@@ -70,10 +72,7 @@ class LiveEditServicesIntegrationTest {
     }
     """.trimIndent())
     preparedProject.open { project ->
-      val module = project.findAppModule().getModuleSystem().module
-      val services = project.getProjectSystem().getBuildSystemLiveEditServices()
-
-      val bytecodeTransformation = services.disqualifyingBytecodeTransformation(module)
+      val bytecodeTransformation = project.getBuildSystemTransformation()
       assertThat(bytecodeTransformation).isNotNull()
       assertThat(bytecodeTransformation!!.buildHasTransformation).isTrue()
       assertThat(bytecodeTransformation.transformationPoints).containsExactly(
@@ -86,13 +85,18 @@ class LiveEditServicesIntegrationTest {
   fun testNoByteCodeTransformationModules() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
-      val module = project.findAppModule().getModuleSystem().module
-      val services = project.getProjectSystem().getBuildSystemLiveEditServices()
-
-      val bytecodeTransformation = services.disqualifyingBytecodeTransformation(module)
+      val bytecodeTransformation = project.getBuildSystemTransformation()
       assertThat(bytecodeTransformation).isNotNull()
-      assertThat(bytecodeTransformation!!.buildHasTransformation).isFalse()
+      assertThat(bytecodeTransformation.buildHasTransformation).isFalse()
       assertThat(bytecodeTransformation.transformationPoints).isEmpty()
     }
   }
+
+  private fun Project.getBuildSystemTransformation(): BuildSystemBytecodeTransformation {
+    val context = getProjectSystem()
+      .getApplicationProjectContext(RunningApplicationIdentity(applicationId = "google.simpleapplication", processName = null))
+    val services = context!!.getBuildSystemLiveEditServices()
+    return services!!.disqualifyingBytecodeTransformation(context)!!
+  }
+
 }

@@ -53,8 +53,8 @@ class GradleBuildSystemLiveEditServices :
     return GradleApplicationLiveEditServices(applicationProjectContext.facet.module)
   }
 
-  override fun disqualifyingBytecodeTransformation(module: Module): BuildSystemBytecodeTransformation? {
-    val gradleModel = GradleAndroidModel.get(module)
+  override fun disqualifyingBytecodeTransformation(applicationProjectContext: FacetBasedApplicationProjectContext): BuildSystemBytecodeTransformation? {
+    val gradleModel = GradleAndroidModel.get(applicationProjectContext.facet.module)
     val descriptions = gradleModel?.selectedVariant?.mainArtifact?.bytecodeTransforms?.map {
       it.description
     } ?: return null

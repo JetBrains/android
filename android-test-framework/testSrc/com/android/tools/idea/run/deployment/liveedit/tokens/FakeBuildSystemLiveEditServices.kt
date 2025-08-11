@@ -46,7 +46,7 @@ class FakeBuildSystemLiveEditServices : BuildSystemLiveEditServices<AndroidProje
   }
 
   override fun disqualifyingBytecodeTransformation (
-    module: Module
+    applicationProjectContext: ApplicationProjectContext
   ): BuildSystemBytecodeTransformation? = null
 
   /**

@@ -64,5 +64,7 @@ class BazelBuildSystemLiveEditServices :
       override fun getRuntimeVersionString() = DEFAULT_RUNTIME_VERSION
     }
   }
-  override fun disqualifyingBytecodeTransformation(module: Module): BuildSystemBytecodeTransformation? = null
+  override fun disqualifyingBytecodeTransformation(
+    bazelApplicationProjectContext: BazelApplicationProjectContext
+  ): BuildSystemBytecodeTransformation? = null
 }

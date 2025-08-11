@@ -38,7 +38,7 @@ interface BuildSystemLiveEditServices<P : AndroidProjectSystem, C: ApplicationPr
 
   fun getApplicationServices(applicationProjectContext: C): ApplicationLiveEditServices
 
-  fun disqualifyingBytecodeTransformation(module: Module): BuildSystemBytecodeTransformation?
+  fun disqualifyingBytecodeTransformation(applicationProjectContext: C): BuildSystemBytecodeTransformation?
 
   companion object {
     val EP_NAME =
