@@ -46,6 +46,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.AbstractExpandableItemsHandler
 import com.intellij.ui.ClientProperty
@@ -62,6 +63,7 @@ import org.junit.rules.RuleChain
 import java.awt.Component
 import java.awt.Container
 import java.awt.Rectangle
+import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 import javax.swing.JTable
 import kotlin.time.Duration.Companion.milliseconds
@@ -129,7 +131,8 @@ class EditorBasedTableCellRendererTest {
     // Then move to the actual cell
     ui.mouse.moveTo(rect.x + x, rect.centerY.toInt())
     UIUtil.dispatchAllInvocationEvents()
-    (table.expandableItemsHandler as AbstractExpandableItemsHandler<*, *>).updateAlarm.waitForAllExecuted(20.milliseconds)
+    PlatformTestUtil.waitForSingleAlarm((table.expandableItemsHandler as AbstractExpandableItemsHandler<*, *>).updateAlarm.getAlarm(), 20,
+                                        TimeUnit.MILLISECONDS);
     return table.isExpandedItem(row, 1)
   }
 
