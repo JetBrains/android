@@ -18,8 +18,8 @@ package com.android.tools.idea.streaming.emulator
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.android.sdklib.deviceprovisioner.ProcessHandleProvider
+import com.android.sdklib.deviceprovisioner.RunningAvd
 import com.android.tools.concurrency.AndroidIoManager
-import com.android.tools.idea.avdmanager.RunningAvd
 import com.android.tools.idea.avdmanager.RunningAvdTracker
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.collect.ImmutableSet

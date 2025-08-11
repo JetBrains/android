@@ -59,12 +59,12 @@ import com.android.io.writeImage
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.ProcessHandleProvider
+import com.android.sdklib.deviceprovisioner.RunningAvd.RunType
 import com.android.sdklib.repository.targets.SystemImageManager
 import com.android.testutils.FakeProcessHandle
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils.rotateByQuadrants
 import com.android.tools.adtui.util.normalizedRotation
-import com.android.tools.idea.avdmanager.RunningAvd.RunType
 import com.android.tools.idea.avdmanager.RunningAvdTracker
 import com.android.tools.idea.io.grpc.ForwardingServerCall.SimpleForwardingServerCall
 import com.android.tools.idea.io.grpc.ForwardingServerCallListener.SimpleForwardingServerCallListener

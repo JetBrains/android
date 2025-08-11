@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.avdmanager
 
-import com.android.tools.idea.avdmanager.RunningAvd.RunType
+import com.android.sdklib.deviceprovisioner.RunningAvd
+import com.android.sdklib.deviceprovisioner.RunningAvd.RunType
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import java.nio.file.Path
@@ -44,7 +45,8 @@ class RunningAvdTracker {
     synchronized(lock) {
       if (isLaunchedByThisProcess == null) {
         if (!runningAvds.containsKey(avdDataFolder)) {
-          runningAvds = runningAvds.plus(avdDataFolder to RunningAvd(avdDataFolder, processHandle, runType, isLaunchedByThisProcess = false))
+          runningAvds = runningAvds.plus(avdDataFolder to RunningAvd(avdDataFolder, processHandle, runType,
+                                                                     isLaunchedByThisProcess = false))
           removeOnExit(avdDataFolder, processHandle)
         }
       }
@@ -80,17 +82,5 @@ class RunningAvdTracker {
   }
 }
 
-/** Represents a running AVD. */
-data class RunningAvd(
-  val avdDataFolder: Path,
-  val processHandle: ProcessHandle,
-  val runType: RunType,
-  val isLaunchedByThisProcess: Boolean,
-  val isShuttingDown: Boolean = false,
-) {
-
-  /** Returns a copy of this [RunningAvd] with [isShuttingDown] set to true. */
-  fun shuttingDown() = copy(isShuttingDown = true)
-
-  enum class RunType { EMBEDDED, STANDALONE }
-}
+/** Returns a copy of this [RunningAvd] with [isShuttingDown] set to true. */
+private fun RunningAvd.shuttingDown() = copy(isShuttingDown = true)

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.avdmanager
 
+import com.android.sdklib.deviceprovisioner.RunningAvd.RunType
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.tools.idea.avdmanager.RunningAvd.RunType
 import com.intellij.execution.process.BaseOSProcessHandler
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessListener

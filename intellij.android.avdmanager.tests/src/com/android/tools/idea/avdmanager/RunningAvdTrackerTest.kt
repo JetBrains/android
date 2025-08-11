@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.avdmanager
 
+import com.android.sdklib.deviceprovisioner.RunningAvd.RunType
 import com.android.testutils.FakeProcessHandle
-import com.android.tools.idea.avdmanager.RunningAvd.RunType
 import com.google.common.truth.Truth.assertThat
 import java.nio.file.Path
 import org.junit.Test
