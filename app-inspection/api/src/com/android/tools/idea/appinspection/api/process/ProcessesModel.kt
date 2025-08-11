@@ -20,6 +20,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.thisLogger
 import java.util.concurrent.Executor
 import org.jetbrains.annotations.TestOnly
 
@@ -119,10 +120,15 @@ class ProcessesModel(
   private val processListener =
     object : SimpleProcessListener() {
       override fun onProcessConnected(process: ProcessDescriptor) {
+        val logger = this@ProcessesModel.thisLogger()
+        logger.debug("Process connected: $process")
+        logger.debug("   acceptProcess: ${acceptProcess(process)}")
         if (!acceptProcess(process)) return
 
         synchronized(lock) {
           _processes.add(process)
+          logger.debug("   isRunning: ${process.isRunning}")
+          logger.debug("   isPreferred: ${isPreferred(process)}")
           if (isProcessPreferred(process)) {
             selectedProcess = process
           }
