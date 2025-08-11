@@ -18,20 +18,19 @@ package com.android.tools.idea.projectsystem.gradle
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.idea.SyncContributorProjectContext
 import com.android.tools.idea.gradle.project.sync.idea.createModuleEntity
-import com.android.tools.idea.gradle.project.sync.idea.resolveModuleName
-import com.intellij.openapi.externalSystem.util.Order
-import com.intellij.openapi.project.Project
+import com.android.tools.idea.gradle.project.sync.idea.resolveHolderModuleName
 import com.intellij.platform.workspace.jps.entities.ContentRootEntity
 import com.intellij.platform.workspace.jps.entities.ModuleEntity
 import com.intellij.platform.workspace.jps.entities.ModuleId
+import com.intellij.platform.workspace.storage.ImmutableEntityStorage
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.platform.workspace.storage.entities
 import com.intellij.workspaceModel.ide.legacyBridge.findModule
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
-import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncContributor
+import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncExtension
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase
-import org.jetbrains.plugins.gradle.service.syncAction.virtualFileUrl
 import org.jetbrains.plugins.gradle.service.syncAction.impl.bridge.GradleBridgeEntitySource
+import org.jetbrains.plugins.gradle.service.syncAction.virtualFileUrl
 
 /**
  * This is a sync contributor that runs after the platform's content root contributor to fix-up any issues caused by it and makes sure
@@ -41,39 +40,38 @@ import org.jetbrains.plugins.gradle.service.syncAction.impl.bridge.GradleBridgeE
  * the issues are fixed. It's worth pointing that there is a longer term plan to remove the bridge data service on the platform.
  */
 @Suppress("UnstableApiUsage")
-@Order(GradleSyncContributor.Order.CONTENT_ROOT_CONTRIBUTOR + 1)
-class FixSyncContributorIssues: GradleSyncContributor {
+internal class FixSyncContributorIssues : GradleSyncExtension {
 
-  override val phase: GradleSyncPhase = GradleSyncPhase.PROJECT_MODEL_PHASE
-
-  override suspend fun configureProjectModel(
+  override fun updateSyncStorage(
     context: ProjectResolverContext,
-    storage: MutableEntityStorage,
+    syncStorage: MutableEntityStorage,
+    projectStorage: ImmutableEntityStorage,
+    phase: GradleSyncPhase,
   ) {
-    if (!context.isPhasedSyncEnabled || !StudioFlags.PHASED_SYNC_BRIDGE_DATA_SERVICE_DISABLED.get()) {
+    if (!StudioFlags.PHASED_SYNC_BRIDGE_DATA_SERVICE_DISABLED.get()) {
       // If data bridge is not disabled, everything that was set up by phased sync will be removed, so no need to do anything.
       return
     }
 
     // Keep the root module as an iml based entity, because many things go wrong if there isn't at least one .iml based module
-    removeGradleBasedEntitiesForRootModule(context, storage)
+    removeGradleBasedEntitiesForRootModule(context, syncStorage)
 
-    reconcileExistingHolderModules(context, context.project, storage)
+    reconcileExistingHolderModules(context, syncStorage, phase)
   }
 
-  private fun reconcileExistingHolderModules(context: ProjectResolverContext, project: Project, storage: MutableEntityStorage) {
+  private fun reconcileExistingHolderModules(context: ProjectResolverContext, storage: MutableEntityStorage, phase: GradleSyncPhase) {
     val entitiesByUrls = storage.entities(ContentRootEntity::class.java).associate { it.url to it.module }
     context.allBuilds.forEach { buildModel ->
       buildModel.projects.forEach { projectModel ->
-        with(SyncContributorProjectContext(context, project, buildModel, projectModel)) {
+        with(SyncContributorProjectContext(context, context.project, phase, buildModel, projectModel)) {
           // no need to reconcile the root module, or an existing holder module matching the expected name
-          if (isGradleRootProject || storage.resolve(ModuleId(resolveModuleName())) != null) return@forEach
+          if (isGradleRootProject || storage.resolve(ModuleId(resolveHolderModuleName())) != null) return@forEach
           val existingModuleEntity = entitiesByUrls[projectEntitySource.projectRootUrl] ?: return@forEach
           existingModuleEntity.findModule(storage)?.getAllLinkedModules()?.forEach {
             it.putUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP, null)
           }
           storage.removeEntity(existingModuleEntity)
-          storage addEntity createModuleEntity(resolveModuleName(), projectEntitySource)
+          storage addEntity createModuleEntity(resolveHolderModuleName(), projectEntitySource)
         }
       }
     }
