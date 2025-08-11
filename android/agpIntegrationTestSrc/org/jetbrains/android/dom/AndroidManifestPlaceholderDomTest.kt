@@ -16,14 +16,22 @@
 package org.jetbrains.android.dom
 
 import com.android.tools.idea.model.ManifestPlaceholderResolver
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.testFramework.RunsInEdt
+import java.io.File
 import org.jetbrains.android.dom.converters.ManifestPlaceholderConverter
+import org.jetbrains.kotlin.idea.core.util.toVirtualFile
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 /**
  * Tests using build injected variables into AndroidManifest.xml.
@@ -33,61 +41,65 @@ import org.jetbrains.android.dom.converters.ManifestPlaceholderConverter
  * @see ManifestPlaceholderResolver
  * @see ManifestPlaceholderConverter
  */
-class AndroidManifestPlaceholderDomTest: AndroidGradleTestCase() {
+@RunsInEdt
+class AndroidManifestPlaceholderDomTest {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule().onEdt()
+  val project by lazy { projectRule.project }
+  val fixture by lazy { projectRule.fixture }
 
-  override fun setUp() {
-    super.setUp()
-
-    prepareProjectForImport(TestProjectPaths.BASIC)
-
-    modifyGradleFiles("[hostName:\"www.example.com\"]")
-    importProject()
-    prepareProjectForTest(project, null)
-    myFixture.allowTreeAccessForAllFiles()
+  @Before
+  fun setup() {
+    projectRule.loadProject(TestProjectPaths.BASIC) { root ->
+      modifyGradleFiles(root, "[hostName:\"www.example.com\"]")
+    }
+    fixture.allowTreeAccessForAllFiles()
   }
 
+  @Test
   fun testApplicationIdCompletion() {
-    val resolver = ManifestPlaceholderResolver(myFixture.module)
+    val resolver = ManifestPlaceholderResolver(fixture.module)
     val placeholders: Collection<String> = resolver.placeholders.keys
     assertThat(placeholders).containsExactly("hostName")
 
     val virtualFile = project.guessProjectDir()!!.findFileByRelativePath("src/main/AndroidManifest.xml")
-    myFixture.configureFromExistingVirtualFile(virtualFile!!)
-    myFixture.moveCaret("<intent-filter>|")
-    myFixture.type("\n" +
+    fixture.configureFromExistingVirtualFile(virtualFile!!)
+    fixture.moveCaret("<intent-filter>|")
+    fixture.type("\n" +
                    "<data\n android:host=\"\${}\"\n android:pathPrefix=\"/transfer\"\n android:scheme=\"myapp\" />")
-    myFixture.moveCaret("android:host=\"\${|}\"")
+    fixture.moveCaret("android:host=\"\${|}\"")
 
-    myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings).containsAllOf("hostName", "applicationId")
+    fixture.completeBasic()
+    assertThat(fixture.lookupElementStrings).containsAllOf("hostName", "applicationId")
   }
 
+  @Test
   fun testApplicationIdHighlighting() {
     addDataToManifest("applicationId")
-    myFixture.checkHighlighting()
+    fixture.checkHighlighting()
   }
 
+  @Test
   fun testManifestPlaceholderHighlighting() {
     addDataToManifest("hostName")
-    myFixture.checkHighlighting()
+    fixture.checkHighlighting()
   }
 
   private fun addDataToManifest(data: String) {
     val virtualFile = project.guessProjectDir()!!.findFileByRelativePath("src/main/AndroidManifest.xml")
-    myFixture.configureFromExistingVirtualFile(virtualFile!!)
-    myFixture.moveCaret("<intent-filter>|")
-    myFixture.type("\n" +
+    fixture.configureFromExistingVirtualFile(virtualFile!!)
+    fixture.moveCaret("<intent-filter>|")
+    fixture.type("\n" +
                    "<data\n android:host=\"\${${data}}\"\n android:pathPrefix=\"/transfer\"\n android:scheme=\"myapp\" />")
   }
 
-  private fun modifyGradleFiles(manifestPlaceholderText: String) {
-    val virtualFile = project.guessProjectDir()!!.findFileByRelativePath("build.gradle")!!
+  private fun modifyGradleFiles(root: File, manifestPlaceholderText: String) {
+    val virtualFile = root.toVirtualFile()!!.findFileByRelativePath("build.gradle")!!
     val text = VfsUtil.loadText(virtualFile)
     val position = Regex("defaultConfig \\{").find(text)!!.range.endExclusive
     val newText = text.substring(0, position) + "\n        manifestPlaceholders = $manifestPlaceholderText" + text.substring(position)
     runWriteAction {
       VfsUtil.saveText(virtualFile, newText)
     }
-    refreshProjectFiles()
   }
 }

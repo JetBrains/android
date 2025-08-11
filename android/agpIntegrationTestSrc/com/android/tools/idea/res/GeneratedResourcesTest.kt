@@ -17,66 +17,74 @@ package com.android.tools.idea.res
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.IndexingTestUtil
+import com.intellij.testFramework.RunsInEdt
 import java.io.File
-
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
 
 /**
  * Tests for resources registered as generated with Gradle.
  */
-class GeneratedResourcesTest : AndroidGradleTestCase() {
+@RunsInEdt
+class GeneratedResourcesTest {
+  val projectRule = AndroidGradleProjectRule()
+  @get:Rule
+  val rule = RuleChain.outerRule(projectRule).around(EdtRule())
+  val project by lazy { projectRule.project }
+  val fixture by lazy { projectRule.fixture }
 
   /**
    * Regression test for b/120750247.
    */
+  @Test
   fun testGeneratedRawResource() {
-    val projectRoot = prepareProjectForImport(TestProjectPaths.PROJECT_WITH_APPAND_LIB)
+    projectRule.loadProject(TestProjectPaths.PROJECT_WITH_APPAND_LIB) { projectRoot ->
+      File(projectRoot, "app/build.gradle").appendText(
+        """
+        android {
+          String resGeneratePath = "${"$"}{buildDir}/generated/my_generated_resources/res"
+          def generateResTask = tasks.create(name: 'generateMyResources').doLast {
+              def rawDir = "${"$"}{resGeneratePath}/raw"
+              mkdir(rawDir)
+              file("${"$"}{rawDir}/sample_raw_resource").write("sample text")
+          }
 
-    File(projectRoot, "app/build.gradle").appendText(
-      """
-      android {
-        String resGeneratePath = "${"$"}{buildDir}/generated/my_generated_resources/res"
-        def generateResTask = tasks.create(name: 'generateMyResources').doLast {
-            def rawDir = "${"$"}{resGeneratePath}/raw"
-            mkdir(rawDir)
-            file("${"$"}{rawDir}/sample_raw_resource").write("sample text")
+          def resDir = files(resGeneratePath).builtBy(generateResTask)
+
+          applicationVariants.all { variant ->
+              variant.registerGeneratedResFolders(resDir)
+          }
         }
-
-        def resDir = files(resGeneratePath).builtBy(generateResTask)
-
-        applicationVariants.all { variant ->
-            variant.registerGeneratedResFolders(resDir)
-        }
-      }
-      """.trimIndent())
-
-    importProject()
-    IndexingTestUtil.waitUntilIndexesAreReady(project) // maybe not needed any more
+        """.trimIndent())
+    }
 
     AndroidProjectRootListener.ensureSubscribed(project)
     Truth.assertThat(StudioResourceRepositoryManager.getAppResources(project.findAppModule())!!
                        .getResources(ResourceNamespace.RES_AUTO, ResourceType.RAW, "sample_raw_resource")).isEmpty()
 
-    generateSources()
+    projectRule.generateSources()
     IndexingTestUtil.waitUntilIndexesAreReady(project)
 
     Truth.assertThat(StudioResourceRepositoryManager.getAppResources(project.findAppModule())!!
                        .getResources(ResourceNamespace.RES_AUTO, ResourceType.RAW, "sample_raw_resource")).isNotEmpty()
 
-    myFixture.openFileInEditor(
+    fixture.openFileInEditor(
       project.guessProjectDir()!!
         .findFileByRelativePath("app/src/main/java/com/example/projectwithappandlib/app/MainActivity.java")!!)
 
-    myFixture.moveCaret("int id = |item.getItemId();")
-    myFixture.type("R.raw.")
-    myFixture.completeBasic()
+    fixture.moveCaret("int id = |item.getItemId();")
+    fixture.type("R.raw.")
+    fixture.completeBasic()
 
-    Truth.assertThat(myFixture.lookupElementStrings).containsExactly("sample_raw_resource", "class")
+    Truth.assertThat(fixture.lookupElementStrings).containsExactly("sample_raw_resource", "class")
   }
 }

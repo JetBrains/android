@@ -16,29 +16,42 @@
 package com.android.tools.idea.model
 
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.findAppModule
+import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.VfsTestUtil
 import org.jetbrains.android.facet.AndroidRootUtil
 import java.util.concurrent.TimeUnit
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
-class AndroidManifestIndexQueryGradleTest: AndroidGradleTestCase() {
+@RunsInEdt
+class AndroidManifestIndexQueryGradleTest {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule().onEdt()
+  val project by lazy { projectRule.project }
 
   private lateinit var modificationListener: MergedManifestModificationListener
 
-  override fun setUp() {
-    super.setUp()
+  @Before
+  fun setup() {
     MergedManifestModificationListener.ensureSubscribed(project)
     modificationListener = MergedManifestModificationListener(project)
   }
 
+  @Test
   fun testQueryActivitiesNoPackageInManifest() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION)
-
-    assertThat(myAndroidFacet.getModuleSystem().getPackageName()).isEqualTo("google.simpleapplication")
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION)
+    val appModule = project.findAppModule()
+    val facet = appModule.androidFacet!!
+    assertThat(appModule.getModuleSystem().getPackageName()).isEqualTo("google.simpleapplication")
 
     val manifestContent =
       // language=xml
@@ -53,12 +66,12 @@ class AndroidManifestIndexQueryGradleTest: AndroidGradleTestCase() {
 
     // update manifest
     runWriteActionAndWait {
-      AndroidRootUtil.getPrimaryManifestFile(myAndroidFacet)!!.delete(this)
+      AndroidRootUtil.getPrimaryManifestFile(facet)!!.delete(this)
       VfsTestUtil.createFile(project.guessProjectDir()!!, "app/src/main/AndroidManifest.xml", manifestContent)
     }
     modificationListener.waitAllUpdatesCompletedWithTimeout(1, TimeUnit.SECONDS)
 
-    val activities = myAndroidFacet.queryActivitiesFromManifestIndex().getJoined()
+    val activities = facet.queryActivitiesFromManifestIndex().getJoined()
     assertThat(activities).hasSize(1)
     val activity = activities[0]
     assertThat(activity.qualifiedName).isEqualTo("google.simpleapplication.MainActivityWithPackageFromGradle")

@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.testartifacts.instrumented
 
-import com.android.tools.idea.projectsystem.gradle.getMainModule
+import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
 import com.android.tools.idea.testartifacts.TestConfigurationTestingUtil
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.findAppModule
+import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.util.androidFacet
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.externalSystem.action.task.RunExternalSystemTaskAction
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
@@ -27,17 +32,27 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
-import org.jetbrains.android.facet.AndroidFacet
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Assume
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 
 /**
  * Test for run configuration selector {@link RunExternalSystemTaskAction}
  */
-class AndroidTestConfigurationSelectorTest : AndroidGradleTestCase() {
-  override fun shouldRunTest(): Boolean {
+@RunsInEdt
+class AndroidTestConfigurationSelectorTest {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule().onEdt()
+  val project by lazy { projectRule.project }
+
+  @Before
+  fun noWindows() {
     // Do not run tests on Windows (see http://b.android.com/222904)
-    return !SystemInfo.isWindows && super.shouldRunTest()
+    Assume.assumeFalse(SystemInfo.isWindows)
   }
 
   private class TestRunExternalSystemTaskAction : RunExternalSystemTaskAction() {
@@ -49,9 +64,10 @@ class AndroidTestConfigurationSelectorTest : AndroidGradleTestCase() {
     }
   }
 
+  @Test
   fun testRunTaskAsNewRunConfiguration() {
-    loadSimpleApplication()
-    val mainTestFacet = AndroidFacet.getInstance(getModule("app").getMainModule())!!
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION)
+    val testFacet = project.findAppModule().getAndroidTestModule()!!.androidFacet!!
 
     val mockProjectSystemId = mock(ProjectSystemId::class.java)
     `when`(mockProjectSystemId.readableName).thenReturn("test project name")
@@ -66,8 +82,8 @@ class AndroidTestConfigurationSelectorTest : AndroidGradleTestCase() {
     TestRunExternalSystemTaskAction().performDelegator(project, mockProjectSystemId, testTaskData, mockActionEvent)
 
     val runConfig = context.runManager.selectedConfiguration!!.configuration as AndroidTestRunConfiguration
-    assertEmpty(runConfig.checkConfiguration(mainTestFacet))
-    assertEquals(runConfig.CLASS_NAME, androidTestClassName)
-    assertEquals(runConfig.TESTING_TYPE, AndroidTestRunConfiguration.TEST_CLASS)
+    assertThat(runConfig.checkConfiguration(testFacet)).isEmpty()
+    assertThat(runConfig.CLASS_NAME).isEqualTo(androidTestClassName)
+    assertThat(runConfig.TESTING_TYPE).isEqualTo(AndroidTestRunConfiguration.TEST_CLASS)
   }
 }

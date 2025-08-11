@@ -15,40 +15,51 @@
  */
 package org.jetbrains.android
 
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
 import com.intellij.usageView.UsageInfo
 import com.intellij.usages.PsiElementUsageTarget
 import com.intellij.usages.UsageTargetUtil
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 /**
  * Tests that require a gradle project to operate, eg. for including AARs
  */
-class AndroidGradleProjectFindUsagesTest : AndroidGradleTestCase() {
+@RunsInEdt
+class AndroidGradleProjectFindUsagesTest {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule().onEdt()
+  val project by lazy { projectRule.project }
+  val fixture by lazy { projectRule.fixture }
 
-  override fun setUp() {
-    super.setUp()
-    loadProject(TestProjectPaths.MULTIPLE_MODULE_DEPEND_ON_AAR)
+  @Before
+  fun setup() {
+    projectRule.loadProject(TestProjectPaths.MULTIPLE_MODULE_DEPEND_ON_AAR)
   }
 
+  @Test
   fun testResourceDefinedInAarUsingModuleRClass() {
     val activityPath = "app/src/main/java/com/example/google/androidx/MainActivity.kt"
     val file = project.guessProjectDir()!!.findFileByRelativePath(activityPath)
-    myFixture.openFileInEditor(file!!)
+    fixture.openFileInEditor(file!!)
 
     // Resource from androidx library used in both app and lib modules
-    myFixture.moveCaret("androidx.appcompat.R.color.abc_tint|_default")
-    val usages = findUsages(myFixture.file.virtualFile, myFixture)
-    val treeTextRepresentation = myFixture.getUsageViewTreeTextRepresentation(usages)
+    fixture.moveCaret("androidx.appcompat.R.color.abc_tint|_default")
+    val usages = findUsages(fixture.file.virtualFile, fixture)
+    val treeTextRepresentation = fixture.getUsageViewTreeTextRepresentation(usages)
     assertThat(treeTextRepresentation)
       .isEqualTo("<root> (4)\n" +
                  " Usages (4)\n" +
@@ -73,22 +84,23 @@ class AndroidGradleProjectFindUsagesTest : AndroidGradleTestCase() {
                  "       6int color = androidx.appcompat.R.color.abc_tint_default;\n")
   }
 
+  @Test
   fun testResourceDefinedInAarUsingLibRClass() {
     val activityPath = "app/src/main/java/com/example/google/androidx/MainActivity.kt"
     val file = project.guessProjectDir()!!.findFileByRelativePath(activityPath)
-    myFixture.openFileInEditor(file!!)
+    fixture.openFileInEditor(file!!)
 
     // Resource from androidx library used in both app and lib modules
-    myFixture.moveCaret("androidx.appcompat.R.color.abc_tint_default|")
+    fixture.moveCaret("androidx.appcompat.R.color.abc_tint_default|")
 
     // Adding the fully qualified resource reference from the module R class.
-    myFixture.type("\n    com.example.google.androidx.R.color.abc_tint_default")
+    fixture.type("\n    com.example.google.androidx.R.color.abc_tint_default")
 
     // Adding the non-transitive representation of the same resource written above, ie. from Aar R class. Although they have different
     // fully qualified paths, they reference the same resource.
-    myFixture.type("\n    androidx.appcompat.R.color.abc_tint_default")
-    val usages = findUsages(myFixture.file.virtualFile, myFixture)
-    val treeTextRepresentation = myFixture.getUsageViewTreeTextRepresentation(usages)
+    fixture.type("\n    androidx.appcompat.R.color.abc_tint_default")
+    val usages = findUsages(fixture.file.virtualFile, fixture)
+    val treeTextRepresentation = fixture.getUsageViewTreeTextRepresentation(usages)
     assertThat(treeTextRepresentation)
       .isEqualTo("<root> (5)\n" +
                  " Usages (5)\n" +
@@ -114,11 +126,11 @@ class AndroidGradleProjectFindUsagesTest : AndroidGradleTestCase() {
                  "       6int color = androidx.appcompat.R.color.abc_tint_default;\n")
   }
 
-  fun findUsages(file: VirtualFile?, fixture: JavaCodeInsightTestFixture): Collection<UsageInfo?> {
+  fun findUsages(file: VirtualFile?, fixture: CodeInsightTestFixture): Collection<UsageInfo?> {
     return findUsages(file, fixture, null)
   }
 
-  fun findUsages(file: VirtualFile?, fixture: JavaCodeInsightTestFixture, scope: GlobalSearchScope?): Collection<UsageInfo?> {
+  fun findUsages(file: VirtualFile?, fixture: CodeInsightTestFixture, scope: GlobalSearchScope?): Collection<UsageInfo?> {
     fixture.configureFromExistingVirtualFile(file!!)
     val dataContext = (fixture.editor as EditorEx).dataContext
     val editor = CommonDataKeys.EDITOR.getData(dataContext)
