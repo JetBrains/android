@@ -233,7 +233,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
     // Possible solutions: Move AndroidVersionsInfo/load to the class that instantiates this step?
     apiLevelCombo.init(
       formFactor,
-      androidVersionsInfo.getKnownTargetVersions(formFactor, minSdkLevel),
+      androidVersionsInfo.getKnownTargetVersions(formFactor, minSdkLevel).filterNot { it.isPreview },
     )
   }
 
