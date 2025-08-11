@@ -11,7 +11,7 @@ public class AndroidRawResourcesDomTest extends AndroidDomTestCase {
   }
 
   public void testRootTagCompletion() throws Throwable {
-    doTestCompletionVariants("rawRootTagCompletion.xml", "resources");
+    doTestCompletionVariants("rawRootTagCompletion.xml", "resources", "WatchFace");
   }
 
   public void testRawTagCompletion() throws Throwable {

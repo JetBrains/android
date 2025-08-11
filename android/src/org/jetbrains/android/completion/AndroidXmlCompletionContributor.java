@@ -235,6 +235,7 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
     }
     else if (RawDomFileDescription.isRawFile(xmlFile)) {
       resultSet.addElement(LookupElementBuilder.create(SdkConstants.TAG_RESOURCES));
+      resultSet.addElement(LookupElementBuilder.create(SdkConstants.TAG_WATCH_FACE));
       return false;
     }
     else if (AndroidResourceDomFileDescription.isFileInResourceFolderType(xmlFile, ResourceFolderType.MIPMAP)) {
