@@ -80,7 +80,11 @@ public class WorkspaceRoot implements ProtoWrapper<String> {
   }
 
   public static ImmutableSet<Path> virtualFilesToWorkspaceRelativePaths(Project project, Collection<VirtualFile> virtualFiles) {
-    final var workspaceRoot = fromProject(project).path();
+    WorkspaceRoot workspaceRootOrNull = fromProjectSafe(project);
+    if (workspaceRootOrNull == null) {
+      return ImmutableSet.of();
+    }
+    final var workspaceRoot = workspaceRootOrNull.path();
     ImmutableSet<Path> paths = virtualFiles
       .stream()
       .filter(VirtualFile::isInLocalFileSystem)
