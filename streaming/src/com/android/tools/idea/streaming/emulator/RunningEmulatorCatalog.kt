@@ -26,7 +26,6 @@ import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.service
 import com.intellij.openapi.components.serviceIfCreated
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
@@ -255,7 +254,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
         for (emulator in addedEmulators) {
           val processHandle = ProcessHandleProvider.getProcessHandle(emulator.emulatorId.pid)
           if (processHandle?.isAlive == true) {
-            val tracker = runningAvdTracker ?: service<RunningAvdTracker>().also { runningAvdTracker = it }
+            val tracker = runningAvdTracker ?: RunningAvdTracker.getInstance().also { runningAvdTracker = it }
             tracker.started(emulator.emulatorId.avdFolder, processHandle,
                             if (emulator.emulatorId.isEmbedded) RunningAvd.RunType.EMBEDDED else RunningAvd.RunType.STANDALONE)
           }

@@ -25,7 +25,6 @@ import com.intellij.execution.process.ProcessTerminatedListener
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Key
 import com.intellij.serviceContainer.AlreadyDisposedException
@@ -77,7 +76,7 @@ class EmulatorProcessHandler(
 
   private val runType = if (commandLine.contains(" -qt-hide-window ")) RunType.EMBEDDED else RunType.STANDALONE
   private val messageBus = ApplicationManager.getApplication().messageBus
-  private val ownedRunningEmulators = service<RunningAvdTracker>()
+  private val ownedRunningEmulators = RunningAvdTracker.getInstance()
 
   init {
     addProcessListener(EmulatorProcessListener())

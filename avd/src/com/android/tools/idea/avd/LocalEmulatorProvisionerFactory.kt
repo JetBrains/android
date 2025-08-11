@@ -32,7 +32,6 @@ import com.android.tools.idea.deviceprovisioner.DeviceProvisionerFactory
 import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceActionPresentation
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.intellij.ide.actions.RevealFileAction
-import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.ui.Messages
@@ -82,7 +81,7 @@ private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPl
     get() = AvdManagerConnection.getDefaultAvdManagerConnection()
 
   private val runningAvdTracker
-    get() = service<RunningAvdTracker>()
+    get() = RunningAvdTracker.getInstance()
 
   override suspend fun rescanAvds() =
     withContext(diskIoThread) { avdManagerConnection.getAvds(true) }

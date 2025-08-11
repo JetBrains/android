@@ -977,7 +977,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private suspend fun getStartableVirtualDevices(): List<AvdInfo> {
     val avds = withContext(Dispatchers.IO) { AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false) }
-    val runningAvdFolders = service<RunningAvdTracker>().runningAvds.filter { !it.value.isShuttingDown }.keys
+    val runningAvdFolders = RunningAvdTracker.getInstance().runningAvds.filter { !it.value.isShuttingDown }.keys
     return avds.filter {
       it.dataFolderPath !in runningAvdFolders &&
       findContentByAvdFolder(it.dataFolderPath) == null &&
@@ -1182,7 +1182,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     override fun actionPerformed(event: AnActionEvent) {
       toolWindowScope.launch(Dispatchers.IO) {
         try {
-          val runningAvd = service<RunningAvdTracker>().runningAvds[avd.dataFolderPath]
+          val runningAvd = RunningAvdTracker.getInstance().runningAvds[avd.dataFolderPath]
           if (runningAvd != null) {
             if (runningAvd.isShuttingDown) {
               try {

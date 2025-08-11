@@ -705,7 +705,7 @@ class StreamingToolWindowManagerTest {
     phone.pauseGrpc() // Don't allow the phone AVD to terminate quickly.
     contentManager.removeContent(contentManager.contents[0], true)
     waitForCondition(2.seconds) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
-    assertThat(service<RunningAvdTracker>().runningAvds[phone.avdFolder]?.isShuttingDown).isTrue()
+    assertThat(RunningAvdTracker.getInstance().runningAvds[phone.avdFolder]?.isShuttingDown).isTrue()
     val startAction = triggerAddDevicePopup().actions.find { it.templateText == phone.avdName }
     assertThat(startAction).isNotNull()
     executeAction(startAction!!, toolWindow.component, project)

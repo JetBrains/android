@@ -17,9 +17,10 @@ package com.android.tools.idea.avdmanager
 
 import com.android.tools.idea.avdmanager.RunningAvd.RunType
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
+import java.nio.file.Path
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import java.nio.file.Path
 
 /** Keeps track of running emulator processes. */
 @Service
@@ -72,6 +73,10 @@ class RunningAvdTracker {
         }
       }
     }
+  }
+
+  companion object {
+    fun getInstance(): RunningAvdTracker = service<RunningAvdTracker>()
   }
 }
 

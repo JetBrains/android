@@ -108,7 +108,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   private val connectionStateReference = AtomicReference(ConnectionState.NOT_INITIALIZED)
   private val emulatorState = AtomicReference(EmulatorState.RUNNING)
   private val connectionStateListeners = DisposableWrapperList<ConnectionStateListener>()
-  private val runningAvdTracker = service<RunningAvdTracker>()
+  private val runningAvdTracker = RunningAvdTracker.getInstance()
   @GuardedBy("this")
   private var inputEventSender: StreamObserver<InputEvent>? = null
 
