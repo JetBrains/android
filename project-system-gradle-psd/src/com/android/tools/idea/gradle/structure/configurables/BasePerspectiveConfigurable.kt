@@ -359,7 +359,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
                 e.project,
                 buildString {
                   append(when {
-                           module.parent.modelCount == 1 -> "Are you sure you want to remove the only module form the project?"
+                           module.parent.modelCount == 1 -> "Are you sure you want to remove the only module from the project?"
                            else -> "Remove module '${module.name}' from the project?"
                          })
                   append("\n")
