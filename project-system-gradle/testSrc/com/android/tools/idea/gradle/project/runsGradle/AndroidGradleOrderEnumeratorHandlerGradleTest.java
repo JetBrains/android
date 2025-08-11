@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore;
 import com.android.tools.idea.gradle.model.IdeArtifactName;
 import com.android.tools.idea.gradle.model.IdeJavaArtifactCore;
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet;
+import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet;
 import com.android.tools.idea.gradle.project.AndroidGradleOrderEnumeratorHandlerFactory;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;

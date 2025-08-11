@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.model
 
 import com.android.tools.idea.gradle.model.impl.FileImpl
+import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSet
+import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.impl.toImpl
 import java.io.File
 import java.io.Serializable

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots.runsGradleSnapshots
 
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
+import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath

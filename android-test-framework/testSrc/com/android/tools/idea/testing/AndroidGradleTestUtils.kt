@@ -38,8 +38,8 @@ import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnown
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.impl.IdeDeclaredDependenciesImpl
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
-import com.android.tools.idea.gradle.model.IdeModuleSourceSet
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
+import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSet
+import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
@@ -70,7 +70,6 @@ import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
-import com.android.tools.idea.gradle.model.impl.IdeTestSuiteImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestSuiteTargetImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestSuiteVariantTargetImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl

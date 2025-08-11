@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
+import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.GradleBuilds

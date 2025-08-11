@@ -17,7 +17,7 @@ package com.android.tools.idea.res
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
+import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder

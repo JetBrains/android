@@ -42,7 +42,6 @@ import com.android.builder.model.v2.ide.SourceProvider
 import com.android.builder.model.v2.ide.SourceSetContainer
 import com.android.builder.model.v2.ide.SyncIssue
 import com.android.builder.model.v2.ide.TestInfo
-import com.android.builder.model.v2.ide.TestSuiteArtifact
 import com.android.builder.model.v2.ide.TestedTargetVariant
 import com.android.builder.model.v2.ide.UnresolvedDependency
 import com.android.builder.model.v2.ide.Variant
@@ -75,9 +74,9 @@ import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_FAT
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_IGNORE
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_INFORMATIONAL
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_WARNING
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.MAIN
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.TEST_FIXTURES
+import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
+import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet.MAIN
+import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet.TEST_FIXTURES
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.IdeTestSuiteSource

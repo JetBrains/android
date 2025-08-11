@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.resources.ResourceType
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
+import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl.Companion.wellKnownOrCreate
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
@@ -25,7 +25,6 @@ import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.res.TransitiveAarRClass
-import com.android.tools.idea.res.resourceNamespace
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText

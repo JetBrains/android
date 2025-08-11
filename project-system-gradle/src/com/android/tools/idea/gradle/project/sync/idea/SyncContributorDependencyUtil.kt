@@ -28,10 +28,10 @@ import com.android.tools.idea.gradle.model.IdeDependencyCore
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
+import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.sync.AndroidProjectPathResolver

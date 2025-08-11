@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.tools.idea.gradle.model.IdeModuleSourceSet
+import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
-import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.utils.FileUtils
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExternalModuleType

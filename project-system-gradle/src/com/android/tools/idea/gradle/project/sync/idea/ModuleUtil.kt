@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
-import com.android.tools.idea.gradle.model.IdeModuleSourceSet
+import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
 import com.android.tools.idea.gradle.project.sync.idea.data.model.KotlinMultiplatformAndroidSourceSetType
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys

@@ -17,7 +17,7 @@ package org.jetbrains.kotlin.android.extensions
 
 import com.android.builder.model.proto.ide.ProjectInfo
 import com.android.kotlin.multiplatform.ide.models.serialization.androidDependencyKey
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
+import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ProjectData

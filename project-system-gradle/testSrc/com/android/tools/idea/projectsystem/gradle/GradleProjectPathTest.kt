@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.MAIN
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.TEST_FIXTURES
+import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
+import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet.MAIN
+import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet.TEST_FIXTURES
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
 import com.google.common.truth.Expect
 import org.junit.Rule

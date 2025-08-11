@@ -22,7 +22,7 @@ import com.android.builder.model.v2.ide.LibraryType
 import com.android.builder.model.v2.ide.ProjectInfo
 import com.android.ide.common.gradle.Component
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
+import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.IdeJavaLibraryImpl

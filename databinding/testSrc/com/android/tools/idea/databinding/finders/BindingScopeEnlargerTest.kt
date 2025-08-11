@@ -18,7 +18,7 @@ package com.android.tools.idea.databinding.finders
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
+import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder

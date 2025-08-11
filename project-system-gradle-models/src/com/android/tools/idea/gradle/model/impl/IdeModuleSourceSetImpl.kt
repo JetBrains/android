@@ -15,9 +15,18 @@
  */
 package com.android.tools.idea.gradle.model.impl
 
-import com.android.tools.idea.gradle.model.IdeModuleSourceSet
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import java.io.Serializable
+
+/**
+ * A source set in an IDE module group.
+ *
+ * Technically this doesn't belong in the impl package, but it's here to make it a sealed interface, and that's fine because these
+ * interfaces are not exposed to external modules.
+ */
+sealed interface IdeModuleSourceSet {
+  val sourceSetName: String
+  val canBeConsumed: Boolean
+}
 
 data class IdeModuleSourceSetImpl(
   override val sourceSetName: String,
@@ -41,3 +50,4 @@ data class IdeModuleSourceSetImpl(
     return "${sourceSetName}${if (!canBeConsumed) "(non-consumable)" else ""}"
   }
 }
+

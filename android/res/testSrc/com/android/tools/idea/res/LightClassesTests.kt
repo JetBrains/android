@@ -23,8 +23,8 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
+import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.MergedManifestModificationListener
 import com.android.tools.idea.model.TestAndroidModel.Companion.namespaced

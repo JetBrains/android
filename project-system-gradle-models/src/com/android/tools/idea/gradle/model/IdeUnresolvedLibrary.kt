@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.model
 
+import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSet
 import java.io.File
 
 /**
