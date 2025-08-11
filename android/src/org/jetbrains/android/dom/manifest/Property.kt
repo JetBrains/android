@@ -19,6 +19,7 @@ import com.intellij.util.xml.Convert
 import com.intellij.util.xml.Required
 import org.jetbrains.android.dom.AndroidAttributeValue
 import org.jetbrains.android.dom.AndroidDomElement
+import org.jetbrains.android.dom.converters.PropertyValueConverter
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter
 
 interface Property : AndroidDomElement {
@@ -27,5 +28,5 @@ interface Property : AndroidDomElement {
 
   @Convert(ResourceReferenceConverter::class) fun getResource(): AndroidAttributeValue<String>
 
-  @Convert(ResourceReferenceConverter::class) fun getValue(): AndroidAttributeValue<String>
+  @Convert(PropertyValueConverter::class) fun getValue(): AndroidAttributeValue<String>
 }
