@@ -16,6 +16,8 @@
 package com.android.tools.idea.testing
 
 import com.android.tools.idea.Projects
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildResult
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.project.importing.withAfterCreate
@@ -24,11 +26,13 @@ import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
 import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.testing.JdkUtils.overrideProjectGradleJdkPathWithVersion
 import com.android.tools.idea.util.androidFacet
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import java.io.File
+import java.util.function.Function
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.SystemIndependent
 import org.junit.Ignore
@@ -68,6 +72,13 @@ class AndroidGradleProjectRule(
       vararg tasks: String,
     ): GradleInvocationResult {
       return invokeGradleTasks(project, timeoutMillis, *tasks)
+    }
+
+    fun <T: GradleBuildResult> doInvokeGradle(
+      project: Project,
+      gradleInvocationTask: Function<GradleBuildInvoker, ListenableFuture<T>?>
+    ): T {
+      return invokeGradle(project, gradleInvocationTask)
     }
 
     public override fun generateSources() { // Changes visibility only.
@@ -193,6 +204,10 @@ class AndroidGradleProjectRule(
 
   fun invokeTasks(timeoutMillis: Long?, vararg tasks: String): GradleInvocationResult {
     return delegateTestCase.invokeTasks(project, timeoutMillis, *tasks)
+  }
+
+  fun <T: GradleBuildResult> invokeGradle(gradleInvocationTask: Function<GradleBuildInvoker, ListenableFuture<T>?>): T {
+    return delegateTestCase.doInvokeGradle(project, gradleInvocationTask)
   }
 
   fun resolveTestDataPath(relativePath: String): File =

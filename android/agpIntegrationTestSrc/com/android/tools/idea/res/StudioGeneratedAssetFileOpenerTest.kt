@@ -16,39 +16,51 @@
 package com.android.tools.idea.res
 
 import com.android.tools.idea.projectsystem.gradle.getMainModule
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.findAppModule
+import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import junit.framework.TestCase
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.BufferedReader
-import java.io.IOException
 import java.io.InputStreamReader
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
 
-class StudioGeneratedAssetFileOpenerTest : AndroidGradleTestCase() {
+@RunsInEdt
+class StudioGeneratedAssetFileOpenerTest {
+  val projectRule = AndroidGradleProjectRule()
+  @get:Rule
+  val rule = RuleChain.outerRule(projectRule).around(EdtRule())
+  val project by lazy { projectRule.project }
+  val fixture by lazy { projectRule.fixture }
+
   private var myAppRepo: StudioAssetFileOpener? = null
 
-  @Throws(Exception::class)
-  override fun setUp() {
-    super.setUp()
-
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION_GENERATED_ASSETS)
-    val invocationResult = invokeGradle(project) {
+  @Before
+  fun setup() {
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_GENERATED_ASSETS)
+    val invocationResult = projectRule.invokeGradle {
       it.assemble()
     }
     TestCase.assertTrue(invocationResult.isBuildSuccessful)
 
-    val facet: AndroidFacet = AndroidFacet.getInstance(getModule("app").getMainModule())!!
+    val facet: AndroidFacet = AndroidFacet.getInstance(project.findAppModule().getMainModule())!!
 
     TestCase.assertNotNull(facet)
     myAppRepo = StudioAssetFileOpener(facet)
   }
 
-  @Throws(IOException::class)
+  @Test
   fun testGeneratedAsset() {
     val appGenerated = "generated text"
     BufferedReader(InputStreamReader(myAppRepo!!.openAssetFile("generated.asset.txt"))).use { br ->
       val assetContent = br.readLine()
-      assertEquals(appGenerated, assetContent)
+      assertThat(assetContent).isEqualTo(appGenerated)
     }
   }
 }
