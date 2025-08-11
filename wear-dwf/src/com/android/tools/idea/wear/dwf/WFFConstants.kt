@@ -31,6 +31,7 @@ object WFFConstants {
   const val ATTRIBUTE_ID = "id"
   const val ATTRIBUTE_COLORS = "colors"
   const val ATTRIBUTE_SOURCE = "source"
+  const val ATTRIBUTE_EXPRESSION = "expression"
 
   const val TAG_USER_CONFIGURATIONS = "UserConfigurations"
   const val TAG_COLOR_CONFIGURATION = "ColorConfiguration"

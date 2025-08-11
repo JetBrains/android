@@ -1,0 +1,12 @@
+<WatchFace<fold text='...'>>
+  <Template<fold text='...'>>%s
+    <Parameter expression=<fold text='Hello, World!'>"greeting"</fold> />
+    <Parameter expression=<fold text='Hello, World!'>'"greeting"'</fold> />
+    <Parameter expression=<fold text='Hello, World!'>"'greeting'"</fold> />
+    <Parameter expression="not a string reference" />
+    <Parameter expression="10 + greeting" /> <!-- the string is only folded if it's the only content in the expression -->
+  </Template</fold>>
+  <Transform<fold text='...'>
+      target="angle"
+      value="greeting</fold>" / <!-- only expressions within a template's parameter tag should be folded -->
+</WatchFace</fold>>

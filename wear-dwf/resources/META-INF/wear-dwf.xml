@@ -75,6 +75,7 @@
     <completion.contributor language="WFFExpression"
                             implementationClass="com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionCompletionContributor"/>
 
+    <lang.foldingBuilder language="XML" implementationClass="com.android.tools.idea.wear.dwf.dom.raw.expressions.TemplateParameterStringFoldingBuilder" />
   </extensions>
   <actions>
     <action id="ImportWatchFaceStudioFileAction"
