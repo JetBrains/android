@@ -322,6 +322,7 @@ class AgpUpgradeRefactoringProcessor(
     AppCompileTimeRClassDefaultRefactoringProcessor(this),
     BuildTypesUnitTestDefaultRefactoringProcessor(this),
     DisallowUsesSdkInManifestDefaultRefactoringProcessor(this),
+    EnforceUniquePackageNameRefactoringProcessor(this),
     AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor(this),
     AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(this),
     RemoveImplementationPropertiesRefactoringProcessor(this),
