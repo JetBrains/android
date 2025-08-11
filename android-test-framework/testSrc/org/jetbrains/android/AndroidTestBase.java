@@ -321,16 +321,25 @@ public abstract class AndroidTestBase extends UsefulTestCase {
    */
   protected SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> doGlobalInspectionTest(
     @NotNull GlobalInspectionToolWrapper wrapper, @NotNull String globalTestDir, @NotNull AnalysisScope scope) {
-    myFixture.enableInspections(wrapper.getTool());
+    return doGlobalInspectionTest(myFixture, wrapper, globalTestDir, scope);
+  }
+
+  public static SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> doGlobalInspectionTest(
+    @NotNull CodeInsightTestFixture fixture,
+    @NotNull GlobalInspectionToolWrapper wrapper,
+    @NotNull String globalTestDir,
+    @NotNull AnalysisScope scope
+  ) {
+    fixture.enableInspections(wrapper.getTool());
 
     scope.invalidate();
 
-    InspectionManagerEx inspectionManager = (InspectionManagerEx)InspectionManager.getInstance(getProject());
+    InspectionManagerEx inspectionManager = (InspectionManagerEx)InspectionManager.getInstance(fixture.getProject());
     GlobalInspectionContextForTests globalContext =
-      InspectionsKt.createGlobalContextForTool(scope, getProject(), Arrays.<InspectionToolWrapper<?, ?>>asList(wrapper));
+      InspectionsKt.createGlobalContextForTool(scope, fixture.getProject(), Arrays.<InspectionToolWrapper<?, ?>>asList(wrapper));
 
     InspectionTestUtil.runTool(wrapper, scope, globalContext);
-    InspectionTestUtil.compareToolResults(globalContext, wrapper, false, myFixture.getTestDataPath() + globalTestDir);
+    InspectionTestUtil.compareToolResults(globalContext, wrapper, false, fixture.getTestDataPath() + globalTestDir);
 
     return globalContext.getPresentation(wrapper).getProblemElements();
   }

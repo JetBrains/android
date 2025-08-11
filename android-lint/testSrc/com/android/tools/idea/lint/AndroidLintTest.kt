@@ -135,7 +135,6 @@ import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.projectsystem.TestVersion
-import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.getIntentionAction
 import com.android.tools.lint.checks.HardcodedValuesDetector
@@ -425,10 +424,10 @@ class AndroidLintTest : AbstractAndroidLintTest() {
 
   fun PsiFile.findCaretOffset(caret: String): Int {
     val delta = caret.indexOf("|")
-    if (delta == -1) AndroidGradleTestCase.fail("${name} does not contain caret marker, |")
+    if (delta == -1) fail("${name} does not contain caret marker, |")
     val context = caret.substring(0, delta) + caret.substring(delta + 1)
     val index = text.indexOf(context)
-    if (index == -1) AndroidGradleTestCase.fail("${name} does not contain $context")
+    if (index == -1) fail("${name} does not contain $context")
     return index + delta
   }
 
@@ -483,10 +482,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       sb.append("No warnings.")
     }
 
-    AndroidGradleTestCase.assertEquals(
-      expected.trimIndent().trim(),
-      sb.toString().trimIndent().trim(),
-    )
+    assertEquals(expected.trimIndent().trim(), sb.toString().trimIndent().trim())
   }
 
   fun testAdapterViewChildren() {

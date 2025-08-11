@@ -30,8 +30,9 @@ import com.android.tools.idea.lint.inspections.AndroidLintMockLocationInspection
 import com.android.tools.idea.lint.inspections.AndroidLintNewApiInspection
 import com.android.tools.idea.lint.inspections.AndroidLintSdCardPathInspection
 import com.android.tools.idea.lint.inspections.AndroidLintUnusedResourcesInspection
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.onEdt
 import com.android.tools.lint.checks.GradleDetector
 import com.intellij.analysis.AnalysisScope
 import com.intellij.codeInspection.CommonProblemDescriptor
@@ -48,30 +49,46 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.InspectionTestUtil
+import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.createGlobalContextForTool
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import org.junit.Assert.assertEquals
-import org.junit.Assert.fail
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import java.io.File
 import java.util.Locale
+import org.jetbrains.android.AndroidTestBase
+import org.jetbrains.android.AndroidTestBase.getAndroidPluginHome
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.fail
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TestName
 
-class AndroidLintGradleTest : AndroidGradleTestCase() {
-  override fun setUp() {
-    super.setUp()
+@RunsInEdt
+class AndroidLintGradleTest {
+  @get:Rule val projectRule = AndroidGradleProjectRule().onEdt()
+  val project by lazy { projectRule.project }
+  val fixture by lazy { projectRule.fixture }
 
+  @get:Rule val nameRule = TestName()
+
+  @Before
+  fun setUp() {
     val analyticsSettings = AnalyticsSettingsData()
     analyticsSettings.optedIn = false
     setInstanceForTest(analyticsSettings)
-    myFixture.allowTreeAccessForAllFiles()
+    fixture.allowTreeAccessForAllFiles()
   }
 
+  @Test
   fun `test lint warning in tests`() {
     // Test that, in a test project which enables lintOptions.checkTestSources, warnings
     // are flagged in unit test sources. This ensures that we're properly syncing lint options
     // into the driver; b/139490306.
-    loadProject(TestProjectPaths.TEST_ARTIFACTS_LINT)
-    val file = myFixture.loadFile("app/src/androidTest/java/google/testartifacts/ExampleTest.java")
-    myFixture.checkLint(
+    projectRule.loadProject(TestProjectPaths.TEST_ARTIFACTS_LINT)
+    val file = fixture.loadFile("app/src/androidTest/java/google/testartifacts/ExampleTest.java")
+    fixture.checkLint(
       file,
       AndroidLintSdCardPathInspection(),
       "/sd|card",
@@ -84,21 +101,22 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
     )
   }
 
+  @Test
   fun `test mock locations`() {
     // MOCK locations are okay in debug manifests; they're not okay in main manifests.
     // This tests that the Gradle builder model is properly passed through to lint.
-    loadProject(TestProjectPaths.TEST_ARTIFACTS_LINT)
+    projectRule.loadProject(TestProjectPaths.TEST_ARTIFACTS_LINT)
 
-    val debug = myFixture.loadFile("app/src/debug/AndroidManifest.xml")
-    myFixture.checkLint(
+    val debug = fixture.loadFile("app/src/debug/AndroidManifest.xml")
+    fixture.checkLint(
       debug,
       AndroidLintMockLocationInspection(),
       "android.permission.ACCESS_|MOCK_LOCATION",
       "No warnings.",
     )
-    val main = myFixture.loadFile("app/src/main/AndroidManifest.xml")
+    val main = fixture.loadFile("app/src/main/AndroidManifest.xml")
 
-    myFixture.checkLint(
+    fixture.checkLint(
       main,
       AndroidLintMockLocationInspection(),
       "android.permission.ACCESS_|MOCK_LOCATION",
@@ -112,20 +130,22 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
     )
   }
 
+  @Test
   fun `test desugaring in library project`() {
     // Regression test for https://issuetracker.google.com/158189490
-    loadProject(TestProjectPaths.TEST_ARTIFACTS_LINT)
+    projectRule.loadProject(TestProjectPaths.TEST_ARTIFACTS_LINT)
 
-    val debug = myFixture.loadFile("lib/src/main/java/com/example/lib/MyClass.kt")
-    myFixture.checkLint(debug, AndroidLintNewApiInspection(), "LocalDate.n|ow", "No warnings.")
+    val debug = fixture.loadFile("lib/src/main/java/com/example/lib/MyClass.kt")
+    fixture.checkLint(debug, AndroidLintNewApiInspection(), "LocalDate.n|ow", "No warnings.")
   }
 
   // app project with global desugaring disabled and android test desugaring enabled
+  @Test
   fun `test desugaring for instrumentation tests`() {
-    loadProject(TestProjectPaths.TEST_ARTIFACTS_LINT_DESUGARING_ANDROID_TEST)
+    projectRule.loadProject(TestProjectPaths.TEST_ARTIFACTS_LINT_DESUGARING_ANDROID_TEST)
 
-    val mainFile = myFixture.loadFile("app/src/main/java/google/testartifacts/ExampleMain.java")
-    myFixture.checkLint(
+    val mainFile = fixture.loadFile("app/src/main/java/google/testartifacts/ExampleMain.java")
+    fixture.checkLint(
       mainFile,
       AndroidLintNewApiInspection(),
       "LocalDate.n|ow",
@@ -139,8 +159,8 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
     """,
     )
 
-    val unitTestFile = myFixture.loadFile("app/src/test/java/google/testartifacts/ExampleTest.java")
-    myFixture.checkLint(
+    val unitTestFile = fixture.loadFile("app/src/test/java/google/testartifacts/ExampleTest.java")
+    fixture.checkLint(
       unitTestFile,
       AndroidLintNewApiInspection(),
       "collection.st|ream",
@@ -155,14 +175,14 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
     )
 
     val androidTestFile =
-      myFixture.loadFile("app/src/androidTest/java/google/testartifacts/ExampleTest.java")
-    myFixture.checkLint(
+      fixture.loadFile("app/src/androidTest/java/google/testartifacts/ExampleTest.java")
+    fixture.checkLint(
       androidTestFile,
       AndroidLintNewApiInspection(),
       "LocalDate.n|ow",
       "No warnings.",
     )
-    myFixture.checkLint(
+    fixture.checkLint(
       androidTestFile,
       AndroidLintNewApiInspection(),
       "collection.st|ream",
@@ -170,12 +190,13 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
     )
   }
 
+  @Test
   fun testWarningsInNonAndroidLibrary() {
     // Make sure we get lint violations in java library modules as well
-    loadProject(TestProjectPaths.TEST_ARTIFACTS_LINT)
+    projectRule.loadProject(TestProjectPaths.TEST_ARTIFACTS_LINT)
 
-    val debug = myFixture.loadFile("lib/src/main/java/com/example/lib/UseValueOf.java")
-    myFixture.checkLint(
+    val debug = fixture.loadFile("lib/src/main/java/com/example/lib/UseValueOf.java")
+    fixture.checkLint(
       debug,
       AndroidLintUseValueOfInspection(),
       "new Int|eger",
@@ -190,17 +211,19 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
     )
   }
 
+  @Test
   fun testUnusedResources() {
-    loadProject(TestProjectPaths.UNUSED_RESOURCES_MULTI_MODULE)
+    projectRule.loadProject(TestProjectPaths.UNUSED_RESOURCES_MULTI_MODULE)
     val inspection = AndroidLintUnusedResourcesInspection()
-    myFixture.enableInspections(inspection)
-    doGlobalInspectionTest(inspection, AnalysisScope(myFixture.project))
+    fixture.enableInspections(inspection)
+    doGlobalInspectionTest(inspection, AnalysisScope(fixture.project))
   }
 
+  @Test
   fun testVersionCatalogNestedProjects() {
-    loadProject(TestProjectPaths.TEST_ARTIFACTS_VERSION_CATALOG_NESTED_PROJECTS)
-    val appBuildFile = myFixture.loadFile("app/build.gradle.kts")
-    myFixture.checkLint(
+    projectRule.loadProject(TestProjectPaths.TEST_ARTIFACTS_VERSION_CATALOG_NESTED_PROJECTS)
+    val appBuildFile = fixture.loadFile("app/build.gradle.kts")
+    fixture.checkLint(
       appBuildFile,
       AndroidLintUseTomlInsteadInspection(),
       "com.android.support:appcompat-v|7:28.0.0",
@@ -213,8 +236,8 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
       """
         .trimIndent(),
     )
-    val nestedAppBuildFile = myFixture.loadFile("app/nested/build.gradle.kts")
-    myFixture.checkLint(
+    val nestedAppBuildFile = fixture.loadFile("app/nested/build.gradle.kts")
+    fixture.checkLint(
       nestedAppBuildFile,
       AndroidLintUseTomlInsteadInspection(),
       "com.android.support:appcompat-v|7:28.0.0",
@@ -229,10 +252,11 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
     )
   }
 
+  @Test
   fun testVersionCatalogForSimilarDependencies() {
-    loadProject(TestProjectPaths.TEST_SIMILAR_DEPENDENCIES_IN_VERSION_CATALOG)
-    val appBuildFile = myFixture.loadFile("gradle/libs.versions.toml")
-    myFixture.checkLint(
+    projectRule.loadProject(TestProjectPaths.TEST_SIMILAR_DEPENDENCIES_IN_VERSION_CATALOG)
+    val appBuildFile = fixture.loadFile("gradle/libs.versions.toml")
+    fixture.checkLint(
       appBuildFile,
       AndroidLintSimilarGradleDependencyInspection(),
       "androidx-core-ktx = { group = \"androidx.|core\", name = \"core-ktx\", version.ref = \"coreKtx\" }\n",
@@ -243,10 +267,11 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
     )
   }
 
+  @Test
   fun testTomlWarningFor16KbAlignment() {
-    loadProject(TestProjectPaths.TEST_SIMILAR_DEPENDENCIES_IN_VERSION_CATALOG)
-    val appBuildFile = myFixture.loadFile("gradle/libs.versions.toml")
-    myFixture.checkLint(
+    projectRule.loadProject(TestProjectPaths.TEST_SIMILAR_DEPENDENCIES_IN_VERSION_CATALOG)
+    val appBuildFile = fixture.loadFile("gradle/libs.versions.toml")
+    fixture.checkLint(
       appBuildFile,
       AndroidLintAligned16KBInspection(),
       "module = \"androidx.datastore:|datastore-core-android\", version.ref = \"datastoreCoreAndroid\" }\n",
@@ -260,10 +285,11 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
     )
   }
 
+  @Test
   fun testDuplicateActivityInspection() {
-    loadProject(TestProjectPaths.TEST_LINT_DUPLICATE_ACTIVITY)
-    val appBuildFile = myFixture.loadFile("app/src/main/AndroidManifest.xml")
-    myFixture.checkLint(
+    projectRule.loadProject(TestProjectPaths.TEST_LINT_DUPLICATE_ACTIVITY)
+    val appBuildFile = fixture.loadFile("app/src/main/AndroidManifest.xml")
+    fixture.checkLint(
       appBuildFile,
       AndroidLintDuplicateActivityInspection(),
       "android:name=\".Main|Activity\"> <!-- second -->",
@@ -277,10 +303,11 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
     )
   }
 
+  @Test
   fun testWrongGradleMethod() {
-    loadProject(TestProjectPaths.TEST_LINT_DSL_ERRORS)
-    val appBuildFile = myFixture.loadFile("app/build.gradle.kts")
-    myFixture.checkLint(
+    projectRule.loadProject(TestProjectPaths.TEST_LINT_DSL_ERRORS)
+    val appBuildFile = fixture.loadFile("app/build.gradle.kts")
+    fixture.checkLint(
       appBuildFile,
       AndroidLintWrongGradleMethodInspection(),
       "dep|endencies { // Wrong place: product flavor" to
@@ -311,27 +338,29 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
     )
   }
 
+  @Test
   fun testCatalogMin() {
-    // Checks that if we run batch inspection (called "global" inspection in the test infrastructure),
+    // Checks that if we run batch inspection (called "global" inspection in the test
+    // infrastructure),
     // but the file scope is a single file, we end up taking the isolated mode path in the lint
     // checks.
-    loadProject(TestProjectPaths.TEST_LINT_DSL_ERRORS)
-    val tomlFile = myFixture.loadFile("gradle/libs.versions.toml")
-    myFixture.checkLintBatch(
+    projectRule.loadProject(TestProjectPaths.TEST_LINT_DSL_ERRORS)
+    val tomlFile = fixture.loadFile("gradle/libs.versions.toml")
+    fixture.checkLintBatch(
       AndroidLintMinSdkTooLowInspection(),
       """
       libs.versions.toml:3: Error: The value of minSdkVersion (15) is too low. It can be incremented without noticeably reducing the number of supported devices.
           Fix: Update minSdkVersion to 16
       """,
-      AnalysisScope(tomlFile)
+      AnalysisScope(tomlFile),
     )
   }
 
-
+  @Test
   fun testCompileSdkLocation() {
-    loadProject(TestProjectPaths.TEST_LINT_DSL_ERRORS)
-    val appBuildFile = myFixture.loadFile("app/build.gradle.kts")
-    myFixture.checkLint(
+    projectRule.loadProject(TestProjectPaths.TEST_LINT_DSL_ERRORS)
+    val appBuildFile = fixture.loadFile("app/build.gradle.kts")
+    fixture.checkLint(
       appBuildFile,
       AndroidLintGradleDependencyInspection(),
       "compileSdk|Version" to
@@ -352,32 +381,37 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
     // We can't just override
     //    getTestDataDirectoryWorkspaceRelativePath() = "tools/adt/idea/android-lint/testData"
     // here because that interferes with the loadProject() operations running initially
-    myFixture.testDataPath =
+    fixture.testDataPath =
       File(File(getAndroidPluginHome()).parentFile, "android-lint/testData").path
-    val testDir = "/lint/global/${getTestName(true)}"
-    return super.doGlobalInspectionTest(GlobalInspectionToolWrapper(tool), testDir, scope)
+    val testDir = "/lint/global/${PlatformTestUtil.getTestName(nameRule.methodName, true)}"
+    return AndroidTestBase.doGlobalInspectionTest(
+      fixture,
+      GlobalInspectionToolWrapper(tool),
+      testDir,
+      scope,
+    )
   }
 }
 
-fun JavaCodeInsightTestFixture.loadFile(filePath: String): PsiFile {
+fun CodeInsightTestFixture.loadFile(filePath: String): PsiFile {
   val file = project.guessProjectDir()!!.findFileByRelativePath(filePath)
-  AndroidGradleTestCase.assertNotNull("$filePath not found in project", file)
+  assertNotNull("$filePath not found in project", file)
   openFileInEditor(file!!)
   val psiFile = PsiManager.getInstance(project).findFile(file)
-  AndroidGradleTestCase.assertNotNull(psiFile)
+  assertNotNull(psiFile)
   return psiFile!!
 }
 
 fun PsiFile.findCaretOffset(caret: String): Int {
   val delta = caret.indexOf("|")
-  if (delta == -1) AndroidGradleTestCase.fail("$name does not contain caret marker, |")
+  if (delta == -1) fail("$name does not contain caret marker, |")
   val context = caret.substring(0, delta) + caret.substring(delta + 1)
   val index = text.indexOf(context)
-  if (index == -1) AndroidGradleTestCase.fail("$name does not contain $context")
+  if (index == -1) fail("$name does not contain $context")
   return index + delta
 }
 
-fun JavaCodeInsightTestFixture.checkLint(
+fun CodeInsightTestFixture.checkLint(
   psiFile: PsiFile,
   inspection: AndroidLintInspectionBase,
   caret: String,
@@ -386,7 +420,7 @@ fun JavaCodeInsightTestFixture.checkLint(
   checkLint(psiFile, inspection, caret to expected)
 }
 
-fun JavaCodeInsightTestFixture.checkLint(
+fun CodeInsightTestFixture.checkLint(
   psiFile: PsiFile,
   inspection: AndroidLintInspectionBase,
   vararg caretToExpectations: Pair<String, String>,
@@ -439,19 +473,13 @@ fun JavaCodeInsightTestFixture.checkLint(
       sb.append("No warnings.")
     }
 
-    AndroidGradleTestCase.assertEquals(
-      expected.trimIndent().trim(),
-      sb.toString().trimIndent().trim(),
-    )
+    assertEquals(expected.trimIndent().trim(), sb.toString().trimIndent().trim())
   }
 }
 
-
-/**
- * Like [checkLint], but runs lint in batch mode (e.g. as a "global inspection")
- */
+/** Like [checkLint], but runs lint in batch mode (e.g. as a "global inspection") */
 @Suppress("UnstableApiUsage")
-fun JavaCodeInsightTestFixture.checkLintBatch(
+fun CodeInsightTestFixture.checkLintBatch(
   inspection: AndroidLintInspectionBase,
   expected: String,
   scope: AnalysisScope = AnalysisScope(project),
@@ -459,35 +487,42 @@ fun JavaCodeInsightTestFixture.checkLintBatch(
   enableInspections(inspection)
   AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false)
 
-  scope.invalidate();
+  scope.invalidate()
 
   val wrapper = GlobalInspectionToolWrapper(inspection)
-  val globalContext = createGlobalContextForTool(scope, project, listOf(wrapper));
-  InspectionTestUtil.runTool(wrapper, scope, globalContext);
+  val globalContext = createGlobalContextForTool(scope, project, listOf(wrapper))
+  InspectionTestUtil.runTool(wrapper, scope, globalContext)
 
   fun PsiElement.getLineNumber(): Int {
     val doc = PsiDocumentManager.getInstance(project).getDocument(containingFile)
     return doc?.getLineNumber(textRange.startOffset) ?: -1
   }
 
-  val descriptors = globalContext.getPresentation(wrapper).problemDescriptors;
+  val descriptors = globalContext.getPresentation(wrapper).problemDescriptors
   val sb = StringBuilder()
   for (descriptor in descriptors) {
     if (descriptor is ProblemDescriptor) {
       val element = descriptor.psiElement
-      sb.append(element.containingFile.virtualFile.name).append(":").append(element.getLineNumber()).append(": ")
+      sb
+        .append(element.containingFile.virtualFile.name)
+        .append(":")
+        .append(element.getLineNumber())
+        .append(": ")
       val highlightType = descriptor.highlightType
-      val severity = when (highlightType) {
-        ProblemHighlightType.ERROR,
-        ProblemHighlightType.GENERIC_ERROR,
-        ProblemHighlightType.GENERIC_ERROR_OR_WARNING -> "Error"
-        ProblemHighlightType.WARNING -> "Warning"
-        ProblemHighlightType.INFORMATION,
-        ProblemHighlightType.WEAK_WARNING -> "Info"
-        else -> highlightType.name.lowercase(Locale.ROOT).capitalize()
-      }
+      val severity =
+        when (highlightType) {
+          ProblemHighlightType.ERROR,
+          ProblemHighlightType.GENERIC_ERROR,
+          ProblemHighlightType.GENERIC_ERROR_OR_WARNING -> "Error"
+          ProblemHighlightType.WARNING -> "Warning"
+          ProblemHighlightType.INFORMATION,
+          ProblemHighlightType.WEAK_WARNING -> "Info"
+          else -> highlightType.name.lowercase(Locale.ROOT).capitalize()
+        }
       sb.append(severity).append(": ")
-      sb.append(descriptor.toString().removePrefix("<html>").removeSuffix("</html>").trim()).append("\n")
+      sb
+        .append(descriptor.toString().removePrefix("<html>").removeSuffix("</html>").trim())
+        .append("\n")
       val fixes = descriptor.fixes
       if (fixes != null) {
         for (fix in fixes) {
