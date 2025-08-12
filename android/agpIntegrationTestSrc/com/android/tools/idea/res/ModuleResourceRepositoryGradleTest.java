@@ -18,46 +18,58 @@ package com.android.tools.idea.res;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.testing.AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.testFramework.VfsTestUtil.createFile;
 
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.google.common.collect.Iterables;
-import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.psi.PsiDocumentManager;
+import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.IndexingTestUtil;
+import com.intellij.testFramework.RunsInEdt;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestRule;
 
-/** Tests for {@link ModuleResourceRepository} based on {@link AndroidGradleTestCase}. */
-public class ModuleResourceRepositoryGradleTest extends AndroidGradleTestCase {
+@RunsInEdt
+public class ModuleResourceRepositoryGradleTest {
+  AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
+  @Rule
+  public TestRule rule = RuleChain.outerRule(projectRule).around(new EdtRule());
 
   private void commitAllDocumentsAndWaitForUpdatesToPropagate() throws Exception {
-    PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
-    waitForSourceFolderManagerToProcessUpdates(getProject());
-    IndexingTestUtil.waitUntilIndexesAreReady(getProject());
+    Project project = projectRule.getProject();
+    PsiDocumentManager.getInstance(project).commitAllDocuments();
+    waitForSourceFolderManagerToProcessUpdates(project);
+    IndexingTestUtil.waitUntilIndexesAreReady(project);
   }
 
   /**
    * This test provides additional coverage relative to ModuleResourceRepositoryTest.testOverlays by exercising
    * the ModuleResourceRepository.forMainResources method that may affect resource overlay order. See http://b/117805863.
    */
+  @Test
   public void testOverlayOrder() throws Exception {
-    loadProject(PROJECT_WITH_APPAND_LIB);
+    projectRule.loadProject(PROJECT_WITH_APPAND_LIB);
     createFile(
-        ProjectUtil.guessProjectDir(getProject()),
+        ProjectUtil.guessProjectDir(projectRule.getProject()),
         "app/src/debug/res/values/strings.xml",
         "" +
         "<resources>\n" +
         "  <string name=\"app_name\">This app_name definition should win</string>\n" +
         "</resources>");
     commitAllDocumentsAndWaitForUpdatesToPropagate();
-    ResourceRepository repository = StudioResourceRepositoryManager.getModuleResources(myAndroidFacet);
+    AndroidFacet appHolderFacet = projectRule.androidFacet(":app");
+    ResourceRepository repository = StudioResourceRepositoryManager.getModuleResources(appHolderFacet);
     List<ResourceItem> resources = repository.getResources(RES_AUTO, ResourceType.STRING, "app_name");
     assertThat(resources).hasSize(1);
     // Check that the debug version of app_name takes precedence over the default on.
@@ -67,20 +79,17 @@ public class ModuleResourceRepositoryGradleTest extends AndroidGradleTestCase {
   /**
    * Checks that test res folders created between syncs are picked up by ResourceFolderManager and handled by ModuleResourceRepository.
    */
+  @Test
   public void testTestFolders() throws Exception {
-    loadSimpleApplication();
+    projectRule.loadProject(SIMPLE_APPLICATION);
+    AndroidFacet appHolderFacet = projectRule.androidFacet(":app");
+    AndroidFacet androidTestFacet = projectRule.androidTestAndroidFacet(":app");
 
-    Module androidTestModule = LinkedAndroidModuleGroupUtilsKt.getAndroidTestModule(myAndroidFacet.getModule());
-    assertThat(androidTestModule).isNotNull();
-    AndroidFacet androidTestFacet = AndroidFacet.getInstance(androidTestModule);
-    assertThat(androidTestFacet).isNotNull();
-
-    ResourceRepository repository = ModuleResourceRepository.forTestResources(androidTestFacet, myAndroidFacet, RES_AUTO);
-
+    ResourceRepository repository = ModuleResourceRepository.forTestResources(androidTestFacet, appHolderFacet, RES_AUTO);
     assertThat(repository.getAllResources()).isEmpty();
 
     createFile(
-        ProjectUtil.guessProjectDir(getProject()),
+        ProjectUtil.guessProjectDir(projectRule.getProject()),
         "app/src/androidTest/res/values/strings.xml",
         "" +
         "<resources>\n" +

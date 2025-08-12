@@ -16,26 +16,32 @@
 package com.android.tools.idea.actions
 
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.JdkUtils.createNewGradleJvmProjectJdk
+import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import org.junit.Rule
 import org.junit.Test
 
 /**
  * Tests for [SubmitBugReportAction]
  */
-class SubmitBugReportActionTest: AndroidGradleTestCase() {
+class SubmitBugReportActionTest {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+  val project by lazy { projectRule.project }
+  val fixture by lazy { projectRule.fixture }
 
   /**
    * Verify that Gradle JDK information is used.
    */
   @Test
   fun testDescriptionContainsGradleJdk() {
-    loadSimpleApplication()
+    projectRule.loadProject(SIMPLE_APPLICATION)
     val description = SubmitBugReportAction.getDescription(project)
-    val jdk = createNewGradleJvmProjectJdk(project, testRootDisposable)
+    val jdk = createNewGradleJvmProjectJdk(project, fixture.testRootDisposable)
     assertThat(jdk).isNotNull()
     assertThat(description).contains("Gradle JDK: ${jdk.versionString}")
     assertThat(description).doesNotContain("Gradle JDK: (default)")

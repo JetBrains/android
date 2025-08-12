@@ -19,61 +19,94 @@ import static com.android.tools.idea.testing.SnapshotComparisonTestHelpersKt.nor
 import static com.android.tools.idea.testing.SnapshotComparisonTestUtilsKt.assertIsEqualToSnapshot;
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.MULTIPLE_MODULE_DEPEND_ON_AAR;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.android.tools.idea.testing.SnapshotComparisonTest;
 import com.intellij.codeInsight.documentation.DocumentationManager;
 import com.intellij.lang.documentation.DocumentationProvider;
-import com.intellij.openapi.project.ProjectUtil;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import java.io.File;
+import java.io.IOException;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestName;
 
-public class AndroidJavaDocWithGradleTest extends AndroidGradleTestCase implements SnapshotComparisonTest {
+@RunsInEdt
+public class AndroidJavaDocWithGradleTest implements SnapshotComparisonTest {
+  public AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
+  @Rule
+  public RuleChain rule = RuleChain.outerRule(projectRule).around(new EdtRule());
+  @Rule
+  public TestName nameRule = new TestName();
+
+  @Override
+  public @NotNull String getName() {
+    return nameRule.getMethodName();
+  }
+
   @NotNull
   private VirtualFile findFile(@NotNull String path) {
-    File filePath = new File(getProject().getBasePath(), FileUtil.toSystemDependentName(path));
+    File filePath = new File(projectRule.getProject().getBasePath(), FileUtil.toSystemDependentName(path));
     VirtualFile file = findFileByIoFile(filePath, true);
-    assertNotNull("File '" + path + "' not found.", file);
+    assertThat(file).named("File '" + path + "' not found.").isNotNull();
     return file;
   }
 
-  private void checkJavadoc(@NotNull String targetPath) {
-    VirtualFile f = findFile(targetPath);
-    myFixture.configureFromExistingVirtualFile(f);
-    PsiElement originalElement = myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset());
+  private void checkJavadoc(@NotNull CodeInsightTestFixture fixture) {
+    Project project = projectRule.getProject();
+    PsiElement originalElement = fixture.getFile().findElementAt(fixture.getEditor().getCaretModel().getOffset());
     assert originalElement != null;
-    final PsiElement docTargetElement = DocumentationManager.getInstance(getProject()).findTargetElement(
-      myFixture.getEditor(), myFixture.getFile(), originalElement);
+    final PsiElement docTargetElement = DocumentationManager.getInstance(project).findTargetElement(
+      fixture.getEditor(), fixture.getFile(), originalElement);
     assert docTargetElement != null;
     DocumentationProvider provider = DocumentationManager.getProviderFromElement(docTargetElement);
     String doc = provider.generateDoc(docTargetElement, originalElement);
-    String normalizedDoc = normalizeHtmlForTests(getProject(), doc != null ? doc : "");
+    String normalizedDoc = normalizeHtmlForTests(project, doc != null ? doc : "");
     assertIsEqualToSnapshot(this, normalizedDoc, "");
   }
 
-  public void testResource() throws Exception {
-    loadProject(DEPENDENT_MODULES);
-
-    checkJavadoc("/app/src/main/res/values/colors.xml"
-    );
+  @Test
+  public void testResource() {
+    projectRule.loadProject(DEPENDENT_MODULES);
+    CodeInsightTestFixture fixture = projectRule.getFixture();
+    fixture.configureFromExistingVirtualFile(findFile("app/src/main/res/values/colors.xml"));
+    checkJavadoc(fixture);
   }
 
-  public void testResourcesInAar() throws Exception {
-    loadProject(MULTIPLE_MODULE_DEPEND_ON_AAR);
-
+  @Test
+  public void testResourcesInAar() {
     String activityPath = "app/src/main/java/com/example/google/androidx/MainActivity.kt";
-    VirtualFile virtualFile = ProjectUtil.guessProjectDir(getProject()).findFileByRelativePath(activityPath);
-    myFixture.openFileInEditor(virtualFile);
-
-    // Resource from Aar define in module R class.
-    AndroidTestUtils.moveCaret(myFixture, "androidx.appcompat.R.color.abc_tint_default|");
-    myFixture.type("\n    androidx.appcompat.R.attr.actionBarDivider");
-    checkJavadoc(activityPath);
+    Function1<@NotNull File, @NotNull Unit> patch = (root) -> {
+      try {
+        File file = new File(root, activityPath);
+        String text = FileUtil.loadFile(file);
+        String newText = text.replace("val color = androidx.appcompat.R.color.abc_tint_default",
+                                      "val divider = androidx.appcompat.R.attr.actionBarDivider");
+        FileUtil.writeToFile(file, newText);
+      }
+      catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      return Unit.INSTANCE;
+    };
+    projectRule.loadProject(MULTIPLE_MODULE_DEPEND_ON_AAR, null, null, null, patch);
+    CodeInsightTestFixture fixture = projectRule.getFixture();
+    fixture.configureFromExistingVirtualFile(findFile(activityPath));
+    AndroidTestUtils.moveCaret(fixture, "androidx.appcompat.R.attr.actionBarDivider|");
+    checkJavadoc(fixture);
   }
 
   @NotNull

@@ -15,21 +15,32 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.android.tools.idea.testing.TestProjectPaths;
 import com.google.common.truth.Truth;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipFile;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestRule;
 
-public class ExportProjectZipTest extends AndroidGradleTestCase {
+@RunsInEdt
+public class ExportProjectZipTest  {
+  AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
+  @Rule
+  public TestRule rule = RuleChain.outerRule(projectRule).around(new EdtRule());
 
+  @Test
   public void testExportProject() throws Exception {
-    loadProject(TestProjectPaths.DEPENDENT_MODULES);
-    invokeGradleTasks(getProject(), "assembleDebug");
-    File zip = new File(myFixture.getTempDirPath(), "project.zip");
-    ExportProjectZip.save(zip, getProject(), null);
+    projectRule.loadProject(TestProjectPaths.DEPENDENT_MODULES);
+    projectRule.invokeTasks("assembleDebug");
+    File zip = new File(projectRule.getFixture().getTempDirPath(), "project.zip");
+    ExportProjectZip.save(zip, projectRule.getProject(), null);
     List<String> zipContent = new ArrayList<>();
     try (ZipFile zipFile = new ZipFile(zip)) {
       zipFile.stream().forEach(e -> zipContent.add(e.getName()));

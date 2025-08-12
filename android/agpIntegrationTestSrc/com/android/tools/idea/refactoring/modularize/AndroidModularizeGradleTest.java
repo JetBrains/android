@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.refactoring.modularize;
 
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.getTextForFile;
 import static com.android.tools.idea.testing.TestProjectPaths.MOVE_WITH_RESOURCES;
+import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -29,19 +31,30 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.IndexingTestUtil;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.RunsInEdt;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestRule;
 
-public class AndroidModularizeGradleTest extends AndroidGradleTestCase {
+@RunsInEdt
+public class AndroidModularizeGradleTest {
+  AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
+  @Rule
+  public TestRule rule = RuleChain.outerRule(projectRule).around(new EdtRule());
 
+  @Test
   public void test() throws Exception {
-    loadProject(MOVE_WITH_RESOURCES);
-    generateSources();
-    IndexingTestUtil.waitUntilIndexesAreReady(getProject());
-    Project project = getProject();
+    projectRule.loadProject(MOVE_WITH_RESOURCES);
+    projectRule.generateSources();
+    Project project = projectRule.getProject();
+    IndexingTestUtil.waitUntilIndexesAreReady(project);
     PsiElement activity =
       JavaPsiFacade.getInstance(project).findClass("google.MainActivity", GlobalSearchScope.allScope(project));
-    DataContext context = SimpleDataContext.getSimpleContext(LangDataKeys.TARGET_MODULE, TestModuleUtil.findModule(getProject(), "library"));
+    DataContext context = SimpleDataContext.getSimpleContext(LangDataKeys.TARGET_MODULE, TestModuleUtil.findModule(project, "library"));
 
     new AndroidModularizeHandler().invoke(project, new PsiElement[]{activity}, context);
 
@@ -54,21 +67,21 @@ public class AndroidModularizeGradleTest extends AndroidGradleTestCase {
     ).forEach(this::verifyMoved);
 
     // Colors and strings have to be added in the corresponding values files
-    assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+    assertThat(getTextForFile(project, "library/src/main/res/values/colors.xml"))
+      .isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                  "<resources>\n" +
                  "    <color name=\"background\">#a52222</color>\n" +
-                 "</resources>",
-                 getTextForFile("library/src/main/res/values/colors.xml"));
-    assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                 "</resources>");
+    assertThat(getTextForFile(project, "library/src/main/res/values/strings.xml"))
+      .isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                  "<resources>\n" +
                  "    <string name=\"app_name\">My Library</string>\n" +
                  "    <string name=\"hello\">@string/hello_string</string>\n" +
                  "    <string name=\"hello_string\">@string/dynamic_hello_world</string>\n" +
-                 "</resources>\n",
-                 getTextForFile("library/src/main/res/values/strings.xml"));
+                 "</resources>\n");
 
     // The manifests have to be updated because the activity moved
-    assertTrue(StringUtil.equalsIgnoreWhitespaces(
+    assertThat(StringUtil.equalsIgnoreWhitespaces(
       "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
       "\n" +
       "    <application\n" +
@@ -85,23 +98,27 @@ public class AndroidModularizeGradleTest extends AndroidGradleTestCase {
       "        </activity>\n" +
       "    </application>\n" +
       "</manifest>\n",
-      getTextForFile("library/src/main/AndroidManifest.xml")));
+      getTextForFile(project, "library/src/main/AndroidManifest.xml")))
+      .isTrue();
 
-    assertTrue(StringUtil.equalsIgnoreWhitespaces(
+    assertThat(StringUtil.equalsIgnoreWhitespaces(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
       "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
       "\n" +
       "    <application android:label=\"@string/app_name\"></application>\n" +
       "\n" +
       "</manifest>\n",
-      getTextForFile("app/src/main/AndroidManifest.xml")));
+      getTextForFile(project, "app/src/main/AndroidManifest.xml")))
+      .isTrue();
   }
 
   private void verifyMoved(String relativePath) {
-    VirtualFile srcFile = PlatformTestUtil.getOrCreateProjectBaseDir(getProject()).findFileByRelativePath("app/" + relativePath);
-    assertFalse("Expected to have moved: " + srcFile, srcFile != null && srcFile.exists());
-    VirtualFile destFile = PlatformTestUtil.getOrCreateProjectBaseDir(getProject()).findFileByRelativePath("library/" + relativePath);
-    assertTrue("Expected to find: " + PlatformTestUtil.getOrCreateProjectBaseDir(getProject()) + "/library/" + relativePath,
-               destFile != null && destFile.exists());
+    Project project = projectRule.getProject();
+    VirtualFile srcFile = PlatformTestUtil.getOrCreateProjectBaseDir(project).findFileByRelativePath("app/" + relativePath);
+    assertThat(srcFile != null && srcFile.exists()).named("Expected to have moved: " + srcFile).isFalse();
+    VirtualFile destFile = PlatformTestUtil.getOrCreateProjectBaseDir(project).findFileByRelativePath("library/" + relativePath);
+    assertThat(destFile != null && destFile.exists())
+      .named("Expected to find: " + PlatformTestUtil.getOrCreateProjectBaseDir(project) + "/library/" + relativePath)
+      .isTrue();
   }
 }

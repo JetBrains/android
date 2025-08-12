@@ -13,97 +13,112 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.res;
+package com.android.tools.idea.res
 
 import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.gradle.getMainModule
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.findClass
+import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.util.toIoFile
+import com.android.tools.idea.util.toVirtualFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
-import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.VfsTestUtil.createFile
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.CodeInsightTestUtil
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import java.io.File
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
 
 /**
  * Legacy projects (without the model) have no concept of test resources, so for now this needs to be tested using Gradle.
  *
  * We use the [TestProjectPaths.PROJECT_WITH_APPAND_LIB] project and make `app` have an `androidTestImplementation` dependency on `lib`.
  */
-sealed class TestRClassesTest : AndroidGradleTestCase() {
-
+sealed class TestRClassesTest {
+  val projectRule = AndroidGradleProjectRule()
+  @get:Rule
+  val rule = RuleChain.outerRule(projectRule).around(EdtRule())
+  val project by lazy { projectRule.project }
+  val fixture by lazy { projectRule.fixture }
+    
   protected open val disableNonTransitiveRClass = false
 
-  protected val projectRootDirectory by lazy { project.guessProjectDir()!! }
+  lateinit var projectRootDirectory: VirtualFile
 
-  override fun setUp() {
-    super.setUp()
+  @Before
+  fun setup() {
+    projectRule.loadProject(TestProjectPaths.PROJECT_WITH_APPAND_LIB) { projectRoot ->
+      projectRootDirectory = projectRoot.toVirtualFile()!!
 
-    val projectRoot = prepareProjectForImport(TestProjectPaths.PROJECT_WITH_APPAND_LIB)
-
-    createFile(
-      projectRootDirectory,
-      "app/src/androidTest/res/values/strings.xml",
-      // language=xml
-      """
-        <resources>
-          <string name='appTestResource'>app test resource</string>
-          <string name='anotherAppTestResource'>another app test resource</string>
-          <color name='appTestColor'>#000000</color>
-        </resources>
-      """.trimIndent()
-    )
-
-    createFile(
-      projectRootDirectory,
-      "lib/src/androidTest/res/values/strings.xml",
-      // language=xml
-      """
-        <resources>
-          <string name='libTestResource'>lib test resource</string>
-          <string name='anotherLibTestResource'>another lib test resource</string>
-          <color name='libTestColor'>#000000</color>
-        </resources>
-      """.trimIndent()
-    )
-
-    createFile(
-      projectRootDirectory,
-      "lib/src/main/res/values/strings.xml",
-      // language=xml
-      """
-        <resources>
-          <string name='libResource'>lib resource</string>
-        </resources>
-      """.trimIndent()
-    )
-
-    if (disableNonTransitiveRClass) {
-      File(projectRootDirectory.toIoFile(), "gradle.properties").appendText(
-        "android.nonTransitiveRClass=false"
+      createFile(
+        projectRootDirectory,
+        "app/src/androidTest/res/values/strings.xml",
+        // language=xml
+        """
+          <resources>
+            <string name='appTestResource'>app test resource</string>
+            <string name='anotherAppTestResource'>another app test resource</string>
+            <color name='appTestColor'>#000000</color>
+          </resources>
+        """.trimIndent()
       )
-    }
 
-    modifyGradleFiles(projectRoot)
-    importProject()
-    prepareProjectForTest(project, null)
-    myFixture.allowTreeAccessForAllFiles()
+      createFile(
+        projectRootDirectory,
+        "lib/src/androidTest/res/values/strings.xml",
+        // language=xml
+        """
+          <resources>
+            <string name='libTestResource'>lib test resource</string>
+            <string name='anotherLibTestResource'>another lib test resource</string>
+            <color name='libTestColor'>#000000</color>
+          </resources>
+        """.trimIndent()
+      )
+
+      createFile(
+        projectRootDirectory,
+        "lib/src/main/res/values/strings.xml",
+        // language=xml
+        """
+          <resources>
+            <string name='libResource'>lib resource</string>
+          </resources>
+        """.trimIndent()
+      )
+
+      if (disableNonTransitiveRClass) {
+        File(projectRootDirectory.toIoFile(), "gradle.properties").appendText(
+          "android.nonTransitiveRClass=false"
+        )
+      }
+
+      modifyGradleFiles(projectRoot)
+    }
+    fixture.allowTreeAccessForAllFiles()
   }
 
   open fun modifyGradleFiles(projectRoot: File) {
@@ -137,13 +152,13 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
       """.trimIndent()
     )
 
-    myFixture.configureFromExistingVirtualFile(androidTest)
+    fixture.configureFromExistingVirtualFile(androidTest)
 
     val fileEditorManager = FileEditorManagerEx.getInstanceEx(project)
     assertThat(fileEditorManager.openFiles).hasLength(1)
     assertThat(fileEditorManager.currentFile?.name).isEqualTo("RClassAndroidTest.java")
 
-    CodeInsightTestUtil.gotoImplementation(myFixture.editor, null)
+    CodeInsightTestUtil.gotoImplementation(fixture.editor, null)
 
     // Verify that the correct file opened up, and that the caret is moved to the correct definition in the file.
     assertThat(fileEditorManager.openFiles).hasLength(2)
@@ -171,13 +186,13 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
       """.trimIndent()
     )
 
-    myFixture.configureFromExistingVirtualFile(androidTest)
+    fixture.configureFromExistingVirtualFile(androidTest)
 
     val fileEditorManager = FileEditorManagerEx.getInstanceEx(project)
     assertThat(fileEditorManager.openFiles).hasLength(1)
     assertThat(fileEditorManager.currentFile?.name).isEqualTo("RClassAndroidTest.kt")
 
-    CodeInsightTestUtil.gotoImplementation(myFixture.editor, null)
+    CodeInsightTestUtil.gotoImplementation(fixture.editor, null)
 
     // Verify that the correct file opened up, and that the caret is moved to the correct definition in the file.
     assertThat(fileEditorManager.openFiles).hasLength(2)
@@ -205,13 +220,13 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
       """.trimIndent()
     )
 
-    myFixture.configureFromExistingVirtualFile(androidTest)
+    fixture.configureFromExistingVirtualFile(androidTest)
 
     val fileEditorManager = FileEditorManagerEx.getInstanceEx(project)
     assertThat(fileEditorManager.openFiles).hasLength(1)
     assertThat(fileEditorManager.currentFile?.name).isEqualTo("RClassAndroidTest.java")
 
-    CodeInsightTestUtil.gotoImplementation(myFixture.editor, null)
+    CodeInsightTestUtil.gotoImplementation(fixture.editor, null)
 
     // Verify that the correct file opened up, and that the caret is moved to the correct definition in the file.
     assertThat(fileEditorManager.openFiles).hasLength(2)
@@ -239,13 +254,13 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
       """.trimIndent()
     )
 
-    myFixture.configureFromExistingVirtualFile(androidTest)
+    fixture.configureFromExistingVirtualFile(androidTest)
 
     val fileEditorManager = FileEditorManagerEx.getInstanceEx(project)
     assertThat(fileEditorManager.openFiles).hasLength(1)
     assertThat(fileEditorManager.currentFile?.name).isEqualTo("RClassAndroidTest.kt")
 
-    CodeInsightTestUtil.gotoImplementation(myFixture.editor, null)
+    CodeInsightTestUtil.gotoImplementation(fixture.editor, null)
 
     // Verify that the correct file opened up, and that the caret is moved to the correct definition in the file.
     assertThat(fileEditorManager.openFiles).hasLength(2)
@@ -272,7 +287,7 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
 
     gradleFile.writeText(updatedGradleFileText)
 
-    requestSyncAndWait()
+    projectRule.requestSyncAndWait()
   }
 
   fun doTestLibAndroidResourcesEnabled() {
@@ -297,8 +312,8 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
       """.trimIndent()
     )
 
-    myFixture.configureFromExistingVirtualFile(file)
-    myFixture.checkHighlighting()
+    fixture.configureFromExistingVirtualFile(file)
+    fixture.checkHighlighting()
   }
 
   fun doTestLibAndroidResourcesDisabled() {
@@ -323,8 +338,8 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
       """.trimIndent()
     )
 
-    myFixture.configureFromExistingVirtualFile(file)
-    myFixture.checkHighlighting()
+    fixture.configureFromExistingVirtualFile(file)
+    fixture.checkHighlighting()
   }
 
   companion object {
@@ -382,9 +397,11 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
  * Tests to verify that the AndroidResolveScopeEnlarger cache is invalidated when gradle sync is triggered to use using
  * android.nonTransitiveRClass=true gradle property.
  *
- * @see AndroidResolveScopeEnlarger
+ * @see org.jetbrains.android.AndroidResolveScopeEnlarger
  */
+@RunsInEdt
 class EnableNonTransitiveRClassTest: TestRClassesTest() {
+  @Test
   fun testNonTransitive_withoutRestart() {
     val normalClass = createFile(
       projectRootDirectory,
@@ -401,33 +418,35 @@ class EnableNonTransitiveRClassTest: TestRClassesTest() {
       """.trimIndent()
     )
 
-    myFixture.configureFromExistingVirtualFile(normalClass)
+    fixture.configureFromExistingVirtualFile(normalClass)
 
-    myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings).containsExactly("activity_main", "fragment_foo", "fragment_main",
+    fixture.completeBasic()
+    assertThat(fixture.lookupElementStrings).containsExactly("activity_main", "fragment_foo", "fragment_main",
                                                                "fragment_navigation_drawer", "support_simple_spinner_dropdown_item",
                                                                "class")
 
     val projectRoot = File(FileUtil.toSystemDependentName(project.basePath!!))
     File(projectRoot, "gradle.properties").appendText("android.nonTransitiveRClass=true")
-    requestSyncAndWait()
+    projectRule.requestSyncAndWait()
     IndexingTestUtil.waitUntilIndexesAreReady(project)
 
     // Verifies that the AndroidResolveScopeEnlarger cache has been updated, support_simple_spinner_dropdown_item is present but only as
     // part of a NonTransitiveResourceFieldLookupElement, with a package name.
-    myFixture.completeBasic()
-    assertThat(myFixture.lookupElements!!.firstOrNull {
+    fixture.completeBasic()
+    assertThat(fixture.lookupElements!!.firstOrNull {
       it.toPresentableText() == "support_simple_spinner_dropdown_item  (android.support.v7.appcompat) Int"
     }).isNotNull()
-    assertThat(myFixture.lookupElementStrings).containsAllOf("activity_main", "fragment_foo",
+    assertThat(fixture.lookupElementStrings).containsAllOf("activity_main", "fragment_foo",
                                                              "fragment_main", "fragment_navigation_drawer", "class")
   }
 }
 
+@RunsInEdt
 class TransitiveTestRClassesTest : TestRClassesTest() {
 
   override val disableNonTransitiveRClass = true
 
+  @Test
   fun testAppTestResources() {
     val androidTest = createFile(
       projectRootDirectory,
@@ -456,20 +475,21 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
       """.trimIndent()
     )
 
-    myFixture.configureFromExistingVirtualFile(androidTest)
-    myFixture.checkHighlighting()
+    fixture.configureFromExistingVirtualFile(androidTest)
+    fixture.checkHighlighting()
 
-    myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings).containsAllOf(
+    fixture.completeBasic()
+    assertThat(fixture.lookupElementStrings).containsAllOf(
       "appTestResource", // app test resources
       "libResource", // lib main resources
       "password_toggle_content_description" // androidTestImplementation AAR
     )
 
     // Private resources are filtered out.
-    assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
+    assertThat(fixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
   }
 
+  @Test
   fun testLibTestResources() {
     val androidTest = createFile(
       projectRootDirectory,
@@ -494,29 +514,32 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
       """.trimIndent()
     )
 
-    myFixture.configureFromExistingVirtualFile(androidTest)
+    fixture.configureFromExistingVirtualFile(androidTest)
     AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
-    myFixture.checkHighlighting()
+    fixture.checkHighlighting()
 
-    myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings).containsAllOf(
+    fixture.completeBasic()
+    assertThat(fixture.lookupElementStrings).containsAllOf(
       "libTestResource", // lib test resources
       "libResource", // lib main resources
       "password_toggle_content_description" // androidTestImplementation AAR
     )
 
     // Private resources are filtered out.
-    assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
+    assertThat(fixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
   }
 
+  @Test
   fun testLibAndroidResourcesEnabled() {
     doTestLibAndroidResourcesEnabled()
   }
 
+  @Test
   fun testLibAndroidResourcesDisabled() {
     doTestLibAndroidResourcesDisabled()
   }
 
+  @Test
   fun testResolveScope() {
     val unitTest = createFile(
       projectRootDirectory,
@@ -536,8 +559,8 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
       """.trimIndent()
     )
 
-    myFixture.configureFromExistingVirtualFile(unitTest)
-    myFixture.checkHighlighting()
+    fixture.configureFromExistingVirtualFile(unitTest)
+    fixture.checkHighlighting()
 
     val normalClass = createFile(
       projectRootDirectory,
@@ -557,13 +580,14 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
       """.trimIndent()
     )
 
-    myFixture.configureFromExistingVirtualFile(normalClass)
-    myFixture.checkHighlighting()
+    fixture.configureFromExistingVirtualFile(normalClass)
+    fixture.checkHighlighting()
   }
 
+  @Test
   fun testClassesDefinedByModule() {
-    val appModule = getModule("app")
-    val libModule = getModule("lib")
+    val appModule = project.findAppModule()
+    val libModule = project.findModule("lib")
     val service = ProjectLightResourceClassService.getInstance(project)
 
     assertThat(service.getLightRClassesDefinedByModule(appModule.getMainModule()).map { it.qualifiedName }).containsExactly(
@@ -580,14 +604,16 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
     )
   }
 
+  @Test
   fun testAllClasses() {
     val service = ProjectLightResourceClassService.getInstance(project)
     val allClassNames = service.allLightRClasses.map { it.qualifiedName }
     assertThat(allClassNames).containsExactlyElementsIn(ALL_R_CLASS_NAMES)
   }
 
+  @Test
   fun testUseScope() {
-    val appTest = myFixture.loadNewFile(
+    val appTest = fixture.loadNewFile(
       "app/src/androidTest/java/com/example/projectwithappandlib/app/RClassAndroidTest.java",
       // language=java
       """
@@ -613,7 +639,7 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
       """.trimIndent()
     )
 
-    val libTest = myFixture.loadNewFile(
+    val libTest = fixture.loadNewFile(
       "lib/src/androidTest/java/com/example/projectwithappandlib/lib/RClassAndroidTest.java",
       // language=java
       """
@@ -636,44 +662,52 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
     )
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-    val appTestRClass = myFixture.findClass("com.example.projectwithappandlib.app.test.R", appTest)
+    val appTestRClass = fixture.findClass("com.example.projectwithappandlib.app.test.R", appTest)
     assertThat(appTestRClass).isNotNull()
     val appTestScope = appTestRClass!!.useScope as GlobalSearchScope
-    assertFalse(appTestScope.isSearchInLibraries)
-    assertTrue(
-      appTestScope.contains(myFixture.findClass("com.example.projectwithappandlib.app.RClassAndroidTest").containingFile.virtualFile))
+    assertThat(appTestScope.isSearchInLibraries).isFalse()
+    assertThat(
+      appTestScope.contains(fixture.findClass("com.example.projectwithappandlib.app.RClassAndroidTest")!!.containingFile.virtualFile))
+      .isTrue()
 
-    val libTestRClass = myFixture.findClass("com.example.projectwithappandlib.lib.test.R", libTest)
+    val libTestRClass = fixture.findClass("com.example.projectwithappandlib.lib.test.R", libTest)
     assertThat(libTestRClass).isNotNull()
     val libTestScope = libTestRClass!!.useScope as GlobalSearchScope
-    assertFalse(libTestScope.isSearchInLibraries)
-    assertTrue(
-      libTestScope.contains(myFixture.findClass("com.example.projectwithappandlib.lib.RClassAndroidTest").containingFile.virtualFile))
+    assertThat(libTestScope.isSearchInLibraries).isFalse()
+    assertThat(
+      libTestScope.contains(fixture.findClass("com.example.projectwithappandlib.lib.RClassAndroidTest")!!.containingFile.virtualFile))
+      .isTrue()
   }
 
+  @Test
   fun testNavigateToDefinitionJavaToAppTestResource() {
     doTestNavigateToDefinitionJavaToAppTestResource()
   }
 
+  @Test
   fun testNavigateToDefinitionKotlinToAppTestResource() {
     doTestNavigateToDefinitionKotlinToAppTestResource()
   }
 
+  @Test
   fun testNavigateToDefinitionJavaToAppResource() {
     doTestNavigateToDefinitionJavaToAppResource()
   }
 
+  @Test
   fun testNavigateToDefinitionKotlinToAppResource() {
     doTestNavigateToDefinitionKotlinToAppResource()
   }
 }
 
+@RunsInEdt
 class NonTransitiveTestRClassesTest : TestRClassesTest() {
   override fun modifyGradleFiles(projectRoot: File) {
     super.modifyGradleFiles(projectRoot)
     File(projectRoot, "gradle.properties").appendText("android.nonTransitiveRClass=true")
   }
 
+  @Test
   fun testAppTestResources() {
     // Sanity check.
     assertThat(project.findAppModule().getModuleSystem().isRClassTransitive).named("transitive flag").isFalse()
@@ -707,13 +741,14 @@ class NonTransitiveTestRClassesTest : TestRClassesTest() {
       """.trimIndent()
     )
 
-    myFixture.configureFromExistingVirtualFile(androidTest)
-    myFixture.checkHighlighting()
+    fixture.configureFromExistingVirtualFile(androidTest)
+    fixture.checkHighlighting()
 
-    myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings).containsExactly("appTestResource", "anotherAppTestResource", "class")
+    fixture.completeBasic()
+    assertThat(fixture.lookupElementStrings).containsExactly("appTestResource", "anotherAppTestResource", "class")
   }
 
+  @Test
   fun testLibTestResources() {
     val androidTest = createFile(
       projectRootDirectory,
@@ -739,50 +774,59 @@ class NonTransitiveTestRClassesTest : TestRClassesTest() {
       }
       """.trimIndent()
     )
-    myFixture.configureFromExistingVirtualFile(androidTest)
-    myFixture.checkHighlighting()
+    fixture.configureFromExistingVirtualFile(androidTest)
+    fixture.checkHighlighting()
 
-    myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings).containsExactly("libTestResource", "anotherLibTestResource", "class")
+    fixture.completeBasic()
+    assertThat(fixture.lookupElementStrings).containsExactly("libTestResource", "anotherLibTestResource", "class")
   }
 
+  @Test
   fun testAllClasses() {
     val service = ProjectLightResourceClassService.getInstance(project)
     val allClassNames = service.allLightRClasses.map { it.qualifiedName }
     assertThat(allClassNames).containsExactlyElementsIn(ALL_R_CLASS_NAMES + ADDITIONAL_R_CLASS_NAMES)
   }
 
+  @Test
   fun testLibAndroidResourcesEnabled() {
     doTestLibAndroidResourcesEnabled()
   }
 
+  @Test
   fun testLibAndroidResourcesDisabled() {
     doTestLibAndroidResourcesDisabled()
   }
 
+  @Test
   fun testNavigateToDefinitionJavaToAppTestResource() {
     doTestNavigateToDefinitionJavaToAppTestResource()
   }
 
+  @Test
   fun testNavigateToDefinitionKotlinToAppTestResource() {
     doTestNavigateToDefinitionKotlinToAppTestResource()
   }
 
+  @Test
   fun testNavigateToDefinitionJavaToAppResource() {
     doTestNavigateToDefinitionJavaToAppResource()
   }
 
+  @Test
   fun testNavigateToDefinitionKotlinToAppResource() {
     doTestNavigateToDefinitionKotlinToAppResource()
   }
 }
 
+@RunsInEdt
 class ConstantIdsRClassesTest : TestRClassesTest() {
   override fun modifyGradleFiles(projectRoot: File) {
     super.modifyGradleFiles(projectRoot)
     File(projectRoot, "gradle.properties").appendText("android.nonFinalResIds=false")
   }
 
+  @Test
   fun testAllClasses() {
     val service = ProjectLightResourceClassService.getInstance(project)
     val allClassNames = service.allLightRClasses.map { it.qualifiedName }
@@ -802,3 +846,8 @@ private fun LookupElement.toPresentableText(): String {
   renderElement(presentation)
   return "${presentation.itemText} ${presentation.tailText} ${presentation.typeText}"
 }
+
+private fun CodeInsightTestFixture.findClass(name: String) =
+  (this as? JavaCodeInsightTestFixture)?.findClass(name)
+private fun CodeInsightTestFixture.findClass(name: String, context: PsiElement) =
+  (this as? JavaCodeInsightTestFixture)?.findClass(name, context)

@@ -15,21 +15,29 @@
  */
 package org.jetbrains.android.dom
 
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.testFramework.IndexingTestUtil
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.VfsTestUtil
+import org.junit.Rule
 import org.junit.Test
 
 // Checks that we have a basic editor support in res folders in all variant regardless chosen one.
-class SupportMultiVariantEditingForResourceFilesTest : AndroidGradleTestCase() {
+@RunsInEdt
+class SupportMultiVariantEditingForResourceFilesTest {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule().onEdt()
+  val project by lazy { projectRule.project }
+  val fixture by lazy { projectRule.fixture }
 
   @Test
   fun testResolveToolNamespace() {
-    loadProject(TestProjectPaths.PROJECT_WITH_APPAND_LIB)
+    projectRule.loadProject(TestProjectPaths.PROJECT_WITH_APPAND_LIB)
     val debugRes = VfsTestUtil.createFile(
       project.guessProjectDir()!!,
       "app/src/debug/res/values/strings.xml",
@@ -50,12 +58,12 @@ class SupportMultiVariantEditingForResourceFilesTest : AndroidGradleTestCase() {
 
     IndexingTestUtil.waitUntilIndexesAreReady(project)
 
-    myFixture.openFileInEditor(debugRes)
-    myFixture.moveCaret("schemas.andro|id.com")
-    assertThat(myFixture.elementAtCaret).isNotNull()
+    fixture.openFileInEditor(debugRes)
+    fixture.moveCaret("schemas.andro|id.com")
+    assertThat(fixture.elementAtCaret).isNotNull()
 
-    myFixture.openFileInEditor(releaseRes)
-    myFixture.moveCaret("schemas.andro|id.com")
-    assertThat(myFixture.elementAtCaret).isNotNull()
+    fixture.openFileInEditor(releaseRes)
+    fixture.moveCaret("schemas.andro|id.com")
+    assertThat(fixture.elementAtCaret).isNotNull()
   }
 }

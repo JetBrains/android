@@ -15,40 +15,52 @@
  */
 package com.android.tools.idea.res
 
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestUtil
 import org.jetbrains.android.dom.inspections.AndroidDomInspection
+import org.junit.Rule
+import org.junit.Test
 
-class TestResourcesTest : AndroidGradleTestCase() {
+@RunsInEdt
+class TestResourcesTest {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule().onEdt()
+  val project by lazy { projectRule.project }
+  val fixture by lazy { projectRule.fixture }
+
+  @Test
   fun testResolveErrors() {
-    loadProject(TestProjectPaths.TEST_RESOURCES)
-    myFixture.enableInspections(AndroidDomInspection())
+    projectRule.loadProject(TestProjectPaths.TEST_RESOURCES)
+    fixture.enableInspections(AndroidDomInspection())
 
-    myFixture.openFileInEditor(myFixture.project.baseDir.findFileByRelativePath("app/src/androidTest/AndroidManifest.xml")!!)
-    val manifestHighlightErrors = myFixture.doHighlighting(HighlightSeverity.ERROR)
+    fixture.openFileInEditor(fixture.project.baseDir.findFileByRelativePath("app/src/androidTest/AndroidManifest.xml")!!)
+    val manifestHighlightErrors = fixture.doHighlighting(HighlightSeverity.ERROR)
     assertThat(manifestHighlightErrors).hasSize(1)
     assertThat(manifestHighlightErrors.single().description).isEqualTo("Cannot resolve symbol '@string/made_up'")
 
-    myFixture.openFileInEditor(myFixture.project.baseDir.findFileByRelativePath("app/src/androidTest/res/values/strings.xml")!!)
-    val stringsXmlHighlightErrors = myFixture.doHighlighting(HighlightSeverity.ERROR)
+    fixture.openFileInEditor(fixture.project.baseDir.findFileByRelativePath("app/src/androidTest/res/values/strings.xml")!!)
+    val stringsXmlHighlightErrors = fixture.doHighlighting(HighlightSeverity.ERROR)
     assertThat(stringsXmlHighlightErrors).hasSize(1)
     assertThat(stringsXmlHighlightErrors.single().description).isEqualTo("Cannot resolve symbol '@string/made_up'")
   }
 
+  @Test
   fun testGoToDefinition_referenceInsideSameFile() {
-    loadProject(TestProjectPaths.TEST_RESOURCES)
+    projectRule.loadProject(TestProjectPaths.TEST_RESOURCES)
 
-    myFixture.openFileInEditor(myFixture.project.baseDir.findFileByRelativePath("app/src/androidTest/res/values/strings.xml")!!)
-    myFixture.moveCaret("@string/androidTest|AppString")
+    fixture.openFileInEditor(fixture.project.baseDir.findFileByRelativePath("app/src/androidTest/res/values/strings.xml")!!)
+    fixture.moveCaret("@string/androidTest|AppString")
 
-    CodeInsightTestUtil.gotoImplementation(myFixture.editor, null)
+    CodeInsightTestUtil.gotoImplementation(fixture.editor, null)
 
     // Validate that the cursor moved to the correct location.
-    assertThat(myFixture.editor.document.text.substring(myFixture.editor.caretModel.offset))
+    assertThat(fixture.editor.document.text.substring(fixture.editor.caretModel.offset))
       .startsWith("androidTestAppString\">String defined in Application androidTest</string>")
   }
 }

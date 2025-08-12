@@ -17,7 +17,6 @@ package org.jetbrains.android.dom
 
 import com.android.tools.idea.model.ManifestPlaceholderResolver
 import com.android.tools.idea.testing.AndroidGradleProjectRule
-import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.onEdt

@@ -17,31 +17,41 @@ package com.android.tools.idea.model;
 
 import static com.android.tools.idea.testing.TestProjectPaths.MODULE_INFO_FLAVORS;
 import static com.android.tools.idea.testing.TestProjectPaths.MODULE_INFO_GRADLE_ONLY;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.android.tools.module.AndroidModuleInfo;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.junit.Rule;
+import org.junit.Test;
 
-public class StudioAndroidModuleInfoTest extends AndroidGradleTestCase {
+public class StudioAndroidModuleInfoTest {
+  @Rule
+  public AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
 
   private final AgpVersionSoftwareEnvironmentDescriptor softwareEnvironment = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT;
 
-  public void testGradleOnly() throws Exception {
-    loadProject(MODULE_INFO_GRADLE_ONLY, null, softwareEnvironment);
-    assertNotNull(myAndroidFacet);
+  @Test
+  public void testGradleOnly() {
+    projectRule.loadProject(MODULE_INFO_GRADLE_ONLY, null, softwareEnvironment);
+    AndroidFacet myAndroidFacet = projectRule.androidFacet(":");
+    assertThat(myAndroidFacet).isNotNull();
     AndroidModuleInfo androidModuleInfo = StudioAndroidModuleInfo.getInstance(myAndroidFacet);
-    assertEquals(17, androidModuleInfo.getMinSdkVersion().getApiLevel());
-    assertEquals(Integer.parseInt(softwareEnvironment.getTargetSdk()), androidModuleInfo.getTargetSdkVersion().getApiLevel());
-    assertEquals("from.gradle", androidModuleInfo.getPackageName());
+    assertThat(androidModuleInfo.getMinSdkVersion().getApiLevel()).isEqualTo(17);
+    assertThat(androidModuleInfo.getTargetSdkVersion().getApiLevel()).isEqualTo(Integer.parseInt(softwareEnvironment.getTargetSdk()));
+    assertThat(androidModuleInfo.getPackageName()).isEqualTo("from.gradle");
   }
 
-  public void testFlavors() throws Exception {
-    loadProject(MODULE_INFO_FLAVORS, null, softwareEnvironment);
-    assertNotNull(myAndroidFacet);
+  @Test
+  public void testFlavors() {
+    projectRule.loadProject(MODULE_INFO_FLAVORS, null, softwareEnvironment);
+    AndroidFacet myAndroidFacet = projectRule.androidFacet(":");
+    assertThat(myAndroidFacet).isNotNull();
 
     AndroidModuleInfo androidModuleInfo = StudioAndroidModuleInfo.getInstance(myAndroidFacet);
-    assertEquals(14, androidModuleInfo.getMinSdkVersion().getApiLevel());
-    assertEquals(Integer.parseInt(softwareEnvironment.getTargetSdk()), androidModuleInfo.getTargetSdkVersion().getApiLevel());
-    assertEquals("com.example.free.debug", androidModuleInfo.getPackageName());
+    assertThat(androidModuleInfo.getMinSdkVersion().getApiLevel()).isEqualTo(14);
+    assertThat(androidModuleInfo.getTargetSdkVersion().getApiLevel()).isEqualTo(Integer.parseInt(softwareEnvironment.getTargetSdk()));
+    assertThat(androidModuleInfo.getPackageName()).isEqualTo("com.example.free.debug");
   }
 }
