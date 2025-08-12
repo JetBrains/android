@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,135 +15,162 @@
  */
 package com.android.tools.idea.vitals.ui
 
-import com.android.tools.adtui.HtmlLabel
-import com.android.tools.adtui.TabularLayout
-import com.android.tools.idea.insights.ui.transparentPanel
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.observable.util.addComponentListener
-import com.intellij.openapi.util.SystemInfo
-import com.intellij.ui.HyperlinkLabel
+import com.intellij.ide.BrowserUtil
+import com.intellij.openapi.application.invokeLater
 import com.intellij.ui.components.JBLabel
-import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.util.preferredWidth
+import com.intellij.util.ui.HTMLEditorKitBuilder
 import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
-import java.awt.BorderLayout
-import java.awt.CardLayout
-import java.awt.FlowLayout
-import java.awt.Graphics
+import com.intellij.util.ui.components.BorderLayoutPanel
+import java.awt.Cursor
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
-import javax.swing.JPanel
-import javax.swing.text.html.HTMLDocument
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import java.awt.font.TextAttribute
+import javax.swing.JTextPane
+import javax.swing.SwingConstants
+import javax.swing.event.HyperlinkEvent
 
-private const val SEE_MORE = "more"
-private const val EXPANDED = "expanded"
-
-class SdkInsightsPanel(category: String, title: String, private val body: String) :
-  JPanel(BorderLayout()) {
-  private val iconLabel = JBLabel(AllIcons.Actions.IntentionBulb)
-  private val categoryLabel = JBLabel(category).withFont(JBFont.label().asBold())
-  private val titleLabel = JBLabel(title).withFont(JBFont.label().asItalic().lessOn(2f))
-
-  private val truncatedLabel = JBLabel(body)
-  private val seeMoreLinkLabel: HyperlinkLabel =
-    HyperlinkLabel("Show more").apply {
-      isFocusable = true
-      // Restricting the max size to preferred size is needed to keep the external link icon
-      // adjacent to the link.
-      maximumSize = preferredSize
-      addHyperlinkListener { expand() }
-    }
-
-  private val topPanel = transparentPanel(FlowLayout(FlowLayout.LEFT))
-  private val seeMorePanel = JPanel(TabularLayout("*,Fit"))
-
-  // The url wrapped with () parentheses and is located at the end of the body.
-  private val urlRegex = Regex("\\(([^)]+)\\)\\s*$", RegexOption.MULTILINE)
-
-  private val expandedLabel =
-    HtmlLabel().apply {
-      text = replaceUrlsWithHtmlLinks(body)
-      if (SystemInfo.isMac) {
-        border = JBUI.Borders.emptyBottom(JBUI.scale(10))
-      }
-    }
-
-  private val scrollPane =
-    JBScrollPane(expandedLabel).apply {
-      verticalScrollBarPolicy = JBScrollPane.VERTICAL_SCROLLBAR_NEVER
-      horizontalScrollBarPolicy = JBScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
-      border = JBUI.Borders.empty()
-    }
-
-  private val expandPanel =
-    transparentPanel(BorderLayout()).apply { add(scrollPane, BorderLayout.CENTER) }
-
-  private val cardPanel =
-    transparentPanel(CardLayout()).apply {
-      add(seeMorePanel, SEE_MORE)
-      add(expandPanel, EXPANDED)
-    }
+class SdkInsightsPanel(private val category: String, private val title: String, body: String) :
+  BorderLayoutPanel() {
+  private val iconLabel =
+    JBLabel(createTitleText(category, title), AllIcons.Actions.IntentionBulb, SwingConstants.LEFT)
+      .apply { verticalAlignment = SwingConstants.BOTTOM }
 
   init {
-    border = JBUI.Borders.empty(7)
+    addToTop(iconLabel)
+    val textPane = TextPaneWithShowMore(body)
 
-    topPanel.add(iconLabel)
-    topPanel.add(categoryLabel)
-    topPanel.add(titleLabel)
-
-    truncatedLabel.addComponentListener(
-      object : ComponentAdapter() {
-        override fun componentResized(e: ComponentEvent) {
-          seeMoreLinkLabel.isVisible =
-            if (truncatedLabel.preferredSize.width <= truncatedLabel.width) {
-              false
-            } else {
-              true
-            }
-        }
-      }
-    )
-
-    seeMorePanel.add(truncatedLabel, TabularLayout.Constraint(0, 0))
-    seeMorePanel.add(seeMoreLinkLabel, TabularLayout.Constraint(0, 1))
-
-    add(topPanel, BorderLayout.NORTH)
-    add(cardPanel, BorderLayout.CENTER)
-    cardPanel.preferredSize = seeMorePanel.preferredSize
+    addToCenter(textPane)
   }
 
-  private fun expand() {
-    (cardPanel.layout as CardLayout).show(cardPanel, EXPANDED)
-    cardPanel.preferredSize = expandPanel.preferredSize
-    scrollPane.horizontalScrollBar.value = 0
-    // Resizing studio after the expanded label is visible will leave a blank space
-    // between this panel and the tabbed pane.
-    // Resize cardPanel to expandPanel's preferred size to leave no gap in between.
-    expandPanel.addComponentListener(
-      object : ComponentAdapter() {
-        override fun componentResized(e: ComponentEvent?) {
-          cardPanel.preferredSize = expandPanel.preferredSize
-        }
-      }
-    )
-  }
+  private fun createTitleText(category: String, title: String) =
+    "<html>${createHtmlText("b", category, 10)} ${createHtmlText("i", title, 9)}</html>"
 
-  private fun replaceUrlsWithHtmlLinks(body: String) =
-    body.replace(urlRegex) { matchResult ->
-      "(<a href=\"${matchResult.groupValues[1]}\">${matchResult.groupValues[1]}</a>)"
-    }
+  private fun createHtmlText(style: String, text: String, fontSize: Int) =
+    "<$style style='font-size:${JBUI.scale(fontSize)}px'>$text</$style>"
 
   override fun updateUI() {
     super.updateUI()
-    categoryLabel?.withFont(JBFont.label().asBold())
-    titleLabel?.withFont(JBFont.label().asItalic().lessOn(2f))
-    val bodyRule =
-      "body { font-family: ${JBFont.label().family}; font-size: ${JBFont.label().size}pt; }"
-    (expandedLabel?.document as? HTMLDocument)?.styleSheet?.addRule(bodyRule)
+    // This helps resize the text on zoom in/out
+    @Suppress("UNNECESSARY_SAFE_CALL")
+    iconLabel?.text = createTitleText(category, title)
   }
 
-  override fun paintComponent(g: Graphics) {
-    g.color = background
-    g.fillRoundRect(0, 0, width, height, 16, 16)
+  private class TextPaneWithShowMore(private val body: String) : JTextPane() {
+    private var isExpanded = false
+      set(value) {
+        field = value
+        handleState()
+      }
+
+    private val showLabel =
+      JBLabel("Show more").apply {
+        alignmentY = 0.8f
+        foreground = JBUI.CurrentTheme.Link.Foreground.ENABLED
+        border = JBUI.Borders.emptyLeft(2)
+
+        addMouseListener(
+          object : MouseAdapter() {
+            override fun mouseEntered(e: MouseEvent?) {
+              cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+              font =
+                JBFont.label()
+                  .deriveFont(
+                    font.attributes.plus(Pair(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON))
+                  )
+            }
+
+            override fun mouseExited(e: MouseEvent?) {
+              cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR)
+              font = JBFont.label()
+            }
+
+            override fun mouseClicked(e: MouseEvent?) {
+              isExpanded = !isExpanded
+              cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR)
+            }
+          }
+        )
+      }
+    // The url wrapped with () parentheses and is located at the end of the body.
+    private val urlRegex = Regex("\\(([^)]+)\\)\\s*$", RegexOption.MULTILINE)
+
+    private val htmlBody = body.addWordBreaks().replaceUrl()
+
+    init {
+      editorKit = HTMLEditorKitBuilder.simple()
+      isEditable = false
+      isFocusable = false
+
+      handleState()
+
+      addComponentListener(
+        object : ComponentAdapter() {
+          override fun componentResized(e: ComponentEvent) {
+            handleState()
+          }
+        }
+      )
+
+      addHyperlinkListener {
+        if (it.eventType == HyperlinkEvent.EventType.ACTIVATED) {
+          BrowserUtil.browse(it.url.toString())
+        }
+      }
+    }
+
+    private fun handleState() {
+      if (isExpanded) {
+        text = htmlBody
+        showLabel.text = "Show less"
+        insertComponent(showLabel)
+      } else {
+        val truncatedText = truncateText(this, body, showLabel)
+        text = truncatedText
+        showLabel.text = "Show more"
+        if (truncatedText != body) {
+          insertComponent(showLabel)
+        }
+      }
+      invokeLater {
+        revalidate()
+        parent?.revalidate()
+      }
+    }
+
+    private fun String.replaceUrl() =
+      replace(urlRegex) { matchResult ->
+        "(<a href=\"${matchResult.groupValues[1]}\">${matchResult.groupValues[1]}</a>)"
+      }
+
+    private fun String.addWordBreaks() = replace(" ", " <wbr>")
+  }
+}
+
+fun truncateText(textPane: JTextPane, text: String, showLabel: JBLabel): String {
+  val metrics = textPane.getFontMetrics(textPane.font)
+  val availableWidth = textPane.width - showLabel.preferredWidth - 15
+  return if (metrics.stringWidth(text) > availableWidth) {
+    var truncatedStringWidth = 0
+    var idx = 0
+    val ellipsisWidth = metrics.stringWidth("...")
+    buildString {
+      while (idx < text.length) {
+        val char = text[idx]
+        truncatedStringWidth += metrics.stringWidth(char.toString())
+        if (truncatedStringWidth + ellipsisWidth >= availableWidth) {
+          break
+        }
+        append(char)
+        idx += 1
+      }
+      append("...")
+    }
+  } else {
+    text
   }
 }

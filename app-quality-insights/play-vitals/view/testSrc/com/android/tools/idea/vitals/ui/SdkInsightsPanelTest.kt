@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.vitals.ui
 
-import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.insights.IssueAnnotation
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.components.BorderLayoutPanel
-import com.jetbrains.rd.generator.nova.fail
+import javax.swing.JPanel
+import javax.swing.JTextPane
+import kotlin.test.fail
 import org.junit.Rule
 import org.junit.Test
 
@@ -44,45 +45,40 @@ private val TEST_ANNOTATION =
 @RunsInEdt
 class SdkInsightsPanelTest {
 
+  @get:Rule val applicationRule = ApplicationRule()
   @get:Rule val edtRule = EdtRule()
 
   @Test
-  fun `show correct information when expanded`() {
+  fun `show correct information when expanded and shrunk`() {
     val panel =
-      SdkInsightsPanel(TEST_ANNOTATION.category, TEST_ANNOTATION.title, TEST_ANNOTATION.body)
+      JPanel().apply {
+        add(SdkInsightsPanel(TEST_ANNOTATION.category, TEST_ANNOTATION.title, TEST_ANNOTATION.body))
+      }
 
     val fakeUi = FakeUi(panel)
-    assertThat(fakeUi.findComponent<JBLabel> { it.text == "Insight" }).isNotNull()
-    assertThat(fakeUi.findComponent<JBLabel> { it.text == "Native lock contention" }).isNotNull()
-    assertThat(fakeUi.findComponent<JBLabel> { it.icon == AllIcons.Actions.IntentionBulb })
-      .isNotNull()
-    val truncatedLabel =
-      fakeUi.findComponent<JBLabel> {
-        it.text ==
-          """
-            The main thread is blocked, waiting on a native synchronization routine, such as a mutex.
+    val titleLabel =
+      fakeUi.findComponent<JBLabel> { it.icon == AllIcons.Actions.IntentionBulb }
+        ?: fail("Title label not found")
 
-            Native synchronization routines don't provide details on the exact lock, or where it is being held. Find the locked mutex in your source, and then locate other code locations where it is being acquired. You can use Android Studio's profiler to detect potential lock contentions if multiple threads frequently compete for the same lock. (https://support.google.com/googleplay/android-developer/answer/9859174)
-            """
-            .trimIndent()
-      } ?: fail("Truncated label not found")
-    assertThat(truncatedLabel.isVisible).isTrue()
+    assertThat(titleLabel.isVisible).isTrue()
+    assertThat(titleLabel.text).contains(TEST_ANNOTATION.category)
+    assertThat(titleLabel.text).contains(TEST_ANNOTATION.title)
 
-    val seeMoreLink = fakeUi.findComponent<HyperlinkLabel>() ?: fail("See more link not found")
-    seeMoreLink.doClick()
+    val showLabel =
+      fakeUi.findComponent<JBLabel> { it.text == "Show more" } ?: fail("Show more label not found")
+    val textPane = fakeUi.findComponent<JTextPane>() ?: fail("Text pane not found")
+    assertThat(textPane.isVisible).isTrue()
+    var expectedShrunkText = truncateText(textPane, TEST_ANNOTATION.body, showLabel)
+    assertThat(textPane.textWithoutHtmlTags).isEqualTo(expectedShrunkText)
 
-    assertThat(
-        fakeUi
-          .findComponent<HtmlLabel> {
-            it.text.contains(
-              "<a href=\"https://support.google.com/googleplay/android-developer/answer/9859174\">" +
-                "https://support.google.com/googleplay/android-developer/answer/9859174</a>"
-            )
-          }
-          ?.isVisible
-      )
-      .isTrue()
-    assertThat(truncatedLabel.parent?.isVisible).isFalse()
+    showLabel.mouseListeners.forEach { it.mouseClicked(null) }
+    assertThat(showLabel.text).isEqualTo("Show less")
+    assertThat(textPane.textWithoutHtmlTags).isEqualTo(TEST_ANNOTATION.body.replace("\n\n", " "))
+
+    expectedShrunkText = truncateText(textPane, TEST_ANNOTATION.body, showLabel)
+    showLabel.mouseListeners.forEach { it.mouseClicked(null) }
+    assertThat(showLabel.text).isEqualTo("Show more")
+    assertThat(textPane.textWithoutHtmlTags).isEqualTo(expectedShrunkText)
   }
 
   @Test
@@ -101,14 +97,15 @@ class SdkInsightsPanelTest {
         }
       )
 
-    val truncatedLabel =
-      fakeUi.findComponent<JBLabel> { it.text?.startsWith("The main thread") == true }
-        ?: fail("Truncated label not found")
+    val textPane = fakeUi.findComponent<JTextPane>() ?: fail("Text pane not found")
 
-    assertThat(truncatedLabel.isVisible).isTrue()
-    assertThat(truncatedLabel.preferredSize.width).isLessThan(truncatedLabel.width)
+    assertThat(textPane.isVisible).isTrue()
+    assertThat(textPane.preferredSize.width).isLessThan(textPane.width)
 
-    val seeMoreLink = fakeUi.findComponent<HyperlinkLabel>() ?: fail("See more link not found")
-    assertThat(seeMoreLink.isVisible).isFalse()
+    val showLabel = fakeUi.findComponent<JBLabel> { it.text == "Show more" }
+    assertThat(showLabel).isNull()
   }
+
+  private val JTextPane.textWithoutHtmlTags: String
+    get() = document.getText(0, document.length).replace("\u200B", "").trim()
 }

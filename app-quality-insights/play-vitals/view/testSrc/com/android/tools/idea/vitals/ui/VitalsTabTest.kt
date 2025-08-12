@@ -216,14 +216,14 @@ class VitalsTabTest {
       }
 
       // Event id, Link to vitals console
-      with(FakeUi(rows[1])) {
+      with(FakeUi(rows[2])) {
         assertThat(findComponent<JLabel>()!!.text)
           .isEqualTo("Event ${ISSUE1.issueDetails.sampleEvent.shortenEventId()}")
         assertThat(findComponent<HyperlinkLabel>()!!.text).isEqualTo("View on Android Vitals")
       }
 
       // Device, OS Version, Timestamp, VCS Commit
-      with(FakeUi(rows[2])) {
+      with(FakeUi(rows[3])) {
         assertThat(findAllComponents<JLabel>().filter { isShowing(it) }.map { it.text })
           .containsExactly(
             "Google Pixel 4a",

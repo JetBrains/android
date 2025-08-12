@@ -35,6 +35,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth",
         "@intellij//:test-framework",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
+        "//tools/adt/idea/.idea/libraries:kotlin-test",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
         "//tools/base/testutils:studio.android.sdktools.testutils",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",

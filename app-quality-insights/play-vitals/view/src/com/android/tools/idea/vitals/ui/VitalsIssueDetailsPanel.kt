@@ -58,6 +58,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.IdeBorderFactory
@@ -214,7 +215,8 @@ class VitalsIssueDetailsPanel(
   private val commitLabel = VcsCommitLabel()
 
   // Sdk insights
-  private val insightsPanel = transparentPanel().apply { layout = BoxLayout(this, Y_AXIS) }
+  private val insightsPanel =
+    transparentPanel(VerticalFlowLayout(VerticalFlowLayout.MIDDLE, true, false))
 
   private val mainPanel: JPanel =
     object : JPanel(CardLayout()) {
@@ -340,30 +342,31 @@ class VitalsIssueDetailsPanel(
           add(Box.createHorizontalGlue())
         }
       )
-      add(Box.createVerticalStrut(5))
+      add(verticalScaledStrut())
+      add(insightsPanel)
+      add(verticalScaledStrut())
       add(JSeparator())
-      add(Box.createVerticalStrut(5))
+      add(verticalScaledStrut())
       add(
         transparentPanel(WrappedFlowLayout(FlowLayout.LEFT, 0, 5)).apply {
           add(eventIdLabel)
-          add(Box.createHorizontalStrut(DETAIL_PANEL_HORIZONTAL_SPACING))
+          add(horizontalScaledStrut())
           add(vitalsConsoleLink)
         }
       )
-      add(Box.createVerticalStrut(5))
+      add(verticalScaledStrut())
       add(
         transparentPanel(WrappedFlowLayout(FlowLayout.LEFT, 0, 5)).apply {
           add(deviceLabel)
-          add(Box.createHorizontalStrut(DETAIL_PANEL_HORIZONTAL_SPACING))
+          add(horizontalScaledStrut())
           add(affectedApiLevelsLabel)
-          add(Box.createHorizontalStrut(DETAIL_PANEL_HORIZONTAL_SPACING))
+          add(horizontalScaledStrut())
           add(timestampLabel)
-          add(Box.createHorizontalStrut(DETAIL_PANEL_HORIZONTAL_SPACING))
+          add(horizontalScaledStrut())
           add(commitLabel)
         }
       )
-      add(Box.createVerticalStrut(5))
-      add(insightsPanel)
+      add(verticalScaledStrut())
     }
 
   private fun updateBodySection(issue: AppInsightsIssue) {
@@ -391,7 +394,7 @@ class VitalsIssueDetailsPanel(
     insightsPanel.removeAll()
     issue.issueDetails.annotations.forEach {
       insightsPanel.add(SdkInsightsPanel(it.category, it.title, it.body))
-      insightsPanel.add(Box.createVerticalStrut(5))
+      insightsPanel.add(verticalScaledStrut())
     }
   }
 
@@ -414,6 +417,11 @@ class VitalsIssueDetailsPanel(
   override fun setHeaderHeight(height: Int) {
     header.preferredSize = Dimension(header.preferredWidth, height)
   }
+
+  private fun verticalScaledStrut(height: Int = 5) = Box.createVerticalStrut(JBUI.scale(height))
+
+  private fun horizontalScaledStrut(width: Int = DETAIL_PANEL_HORIZONTAL_SPACING) =
+    Box.createHorizontalStrut(JBUI.scale(width))
 }
 
 private fun <T> MultiSelection<WithCount<T>>.getSelectedValueOrEmpty() =
