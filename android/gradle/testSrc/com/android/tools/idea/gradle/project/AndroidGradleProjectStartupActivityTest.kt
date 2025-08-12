@@ -232,7 +232,7 @@ class AndroidGradleProjectStartupActivityTest {
     assertWithMessage("Should show a notification").that(notification).isNotNull()
     assertWithMessage("Should offer three notification actions")
       .that(notification?.actions?.map { it.templatePresentation.text }).isEqualTo(
-        listOf("Sync now", "Automatically sync this project", "Snooze until tomorrow", "Snooze for this project"))
+        listOf("Sync now", "Automatically Sync Projects", "Snooze until tomorrow", "Snooze for this project"))
   }
 
   @Test
