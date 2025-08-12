@@ -284,6 +284,11 @@
   - name: $MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-core-242/0/jewel-markdown-core-242-0.jar
   - name: $MAVEN_REPOSITORY$/org/commonmark/commonmark/0/commonmark-0.jar
   - name: $MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ide-laf-bridge-242/0/jewel-ide-laf-bridge-242-0.jar
+- name: lib/kotlinc.kotlin-jps-common.jar
+  library: kotlinc.kotlin-jps-common
+  files:
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-jps-common-for-ide/2/kotlin-jps-common-for-ide-2.jar
+  reason: <- intellij.android.projectSystem.gradle.psd
 - name: lib/kotlinx-coroutines-guava.jar
   library: kotlinx-coroutines-guava
   files:
