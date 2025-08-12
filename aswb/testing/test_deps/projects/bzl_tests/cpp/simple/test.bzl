@@ -58,17 +58,11 @@ def _cc_binary_test_impl(env, target):
         struct(
             external_includes = [],
             framework_includes = [],
-            includes = [],
+            includes = ["*"],
             quote_includes = ["*"],
-            # aswb:bazel-only-begin(java_package is not available in bazel)
-            defines = [],
-            headers = [],
-            system_includes = [],
-            # aswb:bazel-only-end-and-replace-begin
-            # defines = ["*"],
-            # headers = ["*"],
-            # system_includes = ["*"],
-            # aswb:replace-end
+            defines = ["*"],
+            headers = ["*"],
+            system_includes = ["*"],
         ),
     )
     actual.toolchain_target().equals(CC_TOOLCHAIN_TARGET)
