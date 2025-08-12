@@ -113,6 +113,6 @@ data class IdeAndroidArtifactImpl(
   private val core: IdeAndroidArtifactCoreImpl,
   private val resolver: IdeLibraryModelResolverImpl
 ) : IdeAndroidArtifact, IdeAndroidArtifactCore by core {
-  override val compileClasspath: IdeDependencies = IdeDependenciesImpl(core.compileClasspathCore, resolver)
-  override val runtimeClasspath: IdeDependencies = IdeDependenciesImpl(core.runtimeClasspathCore, resolver)
+  override val compileClasspath: IdeDependencies = IdeDependencies(core.compileClasspathCore, resolver)
+  override val runtimeClasspath: IdeDependencies = IdeDependencies(core.runtimeClasspathCore, resolver)
 }

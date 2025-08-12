@@ -23,11 +23,10 @@ import com.android.tools.idea.gradle.model.IdeUnresolvedJavaLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedKmpAndroidModuleLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedModuleLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedUnknownLibrary
-import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
-import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
+import com.android.tools.idea.gradle.model.IdeJavaLibraryImpl
+import com.android.tools.idea.gradle.model.IdeModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
-import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
-import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable
+import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTable
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath

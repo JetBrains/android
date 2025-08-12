@@ -21,11 +21,11 @@ import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.Version
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
-import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
-import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
-import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
-import com.android.tools.idea.gradle.model.impl.IdeUnresolvedKmpAndroidModuleLibraryImpl
-import com.android.tools.idea.gradle.model.impl.IdeUnresolvedModuleLibraryImpl
+import com.android.tools.idea.gradle.model.IdeAndroidLibraryImpl
+import com.android.tools.idea.gradle.model.IdeJavaLibraryImpl
+import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibraryImpl
+import com.android.tools.idea.gradle.model.IdeUnresolvedKmpAndroidModuleLibraryImpl
+import com.android.tools.idea.gradle.model.IdeUnresolvedModuleLibraryImpl
 import org.gradle.api.attributes.java.TargetJvmEnvironment
 import java.io.File
 

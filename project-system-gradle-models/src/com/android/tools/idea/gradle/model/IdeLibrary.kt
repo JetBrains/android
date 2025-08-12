@@ -57,7 +57,7 @@ sealed interface IdeArtifactLibrary : IdeLibrary {
   val docJar: File?
 }
 
-interface IdeAndroidLibrary : IdeArtifactLibrary {
+sealed interface IdeAndroidLibrary : IdeArtifactLibrary {
   /** Returns the artifact location.  */
   val artifact: File?
 
@@ -137,7 +137,7 @@ interface IdeAndroidLibrary : IdeArtifactLibrary {
   val symbolFile: File
 }
 
-interface IdeJavaLibrary : IdeArtifactLibrary {
+sealed interface IdeJavaLibrary : IdeArtifactLibrary {
   /** Returns the artifact location.  */
   val artifact: File
 }
@@ -181,7 +181,7 @@ enum class IdeModuleWellKnownSourceSet(
   }
 }
 
-interface IdeModuleLibrary : IdeLibrary {
+sealed interface IdeModuleLibrary : IdeLibrary {
   /**
    * Returns the gradle path.
    */
@@ -204,7 +204,7 @@ interface IdeModuleLibrary : IdeLibrary {
   val sourceSet: IdeModuleSourceSet
 }
 
-interface IdeUnknownLibrary: IdeLibrary {
+sealed interface IdeUnknownLibrary: IdeLibrary {
   val key: String
 }
 

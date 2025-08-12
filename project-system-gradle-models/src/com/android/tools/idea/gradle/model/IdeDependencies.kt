@@ -15,29 +15,30 @@
  */
 package com.android.tools.idea.gradle.model
 
-interface IdeDependencies {
+import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreImpl
+import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 
-  /**
-   * Returns the list of all dependencies, both direct and transitive
-   *
-   * @return the list of libraries of all types.
-   */
-  val libraries: List<IdeLibrary>
+/** Historically, the interfaces and implementations were separated, but we don't need that distinction anymore as the interfaces are not
+ * exposed anymore. Providing the data class here goes against the pattern in the rest of the package but it's the easiest and cleanest
+ * solution to be able to provide and use this cleanly without changing much in the code while refactoring.
+ *
+ * Ideally in the future we want everything to be data classes here and remove the interfaces, but doing that incrementally is also fine.
+ */
+data class IdeDependencies(
+  private val classpath: IdeDependenciesCoreImpl,
+  /** Utility method to provide easy access to a resolver without having to re-create one from the library table. */
+  val resolver: IdeLibraryModelResolverImpl
+) {
+  /** Returns the libraries of all types, both direct and transitive */
+  val libraries: List<IdeLibrary> by lazy { classpath.dependencies.flatMap { resolver.resolve(it) } }
 
   /**
    * Returns the list of all dependencies, both direct and transitive as [IdeDependencyCore]s.
    * These contain an unresolved library reference [IdeDependencyCore.target] which should be resolved with a [IdeLibraryModelResolver].
    * They also contain a list of indexes of their dependencies, these are indices back into this list of dependencies.
    */
-  val unresolvedDependencies: List<IdeDependencyCore>
+  val unresolvedDependencies: List<IdeDependencyCore> = classpath.dependencies
 
-  /**
-   * Utility method to provide easy access to a resolver without having to re-create one from the library table.
-   */
-  val resolver: IdeLibraryModelResolver
-
-  /**
-   * Method to resolve transitive dependencies from [IdeDependencyCore.dependencies] back to their [IdeDependencyCore],
-   */
-  val lookup: (Int) -> IdeDependencyCore
+  /** Method to resolve transitive dependencies from [IdeDependencyCore.dependencies] back to their [IdeDependencyCore] */
+  val lookup: (Int) -> IdeDependencyCore  = { classpath.lookup(it) }
 }

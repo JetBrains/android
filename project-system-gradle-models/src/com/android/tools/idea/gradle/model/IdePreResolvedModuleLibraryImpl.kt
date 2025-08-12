@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.model.impl
+package com.android.tools.idea.gradle.model
 
-import com.android.tools.idea.gradle.model.IdeModuleLibrary
-import com.android.tools.idea.gradle.model.IdeModuleSourceSet
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.MAIN
-import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibrary
-import com.android.tools.idea.gradle.model.IdeUnresolvedKmpAndroidModuleLibrary
-import com.android.tools.idea.gradle.model.IdeUnresolvedModuleLibrary
-import org.jetbrains.annotations.TestOnly
+import com.android.tools.idea.gradle.model.impl.FileImpl
+import com.android.tools.idea.gradle.model.impl.toImpl
 import java.io.File
 import java.io.Serializable
+import org.jetbrains.annotations.TestOnly
 
 data class IdePreResolvedModuleLibraryImpl constructor(
   override val buildId: String,
@@ -54,7 +50,7 @@ data class IdePreResolvedModuleLibraryImpl constructor(
     projectPath = "",
     variant = null,
     lintJar = null,
-    sourceSet = MAIN
+    sourceSet = IdeModuleWellKnownSourceSet.MAIN
   )
 
   @get:TestOnly
@@ -155,7 +151,6 @@ internal fun moduleLibraryDisplayName(
   sourceSet: IdeModuleSourceSet?
 ): String {
   val variantPart = if (!variant.isNullOrEmpty()) "@$variant" else ""
-  val sourceSetPart = sourceSet?.takeUnless { it == MAIN }?.let { "/$it" }.orEmpty()
+  val sourceSetPart = sourceSet?.takeUnless { it == IdeModuleWellKnownSourceSet.MAIN }?.let { "/$it" }.orEmpty()
   return "$buildId:$projectPath$variantPart$sourceSetPart"
 }
-

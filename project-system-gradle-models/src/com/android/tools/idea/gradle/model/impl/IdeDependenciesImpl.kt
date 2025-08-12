@@ -67,15 +67,6 @@ fun transitiveClosure(rootDependency: IdeDependencyCore, classpath: IdeDependenc
   return result.toList()
 }
 
-data class IdeDependenciesImpl(
-  private val classpath: IdeDependenciesCoreImpl,
-  override val resolver: IdeLibraryModelResolverImpl
-) : IdeDependencies {
-  override val libraries: List<IdeLibrary> by lazy { classpath.dependencies.flatMap { resolver.resolve(it) } }
-  override val unresolvedDependencies = classpath.dependencies
-  override val lookup: (Int) -> IdeDependencyCore = { classpath.lookup(it) }
-}
-
 fun throwingIdeDependencies(): IdeDependenciesCoreImpl {
   return ThrowingIdeDependencies
 }
