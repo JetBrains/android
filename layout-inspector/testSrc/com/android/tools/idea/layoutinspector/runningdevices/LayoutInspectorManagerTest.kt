@@ -404,7 +404,7 @@ class LayoutInspectorManagerTest {
     layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
     val layoutInspectorRenderer =
-      tab1.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>().first()
+      tab1.displayView.allChildren().filterIsInstance<StudioRendererPanel>().first()
     assertThat(layoutInspectorRenderer.interceptClicks).isFalse()
 
     layoutInspectorRenderer.interceptClicks = true
@@ -440,7 +440,7 @@ class LayoutInspectorManagerTest {
     layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
     val layoutInspectorRenderer =
-      tab1.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>().first()
+      tab1.displayView.allChildren().filterIsInstance<StudioRendererPanel>().first()
 
     val toolbar =
       tab1.container.allChildren().filterIsInstance<ActionToolbar>().first {

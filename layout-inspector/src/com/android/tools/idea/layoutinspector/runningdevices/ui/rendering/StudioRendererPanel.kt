@@ -20,6 +20,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.ui.HQ_RENDERING_HINTS
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.EditorNotificationPanel
@@ -74,7 +75,8 @@ class StudioRendererPanel(
 
   private val childScope = scope.createChildScope()
 
-  override var interceptClicks: Boolean
+  @VisibleForTesting
+  var interceptClicks: Boolean
     get() = renderModel.interceptClicks.value
     set(value) {
       renderModel.setInterceptClicks(value)

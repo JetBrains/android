@@ -19,6 +19,4 @@ import com.intellij.openapi.Disposable
 import com.intellij.util.ui.components.BorderLayoutPanel
 
 /** A generic renderer for embedded Layout Inspector */
-abstract class LayoutInspectorRenderer : BorderLayoutPanel(), Disposable {
-  abstract var interceptClicks: Boolean
-}
+abstract class LayoutInspectorRenderer : BorderLayoutPanel(), Disposable {}

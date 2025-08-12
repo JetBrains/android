@@ -73,12 +73,6 @@ class OnDeviceRendererPanel(
       value?.let { addToCenter(it) }
     }
 
-  override var interceptClicks: Boolean
-    get() = renderModel.interceptClicks.value
-    set(value) {
-      renderModel.setInterceptClicks(value)
-    }
-
   private val connectionListener =
     object : InspectorModel.ConnectionListener {
       override fun onConnectionChanged(newClient: InspectorClient) {

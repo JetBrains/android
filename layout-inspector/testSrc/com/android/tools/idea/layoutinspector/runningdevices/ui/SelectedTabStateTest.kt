@@ -58,8 +58,6 @@ import org.junit.Test
 import org.mockito.kotlin.mock
 
 private class FakeLayoutInspectorRenderer : LayoutInspectorRenderer() {
-  override var interceptClicks = false
-
   override fun dispose() {}
 }
 

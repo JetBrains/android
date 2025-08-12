@@ -261,7 +261,7 @@ class StudioRendererPanelTest {
     renderer.size = screenDimension
     val fakeUi = FakeUi(renderer)
 
-    renderer.interceptClicks = true
+    model.setInterceptClicks(true)
 
     assertThat(model.hoveredNode.value).isNull()
 
@@ -288,7 +288,7 @@ class StudioRendererPanelTest {
     parent.size = screenDimension
     renderer.size = screenDimension
 
-    renderer.interceptClicks = true
+    model.setInterceptClicks(true)
 
     val fakeUi = FakeUi(renderer)
 
@@ -336,7 +336,7 @@ class StudioRendererPanelTest {
     parent.size = screenDimension
     renderer.size = screenDimension
 
-    renderer.interceptClicks = true
+    model.setInterceptClicks(true)
 
     val fakeUi = FakeUi(renderer)
 
@@ -367,7 +367,7 @@ class StudioRendererPanelTest {
     renderer.size = screenDimension
 
     renderSettings.drawLabel = true
-    renderer.interceptClicks = true
+    model.setInterceptClicks(true)
 
     val fakeUi = FakeUi(renderer)
 
@@ -399,7 +399,7 @@ class StudioRendererPanelTest {
     renderer.size = screenDimension
 
     renderSettings.drawLabel = true
-    renderer.interceptClicks = true
+    model.setInterceptClicks(true)
 
     val fakeUi = FakeUi(renderer)
 
@@ -439,7 +439,7 @@ class StudioRendererPanelTest {
     renderer.size = screenDimension
 
     renderSettings.drawLabel = true
-    renderer.interceptClicks = true
+    model.setInterceptClicks(true)
 
     val fakeUi = FakeUi(renderer)
 
@@ -465,13 +465,13 @@ class StudioRendererPanelTest {
   @RunsInEdt
   fun testMouseDoubleClick() {
     renderSettings.drawLabel = false
-    val (_, renderer) = createRenderer()
+    val (model, renderer) = createRenderer()
     val parent = BorderLayoutPanel()
     parent.add(renderer)
     parent.size = screenDimension
     renderer.size = screenDimension
 
-    renderer.interceptClicks = true
+    model.setInterceptClicks(true)
 
     val fakeUi = FakeUi(renderer)
 
@@ -489,13 +489,13 @@ class StudioRendererPanelTest {
   @Test
   @RunsInEdt
   fun testContextMenu() {
-    val (_, renderer) = createRenderer()
+    val (model, renderer) = createRenderer()
     val parent = BorderLayoutPanel()
     parent.add(renderer)
     parent.size = screenDimension
     renderer.size = screenDimension
 
-    renderer.interceptClicks = true
+    model.setInterceptClicks(true)
 
     var latestPopup: FakeActionPopupMenu? = null
     ApplicationManager.getApplication()
@@ -569,7 +569,7 @@ class StudioRendererPanelTest {
     parent.size = screenDimension
     renderer.size = screenDimension
 
-    renderer.interceptClicks = true
+    model.setInterceptClicks(true)
 
     val fakeUi = FakeUi(parent)
     fakeUi.render()
@@ -642,7 +642,7 @@ class StudioRendererPanelTest {
     parent.size = screenDimension
     renderer.size = screenDimension
 
-    renderer.interceptClicks = true
+    model.setInterceptClicks(true)
 
     val fakeUi = FakeUi(renderer)
 
@@ -660,7 +660,7 @@ class StudioRendererPanelTest {
     assertThat(model.hoveredNode.value!!.bounds)
       .isEqualTo(model.inspectorModel[VIEW1]!!.layoutBounds)
 
-    renderer.interceptClicks = false
+    model.setInterceptClicks(false)
 
     assertThat(model.selectedNode.value).isNull()
     assertThat(model.hoveredNode.value).isNull()
