@@ -40,6 +40,7 @@ import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
 import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.util.text.StringUtil
 import java.io.File
@@ -67,9 +68,14 @@ class SetupSdkApplicationService : Disposable {
                          sdkComponentInstaller: SdkComponentInstaller = SdkComponentInstaller(),
                          tracker: FirstRunWizardTracker,
                          useDeprecatedWizard: Boolean) {
-    val sdkPath =
+    val sdkPath: File =
       if (StringUtil.isEmpty(sdkPathString)) {
-        getInitialSdkLocation(FirstRunWizardMode.MISSING_SDK)
+        // getInitialSdkLocation creates a non-blocking read action
+        // (in AndroidSdksImpl.getAllAndroidSdks()), which is not allowed on the EDT, so wrap it in
+        // a blocking read action.
+        ReadAction.compute<File, Throwable> {
+          getInitialSdkLocation(FirstRunWizardMode.MISSING_SDK)
+        }
       } else {
         File(sdkPathString)
       }

@@ -29,7 +29,6 @@ import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.android.tools.idea.avdmanager.skincombobox.SkinCollector
 import com.android.tools.idea.avdmanager.skincombobox.SkinComboBoxModel
 import com.android.tools.idea.avdmanager.ui.NameComparator
-import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.tools.sdk.DeviceManagers
 import kotlinx.collections.immutable.ImmutableCollection
@@ -47,11 +46,10 @@ internal class LocalVirtualDeviceSource(
 ) {
 
   companion object {
-    fun create(): LocalVirtualDeviceSource {
+    fun create(sdkHandler: AndroidSdkHandler): LocalVirtualDeviceSource {
       val skins =
         SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect())
           .toImmutableList()
-      val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
       return LocalVirtualDeviceSource(
         skins,
         sdkHandler,

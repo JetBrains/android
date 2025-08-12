@@ -67,6 +67,7 @@ import com.android.tools.idea.avdmanager.ui.ImportDevicesAction
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.sdk.getOrSetupValidSdk
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent
 import com.intellij.openapi.project.Project
@@ -90,7 +91,9 @@ import org.jetbrains.jewel.ui.component.Icon
  * @return the AvdInfo of the created AVD, or null if the dialog was cancelled.
  */
 suspend fun showAddDeviceDialog(project: Project?, parent: Component?): AvdInfo? {
-  val source = withContext(workerThread) { LocalVirtualDeviceSource.create() }
+  val sdkHandler =
+    getOrSetupValidSdk(project, "An Android SDK is required to create an AVD.") ?: return null
+  val source = withContext(workerThread) { LocalVirtualDeviceSource.create(sdkHandler) }
   return withContext(uiThread) {
     initializeComposeMainDispatcherChecker()
     var avdInfo: AvdInfo? = null
