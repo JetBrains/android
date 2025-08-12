@@ -17,7 +17,9 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.annotations.concurrency.UiThread
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBTabbedPane
 import java.awt.BorderLayout
+import java.awt.GridBagLayout
 import java.awt.Image
 import java.io.File
 import javax.imageio.ImageIO
@@ -27,6 +29,7 @@ import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JScrollPane
+import javax.swing.border.EmptyBorder
 
 /**
  * This is a placeholder for showing Screenshot Test Results.
@@ -34,10 +37,23 @@ import javax.swing.JScrollPane
 class ScreenshotResultView {
 
   val myView: JPanel = JPanel(BorderLayout())
+  val myTabbedPane = JBTabbedPane()
   val myThreeWayDiffView: JPanel = JPanel()
+  val myNewImageView: JPanel = JPanel(GridBagLayout())
+  val myDiffImageView: JPanel = JPanel(GridBagLayout())
+  val myRefImageView: JPanel = JPanel(GridBagLayout())
 
   init {
-    myView.add(JScrollPane(myThreeWayDiffView), BorderLayout.CENTER)
+    myTabbedPane.tabPlacement = JBTabbedPane.BOTTOM
+
+    myTabbedPane.addTab("All", JScrollPane(myThreeWayDiffView))
+    myTabbedPane.addTab("New", JScrollPane(myNewImageView))
+    myTabbedPane.addTab("Diff", JScrollPane(myDiffImageView))
+    myTabbedPane.addTab("Reference", JScrollPane(myRefImageView))
+
+    myTabbedPane.selectedIndex = 0
+
+    myView.add(myTabbedPane, BorderLayout.CENTER)
   }
 
   var newImagePath: String = ""
@@ -51,18 +67,38 @@ class ScreenshotResultView {
   }
 
   fun updateView() {
-    val maxImgWidth = 600
+    val maxImgWidth = 400
+    val singleViewMaxWidth = 500
+    val imageGap = 50
+    val verticalGap = 50
+
     myThreeWayDiffView.removeAll()
     myThreeWayDiffView.setLayout(BoxLayout(myThreeWayDiffView, BoxLayout.X_AXIS))
-    myThreeWayDiffView.add(Box.createHorizontalGlue())
+
+    myThreeWayDiffView.border = EmptyBorder(verticalGap, 0, verticalGap, 0)
+    myNewImageView.border = EmptyBorder(verticalGap, 0, verticalGap, 0)
+    myDiffImageView.border = EmptyBorder(verticalGap, 0, verticalGap, 0)
+    myRefImageView.border = EmptyBorder(verticalGap, 0, verticalGap, 0)
+
+    myThreeWayDiffView.add(Box.createHorizontalStrut(imageGap))
     myThreeWayDiffView.add(createImageOrText(newImagePath, "No Preview Image", maxImgWidth))
-    myThreeWayDiffView.add(Box.createHorizontalGlue())
+    myThreeWayDiffView.add(Box.createHorizontalStrut(imageGap))
     myThreeWayDiffView.add(createImageOrText(diffImagePath, "", maxImgWidth))
-    myThreeWayDiffView.add(Box.createHorizontalGlue())
+    myThreeWayDiffView.add(Box.createHorizontalStrut(imageGap))
     myThreeWayDiffView.add(createImageOrText(refImagePath, "No Reference Image", maxImgWidth))
-    myThreeWayDiffView.add(Box.createHorizontalGlue())
-    myThreeWayDiffView.revalidate()
-    myThreeWayDiffView.repaint()
+    myThreeWayDiffView.add(Box.createHorizontalStrut(imageGap))
+
+    updateSingleImageView(myNewImageView, newImagePath, "No Preview Image", singleViewMaxWidth)
+    updateSingleImageView(myDiffImageView, diffImagePath, "No Diff Image", singleViewMaxWidth)
+    updateSingleImageView(myRefImageView, refImagePath, "No Reference Image", singleViewMaxWidth)
+
+    myView.revalidate()
+    myView.repaint()
+  }
+
+  private fun updateSingleImageView(panel: JPanel, imagePath: String, message: String, maxWidth: Int) {
+    panel.removeAll()
+    panel.add(createImageOrText(imagePath, message, maxWidth))
   }
 
   private fun createImageOrText(filePath: String, orMessage: String, maxWidth: Int): JBLabel {
