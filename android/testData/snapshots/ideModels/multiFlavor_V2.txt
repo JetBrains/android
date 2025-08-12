@@ -617,7 +617,6 @@ MODULE                        : MultiFlavor
                         androidTestDebugCompileOnly   : <empty>
                         androidTestDebugImplementation          : <empty>
                         androidTestDebugRuntimeOnly   : <empty>
-                        androidTestDebugWearApp       : <empty>
                         androidTestFirstAbcAnnotationProcessor  : <empty>
                         androidTestFirstAbcCompileOnly          : <empty>
                         androidTestFirstAbcImplementation       : <empty>
@@ -628,21 +627,16 @@ MODULE                        : MultiFlavor
                         androidTestFirstAbcSecondAbcDebugCompileOnly      : <empty>
                         androidTestFirstAbcSecondAbcDebugImplementation   : <empty>
                         androidTestFirstAbcSecondAbcDebugRuntimeOnly      : <empty>
-                        androidTestFirstAbcSecondAbcDebugWearApp          : <empty>
                         androidTestFirstAbcSecondAbcImplementation        : <empty>
                         androidTestFirstAbcSecondAbcRuntimeOnly : <empty>
-                        androidTestFirstAbcSecondAbcWearApp     : <empty>
                         androidTestFirstAbcSecondXyzAnnotationProcessor   : <empty>
                         androidTestFirstAbcSecondXyzCompileOnly : <empty>
                         androidTestFirstAbcSecondXyzDebugAnnotationProcessor        : <empty>
                         androidTestFirstAbcSecondXyzDebugCompileOnly      : <empty>
                         androidTestFirstAbcSecondXyzDebugImplementation   : <empty>
                         androidTestFirstAbcSecondXyzDebugRuntimeOnly      : <empty>
-                        androidTestFirstAbcSecondXyzDebugWearApp          : <empty>
                         androidTestFirstAbcSecondXyzImplementation        : <empty>
                         androidTestFirstAbcSecondXyzRuntimeOnly : <empty>
-                        androidTestFirstAbcSecondXyzWearApp     : <empty>
-                        androidTestFirstAbcWearApp    : <empty>
                         androidTestFirstXyzAnnotationProcessor  : <empty>
                         androidTestFirstXyzCompileOnly          : <empty>
                         androidTestFirstXyzImplementation       : <empty>
@@ -653,40 +647,31 @@ MODULE                        : MultiFlavor
                         androidTestFirstXyzSecondAbcDebugCompileOnly      : <empty>
                         androidTestFirstXyzSecondAbcDebugImplementation   : <empty>
                         androidTestFirstXyzSecondAbcDebugRuntimeOnly      : <empty>
-                        androidTestFirstXyzSecondAbcDebugWearApp          : <empty>
                         androidTestFirstXyzSecondAbcImplementation        : <empty>
                         androidTestFirstXyzSecondAbcRuntimeOnly : <empty>
-                        androidTestFirstXyzSecondAbcWearApp     : <empty>
                         androidTestFirstXyzSecondXyzAnnotationProcessor   : <empty>
                         androidTestFirstXyzSecondXyzCompileOnly : <empty>
                         androidTestFirstXyzSecondXyzDebugAnnotationProcessor        : <empty>
                         androidTestFirstXyzSecondXyzDebugCompileOnly      : <empty>
                         androidTestFirstXyzSecondXyzDebugImplementation   : <empty>
                         androidTestFirstXyzSecondXyzDebugRuntimeOnly      : <empty>
-                        androidTestFirstXyzSecondXyzDebugWearApp          : <empty>
                         androidTestFirstXyzSecondXyzImplementation        : <empty>
                         androidTestFirstXyzSecondXyzRuntimeOnly : <empty>
-                        androidTestFirstXyzSecondXyzWearApp     : <empty>
-                        androidTestFirstXyzWearApp    : <empty>
                         androidTestImplementation     : <empty>
                         androidTestReleaseAnnotationProcessor   : <empty>
                         androidTestReleaseCompileOnly : <empty>
                         androidTestReleaseImplementation        : <empty>
                         androidTestReleaseRuntimeOnly : <empty>
-                        androidTestReleaseWearApp     : <empty>
                         androidTestRuntimeOnly        : <empty>
                         androidTestSecondAbcAnnotationProcessor : <empty>
                         androidTestSecondAbcCompileOnly         : <empty>
                         androidTestSecondAbcImplementation      : <empty>
                         androidTestSecondAbcRuntimeOnly         : <empty>
-                        androidTestSecondAbcWearApp   : <empty>
                         androidTestSecondXyzAnnotationProcessor : <empty>
                         androidTestSecondXyzCompileOnly         : <empty>
                         androidTestSecondXyzImplementation      : <empty>
                         androidTestSecondXyzRuntimeOnly         : <empty>
-                        androidTestSecondXyzWearApp   : <empty>
                         androidTestUtil               : <empty>
-                        androidTestWearApp            : <empty>
                         annotationProcessor           : <empty>
                         api                           : <empty>
                         archives                      : <empty>
@@ -699,7 +684,6 @@ MODULE                        : MultiFlavor
                         debugCompileOnlyApi           : <empty>
                         debugImplementation           : <empty>
                         debugRuntimeOnly              : <empty>
-                        debugWearApp                  : <empty>
                         default                       : <empty>
                         firstAbcAnnotationProcessor   : <empty>
                         firstAbcApi                   : <empty>
@@ -729,8 +713,6 @@ MODULE                        : MultiFlavor
                         firstAbcSecondAbcDebugUnitTestAnnotationProcessorClasspath  : <empty>
                         firstAbcSecondAbcDebugUnitTestCompileClasspath    : <empty>
                         firstAbcSecondAbcDebugUnitTestRuntimeClasspath    : <empty>
-                        firstAbcSecondAbcDebugWearApp : <empty>
-                        firstAbcSecondAbcDebugWearBundling      : <empty>
                         firstAbcSecondAbcImplementation         : <empty>
                         firstAbcSecondAbcReleaseAnnotationProcessor       : <empty>
                         firstAbcSecondAbcReleaseAnnotationProcessorClasspath        : <empty>
@@ -747,10 +729,7 @@ MODULE                        : MultiFlavor
                         firstAbcSecondAbcReleaseUnitTestAnnotationProcessorClasspath          : <empty>
                         firstAbcSecondAbcReleaseUnitTestCompileClasspath  : <empty>
                         firstAbcSecondAbcReleaseUnitTestRuntimeClasspath  : <empty>
-                        firstAbcSecondAbcReleaseWearApp         : <empty>
-                        firstAbcSecondAbcReleaseWearBundling    : <empty>
                         firstAbcSecondAbcRuntimeOnly  : <empty>
-                        firstAbcSecondAbcWearApp      : <empty>
                         firstAbcSecondXyzAnnotationProcessor    : <empty>
                         firstAbcSecondXyzApi          : <empty>
                         firstAbcSecondXyzCompileOnly  : <empty>
@@ -773,8 +752,6 @@ MODULE                        : MultiFlavor
                         firstAbcSecondXyzDebugUnitTestAnnotationProcessorClasspath  : <empty>
                         firstAbcSecondXyzDebugUnitTestCompileClasspath    : <empty>
                         firstAbcSecondXyzDebugUnitTestRuntimeClasspath    : <empty>
-                        firstAbcSecondXyzDebugWearApp : <empty>
-                        firstAbcSecondXyzDebugWearBundling      : <empty>
                         firstAbcSecondXyzImplementation         : <empty>
                         firstAbcSecondXyzReleaseAnnotationProcessor       : <empty>
                         firstAbcSecondXyzReleaseAnnotationProcessorClasspath        : <empty>
@@ -791,11 +768,7 @@ MODULE                        : MultiFlavor
                         firstAbcSecondXyzReleaseUnitTestAnnotationProcessorClasspath          : <empty>
                         firstAbcSecondXyzReleaseUnitTestCompileClasspath  : <empty>
                         firstAbcSecondXyzReleaseUnitTestRuntimeClasspath  : <empty>
-                        firstAbcSecondXyzReleaseWearApp         : <empty>
-                        firstAbcSecondXyzReleaseWearBundling    : <empty>
                         firstAbcSecondXyzRuntimeOnly  : <empty>
-                        firstAbcSecondXyzWearApp      : <empty>
-                        firstAbcWearApp               : <empty>
                         firstXyzAnnotationProcessor   : <empty>
                         firstXyzApi                   : <empty>
                         firstXyzCompileOnly           : <empty>
@@ -824,8 +797,6 @@ MODULE                        : MultiFlavor
                         firstXyzSecondAbcDebugUnitTestAnnotationProcessorClasspath  : <empty>
                         firstXyzSecondAbcDebugUnitTestCompileClasspath    : <empty>
                         firstXyzSecondAbcDebugUnitTestRuntimeClasspath    : <empty>
-                        firstXyzSecondAbcDebugWearApp : <empty>
-                        firstXyzSecondAbcDebugWearBundling      : <empty>
                         firstXyzSecondAbcImplementation         : <empty>
                         firstXyzSecondAbcReleaseAnnotationProcessor       : <empty>
                         firstXyzSecondAbcReleaseAnnotationProcessorClasspath        : <empty>
@@ -842,10 +813,7 @@ MODULE                        : MultiFlavor
                         firstXyzSecondAbcReleaseUnitTestAnnotationProcessorClasspath          : <empty>
                         firstXyzSecondAbcReleaseUnitTestCompileClasspath  : <empty>
                         firstXyzSecondAbcReleaseUnitTestRuntimeClasspath  : <empty>
-                        firstXyzSecondAbcReleaseWearApp         : <empty>
-                        firstXyzSecondAbcReleaseWearBundling    : <empty>
                         firstXyzSecondAbcRuntimeOnly  : <empty>
-                        firstXyzSecondAbcWearApp      : <empty>
                         firstXyzSecondXyzAnnotationProcessor    : <empty>
                         firstXyzSecondXyzApi          : <empty>
                         firstXyzSecondXyzCompileOnly  : <empty>
@@ -868,8 +836,6 @@ MODULE                        : MultiFlavor
                         firstXyzSecondXyzDebugUnitTestAnnotationProcessorClasspath  : <empty>
                         firstXyzSecondXyzDebugUnitTestCompileClasspath    : <empty>
                         firstXyzSecondXyzDebugUnitTestRuntimeClasspath    : <empty>
-                        firstXyzSecondXyzDebugWearApp : <empty>
-                        firstXyzSecondXyzDebugWearBundling      : <empty>
                         firstXyzSecondXyzImplementation         : <empty>
                         firstXyzSecondXyzReleaseAnnotationProcessor       : <empty>
                         firstXyzSecondXyzReleaseAnnotationProcessorClasspath        : <empty>
@@ -886,11 +852,7 @@ MODULE                        : MultiFlavor
                         firstXyzSecondXyzReleaseUnitTestAnnotationProcessorClasspath          : <empty>
                         firstXyzSecondXyzReleaseUnitTestCompileClasspath  : <empty>
                         firstXyzSecondXyzReleaseUnitTestRuntimeClasspath  : <empty>
-                        firstXyzSecondXyzReleaseWearApp         : <empty>
-                        firstXyzSecondXyzReleaseWearBundling    : <empty>
                         firstXyzSecondXyzRuntimeOnly  : <empty>
-                        firstXyzSecondXyzWearApp      : <empty>
-                        firstXyzWearApp               : <empty>
                         implementation                : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -900,7 +862,6 @@ MODULE                        : MultiFlavor
                         releaseCompileOnlyApi         : <empty>
                         releaseImplementation         : <empty>
                         releaseRuntimeOnly            : <empty>
-                        releaseWearApp                : <empty>
                         runtimeOnly                   : <empty>
                         secondAbcAnnotationProcessor  : <empty>
                         secondAbcApi                  : <empty>
@@ -908,21 +869,18 @@ MODULE                        : MultiFlavor
                         secondAbcCompileOnlyApi       : <empty>
                         secondAbcImplementation       : <empty>
                         secondAbcRuntimeOnly          : <empty>
-                        secondAbcWearApp              : <empty>
                         secondXyzAnnotationProcessor  : <empty>
                         secondXyzApi                  : <empty>
                         secondXyzCompileOnly          : <empty>
                         secondXyzCompileOnlyApi       : <empty>
                         secondXyzImplementation       : <empty>
                         secondXyzRuntimeOnly          : <empty>
-                        secondXyzWearApp              : <empty>
                         testAnnotationProcessor       : <empty>
                         testCompileOnly               : <empty>
                         testDebugAnnotationProcessor  : <empty>
                         testDebugCompileOnly          : <empty>
                         testDebugImplementation       : <empty>
                         testDebugRuntimeOnly          : <empty>
-                        testDebugWearApp              : <empty>
                         testFirstAbcAnnotationProcessor         : <empty>
                         testFirstAbcCompileOnly       : <empty>
                         testFirstAbcImplementation    : <empty>
@@ -933,31 +891,24 @@ MODULE                        : MultiFlavor
                         testFirstAbcSecondAbcDebugCompileOnly   : <empty>
                         testFirstAbcSecondAbcDebugImplementation          : <empty>
                         testFirstAbcSecondAbcDebugRuntimeOnly   : <empty>
-                        testFirstAbcSecondAbcDebugWearApp       : <empty>
                         testFirstAbcSecondAbcImplementation     : <empty>
                         testFirstAbcSecondAbcReleaseAnnotationProcessor   : <empty>
                         testFirstAbcSecondAbcReleaseCompileOnly : <empty>
                         testFirstAbcSecondAbcReleaseImplementation        : <empty>
                         testFirstAbcSecondAbcReleaseRuntimeOnly : <empty>
-                        testFirstAbcSecondAbcReleaseWearApp     : <empty>
                         testFirstAbcSecondAbcRuntimeOnly        : <empty>
-                        testFirstAbcSecondAbcWearApp  : <empty>
                         testFirstAbcSecondXyzAnnotationProcessor          : <empty>
                         testFirstAbcSecondXyzCompileOnly        : <empty>
                         testFirstAbcSecondXyzDebugAnnotationProcessor     : <empty>
                         testFirstAbcSecondXyzDebugCompileOnly   : <empty>
                         testFirstAbcSecondXyzDebugImplementation          : <empty>
                         testFirstAbcSecondXyzDebugRuntimeOnly   : <empty>
-                        testFirstAbcSecondXyzDebugWearApp       : <empty>
                         testFirstAbcSecondXyzImplementation     : <empty>
                         testFirstAbcSecondXyzReleaseAnnotationProcessor   : <empty>
                         testFirstAbcSecondXyzReleaseCompileOnly : <empty>
                         testFirstAbcSecondXyzReleaseImplementation        : <empty>
                         testFirstAbcSecondXyzReleaseRuntimeOnly : <empty>
-                        testFirstAbcSecondXyzReleaseWearApp     : <empty>
                         testFirstAbcSecondXyzRuntimeOnly        : <empty>
-                        testFirstAbcSecondXyzWearApp  : <empty>
-                        testFirstAbcWearApp           : <empty>
                         testFirstXyzAnnotationProcessor         : <empty>
                         testFirstXyzCompileOnly       : <empty>
                         testFirstXyzImplementation    : <empty>
@@ -968,31 +919,24 @@ MODULE                        : MultiFlavor
                         testFirstXyzSecondAbcDebugCompileOnly   : <empty>
                         testFirstXyzSecondAbcDebugImplementation          : <empty>
                         testFirstXyzSecondAbcDebugRuntimeOnly   : <empty>
-                        testFirstXyzSecondAbcDebugWearApp       : <empty>
                         testFirstXyzSecondAbcImplementation     : <empty>
                         testFirstXyzSecondAbcReleaseAnnotationProcessor   : <empty>
                         testFirstXyzSecondAbcReleaseCompileOnly : <empty>
                         testFirstXyzSecondAbcReleaseImplementation        : <empty>
                         testFirstXyzSecondAbcReleaseRuntimeOnly : <empty>
-                        testFirstXyzSecondAbcReleaseWearApp     : <empty>
                         testFirstXyzSecondAbcRuntimeOnly        : <empty>
-                        testFirstXyzSecondAbcWearApp  : <empty>
                         testFirstXyzSecondXyzAnnotationProcessor          : <empty>
                         testFirstXyzSecondXyzCompileOnly        : <empty>
                         testFirstXyzSecondXyzDebugAnnotationProcessor     : <empty>
                         testFirstXyzSecondXyzDebugCompileOnly   : <empty>
                         testFirstXyzSecondXyzDebugImplementation          : <empty>
                         testFirstXyzSecondXyzDebugRuntimeOnly   : <empty>
-                        testFirstXyzSecondXyzDebugWearApp       : <empty>
                         testFirstXyzSecondXyzImplementation     : <empty>
                         testFirstXyzSecondXyzReleaseAnnotationProcessor   : <empty>
                         testFirstXyzSecondXyzReleaseCompileOnly : <empty>
                         testFirstXyzSecondXyzReleaseImplementation        : <empty>
                         testFirstXyzSecondXyzReleaseRuntimeOnly : <empty>
-                        testFirstXyzSecondXyzReleaseWearApp     : <empty>
                         testFirstXyzSecondXyzRuntimeOnly        : <empty>
-                        testFirstXyzSecondXyzWearApp  : <empty>
-                        testFirstXyzWearApp           : <empty>
                         testFixturesAnnotationProcessor         : <empty>
                         testFixturesApi               : <empty>
                         testFixturesCompileOnly       : <empty>
@@ -1003,21 +947,18 @@ MODULE                        : MultiFlavor
                         testFixturesDebugCompileOnlyApi         : <empty>
                         testFixturesDebugImplementation         : <empty>
                         testFixturesDebugRuntimeOnly  : <empty>
-                        testFixturesDebugWearApp      : <empty>
                         testFixturesFirstAbcAnnotationProcessor : <empty>
                         testFixturesFirstAbcApi       : <empty>
                         testFixturesFirstAbcCompileOnly         : <empty>
                         testFixturesFirstAbcCompileOnlyApi      : <empty>
                         testFixturesFirstAbcImplementation      : <empty>
                         testFixturesFirstAbcRuntimeOnly         : <empty>
-                        testFixturesFirstAbcWearApp   : <empty>
                         testFixturesFirstXyzAnnotationProcessor : <empty>
                         testFixturesFirstXyzApi       : <empty>
                         testFixturesFirstXyzCompileOnly         : <empty>
                         testFixturesFirstXyzCompileOnlyApi      : <empty>
                         testFixturesFirstXyzImplementation      : <empty>
                         testFixturesFirstXyzRuntimeOnly         : <empty>
-                        testFixturesFirstXyzWearApp   : <empty>
                         testFixturesImplementation    : <empty>
                         testFixturesReleaseAnnotationProcessor  : <empty>
                         testFixturesReleaseApi        : <empty>
@@ -1025,7 +966,6 @@ MODULE                        : MultiFlavor
                         testFixturesReleaseCompileOnlyApi       : <empty>
                         testFixturesReleaseImplementation       : <empty>
                         testFixturesReleaseRuntimeOnly          : <empty>
-                        testFixturesReleaseWearApp    : <empty>
                         testFixturesRuntimeOnly       : <empty>
                         testFixturesSecondAbcAnnotationProcessor          : <empty>
                         testFixturesSecondAbcApi      : <empty>
@@ -1033,34 +973,26 @@ MODULE                        : MultiFlavor
                         testFixturesSecondAbcCompileOnlyApi     : <empty>
                         testFixturesSecondAbcImplementation     : <empty>
                         testFixturesSecondAbcRuntimeOnly        : <empty>
-                        testFixturesSecondAbcWearApp  : <empty>
                         testFixturesSecondXyzAnnotationProcessor          : <empty>
                         testFixturesSecondXyzApi      : <empty>
                         testFixturesSecondXyzCompileOnly        : <empty>
                         testFixturesSecondXyzCompileOnlyApi     : <empty>
                         testFixturesSecondXyzImplementation     : <empty>
                         testFixturesSecondXyzRuntimeOnly        : <empty>
-                        testFixturesSecondXyzWearApp  : <empty>
-                        testFixturesWearApp           : <empty>
                         testImplementation            : <empty>
                         testReleaseAnnotationProcessor          : <empty>
                         testReleaseCompileOnly        : <empty>
                         testReleaseImplementation     : <empty>
                         testReleaseRuntimeOnly        : <empty>
-                        testReleaseWearApp            : <empty>
                         testRuntimeOnly               : <empty>
                         testSecondAbcAnnotationProcessor        : <empty>
                         testSecondAbcCompileOnly      : <empty>
                         testSecondAbcImplementation   : <empty>
                         testSecondAbcRuntimeOnly      : <empty>
-                        testSecondAbcWearApp          : <empty>
                         testSecondXyzAnnotationProcessor        : <empty>
                         testSecondXyzCompileOnly      : <empty>
                         testSecondXyzImplementation   : <empty>
                         testSecondXyzRuntimeOnly      : <empty>
-                        testSecondXyzWearApp          : <empty>
-                        testWearApp                   : <empty>
-                        wearApp                       : <empty>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testFirstAbcSecondAbcDebugUnitTest      : testFirstAbcSecondAbcDebugUnitTest (DefaultExternalTask)

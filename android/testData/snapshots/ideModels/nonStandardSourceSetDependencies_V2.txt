@@ -793,7 +793,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         androidTestDebugImplementationDependenciesMetadata          : <empty>
                         androidTestDebugIntransitiveDependenciesMetadata  : <empty>
                         androidTestDebugRuntimeOnly   : <empty>
-                        androidTestDebugWearApp       : <empty>
                         androidTestImplementation     : <empty>
                         androidTestImplementationDependenciesMetadata     : <empty>
                         androidTestIntransitiveDependenciesMetadata       : <empty>
@@ -806,10 +805,8 @@ MODULE                        : NonStandardSourceSetDependencies
                         androidTestReleaseImplementationDependenciesMetadata        : <empty>
                         androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
                         androidTestReleaseRuntimeOnly : <empty>
-                        androidTestReleaseWearApp     : <empty>
                         androidTestRuntimeOnly        : <empty>
                         androidTestUtil               : <empty>
-                        androidTestWearApp            : <empty>
                         annotationProcessor           : <empty>
                         api                           : <empty>
                         apiDependenciesMetadata       : <empty>
@@ -868,8 +865,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         debugUnitTestIntransitiveDependenciesMetadata     : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
                         debugUnitTestRuntimeOnly      : <empty>
-                        debugWearApp                  : <empty>
-                        debugWearBundling             : <empty>
                         default                       : <empty>
                         implementation                : <empty>
                         implementationDependenciesMetadata      : <empty>
@@ -923,8 +918,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
                         releaseUnitTestRuntimeClasspath         : <empty>
                         releaseUnitTestRuntimeOnly    : <empty>
-                        releaseWearApp                : <empty>
-                        releaseWearBundling           : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -942,7 +935,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         testDebugImplementationDependenciesMetadata       : <empty>
                         testDebugIntransitiveDependenciesMetadata         : <empty>
                         testDebugRuntimeOnly          : <empty>
-                        testDebugWearApp              : <empty>
                         testFixturesAnnotationProcessor         : <empty>
                         testFixturesApi               : <empty>
                         testFixturesApiDependenciesMetadata     : <empty>
@@ -959,7 +951,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         testFixturesDebugImplementationDependenciesMetadata         : <empty>
                         testFixturesDebugIntransitiveDependenciesMetadata : <empty>
                         testFixturesDebugRuntimeOnly  : <empty>
-                        testFixturesDebugWearApp      : <empty>
                         testFixturesImplementation    : <empty>
                         testFixturesImplementationDependenciesMetadata    : <empty>
                         testFixturesIntransitiveDependenciesMetadata      : <empty>
@@ -973,9 +964,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         testFixturesReleaseImplementationDependenciesMetadata       : <empty>
                         testFixturesReleaseIntransitiveDependenciesMetadata         : <empty>
                         testFixturesReleaseRuntimeOnly          : <empty>
-                        testFixturesReleaseWearApp    : <empty>
                         testFixturesRuntimeOnly       : <empty>
-                        testFixturesWearApp           : <empty>
                         testImplementation            : <empty>
                         testImplementationDependenciesMetadata  : <empty>
                         testIntransitiveDependenciesMetadata    : <empty>
@@ -988,10 +977,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         testReleaseImplementationDependenciesMetadata     : <empty>
                         testReleaseIntransitiveDependenciesMetadata       : <empty>
                         testReleaseRuntimeOnly        : <empty>
-                        testReleaseWearApp            : <empty>
                         testRuntimeOnly               : <empty>
-                        testWearApp                   : <empty>
-                        wearApp                       : <empty>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -1325,7 +1311,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         androidTestDebugImplementationDependenciesMetadata          : <empty>
                         androidTestDebugIntransitiveDependenciesMetadata  : <empty>
                         androidTestDebugRuntimeOnly   : <empty>
-                        androidTestDebugWearApp       : <empty>
                         androidTestImplementation     : <empty>
                         androidTestImplementationDependenciesMetadata     : <empty>
                         androidTestIntransitiveDependenciesMetadata       : <empty>
@@ -1338,10 +1323,8 @@ MODULE                        : NonStandardSourceSetDependencies
                         androidTestReleaseImplementationDependenciesMetadata        : <empty>
                         androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
                         androidTestReleaseRuntimeOnly : <empty>
-                        androidTestReleaseWearApp     : <empty>
                         androidTestRuntimeOnly        : <empty>
                         androidTestUtil               : <empty>
-                        androidTestWearApp            : <empty>
                         annotationProcessor           : <empty>
                         api                           : <empty>
                         apiDependenciesMetadata       : <empty>
@@ -1404,7 +1387,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         debugUnitTestIntransitiveDependenciesMetadata     : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
                         debugUnitTestRuntimeOnly      : <empty>
-                        debugWearApp                  : <empty>
                         default                       : <empty>
                         implementation                : <empty>
                         implementationDependenciesMetadata      : <empty>
@@ -1462,7 +1444,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
                         releaseUnitTestRuntimeClasspath         : <empty>
                         releaseUnitTestRuntimeOnly    : <empty>
-                        releaseWearApp                : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -1480,7 +1461,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         testDebugImplementationDependenciesMetadata       : <empty>
                         testDebugIntransitiveDependenciesMetadata         : <empty>
                         testDebugRuntimeOnly          : <empty>
-                        testDebugWearApp              : <empty>
                         testFixturesAnnotationProcessor         : <empty>
                         testFixturesApi               : <empty>
                         testFixturesApiDependenciesMetadata     : <empty>
@@ -1497,7 +1477,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         testFixturesDebugImplementationDependenciesMetadata         : <empty>
                         testFixturesDebugIntransitiveDependenciesMetadata : <empty>
                         testFixturesDebugRuntimeOnly  : <empty>
-                        testFixturesDebugWearApp      : <empty>
                         testFixturesImplementation    : <empty>
                         testFixturesImplementationDependenciesMetadata    : <empty>
                         testFixturesIntransitiveDependenciesMetadata      : <empty>
@@ -1511,9 +1490,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         testFixturesReleaseImplementationDependenciesMetadata       : <empty>
                         testFixturesReleaseIntransitiveDependenciesMetadata         : <empty>
                         testFixturesReleaseRuntimeOnly          : <empty>
-                        testFixturesReleaseWearApp    : <empty>
                         testFixturesRuntimeOnly       : <empty>
-                        testFixturesWearApp           : <empty>
                         testImplementation            : <empty>
                         testImplementationDependenciesMetadata  : <empty>
                         testIntransitiveDependenciesMetadata    : <empty>
@@ -1526,10 +1503,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         testReleaseImplementationDependenciesMetadata     : <empty>
                         testReleaseIntransitiveDependenciesMetadata       : <empty>
                         testReleaseRuntimeOnly        : <empty>
-                        testReleaseWearApp            : <empty>
                         testRuntimeOnly               : <empty>
-                        testWearApp                   : <empty>
-                        wearApp                       : <empty>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -1651,16 +1625,13 @@ MODULE                        : NonStandardSourceSetDependencies
                         androidTestDebugCompileOnly   : <empty>
                         androidTestDebugImplementation          : <empty>
                         androidTestDebugRuntimeOnly   : <empty>
-                        androidTestDebugWearApp       : <empty>
                         androidTestImplementation     : <empty>
                         androidTestReleaseAnnotationProcessor   : <empty>
                         androidTestReleaseCompileOnly : <empty>
                         androidTestReleaseImplementation        : <empty>
                         androidTestReleaseRuntimeOnly : <empty>
-                        androidTestReleaseWearApp     : <empty>
                         androidTestRuntimeOnly        : <empty>
                         androidTestUtil               : <empty>
-                        androidTestWearApp            : <empty>
                         androidUnitTestApi            : <empty>
                         androidUnitTestApiDependenciesMetadata  : <empty>
                         androidUnitTestCompileOnly    : <empty>
@@ -1733,7 +1704,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         debugUnitTestAnnotationProcessorClasspath         : <empty>
                         debugUnitTestCompileClasspath : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
-                        debugWearApp                  : <empty>
                         default                       : <empty>
                         implementation                : <empty>
                         kotlinBouncyCastleConfiguration         : <empty>
@@ -1776,7 +1746,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         releaseUnitTestAnnotationProcessorClasspath       : <empty>
                         releaseUnitTestCompileClasspath         : <empty>
                         releaseUnitTestRuntimeClasspath         : <empty>
-                        releaseWearApp                : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -1786,7 +1755,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         testDebugCompileOnly          : <empty>
                         testDebugImplementation       : <empty>
                         testDebugRuntimeOnly          : <empty>
-                        testDebugWearApp              : <empty>
                         testFixturesAnnotationProcessor         : <empty>
                         testFixturesApi               : <empty>
                         testFixturesCompileOnly       : <empty>
@@ -1797,7 +1765,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         testFixturesDebugCompileOnlyApi         : <empty>
                         testFixturesDebugImplementation         : <empty>
                         testFixturesDebugRuntimeOnly  : <empty>
-                        testFixturesDebugWearApp      : <empty>
                         testFixturesImplementation    : <empty>
                         testFixturesReleaseAnnotationProcessor  : <empty>
                         testFixturesReleaseApi        : <empty>
@@ -1805,18 +1772,13 @@ MODULE                        : NonStandardSourceSetDependencies
                         testFixturesReleaseCompileOnlyApi       : <empty>
                         testFixturesReleaseImplementation       : <empty>
                         testFixturesReleaseRuntimeOnly          : <empty>
-                        testFixturesReleaseWearApp    : <empty>
                         testFixturesRuntimeOnly       : <empty>
-                        testFixturesWearApp           : <empty>
                         testImplementation            : <empty>
                         testReleaseAnnotationProcessor          : <empty>
                         testReleaseCompileOnly        : <empty>
                         testReleaseImplementation     : <empty>
                         testReleaseRuntimeOnly        : <empty>
-                        testReleaseWearApp            : <empty>
                         testRuntimeOnly               : <empty>
-                        testWearApp                   : <empty>
-                        wearApp                       : <empty>
                     - additionalArtifacts         : <ROOT>/feature-b/build/libs/feature-b-metadata.jar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
@@ -2278,16 +2240,13 @@ MODULE                        : NonStandardSourceSetDependencies
                                 androidTestDebugCompileOnly   : <empty>
                                 androidTestDebugImplementation          : <empty>
                                 androidTestDebugRuntimeOnly   : <empty>
-                                androidTestDebugWearApp       : <empty>
                                 androidTestImplementation     : <empty>
                                 androidTestReleaseAnnotationProcessor   : <empty>
                                 androidTestReleaseCompileOnly : <empty>
                                 androidTestReleaseImplementation        : <empty>
                                 androidTestReleaseRuntimeOnly : <empty>
-                                androidTestReleaseWearApp     : <empty>
                                 androidTestRuntimeOnly        : <empty>
                                 androidTestUtil               : <empty>
-                                androidTestWearApp            : <empty>
                                 annotationProcessor           : <empty>
                                 api                           : <empty>
                                 archives                      : <empty>
@@ -2311,7 +2270,6 @@ MODULE                        : NonStandardSourceSetDependencies
                                 debugUnitTestAnnotationProcessorClasspath         : <empty>
                                 debugUnitTestCompileClasspath : <empty>
                                 debugUnitTestRuntimeClasspath : <empty>
-                                debugWearApp                  : <empty>
                                 default                       : <empty>
                                 implementation                : <empty>
                                 lintChecks                    : <empty>
@@ -2330,7 +2288,6 @@ MODULE                        : NonStandardSourceSetDependencies
                                 releaseUnitTestAnnotationProcessorClasspath       : <empty>
                                 releaseUnitTestCompileClasspath         : <empty>
                                 releaseUnitTestRuntimeClasspath         : <empty>
-                                releaseWearApp                : <empty>
                                 runtimeOnly                   : <empty>
                                 testAnnotationProcessor       : <empty>
                                 testCompileOnly               : <empty>
@@ -2338,7 +2295,6 @@ MODULE                        : NonStandardSourceSetDependencies
                                 testDebugCompileOnly          : <empty>
                                 testDebugImplementation       : <empty>
                                 testDebugRuntimeOnly          : <empty>
-                                testDebugWearApp              : <empty>
                                 testFixturesAnnotationProcessor         : <empty>
                                 testFixturesApi               : <empty>
                                 testFixturesCompileOnly       : <empty>
@@ -2349,7 +2305,6 @@ MODULE                        : NonStandardSourceSetDependencies
                                 testFixturesDebugCompileOnlyApi         : <empty>
                                 testFixturesDebugImplementation         : <empty>
                                 testFixturesDebugRuntimeOnly  : <empty>
-                                testFixturesDebugWearApp      : <empty>
                                 testFixturesImplementation    : <empty>
                                 testFixturesReleaseAnnotationProcessor  : <empty>
                                 testFixturesReleaseApi        : <empty>
@@ -2357,18 +2312,13 @@ MODULE                        : NonStandardSourceSetDependencies
                                 testFixturesReleaseCompileOnlyApi       : <empty>
                                 testFixturesReleaseImplementation       : <empty>
                                 testFixturesReleaseRuntimeOnly          : <empty>
-                                testFixturesReleaseWearApp    : <empty>
                                 testFixturesRuntimeOnly       : <empty>
-                                testFixturesWearApp           : <empty>
                                 testImplementation            : <empty>
                                 testReleaseAnnotationProcessor          : <empty>
                                 testReleaseCompileOnly        : <empty>
                                 testReleaseImplementation     : <empty>
                                 testReleaseRuntimeOnly        : <empty>
-                                testReleaseWearApp            : <empty>
                                 testRuntimeOnly               : <empty>
-                                testWearApp                   : <empty>
-                                wearApp                       : <empty>
                         taskModel                     : DefaultGradleTaskModel
                             tasks
                                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -2428,7 +2378,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         androidTestDebugImplementationDependenciesMetadata          : <empty>
                         androidTestDebugIntransitiveDependenciesMetadata  : <empty>
                         androidTestDebugRuntimeOnly   : <empty>
-                        androidTestDebugWearApp       : <empty>
                         androidTestImplementation     : <empty>
                         androidTestImplementationDependenciesMetadata     : <empty>
                         androidTestIntransitiveDependenciesMetadata       : <empty>
@@ -2441,10 +2390,8 @@ MODULE                        : NonStandardSourceSetDependencies
                         androidTestReleaseImplementationDependenciesMetadata        : <empty>
                         androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
                         androidTestReleaseRuntimeOnly : <empty>
-                        androidTestReleaseWearApp     : <empty>
                         androidTestRuntimeOnly        : <empty>
                         androidTestUtil               : <empty>
-                        androidTestWearApp            : <empty>
                         annotationProcessor           : <empty>
                         api                           : <empty>
                         apiDependenciesMetadata       : <empty>
@@ -2507,7 +2454,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         debugUnitTestIntransitiveDependenciesMetadata     : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
                         debugUnitTestRuntimeOnly      : <empty>
-                        debugWearApp                  : <empty>
                         default                       : <empty>
                         implementation                : <empty>
                         implementationDependenciesMetadata      : <empty>
@@ -2566,7 +2512,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
                         releaseUnitTestRuntimeClasspath         : <empty>
                         releaseUnitTestRuntimeOnly    : <empty>
-                        releaseWearApp                : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -2584,7 +2529,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         testDebugImplementationDependenciesMetadata       : <empty>
                         testDebugIntransitiveDependenciesMetadata         : <empty>
                         testDebugRuntimeOnly          : <empty>
-                        testDebugWearApp              : <empty>
                         testFixturesAnnotationProcessor         : <empty>
                         testFixturesApi               : <empty>
                         testFixturesApiDependenciesMetadata     : <empty>
@@ -2601,7 +2545,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         testFixturesDebugImplementationDependenciesMetadata         : <empty>
                         testFixturesDebugIntransitiveDependenciesMetadata : <empty>
                         testFixturesDebugRuntimeOnly  : <empty>
-                        testFixturesDebugWearApp      : <empty>
                         testFixturesImplementation    : <empty>
                         testFixturesImplementationDependenciesMetadata    : <empty>
                         testFixturesIntransitiveDependenciesMetadata      : <empty>
@@ -2615,9 +2558,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         testFixturesReleaseImplementationDependenciesMetadata       : <empty>
                         testFixturesReleaseIntransitiveDependenciesMetadata         : <empty>
                         testFixturesReleaseRuntimeOnly          : <empty>
-                        testFixturesReleaseWearApp    : <empty>
                         testFixturesRuntimeOnly       : <empty>
-                        testFixturesWearApp           : <empty>
                         testImplementation            : <empty>
                         testImplementationDependenciesMetadata  : <empty>
                         testIntransitiveDependenciesMetadata    : <empty>
@@ -2630,10 +2571,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         testReleaseImplementationDependenciesMetadata     : <empty>
                         testReleaseIntransitiveDependenciesMetadata       : <empty>
                         testReleaseRuntimeOnly        : <empty>
-                        testReleaseWearApp            : <empty>
                         testRuntimeOnly               : <empty>
-                        testWearApp                   : <empty>
-                        wearApp                       : <empty>
                     - additionalArtifacts         : <ROOT>/lib/build/libs/manual-test-fixtures.jar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks

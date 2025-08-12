@@ -626,7 +626,6 @@ MODULE                        : My_First_App
                                 androidTestDebugImplementationDependenciesMetadata          : <empty>
                                 androidTestDebugIntransitiveDependenciesMetadata  : <empty>
                                 androidTestDebugRuntimeOnly   : <empty>
-                                androidTestDebugWearApp       : <empty>
                                 androidTestImplementation     : <empty>
                                 androidTestImplementationDependenciesMetadata     : <empty>
                                 androidTestIntransitiveDependenciesMetadata       : <empty>
@@ -639,10 +638,8 @@ MODULE                        : My_First_App
                                 androidTestReleaseImplementationDependenciesMetadata        : <empty>
                                 androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
                                 androidTestReleaseRuntimeOnly : <empty>
-                                androidTestReleaseWearApp     : <empty>
                                 androidTestRuntimeOnly        : <empty>
                                 androidTestUtil               : <empty>
-                                androidTestWearApp            : <empty>
                                 annotationProcessor           : <empty>
                                 api                           : <empty>
                                 apiDependenciesMetadata       : <empty>
@@ -705,7 +702,6 @@ MODULE                        : My_First_App
                                 debugUnitTestIntransitiveDependenciesMetadata     : <empty>
                                 debugUnitTestRuntimeClasspath : <empty>
                                 debugUnitTestRuntimeOnly      : <empty>
-                                debugWearApp                  : <empty>
                                 default                       : <empty>
                                 implementation                : <empty>
                                 implementationDependenciesMetadata      : <empty>
@@ -763,7 +759,6 @@ MODULE                        : My_First_App
                                 releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
                                 releaseUnitTestRuntimeClasspath         : <empty>
                                 releaseUnitTestRuntimeOnly    : <empty>
-                                releaseWearApp                : <empty>
                                 runtimeOnly                   : <empty>
                                 swiftExportClasspath          : <empty>
                                 swiftExportClasspathResolvable          : <empty>
@@ -781,7 +776,6 @@ MODULE                        : My_First_App
                                 testDebugImplementationDependenciesMetadata       : <empty>
                                 testDebugIntransitiveDependenciesMetadata         : <empty>
                                 testDebugRuntimeOnly          : <empty>
-                                testDebugWearApp              : <empty>
                                 testFixturesAnnotationProcessor         : <empty>
                                 testFixturesApi               : <empty>
                                 testFixturesApiDependenciesMetadata     : <empty>
@@ -798,7 +792,6 @@ MODULE                        : My_First_App
                                 testFixturesDebugImplementationDependenciesMetadata         : <empty>
                                 testFixturesDebugIntransitiveDependenciesMetadata : <empty>
                                 testFixturesDebugRuntimeOnly  : <empty>
-                                testFixturesDebugWearApp      : <empty>
                                 testFixturesImplementation    : <empty>
                                 testFixturesImplementationDependenciesMetadata    : <empty>
                                 testFixturesIntransitiveDependenciesMetadata      : <empty>
@@ -812,9 +805,7 @@ MODULE                        : My_First_App
                                 testFixturesReleaseImplementationDependenciesMetadata       : <empty>
                                 testFixturesReleaseIntransitiveDependenciesMetadata         : <empty>
                                 testFixturesReleaseRuntimeOnly          : <empty>
-                                testFixturesReleaseWearApp    : <empty>
                                 testFixturesRuntimeOnly       : <empty>
-                                testFixturesWearApp           : <empty>
                                 testImplementation            : <empty>
                                 testImplementationDependenciesMetadata  : <empty>
                                 testIntransitiveDependenciesMetadata    : <empty>
@@ -827,10 +818,7 @@ MODULE                        : My_First_App
                                 testReleaseImplementationDependenciesMetadata     : <empty>
                                 testReleaseIntransitiveDependenciesMetadata       : <empty>
                                 testReleaseRuntimeOnly        : <empty>
-                                testReleaseWearApp            : <empty>
                                 testRuntimeOnly               : <empty>
-                                testWearApp                   : <empty>
-                                wearApp                       : <empty>
                         taskModel                     : DefaultGradleTaskModel
                             tasks
                                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -869,7 +857,6 @@ MODULE                        : My_First_App
                         androidTestDebugImplementationDependenciesMetadata          : <empty>
                         androidTestDebugIntransitiveDependenciesMetadata  : <empty>
                         androidTestDebugRuntimeOnly   : <empty>
-                        androidTestDebugWearApp       : <empty>
                         androidTestImplementation     : <empty>
                         androidTestImplementationDependenciesMetadata     : <empty>
                         androidTestIntransitiveDependenciesMetadata       : <empty>
@@ -882,10 +869,8 @@ MODULE                        : My_First_App
                         androidTestReleaseImplementationDependenciesMetadata        : <empty>
                         androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
                         androidTestReleaseRuntimeOnly : <empty>
-                        androidTestReleaseWearApp     : <empty>
                         androidTestRuntimeOnly        : <empty>
                         androidTestUtil               : <empty>
-                        androidTestWearApp            : <empty>
                         annotationProcessor           : <empty>
                         api                           : <empty>
                         apiDependenciesMetadata       : <empty>
@@ -944,8 +929,6 @@ MODULE                        : My_First_App
                         debugUnitTestIntransitiveDependenciesMetadata     : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
                         debugUnitTestRuntimeOnly      : <empty>
-                        debugWearApp                  : <empty>
-                        debugWearBundling             : <empty>
                         default                       : <empty>
                         implementation                : <empty>
                         implementationDependenciesMetadata      : <empty>
@@ -999,8 +982,6 @@ MODULE                        : My_First_App
                         releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
                         releaseUnitTestRuntimeClasspath         : <empty>
                         releaseUnitTestRuntimeOnly    : <empty>
-                        releaseWearApp                : <empty>
-                        releaseWearBundling           : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -1018,7 +999,6 @@ MODULE                        : My_First_App
                         testDebugImplementationDependenciesMetadata       : <empty>
                         testDebugIntransitiveDependenciesMetadata         : <empty>
                         testDebugRuntimeOnly          : <empty>
-                        testDebugWearApp              : <empty>
                         testFixturesAnnotationProcessor         : <empty>
                         testFixturesApi               : <empty>
                         testFixturesApiDependenciesMetadata     : <empty>
@@ -1035,7 +1015,6 @@ MODULE                        : My_First_App
                         testFixturesDebugImplementationDependenciesMetadata         : <empty>
                         testFixturesDebugIntransitiveDependenciesMetadata : <empty>
                         testFixturesDebugRuntimeOnly  : <empty>
-                        testFixturesDebugWearApp      : <empty>
                         testFixturesImplementation    : <empty>
                         testFixturesImplementationDependenciesMetadata    : <empty>
                         testFixturesIntransitiveDependenciesMetadata      : <empty>
@@ -1049,9 +1028,7 @@ MODULE                        : My_First_App
                         testFixturesReleaseImplementationDependenciesMetadata       : <empty>
                         testFixturesReleaseIntransitiveDependenciesMetadata         : <empty>
                         testFixturesReleaseRuntimeOnly          : <empty>
-                        testFixturesReleaseWearApp    : <empty>
                         testFixturesRuntimeOnly       : <empty>
-                        testFixturesWearApp           : <empty>
                         testImplementation            : <empty>
                         testImplementationDependenciesMetadata  : <empty>
                         testIntransitiveDependenciesMetadata    : <empty>
@@ -1064,10 +1041,7 @@ MODULE                        : My_First_App
                         testReleaseImplementationDependenciesMetadata     : <empty>
                         testReleaseIntransitiveDependenciesMetadata       : <empty>
                         testReleaseRuntimeOnly        : <empty>
-                        testReleaseWearApp            : <empty>
                         testRuntimeOnly               : <empty>
-                        testWearApp                   : <empty>
-                        wearApp                       : <empty>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)

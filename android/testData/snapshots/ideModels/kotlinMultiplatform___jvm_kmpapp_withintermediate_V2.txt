@@ -727,16 +727,13 @@ MODULE                        : kotlinMultiPlatform
                         androidTestDebugCompileOnly   : <empty>
                         androidTestDebugImplementation          : <empty>
                         androidTestDebugRuntimeOnly   : <empty>
-                        androidTestDebugWearApp       : <empty>
                         androidTestImplementation     : <empty>
                         androidTestReleaseAnnotationProcessor   : <empty>
                         androidTestReleaseCompileOnly : <empty>
                         androidTestReleaseImplementation        : <empty>
                         androidTestReleaseRuntimeOnly : <empty>
-                        androidTestReleaseWearApp     : <empty>
                         androidTestRuntimeOnly        : <empty>
                         androidTestUtil               : <empty>
-                        androidTestWearApp            : <empty>
                         androidUnitTestApi            : <empty>
                         androidUnitTestApiDependenciesMetadata  : <empty>
                         androidUnitTestCompileOnly    : <empty>
@@ -807,8 +804,6 @@ MODULE                        : kotlinMultiPlatform
                         debugUnitTestAnnotationProcessorClasspath         : <empty>
                         debugUnitTestCompileClasspath : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
-                        debugWearApp                  : <empty>
-                        debugWearBundling             : <empty>
                         default                       : <empty>
                         implementation                : <empty>
                         - jvmApiElements              : <ROOT>/app/build/libs/app-jvm.jar [-]
@@ -898,8 +893,6 @@ MODULE                        : kotlinMultiPlatform
                         releaseUnitTestAnnotationProcessorClasspath       : <empty>
                         releaseUnitTestCompileClasspath         : <empty>
                         releaseUnitTestRuntimeClasspath         : <empty>
-                        releaseWearApp                : <empty>
-                        releaseWearBundling           : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -909,7 +902,6 @@ MODULE                        : kotlinMultiPlatform
                         testDebugCompileOnly          : <empty>
                         testDebugImplementation       : <empty>
                         testDebugRuntimeOnly          : <empty>
-                        testDebugWearApp              : <empty>
                         testFixturesAnnotationProcessor         : <empty>
                         testFixturesApi               : <empty>
                         testFixturesCompileOnly       : <empty>
@@ -920,7 +912,6 @@ MODULE                        : kotlinMultiPlatform
                         testFixturesDebugCompileOnlyApi         : <empty>
                         testFixturesDebugImplementation         : <empty>
                         testFixturesDebugRuntimeOnly  : <empty>
-                        testFixturesDebugWearApp      : <empty>
                         testFixturesImplementation    : <empty>
                         testFixturesReleaseAnnotationProcessor  : <empty>
                         testFixturesReleaseApi        : <empty>
@@ -928,9 +919,7 @@ MODULE                        : kotlinMultiPlatform
                         testFixturesReleaseCompileOnlyApi       : <empty>
                         testFixturesReleaseImplementation       : <empty>
                         testFixturesReleaseRuntimeOnly          : <empty>
-                        testFixturesReleaseWearApp    : <empty>
                         testFixturesRuntimeOnly       : <empty>
-                        testFixturesWearApp           : <empty>
                         testImplementation            : <empty>
                         testKotlinScriptDef           : <empty>
                         testKotlinScriptDefExtensions : <empty>
@@ -938,10 +927,7 @@ MODULE                        : kotlinMultiPlatform
                         testReleaseCompileOnly        : <empty>
                         testReleaseImplementation     : <empty>
                         testReleaseRuntimeOnly        : <empty>
-                        testReleaseWearApp            : <empty>
                         testRuntimeOnly               : <empty>
-                        testWearApp                   : <empty>
-                        wearApp                       : <empty>
                     sourceSets
                         jvmMain
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1123,16 +1109,13 @@ MODULE                        : kotlinMultiPlatform
                         androidTestDebugCompileOnly   : <empty>
                         androidTestDebugImplementation          : <empty>
                         androidTestDebugRuntimeOnly   : <empty>
-                        androidTestDebugWearApp       : <empty>
                         androidTestImplementation     : <empty>
                         androidTestReleaseAnnotationProcessor   : <empty>
                         androidTestReleaseCompileOnly : <empty>
                         androidTestReleaseImplementation        : <empty>
                         androidTestReleaseRuntimeOnly : <empty>
-                        androidTestReleaseWearApp     : <empty>
                         androidTestRuntimeOnly        : <empty>
                         androidTestUtil               : <empty>
-                        androidTestWearApp            : <empty>
                         androidUnitTestApi            : <empty>
                         androidUnitTestApiDependenciesMetadata  : <empty>
                         androidUnitTestCompileOnly    : <empty>
@@ -1206,7 +1189,6 @@ MODULE                        : kotlinMultiPlatform
                         debugUnitTestAnnotationProcessorClasspath         : <empty>
                         debugUnitTestCompileClasspath : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
-                        debugWearApp                  : <empty>
                         default                       : <empty>
                         implementation                : <empty>
                         jvmAndAndroidApi              : <empty>
@@ -1314,7 +1296,6 @@ MODULE                        : kotlinMultiPlatform
                         releaseUnitTestAnnotationProcessorClasspath       : <empty>
                         releaseUnitTestCompileClasspath         : <empty>
                         releaseUnitTestRuntimeClasspath         : <empty>
-                        releaseWearApp                : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -1324,7 +1305,6 @@ MODULE                        : kotlinMultiPlatform
                         testDebugCompileOnly          : <empty>
                         testDebugImplementation       : <empty>
                         testDebugRuntimeOnly          : <empty>
-                        testDebugWearApp              : <empty>
                         testFixturesAnnotationProcessor         : <empty>
                         testFixturesApi               : <empty>
                         testFixturesCompileOnly       : <empty>
@@ -1335,7 +1315,6 @@ MODULE                        : kotlinMultiPlatform
                         testFixturesDebugCompileOnlyApi         : <empty>
                         testFixturesDebugImplementation         : <empty>
                         testFixturesDebugRuntimeOnly  : <empty>
-                        testFixturesDebugWearApp      : <empty>
                         testFixturesImplementation    : <empty>
                         testFixturesReleaseAnnotationProcessor  : <empty>
                         testFixturesReleaseApi        : <empty>
@@ -1343,9 +1322,7 @@ MODULE                        : kotlinMultiPlatform
                         testFixturesReleaseCompileOnlyApi       : <empty>
                         testFixturesReleaseImplementation       : <empty>
                         testFixturesReleaseRuntimeOnly          : <empty>
-                        testFixturesReleaseWearApp    : <empty>
                         testFixturesRuntimeOnly       : <empty>
-                        testFixturesWearApp           : <empty>
                         testImplementation            : <empty>
                         testKotlinScriptDef           : <empty>
                         testKotlinScriptDefExtensions : <empty>
@@ -1353,10 +1330,7 @@ MODULE                        : kotlinMultiPlatform
                         testReleaseCompileOnly        : <empty>
                         testReleaseImplementation     : <empty>
                         testReleaseRuntimeOnly        : <empty>
-                        testReleaseWearApp            : <empty>
                         testRuntimeOnly               : <empty>
-                        testWearApp                   : <empty>
-                        wearApp                       : <empty>
                     sourceSets
                         jvmMain
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>

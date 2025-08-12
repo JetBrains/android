@@ -561,16 +561,13 @@ MODULE                        : project
                         androidTestBasicDebugCompileOnly        : <empty>
                         androidTestBasicDebugImplementation     : <empty>
                         androidTestBasicDebugRuntimeOnly        : <empty>
-                        androidTestBasicDebugWearApp  : <empty>
                         androidTestBasicImplementation          : <empty>
                         androidTestBasicRuntimeOnly   : <empty>
-                        androidTestBasicWearApp       : <empty>
                         androidTestCompileOnly        : <empty>
                         androidTestDebugAnnotationProcessor     : <empty>
                         androidTestDebugCompileOnly   : <empty>
                         androidTestDebugImplementation          : <empty>
                         androidTestDebugRuntimeOnly   : <empty>
-                        androidTestDebugWearApp       : <empty>
                         androidTestImplementation     : <empty>
                         androidTestPaidAnnotationProcessor      : <empty>
                         androidTestPaidCompileOnly    : <empty>
@@ -578,18 +575,14 @@ MODULE                        : project
                         androidTestPaidDebugCompileOnly         : <empty>
                         androidTestPaidDebugImplementation      : <empty>
                         androidTestPaidDebugRuntimeOnly         : <empty>
-                        androidTestPaidDebugWearApp   : <empty>
                         androidTestPaidImplementation : <empty>
                         androidTestPaidRuntimeOnly    : <empty>
-                        androidTestPaidWearApp        : <empty>
                         androidTestReleaseAnnotationProcessor   : <empty>
                         androidTestReleaseCompileOnly : <empty>
                         androidTestReleaseImplementation        : <empty>
                         androidTestReleaseRuntimeOnly : <empty>
-                        androidTestReleaseWearApp     : <empty>
                         androidTestRuntimeOnly        : <empty>
                         androidTestUtil               : <empty>
-                        androidTestWearApp            : <empty>
                         annotationProcessor           : <empty>
                         api                           : <empty>
                         archives                      : <empty>
@@ -615,8 +608,6 @@ MODULE                        : project
                         basicDebugUnitTestAnnotationProcessorClasspath    : <empty>
                         basicDebugUnitTestCompileClasspath      : <empty>
                         basicDebugUnitTestRuntimeClasspath      : <empty>
-                        basicDebugWearApp             : <empty>
-                        basicDebugWearBundling        : <empty>
                         basicImplementation           : <empty>
                         basicReleaseAnnotationProcessor         : <empty>
                         basicReleaseAnnotationProcessorClasspath          : <empty>
@@ -633,10 +624,7 @@ MODULE                        : project
                         basicReleaseUnitTestAnnotationProcessorClasspath  : <empty>
                         basicReleaseUnitTestCompileClasspath    : <empty>
                         basicReleaseUnitTestRuntimeClasspath    : <empty>
-                        basicReleaseWearApp           : <empty>
-                        basicReleaseWearBundling      : <empty>
                         basicRuntimeOnly              : <empty>
-                        basicWearApp                  : <empty>
                         compileOnly                   : <empty>
                         compileOnlyApi                : <empty>
                         coreLibraryDesugaring         : <empty>
@@ -646,7 +634,6 @@ MODULE                        : project
                         debugCompileOnlyApi           : <empty>
                         debugImplementation           : <empty>
                         debugRuntimeOnly              : <empty>
-                        debugWearApp                  : <empty>
                         default                       : <empty>
                         implementation                : <empty>
                         lintChecks                    : <empty>
@@ -673,8 +660,6 @@ MODULE                        : project
                         paidDebugUnitTestAnnotationProcessorClasspath     : <empty>
                         paidDebugUnitTestCompileClasspath       : <empty>
                         paidDebugUnitTestRuntimeClasspath       : <empty>
-                        paidDebugWearApp              : <empty>
-                        paidDebugWearBundling         : <empty>
                         paidImplementation            : <empty>
                         paidReleaseAnnotationProcessor          : <empty>
                         paidReleaseAnnotationProcessorClasspath : <empty>
@@ -691,17 +676,13 @@ MODULE                        : project
                         paidReleaseUnitTestAnnotationProcessorClasspath   : <empty>
                         paidReleaseUnitTestCompileClasspath     : <empty>
                         paidReleaseUnitTestRuntimeClasspath     : <empty>
-                        paidReleaseWearApp            : <empty>
-                        paidReleaseWearBundling       : <empty>
                         paidRuntimeOnly               : <empty>
-                        paidWearApp                   : <empty>
                         releaseAnnotationProcessor    : <empty>
                         releaseApi                    : <empty>
                         releaseCompileOnly            : <empty>
                         releaseCompileOnlyApi         : <empty>
                         releaseImplementation         : <empty>
                         releaseRuntimeOnly            : <empty>
-                        releaseWearApp                : <empty>
                         runtimeOnly                   : <empty>
                         testAnnotationProcessor       : <empty>
                         testBasicAnnotationProcessor  : <empty>
@@ -710,21 +691,17 @@ MODULE                        : project
                         testBasicDebugCompileOnly     : <empty>
                         testBasicDebugImplementation  : <empty>
                         testBasicDebugRuntimeOnly     : <empty>
-                        testBasicDebugWearApp         : <empty>
                         testBasicImplementation       : <empty>
                         testBasicReleaseAnnotationProcessor     : <empty>
                         testBasicReleaseCompileOnly   : <empty>
                         testBasicReleaseImplementation          : <empty>
                         testBasicReleaseRuntimeOnly   : <empty>
-                        testBasicReleaseWearApp       : <empty>
                         testBasicRuntimeOnly          : <empty>
-                        testBasicWearApp              : <empty>
                         testCompileOnly               : <empty>
                         testDebugAnnotationProcessor  : <empty>
                         testDebugCompileOnly          : <empty>
                         testDebugImplementation       : <empty>
                         testDebugRuntimeOnly          : <empty>
-                        testDebugWearApp              : <empty>
                         testFixturesAnnotationProcessor         : <empty>
                         testFixturesApi               : <empty>
                         testFixturesBasicAnnotationProcessor    : <empty>
@@ -733,7 +710,6 @@ MODULE                        : project
                         testFixturesBasicCompileOnlyApi         : <empty>
                         testFixturesBasicImplementation         : <empty>
                         testFixturesBasicRuntimeOnly  : <empty>
-                        testFixturesBasicWearApp      : <empty>
                         testFixturesCompileOnly       : <empty>
                         testFixturesCompileOnlyApi    : <empty>
                         testFixturesDebugAnnotationProcessor    : <empty>
@@ -742,7 +718,6 @@ MODULE                        : project
                         testFixturesDebugCompileOnlyApi         : <empty>
                         testFixturesDebugImplementation         : <empty>
                         testFixturesDebugRuntimeOnly  : <empty>
-                        testFixturesDebugWearApp      : <empty>
                         testFixturesImplementation    : <empty>
                         testFixturesPaidAnnotationProcessor     : <empty>
                         testFixturesPaidApi           : <empty>
@@ -750,16 +725,13 @@ MODULE                        : project
                         testFixturesPaidCompileOnlyApi          : <empty>
                         testFixturesPaidImplementation          : <empty>
                         testFixturesPaidRuntimeOnly   : <empty>
-                        testFixturesPaidWearApp       : <empty>
                         testFixturesReleaseAnnotationProcessor  : <empty>
                         testFixturesReleaseApi        : <empty>
                         testFixturesReleaseCompileOnly          : <empty>
                         testFixturesReleaseCompileOnlyApi       : <empty>
                         testFixturesReleaseImplementation       : <empty>
                         testFixturesReleaseRuntimeOnly          : <empty>
-                        testFixturesReleaseWearApp    : <empty>
                         testFixturesRuntimeOnly       : <empty>
-                        testFixturesWearApp           : <empty>
                         testImplementation            : <empty>
                         testPaidAnnotationProcessor   : <empty>
                         testPaidCompileOnly           : <empty>
@@ -767,23 +739,17 @@ MODULE                        : project
                         testPaidDebugCompileOnly      : <empty>
                         testPaidDebugImplementation   : <empty>
                         testPaidDebugRuntimeOnly      : <empty>
-                        testPaidDebugWearApp          : <empty>
                         testPaidImplementation        : <empty>
                         testPaidReleaseAnnotationProcessor      : <empty>
                         testPaidReleaseCompileOnly    : <empty>
                         testPaidReleaseImplementation : <empty>
                         testPaidReleaseRuntimeOnly    : <empty>
-                        testPaidReleaseWearApp        : <empty>
                         testPaidRuntimeOnly           : <empty>
-                        testPaidWearApp               : <empty>
                         testReleaseAnnotationProcessor          : <empty>
                         testReleaseCompileOnly        : <empty>
                         testReleaseImplementation     : <empty>
                         testReleaseRuntimeOnly        : <empty>
-                        testReleaseWearApp            : <empty>
                         testRuntimeOnly               : <empty>
-                        testWearApp                   : <empty>
-                        wearApp                       : <empty>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testBasicDebugUnitTest        : testBasicDebugUnitTest (DefaultExternalTask)
@@ -829,16 +795,13 @@ MODULE                        : project
                         androidTestDebugCompileOnly   : <empty>
                         androidTestDebugImplementation          : <empty>
                         androidTestDebugRuntimeOnly   : <empty>
-                        androidTestDebugWearApp       : <empty>
                         androidTestImplementation     : <empty>
                         androidTestReleaseAnnotationProcessor   : <empty>
                         androidTestReleaseCompileOnly : <empty>
                         androidTestReleaseImplementation        : <empty>
                         androidTestReleaseRuntimeOnly : <empty>
-                        androidTestReleaseWearApp     : <empty>
                         androidTestRuntimeOnly        : <empty>
                         androidTestUtil               : <empty>
-                        androidTestWearApp            : <empty>
                         annotationProcessor           : <empty>
                         api                           : <empty>
                         archives                      : <empty>
@@ -862,7 +825,6 @@ MODULE                        : project
                         debugUnitTestAnnotationProcessorClasspath         : <empty>
                         debugUnitTestCompileClasspath : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
-                        debugWearApp                  : <empty>
                         default                       : <empty>
                         implementation                : <empty>
                         lintChecks                    : <empty>
@@ -881,7 +843,6 @@ MODULE                        : project
                         releaseUnitTestAnnotationProcessorClasspath       : <empty>
                         releaseUnitTestCompileClasspath         : <empty>
                         releaseUnitTestRuntimeClasspath         : <empty>
-                        releaseWearApp                : <empty>
                         runtimeOnly                   : <empty>
                         testAnnotationProcessor       : <empty>
                         testCompileOnly               : <empty>
@@ -889,7 +850,6 @@ MODULE                        : project
                         testDebugCompileOnly          : <empty>
                         testDebugImplementation       : <empty>
                         testDebugRuntimeOnly          : <empty>
-                        testDebugWearApp              : <empty>
                         testFixturesAnnotationProcessor         : <empty>
                         testFixturesApi               : <empty>
                         testFixturesCompileOnly       : <empty>
@@ -900,7 +860,6 @@ MODULE                        : project
                         testFixturesDebugCompileOnlyApi         : <empty>
                         testFixturesDebugImplementation         : <empty>
                         testFixturesDebugRuntimeOnly  : <empty>
-                        testFixturesDebugWearApp      : <empty>
                         testFixturesImplementation    : <empty>
                         testFixturesReleaseAnnotationProcessor  : <empty>
                         testFixturesReleaseApi        : <empty>
@@ -908,18 +867,13 @@ MODULE                        : project
                         testFixturesReleaseCompileOnlyApi       : <empty>
                         testFixturesReleaseImplementation       : <empty>
                         testFixturesReleaseRuntimeOnly          : <empty>
-                        testFixturesReleaseWearApp    : <empty>
                         testFixturesRuntimeOnly       : <empty>
-                        testFixturesWearApp           : <empty>
                         testImplementation            : <empty>
                         testReleaseAnnotationProcessor          : <empty>
                         testReleaseCompileOnly        : <empty>
                         testReleaseImplementation     : <empty>
                         testReleaseRuntimeOnly        : <empty>
-                        testReleaseWearApp            : <empty>
                         testRuntimeOnly               : <empty>
-                        testWearApp                   : <empty>
-                        wearApp                       : <empty>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)

@@ -785,7 +785,6 @@ MODULE                        : MainActivity
                         androidTestDebugImplementationDependenciesMetadata          : <empty>
                         androidTestDebugIntransitiveDependenciesMetadata  : <empty>
                         androidTestDebugRuntimeOnly   : <empty>
-                        androidTestDebugWearApp       : <empty>
                         androidTestImplementation     : <empty>
                         androidTestImplementationDependenciesMetadata     : <empty>
                         androidTestIntransitiveDependenciesMetadata       : <empty>
@@ -803,12 +802,10 @@ MODULE                        : MainActivity
                         androidTestLocalDebugImplementationDependenciesMetadata     : <empty>
                         androidTestLocalDebugIntransitiveDependenciesMetadata       : <empty>
                         androidTestLocalDebugRuntimeOnly        : <empty>
-                        androidTestLocalDebugWearApp  : <empty>
                         androidTestLocalImplementation          : <empty>
                         androidTestLocalImplementationDependenciesMetadata          : <empty>
                         androidTestLocalIntransitiveDependenciesMetadata  : <empty>
                         androidTestLocalRuntimeOnly   : <empty>
-                        androidTestLocalWearApp       : <empty>
                         androidTestReleaseAnnotationProcessor   : <empty>
                         androidTestReleaseApi         : <empty>
                         androidTestReleaseApiDependenciesMetadata         : <empty>
@@ -818,7 +815,6 @@ MODULE                        : MainActivity
                         androidTestReleaseImplementationDependenciesMetadata        : <empty>
                         androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
                         androidTestReleaseRuntimeOnly : <empty>
-                        androidTestReleaseWearApp     : <empty>
                         androidTestRemoteAnnotationProcessor    : <empty>
                         androidTestRemoteApi          : <empty>
                         androidTestRemoteApiDependenciesMetadata          : <empty>
@@ -833,15 +829,12 @@ MODULE                        : MainActivity
                         androidTestRemoteDebugImplementationDependenciesMetadata    : <empty>
                         androidTestRemoteDebugIntransitiveDependenciesMetadata      : <empty>
                         androidTestRemoteDebugRuntimeOnly       : <empty>
-                        androidTestRemoteDebugWearApp : <empty>
                         androidTestRemoteImplementation         : <empty>
                         androidTestRemoteImplementationDependenciesMetadata         : <empty>
                         androidTestRemoteIntransitiveDependenciesMetadata : <empty>
                         androidTestRemoteRuntimeOnly  : <empty>
-                        androidTestRemoteWearApp      : <empty>
                         androidTestRuntimeOnly        : <empty>
                         androidTestUtil               : <empty>
-                        androidTestWearApp            : <empty>
                         annotationProcessor           : <empty>
                         api                           : <empty>
                         apiDependenciesMetadata       : <empty>
@@ -860,7 +853,6 @@ MODULE                        : MainActivity
                         debugImplementationDependenciesMetadata : <empty>
                         debugIntransitiveDependenciesMetadata   : <empty>
                         debugRuntimeOnly              : <empty>
-                        debugWearApp                  : <empty>
                         default                       : <empty>
                         implementation                : <empty>
                         implementationDependenciesMetadata      : <empty>
@@ -981,8 +973,6 @@ MODULE                        : MainActivity
                         localDebugUnitTestIntransitiveDependenciesMetadata          : <empty>
                         localDebugUnitTestRuntimeClasspath      : <empty>
                         localDebugUnitTestRuntimeOnly : <empty>
-                        localDebugWearApp             : <empty>
-                        localDebugWearBundling        : <empty>
                         localImplementation           : <empty>
                         localImplementationDependenciesMetadata : <empty>
                         localIntransitiveDependenciesMetadata   : <empty>
@@ -1021,10 +1011,7 @@ MODULE                        : MainActivity
                         localReleaseUnitTestIntransitiveDependenciesMetadata        : <empty>
                         localReleaseUnitTestRuntimeClasspath    : <empty>
                         localReleaseUnitTestRuntimeOnly         : <empty>
-                        localReleaseWearApp           : <empty>
-                        localReleaseWearBundling      : <empty>
                         localRuntimeOnly              : <empty>
-                        localWearApp                  : <empty>
                         releaseAnnotationProcessor    : <empty>
                         releaseApi                    : <empty>
                         releaseApiDependenciesMetadata          : <empty>
@@ -1035,7 +1022,6 @@ MODULE                        : MainActivity
                         releaseImplementationDependenciesMetadata         : <empty>
                         releaseIntransitiveDependenciesMetadata : <empty>
                         releaseRuntimeOnly            : <empty>
-                        releaseWearApp                : <empty>
                         remoteAnnotationProcessor     : <empty>
                         remoteApi                     : <empty>
                         remoteApiDependenciesMetadata : <empty>
@@ -1092,8 +1078,6 @@ MODULE                        : MainActivity
                         remoteDebugUnitTestIntransitiveDependenciesMetadata         : <empty>
                         remoteDebugUnitTestRuntimeClasspath     : <empty>
                         remoteDebugUnitTestRuntimeOnly          : <empty>
-                        remoteDebugWearApp            : <empty>
-                        remoteDebugWearBundling       : <empty>
                         remoteImplementation          : <empty>
                         remoteImplementationDependenciesMetadata          : <empty>
                         remoteIntransitiveDependenciesMetadata  : <empty>
@@ -1132,10 +1116,7 @@ MODULE                        : MainActivity
                         remoteReleaseUnitTestIntransitiveDependenciesMetadata       : <empty>
                         remoteReleaseUnitTestRuntimeClasspath   : <empty>
                         remoteReleaseUnitTestRuntimeOnly        : <empty>
-                        remoteReleaseWearApp          : <empty>
-                        remoteReleaseWearBundling     : <empty>
                         remoteRuntimeOnly             : <empty>
-                        remoteWearApp                 : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -1153,7 +1134,6 @@ MODULE                        : MainActivity
                         testDebugImplementationDependenciesMetadata       : <empty>
                         testDebugIntransitiveDependenciesMetadata         : <empty>
                         testDebugRuntimeOnly          : <empty>
-                        testDebugWearApp              : <empty>
                         testFixturesAnnotationProcessor         : <empty>
                         testFixturesApi               : <empty>
                         testFixturesApiDependenciesMetadata     : <empty>
@@ -1170,7 +1150,6 @@ MODULE                        : MainActivity
                         testFixturesDebugImplementationDependenciesMetadata         : <empty>
                         testFixturesDebugIntransitiveDependenciesMetadata : <empty>
                         testFixturesDebugRuntimeOnly  : <empty>
-                        testFixturesDebugWearApp      : <empty>
                         testFixturesImplementation    : <empty>
                         testFixturesImplementationDependenciesMetadata    : <empty>
                         testFixturesIntransitiveDependenciesMetadata      : <empty>
@@ -1184,7 +1163,6 @@ MODULE                        : MainActivity
                         testFixturesLocalImplementationDependenciesMetadata         : <empty>
                         testFixturesLocalIntransitiveDependenciesMetadata : <empty>
                         testFixturesLocalRuntimeOnly  : <empty>
-                        testFixturesLocalWearApp      : <empty>
                         testFixturesReleaseAnnotationProcessor  : <empty>
                         testFixturesReleaseApi        : <empty>
                         testFixturesReleaseApiDependenciesMetadata        : <empty>
@@ -1195,7 +1173,6 @@ MODULE                        : MainActivity
                         testFixturesReleaseImplementationDependenciesMetadata       : <empty>
                         testFixturesReleaseIntransitiveDependenciesMetadata         : <empty>
                         testFixturesReleaseRuntimeOnly          : <empty>
-                        testFixturesReleaseWearApp    : <empty>
                         testFixturesRemoteAnnotationProcessor   : <empty>
                         testFixturesRemoteApi         : <empty>
                         testFixturesRemoteApiDependenciesMetadata         : <empty>
@@ -1206,9 +1183,7 @@ MODULE                        : MainActivity
                         testFixturesRemoteImplementationDependenciesMetadata        : <empty>
                         testFixturesRemoteIntransitiveDependenciesMetadata          : <empty>
                         testFixturesRemoteRuntimeOnly : <empty>
-                        testFixturesRemoteWearApp     : <empty>
                         testFixturesRuntimeOnly       : <empty>
-                        testFixturesWearApp           : <empty>
                         testImplementation            : <empty>
                         testImplementationDependenciesMetadata  : <empty>
                         testIntransitiveDependenciesMetadata    : <empty>
@@ -1226,7 +1201,6 @@ MODULE                        : MainActivity
                         testLocalDebugImplementationDependenciesMetadata  : <empty>
                         testLocalDebugIntransitiveDependenciesMetadata    : <empty>
                         testLocalDebugRuntimeOnly     : <empty>
-                        testLocalDebugWearApp         : <empty>
                         testLocalImplementation       : <empty>
                         testLocalImplementationDependenciesMetadata       : <empty>
                         testLocalIntransitiveDependenciesMetadata         : <empty>
@@ -1239,9 +1213,7 @@ MODULE                        : MainActivity
                         testLocalReleaseImplementationDependenciesMetadata          : <empty>
                         testLocalReleaseIntransitiveDependenciesMetadata  : <empty>
                         testLocalReleaseRuntimeOnly   : <empty>
-                        testLocalReleaseWearApp       : <empty>
                         testLocalRuntimeOnly          : <empty>
-                        testLocalWearApp              : <empty>
                         testReleaseAnnotationProcessor          : <empty>
                         testReleaseApi                : <empty>
                         testReleaseApiDependenciesMetadata      : <empty>
@@ -1251,7 +1223,6 @@ MODULE                        : MainActivity
                         testReleaseImplementationDependenciesMetadata     : <empty>
                         testReleaseIntransitiveDependenciesMetadata       : <empty>
                         testReleaseRuntimeOnly        : <empty>
-                        testReleaseWearApp            : <empty>
                         testRemoteAnnotationProcessor : <empty>
                         testRemoteApi                 : <empty>
                         testRemoteApiDependenciesMetadata       : <empty>
@@ -1266,7 +1237,6 @@ MODULE                        : MainActivity
                         testRemoteDebugImplementationDependenciesMetadata : <empty>
                         testRemoteDebugIntransitiveDependenciesMetadata   : <empty>
                         testRemoteDebugRuntimeOnly    : <empty>
-                        testRemoteDebugWearApp        : <empty>
                         testRemoteImplementation      : <empty>
                         testRemoteImplementationDependenciesMetadata      : <empty>
                         testRemoteIntransitiveDependenciesMetadata        : <empty>
@@ -1279,12 +1249,8 @@ MODULE                        : MainActivity
                         testRemoteReleaseImplementationDependenciesMetadata         : <empty>
                         testRemoteReleaseIntransitiveDependenciesMetadata : <empty>
                         testRemoteReleaseRuntimeOnly  : <empty>
-                        testRemoteReleaseWearApp      : <empty>
                         testRemoteRuntimeOnly         : <empty>
-                        testRemoteWearApp             : <empty>
                         testRuntimeOnly               : <empty>
-                        testWearApp                   : <empty>
-                        wearApp                       : <empty>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testLocalDebugUnitTest        : testLocalDebugUnitTest (DefaultExternalTask)
@@ -1484,7 +1450,6 @@ MODULE                        : MainActivity
                         androidTestDebugImplementationDependenciesMetadata          : <empty>
                         androidTestDebugIntransitiveDependenciesMetadata  : <empty>
                         androidTestDebugRuntimeOnly   : <empty>
-                        androidTestDebugWearApp       : <empty>
                         androidTestImplementation     : <empty>
                         androidTestImplementationDependenciesMetadata     : <empty>
                         androidTestIntransitiveDependenciesMetadata       : <empty>
@@ -1497,10 +1462,8 @@ MODULE                        : MainActivity
                         androidTestReleaseImplementationDependenciesMetadata        : <empty>
                         androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
                         androidTestReleaseRuntimeOnly : <empty>
-                        androidTestReleaseWearApp     : <empty>
                         androidTestRuntimeOnly        : <empty>
                         androidTestUtil               : <empty>
-                        androidTestWearApp            : <empty>
                         annotationProcessor           : <empty>
                         api                           : <empty>
                         apiDependenciesMetadata       : <empty>
@@ -1563,7 +1526,6 @@ MODULE                        : MainActivity
                         debugUnitTestIntransitiveDependenciesMetadata     : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
                         debugUnitTestRuntimeOnly      : <empty>
-                        debugWearApp                  : <empty>
                         default                       : <empty>
                         implementation                : <empty>
                         implementationDependenciesMetadata      : <empty>
@@ -1621,7 +1583,6 @@ MODULE                        : MainActivity
                         releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
                         releaseUnitTestRuntimeClasspath         : <empty>
                         releaseUnitTestRuntimeOnly    : <empty>
-                        releaseWearApp                : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -1639,7 +1600,6 @@ MODULE                        : MainActivity
                         testDebugImplementationDependenciesMetadata       : <empty>
                         testDebugIntransitiveDependenciesMetadata         : <empty>
                         testDebugRuntimeOnly          : <empty>
-                        testDebugWearApp              : <empty>
                         testFixturesAnnotationProcessor         : <empty>
                         testFixturesApi               : <empty>
                         testFixturesApiDependenciesMetadata     : <empty>
@@ -1656,7 +1616,6 @@ MODULE                        : MainActivity
                         testFixturesDebugImplementationDependenciesMetadata         : <empty>
                         testFixturesDebugIntransitiveDependenciesMetadata : <empty>
                         testFixturesDebugRuntimeOnly  : <empty>
-                        testFixturesDebugWearApp      : <empty>
                         testFixturesImplementation    : <empty>
                         testFixturesImplementationDependenciesMetadata    : <empty>
                         testFixturesIntransitiveDependenciesMetadata      : <empty>
@@ -1670,9 +1629,7 @@ MODULE                        : MainActivity
                         testFixturesReleaseImplementationDependenciesMetadata       : <empty>
                         testFixturesReleaseIntransitiveDependenciesMetadata         : <empty>
                         testFixturesReleaseRuntimeOnly          : <empty>
-                        testFixturesReleaseWearApp    : <empty>
                         testFixturesRuntimeOnly       : <empty>
-                        testFixturesWearApp           : <empty>
                         testImplementation            : <empty>
                         testImplementationDependenciesMetadata  : <empty>
                         testIntransitiveDependenciesMetadata    : <empty>
@@ -1685,10 +1642,7 @@ MODULE                        : MainActivity
                         testReleaseImplementationDependenciesMetadata     : <empty>
                         testReleaseIntransitiveDependenciesMetadata       : <empty>
                         testReleaseRuntimeOnly        : <empty>
-                        testReleaseWearApp            : <empty>
                         testRuntimeOnly               : <empty>
-                        testWearApp                   : <empty>
-                        wearApp                       : <empty>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
