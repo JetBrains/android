@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.device.explorer.monitor.ui
+package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 
 import com.android.tools.idea.device.explorer.monitor.processes.ProcessInfo
 
-interface DeviceMonitorActionsListener {
-  val numOfSelectedNodes: Int
-  val selectedProcessInfo: List<ProcessInfo>
-  fun refreshNodes()
-  fun killNodes()
-  fun forceStopNodes()
-  fun debugNodes()
-  fun packageFilterToggled(isActive: Boolean)
-  fun clearAppData()
-  fun uninstallApp()
-  fun backupApplication()
-  fun restoreApplication()
-}
+internal fun List<ProcessInfo>.allHavePackageName() = isNotEmpty() && all { it.packageName!= null }

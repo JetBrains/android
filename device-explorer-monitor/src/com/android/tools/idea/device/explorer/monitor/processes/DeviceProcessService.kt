@@ -18,7 +18,9 @@ package com.android.tools.idea.device.explorer.monitor.processes
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.Client
+import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
+import com.android.ddmlib.InstallException
 import com.android.tools.idea.backup.BackupManager
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDevice
@@ -37,9 +39,9 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.concurrency.AppExecutorUtil
+import java.nio.file.Path
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
-import java.nio.file.Path
 
 @UiThread
 @Service(Service.Level.PROJECT)
@@ -150,6 +152,59 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
           thisLogger().debug("Attach Debugger invoke on a null client, config, or debugger")
           withContext(uiThreadDispatcher) {
             reportError("attach debugger", "Couldn't find process to attach or debugger to use.")
+          }
+        }
+      }
+    }
+  }
+
+  suspend fun clearAppData(process: ProcessInfo, device: IDevice) {
+    if (process.device.serialNumber == device.serialNumber) {
+      withContext(workerThreadDispatcher) {
+        val packageName = process.packageName
+        if (packageName != null) {
+          val receiver = CollectingOutputReceiver()
+          device.executeShellCommand("pm clear $packageName", receiver)
+          val result = receiver.output.trim()
+          if (result != "Success") {
+            thisLogger().info("Clear App Data $packageName failed with output: $result")
+            withContext(uiThreadDispatcher) {
+              reportError("clear app data", "Failed to clear app data.")
+            }
+          }
+        } else {
+          thisLogger().info("Clear App Data $packageName invoked on a null package name")
+          withContext(uiThreadDispatcher) {
+            reportError("clear app data", "Couldn't find package name for process.")
+          }
+        }
+      }
+    }
+  }
+
+  suspend fun uninstallApp(process: ProcessInfo, device: IDevice) {
+    if (process.device.serialNumber == device.serialNumber) {
+      withContext(workerThreadDispatcher) {
+        val packageName = process.packageName
+        if (packageName != null) {
+          try {
+            val result = device.uninstallPackage(packageName)
+            if (result != null) {
+              thisLogger().info("Uninstall App $packageName failed with output: $result")
+              withContext(uiThreadDispatcher) {
+                reportError("uninstall app", "Failed to uninstall app.")
+              }
+            }
+          } catch (e: InstallException) {
+            thisLogger().info("Uninstall App $packageName failed", e)
+            withContext(uiThreadDispatcher) {
+              reportError("uninstall app", "Failed to uninstall app.")
+            }
+          }
+        } else {
+          thisLogger().info("Uninstall App $packageName invoked on a null package name")
+          withContext(uiThreadDispatcher) {
+            reportError("uninstall app", "Couldn't find package name for process.")
           }
         }
       }

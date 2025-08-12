@@ -20,6 +20,7 @@ import com.android.tools.idea.device.explorer.monitor.DeviceMonitorViewListener
 import com.android.tools.idea.device.explorer.monitor.processes.ProcessInfo
 import com.android.tools.idea.device.explorer.monitor.ui.ProcessListTableBuilder.Companion.EMPTY_TREE_TEXT
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.BackupMenuItem
+import com.android.tools.idea.device.explorer.monitor.ui.menu.item.ClearAppDataMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.DebugMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.ForceStopMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.KillMenuItem
@@ -27,16 +28,17 @@ import com.android.tools.idea.device.explorer.monitor.ui.menu.item.MenuContext
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.PackageFilterMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.RefreshMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.RestoreMenuItem
+import com.android.tools.idea.device.explorer.monitor.ui.menu.item.UninstallAppMenuItem
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.execution.RunManager
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import com.intellij.ui.table.JBTable
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import java.awt.BorderLayout
 import javax.swing.JComponent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 class DeviceMonitorViewImpl(
   private val project: Project,
@@ -118,6 +120,16 @@ class DeviceMonitorViewImpl(
     listeners.forEach { it.packageFilterToggled(isActive) }
   }
 
+  override fun clearAppData() {
+    listeners.forEach { it.clearAppData(table.selectedRows) }
+    table.clearSelection()
+  }
+
+  override fun uninstallApp() {
+    listeners.forEach { it.uninstallApp(table.selectedRows) }
+    table.clearSelection()
+  }
+
   override fun backupApplication() {
     listeners.forEach { it.backupApplication(table.selectedRows) }
     table.clearSelection()
@@ -137,6 +149,12 @@ class DeviceMonitorViewImpl(
       addItem(KillMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
       addItem(ForceStopMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
       addItem(DebugMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup, RunManager.getInstance(project)))
+      if (StudioFlags.CLEAR_APP_DATA_ACTION.get()) {
+        addItem(ClearAppDataMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
+      }
+      if (StudioFlags.UNINSTALL_APP_ACTION.get()) {
+        addItem(UninstallAppMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
+      }
       if (StudioFlags.BACKUP_ENABLED.get()) {
         addItem(BackupMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
         addItem(RestoreMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
@@ -150,6 +168,12 @@ class DeviceMonitorViewImpl(
       add(KillMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
       add(ForceStopMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
       add(DebugMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar, RunManager.getInstance(project)).action)
+      if (StudioFlags.CLEAR_APP_DATA_ACTION.get()) {
+        add(ClearAppDataMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
+      }
+      if (StudioFlags.UNINSTALL_APP_ACTION.get()) {
+        add(UninstallAppMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
+      }
       add(RefreshMenuItem(this@DeviceMonitorViewImpl).action)
       if (StudioFlags.DEVICE_EXPLORER_PROCESSES_PACKAGE_FILTER.get()) add(packageFilterMenuItem.action)
     })

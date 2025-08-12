@@ -16,17 +16,19 @@
 package com.android.tools.idea.device.explorer.monitor.mocks
 
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorModel
-import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorView
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorViewListener
+import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorView
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorViewImpl
 import com.android.tools.idea.device.explorer.monitor.ui.ProcessListTableBuilder
+import com.android.tools.idea.device.explorer.monitor.ui.menu.item.ClearAppDataMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.DebugMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.ForceStopMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.MenuContext
+import com.android.tools.idea.device.explorer.monitor.ui.menu.item.UninstallAppMenuItem
 import com.intellij.execution.RunManager
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.CoroutineScope
 import javax.swing.JComponent
+import kotlinx.coroutines.CoroutineScope
 
 class MockDeviceMonitorView(project: Project, model: DeviceMonitorModel): DeviceMonitorView {
   private val table = ProcessListTableBuilder().build(model.tableModel)
@@ -57,6 +59,22 @@ class MockDeviceMonitorView(project: Project, model: DeviceMonitorModel): Device
       table.setRowSelectionInterval(0, 0)
     }
     val menuItem = ForceStopMenuItem(viewImpl, MenuContext.Popup)
+    menuItem.run()
+  }
+
+  fun clearAppDataNodes() {
+    if (table.model.rowCount > 0) {
+      table.setRowSelectionInterval(0, 0)
+    }
+    val menuItem = ClearAppDataMenuItem(viewImpl, MenuContext.Popup)
+    menuItem.run()
+  }
+
+  fun uninstallAppNodes() {
+    if (table.model.rowCount > 0) {
+      table.setRowSelectionInterval(0, 0)
+    }
+    val menuItem = UninstallAppMenuItem(viewImpl, MenuContext.Popup)
     menuItem.run()
   }
 

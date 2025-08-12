@@ -19,9 +19,13 @@ import com.android.ddmlib.ClientData
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.ClientState
 import com.android.fakeadbserver.DeviceState
+import com.android.fakeadbserver.FakeAdbServer
+import com.android.fakeadbserver.ShellProtocolType.SHELL
+import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
+import com.android.fakeadbserver.services.ShellCommandOutput
+import com.android.fakeadbserver.services.StatusWriter
 import com.android.flags.junit.FlagRule
 import com.android.sdklib.AndroidApiLevel
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.device.explorer.common.DeviceExplorerSettings
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorControllerImpl.Companion.getProjectController
 import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceService
@@ -37,10 +41,15 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.registerOrReplaceServiceInstance
+import java.net.Socket
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -49,8 +58,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.mock
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
+
+private const val TIMEOUT_SECONDS: Long = 30
 
 class DeviceMonitorControllerImplTest {
   // TODO(b/417970989): Remove this when we migrate device-explorer-monitor back to adblib
@@ -61,7 +70,11 @@ class DeviceMonitorControllerImplTest {
   private val project: Project
     get() = androidProjectRule.project
 
-  private val fakeAdbRule = FakeAdbRule()
+  private val commandHandler =  TestCommandHandler()
+
+  private val fakeAdbRule = FakeAdbRule().apply {
+    withDeviceCommandHandler(commandHandler)
+  }
 
   @get:Rule
   val ruleChain: RuleChain =
@@ -104,7 +117,7 @@ class DeviceMonitorControllerImplTest {
   }
 
   @Test
-  fun ifControllerIsSetAsProjectKey() = runBlocking(AndroidDispatchers.uiThread) {
+  fun ifControllerIsSetAsProjectKey() = runBlocking(Dispatchers.EDT) {
     // Prepare Act
     val controller = createController()
 
@@ -113,7 +126,7 @@ class DeviceMonitorControllerImplTest {
   }
 
   @Test
-  fun startingController() = runBlocking(AndroidDispatchers.uiThread) {
+  fun startingController() = runBlocking(Dispatchers.EDT) {
     // Prepare
     val controller = createController()
 
@@ -127,7 +140,7 @@ class DeviceMonitorControllerImplTest {
   }
 
   @Test
-  fun connectingSecondDevice() = runBlocking(AndroidDispatchers.uiThread) {
+  fun connectingSecondDevice() = runBlocking(Dispatchers.EDT) {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -149,7 +162,7 @@ class DeviceMonitorControllerImplTest {
   }
 
   @Test
-  fun removingDevice() = runBlocking(AndroidDispatchers.uiThread) {
+  fun removingDevice() = runBlocking(Dispatchers.EDT) {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -165,7 +178,7 @@ class DeviceMonitorControllerImplTest {
   }
 
   @Test
-  fun killProcesses() = runBlocking(AndroidDispatchers.uiThread) {
+  fun killProcesses() = runBlocking(Dispatchers.EDT) {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -187,7 +200,7 @@ class DeviceMonitorControllerImplTest {
   }
 
   @Test
-  fun attachDebuggerToProcesses() = runBlocking(AndroidDispatchers.uiThread) {
+  fun attachDebuggerToProcesses() = runBlocking(Dispatchers.EDT) {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -218,7 +231,7 @@ class DeviceMonitorControllerImplTest {
   }
 
   @Test
-  fun changeInDeviceSelection() = runBlocking(AndroidDispatchers.uiThread) {
+  fun changeInDeviceSelection() = runBlocking(Dispatchers.EDT) {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -240,7 +253,7 @@ class DeviceMonitorControllerImplTest {
   }
 
   @Test
-  fun filterOneProcessOut() = runBlocking(AndroidDispatchers.uiThread) {
+  fun filterOneProcessOut() = runBlocking(Dispatchers.EDT) {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -260,7 +273,7 @@ class DeviceMonitorControllerImplTest {
   }
 
   @Test
-  fun filterAllProcesses() = runBlocking(AndroidDispatchers.uiThread) {
+  fun filterAllProcesses() = runBlocking(Dispatchers.EDT) {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -280,7 +293,7 @@ class DeviceMonitorControllerImplTest {
   }
 
   @Test
-  fun filterProcessesAfterProjectSync() = runBlocking(AndroidDispatchers.uiThread) {
+  fun filterProcessesAfterProjectSync() = runBlocking(Dispatchers.EDT) {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -297,6 +310,41 @@ class DeviceMonitorControllerImplTest {
 
     // Assert
     checkMockViewActiveDevice(1)
+  }
+
+  @Test
+  fun clearAppData(): Unit = runBlocking(Dispatchers.EDT) {
+    // Prepare
+    val controller = createController()
+    controller.setup()
+    waitForServiceToRetrieveInitialDevice()
+    controller.setActiveConnectedDevice(testDeviceHandle1)
+    checkMockViewInitialState()
+
+    // Act
+    mockView.clearAppDataNodes()
+
+    waitForCondition("Expected 'pm clear' to be called", 5) {
+      commandHandler.commands.contains("shell pm clear package-5")
+    }
+  }
+
+  @Test
+  fun uninstallApp(): Unit = runBlocking(Dispatchers.EDT) {
+    // Prepare
+    val controller = createController()
+    controller.setup()
+    waitForServiceToRetrieveInitialDevice()
+    controller.setActiveConnectedDevice(testDeviceHandle1)
+    checkMockViewInitialState()
+
+    // Act
+    mockView.uninstallAppNodes()
+
+    waitForCondition("Expected 'pm uninstall' to be called", 5) {
+      println(commandHandler.commands)
+      commandHandler.commands.contains("shell pm uninstall package-5")
+    }
   }
 
   private fun createController(): DeviceMonitorControllerImpl {
@@ -329,8 +377,12 @@ class DeviceMonitorControllerImplTest {
     )
   }
 
-  private suspend fun waitForCondition(failureMessage: String, condition: () -> Boolean) {
-    val nano = TimeUnit.MILLISECONDS.toNanos(TIMEOUT_MILLISECONDS)
+  private suspend fun waitForCondition(
+    failureMessage: String,
+    timeoutSec:  Long = TIMEOUT_SECONDS,
+    condition: () -> Boolean,
+    ) {
+    val nano = TimeUnit.SECONDS.toNanos(timeoutSec)
     val startNano = System.nanoTime()
     val endNano = startNano + nano
 
@@ -338,12 +390,34 @@ class DeviceMonitorControllerImplTest {
       if (condition.invoke()) {
         return
       }
-
       delay(50L)
     }
-
     throw TimeoutException(failureMessage)
   }
 
-  private val TIMEOUT_MILLISECONDS: Long = 30_000
+  private class TestCommandHandler : DeviceCommandHandler("") {
+    val commands = mutableListOf<String>()
+
+    override fun accept(
+      server: FakeAdbServer,
+      socketScope: CoroutineScope,
+      socket: Socket,
+      device: DeviceState,
+      command: String,
+      args: String,
+      statusWriter: StatusWriter,
+      shellCommandOutputProvider: (() -> ShellCommandOutput)?,
+    ): Boolean {
+      val output = shellCommandOutputProvider?.invoke() ?: SHELL.createServiceOutput(socket, device)
+      if (command == "shell" && (args.startsWith("pm clear ") || args.startsWith("pm uninstall "))) {
+        statusWriter.writeOk()
+        output.writeStdout("Success")
+        // remove any excess spaces from the args because IDevice.uninstallPackage() actually
+        // executes `pm uninstall  <package>` (2 spaced before the package name
+        commands.add("$command ${args.split(" +".toRegex()).joinToString(" ") { it }}")
+        return true
+      }
+      return false
+    }
+  }
 }

@@ -34,10 +34,10 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
+import javax.swing.JComponent
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import javax.swing.JComponent
 
 @UiThread
 class DeviceMonitorControllerImpl(
@@ -160,6 +160,20 @@ class DeviceMonitorControllerImpl(
 
     override fun packageFilterToggled(isActive: Boolean) {
       controllerListener?.packageFilterToggled(isActive)
+    }
+
+    override fun clearAppData(rows: IntArray) {
+      uiThreadScope.launch {
+        model.clearAppData(rows)
+        trackAction(DeviceExplorerEvent.Action.CLEAR_APP_DATA_CLICKED)
+      }
+    }
+
+    override fun uninstallApp(rows: IntArray) {
+      uiThreadScope.launch {
+        model.uninstallApp(rows)
+        trackAction(DeviceExplorerEvent.Action.UNINSTALL_APP_CLICKED)
+      }
     }
 
     override fun backupApplication(rows: IntArray) {

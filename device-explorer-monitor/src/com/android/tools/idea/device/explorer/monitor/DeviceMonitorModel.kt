@@ -105,6 +105,22 @@ class DeviceMonitorModel @NonInjectable constructor(
     }
   }
 
+  suspend fun clearAppData(rows: IntArray) {
+    invokeOnProcessInfo(rows) { processInfo ->
+      activeDevice?.let {
+        processService.clearAppData(processInfo, it.device)
+      }
+    }
+  }
+
+  suspend fun uninstallApp(rows: IntArray) {
+    invokeOnProcessInfo(rows) { processInfo ->
+      activeDevice?.let {
+        processService.uninstallApp(processInfo, it.device)
+      }
+    }
+  }
+
   suspend fun backupApplication(project: Project, rows: IntArray) {
     val adbDevice = activeDevice ?: return
     assert(rows.size == 1)

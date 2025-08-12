@@ -2495,6 +2495,23 @@ public final class StudioFlags {
     );
   // endregion deprecation policy
 
+  // region Device Explorer
+  private static final FlagGroup DEVICE_EXPLORER = new FlagGroup(FLAGS, "deviceexplorer", "Device Explorer");
+  public static final Flag<Boolean> CLEAR_APP_DATA_ACTION =
+    new BooleanFlag(
+      DEVICE_EXPLORER,
+      "clear.app.data.action",
+      "Show an action for Clear App Data",
+      "Show an action for Clear App Data");
+  public static final Flag<Boolean> UNINSTALL_APP_ACTION =
+    new BooleanFlag(
+      DEVICE_EXPLORER,
+      "uninstall.app.action",
+      "Show an action for Uninstall App",
+      "Show an action for Uninstall App");
+  // endregion Device Explorer
+
+
   private StudioFlags() { }
 
   private static Boolean isUnitTestMode() {
