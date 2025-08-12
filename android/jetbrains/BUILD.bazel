@@ -19,12 +19,6 @@ kt_javac_options(
 )
 
 jvm_library(
-  name = "jetbrains",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
-)
-
-jvm_library(
   name = "jetbrains_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),

@@ -206,12 +206,6 @@ jps_test(
 
 ### auto-generated section `build intellij.android.streaming.tests` start
 jvm_library(
-  name = "streaming-tests",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
-)
-
-jvm_library(
   name = "streaming-tests_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["testSrc/testApp/**/*"]),
