@@ -17,7 +17,7 @@ package com.android.tools.idea.testing
 
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoThreadLocalsCleaner
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition
 import com.android.tools.idea.sdk.AndroidSdks
