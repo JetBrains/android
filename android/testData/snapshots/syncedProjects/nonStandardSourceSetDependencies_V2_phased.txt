@@ -164,14 +164,12 @@ PROJECT                       : NonStandardSourceSetDependencies
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -272,13 +270,11 @@ PROJECT                       : NonStandardSourceSetDependencies
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -372,14 +368,12 @@ PROJECT                       : NonStandardSourceSetDependencies
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -952,14 +946,12 @@ PROJECT                       : NonStandardSourceSetDependencies
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-a/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-a/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-a/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-a/src/androidTest/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-a/src/androidTestDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-a/src/androidTestDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-a/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-a/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-a/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-a/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-a/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1102,13 +1094,11 @@ PROJECT                       : NonStandardSourceSetDependencies
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-a/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-a/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-a/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-a/src/debug/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-a/src/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-a/src/main/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-a/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-a/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-a/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-a/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1222,14 +1212,12 @@ PROJECT                       : NonStandardSourceSetDependencies
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-a/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-a/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-a/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-a/src/test/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-a/src/testDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-a/src/testDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-a/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-a/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-a/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-a/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-a/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1438,26 +1426,22 @@ PROJECT                       : NonStandardSourceSetDependencies
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidInstrumentedTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidInstrumentedTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidInstrumentedTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidInstrumentedTest/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidInstrumentedTestDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidInstrumentedTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidInstrumentedTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidInstrumentedTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidInstrumentedTestDebug/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTest/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidTest/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTestDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTestDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1565,12 +1549,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/src/androidDebug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/androidDebug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/androidDebug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/src/androidDebug/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/androidMain/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/src/androidMain/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/androidMain/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/androidMain/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/src/androidMain/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/src/commonMain/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/commonMain/resources [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/debug/assets [-]
@@ -1579,14 +1561,12 @@ PROJECT                       : NonStandardSourceSetDependencies
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/src/debug/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/main/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/src/main/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1684,12 +1664,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidUnitTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidUnitTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidUnitTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidUnitTest/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidUnitTestDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidUnitTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidUnitTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidUnitTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidUnitTestDebug/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/commonTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/commonTest/resources [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/test/assets [-]
@@ -1698,14 +1676,12 @@ PROJECT                       : NonStandardSourceSetDependencies
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/test/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/testDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/testDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -2121,14 +2097,12 @@ PROJECT                       : NonStandardSourceSetDependencies
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/androidTest/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/androidTestDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/androidTestDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -2191,13 +2165,11 @@ PROJECT                       : NonStandardSourceSetDependencies
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmp-java/sample-test/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmp-java/sample-test/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmp-java/sample-test/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmp-java/sample-test/src/debug/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmp-java/sample-test/src/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmp-java/sample-test/src/main/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmp-java/sample-test/src/main/java [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmp-java/sample-test/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmp-java/sample-test/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmp-java/sample-test/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -2260,14 +2232,12 @@ PROJECT                       : NonStandardSourceSetDependencies
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/test/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/testDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/testDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -2689,14 +2659,12 @@ PROJECT                       : NonStandardSourceSetDependencies
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTestDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTestDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -2817,13 +2785,11 @@ PROJECT                       : NonStandardSourceSetDependencies
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -2910,14 +2876,12 @@ PROJECT                       : NonStandardSourceSetDependencies
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK

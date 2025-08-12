@@ -1900,7 +1900,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             ResDirectories                : <ROOT>/androidLib/src/main/res [-]
             AssetsDirectories             : <ROOT>/androidLib/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/androidLib/src/main/jniLibs [-]
-            ShadersDirectories            : <ROOT>/androidLib/src/main/shaders [-]
             BaselineProfileDirectories    : <ROOT>/androidLib/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -1915,7 +1914,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/androidTest/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/androidTest/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -1929,7 +1927,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/test/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/test/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/test/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
@@ -1951,7 +1948,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             ResDirectories                : <ROOT>/androidLib/src/debug/res [-]
             AssetsDirectories             : <ROOT>/androidLib/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/androidLib/src/debug/jniLibs [-]
-            ShadersDirectories            : <ROOT>/androidLib/src/debug/shaders [-]
             BaselineProfileDirectories    : <ROOT>/androidLib/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -1966,7 +1962,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/androidTestDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/androidTestDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -1981,7 +1976,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/testDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/testDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
@@ -2002,7 +1996,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             ResDirectories                : <ROOT>/androidLib/src/release/res [-]
             AssetsDirectories             : <ROOT>/androidLib/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/androidLib/src/release/jniLibs [-]
-            ShadersDirectories            : <ROOT>/androidLib/src/release/shaders [-]
             BaselineProfileDirectories    : <ROOT>/androidLib/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2017,7 +2010,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/testRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/testRelease/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/testRelease/baselineProfiles [-]
     ProductFlavors
         ProductFlavor
@@ -2034,7 +2026,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             ResDirectories                : <ROOT>/androidLib/src/typeone/res [-]
             AssetsDirectories             : <ROOT>/androidLib/src/typeone/assets [-]
             JniLibsDirectories            : <ROOT>/androidLib/src/typeone/jniLibs [-]
-            ShadersDirectories            : <ROOT>/androidLib/src/typeone/shaders [-]
             BaselineProfileDirectories    : <ROOT>/androidLib/src/typeone/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2049,7 +2040,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/androidTestTypeone/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/androidTestTypeone/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/androidTestTypeone/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/androidTestTypeone/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTestTypeone/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2063,7 +2053,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/testTypeone/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/testTypeone/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/testTypeone/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/testTypeone/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/testTypeone/baselineProfiles [-]
         ProductFlavor
             Name                          : typetwo
@@ -2079,7 +2068,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             ResDirectories                : <ROOT>/androidLib/src/typetwo/res [-]
             AssetsDirectories             : <ROOT>/androidLib/src/typetwo/assets [-]
             JniLibsDirectories            : <ROOT>/androidLib/src/typetwo/jniLibs [-]
-            ShadersDirectories            : <ROOT>/androidLib/src/typetwo/shaders [-]
             BaselineProfileDirectories    : <ROOT>/androidLib/src/typetwo/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2094,7 +2082,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/androidTestTypetwo/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/androidTestTypetwo/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/androidTestTypetwo/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/androidTestTypetwo/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTestTypetwo/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2108,7 +2095,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/testTypetwo/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/testTypetwo/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/testTypetwo/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/testTypetwo/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/testTypetwo/baselineProfiles [-]
         ProductFlavor
             Name                          : modeone
@@ -2124,7 +2110,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             ResDirectories                : <ROOT>/androidLib/src/modeone/res [-]
             AssetsDirectories             : <ROOT>/androidLib/src/modeone/assets [-]
             JniLibsDirectories            : <ROOT>/androidLib/src/modeone/jniLibs [-]
-            ShadersDirectories            : <ROOT>/androidLib/src/modeone/shaders [-]
             BaselineProfileDirectories    : <ROOT>/androidLib/src/modeone/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2139,7 +2124,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/androidTestModeone/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/androidTestModeone/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/androidTestModeone/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/androidTestModeone/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTestModeone/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2153,7 +2137,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/testModeone/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/testModeone/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/testModeone/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/testModeone/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/testModeone/baselineProfiles [-]
         ProductFlavor
             Name                          : modetwo
@@ -2169,7 +2152,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             ResDirectories                : <ROOT>/androidLib/src/modetwo/res [-]
             AssetsDirectories             : <ROOT>/androidLib/src/modetwo/assets [-]
             JniLibsDirectories            : <ROOT>/androidLib/src/modetwo/jniLibs [-]
-            ShadersDirectories            : <ROOT>/androidLib/src/modetwo/shaders [-]
             BaselineProfileDirectories    : <ROOT>/androidLib/src/modetwo/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2184,7 +2166,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/androidTestModetwo/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/androidTestModetwo/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/androidTestModetwo/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/androidTestModetwo/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTestModetwo/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2198,7 +2179,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/testModetwo/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/testModetwo/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/testModetwo/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/testModetwo/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/testModetwo/baselineProfiles [-]
     SigningConfigs
         SigningConfig
@@ -2273,7 +2253,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/typeoneModetwoDebug/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/typeoneModetwoDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/typeoneModetwoDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/typeoneModetwoDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/typeoneModetwoDebug/baselineProfiles [-]
                 MultiFlavorSourceProvider
                     Name                          : typeoneModetwo
@@ -2285,7 +2264,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/typeoneModetwo/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/typeoneModetwo/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/typeoneModetwo/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/typeoneModetwo/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/typeoneModetwo/baselineProfiles [-]
                 Dependencies
                     compileClasspath
@@ -2315,7 +2293,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/androidTestTypeoneModetwoDebug/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/androidTestTypeoneModetwoDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/androidTestTypeoneModetwoDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/androidTestTypeoneModetwoDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTestTypeoneModetwoDebug/baselineProfiles [-]
                 MultiFlavorSourceProvider
                     Name                          : androidTestTypeoneModetwo
@@ -2327,7 +2304,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/androidTestTypeoneModetwo/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/androidTestTypeoneModetwo/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/androidTestTypeoneModetwo/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/androidTestTypeoneModetwo/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTestTypeoneModetwo/baselineProfiles [-]
                 Dependencies
                     compileClasspath
@@ -2365,7 +2341,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResourcesDirectories          : <ROOT>/androidLib/src/testTypeoneModetwoDebug/resources [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/testTypeoneModetwoDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/testTypeoneModetwoDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/testTypeoneModetwoDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/testTypeoneModetwoDebug/baselineProfiles [-]
                 MultiFlavorSourceProvider
                     Name                          : testTypeoneModetwo
@@ -2377,7 +2352,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/testTypeoneModetwo/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/testTypeoneModetwo/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/testTypeoneModetwo/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/testTypeoneModetwo/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/testTypeoneModetwo/baselineProfiles [-]
                 Dependencies
                     compileClasspath
@@ -2492,7 +2466,6 @@ MODULE                        : Kotlin_Multiplatform.app
             ResDirectories                : <ROOT>/app/src/main/res [-]
             AssetsDirectories             : <ROOT>/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
-            ShadersDirectories            : <ROOT>/app/src/main/shaders [-]
             BaselineProfileDirectories    : <ROOT>/app/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2507,7 +2480,6 @@ MODULE                        : Kotlin_Multiplatform.app
                     ResDirectories                : <ROOT>/app/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/androidTest/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2521,7 +2493,6 @@ MODULE                        : Kotlin_Multiplatform.app
                     ResDirectories                : <ROOT>/app/src/test/res [-]
                     AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
@@ -2543,7 +2514,6 @@ MODULE                        : Kotlin_Multiplatform.app
             ResDirectories                : <ROOT>/app/src/debug/res [-]
             AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
-            ShadersDirectories            : <ROOT>/app/src/debug/shaders [-]
             BaselineProfileDirectories    : <ROOT>/app/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2558,7 +2528,6 @@ MODULE                        : Kotlin_Multiplatform.app
                     ResDirectories                : <ROOT>/app/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/androidTestDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2573,7 +2542,6 @@ MODULE                        : Kotlin_Multiplatform.app
                     ResDirectories                : <ROOT>/app/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
@@ -2594,7 +2562,6 @@ MODULE                        : Kotlin_Multiplatform.app
             ResDirectories                : <ROOT>/app/src/release/res [-]
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
-            ShadersDirectories            : <ROOT>/app/src/release/shaders [-]
             BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2609,7 +2576,6 @@ MODULE                        : Kotlin_Multiplatform.app
                     ResDirectories                : <ROOT>/app/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testRelease/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig

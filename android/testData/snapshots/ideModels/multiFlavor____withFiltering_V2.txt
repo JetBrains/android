@@ -407,7 +407,6 @@ MODULE                        : MultiFlavor.app
             ResDirectories                : <ROOT>/app/src/main/res
             AssetsDirectories             : <ROOT>/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
-            ShadersDirectories            : <ROOT>/app/src/main/shaders [-]
             BaselineProfileDirectories    : <ROOT>/app/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -422,7 +421,6 @@ MODULE                        : MultiFlavor.app
                     ResDirectories                : <ROOT>/app/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/androidTest/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -436,7 +434,6 @@ MODULE                        : MultiFlavor.app
                     ResDirectories                : <ROOT>/app/src/test/res [-]
                     AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
@@ -465,7 +462,6 @@ MODULE                        : MultiFlavor.app
             ResDirectories                : <ROOT>/app/src/debug/res [-]
             AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
-            ShadersDirectories            : <ROOT>/app/src/debug/shaders [-]
             BaselineProfileDirectories    : <ROOT>/app/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -480,7 +476,6 @@ MODULE                        : MultiFlavor.app
                     ResDirectories                : <ROOT>/app/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/androidTestDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -495,7 +490,6 @@ MODULE                        : MultiFlavor.app
                     ResDirectories                : <ROOT>/app/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
@@ -524,7 +518,6 @@ MODULE                        : MultiFlavor.app
             ResDirectories                : <ROOT>/app/src/release/res [-]
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
-            ShadersDirectories            : <ROOT>/app/src/release/shaders [-]
             BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -539,7 +532,6 @@ MODULE                        : MultiFlavor.app
                     ResDirectories                : <ROOT>/app/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testRelease/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testRelease/baselineProfiles [-]
     ProductFlavors
         ProductFlavor
@@ -564,7 +556,6 @@ MODULE                        : MultiFlavor.app
             ResDirectories                : <ROOT>/app/src/firstAbc/res [-]
             AssetsDirectories             : <ROOT>/app/src/firstAbc/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/firstAbc/jniLibs [-]
-            ShadersDirectories            : <ROOT>/app/src/firstAbc/shaders [-]
             BaselineProfileDirectories    : <ROOT>/app/src/firstAbc/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -579,7 +570,6 @@ MODULE                        : MultiFlavor.app
                     ResDirectories                : <ROOT>/app/src/androidTestFirstAbc/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestFirstAbc/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestFirstAbc/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/androidTestFirstAbc/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTestFirstAbc/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -593,7 +583,6 @@ MODULE                        : MultiFlavor.app
                     ResDirectories                : <ROOT>/app/src/testFirstAbc/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testFirstAbc/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testFirstAbc/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testFirstAbc/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testFirstAbc/baselineProfiles [-]
         ProductFlavor
             Name                          : firstXyz
@@ -628,7 +617,6 @@ MODULE                        : MultiFlavor.app
             ResDirectories                : <ROOT>/app/src/secondAbc/res [-]
             AssetsDirectories             : <ROOT>/app/src/secondAbc/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/secondAbc/jniLibs [-]
-            ShadersDirectories            : <ROOT>/app/src/secondAbc/shaders [-]
             BaselineProfileDirectories    : <ROOT>/app/src/secondAbc/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -643,7 +631,6 @@ MODULE                        : MultiFlavor.app
                     ResDirectories                : <ROOT>/app/src/androidTestSecondAbc/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestSecondAbc/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestSecondAbc/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/androidTestSecondAbc/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTestSecondAbc/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -657,7 +644,6 @@ MODULE                        : MultiFlavor.app
                     ResDirectories                : <ROOT>/app/src/testSecondAbc/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testSecondAbc/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testSecondAbc/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testSecondAbc/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testSecondAbc/baselineProfiles [-]
         ProductFlavor
             Name                          : secondXyz
@@ -745,7 +731,6 @@ MODULE                        : MultiFlavor.app
                     ResDirectories                : <ROOT>/app/src/firstAbcSecondAbcDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/firstAbcSecondAbcDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/firstAbcSecondAbcDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/firstAbcSecondAbcDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/firstAbcSecondAbcDebug/baselineProfiles [-]
                 MultiFlavorSourceProvider
                     Name                          : firstAbcSecondAbc
@@ -758,7 +743,6 @@ MODULE                        : MultiFlavor.app
                     ResDirectories                : <ROOT>/app/src/firstAbcSecondAbc/res [-]
                     AssetsDirectories             : <ROOT>/app/src/firstAbcSecondAbc/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/firstAbcSecondAbc/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/firstAbcSecondAbc/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/firstAbcSecondAbc/baselineProfiles [-]
                 Dependencies
                     compileClasspath
@@ -795,7 +779,6 @@ MODULE                        : MultiFlavor.app
                     ResDirectories                : <ROOT>/app/src/androidTestFirstAbcSecondAbcDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestFirstAbcSecondAbcDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestFirstAbcSecondAbcDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/androidTestFirstAbcSecondAbcDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTestFirstAbcSecondAbcDebug/baselineProfiles [-]
                 MultiFlavorSourceProvider
                     Name                          : androidTestFirstAbcSecondAbc
@@ -807,7 +790,6 @@ MODULE                        : MultiFlavor.app
                     ResDirectories                : <ROOT>/app/src/androidTestFirstAbcSecondAbc/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestFirstAbcSecondAbc/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestFirstAbcSecondAbc/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/androidTestFirstAbcSecondAbc/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTestFirstAbcSecondAbc/baselineProfiles [-]
                 Dependencies
                     compileClasspath
@@ -844,7 +826,6 @@ MODULE                        : MultiFlavor.app
                     ResourcesDirectories          : <ROOT>/app/src/testFirstAbcSecondAbcDebug/resources [-]
                     AssetsDirectories             : <ROOT>/app/src/testFirstAbcSecondAbcDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testFirstAbcSecondAbcDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testFirstAbcSecondAbcDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testFirstAbcSecondAbcDebug/baselineProfiles [-]
                 MultiFlavorSourceProvider
                     Name                          : testFirstAbcSecondAbc
@@ -856,7 +837,6 @@ MODULE                        : MultiFlavor.app
                     ResDirectories                : <ROOT>/app/src/testFirstAbcSecondAbc/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testFirstAbcSecondAbc/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testFirstAbcSecondAbc/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testFirstAbcSecondAbc/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testFirstAbcSecondAbc/baselineProfiles [-]
                 Dependencies
                     compileClasspath

@@ -1297,7 +1297,6 @@
                 ResDirectories                : <ROOT>/app/src/main/res [-]
                 AssetsDirectories             : <ROOT>/app/src/main/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/main/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/main/baselineProfiles [-]
             ExtraSourceProviders
                 ExtraSourceProvider
@@ -1312,7 +1311,6 @@
                         ResDirectories                : <ROOT>/app/src/androidTest/res [-]
                         AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
                         JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
-                        ShadersDirectories            : <ROOT>/app/src/androidTest/shaders [-]
                         BaselineProfileDirectories    : <ROOT>/app/src/androidTest/baselineProfiles [-]
                 ExtraSourceProvider
                     ArtifactName                  : _unit_test_
@@ -1326,7 +1324,6 @@
                         ResDirectories                : <ROOT>/app/src/test/res [-]
                         AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                         JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
-                        ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
                         BaselineProfileDirectories    : <ROOT>/app/src/test/baselineProfiles [-]
         BuildTypes
             BuildType
@@ -1348,7 +1345,6 @@
                 ResDirectories                : <ROOT>/app/src/debug/res [-]
                 AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/debug/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/debug/baselineProfiles [-]
             ExtraSourceProviders
                 ExtraSourceProvider
@@ -1363,7 +1359,6 @@
                         ResDirectories                : <ROOT>/app/src/androidTestDebug/res [-]
                         AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
                         JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
-                        ShadersDirectories            : <ROOT>/app/src/androidTestDebug/shaders [-]
                         BaselineProfileDirectories    : <ROOT>/app/src/androidTestDebug/baselineProfiles [-]
             ExtraSourceProviders
                 ExtraSourceProvider
@@ -1378,7 +1373,6 @@
                         ResDirectories                : <ROOT>/app/src/testDebug/res [-]
                         AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                         JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
-                        ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
                         BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
             BuildType
                 Name                          : release
@@ -1399,7 +1393,6 @@
                 ResDirectories                : <ROOT>/app/src/release/res [-]
                 AssetsDirectories             : <ROOT>/app/src/release/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/release/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
             ExtraSourceProviders
                 ExtraSourceProvider
@@ -1414,7 +1407,6 @@
                         ResDirectories                : <ROOT>/app/src/testRelease/res [-]
                         AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
                         JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
-                        ShadersDirectories            : <ROOT>/app/src/testRelease/shaders [-]
                         BaselineProfileDirectories    : <ROOT>/app/src/testRelease/baselineProfiles [-]
         SigningConfigs
             SigningConfig
@@ -2579,8 +2571,6 @@ Required by:
                 AssetsDirectories             : <ROOT>/module2/src/androidMain/assets [-]
                 JniLibsDirectories            : <ROOT>/module2/src/main/jniLibs [-]
                 JniLibsDirectories            : <ROOT>/module2/src/androidMain/jniLibs [-]
-                ShadersDirectories            : <ROOT>/module2/src/main/shaders [-]
-                ShadersDirectories            : <ROOT>/module2/src/androidMain/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/module2/src/main/baselineProfiles [-]
             ExtraSourceProviders
                 ExtraSourceProvider
@@ -2600,8 +2590,6 @@ Required by:
                         AssetsDirectories             : <ROOT>/module2/src/androidInstrumentedTest/assets [-]
                         JniLibsDirectories            : <ROOT>/module2/src/androidTest/jniLibs [-]
                         JniLibsDirectories            : <ROOT>/module2/src/androidInstrumentedTest/jniLibs [-]
-                        ShadersDirectories            : <ROOT>/module2/src/androidTest/shaders [-]
-                        ShadersDirectories            : <ROOT>/module2/src/androidInstrumentedTest/shaders [-]
                         BaselineProfileDirectories    : <ROOT>/module2/src/androidTest/baselineProfiles [-]
                 ExtraSourceProvider
                     ArtifactName                  : _unit_test_
@@ -2620,8 +2608,6 @@ Required by:
                         AssetsDirectories             : <ROOT>/module2/src/androidUnitTest/assets [-]
                         JniLibsDirectories            : <ROOT>/module2/src/test/jniLibs [-]
                         JniLibsDirectories            : <ROOT>/module2/src/androidUnitTest/jniLibs [-]
-                        ShadersDirectories            : <ROOT>/module2/src/test/shaders [-]
-                        ShadersDirectories            : <ROOT>/module2/src/androidUnitTest/shaders [-]
                         BaselineProfileDirectories    : <ROOT>/module2/src/test/baselineProfiles [-]
         BuildTypes
             BuildType
@@ -2648,8 +2634,6 @@ Required by:
                 AssetsDirectories             : <ROOT>/module2/src/androidDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/module2/src/debug/jniLibs [-]
                 JniLibsDirectories            : <ROOT>/module2/src/androidDebug/jniLibs [-]
-                ShadersDirectories            : <ROOT>/module2/src/debug/shaders [-]
-                ShadersDirectories            : <ROOT>/module2/src/androidDebug/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/module2/src/debug/baselineProfiles [-]
             ExtraSourceProviders
                 ExtraSourceProvider
@@ -2669,8 +2653,6 @@ Required by:
                         AssetsDirectories             : <ROOT>/module2/src/androidInstrumentedTestDebug/assets [-]
                         JniLibsDirectories            : <ROOT>/module2/src/androidTestDebug/jniLibs [-]
                         JniLibsDirectories            : <ROOT>/module2/src/androidInstrumentedTestDebug/jniLibs [-]
-                        ShadersDirectories            : <ROOT>/module2/src/androidTestDebug/shaders [-]
-                        ShadersDirectories            : <ROOT>/module2/src/androidInstrumentedTestDebug/shaders [-]
                         BaselineProfileDirectories    : <ROOT>/module2/src/androidTestDebug/baselineProfiles [-]
             ExtraSourceProviders
                 ExtraSourceProvider
@@ -2690,8 +2672,6 @@ Required by:
                         AssetsDirectories             : <ROOT>/module2/src/androidUnitTestDebug/assets [-]
                         JniLibsDirectories            : <ROOT>/module2/src/testDebug/jniLibs [-]
                         JniLibsDirectories            : <ROOT>/module2/src/androidUnitTestDebug/jniLibs [-]
-                        ShadersDirectories            : <ROOT>/module2/src/testDebug/shaders [-]
-                        ShadersDirectories            : <ROOT>/module2/src/androidUnitTestDebug/shaders [-]
                         BaselineProfileDirectories    : <ROOT>/module2/src/testDebug/baselineProfiles [-]
             BuildType
                 Name                          : release
@@ -2717,8 +2697,6 @@ Required by:
                 AssetsDirectories             : <ROOT>/module2/src/androidRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/module2/src/release/jniLibs [-]
                 JniLibsDirectories            : <ROOT>/module2/src/androidRelease/jniLibs [-]
-                ShadersDirectories            : <ROOT>/module2/src/release/shaders [-]
-                ShadersDirectories            : <ROOT>/module2/src/androidRelease/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/module2/src/release/baselineProfiles [-]
             ExtraSourceProviders
                 ExtraSourceProvider
@@ -2738,8 +2716,6 @@ Required by:
                         AssetsDirectories             : <ROOT>/module2/src/androidUnitTestRelease/assets [-]
                         JniLibsDirectories            : <ROOT>/module2/src/testRelease/jniLibs [-]
                         JniLibsDirectories            : <ROOT>/module2/src/androidUnitTestRelease/jniLibs [-]
-                        ShadersDirectories            : <ROOT>/module2/src/testRelease/shaders [-]
-                        ShadersDirectories            : <ROOT>/module2/src/androidUnitTestRelease/shaders [-]
                         BaselineProfileDirectories    : <ROOT>/module2/src/testRelease/baselineProfiles [-]
         SigningConfigs
             SigningConfig

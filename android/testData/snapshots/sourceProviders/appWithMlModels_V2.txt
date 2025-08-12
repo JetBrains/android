@@ -29,8 +29,6 @@ MODULE: project.app
                 file://./app/src/main/res
             ResourcesDirectoryUrls:
                 file://./app/src/main/resources
-            ShadersDirectoryUrls:
-                file://./app/src/main/shaders
             MlModelsDirectoryUrls:
                 file://./app/src/main/ml
             MlModelsDirectories:
@@ -52,8 +50,6 @@ MODULE: project.app
                 ./app/src/main/res
             ResourcesDirectories:
                 ./app/src/main/resources
-            ShadersDirectories:
-                ./app/src/main/shaders
             MlModelsDirectories:
                 ./app/src/main/ml
             BaselineProfileDirectories:
@@ -75,8 +71,6 @@ MODULE: project.app
                     ./app/src/main/res
                 ResourcesDirectories:
                     ./app/src/main/resources
-                ShadersDirectories:
-                    ./app/src/main/shaders
                 MlModelsDirectories:
                     ./app/src/main/ml
                 BaselineProfileDirectories:
@@ -97,8 +91,6 @@ MODULE: project.app
                     ./app/src/debug/res
                 ResourcesDirectories:
                     ./app/src/debug/resources
-                ShadersDirectories:
-                    ./app/src/debug/shaders
                 MlModelsDirectories:
                     ./app/src/debug/ml
                 BaselineProfileDirectories:
@@ -120,8 +112,6 @@ MODULE: project.app
                     ./app/src/main/res
                 ResourcesDirectories:
                     ./app/src/main/resources
-                ShadersDirectories:
-                    ./app/src/main/shaders
                 MlModelsDirectories:
                     ./app/src/main/ml
                 BaselineProfileDirectories:
@@ -142,8 +132,6 @@ MODULE: project.app
                     ./app/src/debug/res
                 ResourcesDirectories:
                     ./app/src/debug/resources
-                ShadersDirectories:
-                    ./app/src/debug/shaders
                 MlModelsDirectories:
                     ./app/src/debug/ml
                 BaselineProfileDirectories:
@@ -164,8 +152,6 @@ MODULE: project.app
                     ./app/src/release/res
                 ResourcesDirectories:
                     ./app/src/release/resources
-                ShadersDirectories:
-                    ./app/src/release/shaders
                 MlModelsDirectories:
                     ./app/src/release/ml
                 BaselineProfileDirectories:
@@ -188,8 +174,6 @@ MODULE: project.app
                         ./app/src/test/res
                     ResourcesDirectories:
                         ./app/src/test/resources
-                    ShadersDirectories:
-                        ./app/src/test/shaders
                     MlModelsDirectories:
                         ./app/src/test/ml
                     BaselineProfileDirectories:
@@ -210,8 +194,6 @@ MODULE: project.app
                         ./app/src/testDebug/res
                     ResourcesDirectories:
                         ./app/src/testDebug/resources
-                    ShadersDirectories:
-                        ./app/src/testDebug/shaders
                     MlModelsDirectories:
                         ./app/src/testDebug/ml
                     BaselineProfileDirectories:
@@ -234,8 +216,6 @@ MODULE: project.app
                         ./app/src/androidTest/res
                     ResourcesDirectories:
                         ./app/src/androidTest/resources
-                    ShadersDirectories:
-                        ./app/src/androidTest/shaders
                     MlModelsDirectories:
                         ./app/src/androidTest/ml
                     BaselineProfileDirectories:
@@ -256,8 +236,6 @@ MODULE: project.app
                         ./app/src/androidTestDebug/res
                     ResourcesDirectories:
                         ./app/src/androidTestDebug/resources
-                    ShadersDirectories:
-                        ./app/src/androidTestDebug/shaders
                     MlModelsDirectories:
                         ./app/src/androidTestDebug/ml
                     BaselineProfileDirectories:
@@ -305,9 +283,6 @@ MODULE: project.app
                 ResourcesDirectoryUrls:
                     file://./app/src/main/resources
                     file://./app/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/main/shaders
-                    file://./app/src/debug/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/main/ml
                     file://./app/src/debug/ml
@@ -348,9 +323,6 @@ MODULE: project.app
                 ResourcesDirectoryUrls:
                     file://./app/src/test/resources
                     file://./app/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/test/shaders
-                    file://./app/src/testDebug/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/test/ml
                     file://./app/src/testDebug/ml
@@ -389,9 +361,6 @@ MODULE: project.app
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTest/resources
                     file://./app/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTest/shaders
-                    file://./app/src/androidTestDebug/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/androidTest/ml
                     file://./app/src/androidTestDebug/ml
@@ -450,8 +419,6 @@ MODULE: project.app
                     file://./app/src/main/res
                 ResourcesDirectoryUrls:
                     file://./app/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/main/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/main/ml
                 MlModelsDirectories:
@@ -481,8 +448,6 @@ MODULE: project.app
                     file://./app/src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTest/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/androidTest/ml
             androidTestDebug (IDEA)
@@ -504,8 +469,6 @@ MODULE: project.app
                     file://./app/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestDebug/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/androidTestDebug/ml
             debug (IDEA)
@@ -527,8 +490,6 @@ MODULE: project.app
                     file://./app/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/debug/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/debug/ml
             release (IDEA)
@@ -550,8 +511,6 @@ MODULE: project.app
                     file://./app/src/release/res
                 ResourcesDirectoryUrls:
                     file://./app/src/release/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/release/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/release/ml
             test (IDEA)
@@ -579,8 +538,6 @@ MODULE: project.app
                     file://./app/src/test/res
                 ResourcesDirectoryUrls:
                     file://./app/src/test/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/test/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/test/ml
             testDebug (IDEA)
@@ -602,8 +559,6 @@ MODULE: project.app
                     file://./app/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testDebug/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/testDebug/ml
             testRelease (IDEA)
@@ -625,8 +580,6 @@ MODULE: project.app
                     file://./app/src/testRelease/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testRelease/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testRelease/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/testRelease/ml
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
@@ -659,8 +612,6 @@ MODULE: project.app
                     file://./app/src/main/res
                 ResourcesDirectoryUrls:
                     file://./app/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/main/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/main/ml
                 MlModelsDirectories:
@@ -684,8 +635,6 @@ MODULE: project.app
                     file://./app/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/debug/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/debug/ml
             release (IDEA)
@@ -707,8 +656,6 @@ MODULE: project.app
                     file://./app/src/release/res
                 ResourcesDirectoryUrls:
                     file://./app/src/release/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/release/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/release/ml
         CurrentSourceProviders:
@@ -741,8 +688,6 @@ MODULE: project.app
                     file://./app/src/main/res
                 ResourcesDirectoryUrls:
                     file://./app/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/main/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/main/ml
                 MlModelsDirectories:
@@ -766,8 +711,6 @@ MODULE: project.app
                     file://./app/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/debug/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/debug/ml
         CurrentHostTestSourceProviders:
@@ -796,8 +739,6 @@ MODULE: project.app
                     file://./app/src/test/res
                 ResourcesDirectoryUrls:
                     file://./app/src/test/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/test/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/test/ml
             testDebug (IDEA)
@@ -819,8 +760,6 @@ MODULE: project.app
                     file://./app/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testDebug/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/testDebug/ml
         CurrentDeviceTestSourceProviders:
@@ -849,8 +788,6 @@ MODULE: project.app
                     file://./app/src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTest/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/androidTest/ml
             androidTestDebug (IDEA)
@@ -872,8 +809,6 @@ MODULE: project.app
                     file://./app/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestDebug/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/androidTestDebug/ml
         CurrentTestFixturesSourceProviders:

@@ -29,8 +29,6 @@ MODULE: project.app
                 file://./app/src/main/res
             ResourcesDirectoryUrls:
                 file://./app/src/main/resources
-            ShadersDirectoryUrls:
-                file://./app/src/main/shaders
     by AndroidModel:
         main
             Manifest:
@@ -48,8 +46,6 @@ MODULE: project.app
                 ./app/src/main/res
             ResourcesDirectories:
                 ./app/src/main/resources
-            ShadersDirectories:
-                ./app/src/main/shaders
             BaselineProfileDirectories:
                 ./app/src/main/baselineProfiles
         Active:
@@ -69,8 +65,6 @@ MODULE: project.app
                     ./app/src/main/res
                 ResourcesDirectories:
                     ./app/src/main/resources
-                ShadersDirectories:
-                    ./app/src/main/shaders
                 BaselineProfileDirectories:
                     ./app/src/main/baselineProfiles
             basic
@@ -89,8 +83,6 @@ MODULE: project.app
                     ./app/src/basic/res
                 ResourcesDirectories:
                     ./app/src/basic/resources
-                ShadersDirectories:
-                    ./app/src/basic/shaders
                 BaselineProfileDirectories:
                     ./app/src/basic/baselineProfiles
             bar
@@ -109,8 +101,6 @@ MODULE: project.app
                     ./app/src/bar/res
                 ResourcesDirectories:
                     ./app/src/bar/resources
-                ShadersDirectories:
-                    ./app/src/bar/shaders
                 BaselineProfileDirectories:
                     ./app/src/bar/baselineProfiles
             basicBar
@@ -129,8 +119,6 @@ MODULE: project.app
                     ./app/src/basicBar/res
                 ResourcesDirectories:
                     ./app/src/basicBar/resources
-                ShadersDirectories:
-                    ./app/src/basicBar/shaders
                 BaselineProfileDirectories:
                     ./app/src/basicBar/baselineProfiles
             debug
@@ -149,8 +137,6 @@ MODULE: project.app
                     ./app/src/debug/res
                 ResourcesDirectories:
                     ./app/src/debug/resources
-                ShadersDirectories:
-                    ./app/src/debug/shaders
                 BaselineProfileDirectories:
                     ./app/src/debug/baselineProfiles
             basicBarDebug
@@ -169,8 +155,6 @@ MODULE: project.app
                     ./app/src/basicBarDebug/res
                 ResourcesDirectories:
                     ./app/src/basicBarDebug/resources
-                ShadersDirectories:
-                    ./app/src/basicBarDebug/shaders
                 BaselineProfileDirectories:
                     ./app/src/basicBarDebug/baselineProfiles
         All:
@@ -190,8 +174,6 @@ MODULE: project.app
                     ./app/src/main/res
                 ResourcesDirectories:
                     ./app/src/main/resources
-                ShadersDirectories:
-                    ./app/src/main/shaders
                 BaselineProfileDirectories:
                     ./app/src/main/baselineProfiles
             bar
@@ -210,8 +192,6 @@ MODULE: project.app
                     ./app/src/bar/res
                 ResourcesDirectories:
                     ./app/src/bar/resources
-                ShadersDirectories:
-                    ./app/src/bar/shaders
                 BaselineProfileDirectories:
                     ./app/src/bar/baselineProfiles
             basic
@@ -230,8 +210,6 @@ MODULE: project.app
                     ./app/src/basic/res
                 ResourcesDirectories:
                     ./app/src/basic/resources
-                ShadersDirectories:
-                    ./app/src/basic/shaders
                 BaselineProfileDirectories:
                     ./app/src/basic/baselineProfiles
             basicBar
@@ -250,8 +228,6 @@ MODULE: project.app
                     ./app/src/basicBar/res
                 ResourcesDirectories:
                     ./app/src/basicBar/resources
-                ShadersDirectories:
-                    ./app/src/basicBar/shaders
                 BaselineProfileDirectories:
                     ./app/src/basicBar/baselineProfiles
             basicBarDebug
@@ -270,8 +246,6 @@ MODULE: project.app
                     ./app/src/basicBarDebug/res
                 ResourcesDirectories:
                     ./app/src/basicBarDebug/resources
-                ShadersDirectories:
-                    ./app/src/basicBarDebug/shaders
                 BaselineProfileDirectories:
                     ./app/src/basicBarDebug/baselineProfiles
             debug
@@ -290,8 +264,6 @@ MODULE: project.app
                     ./app/src/debug/res
                 ResourcesDirectories:
                     ./app/src/debug/resources
-                ShadersDirectories:
-                    ./app/src/debug/shaders
                 BaselineProfileDirectories:
                     ./app/src/debug/baselineProfiles
             otherBar
@@ -310,8 +282,6 @@ MODULE: project.app
                     ./app/src/otherBar/res
                 ResourcesDirectories:
                     ./app/src/otherBar/resources
-                ShadersDirectories:
-                    ./app/src/otherBar/shaders
                 BaselineProfileDirectories:
                     ./app/src/otherBar/baselineProfiles
             paid
@@ -330,8 +300,6 @@ MODULE: project.app
                     ./app/src/paid/res
                 ResourcesDirectories:
                     ./app/src/paid/resources
-                ShadersDirectories:
-                    ./app/src/paid/shaders
                 BaselineProfileDirectories:
                     ./app/src/paid/baselineProfiles
             release
@@ -350,8 +318,6 @@ MODULE: project.app
                     ./app/src/release/res
                 ResourcesDirectories:
                     ./app/src/release/resources
-                ShadersDirectories:
-                    ./app/src/release/shaders
                 BaselineProfileDirectories:
                     ./app/src/release/baselineProfiles
             specialRelease
@@ -370,8 +336,6 @@ MODULE: project.app
                     ./app/src/specialRelease/res
                 ResourcesDirectories:
                     ./app/src/specialRelease/resources
-                ShadersDirectories:
-                    ./app/src/specialRelease/shaders
                 BaselineProfileDirectories:
                     ./app/src/specialRelease/baselineProfiles
         HostTest:
@@ -392,8 +356,6 @@ MODULE: project.app
                         ./app/src/test/res
                     ResourcesDirectories:
                         ./app/src/test/resources
-                    ShadersDirectories:
-                        ./app/src/test/shaders
                     BaselineProfileDirectories:
                         ./app/src/test/baselineProfiles
                 testBasic
@@ -412,8 +374,6 @@ MODULE: project.app
                         ./app/src/testBasic/res
                     ResourcesDirectories:
                         ./app/src/testBasic/resources
-                    ShadersDirectories:
-                        ./app/src/testBasic/shaders
                     BaselineProfileDirectories:
                         ./app/src/testBasic/baselineProfiles
                 testBar
@@ -432,8 +392,6 @@ MODULE: project.app
                         ./app/src/testBar/res
                     ResourcesDirectories:
                         ./app/src/testBar/resources
-                    ShadersDirectories:
-                        ./app/src/testBar/shaders
                     BaselineProfileDirectories:
                         ./app/src/testBar/baselineProfiles
                 testBasicBar
@@ -452,8 +410,6 @@ MODULE: project.app
                         ./app/src/testBasicBar/res
                     ResourcesDirectories:
                         ./app/src/testBasicBar/resources
-                    ShadersDirectories:
-                        ./app/src/testBasicBar/shaders
                     BaselineProfileDirectories:
                         ./app/src/testBasicBar/baselineProfiles
                 testDebug
@@ -472,8 +428,6 @@ MODULE: project.app
                         ./app/src/testDebug/res
                     ResourcesDirectories:
                         ./app/src/testDebug/resources
-                    ShadersDirectories:
-                        ./app/src/testDebug/shaders
                     BaselineProfileDirectories:
                         ./app/src/testDebug/baselineProfiles
                 testBasicBarDebug
@@ -490,8 +444,6 @@ MODULE: project.app
                         ./app/src/testBasicBarDebug/jniLibs
                     ResourcesDirectories:
                         ./app/src/testBasicBarDebug/resources
-                    ShadersDirectories:
-                        ./app/src/testBasicBarDebug/shaders
                     BaselineProfileDirectories:
                         ./app/src/testBasicBarDebug/baselineProfiles
         DeviceTest:
@@ -512,8 +464,6 @@ MODULE: project.app
                         ./app/src/androidTest/res
                     ResourcesDirectories:
                         ./app/src/androidTest/resources
-                    ShadersDirectories:
-                        ./app/src/androidTest/shaders
                     BaselineProfileDirectories:
                         ./app/src/androidTest/baselineProfiles
                 androidTestBasic
@@ -532,8 +482,6 @@ MODULE: project.app
                         ./app/src/androidTestBasic/res
                     ResourcesDirectories:
                         ./app/src/androidTestBasic/resources
-                    ShadersDirectories:
-                        ./app/src/androidTestBasic/shaders
                     BaselineProfileDirectories:
                         ./app/src/androidTestBasic/baselineProfiles
                 androidTestBar
@@ -552,8 +500,6 @@ MODULE: project.app
                         ./app/src/androidTestBar/res
                     ResourcesDirectories:
                         ./app/src/androidTestBar/resources
-                    ShadersDirectories:
-                        ./app/src/androidTestBar/shaders
                     BaselineProfileDirectories:
                         ./app/src/androidTestBar/baselineProfiles
                 androidTestBasicBar
@@ -572,8 +518,6 @@ MODULE: project.app
                         ./app/src/androidTestBasicBar/res
                     ResourcesDirectories:
                         ./app/src/androidTestBasicBar/resources
-                    ShadersDirectories:
-                        ./app/src/androidTestBasicBar/shaders
                     BaselineProfileDirectories:
                         ./app/src/androidTestBasicBar/baselineProfiles
                 androidTestDebug
@@ -592,8 +536,6 @@ MODULE: project.app
                         ./app/src/androidTestDebug/res
                     ResourcesDirectories:
                         ./app/src/androidTestDebug/resources
-                    ShadersDirectories:
-                        ./app/src/androidTestDebug/shaders
                     BaselineProfileDirectories:
                         ./app/src/androidTestDebug/baselineProfiles
                 androidTestBasicBarDebug
@@ -612,8 +554,6 @@ MODULE: project.app
                         ./app/src/androidTestBasicBarDebug/res
                     ResourcesDirectories:
                         ./app/src/androidTestBasicBarDebug/resources
-                    ShadersDirectories:
-                        ./app/src/androidTestBasicBarDebug/shaders
                     BaselineProfileDirectories:
                         ./app/src/androidTestBasicBarDebug/baselineProfiles
         TestFixtures:
@@ -695,13 +635,6 @@ MODULE: project.app
                     file://./app/src/basicBar/resources
                     file://./app/src/debug/resources
                     file://./app/src/basicBarDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/main/shaders
-                    file://./app/src/basic/shaders
-                    file://./app/src/bar/shaders
-                    file://./app/src/basicBar/shaders
-                    file://./app/src/debug/shaders
-                    file://./app/src/basicBarDebug/shaders
         HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -766,13 +699,6 @@ MODULE: project.app
                     file://./app/src/testBasicBar/resources
                     file://./app/src/testDebug/resources
                     file://./app/src/testBasicBarDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/test/shaders
-                    file://./app/src/testBasic/shaders
-                    file://./app/src/testBar/shaders
-                    file://./app/src/testBasicBar/shaders
-                    file://./app/src/testDebug/shaders
-                    file://./app/src/testBasicBarDebug/shaders
         DeviceTestSources:
             AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -838,13 +764,6 @@ MODULE: project.app
                     file://./app/src/androidTestBasicBar/resources
                     file://./app/src/androidTestDebug/resources
                     file://./app/src/androidTestBasicBarDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTest/shaders
-                    file://./app/src/androidTestBasic/shaders
-                    file://./app/src/androidTestBar/shaders
-                    file://./app/src/androidTestBasicBar/shaders
-                    file://./app/src/androidTestDebug/shaders
-                    file://./app/src/androidTestBasicBarDebug/shaders
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -900,8 +819,6 @@ MODULE: project.app
                     file://./app/src/main/res
                 ResourcesDirectoryUrls:
                     file://./app/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/main/shaders
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -921,8 +838,6 @@ MODULE: project.app
                     file://./app/src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTest/shaders
             androidTestBar (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -942,8 +857,6 @@ MODULE: project.app
                     file://./app/src/androidTestBar/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestBar/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestBar/shaders
             androidTestBasic (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -963,8 +876,6 @@ MODULE: project.app
                     file://./app/src/androidTestBasic/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestBasic/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestBasic/shaders
             androidTestBasicBar (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -984,8 +895,6 @@ MODULE: project.app
                     file://./app/src/androidTestBasicBar/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestBasicBar/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestBasicBar/shaders
             androidTestBasicBarDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -1005,8 +914,6 @@ MODULE: project.app
                     file://./app/src/androidTestBasicBarDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestBasicBarDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestBasicBarDebug/shaders
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -1026,8 +933,6 @@ MODULE: project.app
                     file://./app/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestDebug/shaders
             androidTestOtherBar (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -1047,8 +952,6 @@ MODULE: project.app
                     file://./app/src/androidTestOtherBar/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestOtherBar/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestOtherBar/shaders
             androidTestPaid (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -1068,8 +971,6 @@ MODULE: project.app
                     file://./app/src/androidTestPaid/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestPaid/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestPaid/shaders
             bar (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1089,8 +990,6 @@ MODULE: project.app
                     file://./app/src/bar/res
                 ResourcesDirectoryUrls:
                     file://./app/src/bar/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/bar/shaders
             basic (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1110,8 +1009,6 @@ MODULE: project.app
                     file://./app/src/basic/res
                 ResourcesDirectoryUrls:
                     file://./app/src/basic/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/basic/shaders
             basicBar (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1131,8 +1028,6 @@ MODULE: project.app
                     file://./app/src/basicBar/res
                 ResourcesDirectoryUrls:
                     file://./app/src/basicBar/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/basicBar/shaders
             basicBarDebug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1152,8 +1047,6 @@ MODULE: project.app
                     file://./app/src/basicBarDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/basicBarDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/basicBarDebug/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1173,8 +1066,6 @@ MODULE: project.app
                     file://./app/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/debug/shaders
             otherBar (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1194,8 +1085,6 @@ MODULE: project.app
                     file://./app/src/otherBar/res
                 ResourcesDirectoryUrls:
                     file://./app/src/otherBar/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/otherBar/shaders
             paid (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1225,8 +1114,6 @@ MODULE: project.app
                     file://./app/src/paid/res
                 ResourcesDirectoryUrls:
                     file://./app/src/paid/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/paid/shaders
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1246,8 +1133,6 @@ MODULE: project.app
                     file://./app/src/release/res
                 ResourcesDirectoryUrls:
                     file://./app/src/release/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/release/shaders
             specialRelease (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1267,8 +1152,6 @@ MODULE: project.app
                     file://./app/src/specialRelease/res
                 ResourcesDirectoryUrls:
                     file://./app/src/specialRelease/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/specialRelease/shaders
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1288,8 +1171,6 @@ MODULE: project.app
                     file://./app/src/test/res
                 ResourcesDirectoryUrls:
                     file://./app/src/test/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/test/shaders
             testBar (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1309,8 +1190,6 @@ MODULE: project.app
                     file://./app/src/testBar/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testBar/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testBar/shaders
             testBasic (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1330,8 +1209,6 @@ MODULE: project.app
                     file://./app/src/testBasic/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testBasic/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testBasic/shaders
             testBasicBar (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1351,8 +1228,6 @@ MODULE: project.app
                     file://./app/src/testBasicBar/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testBasicBar/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testBasicBar/shaders
             testBasicBarDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1370,8 +1245,6 @@ MODULE: project.app
                     file://./app/src/testBasicBarDebug/jniLibs
                 ResourcesDirectoryUrls:
                     file://./app/src/testBasicBarDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testBasicBarDebug/shaders
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1391,8 +1264,6 @@ MODULE: project.app
                     file://./app/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testDebug/shaders
             testOtherBar (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1412,8 +1283,6 @@ MODULE: project.app
                     file://./app/src/testOtherBar/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testOtherBar/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testOtherBar/shaders
             testPaid (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1433,8 +1302,6 @@ MODULE: project.app
                     file://./app/src/testPaid/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testPaid/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testPaid/shaders
             testRelease (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1454,8 +1321,6 @@ MODULE: project.app
                     file://./app/src/testRelease/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testRelease/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testRelease/shaders
             testSpecialRelease (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1475,8 +1340,6 @@ MODULE: project.app
                     file://./app/src/testSpecialRelease/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testSpecialRelease/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testSpecialRelease/shaders
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1507,8 +1370,6 @@ MODULE: project.app
                     file://./app/src/main/res
                 ResourcesDirectoryUrls:
                     file://./app/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/main/shaders
             bar (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1528,8 +1389,6 @@ MODULE: project.app
                     file://./app/src/bar/res
                 ResourcesDirectoryUrls:
                     file://./app/src/bar/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/bar/shaders
             basic (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1549,8 +1408,6 @@ MODULE: project.app
                     file://./app/src/basic/res
                 ResourcesDirectoryUrls:
                     file://./app/src/basic/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/basic/shaders
             basicBar (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1570,8 +1427,6 @@ MODULE: project.app
                     file://./app/src/basicBar/res
                 ResourcesDirectoryUrls:
                     file://./app/src/basicBar/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/basicBar/shaders
             basicBarDebug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1591,8 +1446,6 @@ MODULE: project.app
                     file://./app/src/basicBarDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/basicBarDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/basicBarDebug/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1612,8 +1465,6 @@ MODULE: project.app
                     file://./app/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/debug/shaders
             otherBar (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1633,8 +1484,6 @@ MODULE: project.app
                     file://./app/src/otherBar/res
                 ResourcesDirectoryUrls:
                     file://./app/src/otherBar/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/otherBar/shaders
             paid (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1664,8 +1513,6 @@ MODULE: project.app
                     file://./app/src/paid/res
                 ResourcesDirectoryUrls:
                     file://./app/src/paid/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/paid/shaders
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1685,8 +1532,6 @@ MODULE: project.app
                     file://./app/src/release/res
                 ResourcesDirectoryUrls:
                     file://./app/src/release/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/release/shaders
             specialRelease (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1706,8 +1551,6 @@ MODULE: project.app
                     file://./app/src/specialRelease/res
                 ResourcesDirectoryUrls:
                     file://./app/src/specialRelease/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/specialRelease/shaders
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1738,8 +1581,6 @@ MODULE: project.app
                     file://./app/src/main/res
                 ResourcesDirectoryUrls:
                     file://./app/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/main/shaders
             basic (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1759,8 +1600,6 @@ MODULE: project.app
                     file://./app/src/basic/res
                 ResourcesDirectoryUrls:
                     file://./app/src/basic/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/basic/shaders
             bar (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1780,8 +1619,6 @@ MODULE: project.app
                     file://./app/src/bar/res
                 ResourcesDirectoryUrls:
                     file://./app/src/bar/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/bar/shaders
             basicBar (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1801,8 +1638,6 @@ MODULE: project.app
                     file://./app/src/basicBar/res
                 ResourcesDirectoryUrls:
                     file://./app/src/basicBar/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/basicBar/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1822,8 +1657,6 @@ MODULE: project.app
                     file://./app/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/debug/shaders
             basicBarDebug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1843,8 +1676,6 @@ MODULE: project.app
                     file://./app/src/basicBarDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/basicBarDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/basicBarDebug/shaders
         CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -1865,8 +1696,6 @@ MODULE: project.app
                     file://./app/src/test/res
                 ResourcesDirectoryUrls:
                     file://./app/src/test/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/test/shaders
             testBasic (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1886,8 +1715,6 @@ MODULE: project.app
                     file://./app/src/testBasic/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testBasic/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testBasic/shaders
             testBar (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1907,8 +1734,6 @@ MODULE: project.app
                     file://./app/src/testBar/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testBar/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testBar/shaders
             testBasicBar (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1928,8 +1753,6 @@ MODULE: project.app
                     file://./app/src/testBasicBar/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testBasicBar/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testBasicBar/shaders
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1949,8 +1772,6 @@ MODULE: project.app
                     file://./app/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testDebug/shaders
             testBasicBarDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1968,8 +1789,6 @@ MODULE: project.app
                     file://./app/src/testBasicBarDebug/jniLibs
                 ResourcesDirectoryUrls:
                     file://./app/src/testBasicBarDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testBasicBarDebug/shaders
         CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -1990,8 +1809,6 @@ MODULE: project.app
                     file://./app/src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTest/shaders
             androidTestBasic (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -2011,8 +1828,6 @@ MODULE: project.app
                     file://./app/src/androidTestBasic/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestBasic/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestBasic/shaders
             androidTestBar (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -2032,8 +1847,6 @@ MODULE: project.app
                     file://./app/src/androidTestBar/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestBar/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestBar/shaders
             androidTestBasicBar (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -2053,8 +1866,6 @@ MODULE: project.app
                     file://./app/src/androidTestBasicBar/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestBasicBar/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestBasicBar/shaders
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -2074,8 +1885,6 @@ MODULE: project.app
                     file://./app/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestDebug/shaders
             androidTestBasicBarDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -2095,8 +1904,6 @@ MODULE: project.app
                     file://./app/src/androidTestBasicBarDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestBasicBarDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestBasicBarDebug/shaders
         CurrentTestFixturesSourceProviders:
 MODULE: project.dyn_feature
     by Facet:
@@ -2123,8 +1930,6 @@ MODULE: project.dyn_feature
                 file://./dyn_feature/src/main/res
             ResourcesDirectoryUrls:
                 file://./dyn_feature/src/main/resources
-            ShadersDirectoryUrls:
-                file://./dyn_feature/src/main/shaders
     by AndroidModel:
         main
             Manifest:
@@ -2142,8 +1947,6 @@ MODULE: project.dyn_feature
                 ./dyn_feature/src/main/res
             ResourcesDirectories:
                 ./dyn_feature/src/main/resources
-            ShadersDirectories:
-                ./dyn_feature/src/main/shaders
             BaselineProfileDirectories:
                 ./dyn_feature/src/main/baselineProfiles
         Active:
@@ -2163,8 +1966,6 @@ MODULE: project.dyn_feature
                     ./dyn_feature/src/main/res
                 ResourcesDirectories:
                     ./dyn_feature/src/main/resources
-                ShadersDirectories:
-                    ./dyn_feature/src/main/shaders
                 BaselineProfileDirectories:
                     ./dyn_feature/src/main/baselineProfiles
             debug
@@ -2183,8 +1984,6 @@ MODULE: project.dyn_feature
                     ./dyn_feature/src/debug/res
                 ResourcesDirectories:
                     ./dyn_feature/src/debug/resources
-                ShadersDirectories:
-                    ./dyn_feature/src/debug/shaders
                 BaselineProfileDirectories:
                     ./dyn_feature/src/debug/baselineProfiles
         All:
@@ -2204,8 +2003,6 @@ MODULE: project.dyn_feature
                     ./dyn_feature/src/main/res
                 ResourcesDirectories:
                     ./dyn_feature/src/main/resources
-                ShadersDirectories:
-                    ./dyn_feature/src/main/shaders
                 BaselineProfileDirectories:
                     ./dyn_feature/src/main/baselineProfiles
             debug
@@ -2224,8 +2021,6 @@ MODULE: project.dyn_feature
                     ./dyn_feature/src/debug/res
                 ResourcesDirectories:
                     ./dyn_feature/src/debug/resources
-                ShadersDirectories:
-                    ./dyn_feature/src/debug/shaders
                 BaselineProfileDirectories:
                     ./dyn_feature/src/debug/baselineProfiles
             release
@@ -2244,8 +2039,6 @@ MODULE: project.dyn_feature
                     ./dyn_feature/src/release/res
                 ResourcesDirectories:
                     ./dyn_feature/src/release/resources
-                ShadersDirectories:
-                    ./dyn_feature/src/release/shaders
                 BaselineProfileDirectories:
                     ./dyn_feature/src/release/baselineProfiles
         HostTest:
@@ -2266,8 +2059,6 @@ MODULE: project.dyn_feature
                         ./dyn_feature/src/test/res
                     ResourcesDirectories:
                         ./dyn_feature/src/test/resources
-                    ShadersDirectories:
-                        ./dyn_feature/src/test/shaders
                     BaselineProfileDirectories:
                         ./dyn_feature/src/test/baselineProfiles
                 testDebug
@@ -2286,8 +2077,6 @@ MODULE: project.dyn_feature
                         ./dyn_feature/src/testDebug/res
                     ResourcesDirectories:
                         ./dyn_feature/src/testDebug/resources
-                    ShadersDirectories:
-                        ./dyn_feature/src/testDebug/shaders
                     BaselineProfileDirectories:
                         ./dyn_feature/src/testDebug/baselineProfiles
         DeviceTest:
@@ -2308,8 +2097,6 @@ MODULE: project.dyn_feature
                         ./dyn_feature/src/androidTest/res
                     ResourcesDirectories:
                         ./dyn_feature/src/androidTest/resources
-                    ShadersDirectories:
-                        ./dyn_feature/src/androidTest/shaders
                     BaselineProfileDirectories:
                         ./dyn_feature/src/androidTest/baselineProfiles
                 androidTestDebug
@@ -2328,8 +2115,6 @@ MODULE: project.dyn_feature
                         ./dyn_feature/src/androidTestDebug/res
                     ResourcesDirectories:
                         ./dyn_feature/src/androidTestDebug/resources
-                    ShadersDirectories:
-                        ./dyn_feature/src/androidTestDebug/shaders
                     BaselineProfileDirectories:
                         ./dyn_feature/src/androidTestDebug/baselineProfiles
         TestFixtures:
@@ -2369,9 +2154,6 @@ MODULE: project.dyn_feature
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/main/resources
                     file://./dyn_feature/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./dyn_feature/src/main/shaders
-                    file://./dyn_feature/src/debug/shaders
         HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -2401,9 +2183,6 @@ MODULE: project.dyn_feature
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/test/resources
                     file://./dyn_feature/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./dyn_feature/src/test/shaders
-                    file://./dyn_feature/src/testDebug/shaders
         DeviceTestSources:
             AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -2433,9 +2212,6 @@ MODULE: project.dyn_feature
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/androidTest/resources
                     file://./dyn_feature/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./dyn_feature/src/androidTest/shaders
-                    file://./dyn_feature/src/androidTestDebug/shaders
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -2485,8 +2261,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/main/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./dyn_feature/src/main/shaders
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -2506,8 +2280,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./dyn_feature/src/androidTest/shaders
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -2527,8 +2299,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./dyn_feature/src/androidTestDebug/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2548,8 +2318,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./dyn_feature/src/debug/shaders
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2569,8 +2337,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/release/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/release/resources
-                ShadersDirectoryUrls:
-                    file://./dyn_feature/src/release/shaders
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -2590,8 +2356,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/test/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/test/resources
-                ShadersDirectoryUrls:
-                    file://./dyn_feature/src/test/shaders
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -2611,8 +2375,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./dyn_feature/src/testDebug/shaders
             testRelease (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -2632,8 +2394,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/testRelease/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/testRelease/resources
-                ShadersDirectoryUrls:
-                    file://./dyn_feature/src/testRelease/shaders
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -2658,8 +2418,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/main/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./dyn_feature/src/main/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2679,8 +2437,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./dyn_feature/src/debug/shaders
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2700,8 +2456,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/release/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/release/resources
-                ShadersDirectoryUrls:
-                    file://./dyn_feature/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -2726,8 +2480,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/main/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./dyn_feature/src/main/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2747,8 +2499,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./dyn_feature/src/debug/shaders
         CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -2769,8 +2519,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/test/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/test/resources
-                ShadersDirectoryUrls:
-                    file://./dyn_feature/src/test/shaders
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -2790,8 +2538,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./dyn_feature/src/testDebug/shaders
         CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -2812,8 +2558,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./dyn_feature/src/androidTest/shaders
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -2833,8 +2577,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./dyn_feature/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
 MODULE: project.lib
     by Facet:
@@ -2867,8 +2609,6 @@ MODULE: project.lib
                 file://./lib/src/main/res
             ResourcesDirectoryUrls:
                 file://./lib/src/main/resources
-            ShadersDirectoryUrls:
-                file://./lib/src/main/shaders
     by AndroidModel:
         main
             Manifest:
@@ -2886,8 +2626,6 @@ MODULE: project.lib
                 ./lib/src/main/res
             ResourcesDirectories:
                 ./lib/src/main/resources
-            ShadersDirectories:
-                ./lib/src/main/shaders
             BaselineProfileDirectories:
                 ./lib/src/main/baselineProfiles
         Active:
@@ -2907,8 +2645,6 @@ MODULE: project.lib
                     ./lib/src/main/res
                 ResourcesDirectories:
                     ./lib/src/main/resources
-                ShadersDirectories:
-                    ./lib/src/main/shaders
                 BaselineProfileDirectories:
                     ./lib/src/main/baselineProfiles
             debug
@@ -2927,8 +2663,6 @@ MODULE: project.lib
                     ./lib/src/debug/res
                 ResourcesDirectories:
                     ./lib/src/debug/resources
-                ShadersDirectories:
-                    ./lib/src/debug/shaders
                 BaselineProfileDirectories:
                     ./lib/src/debug/baselineProfiles
         All:
@@ -2948,8 +2682,6 @@ MODULE: project.lib
                     ./lib/src/main/res
                 ResourcesDirectories:
                     ./lib/src/main/resources
-                ShadersDirectories:
-                    ./lib/src/main/shaders
                 BaselineProfileDirectories:
                     ./lib/src/main/baselineProfiles
             debug
@@ -2968,8 +2700,6 @@ MODULE: project.lib
                     ./lib/src/debug/res
                 ResourcesDirectories:
                     ./lib/src/debug/resources
-                ShadersDirectories:
-                    ./lib/src/debug/shaders
                 BaselineProfileDirectories:
                     ./lib/src/debug/baselineProfiles
             release
@@ -2988,8 +2718,6 @@ MODULE: project.lib
                     ./lib/src/release/res
                 ResourcesDirectories:
                     ./lib/src/release/resources
-                ShadersDirectories:
-                    ./lib/src/release/shaders
                 BaselineProfileDirectories:
                     ./lib/src/release/baselineProfiles
         HostTest:
@@ -3010,8 +2738,6 @@ MODULE: project.lib
                         ./lib/src/test/res
                     ResourcesDirectories:
                         ./lib/src/test/resources
-                    ShadersDirectories:
-                        ./lib/src/test/shaders
                     BaselineProfileDirectories:
                         ./lib/src/test/baselineProfiles
                 testDebug
@@ -3030,8 +2756,6 @@ MODULE: project.lib
                         ./lib/src/testDebug/res
                     ResourcesDirectories:
                         ./lib/src/testDebug/resources
-                    ShadersDirectories:
-                        ./lib/src/testDebug/shaders
                     BaselineProfileDirectories:
                         ./lib/src/testDebug/baselineProfiles
         DeviceTest:
@@ -3052,8 +2776,6 @@ MODULE: project.lib
                         ./lib/src/androidTest/res
                     ResourcesDirectories:
                         ./lib/src/androidTest/resources
-                    ShadersDirectories:
-                        ./lib/src/androidTest/shaders
                     BaselineProfileDirectories:
                         ./lib/src/androidTest/baselineProfiles
                 androidTestDebug
@@ -3072,8 +2794,6 @@ MODULE: project.lib
                         ./lib/src/androidTestDebug/res
                     ResourcesDirectories:
                         ./lib/src/androidTestDebug/resources
-                    ShadersDirectories:
-                        ./lib/src/androidTestDebug/shaders
                     BaselineProfileDirectories:
                         ./lib/src/androidTestDebug/baselineProfiles
         TestFixtures:
@@ -3119,9 +2839,6 @@ MODULE: project.lib
                 ResourcesDirectoryUrls:
                     file://./lib/src/main/resources
                     file://./lib/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./lib/src/main/shaders
-                    file://./lib/src/debug/shaders
         HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -3151,9 +2868,6 @@ MODULE: project.lib
                 ResourcesDirectoryUrls:
                     file://./lib/src/test/resources
                     file://./lib/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./lib/src/test/shaders
-                    file://./lib/src/testDebug/shaders
         DeviceTestSources:
             AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -3183,9 +2897,6 @@ MODULE: project.lib
                 ResourcesDirectoryUrls:
                     file://./lib/src/androidTest/resources
                     file://./lib/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./lib/src/androidTest/shaders
-                    file://./lib/src/androidTestDebug/shaders
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -3241,8 +2952,6 @@ MODULE: project.lib
                     file://./lib/src/main/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./lib/src/main/shaders
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -3262,8 +2971,6 @@ MODULE: project.lib
                     file://./lib/src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./lib/src/androidTest/shaders
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -3283,8 +2990,6 @@ MODULE: project.lib
                     file://./lib/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./lib/src/androidTestDebug/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -3304,8 +3009,6 @@ MODULE: project.lib
                     file://./lib/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./lib/src/debug/shaders
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -3325,8 +3028,6 @@ MODULE: project.lib
                     file://./lib/src/release/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/release/resources
-                ShadersDirectoryUrls:
-                    file://./lib/src/release/shaders
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -3346,8 +3047,6 @@ MODULE: project.lib
                     file://./lib/src/test/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/test/resources
-                ShadersDirectoryUrls:
-                    file://./lib/src/test/shaders
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -3367,8 +3066,6 @@ MODULE: project.lib
                     file://./lib/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./lib/src/testDebug/shaders
             testRelease (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -3388,8 +3085,6 @@ MODULE: project.lib
                     file://./lib/src/testRelease/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/testRelease/resources
-                ShadersDirectoryUrls:
-                    file://./lib/src/testRelease/shaders
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -3420,8 +3115,6 @@ MODULE: project.lib
                     file://./lib/src/main/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./lib/src/main/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -3441,8 +3134,6 @@ MODULE: project.lib
                     file://./lib/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./lib/src/debug/shaders
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -3462,8 +3153,6 @@ MODULE: project.lib
                     file://./lib/src/release/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/release/resources
-                ShadersDirectoryUrls:
-                    file://./lib/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -3494,8 +3183,6 @@ MODULE: project.lib
                     file://./lib/src/main/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./lib/src/main/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -3515,8 +3202,6 @@ MODULE: project.lib
                     file://./lib/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./lib/src/debug/shaders
         CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -3537,8 +3222,6 @@ MODULE: project.lib
                     file://./lib/src/test/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/test/resources
-                ShadersDirectoryUrls:
-                    file://./lib/src/test/shaders
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -3558,8 +3241,6 @@ MODULE: project.lib
                     file://./lib/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./lib/src/testDebug/shaders
         CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -3580,8 +3261,6 @@ MODULE: project.lib
                     file://./lib/src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./lib/src/androidTest/shaders
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -3601,8 +3280,6 @@ MODULE: project.lib
                     file://./lib/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./lib/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
 MODULE: project.nested1
     by Facet:
@@ -3629,8 +3306,6 @@ MODULE: project.nested1
                 file://./nested1/src/main/res
             ResourcesDirectoryUrls:
                 file://./nested1/src/main/resources
-            ShadersDirectoryUrls:
-                file://./nested1/src/main/shaders
     by AndroidModel:
         main
             Manifest:
@@ -3648,8 +3323,6 @@ MODULE: project.nested1
                 ./nested1/src/main/res
             ResourcesDirectories:
                 ./nested1/src/main/resources
-            ShadersDirectories:
-                ./nested1/src/main/shaders
             BaselineProfileDirectories:
                 ./nested1/src/main/baselineProfiles
         Active:
@@ -3669,8 +3342,6 @@ MODULE: project.nested1
                     ./nested1/src/main/res
                 ResourcesDirectories:
                     ./nested1/src/main/resources
-                ShadersDirectories:
-                    ./nested1/src/main/shaders
                 BaselineProfileDirectories:
                     ./nested1/src/main/baselineProfiles
             debug
@@ -3689,8 +3360,6 @@ MODULE: project.nested1
                     ./nested1/src/debug/res
                 ResourcesDirectories:
                     ./nested1/src/debug/resources
-                ShadersDirectories:
-                    ./nested1/src/debug/shaders
                 BaselineProfileDirectories:
                     ./nested1/src/debug/baselineProfiles
         All:
@@ -3710,8 +3379,6 @@ MODULE: project.nested1
                     ./nested1/src/main/res
                 ResourcesDirectories:
                     ./nested1/src/main/resources
-                ShadersDirectories:
-                    ./nested1/src/main/shaders
                 BaselineProfileDirectories:
                     ./nested1/src/main/baselineProfiles
             debug
@@ -3730,8 +3397,6 @@ MODULE: project.nested1
                     ./nested1/src/debug/res
                 ResourcesDirectories:
                     ./nested1/src/debug/resources
-                ShadersDirectories:
-                    ./nested1/src/debug/shaders
                 BaselineProfileDirectories:
                     ./nested1/src/debug/baselineProfiles
             release
@@ -3750,8 +3415,6 @@ MODULE: project.nested1
                     ./nested1/src/release/res
                 ResourcesDirectories:
                     ./nested1/src/release/resources
-                ShadersDirectories:
-                    ./nested1/src/release/shaders
                 BaselineProfileDirectories:
                     ./nested1/src/release/baselineProfiles
         HostTest:
@@ -3772,8 +3435,6 @@ MODULE: project.nested1
                         ./nested1/src/test/res
                     ResourcesDirectories:
                         ./nested1/src/test/resources
-                    ShadersDirectories:
-                        ./nested1/src/test/shaders
                     BaselineProfileDirectories:
                         ./nested1/src/test/baselineProfiles
                 testDebug
@@ -3792,8 +3453,6 @@ MODULE: project.nested1
                         ./nested1/src/testDebug/res
                     ResourcesDirectories:
                         ./nested1/src/testDebug/resources
-                    ShadersDirectories:
-                        ./nested1/src/testDebug/shaders
                     BaselineProfileDirectories:
                         ./nested1/src/testDebug/baselineProfiles
         DeviceTest:
@@ -3814,8 +3473,6 @@ MODULE: project.nested1
                         ./nested1/src/androidTest/res
                     ResourcesDirectories:
                         ./nested1/src/androidTest/resources
-                    ShadersDirectories:
-                        ./nested1/src/androidTest/shaders
                     BaselineProfileDirectories:
                         ./nested1/src/androidTest/baselineProfiles
                 androidTestDebug
@@ -3834,8 +3491,6 @@ MODULE: project.nested1
                         ./nested1/src/androidTestDebug/res
                     ResourcesDirectories:
                         ./nested1/src/androidTestDebug/resources
-                    ShadersDirectories:
-                        ./nested1/src/androidTestDebug/shaders
                     BaselineProfileDirectories:
                         ./nested1/src/androidTestDebug/baselineProfiles
         TestFixtures:
@@ -3875,9 +3530,6 @@ MODULE: project.nested1
                 ResourcesDirectoryUrls:
                     file://./nested1/src/main/resources
                     file://./nested1/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/src/main/shaders
-                    file://./nested1/src/debug/shaders
         HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -3907,9 +3559,6 @@ MODULE: project.nested1
                 ResourcesDirectoryUrls:
                     file://./nested1/src/test/resources
                     file://./nested1/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/src/test/shaders
-                    file://./nested1/src/testDebug/shaders
         DeviceTestSources:
             AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -3939,9 +3588,6 @@ MODULE: project.nested1
                 ResourcesDirectoryUrls:
                     file://./nested1/src/androidTest/resources
                     file://./nested1/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/src/androidTest/shaders
-                    file://./nested1/src/androidTestDebug/shaders
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -3991,8 +3637,6 @@ MODULE: project.nested1
                     file://./nested1/src/main/res
                 ResourcesDirectoryUrls:
                     file://./nested1/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/src/main/shaders
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -4012,8 +3656,6 @@ MODULE: project.nested1
                     file://./nested1/src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./nested1/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/src/androidTest/shaders
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -4033,8 +3675,6 @@ MODULE: project.nested1
                     file://./nested1/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested1/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/src/androidTestDebug/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -4054,8 +3694,6 @@ MODULE: project.nested1
                     file://./nested1/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./nested1/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/src/debug/shaders
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -4075,8 +3713,6 @@ MODULE: project.nested1
                     file://./nested1/src/release/res
                 ResourcesDirectoryUrls:
                     file://./nested1/src/release/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/src/release/shaders
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -4096,8 +3732,6 @@ MODULE: project.nested1
                     file://./nested1/src/test/res
                 ResourcesDirectoryUrls:
                     file://./nested1/src/test/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/src/test/shaders
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -4117,8 +3751,6 @@ MODULE: project.nested1
                     file://./nested1/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested1/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/src/testDebug/shaders
             testRelease (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -4138,8 +3770,6 @@ MODULE: project.nested1
                     file://./nested1/src/testRelease/res
                 ResourcesDirectoryUrls:
                     file://./nested1/src/testRelease/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/src/testRelease/shaders
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -4164,8 +3794,6 @@ MODULE: project.nested1
                     file://./nested1/src/main/res
                 ResourcesDirectoryUrls:
                     file://./nested1/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/src/main/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -4185,8 +3813,6 @@ MODULE: project.nested1
                     file://./nested1/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./nested1/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/src/debug/shaders
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -4206,8 +3832,6 @@ MODULE: project.nested1
                     file://./nested1/src/release/res
                 ResourcesDirectoryUrls:
                     file://./nested1/src/release/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -4232,8 +3856,6 @@ MODULE: project.nested1
                     file://./nested1/src/main/res
                 ResourcesDirectoryUrls:
                     file://./nested1/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/src/main/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -4253,8 +3875,6 @@ MODULE: project.nested1
                     file://./nested1/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./nested1/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/src/debug/shaders
         CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -4275,8 +3895,6 @@ MODULE: project.nested1
                     file://./nested1/src/test/res
                 ResourcesDirectoryUrls:
                     file://./nested1/src/test/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/src/test/shaders
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -4296,8 +3914,6 @@ MODULE: project.nested1
                     file://./nested1/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested1/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/src/testDebug/shaders
         CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -4318,8 +3934,6 @@ MODULE: project.nested1
                     file://./nested1/src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./nested1/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/src/androidTest/shaders
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -4339,8 +3953,6 @@ MODULE: project.nested1
                     file://./nested1/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested1/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
 MODULE: project.nested1.deep
     by Facet:
@@ -4367,8 +3979,6 @@ MODULE: project.nested1.deep
                 file://./nested1/deep/src/main/res
             ResourcesDirectoryUrls:
                 file://./nested1/deep/src/main/resources
-            ShadersDirectoryUrls:
-                file://./nested1/deep/src/main/shaders
     by AndroidModel:
         main
             Manifest:
@@ -4386,8 +3996,6 @@ MODULE: project.nested1.deep
                 ./nested1/deep/src/main/res
             ResourcesDirectories:
                 ./nested1/deep/src/main/resources
-            ShadersDirectories:
-                ./nested1/deep/src/main/shaders
             BaselineProfileDirectories:
                 ./nested1/deep/src/main/baselineProfiles
         Active:
@@ -4407,8 +4015,6 @@ MODULE: project.nested1.deep
                     ./nested1/deep/src/main/res
                 ResourcesDirectories:
                     ./nested1/deep/src/main/resources
-                ShadersDirectories:
-                    ./nested1/deep/src/main/shaders
                 BaselineProfileDirectories:
                     ./nested1/deep/src/main/baselineProfiles
             debug
@@ -4427,8 +4033,6 @@ MODULE: project.nested1.deep
                     ./nested1/deep/src/debug/res
                 ResourcesDirectories:
                     ./nested1/deep/src/debug/resources
-                ShadersDirectories:
-                    ./nested1/deep/src/debug/shaders
                 BaselineProfileDirectories:
                     ./nested1/deep/src/debug/baselineProfiles
         All:
@@ -4448,8 +4052,6 @@ MODULE: project.nested1.deep
                     ./nested1/deep/src/main/res
                 ResourcesDirectories:
                     ./nested1/deep/src/main/resources
-                ShadersDirectories:
-                    ./nested1/deep/src/main/shaders
                 BaselineProfileDirectories:
                     ./nested1/deep/src/main/baselineProfiles
             debug
@@ -4468,8 +4070,6 @@ MODULE: project.nested1.deep
                     ./nested1/deep/src/debug/res
                 ResourcesDirectories:
                     ./nested1/deep/src/debug/resources
-                ShadersDirectories:
-                    ./nested1/deep/src/debug/shaders
                 BaselineProfileDirectories:
                     ./nested1/deep/src/debug/baselineProfiles
             release
@@ -4488,8 +4088,6 @@ MODULE: project.nested1.deep
                     ./nested1/deep/src/release/res
                 ResourcesDirectories:
                     ./nested1/deep/src/release/resources
-                ShadersDirectories:
-                    ./nested1/deep/src/release/shaders
                 BaselineProfileDirectories:
                     ./nested1/deep/src/release/baselineProfiles
         HostTest:
@@ -4510,8 +4108,6 @@ MODULE: project.nested1.deep
                         ./nested1/deep/src/test/res
                     ResourcesDirectories:
                         ./nested1/deep/src/test/resources
-                    ShadersDirectories:
-                        ./nested1/deep/src/test/shaders
                     BaselineProfileDirectories:
                         ./nested1/deep/src/test/baselineProfiles
                 testDebug
@@ -4530,8 +4126,6 @@ MODULE: project.nested1.deep
                         ./nested1/deep/src/testDebug/res
                     ResourcesDirectories:
                         ./nested1/deep/src/testDebug/resources
-                    ShadersDirectories:
-                        ./nested1/deep/src/testDebug/shaders
                     BaselineProfileDirectories:
                         ./nested1/deep/src/testDebug/baselineProfiles
         DeviceTest:
@@ -4552,8 +4146,6 @@ MODULE: project.nested1.deep
                         ./nested1/deep/src/androidTest/res
                     ResourcesDirectories:
                         ./nested1/deep/src/androidTest/resources
-                    ShadersDirectories:
-                        ./nested1/deep/src/androidTest/shaders
                     BaselineProfileDirectories:
                         ./nested1/deep/src/androidTest/baselineProfiles
                 androidTestDebug
@@ -4572,8 +4164,6 @@ MODULE: project.nested1.deep
                         ./nested1/deep/src/androidTestDebug/res
                     ResourcesDirectories:
                         ./nested1/deep/src/androidTestDebug/resources
-                    ShadersDirectories:
-                        ./nested1/deep/src/androidTestDebug/shaders
                     BaselineProfileDirectories:
                         ./nested1/deep/src/androidTestDebug/baselineProfiles
         TestFixtures:
@@ -4613,9 +4203,6 @@ MODULE: project.nested1.deep
                 ResourcesDirectoryUrls:
                     file://./nested1/deep/src/main/resources
                     file://./nested1/deep/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/deep/src/main/shaders
-                    file://./nested1/deep/src/debug/shaders
         HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -4645,9 +4232,6 @@ MODULE: project.nested1.deep
                 ResourcesDirectoryUrls:
                     file://./nested1/deep/src/test/resources
                     file://./nested1/deep/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/deep/src/test/shaders
-                    file://./nested1/deep/src/testDebug/shaders
         DeviceTestSources:
             AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -4677,9 +4261,6 @@ MODULE: project.nested1.deep
                 ResourcesDirectoryUrls:
                     file://./nested1/deep/src/androidTest/resources
                     file://./nested1/deep/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/deep/src/androidTest/shaders
-                    file://./nested1/deep/src/androidTestDebug/shaders
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -4729,8 +4310,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/main/res
                 ResourcesDirectoryUrls:
                     file://./nested1/deep/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/deep/src/main/shaders
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -4750,8 +4329,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./nested1/deep/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/deep/src/androidTest/shaders
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -4771,8 +4348,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested1/deep/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/deep/src/androidTestDebug/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -4792,8 +4367,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./nested1/deep/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/deep/src/debug/shaders
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -4813,8 +4386,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/release/res
                 ResourcesDirectoryUrls:
                     file://./nested1/deep/src/release/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/deep/src/release/shaders
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -4834,8 +4405,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/test/res
                 ResourcesDirectoryUrls:
                     file://./nested1/deep/src/test/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/deep/src/test/shaders
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -4855,8 +4424,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested1/deep/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/deep/src/testDebug/shaders
             testRelease (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -4876,8 +4443,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/testRelease/res
                 ResourcesDirectoryUrls:
                     file://./nested1/deep/src/testRelease/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/deep/src/testRelease/shaders
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -4902,8 +4467,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/main/res
                 ResourcesDirectoryUrls:
                     file://./nested1/deep/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/deep/src/main/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -4923,8 +4486,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./nested1/deep/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/deep/src/debug/shaders
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -4944,8 +4505,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/release/res
                 ResourcesDirectoryUrls:
                     file://./nested1/deep/src/release/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/deep/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -4970,8 +4529,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/main/res
                 ResourcesDirectoryUrls:
                     file://./nested1/deep/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/deep/src/main/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -4991,8 +4548,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./nested1/deep/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/deep/src/debug/shaders
         CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -5013,8 +4568,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/test/res
                 ResourcesDirectoryUrls:
                     file://./nested1/deep/src/test/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/deep/src/test/shaders
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -5034,8 +4587,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested1/deep/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/deep/src/testDebug/shaders
         CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -5056,8 +4607,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./nested1/deep/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/deep/src/androidTest/shaders
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -5077,8 +4626,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested1/deep/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/deep/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
 MODULE: project.nested2
     by Facet:
@@ -5105,8 +4652,6 @@ MODULE: project.nested2
                 file://./nested2/src/main/res
             ResourcesDirectoryUrls:
                 file://./nested2/src/main/resources
-            ShadersDirectoryUrls:
-                file://./nested2/src/main/shaders
     by AndroidModel:
         main
             Manifest:
@@ -5124,8 +4669,6 @@ MODULE: project.nested2
                 ./nested2/src/main/res
             ResourcesDirectories:
                 ./nested2/src/main/resources
-            ShadersDirectories:
-                ./nested2/src/main/shaders
             BaselineProfileDirectories:
                 ./nested2/src/main/baselineProfiles
         Active:
@@ -5145,8 +4688,6 @@ MODULE: project.nested2
                     ./nested2/src/main/res
                 ResourcesDirectories:
                     ./nested2/src/main/resources
-                ShadersDirectories:
-                    ./nested2/src/main/shaders
                 BaselineProfileDirectories:
                     ./nested2/src/main/baselineProfiles
             basic
@@ -5165,8 +4706,6 @@ MODULE: project.nested2
                     ./nested2/src/basic/res
                 ResourcesDirectories:
                     ./nested2/src/basic/resources
-                ShadersDirectories:
-                    ./nested2/src/basic/shaders
                 BaselineProfileDirectories:
                     ./nested2/src/basic/baselineProfiles
             debug
@@ -5185,8 +4724,6 @@ MODULE: project.nested2
                     ./nested2/src/debug/res
                 ResourcesDirectories:
                     ./nested2/src/debug/resources
-                ShadersDirectories:
-                    ./nested2/src/debug/shaders
                 BaselineProfileDirectories:
                     ./nested2/src/debug/baselineProfiles
             basicDebug
@@ -5205,8 +4742,6 @@ MODULE: project.nested2
                     ./nested2/src/basicDebug/res
                 ResourcesDirectories:
                     ./nested2/src/basicDebug/resources
-                ShadersDirectories:
-                    ./nested2/src/basicDebug/shaders
                 BaselineProfileDirectories:
                     ./nested2/src/basicDebug/baselineProfiles
         All:
@@ -5226,8 +4761,6 @@ MODULE: project.nested2
                     ./nested2/src/main/res
                 ResourcesDirectories:
                     ./nested2/src/main/resources
-                ShadersDirectories:
-                    ./nested2/src/main/shaders
                 BaselineProfileDirectories:
                     ./nested2/src/main/baselineProfiles
             basic
@@ -5246,8 +4779,6 @@ MODULE: project.nested2
                     ./nested2/src/basic/res
                 ResourcesDirectories:
                     ./nested2/src/basic/resources
-                ShadersDirectories:
-                    ./nested2/src/basic/shaders
                 BaselineProfileDirectories:
                     ./nested2/src/basic/baselineProfiles
             basicDebug
@@ -5266,8 +4797,6 @@ MODULE: project.nested2
                     ./nested2/src/basicDebug/res
                 ResourcesDirectories:
                     ./nested2/src/basicDebug/resources
-                ShadersDirectories:
-                    ./nested2/src/basicDebug/shaders
                 BaselineProfileDirectories:
                     ./nested2/src/basicDebug/baselineProfiles
             debug
@@ -5286,8 +4815,6 @@ MODULE: project.nested2
                     ./nested2/src/debug/res
                 ResourcesDirectories:
                     ./nested2/src/debug/resources
-                ShadersDirectories:
-                    ./nested2/src/debug/shaders
                 BaselineProfileDirectories:
                     ./nested2/src/debug/baselineProfiles
             paid
@@ -5306,8 +4833,6 @@ MODULE: project.nested2
                     ./nested2/src/paid/res
                 ResourcesDirectories:
                     ./nested2/src/paid/resources
-                ShadersDirectories:
-                    ./nested2/src/paid/shaders
                 BaselineProfileDirectories:
                     ./nested2/src/paid/baselineProfiles
             release
@@ -5326,8 +4851,6 @@ MODULE: project.nested2
                     ./nested2/src/release/res
                 ResourcesDirectories:
                     ./nested2/src/release/resources
-                ShadersDirectories:
-                    ./nested2/src/release/shaders
                 BaselineProfileDirectories:
                     ./nested2/src/release/baselineProfiles
         HostTest:
@@ -5348,8 +4871,6 @@ MODULE: project.nested2
                         ./nested2/src/test/res
                     ResourcesDirectories:
                         ./nested2/src/test/resources
-                    ShadersDirectories:
-                        ./nested2/src/test/shaders
                     BaselineProfileDirectories:
                         ./nested2/src/test/baselineProfiles
                 testBasic
@@ -5368,8 +4889,6 @@ MODULE: project.nested2
                         ./nested2/src/testBasic/res
                     ResourcesDirectories:
                         ./nested2/src/testBasic/resources
-                    ShadersDirectories:
-                        ./nested2/src/testBasic/shaders
                     BaselineProfileDirectories:
                         ./nested2/src/testBasic/baselineProfiles
                 testDebug
@@ -5388,8 +4907,6 @@ MODULE: project.nested2
                         ./nested2/src/testDebug/res
                     ResourcesDirectories:
                         ./nested2/src/testDebug/resources
-                    ShadersDirectories:
-                        ./nested2/src/testDebug/shaders
                     BaselineProfileDirectories:
                         ./nested2/src/testDebug/baselineProfiles
                 testBasicDebug
@@ -5406,8 +4923,6 @@ MODULE: project.nested2
                         ./nested2/src/testBasicDebug/jniLibs
                     ResourcesDirectories:
                         ./nested2/src/testBasicDebug/resources
-                    ShadersDirectories:
-                        ./nested2/src/testBasicDebug/shaders
                     BaselineProfileDirectories:
                         ./nested2/src/testBasicDebug/baselineProfiles
         DeviceTest:
@@ -5428,8 +4943,6 @@ MODULE: project.nested2
                         ./nested2/src/androidTest/res
                     ResourcesDirectories:
                         ./nested2/src/androidTest/resources
-                    ShadersDirectories:
-                        ./nested2/src/androidTest/shaders
                     BaselineProfileDirectories:
                         ./nested2/src/androidTest/baselineProfiles
                 androidTestBasic
@@ -5448,8 +4961,6 @@ MODULE: project.nested2
                         ./nested2/src/androidTestBasic/res
                     ResourcesDirectories:
                         ./nested2/src/androidTestBasic/resources
-                    ShadersDirectories:
-                        ./nested2/src/androidTestBasic/shaders
                     BaselineProfileDirectories:
                         ./nested2/src/androidTestBasic/baselineProfiles
                 androidTestDebug
@@ -5468,8 +4979,6 @@ MODULE: project.nested2
                         ./nested2/src/androidTestDebug/res
                     ResourcesDirectories:
                         ./nested2/src/androidTestDebug/resources
-                    ShadersDirectories:
-                        ./nested2/src/androidTestDebug/shaders
                     BaselineProfileDirectories:
                         ./nested2/src/androidTestDebug/baselineProfiles
                 androidTestBasicDebug
@@ -5488,8 +4997,6 @@ MODULE: project.nested2
                         ./nested2/src/androidTestBasicDebug/res
                     ResourcesDirectories:
                         ./nested2/src/androidTestBasicDebug/resources
-                    ShadersDirectories:
-                        ./nested2/src/androidTestBasicDebug/shaders
                     BaselineProfileDirectories:
                         ./nested2/src/androidTestBasicDebug/baselineProfiles
         TestFixtures:
@@ -5547,11 +5054,6 @@ MODULE: project.nested2
                     file://./nested2/src/basic/resources
                     file://./nested2/src/debug/resources
                     file://./nested2/src/basicDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/main/shaders
-                    file://./nested2/src/basic/shaders
-                    file://./nested2/src/debug/shaders
-                    file://./nested2/src/basicDebug/shaders
         HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -5598,11 +5100,6 @@ MODULE: project.nested2
                     file://./nested2/src/testBasic/resources
                     file://./nested2/src/testDebug/resources
                     file://./nested2/src/testBasicDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/test/shaders
-                    file://./nested2/src/testBasic/shaders
-                    file://./nested2/src/testDebug/shaders
-                    file://./nested2/src/testBasicDebug/shaders
         DeviceTestSources:
             AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -5650,11 +5147,6 @@ MODULE: project.nested2
                     file://./nested2/src/androidTestBasic/resources
                     file://./nested2/src/androidTestDebug/resources
                     file://./nested2/src/androidTestBasicDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/androidTest/shaders
-                    file://./nested2/src/androidTestBasic/shaders
-                    file://./nested2/src/androidTestDebug/shaders
-                    file://./nested2/src/androidTestBasicDebug/shaders
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -5704,8 +5196,6 @@ MODULE: project.nested2
                     file://./nested2/src/main/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/main/shaders
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -5725,8 +5215,6 @@ MODULE: project.nested2
                     file://./nested2/src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/androidTest/shaders
             androidTestBasic (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -5746,8 +5234,6 @@ MODULE: project.nested2
                     file://./nested2/src/androidTestBasic/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/androidTestBasic/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/androidTestBasic/shaders
             androidTestBasicDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -5767,8 +5253,6 @@ MODULE: project.nested2
                     file://./nested2/src/androidTestBasicDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/androidTestBasicDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/androidTestBasicDebug/shaders
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -5788,8 +5272,6 @@ MODULE: project.nested2
                     file://./nested2/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/androidTestDebug/shaders
             androidTestPaid (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -5809,8 +5291,6 @@ MODULE: project.nested2
                     file://./nested2/src/androidTestPaid/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/androidTestPaid/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/androidTestPaid/shaders
             basic (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -5830,8 +5310,6 @@ MODULE: project.nested2
                     file://./nested2/src/basic/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/basic/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/basic/shaders
             basicDebug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -5851,8 +5329,6 @@ MODULE: project.nested2
                     file://./nested2/src/basicDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/basicDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/basicDebug/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -5872,8 +5348,6 @@ MODULE: project.nested2
                     file://./nested2/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/debug/shaders
             paid (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -5893,8 +5367,6 @@ MODULE: project.nested2
                     file://./nested2/src/paid/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/paid/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/paid/shaders
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -5914,8 +5386,6 @@ MODULE: project.nested2
                     file://./nested2/src/release/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/release/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/release/shaders
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -5935,8 +5405,6 @@ MODULE: project.nested2
                     file://./nested2/src/test/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/test/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/test/shaders
             testBasic (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -5956,8 +5424,6 @@ MODULE: project.nested2
                     file://./nested2/src/testBasic/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/testBasic/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/testBasic/shaders
             testBasicDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -5975,8 +5441,6 @@ MODULE: project.nested2
                     file://./nested2/src/testBasicDebug/jniLibs
                 ResourcesDirectoryUrls:
                     file://./nested2/src/testBasicDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/testBasicDebug/shaders
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -5996,8 +5460,6 @@ MODULE: project.nested2
                     file://./nested2/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/testDebug/shaders
             testPaid (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -6017,8 +5479,6 @@ MODULE: project.nested2
                     file://./nested2/src/testPaid/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/testPaid/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/testPaid/shaders
             testRelease (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -6038,8 +5498,6 @@ MODULE: project.nested2
                     file://./nested2/src/testRelease/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/testRelease/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/testRelease/shaders
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -6064,8 +5522,6 @@ MODULE: project.nested2
                     file://./nested2/src/main/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/main/shaders
             basic (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -6085,8 +5541,6 @@ MODULE: project.nested2
                     file://./nested2/src/basic/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/basic/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/basic/shaders
             basicDebug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -6106,8 +5560,6 @@ MODULE: project.nested2
                     file://./nested2/src/basicDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/basicDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/basicDebug/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -6127,8 +5579,6 @@ MODULE: project.nested2
                     file://./nested2/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/debug/shaders
             paid (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -6148,8 +5598,6 @@ MODULE: project.nested2
                     file://./nested2/src/paid/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/paid/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/paid/shaders
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -6169,8 +5617,6 @@ MODULE: project.nested2
                     file://./nested2/src/release/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/release/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -6195,8 +5641,6 @@ MODULE: project.nested2
                     file://./nested2/src/main/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/main/shaders
             basic (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -6216,8 +5660,6 @@ MODULE: project.nested2
                     file://./nested2/src/basic/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/basic/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/basic/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -6237,8 +5679,6 @@ MODULE: project.nested2
                     file://./nested2/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/debug/shaders
             basicDebug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -6258,8 +5698,6 @@ MODULE: project.nested2
                     file://./nested2/src/basicDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/basicDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/basicDebug/shaders
         CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -6280,8 +5718,6 @@ MODULE: project.nested2
                     file://./nested2/src/test/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/test/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/test/shaders
             testBasic (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -6301,8 +5737,6 @@ MODULE: project.nested2
                     file://./nested2/src/testBasic/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/testBasic/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/testBasic/shaders
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -6322,8 +5756,6 @@ MODULE: project.nested2
                     file://./nested2/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/testDebug/shaders
             testBasicDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -6341,8 +5773,6 @@ MODULE: project.nested2
                     file://./nested2/src/testBasicDebug/jniLibs
                 ResourcesDirectoryUrls:
                     file://./nested2/src/testBasicDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/testBasicDebug/shaders
         CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -6363,8 +5793,6 @@ MODULE: project.nested2
                     file://./nested2/src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/androidTest/shaders
             androidTestBasic (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -6384,8 +5812,6 @@ MODULE: project.nested2
                     file://./nested2/src/androidTestBasic/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/androidTestBasic/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/androidTestBasic/shaders
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -6405,8 +5831,6 @@ MODULE: project.nested2
                     file://./nested2/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/androidTestDebug/shaders
             androidTestBasicDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -6426,8 +5850,6 @@ MODULE: project.nested2
                     file://./nested2/src/androidTestBasicDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/androidTestBasicDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/androidTestBasicDebug/shaders
         CurrentTestFixturesSourceProviders:
 MODULE: project.nested2.deep
     by Facet:
@@ -6454,8 +5876,6 @@ MODULE: project.nested2.deep
                 file://./nested2/deep/src/main/res
             ResourcesDirectoryUrls:
                 file://./nested2/deep/src/main/resources
-            ShadersDirectoryUrls:
-                file://./nested2/deep/src/main/shaders
     by AndroidModel:
         main
             Manifest:
@@ -6473,8 +5893,6 @@ MODULE: project.nested2.deep
                 ./nested2/deep/src/main/res
             ResourcesDirectories:
                 ./nested2/deep/src/main/resources
-            ShadersDirectories:
-                ./nested2/deep/src/main/shaders
             BaselineProfileDirectories:
                 ./nested2/deep/src/main/baselineProfiles
         Active:
@@ -6494,8 +5912,6 @@ MODULE: project.nested2.deep
                     ./nested2/deep/src/main/res
                 ResourcesDirectories:
                     ./nested2/deep/src/main/resources
-                ShadersDirectories:
-                    ./nested2/deep/src/main/shaders
                 BaselineProfileDirectories:
                     ./nested2/deep/src/main/baselineProfiles
             debug
@@ -6514,8 +5930,6 @@ MODULE: project.nested2.deep
                     ./nested2/deep/src/debug/res
                 ResourcesDirectories:
                     ./nested2/deep/src/debug/resources
-                ShadersDirectories:
-                    ./nested2/deep/src/debug/shaders
                 BaselineProfileDirectories:
                     ./nested2/deep/src/debug/baselineProfiles
         All:
@@ -6535,8 +5949,6 @@ MODULE: project.nested2.deep
                     ./nested2/deep/src/main/res
                 ResourcesDirectories:
                     ./nested2/deep/src/main/resources
-                ShadersDirectories:
-                    ./nested2/deep/src/main/shaders
                 BaselineProfileDirectories:
                     ./nested2/deep/src/main/baselineProfiles
             debug
@@ -6555,8 +5967,6 @@ MODULE: project.nested2.deep
                     ./nested2/deep/src/debug/res
                 ResourcesDirectories:
                     ./nested2/deep/src/debug/resources
-                ShadersDirectories:
-                    ./nested2/deep/src/debug/shaders
                 BaselineProfileDirectories:
                     ./nested2/deep/src/debug/baselineProfiles
             release
@@ -6575,8 +5985,6 @@ MODULE: project.nested2.deep
                     ./nested2/deep/src/release/res
                 ResourcesDirectories:
                     ./nested2/deep/src/release/resources
-                ShadersDirectories:
-                    ./nested2/deep/src/release/shaders
                 BaselineProfileDirectories:
                     ./nested2/deep/src/release/baselineProfiles
         HostTest:
@@ -6597,8 +6005,6 @@ MODULE: project.nested2.deep
                         ./nested2/deep/src/test/res
                     ResourcesDirectories:
                         ./nested2/deep/src/test/resources
-                    ShadersDirectories:
-                        ./nested2/deep/src/test/shaders
                     BaselineProfileDirectories:
                         ./nested2/deep/src/test/baselineProfiles
                 testDebug
@@ -6617,8 +6023,6 @@ MODULE: project.nested2.deep
                         ./nested2/deep/src/testDebug/res
                     ResourcesDirectories:
                         ./nested2/deep/src/testDebug/resources
-                    ShadersDirectories:
-                        ./nested2/deep/src/testDebug/shaders
                     BaselineProfileDirectories:
                         ./nested2/deep/src/testDebug/baselineProfiles
         DeviceTest:
@@ -6639,8 +6043,6 @@ MODULE: project.nested2.deep
                         ./nested2/deep/src/androidTest/res
                     ResourcesDirectories:
                         ./nested2/deep/src/androidTest/resources
-                    ShadersDirectories:
-                        ./nested2/deep/src/androidTest/shaders
                     BaselineProfileDirectories:
                         ./nested2/deep/src/androidTest/baselineProfiles
                 androidTestDebug
@@ -6659,8 +6061,6 @@ MODULE: project.nested2.deep
                         ./nested2/deep/src/androidTestDebug/res
                     ResourcesDirectories:
                         ./nested2/deep/src/androidTestDebug/resources
-                    ShadersDirectories:
-                        ./nested2/deep/src/androidTestDebug/shaders
                     BaselineProfileDirectories:
                         ./nested2/deep/src/androidTestDebug/baselineProfiles
         TestFixtures:
@@ -6700,9 +6100,6 @@ MODULE: project.nested2.deep
                 ResourcesDirectoryUrls:
                     file://./nested2/deep/src/main/resources
                     file://./nested2/deep/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/deep/src/main/shaders
-                    file://./nested2/deep/src/debug/shaders
         HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -6732,9 +6129,6 @@ MODULE: project.nested2.deep
                 ResourcesDirectoryUrls:
                     file://./nested2/deep/src/test/resources
                     file://./nested2/deep/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/deep/src/test/shaders
-                    file://./nested2/deep/src/testDebug/shaders
         DeviceTestSources:
             AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -6764,9 +6158,6 @@ MODULE: project.nested2.deep
                 ResourcesDirectoryUrls:
                     file://./nested2/deep/src/androidTest/resources
                     file://./nested2/deep/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/deep/src/androidTest/shaders
-                    file://./nested2/deep/src/androidTestDebug/shaders
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -6816,8 +6207,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/main/res
                 ResourcesDirectoryUrls:
                     file://./nested2/deep/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/deep/src/main/shaders
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -6837,8 +6226,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./nested2/deep/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/deep/src/androidTest/shaders
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -6858,8 +6245,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/deep/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/deep/src/androidTestDebug/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -6879,8 +6264,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/deep/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/deep/src/debug/shaders
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -6900,8 +6283,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/release/res
                 ResourcesDirectoryUrls:
                     file://./nested2/deep/src/release/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/deep/src/release/shaders
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -6921,8 +6302,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/test/res
                 ResourcesDirectoryUrls:
                     file://./nested2/deep/src/test/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/deep/src/test/shaders
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -6942,8 +6321,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/deep/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/deep/src/testDebug/shaders
             testRelease (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -6963,8 +6340,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/testRelease/res
                 ResourcesDirectoryUrls:
                     file://./nested2/deep/src/testRelease/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/deep/src/testRelease/shaders
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -6989,8 +6364,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/main/res
                 ResourcesDirectoryUrls:
                     file://./nested2/deep/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/deep/src/main/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -7010,8 +6383,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/deep/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/deep/src/debug/shaders
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -7031,8 +6402,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/release/res
                 ResourcesDirectoryUrls:
                     file://./nested2/deep/src/release/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/deep/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -7057,8 +6426,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/main/res
                 ResourcesDirectoryUrls:
                     file://./nested2/deep/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/deep/src/main/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -7078,8 +6445,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/deep/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/deep/src/debug/shaders
         CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -7100,8 +6465,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/test/res
                 ResourcesDirectoryUrls:
                     file://./nested2/deep/src/test/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/deep/src/test/shaders
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -7121,8 +6484,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/deep/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/deep/src/testDebug/shaders
         CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -7143,8 +6504,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./nested2/deep/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/deep/src/androidTest/shaders
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -7164,8 +6523,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/deep/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/deep/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
 MODULE: project.nested2.trans.deep2
     by Facet:
@@ -7192,8 +6549,6 @@ MODULE: project.nested2.trans.deep2
                 file://./nested2/trans/deep2/src/main/res
             ResourcesDirectoryUrls:
                 file://./nested2/trans/deep2/src/main/resources
-            ShadersDirectoryUrls:
-                file://./nested2/trans/deep2/src/main/shaders
     by AndroidModel:
         main
             Manifest:
@@ -7211,8 +6566,6 @@ MODULE: project.nested2.trans.deep2
                 ./nested2/trans/deep2/src/main/res
             ResourcesDirectories:
                 ./nested2/trans/deep2/src/main/resources
-            ShadersDirectories:
-                ./nested2/trans/deep2/src/main/shaders
             BaselineProfileDirectories:
                 ./nested2/trans/deep2/src/main/baselineProfiles
         Active:
@@ -7232,8 +6585,6 @@ MODULE: project.nested2.trans.deep2
                     ./nested2/trans/deep2/src/main/res
                 ResourcesDirectories:
                     ./nested2/trans/deep2/src/main/resources
-                ShadersDirectories:
-                    ./nested2/trans/deep2/src/main/shaders
                 BaselineProfileDirectories:
                     ./nested2/trans/deep2/src/main/baselineProfiles
             debug
@@ -7252,8 +6603,6 @@ MODULE: project.nested2.trans.deep2
                     ./nested2/trans/deep2/src/debug/res
                 ResourcesDirectories:
                     ./nested2/trans/deep2/src/debug/resources
-                ShadersDirectories:
-                    ./nested2/trans/deep2/src/debug/shaders
                 BaselineProfileDirectories:
                     ./nested2/trans/deep2/src/debug/baselineProfiles
         All:
@@ -7273,8 +6622,6 @@ MODULE: project.nested2.trans.deep2
                     ./nested2/trans/deep2/src/main/res
                 ResourcesDirectories:
                     ./nested2/trans/deep2/src/main/resources
-                ShadersDirectories:
-                    ./nested2/trans/deep2/src/main/shaders
                 BaselineProfileDirectories:
                     ./nested2/trans/deep2/src/main/baselineProfiles
             debug
@@ -7293,8 +6640,6 @@ MODULE: project.nested2.trans.deep2
                     ./nested2/trans/deep2/src/debug/res
                 ResourcesDirectories:
                     ./nested2/trans/deep2/src/debug/resources
-                ShadersDirectories:
-                    ./nested2/trans/deep2/src/debug/shaders
                 BaselineProfileDirectories:
                     ./nested2/trans/deep2/src/debug/baselineProfiles
             release
@@ -7313,8 +6658,6 @@ MODULE: project.nested2.trans.deep2
                     ./nested2/trans/deep2/src/release/res
                 ResourcesDirectories:
                     ./nested2/trans/deep2/src/release/resources
-                ShadersDirectories:
-                    ./nested2/trans/deep2/src/release/shaders
                 BaselineProfileDirectories:
                     ./nested2/trans/deep2/src/release/baselineProfiles
         HostTest:
@@ -7335,8 +6678,6 @@ MODULE: project.nested2.trans.deep2
                         ./nested2/trans/deep2/src/test/res
                     ResourcesDirectories:
                         ./nested2/trans/deep2/src/test/resources
-                    ShadersDirectories:
-                        ./nested2/trans/deep2/src/test/shaders
                     BaselineProfileDirectories:
                         ./nested2/trans/deep2/src/test/baselineProfiles
                 testDebug
@@ -7355,8 +6696,6 @@ MODULE: project.nested2.trans.deep2
                         ./nested2/trans/deep2/src/testDebug/res
                     ResourcesDirectories:
                         ./nested2/trans/deep2/src/testDebug/resources
-                    ShadersDirectories:
-                        ./nested2/trans/deep2/src/testDebug/shaders
                     BaselineProfileDirectories:
                         ./nested2/trans/deep2/src/testDebug/baselineProfiles
         DeviceTest:
@@ -7377,8 +6716,6 @@ MODULE: project.nested2.trans.deep2
                         ./nested2/trans/deep2/src/androidTest/res
                     ResourcesDirectories:
                         ./nested2/trans/deep2/src/androidTest/resources
-                    ShadersDirectories:
-                        ./nested2/trans/deep2/src/androidTest/shaders
                     BaselineProfileDirectories:
                         ./nested2/trans/deep2/src/androidTest/baselineProfiles
                 androidTestDebug
@@ -7397,8 +6734,6 @@ MODULE: project.nested2.trans.deep2
                         ./nested2/trans/deep2/src/androidTestDebug/res
                     ResourcesDirectories:
                         ./nested2/trans/deep2/src/androidTestDebug/resources
-                    ShadersDirectories:
-                        ./nested2/trans/deep2/src/androidTestDebug/shaders
                     BaselineProfileDirectories:
                         ./nested2/trans/deep2/src/androidTestDebug/baselineProfiles
         TestFixtures:
@@ -7438,9 +6773,6 @@ MODULE: project.nested2.trans.deep2
                 ResourcesDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/resources
                     file://./nested2/trans/deep2/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/trans/deep2/src/main/shaders
-                    file://./nested2/trans/deep2/src/debug/shaders
         HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -7470,9 +6802,6 @@ MODULE: project.nested2.trans.deep2
                 ResourcesDirectoryUrls:
                     file://./nested2/trans/deep2/src/test/resources
                     file://./nested2/trans/deep2/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/trans/deep2/src/test/shaders
-                    file://./nested2/trans/deep2/src/testDebug/shaders
         DeviceTestSources:
             AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -7502,9 +6831,6 @@ MODULE: project.nested2.trans.deep2
                 ResourcesDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTest/resources
                     file://./nested2/trans/deep2/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTest/shaders
-                    file://./nested2/trans/deep2/src/androidTestDebug/shaders
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -7554,8 +6880,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/main/res
                 ResourcesDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/trans/deep2/src/main/shaders
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -7575,8 +6899,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTest/shaders
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -7596,8 +6918,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTestDebug/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -7617,8 +6937,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/trans/deep2/src/debug/shaders
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -7638,8 +6956,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/release/res
                 ResourcesDirectoryUrls:
                     file://./nested2/trans/deep2/src/release/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/trans/deep2/src/release/shaders
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -7659,8 +6975,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/test/res
                 ResourcesDirectoryUrls:
                     file://./nested2/trans/deep2/src/test/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/trans/deep2/src/test/shaders
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -7680,8 +6994,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/trans/deep2/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/trans/deep2/src/testDebug/shaders
             testRelease (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -7701,8 +7013,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/testRelease/res
                 ResourcesDirectoryUrls:
                     file://./nested2/trans/deep2/src/testRelease/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/trans/deep2/src/testRelease/shaders
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -7727,8 +7037,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/main/res
                 ResourcesDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/trans/deep2/src/main/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -7748,8 +7056,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/trans/deep2/src/debug/shaders
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -7769,8 +7075,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/release/res
                 ResourcesDirectoryUrls:
                     file://./nested2/trans/deep2/src/release/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/trans/deep2/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -7795,8 +7099,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/main/res
                 ResourcesDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/trans/deep2/src/main/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -7816,8 +7118,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/trans/deep2/src/debug/shaders
         CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -7838,8 +7138,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/test/res
                 ResourcesDirectoryUrls:
                     file://./nested2/trans/deep2/src/test/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/trans/deep2/src/test/shaders
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -7859,8 +7157,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/trans/deep2/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/trans/deep2/src/testDebug/shaders
         CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -7881,8 +7177,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTest/shaders
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -7902,8 +7196,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
 Build configuration files:
     file://./build.gradle : Project: project [0]

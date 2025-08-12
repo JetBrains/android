@@ -245,7 +245,6 @@ MODULE                        : gradle_project.app
             ResDirectories                : <ROOT>/gradle_project/app/src/main/res
             AssetsDirectories             : <ROOT>/gradle_project/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/gradle_project/app/src/main/jniLibs [-]
-            ShadersDirectories            : <ROOT>/gradle_project/app/src/main/shaders [-]
             BaselineProfileDirectories    : <ROOT>/gradle_project/app/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -260,7 +259,6 @@ MODULE                        : gradle_project.app
                     ResDirectories                : <ROOT>/gradle_project/app/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/gradle_project/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project/app/src/androidTest/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/gradle_project/app/src/androidTest/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/gradle_project/app/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -274,7 +272,6 @@ MODULE                        : gradle_project.app
                     ResDirectories                : <ROOT>/gradle_project/app/src/test/res [-]
                     AssetsDirectories             : <ROOT>/gradle_project/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project/app/src/test/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/gradle_project/app/src/test/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/gradle_project/app/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
@@ -296,7 +293,6 @@ MODULE                        : gradle_project.app
             ResDirectories                : <ROOT>/gradle_project/app/src/debug/res [-]
             AssetsDirectories             : <ROOT>/gradle_project/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/gradle_project/app/src/debug/jniLibs [-]
-            ShadersDirectories            : <ROOT>/gradle_project/app/src/debug/shaders [-]
             BaselineProfileDirectories    : <ROOT>/gradle_project/app/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -311,7 +307,6 @@ MODULE                        : gradle_project.app
                     ResDirectories                : <ROOT>/gradle_project/app/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/gradle_project/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project/app/src/androidTestDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/gradle_project/app/src/androidTestDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/gradle_project/app/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -326,7 +321,6 @@ MODULE                        : gradle_project.app
                     ResDirectories                : <ROOT>/gradle_project/app/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/gradle_project/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project/app/src/testDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/gradle_project/app/src/testDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/gradle_project/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
@@ -349,7 +343,6 @@ MODULE                        : gradle_project.app
             ResDirectories                : <ROOT>/gradle_project/app/src/release/res [-]
             AssetsDirectories             : <ROOT>/gradle_project/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/gradle_project/app/src/release/jniLibs [-]
-            ShadersDirectories            : <ROOT>/gradle_project/app/src/release/shaders [-]
             BaselineProfileDirectories    : <ROOT>/gradle_project/app/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -364,7 +357,6 @@ MODULE                        : gradle_project.app
                     ResDirectories                : <ROOT>/gradle_project/app/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/gradle_project/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project/app/src/testRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/gradle_project/app/src/testRelease/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/gradle_project/app/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig

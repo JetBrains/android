@@ -29,8 +29,6 @@ MODULE: MultiFlavor.app
                 file://./app/src/main/res
             ResourcesDirectoryUrls:
                 file://./app/src/main/resources
-            ShadersDirectoryUrls:
-                file://./app/src/main/shaders
     by AndroidModel:
         main
             Manifest:
@@ -48,8 +46,6 @@ MODULE: MultiFlavor.app
                 ./app/src/main/res
             ResourcesDirectories:
                 ./app/src/main/resources
-            ShadersDirectories:
-                ./app/src/main/shaders
             BaselineProfileDirectories:
                 ./app/src/main/baselineProfiles
         Active:
@@ -69,8 +65,6 @@ MODULE: MultiFlavor.app
                     ./app/src/main/res
                 ResourcesDirectories:
                     ./app/src/main/resources
-                ShadersDirectories:
-                    ./app/src/main/shaders
                 BaselineProfileDirectories:
                     ./app/src/main/baselineProfiles
             firstAbc
@@ -89,8 +83,6 @@ MODULE: MultiFlavor.app
                     ./app/src/firstAbc/res
                 ResourcesDirectories:
                     ./app/src/firstAbc/resources
-                ShadersDirectories:
-                    ./app/src/firstAbc/shaders
                 BaselineProfileDirectories:
                     ./app/src/firstAbc/baselineProfiles
             secondAbc
@@ -110,8 +102,6 @@ MODULE: MultiFlavor.app
                     ./app/src/secondAbc/res
                 ResourcesDirectories:
                     ./app/src/secondAbc/resources
-                ShadersDirectories:
-                    ./app/src/secondAbc/shaders
                 BaselineProfileDirectories:
                     ./app/src/secondAbc/baselineProfiles
             firstAbcSecondAbc
@@ -131,8 +121,6 @@ MODULE: MultiFlavor.app
                     ./app/src/firstAbcSecondAbc/res
                 ResourcesDirectories:
                     ./app/src/firstAbcSecondAbc/resources
-                ShadersDirectories:
-                    ./app/src/firstAbcSecondAbc/shaders
                 BaselineProfileDirectories:
                     ./app/src/firstAbcSecondAbc/baselineProfiles
             debug
@@ -151,8 +139,6 @@ MODULE: MultiFlavor.app
                     ./app/src/debug/res
                 ResourcesDirectories:
                     ./app/src/debug/resources
-                ShadersDirectories:
-                    ./app/src/debug/shaders
                 BaselineProfileDirectories:
                     ./app/src/debug/baselineProfiles
             firstAbcSecondAbcDebug
@@ -171,8 +157,6 @@ MODULE: MultiFlavor.app
                     ./app/src/firstAbcSecondAbcDebug/res
                 ResourcesDirectories:
                     ./app/src/firstAbcSecondAbcDebug/resources
-                ShadersDirectories:
-                    ./app/src/firstAbcSecondAbcDebug/shaders
                 BaselineProfileDirectories:
                     ./app/src/firstAbcSecondAbcDebug/baselineProfiles
         All:
@@ -192,8 +176,6 @@ MODULE: MultiFlavor.app
                     ./app/src/main/res
                 ResourcesDirectories:
                     ./app/src/main/resources
-                ShadersDirectories:
-                    ./app/src/main/shaders
                 BaselineProfileDirectories:
                     ./app/src/main/baselineProfiles
             debug
@@ -212,8 +194,6 @@ MODULE: MultiFlavor.app
                     ./app/src/debug/res
                 ResourcesDirectories:
                     ./app/src/debug/resources
-                ShadersDirectories:
-                    ./app/src/debug/shaders
                 BaselineProfileDirectories:
                     ./app/src/debug/baselineProfiles
             firstAbc
@@ -232,8 +212,6 @@ MODULE: MultiFlavor.app
                     ./app/src/firstAbc/res
                 ResourcesDirectories:
                     ./app/src/firstAbc/resources
-                ShadersDirectories:
-                    ./app/src/firstAbc/shaders
                 BaselineProfileDirectories:
                     ./app/src/firstAbc/baselineProfiles
             firstAbcSecondAbc
@@ -253,8 +231,6 @@ MODULE: MultiFlavor.app
                     ./app/src/firstAbcSecondAbc/res
                 ResourcesDirectories:
                     ./app/src/firstAbcSecondAbc/resources
-                ShadersDirectories:
-                    ./app/src/firstAbcSecondAbc/shaders
                 BaselineProfileDirectories:
                     ./app/src/firstAbcSecondAbc/baselineProfiles
             firstAbcSecondAbcDebug
@@ -273,8 +249,6 @@ MODULE: MultiFlavor.app
                     ./app/src/firstAbcSecondAbcDebug/res
                 ResourcesDirectories:
                     ./app/src/firstAbcSecondAbcDebug/resources
-                ShadersDirectories:
-                    ./app/src/firstAbcSecondAbcDebug/shaders
                 BaselineProfileDirectories:
                     ./app/src/firstAbcSecondAbcDebug/baselineProfiles
             firstXyz
@@ -293,8 +267,6 @@ MODULE: MultiFlavor.app
                     ./app/src/firstXyz/res
                 ResourcesDirectories:
                     ./app/src/firstXyz/resources
-                ShadersDirectories:
-                    ./app/src/firstXyz/shaders
                 BaselineProfileDirectories:
                     ./app/src/firstXyz/baselineProfiles
             release
@@ -313,8 +285,6 @@ MODULE: MultiFlavor.app
                     ./app/src/release/res
                 ResourcesDirectories:
                     ./app/src/release/resources
-                ShadersDirectories:
-                    ./app/src/release/shaders
                 BaselineProfileDirectories:
                     ./app/src/release/baselineProfiles
             secondAbc
@@ -334,8 +304,6 @@ MODULE: MultiFlavor.app
                     ./app/src/secondAbc/res
                 ResourcesDirectories:
                     ./app/src/secondAbc/resources
-                ShadersDirectories:
-                    ./app/src/secondAbc/shaders
                 BaselineProfileDirectories:
                     ./app/src/secondAbc/baselineProfiles
             secondXyz
@@ -354,8 +322,6 @@ MODULE: MultiFlavor.app
                     ./app/src/secondXyz/res
                 ResourcesDirectories:
                     ./app/src/secondXyz/resources
-                ShadersDirectories:
-                    ./app/src/secondXyz/shaders
                 BaselineProfileDirectories:
                     ./app/src/secondXyz/baselineProfiles
         HostTest:
@@ -376,8 +342,6 @@ MODULE: MultiFlavor.app
                         ./app/src/test/res
                     ResourcesDirectories:
                         ./app/src/test/resources
-                    ShadersDirectories:
-                        ./app/src/test/shaders
                     BaselineProfileDirectories:
                         ./app/src/test/baselineProfiles
                 testFirstAbc
@@ -396,8 +360,6 @@ MODULE: MultiFlavor.app
                         ./app/src/testFirstAbc/res
                     ResourcesDirectories:
                         ./app/src/testFirstAbc/resources
-                    ShadersDirectories:
-                        ./app/src/testFirstAbc/shaders
                     BaselineProfileDirectories:
                         ./app/src/testFirstAbc/baselineProfiles
                 testSecondAbc
@@ -416,8 +378,6 @@ MODULE: MultiFlavor.app
                         ./app/src/testSecondAbc/res
                     ResourcesDirectories:
                         ./app/src/testSecondAbc/resources
-                    ShadersDirectories:
-                        ./app/src/testSecondAbc/shaders
                     BaselineProfileDirectories:
                         ./app/src/testSecondAbc/baselineProfiles
                 testFirstAbcSecondAbc
@@ -436,8 +396,6 @@ MODULE: MultiFlavor.app
                         ./app/src/testFirstAbcSecondAbc/res
                     ResourcesDirectories:
                         ./app/src/testFirstAbcSecondAbc/resources
-                    ShadersDirectories:
-                        ./app/src/testFirstAbcSecondAbc/shaders
                     BaselineProfileDirectories:
                         ./app/src/testFirstAbcSecondAbc/baselineProfiles
                 testDebug
@@ -456,8 +414,6 @@ MODULE: MultiFlavor.app
                         ./app/src/testDebug/res
                     ResourcesDirectories:
                         ./app/src/testDebug/resources
-                    ShadersDirectories:
-                        ./app/src/testDebug/shaders
                     BaselineProfileDirectories:
                         ./app/src/testDebug/baselineProfiles
                 testFirstAbcSecondAbcDebug
@@ -474,8 +430,6 @@ MODULE: MultiFlavor.app
                         ./app/src/testFirstAbcSecondAbcDebug/jniLibs
                     ResourcesDirectories:
                         ./app/src/testFirstAbcSecondAbcDebug/resources
-                    ShadersDirectories:
-                        ./app/src/testFirstAbcSecondAbcDebug/shaders
                     BaselineProfileDirectories:
                         ./app/src/testFirstAbcSecondAbcDebug/baselineProfiles
         DeviceTest:
@@ -496,8 +450,6 @@ MODULE: MultiFlavor.app
                         ./app/src/androidTest/res
                     ResourcesDirectories:
                         ./app/src/androidTest/resources
-                    ShadersDirectories:
-                        ./app/src/androidTest/shaders
                     BaselineProfileDirectories:
                         ./app/src/androidTest/baselineProfiles
                 androidTestFirstAbc
@@ -516,8 +468,6 @@ MODULE: MultiFlavor.app
                         ./app/src/androidTestFirstAbc/res
                     ResourcesDirectories:
                         ./app/src/androidTestFirstAbc/resources
-                    ShadersDirectories:
-                        ./app/src/androidTestFirstAbc/shaders
                     BaselineProfileDirectories:
                         ./app/src/androidTestFirstAbc/baselineProfiles
                 androidTestSecondAbc
@@ -536,8 +486,6 @@ MODULE: MultiFlavor.app
                         ./app/src/androidTestSecondAbc/res
                     ResourcesDirectories:
                         ./app/src/androidTestSecondAbc/resources
-                    ShadersDirectories:
-                        ./app/src/androidTestSecondAbc/shaders
                     BaselineProfileDirectories:
                         ./app/src/androidTestSecondAbc/baselineProfiles
                 androidTestFirstAbcSecondAbc
@@ -556,8 +504,6 @@ MODULE: MultiFlavor.app
                         ./app/src/androidTestFirstAbcSecondAbc/res
                     ResourcesDirectories:
                         ./app/src/androidTestFirstAbcSecondAbc/resources
-                    ShadersDirectories:
-                        ./app/src/androidTestFirstAbcSecondAbc/shaders
                     BaselineProfileDirectories:
                         ./app/src/androidTestFirstAbcSecondAbc/baselineProfiles
                 androidTestDebug
@@ -576,8 +522,6 @@ MODULE: MultiFlavor.app
                         ./app/src/androidTestDebug/res
                     ResourcesDirectories:
                         ./app/src/androidTestDebug/resources
-                    ShadersDirectories:
-                        ./app/src/androidTestDebug/shaders
                     BaselineProfileDirectories:
                         ./app/src/androidTestDebug/baselineProfiles
                 androidTestFirstAbcSecondAbcDebug
@@ -596,8 +540,6 @@ MODULE: MultiFlavor.app
                         ./app/src/androidTestFirstAbcSecondAbcDebug/res
                     ResourcesDirectories:
                         ./app/src/androidTestFirstAbcSecondAbcDebug/resources
-                    ShadersDirectories:
-                        ./app/src/androidTestFirstAbcSecondAbcDebug/shaders
                     BaselineProfileDirectories:
                         ./app/src/androidTestFirstAbcSecondAbcDebug/baselineProfiles
         TestFixtures:
@@ -688,13 +630,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstAbcSecondAbc/resources
                     file://./app/src/debug/resources
                     file://./app/src/firstAbcSecondAbcDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/main/shaders
-                    file://./app/src/firstAbc/shaders
-                    file://./app/src/secondAbc/shaders
-                    file://./app/src/firstAbcSecondAbc/shaders
-                    file://./app/src/debug/shaders
-                    file://./app/src/firstAbcSecondAbcDebug/shaders
         HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -774,13 +709,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/testFirstAbcSecondAbc/resources
                     file://./app/src/testDebug/resources
                     file://./app/src/testFirstAbcSecondAbcDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/test/shaders
-                    file://./app/src/testFirstAbc/shaders
-                    file://./app/src/testSecondAbc/shaders
-                    file://./app/src/testFirstAbcSecondAbc/shaders
-                    file://./app/src/testDebug/shaders
-                    file://./app/src/testFirstAbcSecondAbcDebug/shaders
         DeviceTestSources:
             AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -852,13 +780,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestFirstAbcSecondAbc/resources
                     file://./app/src/androidTestDebug/resources
                     file://./app/src/androidTestFirstAbcSecondAbcDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTest/shaders
-                    file://./app/src/androidTestFirstAbc/shaders
-                    file://./app/src/androidTestSecondAbc/shaders
-                    file://./app/src/androidTestFirstAbcSecondAbc/shaders
-                    file://./app/src/androidTestDebug/shaders
-                    file://./app/src/androidTestFirstAbcSecondAbcDebug/shaders
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -914,8 +835,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/main/res
                 ResourcesDirectoryUrls:
                     file://./app/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/main/shaders
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -941,8 +860,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTest/shaders
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -962,8 +879,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestDebug/shaders
             androidTestFirstAbc (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -983,8 +898,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestFirstAbc/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestFirstAbc/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestFirstAbc/shaders
             androidTestFirstAbcSecondAbc (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -1004,8 +917,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestFirstAbcSecondAbc/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestFirstAbcSecondAbc/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestFirstAbcSecondAbc/shaders
             androidTestFirstAbcSecondAbcDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -1025,8 +936,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestFirstAbcSecondAbcDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestFirstAbcSecondAbcDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestFirstAbcSecondAbcDebug/shaders
             androidTestFirstXyz (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -1046,8 +955,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestFirstXyz/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestFirstXyz/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestFirstXyz/shaders
             androidTestSecondAbc (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -1067,8 +974,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestSecondAbc/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestSecondAbc/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestSecondAbc/shaders
             androidTestSecondXyz (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -1088,8 +993,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestSecondXyz/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestSecondXyz/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestSecondXyz/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1109,8 +1012,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/debug/shaders
             firstAbc (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1130,8 +1031,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstAbc/res
                 ResourcesDirectoryUrls:
                     file://./app/src/firstAbc/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/firstAbc/shaders
             firstAbcSecondAbc (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1159,8 +1058,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstAbcSecondAbc/res
                 ResourcesDirectoryUrls:
                     file://./app/src/firstAbcSecondAbc/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/firstAbcSecondAbc/shaders
             firstAbcSecondAbcDebug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1180,8 +1077,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstAbcSecondAbcDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/firstAbcSecondAbcDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/firstAbcSecondAbcDebug/shaders
             firstXyz (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1201,8 +1096,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstXyz/res
                 ResourcesDirectoryUrls:
                     file://./app/src/firstXyz/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/firstXyz/shaders
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1222,8 +1115,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/release/res
                 ResourcesDirectoryUrls:
                     file://./app/src/release/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/release/shaders
             secondAbc (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1250,8 +1141,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/secondAbc/res
                 ResourcesDirectoryUrls:
                     file://./app/src/secondAbc/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/secondAbc/shaders
             secondXyz (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1271,8 +1160,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/secondXyz/res
                 ResourcesDirectoryUrls:
                     file://./app/src/secondXyz/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/secondXyz/shaders
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1298,8 +1185,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/test/res
                 ResourcesDirectoryUrls:
                     file://./app/src/test/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/test/shaders
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1319,8 +1204,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testDebug/shaders
             testFirstAbc (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1340,8 +1223,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/testFirstAbc/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testFirstAbc/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testFirstAbc/shaders
             testFirstAbcSecondAbc (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1367,8 +1248,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/testFirstAbcSecondAbc/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testFirstAbcSecondAbc/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testFirstAbcSecondAbc/shaders
             testFirstAbcSecondAbcDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1392,8 +1271,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/testFirstAbcSecondAbcDebug/jniLibs
                 ResourcesDirectoryUrls:
                     file://./app/src/testFirstAbcSecondAbcDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testFirstAbcSecondAbcDebug/shaders
             testFirstXyz (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1413,8 +1290,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/testFirstXyz/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testFirstXyz/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testFirstXyz/shaders
             testRelease (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1434,8 +1309,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/testRelease/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testRelease/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testRelease/shaders
             testSecondAbc (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1461,8 +1334,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/testSecondAbc/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testSecondAbc/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testSecondAbc/shaders
             testSecondXyz (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1482,8 +1353,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/testSecondXyz/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testSecondXyz/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testSecondXyz/shaders
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1514,8 +1383,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/main/res
                 ResourcesDirectoryUrls:
                     file://./app/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/main/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1535,8 +1402,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/debug/shaders
             firstAbc (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1556,8 +1421,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstAbc/res
                 ResourcesDirectoryUrls:
                     file://./app/src/firstAbc/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/firstAbc/shaders
             firstAbcSecondAbc (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1585,8 +1448,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstAbcSecondAbc/res
                 ResourcesDirectoryUrls:
                     file://./app/src/firstAbcSecondAbc/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/firstAbcSecondAbc/shaders
             firstAbcSecondAbcDebug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1606,8 +1467,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstAbcSecondAbcDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/firstAbcSecondAbcDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/firstAbcSecondAbcDebug/shaders
             firstXyz (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1627,8 +1486,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstXyz/res
                 ResourcesDirectoryUrls:
                     file://./app/src/firstXyz/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/firstXyz/shaders
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1648,8 +1505,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/release/res
                 ResourcesDirectoryUrls:
                     file://./app/src/release/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/release/shaders
             secondAbc (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1676,8 +1531,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/secondAbc/res
                 ResourcesDirectoryUrls:
                     file://./app/src/secondAbc/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/secondAbc/shaders
             secondXyz (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1697,8 +1550,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/secondXyz/res
                 ResourcesDirectoryUrls:
                     file://./app/src/secondXyz/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/secondXyz/shaders
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1729,8 +1580,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/main/res
                 ResourcesDirectoryUrls:
                     file://./app/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/main/shaders
             firstAbc (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1750,8 +1599,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstAbc/res
                 ResourcesDirectoryUrls:
                     file://./app/src/firstAbc/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/firstAbc/shaders
             secondAbc (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1778,8 +1625,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/secondAbc/res
                 ResourcesDirectoryUrls:
                     file://./app/src/secondAbc/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/secondAbc/shaders
             firstAbcSecondAbc (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1807,8 +1652,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstAbcSecondAbc/res
                 ResourcesDirectoryUrls:
                     file://./app/src/firstAbcSecondAbc/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/firstAbcSecondAbc/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1828,8 +1671,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/debug/shaders
             firstAbcSecondAbcDebug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1849,8 +1690,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstAbcSecondAbcDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/firstAbcSecondAbcDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/firstAbcSecondAbcDebug/shaders
         CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -1877,8 +1716,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/test/res
                 ResourcesDirectoryUrls:
                     file://./app/src/test/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/test/shaders
             testFirstAbc (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1898,8 +1735,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/testFirstAbc/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testFirstAbc/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testFirstAbc/shaders
             testSecondAbc (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1925,8 +1760,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/testSecondAbc/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testSecondAbc/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testSecondAbc/shaders
             testFirstAbcSecondAbc (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1952,8 +1785,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/testFirstAbcSecondAbc/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testFirstAbcSecondAbc/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testFirstAbcSecondAbc/shaders
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1973,8 +1804,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testDebug/shaders
             testFirstAbcSecondAbcDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1998,8 +1827,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/testFirstAbcSecondAbcDebug/jniLibs
                 ResourcesDirectoryUrls:
                     file://./app/src/testFirstAbcSecondAbcDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testFirstAbcSecondAbcDebug/shaders
         CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -2026,8 +1853,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTest/shaders
             androidTestFirstAbc (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -2047,8 +1872,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestFirstAbc/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestFirstAbc/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestFirstAbc/shaders
             androidTestSecondAbc (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -2068,8 +1891,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestSecondAbc/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestSecondAbc/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestSecondAbc/shaders
             androidTestFirstAbcSecondAbc (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -2089,8 +1910,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestFirstAbcSecondAbc/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestFirstAbcSecondAbc/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestFirstAbcSecondAbc/shaders
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -2110,8 +1929,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestDebug/shaders
             androidTestFirstAbcSecondAbcDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -2131,8 +1948,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestFirstAbcSecondAbcDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestFirstAbcSecondAbcDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestFirstAbcSecondAbcDebug/shaders
         CurrentTestFixturesSourceProviders:
 Build configuration files:
     file://./build.gradle : Project: MultiFlavor [0]

@@ -162,7 +162,7 @@ private object LightGradleReferenceTestProject: LightGradleTestProject {
           )
         },
         namespace = { "com.example.skeleton" },
-        includeShadersSources = { true }
+        includeShadersSources = { false }
       ).build(),
     ),
     AndroidModuleModelBuilder(
@@ -174,7 +174,7 @@ private object LightGradleReferenceTestProject: LightGradleTestProject {
         projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY },
         androidModuleDependencyList = { listOf(AndroidModuleDependency(":javalib", null)) },
         namespace = { "com.example.androidlibrary" },
-        includeShadersSources = { true }
+        includeShadersSources = { false }
       ).build()
     ),
     JavaModuleModelBuilder(

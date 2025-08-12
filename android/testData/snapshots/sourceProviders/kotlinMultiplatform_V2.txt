@@ -27,8 +27,6 @@ MODULE: kotlinMultiPlatform.app
                 file://./app/src/main/res
             ResourcesDirectoryUrls:
                 file://./app/src/main/resources
-            ShadersDirectoryUrls:
-                file://./app/src/main/shaders
     by AndroidModel:
         main
             Manifest:
@@ -46,8 +44,6 @@ MODULE: kotlinMultiPlatform.app
                 ./app/src/main/res
             ResourcesDirectories:
                 ./app/src/main/resources
-            ShadersDirectories:
-                ./app/src/main/shaders
             BaselineProfileDirectories:
                 ./app/src/main/baselineProfiles
         Active:
@@ -67,8 +63,6 @@ MODULE: kotlinMultiPlatform.app
                     ./app/src/main/res
                 ResourcesDirectories:
                     ./app/src/main/resources
-                ShadersDirectories:
-                    ./app/src/main/shaders
                 BaselineProfileDirectories:
                     ./app/src/main/baselineProfiles
             debug
@@ -87,8 +81,6 @@ MODULE: kotlinMultiPlatform.app
                     ./app/src/debug/res
                 ResourcesDirectories:
                     ./app/src/debug/resources
-                ShadersDirectories:
-                    ./app/src/debug/shaders
                 BaselineProfileDirectories:
                     ./app/src/debug/baselineProfiles
         All:
@@ -108,8 +100,6 @@ MODULE: kotlinMultiPlatform.app
                     ./app/src/main/res
                 ResourcesDirectories:
                     ./app/src/main/resources
-                ShadersDirectories:
-                    ./app/src/main/shaders
                 BaselineProfileDirectories:
                     ./app/src/main/baselineProfiles
             debug
@@ -128,8 +118,6 @@ MODULE: kotlinMultiPlatform.app
                     ./app/src/debug/res
                 ResourcesDirectories:
                     ./app/src/debug/resources
-                ShadersDirectories:
-                    ./app/src/debug/shaders
                 BaselineProfileDirectories:
                     ./app/src/debug/baselineProfiles
             release
@@ -148,8 +136,6 @@ MODULE: kotlinMultiPlatform.app
                     ./app/src/release/res
                 ResourcesDirectories:
                     ./app/src/release/resources
-                ShadersDirectories:
-                    ./app/src/release/shaders
                 BaselineProfileDirectories:
                     ./app/src/release/baselineProfiles
         HostTest:
@@ -170,8 +156,6 @@ MODULE: kotlinMultiPlatform.app
                         ./app/src/test/res
                     ResourcesDirectories:
                         ./app/src/test/resources
-                    ShadersDirectories:
-                        ./app/src/test/shaders
                     BaselineProfileDirectories:
                         ./app/src/test/baselineProfiles
                 testDebug
@@ -190,8 +174,6 @@ MODULE: kotlinMultiPlatform.app
                         ./app/src/testDebug/res
                     ResourcesDirectories:
                         ./app/src/testDebug/resources
-                    ShadersDirectories:
-                        ./app/src/testDebug/shaders
                     BaselineProfileDirectories:
                         ./app/src/testDebug/baselineProfiles
         DeviceTest:
@@ -212,8 +194,6 @@ MODULE: kotlinMultiPlatform.app
                         ./app/src/androidTest/res
                     ResourcesDirectories:
                         ./app/src/androidTest/resources
-                    ShadersDirectories:
-                        ./app/src/androidTest/shaders
                     BaselineProfileDirectories:
                         ./app/src/androidTest/baselineProfiles
                 androidTestDebug
@@ -232,8 +212,6 @@ MODULE: kotlinMultiPlatform.app
                         ./app/src/androidTestDebug/res
                     ResourcesDirectories:
                         ./app/src/androidTestDebug/resources
-                    ShadersDirectories:
-                        ./app/src/androidTestDebug/shaders
                     BaselineProfileDirectories:
                         ./app/src/androidTestDebug/baselineProfiles
         TestFixtures:
@@ -277,9 +255,6 @@ MODULE: kotlinMultiPlatform.app
                 ResourcesDirectoryUrls:
                     file://./app/src/main/resources
                     file://./app/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/main/shaders
-                    file://./app/src/debug/shaders
         HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -315,9 +290,6 @@ MODULE: kotlinMultiPlatform.app
                 ResourcesDirectoryUrls:
                     file://./app/src/test/resources
                     file://./app/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/test/shaders
-                    file://./app/src/testDebug/shaders
         DeviceTestSources:
             AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -353,9 +325,6 @@ MODULE: kotlinMultiPlatform.app
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTest/resources
                     file://./app/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTest/shaders
-                    file://./app/src/androidTestDebug/shaders
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -409,8 +378,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/main/res
                 ResourcesDirectoryUrls:
                     file://./app/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/main/shaders
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -436,8 +403,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTest/shaders
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -457,8 +422,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestDebug/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -478,8 +441,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/debug/shaders
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -499,8 +460,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/release/res
                 ResourcesDirectoryUrls:
                     file://./app/src/release/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/release/shaders
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -526,8 +485,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/test/res
                 ResourcesDirectoryUrls:
                     file://./app/src/test/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/test/shaders
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -547,8 +504,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testDebug/shaders
             testRelease (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -568,8 +523,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/testRelease/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testRelease/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testRelease/shaders
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -598,8 +551,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/main/res
                 ResourcesDirectoryUrls:
                     file://./app/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/main/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -619,8 +570,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/debug/shaders
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -640,8 +589,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/release/res
                 ResourcesDirectoryUrls:
                     file://./app/src/release/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -670,8 +617,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/main/res
                 ResourcesDirectoryUrls:
                     file://./app/src/main/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/main/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -691,8 +636,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/debug/shaders
         CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -719,8 +662,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/test/res
                 ResourcesDirectoryUrls:
                     file://./app/src/test/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/test/shaders
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -740,8 +681,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testDebug/shaders
         CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -768,8 +707,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTest/shaders
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -789,8 +726,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
 MODULE: kotlinMultiPlatform.module2
     by Facet:
@@ -824,9 +759,6 @@ MODULE: kotlinMultiPlatform.module2
             ResourcesDirectoryUrls:
                 file://./module2/src/main/resources
                 file://./module2/src/androidMain/resources
-            ShadersDirectoryUrls:
-                file://./module2/src/main/shaders
-                file://./module2/src/androidMain/shaders
     by AndroidModel:
         main
             Manifest:
@@ -849,9 +781,6 @@ MODULE: kotlinMultiPlatform.module2
             ResourcesDirectories:
                 ./module2/src/main/resources
                 ./module2/src/androidMain/resources
-            ShadersDirectories:
-                ./module2/src/main/shaders
-                ./module2/src/androidMain/shaders
             BaselineProfileDirectories:
                 ./module2/src/main/baselineProfiles
         Active:
@@ -876,9 +805,6 @@ MODULE: kotlinMultiPlatform.module2
                 ResourcesDirectories:
                     ./module2/src/main/resources
                     ./module2/src/androidMain/resources
-                ShadersDirectories:
-                    ./module2/src/main/shaders
-                    ./module2/src/androidMain/shaders
                 BaselineProfileDirectories:
                     ./module2/src/main/baselineProfiles
             debug
@@ -902,9 +828,6 @@ MODULE: kotlinMultiPlatform.module2
                 ResourcesDirectories:
                     ./module2/src/debug/resources
                     ./module2/src/androidDebug/resources
-                ShadersDirectories:
-                    ./module2/src/debug/shaders
-                    ./module2/src/androidDebug/shaders
                 BaselineProfileDirectories:
                     ./module2/src/debug/baselineProfiles
             debug_KotlinMPP
@@ -936,9 +859,6 @@ MODULE: kotlinMultiPlatform.module2
                 ResourcesDirectories:
                     ./module2/src/main/resources
                     ./module2/src/androidMain/resources
-                ShadersDirectories:
-                    ./module2/src/main/shaders
-                    ./module2/src/androidMain/shaders
                 BaselineProfileDirectories:
                     ./module2/src/main/baselineProfiles
             debug
@@ -962,9 +882,6 @@ MODULE: kotlinMultiPlatform.module2
                 ResourcesDirectories:
                     ./module2/src/debug/resources
                     ./module2/src/androidDebug/resources
-                ShadersDirectories:
-                    ./module2/src/debug/shaders
-                    ./module2/src/androidDebug/shaders
                 BaselineProfileDirectories:
                     ./module2/src/debug/baselineProfiles
             debug_KotlinMPP
@@ -995,9 +912,6 @@ MODULE: kotlinMultiPlatform.module2
                 ResourcesDirectories:
                     ./module2/src/release/resources
                     ./module2/src/androidRelease/resources
-                ShadersDirectories:
-                    ./module2/src/release/shaders
-                    ./module2/src/androidRelease/shaders
                 BaselineProfileDirectories:
                     ./module2/src/release/baselineProfiles
         HostTest:
@@ -1023,9 +937,6 @@ MODULE: kotlinMultiPlatform.module2
                     ResourcesDirectories:
                         ./module2/src/test/resources
                         ./module2/src/androidUnitTest/resources
-                    ShadersDirectories:
-                        ./module2/src/test/shaders
-                        ./module2/src/androidUnitTest/shaders
                     BaselineProfileDirectories:
                         ./module2/src/test/baselineProfiles
                 testDebug
@@ -1049,9 +960,6 @@ MODULE: kotlinMultiPlatform.module2
                     ResourcesDirectories:
                         ./module2/src/testDebug/resources
                         ./module2/src/androidUnitTestDebug/resources
-                    ShadersDirectories:
-                        ./module2/src/testDebug/shaders
-                        ./module2/src/androidUnitTestDebug/shaders
                     BaselineProfileDirectories:
                         ./module2/src/testDebug/baselineProfiles
                 debug_KotlinMPP
@@ -1084,9 +992,6 @@ MODULE: kotlinMultiPlatform.module2
                     ResourcesDirectories:
                         ./module2/src/androidTest/resources
                         ./module2/src/androidInstrumentedTest/resources
-                    ShadersDirectories:
-                        ./module2/src/androidTest/shaders
-                        ./module2/src/androidInstrumentedTest/shaders
                     BaselineProfileDirectories:
                         ./module2/src/androidTest/baselineProfiles
                 androidTestDebug
@@ -1110,9 +1015,6 @@ MODULE: kotlinMultiPlatform.module2
                     ResourcesDirectories:
                         ./module2/src/androidTestDebug/resources
                         ./module2/src/androidInstrumentedTestDebug/resources
-                    ShadersDirectories:
-                        ./module2/src/androidTestDebug/shaders
-                        ./module2/src/androidInstrumentedTestDebug/shaders
                     BaselineProfileDirectories:
                         ./module2/src/androidTestDebug/baselineProfiles
         TestFixtures:
@@ -1168,11 +1070,6 @@ MODULE: kotlinMultiPlatform.module2
                     file://./module2/src/debug/resources
                     file://./module2/src/androidDebug/resources
                     file://./module2/src/commonMain/resources
-                ShadersDirectoryUrls:
-                    file://./module2/src/main/shaders
-                    file://./module2/src/androidMain/shaders
-                    file://./module2/src/debug/shaders
-                    file://./module2/src/androidDebug/shaders
         HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -1216,11 +1113,6 @@ MODULE: kotlinMultiPlatform.module2
                     file://./module2/src/testDebug/resources
                     file://./module2/src/androidUnitTestDebug/resources
                     file://./module2/src/commonTest/resources
-                ShadersDirectoryUrls:
-                    file://./module2/src/test/shaders
-                    file://./module2/src/androidUnitTest/shaders
-                    file://./module2/src/testDebug/shaders
-                    file://./module2/src/androidUnitTestDebug/shaders
         DeviceTestSources:
             AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -1262,11 +1154,6 @@ MODULE: kotlinMultiPlatform.module2
                     file://./module2/src/androidInstrumentedTest/resources
                     file://./module2/src/androidTestDebug/resources
                     file://./module2/src/androidInstrumentedTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./module2/src/androidTest/shaders
-                    file://./module2/src/androidInstrumentedTest/shaders
-                    file://./module2/src/androidTestDebug/shaders
-                    file://./module2/src/androidInstrumentedTestDebug/shaders
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -1325,9 +1212,6 @@ MODULE: kotlinMultiPlatform.module2
                 ResourcesDirectoryUrls:
                     file://./module2/src/main/resources
                     file://./module2/src/androidMain/resources
-                ShadersDirectoryUrls:
-                    file://./module2/src/main/shaders
-                    file://./module2/src/androidMain/shaders
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -1354,9 +1238,6 @@ MODULE: kotlinMultiPlatform.module2
                 ResourcesDirectoryUrls:
                     file://./module2/src/androidTest/resources
                     file://./module2/src/androidInstrumentedTest/resources
-                ShadersDirectoryUrls:
-                    file://./module2/src/androidTest/shaders
-                    file://./module2/src/androidInstrumentedTest/shaders
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -1381,9 +1262,6 @@ MODULE: kotlinMultiPlatform.module2
                 ResourcesDirectoryUrls:
                     file://./module2/src/androidTestDebug/resources
                     file://./module2/src/androidInstrumentedTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./module2/src/androidTestDebug/shaders
-                    file://./module2/src/androidInstrumentedTestDebug/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1408,9 +1286,6 @@ MODULE: kotlinMultiPlatform.module2
                 ResourcesDirectoryUrls:
                     file://./module2/src/debug/resources
                     file://./module2/src/androidDebug/resources
-                ShadersDirectoryUrls:
-                    file://./module2/src/debug/shaders
-                    file://./module2/src/androidDebug/shaders
             debug_KotlinMPP (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1455,9 +1330,6 @@ MODULE: kotlinMultiPlatform.module2
                 ResourcesDirectoryUrls:
                     file://./module2/src/release/resources
                     file://./module2/src/androidRelease/resources
-                ShadersDirectoryUrls:
-                    file://./module2/src/release/shaders
-                    file://./module2/src/androidRelease/shaders
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1482,9 +1354,6 @@ MODULE: kotlinMultiPlatform.module2
                 ResourcesDirectoryUrls:
                     file://./module2/src/test/resources
                     file://./module2/src/androidUnitTest/resources
-                ShadersDirectoryUrls:
-                    file://./module2/src/test/shaders
-                    file://./module2/src/androidUnitTest/shaders
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1509,9 +1378,6 @@ MODULE: kotlinMultiPlatform.module2
                 ResourcesDirectoryUrls:
                     file://./module2/src/testDebug/resources
                     file://./module2/src/androidUnitTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./module2/src/testDebug/shaders
-                    file://./module2/src/androidUnitTestDebug/shaders
             testRelease (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1536,9 +1402,6 @@ MODULE: kotlinMultiPlatform.module2
                 ResourcesDirectoryUrls:
                     file://./module2/src/testRelease/resources
                     file://./module2/src/androidUnitTestRelease/resources
-                ShadersDirectoryUrls:
-                    file://./module2/src/testRelease/shaders
-                    file://./module2/src/androidUnitTestRelease/shaders
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1570,9 +1433,6 @@ MODULE: kotlinMultiPlatform.module2
                 ResourcesDirectoryUrls:
                     file://./module2/src/main/resources
                     file://./module2/src/androidMain/resources
-                ShadersDirectoryUrls:
-                    file://./module2/src/main/shaders
-                    file://./module2/src/androidMain/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1597,9 +1457,6 @@ MODULE: kotlinMultiPlatform.module2
                 ResourcesDirectoryUrls:
                     file://./module2/src/debug/resources
                     file://./module2/src/androidDebug/resources
-                ShadersDirectoryUrls:
-                    file://./module2/src/debug/shaders
-                    file://./module2/src/androidDebug/shaders
             debug_KotlinMPP (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1634,9 +1491,6 @@ MODULE: kotlinMultiPlatform.module2
                 ResourcesDirectoryUrls:
                     file://./module2/src/release/resources
                     file://./module2/src/androidRelease/resources
-                ShadersDirectoryUrls:
-                    file://./module2/src/release/shaders
-                    file://./module2/src/androidRelease/shaders
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1668,9 +1522,6 @@ MODULE: kotlinMultiPlatform.module2
                 ResourcesDirectoryUrls:
                     file://./module2/src/main/resources
                     file://./module2/src/androidMain/resources
-                ShadersDirectoryUrls:
-                    file://./module2/src/main/shaders
-                    file://./module2/src/androidMain/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1695,9 +1546,6 @@ MODULE: kotlinMultiPlatform.module2
                 ResourcesDirectoryUrls:
                     file://./module2/src/debug/resources
                     file://./module2/src/androidDebug/resources
-                ShadersDirectoryUrls:
-                    file://./module2/src/debug/shaders
-                    file://./module2/src/androidDebug/shaders
             debug_KotlinMPP (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1733,9 +1581,6 @@ MODULE: kotlinMultiPlatform.module2
                 ResourcesDirectoryUrls:
                     file://./module2/src/test/resources
                     file://./module2/src/androidUnitTest/resources
-                ShadersDirectoryUrls:
-                    file://./module2/src/test/shaders
-                    file://./module2/src/androidUnitTest/shaders
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1760,9 +1605,6 @@ MODULE: kotlinMultiPlatform.module2
                 ResourcesDirectoryUrls:
                     file://./module2/src/testDebug/resources
                     file://./module2/src/androidUnitTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./module2/src/testDebug/shaders
-                    file://./module2/src/androidUnitTestDebug/shaders
             debug_KotlinMPP (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1800,9 +1642,6 @@ MODULE: kotlinMultiPlatform.module2
                 ResourcesDirectoryUrls:
                     file://./module2/src/androidTest/resources
                     file://./module2/src/androidInstrumentedTest/resources
-                ShadersDirectoryUrls:
-                    file://./module2/src/androidTest/shaders
-                    file://./module2/src/androidInstrumentedTest/shaders
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -1827,9 +1666,6 @@ MODULE: kotlinMultiPlatform.module2
                 ResourcesDirectoryUrls:
                     file://./module2/src/androidTestDebug/resources
                     file://./module2/src/androidInstrumentedTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./module2/src/androidTestDebug/shaders
-                    file://./module2/src/androidInstrumentedTestDebug/shaders
         CurrentTestFixturesSourceProviders:
 Build configuration files:
     file://./build.gradle : Project: kotlinMultiPlatform [0]

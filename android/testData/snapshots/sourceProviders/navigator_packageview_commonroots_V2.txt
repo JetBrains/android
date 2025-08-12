@@ -31,8 +31,6 @@ MODULE: project
             ResourcesDirectories:
                 file://./src
                 file://./resources
-            ShadersDirectoryUrls:
-                file://./src/main/shaders
     by AndroidModel:
         main
             Manifest:
@@ -51,8 +49,6 @@ MODULE: project
             ResourcesDirectories:
                 ./src
                 ./resources
-            ShadersDirectories:
-                ./src/main/shaders
             BaselineProfileDirectories:
                 ./src/main/baselineProfiles
         Active:
@@ -73,8 +69,6 @@ MODULE: project
                 ResourcesDirectories:
                     ./src
                     ./resources
-                ShadersDirectories:
-                    ./src/main/shaders
                 BaselineProfileDirectories:
                     ./src/main/baselineProfiles
             debug
@@ -93,8 +87,6 @@ MODULE: project
                     ./src/debug/res
                 ResourcesDirectories:
                     ./src/debug/resources
-                ShadersDirectories:
-                    ./src/debug/shaders
                 BaselineProfileDirectories:
                     ./src/debug/baselineProfiles
         All:
@@ -115,8 +107,6 @@ MODULE: project
                 ResourcesDirectories:
                     ./src
                     ./resources
-                ShadersDirectories:
-                    ./src/main/shaders
                 BaselineProfileDirectories:
                     ./src/main/baselineProfiles
             debug
@@ -135,8 +125,6 @@ MODULE: project
                     ./src/debug/res
                 ResourcesDirectories:
                     ./src/debug/resources
-                ShadersDirectories:
-                    ./src/debug/shaders
                 BaselineProfileDirectories:
                     ./src/debug/baselineProfiles
             release
@@ -155,8 +143,6 @@ MODULE: project
                     ./src/release/res
                 ResourcesDirectories:
                     ./src/release/resources
-                ShadersDirectories:
-                    ./src/release/shaders
                 BaselineProfileDirectories:
                     ./src/release/baselineProfiles
         HostTest:
@@ -177,8 +163,6 @@ MODULE: project
                         ./src/test/res
                     ResourcesDirectories:
                         ./src/test/resources
-                    ShadersDirectories:
-                        ./src/test/shaders
                     BaselineProfileDirectories:
                         ./src/test/baselineProfiles
                 testDebug
@@ -197,8 +181,6 @@ MODULE: project
                         ./src/testDebug/res
                     ResourcesDirectories:
                         ./src/testDebug/resources
-                    ShadersDirectories:
-                        ./src/testDebug/shaders
                     BaselineProfileDirectories:
                         ./src/testDebug/baselineProfiles
         DeviceTest:
@@ -219,8 +201,6 @@ MODULE: project
                         ./src/androidTest/res
                     ResourcesDirectories:
                         ./src/androidTest/resources
-                    ShadersDirectories:
-                        ./src/androidTest/shaders
                     BaselineProfileDirectories:
                         ./src/androidTest/baselineProfiles
                 androidTestDebug
@@ -239,8 +219,6 @@ MODULE: project
                         ./src/androidTestDebug/res
                     ResourcesDirectories:
                         ./src/androidTestDebug/resources
-                    ShadersDirectories:
-                        ./src/androidTestDebug/shaders
                     BaselineProfileDirectories:
                         ./src/androidTestDebug/baselineProfiles
         TestFixtures:
@@ -288,9 +266,6 @@ MODULE: project
                 ResourcesDirectories:
                     file://./src
                     file://./resources
-                ShadersDirectoryUrls:
-                    file://./src/main/shaders
-                    file://./src/debug/shaders
         HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -320,9 +295,6 @@ MODULE: project
                 ResourcesDirectoryUrls:
                     file://./src/test/resources
                     file://./src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./src/test/shaders
-                    file://./src/testDebug/shaders
         DeviceTestSources:
             AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -352,9 +324,6 @@ MODULE: project
                 ResourcesDirectoryUrls:
                     file://./src/androidTest/resources
                     file://./src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./src/androidTest/shaders
-                    file://./src/androidTestDebug/shaders
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -412,8 +381,6 @@ MODULE: project
                 ResourcesDirectories:
                     file://./src
                     file://./resources
-                ShadersDirectoryUrls:
-                    file://./src/main/shaders
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -433,8 +400,6 @@ MODULE: project
                     file://./src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./src/androidTest/shaders
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -454,8 +419,6 @@ MODULE: project
                     file://./src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./src/androidTestDebug/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -475,8 +438,6 @@ MODULE: project
                     file://./src/debug/res
                 ResourcesDirectoryUrls:
                     file://./src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./src/debug/shaders
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -496,8 +457,6 @@ MODULE: project
                     file://./src/release/res
                 ResourcesDirectoryUrls:
                     file://./src/release/resources
-                ShadersDirectoryUrls:
-                    file://./src/release/shaders
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -517,8 +476,6 @@ MODULE: project
                     file://./src/test/res
                 ResourcesDirectoryUrls:
                     file://./src/test/resources
-                ShadersDirectoryUrls:
-                    file://./src/test/shaders
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -538,8 +495,6 @@ MODULE: project
                     file://./src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./src/testDebug/shaders
             testRelease (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -559,8 +514,6 @@ MODULE: project
                     file://./src/testRelease/res
                 ResourcesDirectoryUrls:
                     file://./src/testRelease/resources
-                ShadersDirectoryUrls:
-                    file://./src/testRelease/shaders
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -593,8 +546,6 @@ MODULE: project
                 ResourcesDirectories:
                     file://./src
                     file://./resources
-                ShadersDirectoryUrls:
-                    file://./src/main/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -614,8 +565,6 @@ MODULE: project
                     file://./src/debug/res
                 ResourcesDirectoryUrls:
                     file://./src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./src/debug/shaders
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -635,8 +584,6 @@ MODULE: project
                     file://./src/release/res
                 ResourcesDirectoryUrls:
                     file://./src/release/resources
-                ShadersDirectoryUrls:
-                    file://./src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -669,8 +616,6 @@ MODULE: project
                 ResourcesDirectories:
                     file://./src
                     file://./resources
-                ShadersDirectoryUrls:
-                    file://./src/main/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -690,8 +635,6 @@ MODULE: project
                     file://./src/debug/res
                 ResourcesDirectoryUrls:
                     file://./src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./src/debug/shaders
         CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -712,8 +655,6 @@ MODULE: project
                     file://./src/test/res
                 ResourcesDirectoryUrls:
                     file://./src/test/resources
-                ShadersDirectoryUrls:
-                    file://./src/test/shaders
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -733,8 +674,6 @@ MODULE: project
                     file://./src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./src/testDebug/resources
-                ShadersDirectoryUrls:
-                    file://./src/testDebug/shaders
         CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -755,8 +694,6 @@ MODULE: project
                     file://./src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./src/androidTest/shaders
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -776,8 +713,6 @@ MODULE: project
                     file://./src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
 Build configuration files:
     file://./build.gradle : Project: project [3]

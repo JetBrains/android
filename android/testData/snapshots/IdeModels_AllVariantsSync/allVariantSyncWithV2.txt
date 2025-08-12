@@ -129,7 +129,6 @@ DefaultConfig
         ResDirectories                : <ROOT>/app/src/main/res
         AssetsDirectories             : <ROOT>/app/src/main/assets [-]
         JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
-        ShadersDirectories            : <ROOT>/app/src/main/shaders [-]
         BaselineProfileDirectories    : <ROOT>/app/src/main/baselineProfiles [-]
     ExtraSourceProviders
         ExtraSourceProvider
@@ -144,7 +143,6 @@ DefaultConfig
                 ResDirectories                : <ROOT>/app/src/androidTest/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/androidTest/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTest/baselineProfiles [-]
         ExtraSourceProvider
             ArtifactName                  : _unit_test_
@@ -158,7 +156,6 @@ DefaultConfig
                 ResDirectories                : <ROOT>/app/src/test/res [-]
                 AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/test/baselineProfiles [-]
 BuildTypes
     BuildType
@@ -180,7 +177,6 @@ BuildTypes
         ResDirectories                : <ROOT>/app/src/debug/res [-]
         AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
         JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
-        ShadersDirectories            : <ROOT>/app/src/debug/shaders [-]
         BaselineProfileDirectories    : <ROOT>/app/src/debug/baselineProfiles [-]
     ExtraSourceProviders
         ExtraSourceProvider
@@ -195,7 +191,6 @@ BuildTypes
                 ResDirectories                : <ROOT>/app/src/androidTestDebug/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/androidTestDebug/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestDebug/baselineProfiles [-]
     ExtraSourceProviders
         ExtraSourceProvider
@@ -210,7 +205,6 @@ BuildTypes
                 ResDirectories                : <ROOT>/app/src/testDebug/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
     BuildType
         Name                          : release
@@ -236,7 +230,6 @@ BuildTypes
         ResDirectories                : <ROOT>/app/src/release/res [-]
         AssetsDirectories             : <ROOT>/app/src/release/assets [-]
         JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
-        ShadersDirectories            : <ROOT>/app/src/release/shaders [-]
         BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
     ExtraSourceProviders
         ExtraSourceProvider
@@ -251,7 +244,6 @@ BuildTypes
                 ResDirectories                : <ROOT>/app/src/testRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testRelease/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testRelease/baselineProfiles [-]
     BuildType
         Name                          : specialRelease
@@ -273,7 +265,6 @@ BuildTypes
         ResDirectories                : <ROOT>/app/src/specialRelease/res [-]
         AssetsDirectories             : <ROOT>/app/src/specialRelease/assets [-]
         JniLibsDirectories            : <ROOT>/app/src/specialRelease/jniLibs [-]
-        ShadersDirectories            : <ROOT>/app/src/specialRelease/shaders [-]
         BaselineProfileDirectories    : <ROOT>/app/src/specialRelease/baselineProfiles [-]
     ExtraSourceProviders
         ExtraSourceProvider
@@ -288,7 +279,6 @@ BuildTypes
                 ResDirectories                : <ROOT>/app/src/testSpecialRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testSpecialRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testSpecialRelease/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testSpecialRelease/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testSpecialRelease/baselineProfiles [-]
 ProductFlavors
     ProductFlavor
@@ -306,7 +296,6 @@ ProductFlavors
         ResDirectories                : <ROOT>/app/src/basic/res [-]
         AssetsDirectories             : <ROOT>/app/src/basic/assets [-]
         JniLibsDirectories            : <ROOT>/app/src/basic/jniLibs [-]
-        ShadersDirectories            : <ROOT>/app/src/basic/shaders [-]
         BaselineProfileDirectories    : <ROOT>/app/src/basic/baselineProfiles [-]
     ExtraSourceProviders
         ExtraSourceProvider
@@ -321,7 +310,6 @@ ProductFlavors
                 ResDirectories                : <ROOT>/app/src/androidTestBasic/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestBasic/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestBasic/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/androidTestBasic/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestBasic/baselineProfiles [-]
         ExtraSourceProvider
             ArtifactName                  : _unit_test_
@@ -335,7 +323,6 @@ ProductFlavors
                 ResDirectories                : <ROOT>/app/src/testBasic/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasic/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasic/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testBasic/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testBasic/baselineProfiles [-]
     ProductFlavor
         Name                          : paid
@@ -369,7 +356,6 @@ ProductFlavors
         ResDirectories                : <ROOT>/app/src/paid/res
         AssetsDirectories             : <ROOT>/app/src/paid/assets [-]
         JniLibsDirectories            : <ROOT>/app/src/paid/jniLibs [-]
-        ShadersDirectories            : <ROOT>/app/src/paid/shaders [-]
         BaselineProfileDirectories    : <ROOT>/app/src/paid/baselineProfiles [-]
     ExtraSourceProviders
         ExtraSourceProvider
@@ -384,7 +370,6 @@ ProductFlavors
                 ResDirectories                : <ROOT>/app/src/androidTestPaid/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestPaid/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestPaid/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/androidTestPaid/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestPaid/baselineProfiles [-]
         ExtraSourceProvider
             ArtifactName                  : _unit_test_
@@ -398,7 +383,6 @@ ProductFlavors
                 ResDirectories                : <ROOT>/app/src/testPaid/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaid/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaid/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testPaid/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testPaid/baselineProfiles [-]
     ProductFlavor
         Name                          : bar
@@ -415,7 +399,6 @@ ProductFlavors
         ResDirectories                : <ROOT>/app/src/bar/res [-]
         AssetsDirectories             : <ROOT>/app/src/bar/assets [-]
         JniLibsDirectories            : <ROOT>/app/src/bar/jniLibs [-]
-        ShadersDirectories            : <ROOT>/app/src/bar/shaders [-]
         BaselineProfileDirectories    : <ROOT>/app/src/bar/baselineProfiles [-]
     ExtraSourceProviders
         ExtraSourceProvider
@@ -430,7 +413,6 @@ ProductFlavors
                 ResDirectories                : <ROOT>/app/src/androidTestBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/androidTestBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestBar/baselineProfiles [-]
         ExtraSourceProvider
             ArtifactName                  : _unit_test_
@@ -444,7 +426,6 @@ ProductFlavors
                 ResDirectories                : <ROOT>/app/src/testBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testBar/baselineProfiles [-]
     ProductFlavor
         Name                          : otherBar
@@ -463,7 +444,6 @@ ProductFlavors
         ResDirectories                : <ROOT>/app/src/otherBar/res [-]
         AssetsDirectories             : <ROOT>/app/src/otherBar/assets [-]
         JniLibsDirectories            : <ROOT>/app/src/otherBar/jniLibs [-]
-        ShadersDirectories            : <ROOT>/app/src/otherBar/shaders [-]
         BaselineProfileDirectories    : <ROOT>/app/src/otherBar/baselineProfiles [-]
     ExtraSourceProviders
         ExtraSourceProvider
@@ -478,7 +458,6 @@ ProductFlavors
                 ResDirectories                : <ROOT>/app/src/androidTestOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestOtherBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/androidTestOtherBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestOtherBar/baselineProfiles [-]
         ExtraSourceProvider
             ArtifactName                  : _unit_test_
@@ -492,7 +471,6 @@ ProductFlavors
                 ResDirectories                : <ROOT>/app/src/testOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testOtherBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testOtherBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testOtherBar/baselineProfiles [-]
 SigningConfigs
     SigningConfig
@@ -1314,7 +1292,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/basicBarDebug/res [-]
                 AssetsDirectories             : <ROOT>/app/src/basicBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicBarDebug/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/basicBarDebug/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/basicBarDebug/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : basicBar
@@ -1326,7 +1303,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/basicBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/basicBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/basicBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/basicBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -1653,7 +1629,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/androidTestBasicBarDebug/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestBasicBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestBasicBarDebug/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/androidTestBasicBarDebug/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestBasicBarDebug/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : androidTestBasicBar
@@ -1665,7 +1640,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/androidTestBasicBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestBasicBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestBasicBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/androidTestBasicBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestBasicBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -1893,7 +1867,6 @@ IdeVariants
                 ResourcesDirectories          : <ROOT>/app/src/testBasicBarDebug/resources [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasicBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicBarDebug/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testBasicBarDebug/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testBasicBarDebug/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : testBasicBar
@@ -1905,7 +1878,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/testBasicBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasicBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testBasicBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testBasicBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -2251,7 +2223,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/basicOtherBarDebug/res [-]
                 AssetsDirectories             : <ROOT>/app/src/basicOtherBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicOtherBarDebug/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/basicOtherBarDebug/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/basicOtherBarDebug/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : basicOtherBar
@@ -2263,7 +2234,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/basicOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/basicOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicOtherBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/basicOtherBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/basicOtherBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -2590,7 +2560,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/androidTestBasicOtherBarDebug/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestBasicOtherBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestBasicOtherBarDebug/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/androidTestBasicOtherBarDebug/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestBasicOtherBarDebug/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : androidTestBasicOtherBar
@@ -2602,7 +2571,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/androidTestBasicOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestBasicOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestBasicOtherBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/androidTestBasicOtherBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestBasicOtherBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -2830,7 +2798,6 @@ IdeVariants
                 ResourcesDirectories          : <ROOT>/app/src/testBasicOtherBarDebug/resources [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasicOtherBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicOtherBarDebug/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testBasicOtherBarDebug/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testBasicOtherBarDebug/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : testBasicOtherBar
@@ -2842,7 +2809,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/testBasicOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasicOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicOtherBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testBasicOtherBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testBasicOtherBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -3189,7 +3155,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/paidBarDebug/res [-]
                 AssetsDirectories             : <ROOT>/app/src/paidBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidBarDebug/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/paidBarDebug/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/paidBarDebug/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : paidBar
@@ -3201,7 +3166,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/paidBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/paidBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/paidBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/paidBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -3528,7 +3492,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/androidTestPaidBarDebug/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestPaidBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestPaidBarDebug/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/androidTestPaidBarDebug/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestPaidBarDebug/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : androidTestPaidBar
@@ -3540,7 +3503,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/androidTestPaidBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestPaidBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestPaidBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/androidTestPaidBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestPaidBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -3768,7 +3730,6 @@ IdeVariants
                 ResourcesDirectories          : <ROOT>/app/src/testPaidBarDebug/resources [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaidBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidBarDebug/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testPaidBarDebug/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testPaidBarDebug/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : testPaidBar
@@ -3780,7 +3741,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/testPaidBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaidBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testPaidBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testPaidBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -4130,7 +4090,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/paidOtherBarDebug/res [-]
                 AssetsDirectories             : <ROOT>/app/src/paidOtherBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidOtherBarDebug/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/paidOtherBarDebug/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/paidOtherBarDebug/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : paidOtherBar
@@ -4142,7 +4101,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/paidOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/paidOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidOtherBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/paidOtherBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/paidOtherBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -4469,7 +4427,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/androidTestPaidOtherBarDebug/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestPaidOtherBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestPaidOtherBarDebug/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/androidTestPaidOtherBarDebug/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestPaidOtherBarDebug/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : androidTestPaidOtherBar
@@ -4481,7 +4438,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/androidTestPaidOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestPaidOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestPaidOtherBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/androidTestPaidOtherBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/androidTestPaidOtherBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -4709,7 +4665,6 @@ IdeVariants
                 ResourcesDirectories          : <ROOT>/app/src/testPaidOtherBarDebug/resources [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaidOtherBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidOtherBarDebug/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testPaidOtherBarDebug/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testPaidOtherBarDebug/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : testPaidOtherBar
@@ -4721,7 +4676,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/testPaidOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaidOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidOtherBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testPaidOtherBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testPaidOtherBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -5067,7 +5021,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/basicBarRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/basicBarRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicBarRelease/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/basicBarRelease/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/basicBarRelease/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : basicBar
@@ -5079,7 +5032,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/basicBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/basicBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/basicBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/basicBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -5405,7 +5357,6 @@ IdeVariants
                 ResourcesDirectories          : <ROOT>/app/src/testBasicBarRelease/resources [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasicBarRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicBarRelease/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testBasicBarRelease/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testBasicBarRelease/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : testBasicBar
@@ -5417,7 +5368,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/testBasicBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasicBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testBasicBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testBasicBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -5766,7 +5716,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/basicOtherBarRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/basicOtherBarRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicOtherBarRelease/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/basicOtherBarRelease/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/basicOtherBarRelease/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : basicOtherBar
@@ -5778,7 +5727,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/basicOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/basicOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicOtherBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/basicOtherBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/basicOtherBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -6104,7 +6052,6 @@ IdeVariants
                 ResourcesDirectories          : <ROOT>/app/src/testBasicOtherBarRelease/resources [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasicOtherBarRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicOtherBarRelease/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testBasicOtherBarRelease/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testBasicOtherBarRelease/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : testBasicOtherBar
@@ -6116,7 +6063,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/testBasicOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasicOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicOtherBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testBasicOtherBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testBasicOtherBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -6466,7 +6412,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/paidBarRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/paidBarRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidBarRelease/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/paidBarRelease/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/paidBarRelease/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : paidBar
@@ -6478,7 +6423,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/paidBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/paidBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/paidBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/paidBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -6804,7 +6748,6 @@ IdeVariants
                 ResourcesDirectories          : <ROOT>/app/src/testPaidBarRelease/resources [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaidBarRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidBarRelease/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testPaidBarRelease/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testPaidBarRelease/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : testPaidBar
@@ -6816,7 +6759,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/testPaidBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaidBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testPaidBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testPaidBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -7169,7 +7111,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/paidOtherBarRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/paidOtherBarRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidOtherBarRelease/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/paidOtherBarRelease/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/paidOtherBarRelease/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : paidOtherBar
@@ -7181,7 +7122,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/paidOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/paidOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidOtherBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/paidOtherBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/paidOtherBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -7507,7 +7447,6 @@ IdeVariants
                 ResourcesDirectories          : <ROOT>/app/src/testPaidOtherBarRelease/resources [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaidOtherBarRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidOtherBarRelease/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testPaidOtherBarRelease/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testPaidOtherBarRelease/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : testPaidOtherBar
@@ -7519,7 +7458,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/testPaidOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaidOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidOtherBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testPaidOtherBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testPaidOtherBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -7862,7 +7800,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/basicBarSpecialRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/basicBarSpecialRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicBarSpecialRelease/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/basicBarSpecialRelease/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/basicBarSpecialRelease/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : basicBar
@@ -7874,7 +7811,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/basicBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/basicBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/basicBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/basicBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -8199,7 +8135,6 @@ IdeVariants
                 ResourcesDirectories          : <ROOT>/app/src/testBasicBarSpecialRelease/resources [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasicBarSpecialRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicBarSpecialRelease/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testBasicBarSpecialRelease/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testBasicBarSpecialRelease/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : testBasicBar
@@ -8211,7 +8146,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/testBasicBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasicBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testBasicBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testBasicBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -8557,7 +8491,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/basicOtherBarSpecialRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/basicOtherBarSpecialRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicOtherBarSpecialRelease/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/basicOtherBarSpecialRelease/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/basicOtherBarSpecialRelease/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : basicOtherBar
@@ -8569,7 +8502,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/basicOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/basicOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicOtherBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/basicOtherBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/basicOtherBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -8894,7 +8826,6 @@ IdeVariants
                 ResourcesDirectories          : <ROOT>/app/src/testBasicOtherBarSpecialRelease/resources [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasicOtherBarSpecialRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicOtherBarSpecialRelease/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testBasicOtherBarSpecialRelease/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testBasicOtherBarSpecialRelease/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : testBasicOtherBar
@@ -8906,7 +8837,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/testBasicOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasicOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicOtherBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testBasicOtherBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testBasicOtherBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -9253,7 +9183,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/paidBarSpecialRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/paidBarSpecialRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidBarSpecialRelease/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/paidBarSpecialRelease/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/paidBarSpecialRelease/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : paidBar
@@ -9265,7 +9194,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/paidBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/paidBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/paidBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/paidBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -9590,7 +9518,6 @@ IdeVariants
                 ResourcesDirectories          : <ROOT>/app/src/testPaidBarSpecialRelease/resources [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaidBarSpecialRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidBarSpecialRelease/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testPaidBarSpecialRelease/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testPaidBarSpecialRelease/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : testPaidBar
@@ -9602,7 +9529,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/testPaidBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaidBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testPaidBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testPaidBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -9952,7 +9878,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/paidOtherBarSpecialRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/paidOtherBarSpecialRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidOtherBarSpecialRelease/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/paidOtherBarSpecialRelease/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/paidOtherBarSpecialRelease/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : paidOtherBar
@@ -9964,7 +9889,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/paidOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/paidOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidOtherBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/paidOtherBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/paidOtherBar/baselineProfiles [-]
             Dependencies
                 compileClasspath
@@ -10289,7 +10213,6 @@ IdeVariants
                 ResourcesDirectories          : <ROOT>/app/src/testPaidOtherBarSpecialRelease/resources [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaidOtherBarSpecialRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidOtherBarSpecialRelease/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testPaidOtherBarSpecialRelease/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testPaidOtherBarSpecialRelease/baselineProfiles [-]
             MultiFlavorSourceProvider
                 Name                          : testPaidOtherBar
@@ -10301,7 +10224,6 @@ IdeVariants
                 ResDirectories                : <ROOT>/app/src/testPaidOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaidOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidOtherBar/jniLibs [-]
-                ShadersDirectories            : <ROOT>/app/src/testPaidOtherBar/shaders [-]
                 BaselineProfileDirectories    : <ROOT>/app/src/testPaidOtherBar/baselineProfiles [-]
             Dependencies
                 compileClasspath

@@ -100,11 +100,6 @@ Task                          : :app:mergeDebugResources
     PrimaryTaskCategory           : ANDROID_RESOURCES
     SecondaryTaskCategories       : MERGING
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
-Task                          : :app:mergeDebugShaders
-    TaskType                      : com.android.build.gradle.tasks.MergeSourceSetFolders
-    PrimaryTaskCategory           : UNCATEGORIZED
-    SecondaryTaskCategories       : SOURCE_PROCESSING,MERGING
-    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:minifyDebugWithR8
     TaskType                      : com.android.build.gradle.internal.tasks.R8Task
     PrimaryTaskCategory           : OPTIMIZATION
@@ -290,11 +285,6 @@ Task                          : :lib:mergeDebugJavaResource
     SecondaryTaskCategories       : MERGING
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:mergeDebugJniLibFolders
-    TaskType                      : com.android.build.gradle.tasks.MergeSourceSetFolders
-    PrimaryTaskCategory           : UNCATEGORIZED
-    SecondaryTaskCategories       : SOURCE_PROCESSING,MERGING
-    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
-Task                          : :lib:mergeDebugShaders
     TaskType                      : com.android.build.gradle.tasks.MergeSourceSetFolders
     PrimaryTaskCategory           : UNCATEGORIZED
     SecondaryTaskCategories       : SOURCE_PROCESSING,MERGING

@@ -2519,7 +2519,6 @@ MODULE                        : project.app
             ResDirectories                : <ROOT>/app/src/main/res
             AssetsDirectories             : <ROOT>/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
-            ShadersDirectories            : <ROOT>/app/src/main/shaders [-]
             BaselineProfileDirectories    : <ROOT>/app/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2534,7 +2533,6 @@ MODULE                        : project.app
                     ResDirectories                : <ROOT>/app/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/androidTest/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2548,7 +2546,6 @@ MODULE                        : project.app
                     ResDirectories                : <ROOT>/app/src/test/res [-]
                     AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
@@ -2570,7 +2567,6 @@ MODULE                        : project.app
             ResDirectories                : <ROOT>/app/src/debug/res [-]
             AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
-            ShadersDirectories            : <ROOT>/app/src/debug/shaders [-]
             BaselineProfileDirectories    : <ROOT>/app/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2585,7 +2581,6 @@ MODULE                        : project.app
                     ResDirectories                : <ROOT>/app/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/androidTestDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2600,7 +2595,6 @@ MODULE                        : project.app
                     ResDirectories                : <ROOT>/app/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
@@ -2626,7 +2620,6 @@ MODULE                        : project.app
             ResDirectories                : <ROOT>/app/src/release/res [-]
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
-            ShadersDirectories            : <ROOT>/app/src/release/shaders [-]
             BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2641,7 +2634,6 @@ MODULE                        : project.app
                     ResDirectories                : <ROOT>/app/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testRelease/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testRelease/baselineProfiles [-]
         BuildType
             Name                          : specialRelease
@@ -2663,7 +2655,6 @@ MODULE                        : project.app
             ResDirectories                : <ROOT>/app/src/specialRelease/res [-]
             AssetsDirectories             : <ROOT>/app/src/specialRelease/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/specialRelease/jniLibs [-]
-            ShadersDirectories            : <ROOT>/app/src/specialRelease/shaders [-]
             BaselineProfileDirectories    : <ROOT>/app/src/specialRelease/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2678,7 +2669,6 @@ MODULE                        : project.app
                     ResDirectories                : <ROOT>/app/src/testSpecialRelease/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testSpecialRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testSpecialRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testSpecialRelease/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testSpecialRelease/baselineProfiles [-]
     ProductFlavors
         ProductFlavor
@@ -2696,7 +2686,6 @@ MODULE                        : project.app
             ResDirectories                : <ROOT>/app/src/basic/res [-]
             AssetsDirectories             : <ROOT>/app/src/basic/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/basic/jniLibs [-]
-            ShadersDirectories            : <ROOT>/app/src/basic/shaders [-]
             BaselineProfileDirectories    : <ROOT>/app/src/basic/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2711,7 +2700,6 @@ MODULE                        : project.app
                     ResDirectories                : <ROOT>/app/src/androidTestBasic/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestBasic/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestBasic/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/androidTestBasic/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTestBasic/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2725,7 +2713,6 @@ MODULE                        : project.app
                     ResDirectories                : <ROOT>/app/src/testBasic/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testBasic/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testBasic/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testBasic/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testBasic/baselineProfiles [-]
         ProductFlavor
             Name                          : paid
@@ -2759,7 +2746,6 @@ MODULE                        : project.app
             ResDirectories                : <ROOT>/app/src/paid/res
             AssetsDirectories             : <ROOT>/app/src/paid/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/paid/jniLibs [-]
-            ShadersDirectories            : <ROOT>/app/src/paid/shaders [-]
             BaselineProfileDirectories    : <ROOT>/app/src/paid/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2774,7 +2760,6 @@ MODULE                        : project.app
                     ResDirectories                : <ROOT>/app/src/androidTestPaid/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestPaid/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestPaid/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/androidTestPaid/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTestPaid/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2788,7 +2773,6 @@ MODULE                        : project.app
                     ResDirectories                : <ROOT>/app/src/testPaid/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testPaid/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testPaid/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testPaid/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testPaid/baselineProfiles [-]
         ProductFlavor
             Name                          : bar
@@ -2805,7 +2789,6 @@ MODULE                        : project.app
             ResDirectories                : <ROOT>/app/src/bar/res [-]
             AssetsDirectories             : <ROOT>/app/src/bar/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/bar/jniLibs [-]
-            ShadersDirectories            : <ROOT>/app/src/bar/shaders [-]
             BaselineProfileDirectories    : <ROOT>/app/src/bar/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2820,7 +2803,6 @@ MODULE                        : project.app
                     ResDirectories                : <ROOT>/app/src/androidTestBar/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestBar/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestBar/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/androidTestBar/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTestBar/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2834,7 +2816,6 @@ MODULE                        : project.app
                     ResDirectories                : <ROOT>/app/src/testBar/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testBar/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testBar/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testBar/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testBar/baselineProfiles [-]
         ProductFlavor
             Name                          : otherBar
@@ -2853,7 +2834,6 @@ MODULE                        : project.app
             ResDirectories                : <ROOT>/app/src/otherBar/res [-]
             AssetsDirectories             : <ROOT>/app/src/otherBar/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/otherBar/jniLibs [-]
-            ShadersDirectories            : <ROOT>/app/src/otherBar/shaders [-]
             BaselineProfileDirectories    : <ROOT>/app/src/otherBar/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2868,7 +2848,6 @@ MODULE                        : project.app
                     ResDirectories                : <ROOT>/app/src/androidTestOtherBar/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestOtherBar/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestOtherBar/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/androidTestOtherBar/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTestOtherBar/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2882,7 +2861,6 @@ MODULE                        : project.app
                     ResDirectories                : <ROOT>/app/src/testOtherBar/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testOtherBar/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testOtherBar/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testOtherBar/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testOtherBar/baselineProfiles [-]
     SigningConfigs
         SigningConfig
@@ -3045,7 +3023,6 @@ MODULE                        : project.app
                     ResDirectories                : <ROOT>/app/src/basicBarDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/basicBarDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/basicBarDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/basicBarDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/basicBarDebug/baselineProfiles [-]
                 MultiFlavorSourceProvider
                     Name                          : basicBar
@@ -3057,7 +3034,6 @@ MODULE                        : project.app
                     ResDirectories                : <ROOT>/app/src/basicBar/res [-]
                     AssetsDirectories             : <ROOT>/app/src/basicBar/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/basicBar/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/basicBar/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/basicBar/baselineProfiles [-]
                 Dependencies
                     compileClasspath
@@ -3348,7 +3324,6 @@ MODULE                        : project.app
                     ResDirectories                : <ROOT>/app/src/androidTestBasicBarDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestBasicBarDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestBasicBarDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/androidTestBasicBarDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTestBasicBarDebug/baselineProfiles [-]
                 MultiFlavorSourceProvider
                     Name                          : androidTestBasicBar
@@ -3360,7 +3335,6 @@ MODULE                        : project.app
                     ResDirectories                : <ROOT>/app/src/androidTestBasicBar/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestBasicBar/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestBasicBar/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/androidTestBasicBar/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTestBasicBar/baselineProfiles [-]
                 Dependencies
                     compileClasspath
@@ -3607,7 +3581,6 @@ MODULE                        : project.app
                     ResourcesDirectories          : <ROOT>/app/src/testBasicBarDebug/resources [-]
                     AssetsDirectories             : <ROOT>/app/src/testBasicBarDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testBasicBarDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testBasicBarDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testBasicBarDebug/baselineProfiles [-]
                 MultiFlavorSourceProvider
                     Name                          : testBasicBar
@@ -3619,7 +3592,6 @@ MODULE                        : project.app
                     ResDirectories                : <ROOT>/app/src/testBasicBar/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testBasicBar/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testBasicBar/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testBasicBar/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testBasicBar/baselineProfiles [-]
                 Dependencies
                     compileClasspath
@@ -3972,7 +3944,6 @@ MODULE                        : project.dyn_feature
             ResDirectories                : <ROOT>/dyn_feature/src/main/res [-]
             AssetsDirectories             : <ROOT>/dyn_feature/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/dyn_feature/src/main/jniLibs [-]
-            ShadersDirectories            : <ROOT>/dyn_feature/src/main/shaders [-]
             BaselineProfileDirectories    : <ROOT>/dyn_feature/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -3987,7 +3958,6 @@ MODULE                        : project.dyn_feature
                     ResDirectories                : <ROOT>/dyn_feature/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/dyn_feature/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/dyn_feature/src/androidTest/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/dyn_feature/src/androidTest/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/dyn_feature/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -4001,7 +3971,6 @@ MODULE                        : project.dyn_feature
                     ResDirectories                : <ROOT>/dyn_feature/src/test/res [-]
                     AssetsDirectories             : <ROOT>/dyn_feature/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/dyn_feature/src/test/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/dyn_feature/src/test/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/dyn_feature/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
@@ -4023,7 +3992,6 @@ MODULE                        : project.dyn_feature
             ResDirectories                : <ROOT>/dyn_feature/src/debug/res [-]
             AssetsDirectories             : <ROOT>/dyn_feature/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/dyn_feature/src/debug/jniLibs [-]
-            ShadersDirectories            : <ROOT>/dyn_feature/src/debug/shaders [-]
             BaselineProfileDirectories    : <ROOT>/dyn_feature/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -4038,7 +4006,6 @@ MODULE                        : project.dyn_feature
                     ResDirectories                : <ROOT>/dyn_feature/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/dyn_feature/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/dyn_feature/src/androidTestDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/dyn_feature/src/androidTestDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/dyn_feature/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -4053,7 +4020,6 @@ MODULE                        : project.dyn_feature
                     ResDirectories                : <ROOT>/dyn_feature/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/dyn_feature/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/dyn_feature/src/testDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/dyn_feature/src/testDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/dyn_feature/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
@@ -4074,7 +4040,6 @@ MODULE                        : project.dyn_feature
             ResDirectories                : <ROOT>/dyn_feature/src/release/res [-]
             AssetsDirectories             : <ROOT>/dyn_feature/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/dyn_feature/src/release/jniLibs [-]
-            ShadersDirectories            : <ROOT>/dyn_feature/src/release/shaders [-]
             BaselineProfileDirectories    : <ROOT>/dyn_feature/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -4089,7 +4054,6 @@ MODULE                        : project.dyn_feature
                     ResDirectories                : <ROOT>/dyn_feature/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/dyn_feature/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/dyn_feature/src/testRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/dyn_feature/src/testRelease/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/dyn_feature/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
@@ -4292,7 +4256,6 @@ MODULE                        : project.lib
             ResDirectories                : <ROOT>/lib/src/main/res
             AssetsDirectories             : <ROOT>/lib/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/lib/src/main/jniLibs [-]
-            ShadersDirectories            : <ROOT>/lib/src/main/shaders [-]
             BaselineProfileDirectories    : <ROOT>/lib/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -4307,7 +4270,6 @@ MODULE                        : project.lib
                     ResDirectories                : <ROOT>/lib/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/lib/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/androidTest/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/lib/src/androidTest/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/lib/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -4321,7 +4283,6 @@ MODULE                        : project.lib
                     ResDirectories                : <ROOT>/lib/src/test/res [-]
                     AssetsDirectories             : <ROOT>/lib/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/test/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/lib/src/test/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/lib/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
@@ -4343,7 +4304,6 @@ MODULE                        : project.lib
             ResDirectories                : <ROOT>/lib/src/debug/res [-]
             AssetsDirectories             : <ROOT>/lib/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/lib/src/debug/jniLibs [-]
-            ShadersDirectories            : <ROOT>/lib/src/debug/shaders [-]
             BaselineProfileDirectories    : <ROOT>/lib/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -4358,7 +4318,6 @@ MODULE                        : project.lib
                     ResDirectories                : <ROOT>/lib/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/lib/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/androidTestDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/lib/src/androidTestDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/lib/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -4373,7 +4332,6 @@ MODULE                        : project.lib
                     ResDirectories                : <ROOT>/lib/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/lib/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/testDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/lib/src/testDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/lib/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
@@ -4397,7 +4355,6 @@ MODULE                        : project.lib
             ResDirectories                : <ROOT>/lib/src/release/res [-]
             AssetsDirectories             : <ROOT>/lib/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/lib/src/release/jniLibs [-]
-            ShadersDirectories            : <ROOT>/lib/src/release/shaders [-]
             BaselineProfileDirectories    : <ROOT>/lib/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -4412,7 +4369,6 @@ MODULE                        : project.lib
                     ResDirectories                : <ROOT>/lib/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/lib/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/testRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/lib/src/testRelease/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/lib/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
@@ -5301,7 +5257,6 @@ MODULE                        : project.nested1
             ResDirectories                : <ROOT>/nested1/src/main/res [-]
             AssetsDirectories             : <ROOT>/nested1/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/nested1/src/main/jniLibs [-]
-            ShadersDirectories            : <ROOT>/nested1/src/main/shaders [-]
             BaselineProfileDirectories    : <ROOT>/nested1/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -5316,7 +5271,6 @@ MODULE                        : project.nested1
                     ResDirectories                : <ROOT>/nested1/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/nested1/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/src/androidTest/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested1/src/androidTest/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested1/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -5330,7 +5284,6 @@ MODULE                        : project.nested1
                     ResDirectories                : <ROOT>/nested1/src/test/res [-]
                     AssetsDirectories             : <ROOT>/nested1/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/src/test/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested1/src/test/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested1/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
@@ -5352,7 +5305,6 @@ MODULE                        : project.nested1
             ResDirectories                : <ROOT>/nested1/src/debug/res [-]
             AssetsDirectories             : <ROOT>/nested1/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/nested1/src/debug/jniLibs [-]
-            ShadersDirectories            : <ROOT>/nested1/src/debug/shaders [-]
             BaselineProfileDirectories    : <ROOT>/nested1/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -5367,7 +5319,6 @@ MODULE                        : project.nested1
                     ResDirectories                : <ROOT>/nested1/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested1/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/src/androidTestDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested1/src/androidTestDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested1/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -5382,7 +5333,6 @@ MODULE                        : project.nested1
                     ResDirectories                : <ROOT>/nested1/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested1/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/src/testDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested1/src/testDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested1/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
@@ -5403,7 +5353,6 @@ MODULE                        : project.nested1
             ResDirectories                : <ROOT>/nested1/src/release/res [-]
             AssetsDirectories             : <ROOT>/nested1/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/nested1/src/release/jniLibs [-]
-            ShadersDirectories            : <ROOT>/nested1/src/release/shaders [-]
             BaselineProfileDirectories    : <ROOT>/nested1/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -5418,7 +5367,6 @@ MODULE                        : project.nested1
                     ResDirectories                : <ROOT>/nested1/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/nested1/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/src/testRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested1/src/testRelease/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested1/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
@@ -5601,7 +5549,6 @@ MODULE                        : project.nested1.deep
             ResDirectories                : <ROOT>/nested1/deep/src/main/res [-]
             AssetsDirectories             : <ROOT>/nested1/deep/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/nested1/deep/src/main/jniLibs [-]
-            ShadersDirectories            : <ROOT>/nested1/deep/src/main/shaders [-]
             BaselineProfileDirectories    : <ROOT>/nested1/deep/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -5616,7 +5563,6 @@ MODULE                        : project.nested1.deep
                     ResDirectories                : <ROOT>/nested1/deep/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/nested1/deep/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/deep/src/androidTest/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested1/deep/src/androidTest/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested1/deep/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -5630,7 +5576,6 @@ MODULE                        : project.nested1.deep
                     ResDirectories                : <ROOT>/nested1/deep/src/test/res [-]
                     AssetsDirectories             : <ROOT>/nested1/deep/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/deep/src/test/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested1/deep/src/test/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested1/deep/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
@@ -5652,7 +5597,6 @@ MODULE                        : project.nested1.deep
             ResDirectories                : <ROOT>/nested1/deep/src/debug/res [-]
             AssetsDirectories             : <ROOT>/nested1/deep/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/nested1/deep/src/debug/jniLibs [-]
-            ShadersDirectories            : <ROOT>/nested1/deep/src/debug/shaders [-]
             BaselineProfileDirectories    : <ROOT>/nested1/deep/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -5667,7 +5611,6 @@ MODULE                        : project.nested1.deep
                     ResDirectories                : <ROOT>/nested1/deep/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested1/deep/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/deep/src/androidTestDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested1/deep/src/androidTestDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested1/deep/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -5682,7 +5625,6 @@ MODULE                        : project.nested1.deep
                     ResDirectories                : <ROOT>/nested1/deep/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested1/deep/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/deep/src/testDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested1/deep/src/testDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested1/deep/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
@@ -5703,7 +5645,6 @@ MODULE                        : project.nested1.deep
             ResDirectories                : <ROOT>/nested1/deep/src/release/res [-]
             AssetsDirectories             : <ROOT>/nested1/deep/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/nested1/deep/src/release/jniLibs [-]
-            ShadersDirectories            : <ROOT>/nested1/deep/src/release/shaders [-]
             BaselineProfileDirectories    : <ROOT>/nested1/deep/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -5718,7 +5659,6 @@ MODULE                        : project.nested1.deep
                     ResDirectories                : <ROOT>/nested1/deep/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/nested1/deep/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/deep/src/testRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested1/deep/src/testRelease/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested1/deep/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
@@ -5911,7 +5851,6 @@ MODULE                        : project.nested2
             ResDirectories                : <ROOT>/nested2/src/main/res [-]
             AssetsDirectories             : <ROOT>/nested2/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/src/main/jniLibs [-]
-            ShadersDirectories            : <ROOT>/nested2/src/main/shaders [-]
             BaselineProfileDirectories    : <ROOT>/nested2/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -5926,7 +5865,6 @@ MODULE                        : project.nested2
                     ResDirectories                : <ROOT>/nested2/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/nested2/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/androidTest/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/src/androidTest/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -5940,7 +5878,6 @@ MODULE                        : project.nested2
                     ResDirectories                : <ROOT>/nested2/src/test/res [-]
                     AssetsDirectories             : <ROOT>/nested2/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/test/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/src/test/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
@@ -5962,7 +5899,6 @@ MODULE                        : project.nested2
             ResDirectories                : <ROOT>/nested2/src/debug/res [-]
             AssetsDirectories             : <ROOT>/nested2/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/src/debug/jniLibs [-]
-            ShadersDirectories            : <ROOT>/nested2/src/debug/shaders [-]
             BaselineProfileDirectories    : <ROOT>/nested2/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -5977,7 +5913,6 @@ MODULE                        : project.nested2
                     ResDirectories                : <ROOT>/nested2/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested2/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/androidTestDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/src/androidTestDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -5992,7 +5927,6 @@ MODULE                        : project.nested2
                     ResDirectories                : <ROOT>/nested2/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested2/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/testDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/src/testDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
@@ -6013,7 +5947,6 @@ MODULE                        : project.nested2
             ResDirectories                : <ROOT>/nested2/src/release/res [-]
             AssetsDirectories             : <ROOT>/nested2/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/src/release/jniLibs [-]
-            ShadersDirectories            : <ROOT>/nested2/src/release/shaders [-]
             BaselineProfileDirectories    : <ROOT>/nested2/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -6028,7 +5961,6 @@ MODULE                        : project.nested2
                     ResDirectories                : <ROOT>/nested2/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/nested2/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/testRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/src/testRelease/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/src/testRelease/baselineProfiles [-]
     ProductFlavors
         ProductFlavor
@@ -6045,7 +5977,6 @@ MODULE                        : project.nested2
             ResDirectories                : <ROOT>/nested2/src/basic/res [-]
             AssetsDirectories             : <ROOT>/nested2/src/basic/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/src/basic/jniLibs [-]
-            ShadersDirectories            : <ROOT>/nested2/src/basic/shaders [-]
             BaselineProfileDirectories    : <ROOT>/nested2/src/basic/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -6060,7 +5991,6 @@ MODULE                        : project.nested2
                     ResDirectories                : <ROOT>/nested2/src/androidTestBasic/res [-]
                     AssetsDirectories             : <ROOT>/nested2/src/androidTestBasic/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/androidTestBasic/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/src/androidTestBasic/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/src/androidTestBasic/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -6074,7 +6004,6 @@ MODULE                        : project.nested2
                     ResDirectories                : <ROOT>/nested2/src/testBasic/res [-]
                     AssetsDirectories             : <ROOT>/nested2/src/testBasic/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/testBasic/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/src/testBasic/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/src/testBasic/baselineProfiles [-]
         ProductFlavor
             Name                          : paid
@@ -6090,7 +6019,6 @@ MODULE                        : project.nested2
             ResDirectories                : <ROOT>/nested2/src/paid/res [-]
             AssetsDirectories             : <ROOT>/nested2/src/paid/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/src/paid/jniLibs [-]
-            ShadersDirectories            : <ROOT>/nested2/src/paid/shaders [-]
             BaselineProfileDirectories    : <ROOT>/nested2/src/paid/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -6105,7 +6033,6 @@ MODULE                        : project.nested2
                     ResDirectories                : <ROOT>/nested2/src/androidTestPaid/res [-]
                     AssetsDirectories             : <ROOT>/nested2/src/androidTestPaid/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/androidTestPaid/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/src/androidTestPaid/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/src/androidTestPaid/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -6119,7 +6046,6 @@ MODULE                        : project.nested2
                     ResDirectories                : <ROOT>/nested2/src/testPaid/res [-]
                     AssetsDirectories             : <ROOT>/nested2/src/testPaid/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/testPaid/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/src/testPaid/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/src/testPaid/baselineProfiles [-]
     SigningConfigs
         SigningConfig
@@ -6174,7 +6100,6 @@ MODULE                        : project.nested2
                     ResDirectories                : <ROOT>/nested2/src/basicDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested2/src/basicDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/basicDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/src/basicDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/src/basicDebug/baselineProfiles [-]
                 Dependencies
                     compileClasspath
@@ -6204,7 +6129,6 @@ MODULE                        : project.nested2
                     ResDirectories                : <ROOT>/nested2/src/androidTestBasicDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested2/src/androidTestBasicDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/androidTestBasicDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/src/androidTestBasicDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/src/androidTestBasicDebug/baselineProfiles [-]
                 Dependencies
                     compileClasspath
@@ -6242,7 +6166,6 @@ MODULE                        : project.nested2
                     ResourcesDirectories          : <ROOT>/nested2/src/testBasicDebug/resources [-]
                     AssetsDirectories             : <ROOT>/nested2/src/testBasicDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/testBasicDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/src/testBasicDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/src/testBasicDebug/baselineProfiles [-]
                 Dependencies
                     compileClasspath
@@ -6344,7 +6267,6 @@ MODULE                        : project.nested2.deep
             ResDirectories                : <ROOT>/nested2/deep/src/main/res [-]
             AssetsDirectories             : <ROOT>/nested2/deep/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/deep/src/main/jniLibs [-]
-            ShadersDirectories            : <ROOT>/nested2/deep/src/main/shaders [-]
             BaselineProfileDirectories    : <ROOT>/nested2/deep/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -6359,7 +6281,6 @@ MODULE                        : project.nested2.deep
                     ResDirectories                : <ROOT>/nested2/deep/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/nested2/deep/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/deep/src/androidTest/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/deep/src/androidTest/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/deep/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -6373,7 +6294,6 @@ MODULE                        : project.nested2.deep
                     ResDirectories                : <ROOT>/nested2/deep/src/test/res [-]
                     AssetsDirectories             : <ROOT>/nested2/deep/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/deep/src/test/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/deep/src/test/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/deep/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
@@ -6395,7 +6315,6 @@ MODULE                        : project.nested2.deep
             ResDirectories                : <ROOT>/nested2/deep/src/debug/res [-]
             AssetsDirectories             : <ROOT>/nested2/deep/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/deep/src/debug/jniLibs [-]
-            ShadersDirectories            : <ROOT>/nested2/deep/src/debug/shaders [-]
             BaselineProfileDirectories    : <ROOT>/nested2/deep/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -6410,7 +6329,6 @@ MODULE                        : project.nested2.deep
                     ResDirectories                : <ROOT>/nested2/deep/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested2/deep/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/deep/src/androidTestDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/deep/src/androidTestDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/deep/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -6425,7 +6343,6 @@ MODULE                        : project.nested2.deep
                     ResDirectories                : <ROOT>/nested2/deep/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested2/deep/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/deep/src/testDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/deep/src/testDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/deep/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
@@ -6446,7 +6363,6 @@ MODULE                        : project.nested2.deep
             ResDirectories                : <ROOT>/nested2/deep/src/release/res [-]
             AssetsDirectories             : <ROOT>/nested2/deep/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/deep/src/release/jniLibs [-]
-            ShadersDirectories            : <ROOT>/nested2/deep/src/release/shaders [-]
             BaselineProfileDirectories    : <ROOT>/nested2/deep/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -6461,7 +6377,6 @@ MODULE                        : project.nested2.deep
                     ResDirectories                : <ROOT>/nested2/deep/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/nested2/deep/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/deep/src/testRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/deep/src/testRelease/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/deep/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
@@ -6653,7 +6568,6 @@ MODULE                        : project.nested2.trans.deep2
             ResDirectories                : <ROOT>/nested2/trans/deep2/src/main/res [-]
             AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/main/jniLibs [-]
-            ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/main/shaders [-]
             BaselineProfileDirectories    : <ROOT>/nested2/trans/deep2/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -6668,7 +6582,6 @@ MODULE                        : project.nested2.trans.deep2
                     ResDirectories                : <ROOT>/nested2/trans/deep2/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/androidTest/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/androidTest/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/trans/deep2/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -6682,7 +6595,6 @@ MODULE                        : project.nested2.trans.deep2
                     ResDirectories                : <ROOT>/nested2/trans/deep2/src/test/res [-]
                     AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/test/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/test/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/trans/deep2/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
@@ -6704,7 +6616,6 @@ MODULE                        : project.nested2.trans.deep2
             ResDirectories                : <ROOT>/nested2/trans/deep2/src/debug/res [-]
             AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/debug/jniLibs [-]
-            ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/debug/shaders [-]
             BaselineProfileDirectories    : <ROOT>/nested2/trans/deep2/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -6719,7 +6630,6 @@ MODULE                        : project.nested2.trans.deep2
                     ResDirectories                : <ROOT>/nested2/trans/deep2/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/androidTestDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/androidTestDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/trans/deep2/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -6734,7 +6644,6 @@ MODULE                        : project.nested2.trans.deep2
                     ResDirectories                : <ROOT>/nested2/trans/deep2/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/testDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/testDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/trans/deep2/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
@@ -6755,7 +6664,6 @@ MODULE                        : project.nested2.trans.deep2
             ResDirectories                : <ROOT>/nested2/trans/deep2/src/release/res [-]
             AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/release/jniLibs [-]
-            ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/release/shaders [-]
             BaselineProfileDirectories    : <ROOT>/nested2/trans/deep2/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -6770,7 +6678,6 @@ MODULE                        : project.nested2.trans.deep2
                     ResDirectories                : <ROOT>/nested2/trans/deep2/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/testRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/testRelease/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/trans/deep2/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
