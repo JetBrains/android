@@ -32,7 +32,7 @@ public class ParameterCompletionContributorTest extends BuildFileIntegrationTest
 
   @Test
   public void testArgsCompletion() throws Throwable {
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "def function(arg1, *");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "def function(arg1, *");
 
     Editor editor = editorTest.openFileInEditor(file.getVirtualFile());
     editorTest.setCaretPosition(editor, 0, "def function(arg1, *".length());
@@ -45,7 +45,7 @@ public class ParameterCompletionContributorTest extends BuildFileIntegrationTest
 
   @Test
   public void testKwargsCompletion() throws Throwable {
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "def function(arg1, **");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "def function(arg1, **");
 
     Editor editor = editorTest.openFileInEditor(file.getVirtualFile());
     editorTest.setCaretPosition(editor, 0, "def function(arg1, **".length());

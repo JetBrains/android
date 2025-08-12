@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.room.migrations.generators;
 
-import static com.android.tools.idea.room.migrations.generators.MigrationClassGenerator.*;
+import static com.android.tools.idea.room.migrations.generators.MigrationClassGenerator.getMigrationClassName;
+import static com.android.tools.idea.room.migrations.generators.MigrationClassGenerator.trimSqlStatement;
 
 import com.android.tools.idea.room.migrations.update.DatabaseUpdate;
 import com.intellij.openapi.project.Project;

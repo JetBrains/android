@@ -24,7 +24,6 @@ import java.awt.Component
 import javax.swing.JLabel
 import javax.swing.JTree
 import javax.swing.tree.TreeCellRenderer
-import javax.swing.tree.TreeNode
 
 class OutlineNodeRenderer(private val nodeRenderer: NodeRenderer) : JBPanel<OutlineNodeRenderer>(BorderLayout()), TreeCellRenderer {
   private var iconLabel = JLabel()

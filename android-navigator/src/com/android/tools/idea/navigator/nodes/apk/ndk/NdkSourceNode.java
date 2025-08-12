@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.navigator.nodes.apk.ndk;
 
+import static com.android.tools.idea.navigator.nodes.apk.ndk.PathTrees.findSourceFolders;
+import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+
 import com.android.tools.idea.apk.paths.PathTree;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
@@ -25,18 +30,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-
-import static com.android.tools.idea.navigator.nodes.apk.ndk.PathTrees.findSourceFolders;
-import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
-import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
-import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+import org.jetbrains.annotations.NotNull;
 
 public class NdkSourceNode extends ProjectViewNode<File> {
   @NotNull private final File myNdkPath;

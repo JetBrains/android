@@ -20,7 +20,7 @@ import static com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGro
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.containers.ContainerUtil.map;
 
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
@@ -38,7 +38,7 @@ import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.lookup.Lookup;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.openapi.extensions.DefaultPluginDescriptor;
-import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileTypes.BinaryFileDecompiler;
 import com.intellij.openapi.fileTypes.BinaryFileTypeDecompilers;
 import com.intellij.openapi.fileTypes.FileTypeExtensionPoint;
@@ -597,7 +597,7 @@ b/215645288 */
     );
 
     AndroidTestUtils.goToElementAtCaret(myFixture);
-    assertThat(FileEditorManagerEx.getInstanceEx(myFixture.getProject()).getCurrentFile()).isEqualTo(modelVirtualFile);
+    assertThat(FileEditorManager.getInstance(myFixture.getProject()).getCurrentFile()).isEqualTo(modelVirtualFile);
   }
 
   public void testCompleteProcessMethod() {

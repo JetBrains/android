@@ -423,6 +423,7 @@ class ConfigureTemplateParametersStep(
     super.dispose()
     bindings.releaseAll()
     listeners.releaseAll()
+    super.dispose()
   }
 
   /** When finished with this step, calculate and install a bunch of values. */

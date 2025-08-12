@@ -15,13 +15,13 @@
  */
 package com.android.tools.tests;
 
-import static com.android.testutils.TestUtils.resolveWorkspacePath;
+import static com.android.test.testutils.TestUtils.resolveWorkspacePath;
 
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.RepoLinker;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.testutils.diff.UnifiedDiff;
 import java.io.File;
 import java.io.IOException;
@@ -131,7 +131,7 @@ public class IdeaTestSuiteBase {
    */
   protected static void setUpSourceZip(@NotNull String sourceZip, @NotNull String outputPath, DiffSpec... diffSpecs) {
     File sourceZipFile = getWorkspaceFileAndEnsureExistence(sourceZip);
-    File outDir = TestUtils.getWorkspaceRoot().resolve(outputPath).toFile();
+    File outDir = resolveWorkspacePath(outputPath).toFile();
     if (!outDir.isDirectory() && !outDir.mkdirs()) {
       throw new RuntimeException("Failed to create output directory: " + outDir);
     }
@@ -198,7 +198,7 @@ public class IdeaTestSuiteBase {
 
   @NotNull
   private static File getWorkspaceFileAndEnsureExistence(@NotNull String relativePath) {
-    Path file = TestUtils.getWorkspaceRoot().resolve(relativePath);
+    Path file = resolveWorkspacePath(relativePath);
     if (!Files.exists(file)) {
       throw new IllegalArgumentException(relativePath + " does not exist");
     }
@@ -212,6 +212,8 @@ public class IdeaTestSuiteBase {
         outDir.toPath(),
         offlineRepoZip.length(),
         new FakeProgressIndicator());
+
+
     }
     catch (IOException e) {
       throw new RuntimeException(e);

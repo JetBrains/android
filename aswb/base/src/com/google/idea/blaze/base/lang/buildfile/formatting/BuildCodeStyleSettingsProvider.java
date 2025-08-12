@@ -26,7 +26,7 @@ import com.intellij.psi.codeStyle.CodeStyleSettingsProvider;
 import com.intellij.psi.codeStyle.CustomCodeStyleSettings;
 import javax.annotation.Nullable;
 
-/** Separate configurable code-style settings for BUILD language. */
+/** Separate configurable code-style settings for ~BUILD language. */
 public class BuildCodeStyleSettingsProvider extends CodeStyleSettingsProvider {
 
   @Override

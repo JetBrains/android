@@ -359,15 +359,16 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
 
   @Override
   public boolean isDefaultPane(@NotNull Project project) {
-    return isDefaultPane(project, IdeInfo.getInstance(), AndroidProjectViewSettings.Companion.getInstance());
+    IdeInfo ideInfo = IdeInfo.getInstance();
+    return isDefaultPane(project, ideInfo, ideInfo.isAndroidStudio() ? AndroidProjectViewSettings.Companion.getInstance() : null);
   }
 
   @VisibleForTesting
-  boolean isDefaultPane(@NotNull Project project, @NotNull IdeInfo ideInfo, @NotNull AndroidProjectViewSettings settings) {
+  boolean isDefaultPane(@NotNull Project project, @NotNull IdeInfo ideInfo, @Nullable AndroidProjectViewSettings settings) {
     if ((!ideInfo.isAndroidStudio()) && (!ideInfo.isGameTools())) {
       return super.isDefaultPane(project);
     }
-    return !settings.isProjectViewDefault();
+    return settings != null && !settings.isProjectViewDefault();
   }
 
   private boolean isTopModuleDirectoryOrParent(@NotNull VirtualFile directory) {
@@ -434,7 +435,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
     }
 
     @Override
-    protected AbstractTreeNode createRoot(@NotNull Project project, @NotNull ViewSettings settings) {
+    protected AbstractTreeNode<?> createRoot(@NotNull Project project, @NotNull ViewSettings settings) {
       return new AndroidViewProjectNode(project, settings);
     }
   }

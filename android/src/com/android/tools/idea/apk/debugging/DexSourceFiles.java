@@ -15,34 +15,35 @@
  */
 package com.android.tools.idea.apk.debugging;
 
-import com.android.tools.idea.smali.psi.SmaliClassName;
-import com.android.tools.idea.smali.psi.SmaliClassSpec;
-import com.android.tools.idea.smali.psi.SmaliFile;
+import static com.android.SdkConstants.EXT_JAVA;
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.intellij.codeInsight.navigation.NavigationUtil.openFileWithPsiElement;
+import static com.intellij.openapi.util.io.FileUtil.join;
+
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiJavaFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.search.GlobalSearchScope;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.android.SdkConstants.EXT_JAVA;
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.smali.SmaliFileType.SMALI_EXTENSION;
-import static com.intellij.codeInsight.navigation.NavigationUtil.openFileWithPsiElement;
-import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.psi.util.PsiTreeUtil.findChildOfType;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DexSourceFiles {
   public static final String SMALI_ROOT_FOLDER_NAME = "smali";
   public static final String SMALI_OUTPUT_FOLDER_NAME = "out";
+
+  @NonNls private static final String SMALI_EXTENSION = "smali";
 
   @NotNull private final Project myProject;
   @NotNull private final File myOutputFolderPath;
@@ -64,16 +65,6 @@ public class DexSourceFiles {
 
   public boolean isJavaFile(@NotNull VirtualFile file) {
     return !file.isDirectory() && EXT_JAVA.equals(file.getExtension());
-  }
-
-  @Nullable
-  public String findJavaClassName(@NotNull SmaliFile smaliFile) {
-    SmaliClassSpec classSpec = findChildOfType(smaliFile, SmaliClassSpec.class);
-    if (classSpec != null) {
-      SmaliClassName className = classSpec.getClassName();
-      return className != null ? className.getJavaClassName() : null;
-    }
-    return null;
   }
 
   public boolean navigateToJavaFile(@NotNull String classFqn) {

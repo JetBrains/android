@@ -36,7 +36,7 @@ public class BuildFileFoldingBuilderTest extends BuildFileIntegrationTestCase {
   public void testEndOfFileFunctionDelcaration() throws Throwable {
     // bug 28618935: test no NPE in the case where there's no
     // statement list following the func-def colon
-    BuildFile file = createBuildFile(new WorkspacePath("java/com/google/BUILD"), "def function():");
+    BuildFile file = createBuildFile(new WorkspacePath("java/com/google/~BUILD"), "def function():");
 
     getFoldingRegions(file);
   }
@@ -45,7 +45,7 @@ public class BuildFileFoldingBuilderTest extends BuildFileIntegrationTestCase {
   public void testMultilineCommentFolded() throws Throwable {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "# multi-line comment, folded",
             "# second line of comment",
             "def function(arg1, arg2):",
@@ -64,7 +64,7 @@ public class BuildFileFoldingBuilderTest extends BuildFileIntegrationTestCase {
   public void testMultilineCommentIncludingBlankLinesIsFolded() throws Throwable {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "# multi-line comment, folded",
             "# second line of comment",
             "",
@@ -78,7 +78,7 @@ public class BuildFileFoldingBuilderTest extends BuildFileIntegrationTestCase {
   public void testMultilineStringFoldedToFirstLine() throws Throwable {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "\"\"\"First line of string",
             "Second line of string\"\"\"");
 
@@ -92,7 +92,7 @@ public class BuildFileFoldingBuilderTest extends BuildFileIntegrationTestCase {
   public void testFuncDefStatementsFolded() throws Throwable {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "# multi-line comment, folded",
             "# second line of comment",
             "def function(arg1, arg2):",
@@ -111,7 +111,7 @@ public class BuildFileFoldingBuilderTest extends BuildFileIntegrationTestCase {
   public void testRulesFolded() throws Throwable {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "java_library(",
             "    name = 'lib',",
             "    srcs = glob(['*.java']),",
@@ -126,7 +126,7 @@ public class BuildFileFoldingBuilderTest extends BuildFileIntegrationTestCase {
   public void testLoadStatementFolded() throws Throwable {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "load(",
             "   '//java/com/foo/build_defs.bzl',",
             "   'function1',",

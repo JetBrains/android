@@ -25,7 +25,7 @@ import com.google.idea.blaze.base.ideinfo.ProtoWrapper;
 import javax.annotation.Nullable;
 
 /**
- * Specification of the BUILD language, as provided by "blaze info build-language".
+ * Specification of the ~BUILD language, as provided by "blaze info build-language".
  *
  * <p>This constitutes a set of rules, along with their supported attributes, and other useful
  * information. We query this once per blaze workspace (it won't change unless the blaze binary is

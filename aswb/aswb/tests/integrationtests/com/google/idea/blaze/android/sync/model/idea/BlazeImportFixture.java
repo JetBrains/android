@@ -233,7 +233,7 @@ public final class BlazeImportFixture {
             TargetIdeInfo.builder()
                 .setLabel(main)
                 .setKind(AndroidBlazeRules.RuleTypes.ANDROID_BINARY.getKind())
-                .setBuildFile(source("java/com/google/BUILD"))
+                .setBuildFile(source("java/com/google/~BUILD"))
                 .setJavaInfo(javaInfoWithJars("app.jar"))
                 .setAndroidInfo(
                     AndroidIdeInfo.builder()
@@ -251,7 +251,7 @@ public final class BlazeImportFixture {
             TargetIdeInfo.builder()
                 .setLabel(individualLibrary)
                 .setKind(AndroidBlazeRules.RuleTypes.ANDROID_LIBRARY.getKind())
-                .setBuildFile(source("third_party/individualLibrary/BUILD"))
+                .setBuildFile(source("third_party/individualLibrary/~BUILD"))
                 .setAndroidInfo(
                     AndroidIdeInfo.builder()
                         .setManifestFile(
@@ -263,7 +263,7 @@ public final class BlazeImportFixture {
             TargetIdeInfo.builder()
                 .setLabel(quantum)
                 .setKind(AndroidBlazeRules.RuleTypes.ANDROID_LIBRARY.getKind())
-                .setBuildFile(source("third_party/quantum/BUILD"))
+                .setBuildFile(source("third_party/quantum/~BUILD"))
                 .setAndroidInfo(
                     AndroidIdeInfo.builder()
                         .setManifestFile(source("third_party/quantum/AndroidManifest.xml"))
@@ -282,7 +282,7 @@ public final class BlazeImportFixture {
         .addTarget(
             TargetIdeInfo.builder()
                 .setLabel(aarFile)
-                .setBuildFile(source("third_party/aar/BUILD"))
+                .setBuildFile(source("third_party/aar/~BUILD"))
                 .setKind(AndroidBlazeRules.RuleTypes.AAR_IMPORT.getKind())
                 .setAndroidAarInfo(
                     new AndroidAarIdeInfo(
@@ -294,7 +294,7 @@ public final class BlazeImportFixture {
             TargetIdeInfo.builder()
                 .setLabel(recyclerView)
                 .setKind(AndroidBlazeRules.RuleTypes.ANDROID_LIBRARY.getKind())
-                .setBuildFile(source("third_party/recyclerview/BUILD"))
+                .setBuildFile(source("third_party/recyclerview/~BUILD"))
                 .setAndroidInfo(
                     AndroidIdeInfo.builder()
                         .setManifestFile(source("third_party/recyclerview/AndroidManifest.xml"))
@@ -305,7 +305,7 @@ public final class BlazeImportFixture {
             TargetIdeInfo.builder()
                 .setLabel(intermediateDependency)
                 .setKind(AndroidBlazeRules.RuleTypes.ANDROID_LIBRARY.getKind())
-                .setBuildFile(source("java/com/google/intermediate/BUILD"))
+                .setBuildFile(source("java/com/google/intermediate/~BUILD"))
                 .setAndroidInfo(
                     AndroidIdeInfo.builder()
                         .setManifestFile(source("java/com/google/intermediate/AndroidManifest.xml"))
@@ -317,7 +317,7 @@ public final class BlazeImportFixture {
             TargetIdeInfo.builder()
                 .setLabel(constraintLayout)
                 .setKind(AndroidBlazeRules.RuleTypes.ANDROID_LIBRARY.getKind())
-                .setBuildFile(source("third_party/constraint_layout/BUILD"))
+                .setBuildFile(source("third_party/constraint_layout/~BUILD"))
                 .setAndroidInfo(
                     AndroidIdeInfo.builder()
                         .setManifestFile(

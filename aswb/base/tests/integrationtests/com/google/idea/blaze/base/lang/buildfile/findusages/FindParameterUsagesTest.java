@@ -60,7 +60,7 @@ public class FindParameterUsagesTest extends BuildFileIntegrationTestCase {
 
     BuildFile bar =
         createBuildFile(
-            new WorkspacePath("java/com/google/other/BUILD"),
+            new WorkspacePath("java/com/google/other/~BUILD"),
             "load(\"//java/com/google:build_defs.bzl\", \"function\")",
             "function(arg1 = 1, arg2 = \"name\", extra = x)");
 

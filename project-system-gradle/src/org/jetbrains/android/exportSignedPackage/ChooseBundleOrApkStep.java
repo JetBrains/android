@@ -15,10 +15,9 @@
  */
 package org.jetbrains.android.exportSignedPackage;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.HyperlinkLabel;
-
 import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
@@ -29,7 +28,11 @@ import java.awt.Insets;
 import java.lang.reflect.Method;
 import java.util.Locale;
 import java.util.ResourceBundle;
-import javax.swing.*;
+import javax.swing.ButtonGroup;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.text.StyleContext;
 
@@ -38,9 +41,9 @@ public class ChooseBundleOrApkStep extends ExportSignedPackageWizardStep {
   private final ExportSignedPackageWizard myWizard;
   private JPanel myContentPanel;
   @VisibleForTesting
-  JRadioButton myBundleButton;
+  public JRadioButton myBundleButton;
   @VisibleForTesting
-  JRadioButton myApkButton;
+  public JRadioButton myApkButton;
   private JPanel myBundlePanel;
   private JPanel myApkPanel;
   private HyperlinkLabel myLearnMoreLink;

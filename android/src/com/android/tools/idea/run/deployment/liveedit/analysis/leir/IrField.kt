@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.analysis.leir
 
-import org.objectweb.asm.tree.FieldNode
+import org.jetbrains.org.objectweb.asm.tree.FieldNode
 
 class IrField(node: FieldNode) {
   val name: String = node.name ?: throw IllegalArgumentException("Field with null name")

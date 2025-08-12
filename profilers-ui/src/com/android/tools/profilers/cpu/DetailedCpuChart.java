@@ -15,7 +15,9 @@
  */
 package com.android.tools.profilers.cpu;
 
-import static com.android.tools.profilers.cpu.DetailedCpuChart.PanelSizing.*;
+import static com.android.tools.profilers.cpu.DetailedCpuChart.PanelSizing.DETAILS;
+import static com.android.tools.profilers.cpu.DetailedCpuChart.PanelSizing.MONITOR;
+import static com.android.tools.profilers.cpu.DetailedCpuChart.PanelSizing.THREADS;
 
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;

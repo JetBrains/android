@@ -17,17 +17,18 @@ package com.android.tools.adtui.treegrid;
 
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ui.SpeedSearchBase;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.swing.JList;
+import javax.swing.SwingUtilities;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * SpeedSearch for a {@link TreeGrid}

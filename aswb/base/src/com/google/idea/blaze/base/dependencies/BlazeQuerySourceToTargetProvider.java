@@ -144,7 +144,7 @@ public class BlazeQuerySourceToTargetProvider implements SourceToTargetProvider 
       Collection<Label> sources, ContextType type, ImmutableList<TargetInfo> targetInfos) {
     // This method is used by both full and partial sync to find targets for source file, but this
     // fix is only required for the partial sync as full sync is able to find targets when syncing
-    // the BUILD file along with the source file. Ref. b/206027020#comment24. So, to ensure that
+    // the ~BUILD file along with the source file. Ref. b/206027020#comment24. So, to ensure that
     // only partial sync uses this flow, we verify that there is a single source file
     return isSourceToTargetHeuristicsForMacrosEnabled.getValue()
         && sources.size() == 1

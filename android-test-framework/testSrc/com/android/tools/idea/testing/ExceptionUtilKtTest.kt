@@ -16,7 +16,7 @@
 package com.android.tools.idea.testing
 
 import com.google.common.truth.Truth.assertThat
-import com.jetbrains.rd.util.getThrowableText
+import com.intellij.util.ExceptionUtil
 import org.junit.Test
 import java.util.regex.Pattern
 
@@ -42,7 +42,7 @@ class ExceptionUtilKtTest {
       }
     }.exceptionOrNull()
 
-    assertThat(aggregateException?.getThrowableText().orEmpty())
+    assertThat(aggregateException?.let { ExceptionUtil.getThrowableText(it) }.orEmpty())
       .containsMatch(Pattern.compile("ABC.*XYZ", Pattern.DOTALL))
   }
 
@@ -55,7 +55,7 @@ class ExceptionUtilKtTest {
       }
     }.exceptionOrNull()
 
-    assertThat(aggregateException?.getThrowableText().orEmpty())
+    assertThat(aggregateException?.let { ExceptionUtil.getThrowableText(it) }.orEmpty())
       .containsMatch(Pattern.compile("ABC.*123", Pattern.DOTALL))
   }
 
@@ -67,6 +67,6 @@ class ExceptionUtilKtTest {
       }
     }.exceptionOrNull()
 
-    assertThat(aggregateException?.getThrowableText().orEmpty()).containsMatch("123")
+    assertThat(aggregateException?.let { ExceptionUtil.getThrowableText(it) }.orEmpty()).containsMatch("123")
   }
 }

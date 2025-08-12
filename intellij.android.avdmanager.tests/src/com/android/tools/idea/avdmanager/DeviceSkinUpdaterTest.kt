@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.avdmanager
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.truth.PathSubject.assertThat
 import com.google.common.truth.Truth.assertThat

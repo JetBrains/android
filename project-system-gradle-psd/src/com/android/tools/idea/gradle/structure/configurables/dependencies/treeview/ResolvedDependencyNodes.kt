@@ -31,8 +31,6 @@ import com.android.tools.idea.gradle.structure.model.PsResolvedJarDependency
 import com.android.tools.idea.gradle.structure.model.PsResolvedLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsResolvedModuleDependency
 import com.android.tools.idea.gradle.structure.model.targetModuleResolvedDependencies
-import com.google.common.collect.Lists
-import com.google.common.collect.Sets
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.SimpleTextAttributes
@@ -134,12 +132,12 @@ fun createNodesForResolvedDependencies(
   parent: AbstractPsNode,
   collection: PsDependencyCollection<*, *, *, *>
 ): List<AbstractPsModelNode<*>> {
-  val allTransitive = Sets.newHashSet<String>()
-  val children = Lists.newArrayList<AbstractPsModelNode<*>>()
+  val allTransitive = hashSetOf<String>()
+  val children = ArrayList<AbstractPsModelNode<*>>()
 
   val declared = SortedList(
     PsDependencyComparator(parent.uiSettings))
-  val mayBeTransitive = Lists.newArrayList<PsLibraryDependency>()
+  val mayBeTransitive = ArrayList<PsLibraryDependency>()
   for (dependency in collection.modules) {
     if (dependency.isDeclared) {
       declared.add(dependency)

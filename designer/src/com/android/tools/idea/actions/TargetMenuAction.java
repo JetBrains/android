@@ -21,7 +21,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.configurations.ConfigurationSettings;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.layoutlib.AndroidTargets;
 import com.android.tools.module.AndroidModuleInfo;
@@ -290,9 +289,9 @@ public class TargetMenuAction extends DropDownAction {
   }
 
   @VisibleForTesting
-  static class SetTargetAction extends ConfigurationAction {
+  public static class SetTargetAction extends ConfigurationAction {
     @VisibleForTesting
-    final IAndroidTarget myTarget;
+    public final IAndroidTarget myTarget;
     private final String myTitle;
     private final boolean myDefaultSelectable;
 

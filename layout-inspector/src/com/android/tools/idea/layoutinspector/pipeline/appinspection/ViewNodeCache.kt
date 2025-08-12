@@ -18,8 +18,8 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.withContext
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * A base class for caching data associated with [ViewNode] that is additionally nested within a

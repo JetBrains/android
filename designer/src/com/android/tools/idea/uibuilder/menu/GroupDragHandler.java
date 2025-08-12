@@ -15,36 +15,41 @@
  */
 package com.android.tools.idea.uibuilder.menu;
 
-import com.android.tools.idea.common.scene.SceneContext;
-import com.google.common.annotations.VisibleForTesting;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ORDER_IN_CATEGORY;
+import static com.android.SdkConstants.ATTR_SHOW_AS_ACTION;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.VALUE_ALWAYS;
+
+import com.android.sdklib.AndroidCoordinate;
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
-import com.android.sdklib.AndroidCoordinate;
-import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.uibuilder.api.DragHandler;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.primitives.Ints;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
+import java.awt.Rectangle;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-
-import static com.android.SdkConstants.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * "Group" is used generically to refer to a menu or group element. Menus can contain item or group elements and group elements can only
  * contain items.
  */
-final class GroupDragHandler extends DragHandler {
+public final class GroupDragHandler extends DragHandler {
   private final SceneComponent myGroup;
   private final List<NlComponent> myItems;
   private final ActionBar myActionBar;

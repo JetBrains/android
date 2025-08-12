@@ -30,7 +30,7 @@ import com.intellij.psi.PsiFile;
 import javax.annotation.Nullable;
 
 /**
- * Implements structure view for a BUILD file. TODO: Include inner build rules for Skylark files
+ * Implements structure view for a ~BUILD file. TODO: Include inner build rules for Skylark files
  * (when we can identify them -- e.g. via list of blaze rule types)
  */
 public class BuildStructureViewModel extends StructureViewModelBase

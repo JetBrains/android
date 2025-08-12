@@ -27,7 +27,6 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.util.function.Consumer
-import java.util.regex.Pattern
 
 /**
  * Replaces href for more information related to duplicate classes to the id of an [OpenLinkQuickFix] so the IDE can open the link

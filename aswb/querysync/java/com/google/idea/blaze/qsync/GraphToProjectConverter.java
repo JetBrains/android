@@ -132,7 +132,7 @@ public class GraphToProjectConverter {
    * </pre>
    *
    * @param srcFiles all the files that should be included.
-   * @param packages the BUILD files to create source roots for.
+   * @param packages the ~BUILD files to create source roots for.
    * @return the content roots in the following form : Content Root -> Source Root -> package
    *     prefix. A content root contains multiple source roots, each one with a package prefix.
    */

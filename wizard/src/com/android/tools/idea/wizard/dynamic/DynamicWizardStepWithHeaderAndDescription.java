@@ -17,6 +17,7 @@ package com.android.tools.idea.wizard.dynamic;
 
 import com.android.tools.idea.wizard.WizardConstants;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
@@ -152,7 +153,6 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
   }
 
   public static final class WizardStepHeaderSettings {
-    public static final String PRODUCT_DESCRIPTION = "Android Studio";
 
     @NotNull public final String title;
     @Nullable public final String description;
@@ -171,7 +171,7 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
 
     @NotNull
     public static WizardStepHeaderSettings createProductHeader(@NotNull String title) {
-      return new WizardStepHeaderSettings(title, PRODUCT_DESCRIPTION, null, null);
+      return new WizardStepHeaderSettings(title, ApplicationNamesInfo.getInstance().getFullProductName(), null, null);
     }
   }
 }

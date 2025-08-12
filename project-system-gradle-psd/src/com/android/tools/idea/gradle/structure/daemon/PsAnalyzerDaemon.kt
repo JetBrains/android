@@ -47,11 +47,11 @@ import com.android.tools.lint.checks.GooglePlaySdkIndex
 import com.android.tools.lint.detector.api.TextFormat
 import com.android.utils.SdkUtils
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.EventDispatcher
+import com.intellij.util.concurrency.ThreadingAssertions
 import com.intellij.util.containers.addIfNotNull
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
@@ -182,7 +182,7 @@ class PsAnalyzerDaemon(
   @AnyThread
   private fun notifyUpdated(now: Boolean) {
     if (now) {
-      ApplicationManager.getApplication().assertIsDispatchThread()
+      ThreadingAssertions.assertEventDispatchThread()
       issuesUpdatedEventDispatcher.multicaster.issuesUpdated()
     }
     else resultsUpdaterQueue.queue(IssuesComputed())

@@ -16,10 +16,10 @@
 package com.android.tools.adtui.stdui.menu;
 
 import com.android.tools.adtui.model.stdui.CommonAction;
-
-import javax.swing.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 
 public class CommonMenuItem extends JMenuItem implements PropertyChangeListener {
 

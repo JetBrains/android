@@ -18,7 +18,6 @@ package com.android.tools.idea.project
 import com.android.tools.idea.execution.common.debug.utils.FacetFinder
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider
-import com.intellij.openapi.project.Project
 
 /**
  * An [ApplicationProjectContextProvider] for the default project system.

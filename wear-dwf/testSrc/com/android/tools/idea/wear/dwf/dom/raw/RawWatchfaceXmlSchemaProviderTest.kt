@@ -211,7 +211,7 @@ class RawWatchfaceXmlSchemaProviderTest {
             get() = null
 
           override fun get(): ListenableFuture<MergedManifestSnapshot> {
-            return Futures.immediateFuture(null)
+            return Futures.immediateFuture(mock())
           }
         }
       )

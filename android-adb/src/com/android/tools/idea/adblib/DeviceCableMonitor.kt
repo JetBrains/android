@@ -52,8 +52,8 @@ class DeviceCableMonitor : ProjectActivity {
     val NOTIFICATION_GROUP_ID = "Android Device Speed Warning"
   }
 
-  private val notificationGroup: NotificationGroup =
-    NotificationGroupManager.getInstance().getNotificationGroup(NOTIFICATION_GROUP_ID)
+  private val notificationGroup: NotificationGroup
+    get() = NotificationGroupManager.getInstance().getNotificationGroup(NOTIFICATION_GROUP_ID)
 
   override suspend fun execute(project: Project) {
     if (!isAndroidEnvironment(project)) {

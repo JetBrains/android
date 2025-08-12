@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.benchmarks
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric

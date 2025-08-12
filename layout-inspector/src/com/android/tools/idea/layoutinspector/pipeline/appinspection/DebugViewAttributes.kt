@@ -24,12 +24,13 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.SetFlagResult.Failure.Reason.*
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.SetFlagResult.Failure.Reason.SECURITY_EXCEPTION
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.SetFlagResult.Failure.Reason.UNKNOWN
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel
-import io.ktor.utils.io.CancellationException
+import kotlinx.coroutines.CancellationException
 
 private const val PER_DEVICE_SETTING = "debug_view_attributes"
 

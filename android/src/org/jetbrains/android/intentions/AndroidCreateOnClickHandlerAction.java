@@ -49,7 +49,7 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PsiNavigateUtil;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
-import java.util.List;
+
 import java.util.Locale;
 import org.jetbrains.android.dom.converters.OnClickConverter;
 import org.jetbrains.android.facet.AndroidFacet;

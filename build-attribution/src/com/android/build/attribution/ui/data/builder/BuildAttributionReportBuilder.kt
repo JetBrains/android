@@ -15,7 +15,6 @@
  */
 package com.android.build.attribution.ui.data.builder
 
-import com.android.build.diagnostic.WindowsDefenderCheckService
 import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
 import com.android.build.attribution.analyzers.TaskCategoryWarningsAnalyzer
 import com.android.build.attribution.data.PluginBuildData
@@ -33,6 +32,7 @@ import com.android.build.attribution.ui.data.IssueLevel
 import com.android.build.attribution.ui.data.TaskCategoryIssueUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.build.attribution.ui.displayName
+import com.android.build.diagnostic.WindowsDefenderCheckService
 import com.android.buildanalyzer.common.TaskCategory
 import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker

@@ -38,7 +38,7 @@ import com.intellij.util.Processor;
 import java.util.List;
 import javax.annotation.Nullable;
 
-/** String search for references in BUILD files */
+/** String search for references in ~BUILD files */
 public class BuildReferenceSearcher extends QueryExecutorBase<PsiReference, SearchParameters> {
 
   public BuildReferenceSearcher() {
@@ -88,7 +88,7 @@ public class BuildReferenceSearcher extends QueryExecutorBase<PsiReference, Sear
     }
   }
 
-  /** Find all references to the given file within BUILD files. */
+  /** Find all references to the given file within ~BUILD files. */
   private void processFileReferences(SearchParameters params, PsiFile file) {
     if (file instanceof BuildFile) {
       BuildFile buildFile = (BuildFile) file;

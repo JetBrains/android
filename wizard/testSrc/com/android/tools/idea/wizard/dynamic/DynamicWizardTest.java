@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.wizard.dynamic;
 
+import static com.android.tools.idea.wizard.dynamic.DynamicWizardPathTest.SampleDynamicWizardPath;
+import static com.android.tools.idea.wizard.dynamic.DynamicWizardStepTest.SampleDynamicWizardStep;
+
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.LightIdeaTestCase;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-
-import static com.android.tools.idea.wizard.dynamic.DynamicWizardPathTest.SampleDynamicWizardPath;
-import static com.android.tools.idea.wizard.dynamic.DynamicWizardStepTest.SampleDynamicWizardStep;
 
 /**
  * Tests for {@link DynamicWizard} and a sample implementation

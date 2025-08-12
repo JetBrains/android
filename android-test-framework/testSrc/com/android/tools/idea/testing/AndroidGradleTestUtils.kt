@@ -20,11 +20,10 @@ import com.android.builder.model.SyncIssue
 import com.android.ide.common.gradle.Component
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
-import com.android.testutils.TestUtils
-import com.android.testutils.TestUtils.getLatestAndroidPlatform
-import com.android.testutils.TestUtils.getSdk
+import com.android.test.testutils.TestUtils
+import com.android.test.testutils.TestUtils.getLatestAndroidPlatform
+import com.android.test.testutils.TestUtils.getSdk
 import com.android.tools.idea.concurrency.coroutineScope
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_ANDROID_TEST
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_MAIN
@@ -102,6 +101,7 @@ import com.android.tools.idea.gradle.project.sync.LibraryIdentity
 import com.android.tools.idea.gradle.project.sync.idea.AdditionalArtifactsPaths
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor.ALWAYS_SKIP_SYNC
+import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor.SKIPPED_SYNC
 import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTask
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getIdeModuleSourceSet
@@ -195,14 +195,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.platform.backend.workspace.workspaceModel
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
-import com.intellij.platform.workspace.jps.entities.ExternalSystemModuleOptionsEntity
-import com.intellij.platform.workspace.jps.entities.InheritedSdkDependency
-import com.intellij.platform.workspace.jps.entities.ModuleEntity
-import com.intellij.platform.workspace.jps.entities.ModuleSourceDependency
-import com.intellij.platform.workspace.storage.EntitySource
-import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiManager
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager
@@ -228,9 +221,8 @@ import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.base.externalSystem.findAll
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.idea.core.script.SCRIPT_CONFIGURATIONS_SOURCES
 import org.jetbrains.kotlin.idea.core.script.SCRIPT_DEFINITIONS_SOURCES
-import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptWorkspaceFileIndexContributor
+import org.jetbrains.kotlin.idea.core.script.k1.dependencies.KotlinScriptWorkspaceFileIndexContributor
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtension
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtensions
 import org.jetbrains.plugins.gradle.model.ExternalProject
@@ -242,10 +234,6 @@ import org.jetbrains.plugins.gradle.model.GradleTaskModel
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache
 import org.jetbrains.plugins.gradle.service.project.data.GradleExtensionsDataService
-import org.jetbrains.plugins.gradle.service.syncContributor.entitites.GradleBuildEntitySource
-import org.jetbrains.plugins.gradle.service.syncContributor.entitites.GradleLinkedProjectEntitySource
-import org.jetbrains.plugins.gradle.service.syncContributor.entitites.GradleProjectEntitySource
-import org.jetbrains.plugins.gradle.service.syncContributor.entitites.GradleSourceSetEntitySource
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.jetbrains.plugins.gradle.util.gradleIdentityPath
 import org.jetbrains.plugins.gradle.util.gradlePath
@@ -1409,18 +1397,7 @@ fun setupTestProjectFromAndroidModel(
 
     override fun getBootClasspath(module: Module): Collection<String> = emptyList()
   })
-  setupTestProjectFromAndroidModelCore(
-    project,
-    rootProjectBasePath,
-    moduleBuilders,
-    setupAllVariants,
-    cacheExistingVariants = false,
-    skipPhasedSync = !(
-      // skip setting up phased sync entities when it's not enabled and the data bridge data service is not enabled too
-      StudioFlags.PHASED_SYNC_ENABLED.get()
-      && StudioFlags.PHASED_SYNC_BRIDGE_DATA_SERVICE_DISABLED.get()
-    )
-  )
+  setupTestProjectFromAndroidModelCore(project, rootProjectBasePath, moduleBuilders, setupAllVariants, cacheExistingVariants = false)
 }
 
 /**
@@ -1431,18 +1408,33 @@ fun updateTestProjectFromAndroidModel(
   rootProjectBasePath: File,
   vararg moduleBuilders: ModuleModelBuilder
 ) {
-  setupTestProjectFromAndroidModelCore(
-    project,
-    rootProjectBasePath,
-    moduleBuilders,
-    setupAllVariants = false,
-    cacheExistingVariants = false,
-    skipPhasedSync = true // always skip phased sync when updating the existing project
-  )
+  setupTestProjectFromAndroidModelCore(project, rootProjectBasePath, moduleBuilders, setupAllVariants = false,
+                                       cacheExistingVariants = false)
   GradleSyncStateHolder.getInstance(project).syncSkipped(null)
   PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 }
 
+/**
+ * Sets up [project] as a one module project configured in the same way sync would configure it from the same model.
+ */
+fun switchTestProjectVariantsFromAndroidModel(
+  project: Project,
+  rootProjectBasePath: File,
+  vararg moduleBuilders: ModuleModelBuilder
+) {
+  setupTestProjectFromAndroidModelCore(project, rootProjectBasePath, moduleBuilders, setupAllVariants = false, cacheExistingVariants = true)
+  GradleSyncStateHolder.getInstance(project).syncSkipped(null)
+  PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+}
+
+/**
+ * Note: applicable to test projects set up via [AndroidProjectRule.withAndroidModels] and similar methods.
+ */
+fun Project.readAndClearLastSyncRequest(): GradleSyncInvoker.Request? {
+  return getUserData(SKIPPED_SYNC).also {
+    putUserData(SKIPPED_SYNC, null)
+  }
+}
 
 private fun interface MappingRecorder {
   fun add(moduleId: String, projectPath: GradleProjectPath, node: DataNode<out ModuleData>)
@@ -1454,7 +1446,6 @@ private fun setupTestProjectFromAndroidModelCore(
   moduleBuilders: Array<out ModuleModelBuilder>,
   setupAllVariants: Boolean,
   cacheExistingVariants: Boolean,
-  skipPhasedSync: Boolean,
 ) {
   // Always skip SYNC in light sync tests.
   project.putUserData(ALWAYS_SKIP_SYNC, true)
@@ -1527,8 +1518,6 @@ private fun setupTestProjectFromAndroidModelCore(
     pathToNode[path] = node
   }
 
-  val entityChanges = MutableEntityStorage.create()
-  val virtualFileUrlManager = project.workspaceModel.getVirtualFileUrlManager()
   val androidModels = mutableListOf<GradleAndroidModelData>()
   val internedModels = InternedModels(null)
   val featureToBase = mutableMapOf<String, String>()
@@ -1601,69 +1590,7 @@ private fun setupTestProjectFromAndroidModelCore(
     }
     projectDataNode.addChild(moduleDataNode)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
-    // Top level module should already be created
-    if (!skipPhasedSync && moduleBasePath != rootProjectBasePath) {
-      // Here we are setting up the entity sources for the holder modules
-      val linkedProjectRootPath = rootProjectBasePath.absolutePath
-      val linkedProjectRootUrl = virtualFileUrlManager.getOrCreateFromUrl(linkedProjectRootPath)
-      val linkedProjectEntitySource = GradleLinkedProjectEntitySource(linkedProjectRootUrl)
-
-      val buildEntitySource = GradleBuildEntitySource(linkedProjectEntitySource, linkedProjectRootUrl)
-
-      val projectRootUrl = virtualFileUrlManager.getOrCreateFromUrl(moduleBasePath.absolutePath)
-      val projectEntitySource = GradleProjectEntitySource(buildEntitySource, projectRootUrl)
-
-      // External module options is an extension of the module that annotates it with external system information, in this case
-      // it's to set up Gradle specific information such as the project path and whether it's a source set module or not.
-      fun externalModuleOptions(moduleEntity: ModuleEntity.Builder, entitySource: EntitySource, moduleId: String, isSourceSet: Boolean) = ExternalSystemModuleOptionsEntity(
-        entitySource = entitySource
-      ) {
-        module = moduleEntity
-
-        externalSystem = GradleConstants.SYSTEM_ID.id
-        linkedProjectId = moduleId
-        linkedProjectPath = moduleBasePath.absolutePath
-        rootProjectPath = linkedProjectRootPath
-
-        externalSystemModuleGroup = moduleBuilder.groupId
-        externalSystemModuleVersion = moduleBuilder.version
-        if (isSourceSet) {
-          externalSystemModuleType = GradleConstants.GRADLE_SOURCE_SET_MODULE_TYPE_KEY
-        }
-      }
-
-      entityChanges addEntity ModuleEntity(
-        name = moduleDataNode.data.internalName,
-        entitySource = projectEntitySource,
-        dependencies = listOf(
-          InheritedSdkDependency,
-          ModuleSourceDependency
-        )
-      ).also {
-        entityChanges addEntity externalModuleOptions(it, projectEntitySource, moduleDataNode.data.externalName, isSourceSet = false)
-      }
-      // Here we are setting up the modules per each source set (with the holder module as the parent)
-      moduleDataNode.findAll(GradleSourceSetData.KEY).forEach { data ->
-        val sourceSetEntitySource = GradleSourceSetEntitySource(projectEntitySource, data.data.internalName)
-        entityChanges addEntity ModuleEntity(
-          name = data.data.internalName,
-          entitySource = sourceSetEntitySource,
-          dependencies = listOf(
-            InheritedSdkDependency,
-            ModuleSourceDependency
-          )
-        ).also {
-          entityChanges addEntity externalModuleOptions(it, sourceSetEntitySource, data.data.externalName, isSourceSet = true)
-        }
-      }
-    }
   }
-  if (!skipPhasedSync) {
-    runWriteAction {
-      project.workspaceModel.updateProjectModel("Simulate phased sync entities") { storage -> storage.applyChangesFrom(entityChanges) }
-    }
-  }
-
 
   val unresolvedTable = internedModels.createLibraryTable()
   val resolvedTable = ResolvedLibraryTableBuilder(
@@ -2768,6 +2695,5 @@ fun disableKtsIndexing(project: Project, disposable: Disposable) {
 
   if (KotlinPluginModeProvider.isK2Mode()) {
     SCRIPT_DEFINITIONS_SOURCES.getPoint(project).unregisterExtensions({ _, _ -> false }, false)
-    SCRIPT_CONFIGURATIONS_SOURCES.getPoint(project).unregisterExtensions({ _, _ -> false }, false)
   }
 }

@@ -30,7 +30,7 @@ import java.io.InputStreamReader;
 import java.util.Collection;
 import javax.annotation.Nullable;
 
-/** Formats BUILD files using 'buildifier' */
+/** Formats ~BUILD files using 'buildifier' */
 public class BuildFileFormatter {
 
   private static final Logger logger = Logger.getInstance(BuildFileFormatter.class);

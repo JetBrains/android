@@ -22,11 +22,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
+import org.apache.http.concurrent.FutureCallback
 import java.awt.BorderLayout
 import java.io.FileNotFoundException
 import javax.swing.BorderFactory
 import javax.swing.JPanel
-import org.apache.http.concurrent.FutureCallback
 
 /** Panel for "assistant" flows such as tutorials, domain specific tools, etc. */
 class AssistSidePanel(private val project: Project) : JPanel(BorderLayout()) {

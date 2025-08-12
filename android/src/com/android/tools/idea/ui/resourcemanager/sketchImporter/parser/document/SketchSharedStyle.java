@@ -16,7 +16,6 @@
 package com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.document;
 
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchStyle;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchStyle;
 import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.NotNull;
 

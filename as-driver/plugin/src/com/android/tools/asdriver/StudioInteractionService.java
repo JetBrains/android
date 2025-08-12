@@ -81,6 +81,7 @@ import javax.swing.JTextField;
 import javax.swing.ListModel;
 import javax.swing.event.HyperlinkEvent;
 
+
 /**
  * Service responsible for interacting with the interface.
  */

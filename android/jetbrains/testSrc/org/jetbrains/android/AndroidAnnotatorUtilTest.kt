@@ -20,7 +20,7 @@ import com.android.ide.common.resources.ProtoXmlPullParser
 import com.android.ide.common.util.PathString
 import com.android.resources.ResourceType
 import com.android.resources.TEST_DATA_DIR
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.util.toVirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFactory

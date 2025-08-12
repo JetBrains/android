@@ -53,8 +53,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.ExperimentalUI;
 import com.intellij.ui.IconManager;
-import com.intellij.ui.NewUI;
 import com.intellij.ui.PlatformIcons;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.NamedColorUtil;
@@ -766,7 +766,7 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
           ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
           int textWidth = g.getFontMetrics().stringWidth(text);
 
-          Icon i = mySelected && isFocused() && !NewUI.isEnabled()
+          Icon i = mySelected && isFocused() && !ExperimentalUI.isNewUI()
                    ? ColoredIconGenerator.generateWhiteIcon(StudioIcons.Common.WARNING)
                    : StudioIcons.Common.WARNING;
           int iconWidth = i.getIconWidth();
@@ -780,7 +780,7 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
       }
 
       private void setIconColorized(Icon icon) {
-        setIcon(mySelected && isFocused() && !NewUI.isEnabled() ? ColoredIconGenerator.generateWhiteIcon(icon) : icon);
+        setIcon(mySelected && isFocused() && !ExperimentalUI.isNewUI() ? ColoredIconGenerator.generateWhiteIcon(icon) : icon);
       }
 
       @Override

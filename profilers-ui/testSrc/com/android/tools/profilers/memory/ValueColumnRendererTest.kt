@@ -24,12 +24,15 @@ import com.android.tools.profilers.memory.adapters.ReferenceObject
 import com.android.tools.profilers.memory.adapters.ValueObject
 import com.android.tools.profilers.memory.adapters.ValueObject.ValueType
 import com.google.common.truth.Truth.assertThat
-import com.intellij.icons.AllIcons.Debugger.*
+import com.intellij.icons.AllIcons.Debugger.Db_array
+import com.intellij.icons.AllIcons.Debugger.Db_primitive
 import com.intellij.icons.AllIcons.Hierarchy.Subtypes
 import com.intellij.ui.IconManager
 import com.intellij.ui.PlatformIcons
 import com.intellij.util.PlatformIcons.INTERFACE_ICON
-import icons.StudioIcons.Profiler.Overlays.*
+import icons.StudioIcons.Profiler.Overlays.ARRAY_STACK
+import icons.StudioIcons.Profiler.Overlays.FIELD_STACK
+import icons.StudioIcons.Profiler.Overlays.INTERFACE_STACK
 import org.junit.Test
 import javax.swing.Icon
 

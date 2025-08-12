@@ -16,15 +16,15 @@
 package com.android.tools.rendering.imagepool
 
 import com.android.tools.rendering.imagepool.ImagePoolImageDisposer.runWithDisposeLock
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.GraphicsConfiguration
 import java.awt.image.BufferedImage
 import java.util.concurrent.CountDownLatch
 import java.util.function.Consumer
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Test
 
 private class TestDisposableImage : ImagePool.Image, DisposableImage {
   private var isDisposed = false

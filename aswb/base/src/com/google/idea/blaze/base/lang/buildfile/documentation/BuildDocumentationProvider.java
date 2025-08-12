@@ -34,7 +34,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import javax.annotation.Nullable;
 
-/** Provides quick docs for some BUILD elements. */
+/** Provides quick docs for some ~BUILD elements. */
 public class BuildDocumentationProvider extends AbstractDocumentationProvider {
 
   private static final String LINK_TYPE_FILE = "#file#";
@@ -52,7 +52,7 @@ public class BuildDocumentationProvider extends AbstractDocumentationProvider {
     return null;
   }
 
-  /** Returns the corresponding built-in rule in the BUILD file language, if one exists. */
+  /** Returns the corresponding built-in rule in the ~BUILD file language, if one exists. */
   @Nullable
   private static RuleDefinition getBuiltInRule(Project project, @Nullable String ruleName) {
     BuildLanguageSpec spec = BuildLanguageSpecProvider.getInstance(project).getLanguageSpec();

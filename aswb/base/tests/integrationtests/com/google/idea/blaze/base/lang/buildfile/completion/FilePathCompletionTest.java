@@ -27,13 +27,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/** Tests file path code completion in BUILD file labels. */
+/** Tests file path code completion in ~BUILD file labels. */
 @RunWith(JUnit4.class)
 public class FilePathCompletionTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testUniqueDirectoryCompleted() throws Throwable {
-    BuildFile file = createBuildFile(new WorkspacePath("java/BUILD"), "'//'");
+    BuildFile file = createBuildFile(new WorkspacePath("java/~BUILD"), "'//'");
 
     Editor editor = editorTest.openFileInEditor(file);
     editorTest.setCaretPosition(editor, 0, "'//".length());
@@ -49,7 +49,7 @@ public class FilePathCompletionTest extends BuildFileIntegrationTestCase {
     boolean old = CodeInsightSettings.getInstance().AUTOINSERT_PAIR_QUOTE;
     try {
       CodeInsightSettings.getInstance().AUTOINSERT_PAIR_QUOTE = false;
-      BuildFile file = createBuildFile(new WorkspacePath("java/BUILD"), "'//");
+      BuildFile file = createBuildFile(new WorkspacePath("java/~BUILD"), "'//");
       Editor editor = editorTest.openFileInEditor(file);
       editorTest.setCaretPosition(editor, 0, "'//".length());
 
@@ -57,7 +57,7 @@ public class FilePathCompletionTest extends BuildFileIntegrationTestCase {
       assertFileContents(file, "'//java");
 
       CodeInsightSettings.getInstance().AUTOINSERT_PAIR_QUOTE = true;
-      file = createBuildFile(new WorkspacePath("foo/BUILD"), "'//j");
+      file = createBuildFile(new WorkspacePath("foo/~BUILD"), "'//j");
       editor = editorTest.openFileInEditor(file);
       editorTest.setCaretPosition(editor, 0, "'//j".length());
 
@@ -70,7 +70,7 @@ public class FilePathCompletionTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testUniqueMultiSegmentDirectoryCompleted() throws Throwable {
-    BuildFile file = createBuildFile(new WorkspacePath("java/com/google/BUILD"), "'//'");
+    BuildFile file = createBuildFile(new WorkspacePath("java/com/google/~BUILD"), "'//'");
 
     Editor editor = editorTest.openFileInEditor(file);
     editorTest.setCaretPosition(editor, 0, "'//".length());
@@ -81,10 +81,10 @@ public class FilePathCompletionTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testStopDirectoryTraversalAtBuildPackage() throws Throwable {
-    workspace.createFile(new WorkspacePath("foo/bar/BUILD"));
-    workspace.createFile(new WorkspacePath("foo/bar/baz/BUILD"));
+    workspace.createFile(new WorkspacePath("foo/bar/~BUILD"));
+    workspace.createFile(new WorkspacePath("foo/bar/baz/~BUILD"));
 
-    BuildFile file = createBuildFile(new WorkspacePath("other/BUILD"), "'//f'");
+    BuildFile file = createBuildFile(new WorkspacePath("other/~BUILD"), "'//f'");
     Editor editor = editorTest.openFileInEditor(file);
     editorTest.setCaretPosition(editor, 0, "'//f".length());
 
@@ -103,7 +103,7 @@ public class FilePathCompletionTest extends BuildFileIntegrationTestCase {
     workspace.createDirectory(new WorkspacePath("other/foo"));
     workspace.createDirectory(new WorkspacePath("other/bar"));
 
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "'//'");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "'//'");
 
     Editor editor = editorTest.openFileInEditor(file);
     editorTest.setCaretPosition(editor, 0, "'//".length());
@@ -131,7 +131,7 @@ public class FilePathCompletionTest extends BuildFileIntegrationTestCase {
     workspace.createDirectory(new WorkspacePath("ostrich/foo"));
     workspace.createDirectory(new WorkspacePath("ostrich/fooz"));
 
-    VirtualFile file = createAndSetCaret(new WorkspacePath("BUILD"), "'//o<caret>'");
+    VirtualFile file = createAndSetCaret(new WorkspacePath("~BUILD"), "'//o<caret>'");
 
     String[] completionItems = editorTest.getCompletionItemsAsSuggestionStrings();
     assertThat(completionItems).asList().containsExactly("other", "ostrich");

@@ -21,7 +21,7 @@ import com.google.idea.blaze.base.model.SyncData;
 import java.util.Objects;
 import javax.annotation.Nullable;
 
-/** The BUILD language specifications, serialized along with the sync data. */
+/** The ~BUILD language specifications, serialized along with the sync data. */
 public final class LanguageSpecResult implements SyncData<ProjectData.LanguageSpecResult> {
   private static final long ONE_DAY_IN_MILLISECONDS = 1000 * 60 * 60 * 24;
 

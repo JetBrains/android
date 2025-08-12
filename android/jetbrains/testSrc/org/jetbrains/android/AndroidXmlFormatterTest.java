@@ -15,10 +15,9 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.codeStyle.arrangement.engine.ArrangementEngine;
 import com.intellij.psi.formatter.xml.XmlCodeStyleSettings;
-import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
-
 import java.io.IOException;
 import java.util.Arrays;
+import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
 
 public class AndroidXmlFormatterTest extends AndroidTestCase {
   private static final String BASE_PATH = "formatter/xml/";

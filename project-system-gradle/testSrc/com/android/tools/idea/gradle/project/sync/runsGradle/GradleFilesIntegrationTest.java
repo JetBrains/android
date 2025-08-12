@@ -29,7 +29,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport;
 import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport;
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePsiFactory;

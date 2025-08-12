@@ -90,8 +90,8 @@ class MockDevicePairingView(
     pairingMdnsService: PairingMdnsService,
     device: AdbOnlineDevice,
   ) {
-    showQrCodePairingSuccessTracker.produce(Pair(pairingMdnsService, device))
     viewImpl.showQrCodePairingSuccess(pairingMdnsService, device)
+    showQrCodePairingSuccessTracker.produce(Pair(pairingMdnsService, device))
   }
 
   override fun showQrCodePairingError(pairingMdnsService: PairingMdnsService, error: Throwable) {

@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.wizard.dynamic;
 
+import static com.android.tools.idea.wizard.dynamic.ScopedDataBinder.ValueDeriver;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
+
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.ColorPanel;
+import java.awt.Color;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import javax.swing.JCheckBox;
+import javax.swing.JSlider;
+import javax.swing.JTextField;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static com.android.tools.idea.wizard.dynamic.ScopedDataBinder.ValueDeriver;
-import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 
 /**
  * Tests for {@link ScopedDataBinder}. These tests

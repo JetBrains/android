@@ -15,13 +15,16 @@
  */
 package com.android.tools.rendering;
 
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.VALUE_SPLIT_ACTION_BAR_WHEN_NARROW;
+
+import com.android.ide.common.rendering.api.ActionBarCallback;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.resources.ResourceType;
-import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.ide.common.rendering.api.ActionBarCallback;
 import com.android.resources.ResourceFolderType;
+import com.android.resources.ResourceType;
 import com.android.tools.dom.ActivityAttributesSnapshot;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.rendering.api.RenderModelManifest;
 import com.android.tools.rendering.api.RenderModelModule;
 import com.android.tools.rendering.parsers.RenderXmlFile;
@@ -38,16 +41,17 @@ import com.intellij.psi.PsiCompiledElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.Callable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.SdkConstants.VALUE_SPLIT_ACTION_BAR_WHEN_NARROW;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A callback to provide information related to the Action Bar as required by the

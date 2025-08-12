@@ -17,9 +17,6 @@ package com.android.tools.adtui.model;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.updater.Updater;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;

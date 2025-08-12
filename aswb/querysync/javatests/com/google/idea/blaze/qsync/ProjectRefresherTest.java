@@ -182,7 +182,7 @@ public class ProjectRefresherTest {
                         "1",
                         ImmutableSet.of(
                             new WorkspaceFileChange(
-                                Operation.MODIFY, Path.of("package/path/BUILD"))),
+                                Operation.MODIFY, Path.of("package/path/~BUILD"))),
                         Optional.empty())))
             .setProjectDefinition(
                 ProjectDefinition.builder()
@@ -219,7 +219,7 @@ public class ProjectRefresherTest {
                         "workspaceId",
                         "1",
                         ImmutableSet.of(
-                            new WorkspaceFileChange(Operation.ADD, Path.of("package/path/BUILD"))),
+                            new WorkspaceFileChange(Operation.ADD, Path.of("package/path/~BUILD"))),
                         Optional.empty())))
             .setProjectDefinition(
                 ProjectDefinition.builder()
@@ -258,7 +258,7 @@ public class ProjectRefresherTest {
                         "1",
                         ImmutableSet.of(
                             new WorkspaceFileChange(
-                                Operation.DELETE, Path.of("package/path/BUILD"))),
+                                Operation.DELETE, Path.of("package/path/~BUILD"))),
                         Optional.empty())))
             .setProjectDefinition(
                 ProjectDefinition.builder()
@@ -289,7 +289,7 @@ public class ProjectRefresherTest {
   @Test
   public void testStartPartialRefresh_buildFileModified() throws Exception {
     ImmutableSet<WorkspaceFileChange> workingSet =
-        ImmutableSet.of(new WorkspaceFileChange(Operation.MODIFY, Path.of("package/path/BUILD")));
+        ImmutableSet.of(new WorkspaceFileChange(Operation.MODIFY, Path.of("package/path/~BUILD")));
     PostQuerySyncData project =
         PostQuerySyncData.EMPTY.toBuilder()
             .setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//package/path:rule"))
@@ -307,7 +307,7 @@ public class ProjectRefresherTest {
             .build();
 
     RefreshOperation update =
-        createRefresher(differForFiles(Path.of("package/path/BUILD")))
+        createRefresher(differForFiles(Path.of("package/path/~BUILD")))
             .startPartialRefresh(
                 QuerySyncTestUtils.LOGGING_CONTEXT,
                 project,
@@ -325,7 +325,7 @@ public class ProjectRefresherTest {
   public void testStartPartialRefresh_buildFileInWorkingSet_unmodified() throws Exception {
     ImmutableSet<WorkspaceFileChange> workingSet =
         ImmutableSet.of(
-            new WorkspaceFileChange(Operation.MODIFY, Path.of("package/path/BUILD")),
+            new WorkspaceFileChange(Operation.MODIFY, Path.of("package/path/~BUILD")),
             new WorkspaceFileChange(Operation.MODIFY, Path.of("package/path/Class.java")));
     PostQuerySyncData project =
         PostQuerySyncData.EMPTY.toBuilder()
@@ -367,7 +367,7 @@ public class ProjectRefresherTest {
                         "1",
                         ImmutableSet.of(
                             new WorkspaceFileChange(
-                                Operation.MODIFY, Path.of("package/path/BUILD"))),
+                                Operation.MODIFY, Path.of("package/path/~BUILD"))),
                         Optional.empty())))
             .setProjectDefinition(
                 ProjectDefinition.builder()

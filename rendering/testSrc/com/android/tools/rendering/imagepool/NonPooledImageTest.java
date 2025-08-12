@@ -15,16 +15,16 @@
  */
 package com.android.tools.rendering.imagepool;
 
-import com.android.testutils.ImageDiffUtil;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
-
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+
+import com.android.testutils.ImageDiffUtil;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 public class NonPooledImageTest {
   @Test

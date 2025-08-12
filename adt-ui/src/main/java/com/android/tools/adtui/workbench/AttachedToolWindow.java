@@ -1,4 +1,4 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.adtui.workbench;
 
 import static com.intellij.openapi.actionSystem.IdeActions.ACTION_FIND;
@@ -36,13 +36,14 @@ import com.intellij.openapi.wm.impl.AnchoredButton;
 import com.intellij.openapi.wm.impl.InternalDecorator;
 import com.intellij.toolWindow.StripeButtonUi;
 import com.intellij.ui.DocumentAdapter;
+import com.intellij.ui.ExperimentalUI;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.NewUI;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.UIBundle;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.JBUI;
@@ -73,6 +74,7 @@ import javax.swing.JToggleButton;
 import javax.swing.LayoutFocusTraversalPolicy;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.MouseInputAdapter;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -83,13 +85,13 @@ import org.jetbrains.annotations.TestOnly;
  *
  * @param <T> the type of data that is being edited by the associated {@link WorkBench}
  */
-class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
-  static final String TOOL_WINDOW_PROPERTY_PREFIX = "ATTACHED_TOOL_WINDOW.";
-  static final String TOOL_WINDOW_TOOLBAR_PLACE = "TOOL_WINDOW_TOOLBAR";
+public class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
+  public static final String TOOL_WINDOW_PROPERTY_PREFIX = "ATTACHED_TOOL_WINDOW.";
+  public static final String TOOL_WINDOW_TOOLBAR_PLACE = "TOOL_WINDOW_TOOLBAR";
   static final String LABEL_HEADER = "LABEL";
   static final String SEARCH_HEADER = "SEARCH";
 
-  enum PropertyType {AUTO_HIDE, MINIMIZED, LEFT, SPLIT, DETACHED, FLOATING}
+  public enum PropertyType {AUTO_HIDE, MINIMIZED, LEFT, SPLIT, DETACHED, FLOATING}
 
   private final WorkBench<T> myWorkBench;
   private final ToolWindowDefinition<T> myDefinition;
@@ -377,7 +379,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     if (includeSearchField) {
       mySearchField = new MySearchField(TOOL_WINDOW_PROPERTY_PREFIX + myWorkBench.getName() + ".TEXT_SEARCH_HISTORY");
 
-      if (!NewUI.isEnabled() && (myDefinition.showGearAction() || myDefinition.showHideAction())) {
+      if (!ExperimentalUI.isNewUI() && (myDefinition.showGearAction() || myDefinition.showHideAction())) {
         // Override the preferred height of the search field in order to align with the toolbar in the center panel:
         mySearchField.setPreferredSize(new Dimension(mySearchField.getPreferredSize().width, titlePanel.getPreferredSize().height));
       }
@@ -453,7 +455,9 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     if (!content.supportsFiltering()) {
       return null;
     }
-    return ActionToolbarUtil.findActionButton(actionToolbar, actionToolbar.getActions().get(0));
+    AnAction action = ContainerUtil.getFirstItem(actionToolbar.getActions());
+    if (action == null) return null;
+    return ActionToolbarUtil.findActionButton(actionToolbar, action);
   }
 
   @Override
@@ -508,7 +512,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  static class DragEvent {
+  public static final class DragEvent {
     private final MouseEvent myMouseEvent;
     private final Component myDragImage;
     private final Point myDragPoint;
@@ -535,7 +539,8 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  interface ButtonDragListener<T> {
+  @ApiStatus.Internal
+  public interface ButtonDragListener<T> {
     void buttonDragged(@NotNull AttachedToolWindow<T> toolWindow, @NotNull DragEvent event);
     void buttonDropped(@NotNull AttachedToolWindow<T> toolWindow, @NotNull DragEvent event);
   }
@@ -722,7 +727,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
      */
     @Override
     public boolean isSelected() {
-      return NewUI.isEnabled() ? myIsActive : !myIsMinimized;
+      return ExperimentalUI.isNewUI() ? myIsActive : !myIsMinimized;
     }
 
     /**
@@ -730,7 +735,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
      */
     @Override
     public boolean isRollover() {
-      return NewUI.isEnabled() ? !myIsMinimized : super.isRollover();
+      return ExperimentalUI.isNewUI() ? !myIsMinimized : super.isRollover();
     }
   }
 
@@ -978,7 +983,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
    * This class is here to help find the currently focused tool window.
    * @see WorkBenchManager#findActiveToolWindow
    */
-  final static class AttachedToolWindowPanel extends JPanel {
+  public final static class AttachedToolWindowPanel extends JPanel {
     private final AttachedToolWindow<?> myToolWindow;
 
     @VisibleForTesting

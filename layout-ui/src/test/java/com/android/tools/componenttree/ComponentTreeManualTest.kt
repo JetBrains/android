@@ -47,8 +47,6 @@ import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.wm.WindowManager
 import com.intellij.openapi.wm.impl.WindowManagerImpl
 import com.intellij.testFramework.registerExtension
-import com.intellij.ui.JBColor
-import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Dimension

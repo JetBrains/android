@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.utils;
 
-import com.android.tools.idea.navigator.nodes.ndk.includes.RealWorldExamples;
-import nl.jqno.equalsverifier.EqualsVerifier;
-import org.junit.Test;
+import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.idea.navigator.nodes.ndk.includes.RealWorldExamples;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
+import nl.jqno.equalsverifier.EqualsVerifier;
+import org.junit.Test;
 
 public class TestIncludeSet {
 

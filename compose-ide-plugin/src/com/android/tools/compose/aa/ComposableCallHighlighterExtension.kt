@@ -29,8 +29,7 @@ import org.jetbrains.kotlin.idea.highlighting.KotlinCallHighlighterExtension
 
 @Suppress("ContextReceiver")
 class ComposableCallHighlighterExtension : KotlinCallHighlighterExtension {
-  context(KaSession)
-  override fun highlightCall(elementToHighlight: PsiElement, call: KaCall): HighlightInfoType? {
+  override fun KaSession.highlightCall(elementToHighlight: PsiElement, call: KaCall): HighlightInfoType? {
     val memberCall = call as? KaCallableMemberCall<*, *> ?: return null
     val callableSymbol = memberCall.symbol
     if (!isComposableInvocation(callableSymbol)) return null

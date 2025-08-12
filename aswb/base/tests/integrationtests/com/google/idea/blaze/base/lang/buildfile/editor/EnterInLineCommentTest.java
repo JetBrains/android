@@ -31,7 +31,7 @@ public class EnterInLineCommentTest extends BuildFileIntegrationTestCase {
   public void testInternalNewlineCommented() throws Throwable {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("BUILD"), "# first line comment", "# second line comment");
+            new WorkspacePath("~BUILD"), "# first line comment", "# second line comment");
 
     Editor editor = editorTest.openFileInEditor(file.getVirtualFile());
     editorTest.setCaretPosition(editor, 1, "# second ".length());
@@ -44,7 +44,7 @@ public class EnterInLineCommentTest extends BuildFileIntegrationTestCase {
   public void testNewlineAtEndOfComment() throws Throwable {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("BUILD"), "# first line comment", "# second line comment");
+            new WorkspacePath("~BUILD"), "# first line comment", "# second line comment");
 
     Editor editor = editorTest.openFileInEditor(file.getVirtualFile());
     editorTest.setCaretPosition(editor, 1, "# second line comment".length());

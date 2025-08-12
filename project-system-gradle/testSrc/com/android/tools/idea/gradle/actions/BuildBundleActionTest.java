@@ -21,7 +21,7 @@ import static com.android.tools.idea.testing.JavaModuleModelBuilder.getRootModul
 import static com.google.common.truth.TruthJUnit.assume;
 import static com.intellij.notification.NotificationType.ERROR;
 import static java.util.Collections.emptyList;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;

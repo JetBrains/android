@@ -92,7 +92,7 @@ public class BlazeIssueParserTest extends BlazeTestCase {
             new BlazeIssueParser.LinelessBuildParser(),
             new BlazeIssueParser.ProjectViewLabelParser(projectViewSet),
             new BlazeIssueParser.InvalidTargetProjectViewPackageParser(
-                projectViewSet, "no such package '(.*)': BUILD file not found on package path"),
+                projectViewSet, "no such package '(.*)': ~BUILD file not found on package path"),
             new BlazeIssueParser.InvalidTargetProjectViewPackageParser(
                 projectViewSet, "no targets found beneath '(.*)'"),
             new BlazeIssueParser.InvalidTargetProjectViewPackageParser(
@@ -216,10 +216,10 @@ public class BlazeIssueParserTest extends BlazeTestCase {
     BlazeIssueParser blazeIssueParser = new BlazeIssueParser(parsers);
     IssueOutput issue =
         blazeIssueParser.parseIssue(
-            "ERROR: /root/javatests/package_path/BUILD:42:12: "
+            "ERROR: /root/javatests/package_path/~BUILD:42:12: "
                 + "Target '//java/package_path:helloroot_visibility' failed");
     assertThat(issue).isNotNull();
-    assertThat(issue.getFile().getPath()).isEqualTo("/root/javatests/package_path/BUILD");
+    assertThat(issue.getFile().getPath()).isEqualTo("/root/javatests/package_path/~BUILD");
     assertThat(issue.getLine()).isEqualTo(42);
     assertThat(issue.getColumn()).isEqualTo(12);
     assertThat(issue.getMessage())
@@ -228,7 +228,7 @@ public class BlazeIssueParserTest extends BlazeTestCase {
     assertThat(issue.getConsoleHyperlinkRange())
         .isEqualTo(
             TextRange.create(
-                "ERROR: ".length(), "ERROR: /root/javatests/package_path/BUILD:42:12".length()));
+                "ERROR: ".length(), "ERROR: /root/javatests/package_path/~BUILD:42:12".length()));
   }
 
   @Test
@@ -257,16 +257,16 @@ public class BlazeIssueParserTest extends BlazeTestCase {
     BlazeIssueParser blazeIssueParser = new BlazeIssueParser(parsers);
     IssueOutput issue =
         blazeIssueParser.parseIssue(
-            "ERROR: /path/to/root/java/package_path/BUILD:char offsets 1222--1229: "
+            "ERROR: /path/to/root/java/package_path/~BUILD:char offsets 1222--1229: "
                 + "name 'grubber' is not defined");
     assertThat(issue).isNotNull();
-    assertThat(issue.getFile().getPath()).isEqualTo("/path/to/root/java/package_path/BUILD");
+    assertThat(issue.getFile().getPath()).isEqualTo("/path/to/root/java/package_path/~BUILD");
     assertThat(issue.getMessage()).isEqualTo("name 'grubber' is not defined");
     assertThat(issue.getCategory()).isEqualTo(ERROR);
     assertThat(issue.getConsoleHyperlinkRange())
         .isEqualTo(
             TextRange.create(
-                "ERROR: ".length(), "ERROR: /path/to/root/java/package_path/BUILD".length()));
+                "ERROR: ".length(), "ERROR: /path/to/root/java/package_path/~BUILD".length()));
   }
 
   @Test
@@ -305,7 +305,7 @@ public class BlazeIssueParserTest extends BlazeTestCase {
         blazeIssueParser.parseIssue(
             "no such target '//package/path:hello4': "
                 + "target 'hello4' not declared in package 'package/path' "
-                + "defined by /path/to/root/package/path/BUILD");
+                + "defined by /path/to/root/package/path/~BUILD");
     assertThat(issue).isNotNull();
     assertThat(issue.getFile().getPath()).isEqualTo(".blazeproject");
     assertThat(issue.getCategory()).isEqualTo(ERROR);
@@ -316,7 +316,7 @@ public class BlazeIssueParserTest extends BlazeTestCase {
     BlazeIssueParser blazeIssueParser = new BlazeIssueParser(parsers);
     IssueOutput issue =
         blazeIssueParser.parseIssue(
-            "no such package 'package/path': BUILD file not found on package path");
+            "no such package 'package/path': ~BUILD file not found on package path");
     assertThat(issue).isNotNull();
     assertThat(issue.getFile().getPath()).isEqualTo(".blazeproject");
     assertThat(issue.getCategory()).isEqualTo(ERROR);
@@ -342,9 +342,9 @@ public class BlazeIssueParserTest extends BlazeTestCase {
     String[] lines =
         new String[] {
           "ERROR: /home/plumpy/whatever:9:12: Traceback (most recent call last):",
-          "\tFile \"/path/to/root/java/com/google/android/samples/helloroot/BUILD\", line 8",
+          "\tFile \"/path/to/root/java/com/google/android/samples/helloroot/~BUILD\", line 8",
           "\t\tpackage_group(name = BAD_FUNCTION(\"hellogoogle...\"), ...\"])",
-          "\tFile \"/path/to/root/java/com/google/android/samples/helloroot/BUILD\", line 9, "
+          "\tFile \"/path/to/root/java/com/google/android/samples/helloroot/~BUILD\", line 9, "
               + "in package_group",
           "\t\tBAD_FUNCTION",
           "name 'BAD_FUNCTION' is not defined."
@@ -368,9 +368,9 @@ public class BlazeIssueParserTest extends BlazeTestCase {
     String[] lines =
         new String[] {
           "ERROR: /home/plumpy/whatever:9:12: Traceback (most recent call last):",
-          "\tFile \"/path/to/root/java/com/google/android/samples/helloroot/BUILD\", line 8",
+          "\tFile \"/path/to/root/java/com/google/android/samples/helloroot/~BUILD\", line 8",
           "\t\tpackage_group(name = BAD_FUNCTION(\"hellogoogle...\"), ...\"])",
-          "\tFile \"/path/to/root/java/com/google/android/samples/helloroot/BUILD\", line 9, "
+          "\tFile \"/path/to/root/java/com/google/android/samples/helloroot/~BUILD\", line 9, "
               + "in package_group",
           "\t\tBAD_FUNCTION",
           "name 'BAD_FUNCTION' is not defined."
@@ -443,7 +443,7 @@ public class BlazeIssueParserTest extends BlazeTestCase {
   public void testIgnoreRedundantBuildError() {
     String[] lines =
         new String[] {
-          "ERROR: /foo/bar/BUILD:1:1: Couldn't build file foo/bar/Foo-class.jar: Building"
+          "ERROR: /foo/bar/~BUILD:1:1: Couldn't build file foo/bar/Foo-class.jar: Building"
               + " foo/bar/Foo-class.jar (1 source file) failed (Exit 1) java failed: error"
               + " executing command third_party/java/jdk/jdk11-k8/bin/java -Xms3072m -Xmx3072m"
               + " '-XX:MaxGCPauseMillis=20000' -XX:+IgnoreUnrecognizedVMOptions"

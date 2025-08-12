@@ -107,7 +107,7 @@ public class BlazeAndroidWorkspaceImporterTest extends BlazeAndroidIntegrationTe
       new JavaWorkingSet(
           workspaceRoot,
           new WorkingSet(ImmutableList.of(), ImmutableList.of(), ImmutableList.of()),
-          Predicate.isEqual("BUILD"));
+          Predicate.isEqual("~BUILD"));
   private final WorkspaceLanguageSettings workspaceLanguageSettings =
       new WorkspaceLanguageSettings(
           WorkspaceType.ANDROID, ImmutableSet.of(LanguageClass.ANDROID, LanguageClass.JAVA));

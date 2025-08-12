@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.profilers.capture;
 
+import com.android.tools.idea.profilers.AndroidProfilerBundle;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.util.io.ByteSequence;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 
 /**
  * Represents a heap dump file that can be imported into memory profiler.
@@ -44,13 +45,13 @@ public class MemoryCaptureFileType extends AndroidProfilerCaptureFileType {
   @NotNull
   @Override
   public String getDisplayName() {
-    return "Android Profiler Memory capture (.hprof)";
+    return AndroidProfilerBundle.message("android.profiler.memory.capture.file.extension", EXTENSION);
   }
 
   @NotNull
   @Override
   public String getDescription() {
-    return "Android Profiler Memory capture file (.hprof)";
+    return AndroidProfilerBundle.message("android.profiler.memory.capture.file.description.extension", EXTENSION);
   }
 
   @NotNull

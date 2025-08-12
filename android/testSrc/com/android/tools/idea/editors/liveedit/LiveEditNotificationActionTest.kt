@@ -41,11 +41,13 @@ import com.intellij.testFramework.TestActionEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
+@Ignore("IDEA-369983")
 /** Tests for [LiveEditNotificationAction]. */
 internal class LiveEditNotificationActionTest {
 

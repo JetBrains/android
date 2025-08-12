@@ -21,12 +21,12 @@ import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.scene.getAccessibilityText
 import com.android.tools.preview.SingleComposePreviewElementInstance
-import java.util.concurrent.TimeUnit
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.TimeUnit
 
 class AccessibilityViewInfoTest {
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)

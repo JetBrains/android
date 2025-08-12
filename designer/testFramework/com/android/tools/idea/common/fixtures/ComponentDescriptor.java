@@ -15,32 +15,52 @@
  */
 package com.android.tools.idea.common.fixtures;
 
+import static com.android.SdkConstants.ANDROID_NS_NAME;
+import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.APP_PREFIX;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.ATTR_TEXT;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.PREFIX_ANDROID;
+import static com.android.SdkConstants.TOOLS_PREFIX;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.VALUE_MATCH_PARENT;
+import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
+import static com.android.SdkConstants.XMLNS;
+import static com.android.SdkConstants.XMLNS_PREFIX;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.rendering.api.ViewType;
+import com.android.sdklib.AndroidCoordinate;
 import com.android.tools.idea.rendering.parsers.PsiXmlTag;
 import com.android.tools.rendering.parsers.TagSnapshot;
-import com.android.sdklib.AndroidCoordinate;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
+import java.awt.Rectangle;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
-import java.util.*;
-import java.util.List;
-
-import static com.android.SdkConstants.*;
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class ComponentDescriptor {
   @NotNull private static final Splitter SPLITTER = Splitter.on(":").omitEmptyStrings().trimResults().limit(2);

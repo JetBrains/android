@@ -123,6 +123,7 @@ public class DeviceTest {
     myAdbServer.start();
 
     // Test that we obtain 1 device via the ddmlib APIs
+    AndroidDebugBridge.terminate();
     AndroidDebugBridge.enableFakeAdbServerMode(myAdbServer.getPort());
     AndroidDebugBridge.initIfNeeded(true);
     AndroidDebugBridge bridge = AndroidDebugBridge.createBridge();
@@ -139,7 +140,7 @@ public class DeviceTest {
 
   @After
   public void teardown() throws Exception {
-    myApplicationIdResolver.dispose();
+    if (myApplicationIdResolver != null) myApplicationIdResolver.dispose();
     myAdbServer.close();
     AndroidDebugBridge.disconnectBridge();
     AndroidDebugBridge.terminate();

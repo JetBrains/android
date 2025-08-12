@@ -42,7 +42,7 @@ public class BuildTargetFinder {
   }
 
   /**
-   * Finds a BUILD file to sync for the given file. Returns null if no build file is found, or the
+   * Finds a ~BUILD file to sync for the given file. Returns null if no build file is found, or the
    * build file isn't covered by the .bazelproject directories.
    */
   @Nullable

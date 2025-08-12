@@ -19,7 +19,6 @@ import static com.android.utils.PositionXmlParser.CONTENT_KEY;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.ide.common.blame.SourcePosition;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.client.api.XmlParser;
 import com.android.tools.lint.detector.api.Location;
@@ -45,7 +44,7 @@ import org.w3c.dom.Node;
 /**
  * Lint parser which reads in a DOM from a given file, by mapping to the underlying XML PSI structure
  */
-class DomPsiParser extends XmlParser {
+public class DomPsiParser extends XmlParser {
   private final LintIdeClient myClient;
 
   DomPsiParser(LintIdeClient client) {

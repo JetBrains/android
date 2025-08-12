@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.onEdt

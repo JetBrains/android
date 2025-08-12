@@ -16,7 +16,7 @@
 package com.android.tools.idea.editing.documentation
 
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.downloads.RemoteFileCache
 import com.android.tools.idea.downloads.RemoteFileCache.FetchStats

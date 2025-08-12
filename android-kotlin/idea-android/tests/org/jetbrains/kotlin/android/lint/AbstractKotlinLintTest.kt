@@ -33,7 +33,6 @@ abstract class AbstractKotlinLintTest : KotlinAndroidTestCase() {
 
         val kotlinPaths = ConfigLibraryUtil.kotlinPaths
         ConfigLibraryUtil.addLibrary(myModule, "kotlinStdlib", kotlinPaths.jar(KotlinPaths.Jar.StdLib))
-        ConfigLibraryUtil.addLibrary(myModule, "androidExtensionsRuntime", kotlinPaths.basePath.resolve("android-extensions-runtime.jar"))
     }
 
     override fun tearDown() {

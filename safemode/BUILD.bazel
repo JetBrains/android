@@ -1,0 +1,43 @@
+### auto-generated section `build intellij.android.safemode` start
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+jvm_library(
+  name = "safemode",
+  module_name = "intellij.android.safemode",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:kotlin-stdlib",
+    "//android/artwork",
+    "//platform/core-api:core",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+  ]
+)
+### auto-generated section `build intellij.android.safemode` end
+
+### auto-generated section `build intellij.android.safemode.integration.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+jvm_library(
+  name = "safemode-integration-tests_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["integration/testSrc/**/*.kt", "integration/testSrc/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:commons-lang3",
+    "@lib//:truth",
+    "//android/as-driver/utils:utils_test_lib",
+  ]
+)
+
+jvm_test(
+  name = "safemode-integration-tests_test",
+  runtime_deps = [":safemode-integration-tests_test_lib"]
+)
+### auto-generated section `build intellij.android.safemode.integration.tests` end

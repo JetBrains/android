@@ -38,7 +38,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import java.util.Objects;
 import javax.annotation.Nullable;
 
-/** Creates run configurations from a BUILD file targets. */
+/** Creates run configurations from a ~BUILD file targets. */
 public class BlazeBuildFileRunConfigurationProducer
     extends BlazeRunConfigurationProducer<BlazeCommandRunConfiguration> {
 

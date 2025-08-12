@@ -18,11 +18,10 @@ package com.android.tools.idea.updater.configure;
 import com.intellij.ui.ClickListener;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.treeStructure.treetable.TreeTableTree;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
+import javax.swing.JComponent;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Listener for the checkboxes used in tables in {@link SdkUpdaterConfigurable} to allow ternary-state checkboxes.

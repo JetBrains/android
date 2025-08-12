@@ -46,9 +46,9 @@ class CreateMissingJavaClassQuickFix(
   baseClassFqName: String?,
 ) : CreateMissingClassQuickFix(destinationPackage, className, module, baseClassFqName) {
 
-  override fun getName(): @Nls String = "Create Java class '$className'"
+  override fun getName(): String = "Create Java class '$className'"
 
-  override fun getFamilyName(): @Nls String = "Create Java class"
+  override fun getFamilyName(): String = "Create Java class"
 
   override fun createClass(directory: PsiDirectory, project: Project): VirtualFile {
     val psiClass = JavaDirectoryService.getInstance().createClass(directory, className)
@@ -81,9 +81,9 @@ class CreateMissingKotlinClassQuickFix(
 
   private val packageQualifiedName = destinationPackage.qualifiedName
 
-  override fun getName(): @Nls String = "Create Kotlin class '$className'"
+  override fun getName(): String = "Create Kotlin class '$className'"
 
-  override fun getFamilyName(): @Nls String = "Create Kotlin class"
+  override fun getFamilyName(): String = "Create Kotlin class"
 
   override fun createClass(directory: PsiDirectory, project: Project): VirtualFile {
     val fileName = "$className.kt"

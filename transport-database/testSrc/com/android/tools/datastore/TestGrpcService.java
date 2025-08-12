@@ -15,7 +15,7 @@
  */
 package com.android.tools.datastore;
 
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.io.grpc.BindableService;
 import com.android.tools.idea.io.grpc.Channel;
 import com.android.tools.idea.io.grpc.ClientInterceptors;

@@ -17,12 +17,11 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
     <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
-    <library.toolWindow
+    <android.toolWindow
         id="Logcat"
         anchor="bottom"
         icon="StudioIcons.Shell.ToolWindows.LOGCAT"
         canCloseContents="true"
-        librarySearchClass="com.android.tools.idea.sdk.AndroidEnvironmentChecker"
         factoryClass="com.android.tools.idea.logcat.LogcatToolWindowFactory"
     />
     <fileType
@@ -49,8 +48,7 @@
         implementationClass="com.android.tools.idea.logcat.filters.LogcatFilterCompletionContributor"
     />
 
-    <applicationConfigurable
-        parentId="tools"
+    <applicationConfigurable groupId="tools.android"
         provider="com.android.tools.idea.logcat.settings.LogcatApplicationSettingsConfigurableProvider"
         id="com.android.tools.idea.logcat.settings.LogcatApplicationSettingsConfigurableProvider"
         bundle="messages.LogcatBundle"

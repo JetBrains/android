@@ -178,6 +178,10 @@ class ModuleClassLoaderOverlays private constructor(module: Module, private val 
     fun getInstance(buildTargetReference: BuildTargetReference): ModuleClassLoaderOverlays =
       buildTargetReference.module.getModuleSystem().getHolderModule().getService(ModuleClassLoaderOverlays::class.java)
 
+    @JvmStatic
+    fun getInstance(module: Module): ModuleClassLoaderOverlays =
+      module.getModuleSystem().getHolderModule().getService(ModuleClassLoaderOverlays::class.java)
+
     /**
      * Same as [getInstance] but does not trigger the initialization unless the [org.jetbrains.android.uipreview.ModuleClassLoaderOverlays]
      * for the [buildTargetReference] already exists.

@@ -25,10 +25,7 @@ import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.externalSystem.model.project.dependencies.DependencyNode
 import com.intellij.openapi.externalSystem.model.project.dependencies.ProjectDependencies
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import java.io.File
 import javax.swing.Icon

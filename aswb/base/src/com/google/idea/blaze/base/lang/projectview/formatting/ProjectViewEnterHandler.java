@@ -18,7 +18,7 @@ package com.google.idea.blaze.base.lang.projectview.formatting;
 import com.google.idea.blaze.base.lang.projectview.lexer.ProjectViewTokenType;
 import com.google.idea.blaze.base.lang.projectview.psi.ProjectViewPsiFile;
 import com.google.idea.blaze.base.projectview.section.SectionParser;
-import com.intellij.codeInsight.editorActions.enter.EnterHandlerDelegateAdapter;
+import com.intellij.codeInsight.editorActions.enter.EnterHandlerDelegate;
 import com.intellij.ide.DataManager;
 import com.intellij.injected.editor.EditorWindow;
 import com.intellij.lang.ASTNode;
@@ -38,7 +38,7 @@ import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil;
 
 /** Inserts indents as appropriate when enter is pressed. */
-public class ProjectViewEnterHandler extends EnterHandlerDelegateAdapter {
+public class ProjectViewEnterHandler implements EnterHandlerDelegate {
 
   @Override
   public Result preprocessEnter(

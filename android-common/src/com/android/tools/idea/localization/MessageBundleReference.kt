@@ -16,9 +16,9 @@
 package com.android.tools.idea.localization
 
 import com.intellij.AbstractBundle
+import com.intellij.DynamicBundle
 import com.intellij.util.ReflectionUtil
 import java.lang.ref.SoftReference
-import java.util.Locale
 import java.util.ResourceBundle
 import java.util.function.Supplier
 
@@ -61,7 +61,7 @@ class MessageBundleReference(private val name: String) {
 
   private fun getBundle(): ResourceBundle =
     bundleRef?.get() ?:
-    ResourceBundle.getBundle(name, Locale.getDefault(), bundleClassLoader).also { bundleRef = SoftReference(it) }
+    DynamicBundle.getResourceBundle(bundleClassLoader, name).also { bundleRef = SoftReference(it) }
 
   fun message(key: String, vararg params: Any) = AbstractBundle.message(getBundle(), key, *params)
 

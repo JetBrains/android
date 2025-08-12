@@ -18,7 +18,6 @@ package com.android.tools.idea.rendering;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.rendering.RenderResult;
-import com.intellij.openapi.actionSystem.DataContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

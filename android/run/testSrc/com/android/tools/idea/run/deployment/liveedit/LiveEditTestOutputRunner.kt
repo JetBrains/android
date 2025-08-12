@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.jetbrains.rd.util.first
 import java.net.URL
 import java.net.URLClassLoader
 
@@ -25,7 +24,7 @@ import java.net.URLClassLoader
  * Support classes and any extraClasses will also be loaded in the SAME classloader.
  */
 internal fun loadClass(output: LiveEditCompilerOutput,
-                       target: String = output.classesMap.first().component1(),
+                       target: String = output.classesMap.keys.first(),
                        extraClasses: Map<String, ByteArray> = mapOf()) : Class<*> {
 
   // We use a temp classloader so we can have the same class name across different classes without conflict.

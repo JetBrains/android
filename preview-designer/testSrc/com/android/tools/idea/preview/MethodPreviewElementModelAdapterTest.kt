@@ -24,10 +24,10 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.LightVirtualFile
-import kotlin.test.assertEquals
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
+import kotlin.test.assertEquals
 
 private class TestModel(override var dataProvider: NlDataProvider?) : NlDataProviderHolder {
   override fun dispose() {}

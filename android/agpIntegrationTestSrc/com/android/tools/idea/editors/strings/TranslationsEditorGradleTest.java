@@ -19,7 +19,7 @@ import static com.android.testutils.AsyncTestUtils.waitForCondition;
 import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT;
 
 import com.android.ide.common.resources.Locale;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.io.TestFileUtils;
 import com.android.tools.idea.res.StringResourceWriter;
 import com.android.tools.idea.testing.AndroidGradleProjectRule;

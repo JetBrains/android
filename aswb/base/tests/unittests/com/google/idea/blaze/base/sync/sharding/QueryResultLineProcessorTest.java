@@ -60,7 +60,7 @@ public class QueryResultLineProcessorTest extends BlazeTestCase {
     BlazeQueryLabelKindParser processor = new BlazeQueryLabelKindParser(x -> true);
 
     processor.processLine("generated file //java/com/google/foo:libthrowable_utils.jar");
-    processor.processLine("source file //java/com/google/foo:BUILD");
+    processor.processLine("source file //java/com/google/foo:~BUILD");
     processor.processLine("package group //java/com/google/foo:packages");
 
     ImmutableList<TargetInfo> targets = processor.getTargets();

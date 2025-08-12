@@ -46,7 +46,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/** Tests that BUILD file references are correctly updated when performing rename refactors. */
+/** Tests that ~BUILD file references are correctly updated when performing rename refactors. */
 @RunWith(JUnit4.class)
 public class RenameRefactoringTest extends BuildFileIntegrationTestCase {
 
@@ -59,7 +59,7 @@ public class RenameRefactoringTest extends BuildFileIntegrationTestCase {
             "public class JavaClass {}");
 
     createBuildFile(
-        new WorkspacePath("com/google/foo/BUILD"),
+        new WorkspacePath("com/google/foo/~BUILD"),
         "java_library(name = \"ref1\", srcs = [\"//com/google/foo:JavaClass.java\"])",
         "java_library(name = \"ref2\", srcs = [\"JavaClass.java\"])",
         "java_library(name = \"ref3\", srcs = [\":JavaClass.java\"])");
@@ -89,13 +89,13 @@ public class RenameRefactoringTest extends BuildFileIntegrationTestCase {
   public void testRenameRule() {
     BuildFile fooPackage =
         createBuildFile(
-            new WorkspacePath("com/google/foo/BUILD"),
+            new WorkspacePath("com/google/foo/~BUILD"),
             "rule_type(name = \"target\")",
             "java_library(name = \"local_ref\", srcs = [\":target\"])");
 
     BuildFile barPackage =
         createBuildFile(
-            new WorkspacePath("com/google/test/bar/BUILD"),
+            new WorkspacePath("com/google/test/bar/~BUILD"),
             "rule_type(name = \"ref\", arg = \"//com/google/foo:target\")",
             "top_level_ref = \"//com/google/foo:target\"");
 
@@ -117,7 +117,7 @@ public class RenameRefactoringTest extends BuildFileIntegrationTestCase {
   @Test
   public void testTargetRenameValidation() {
     BuildFile file =
-        createBuildFile(new WorkspacePath("com/google/foo/BUILD"), "rule_type(name = \"target\")");
+        createBuildFile(new WorkspacePath("com/google/foo/~BUILD"), "rule_type(name = \"target\")");
     FuncallExpression target =
         PsiUtils.findFirstChildOfClassRecursive(file, FuncallExpression.class);
 
@@ -131,7 +131,7 @@ public class RenameRefactoringTest extends BuildFileIntegrationTestCase {
   @Test
   public void testFunctionRenameValidation() {
     BuildFile file =
-        createBuildFile(new WorkspacePath("com/google/foo/BUILD"), "def fn_name():", "  return");
+        createBuildFile(new WorkspacePath("com/google/foo/~BUILD"), "def fn_name():", "  return");
     FunctionStatement fn = PsiUtils.findFirstChildOfClassRecursive(file, FunctionStatement.class);
 
     assertThat(RenameUtil.isValidName(getProject(), fn, "name-with-dash")).isFalse();
@@ -148,7 +148,7 @@ public class RenameRefactoringTest extends BuildFileIntegrationTestCase {
 
     BuildFile buildFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "load(",
             "\"//java/com/google:tools/build_defs.bzl\",",
             "\"function\"",
@@ -174,7 +174,7 @@ public class RenameRefactoringTest extends BuildFileIntegrationTestCase {
 
     BuildFile buildFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "load(",
             "\"//java/com/google/tools:build_defs.bzl\",",
             "\"function\"",
@@ -197,7 +197,7 @@ public class RenameRefactoringTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testRenameLocalVariable() {
-    BuildFile file = createBuildFile(new WorkspacePath("java/com/google/BUILD"), "a = 1", "c = a");
+    BuildFile file = createBuildFile(new WorkspacePath("java/com/google/~BUILD"), "a = 1", "c = a");
 
     TargetExpression target = PsiUtils.findFirstChildOfClassRecursive(file, TargetExpression.class);
     assertThat(target.getText()).isEqualTo("a");
@@ -210,11 +210,11 @@ public class RenameRefactoringTest extends BuildFileIntegrationTestCase {
   // all references, including path fragments in labels, should be renamed.
   @Test
   public void testRenameDirectory() {
-    createBuildFile(new WorkspacePath("java/com/baz/BUILD"));
-    createBuildFile(new WorkspacePath("java/com/google/tools/BUILD"));
+    createBuildFile(new WorkspacePath("java/com/baz/~BUILD"));
+    createBuildFile(new WorkspacePath("java/com/google/tools/~BUILD"));
     BuildFile buildFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "load(",
             "\"//java/com/google/tools:build_defs.bzl\",",
             "\"function\"",
@@ -240,7 +240,7 @@ public class RenameRefactoringTest extends BuildFileIntegrationTestCase {
 
     BuildFile buildFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "load(",
             "\"//java/com/google/tools:build_defs.bzl\",",
             "\"function\"",
@@ -274,7 +274,7 @@ public class RenameRefactoringTest extends BuildFileIntegrationTestCase {
             ")");
     BuildFile referencingFile =
         createBuildFile(
-            new WorkspacePath("java/com/foo/BUILD"),
+            new WorkspacePath("java/com/foo/~BUILD"),
             "java_library(name = \"javax_inject\", exports = [\"@javax//jar\"])");
 
     FuncallExpression targetRule =
@@ -295,11 +295,11 @@ public class RenameRefactoringTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testRenameSuggestionForBuildFile() {
-    BuildFile buildFile = createBuildFile(new WorkspacePath("java/com/google/BUILD"));
+    BuildFile buildFile = createBuildFile(new WorkspacePath("java/com/google/~BUILD"));
     RenamePsiElementProcessor processor = RenamePsiElementProcessor.forElement(buildFile);
     RenameDialog dialog = processor.createRenameDialog(getProject(), buildFile, buildFile, null);
     String[] suggestions = dialog.getSuggestedNames();
-    assertThat(suggestions[0]).isEqualTo("BUILD");
+    assertThat(suggestions[0]).isEqualTo("~BUILD");
   }
 
   @Test

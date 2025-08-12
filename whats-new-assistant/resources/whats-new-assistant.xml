@@ -25,8 +25,8 @@
     <tutorial
         key="whats-new"
         label=" What's New in Narwhal"
-        icon="preview/product-icon.svg"
-        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/preview-release-notes/2025-1-1"
+        icon="stable/product-icon.svg"
+        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/stable-release-notes/2025-1-1"
         remoteLinkLabel="Read in a browser">
       <description>
         <![CDATA[
@@ -37,6 +37,20 @@
           from the main menu.
           ]]>
       </description>
+      <step label="Introducing Gemini in Android Studio for businesses">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>Android Studio Narwhal Canary 5 introduces Gemini in Android Studio for businesses.
+            Gemini for businesses includes the core Gemini in Android Studio features, plus
+            enterprise-grade security and privacy features, and more.</p>
+            <br>
+            <a href="https://d.android.com/gemini-for-businesses">Learn more</a>
+            <br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
       <step label="Gemini in Android Studio now supports multimodal image attachments">
         <stepElement>
           <section>
@@ -47,61 +61,24 @@
             context into your AI-assisted workflow unlocks new levels of efficiency and
             creativity.</p>
             <br>
-            <a href="https://d.android.com/r/studio-ui/build/gemini-image-attachments">Learn more</a>
+            <a href="https://d.android.com/r/studio-ui/gemini/image-attachments">Learn more</a>
             <br>
             ]]>
           </section>
         </stepElement>
       </step>
-      <step label="Test and develop with app backup and restore">
+      <step label="Gemini in Android Studio now supports file attachments">
         <stepElement>
           <section>
             <![CDATA[
-            <p><a href="https://developer.android.com/identity/data/backup">Android Backup and
-            Restore</a> enables your app to back up app data and restore it either on to a new
-            device or after a fresh install. In Android Studio, you can now more easily generate a
-            backup of your app data saved to local storage and restore that data on to a test device.
-            </p>
-            <p>
-            This not only makes it much easier to test your app's support for backup and restore,
-            but also accelerates your development workflow by helping you set up a new device, or
-            install with the sample data and configurations you need to develop and debug your app.
-            </p>
+            <p>You can now attach files as context in chat interactions with Gemini in Android
+            Studio. Type <code>@</code> in the query bar to bring up a file completion menu and
+            select files to attach. Click the <b>Context</b> drop-down to manage the current and recent
+            file attachments.</p>
             <br>
-            <a href="https://d.android.com/r/studio-ui/ide/test-backup-restore">Learn more</a>
+            <a href="https://d.android.com/r/studio-ui/gemini/file-attachments">Learn more</a>
             <br>
             ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="Android Studio XR support available">
-        <stepElement>
-          <section>
-          <![CDATA[
-          <p>Android Studio Meerkat Feature Drop | 2024.3.2 includes support for developers building
-          immersive experiences with Jetpack XR! This release introduces tools to help you
-          experiment, deploy, and debug XR applications with greater efficiency.</p>
-          <br>
-          <ul>
-            <li><b>XR Template:</b> Kickstart your XR development with a new project template
-            specifically designed for Jetpack XR. This provides a solid foundation with code
-            to begin your XR development journey.</li>
-            <li><b>XR Emulator:</b> Test your XR applications without needing physical hardware!
-            Create a standalone XR headset emulator using the AVD Manager to preview and debug
-            your experiences in a virtual environment.</li>
-            <li><b>Layout Inpsector for XR:</b> Debug and optimize your Compose UI layouts
-            within the XR environment. The Layout Inspector now supports XR applications,
-            providing insights into your app's structure and helping you identify potential
-            issues.</li>
-          </ul>
-          <br>
-          <p>Android Studio XR support is still in its early stages, and we have many more
-          exciting features planned. Please share your feedback and submit feature requests
-          to help us shape the future of XR development in Android Studio!</p>
-          <br>
-          <a href="https://d.android.com/r/studio-ui/build/studio-xr-support">Learn more</a>
-          <br>
-          ]]>
           </section>
         </stepElement>
       </step>
@@ -127,27 +104,11 @@
           </section>
         </stepElement>
       </step>
-      <step label="Compose Preview Screenshot Testing tool">
-        <stepElement>
-          <section>
-            <![CDATA[
-            <p>Use the Compose Preview Screenshot Testing tool to test your Compose UIs and
-            prevent regressions. The new tool helps you generate HTML reports that let you
-            visually detect any changes to your app's UI.
-            </p>
-            <br><br>
-            <br>
-            <a href="https://d.android.com/r/studio-ui/test/compose-screenshot-testing">Learn more</a>
-            <br>
-            ]]>
-          </section>
-        </stepElement>
-      </step>
       <footerStep label="">
         <stepElement>
           <section>
             <![CDATA[
-              <br><em>Last updated 03/10/2025</em><br>
+              <br><em>Last updated 06/17/2025</em><br>
             ]]>
           </section>
         </stepElement>

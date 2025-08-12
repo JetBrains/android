@@ -16,9 +16,8 @@
 package com.android.tools.adtui.instructions;
 
 import com.intellij.util.ui.JBUI;
+import java.awt.Point;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
 
 /**
  * Instruction to create a new row; this has the effect of moving the cursor back to the left.

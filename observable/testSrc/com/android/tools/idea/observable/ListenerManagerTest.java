@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.observable;
 
-import com.android.tools.idea.observable.core.*;
+import static com.google.common.truth.Truth.assertThat;
+
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.IntProperty;
+import com.android.tools.idea.observable.core.IntValueProperty;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public final class ListenerManagerTest {
 

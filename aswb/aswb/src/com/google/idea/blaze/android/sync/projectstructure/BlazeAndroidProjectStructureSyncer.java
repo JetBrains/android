@@ -128,7 +128,7 @@ public class BlazeAndroidProjectStructureSyncer {
             PrintOutput.error(
                 "The IDE was not able to retrieve the necessary information from Blaze. Many"
                     + " android specific features may not work. Please try [Blaze > Sync > Sync"
-                    + " project with BUILD files] again."));
+                    + " project with ~BUILD files] again."));
       }
       return;
     }

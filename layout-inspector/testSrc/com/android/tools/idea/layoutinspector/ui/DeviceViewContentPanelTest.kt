@@ -26,7 +26,7 @@ import com.android.resources.Density
 import com.android.resources.ResourceType
 import com.android.resources.ScreenRound
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils.resolveWorkspacePathUnchecked
+import com.android.test.testutils.TestUtils.resolveWorkspacePathUnchecked
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.swing.FakeMouse

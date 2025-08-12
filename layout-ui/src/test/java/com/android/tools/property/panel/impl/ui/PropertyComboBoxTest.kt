@@ -36,6 +36,9 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
+import org.junit.ClassRule
+import org.junit.Rule
+import org.junit.Test
 import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.event.KeyEvent
@@ -43,9 +46,6 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTextField
 import kotlin.test.assertEquals
-import org.junit.ClassRule
-import org.junit.Rule
-import org.junit.Test
 
 class PropertyComboBoxTest {
 

@@ -54,6 +54,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -61,6 +62,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.jetbrains.android.facet.AndroidFacet
@@ -70,7 +72,7 @@ import org.jetbrains.android.facet.AndroidFacet
  * dropdown, by joining the current set of devices and device templates from the [DeviceProvisioner]
  * with their [LaunchCompatibility] state and connection time.
  */
-internal class DeploymentTargetDevicesService
+class DeploymentTargetDevicesService
 @NonInjectable
 @VisibleForTesting
 constructor(
@@ -220,7 +222,7 @@ constructor(
       DeploymentTargetDevice(device, null, emptyList(), launchCompatibility)
     }
 
-  val devices: StateFlow<LoadingState<List<DeploymentTargetDevice>>> =
+  internal val devices: StateFlow<LoadingState<List<DeploymentTargetDevice>>> =
     adbFlow
       .flatMapLatest { ddmlibDeviceLookup ->
         if (ddmlibDeviceLookup == null) {
@@ -248,9 +250,17 @@ constructor(
   }
 }
 
-/** A flow that tracks the current [AndroidDebugBridge] instance. */
-private fun adbFlow(): Flow<AndroidDebugBridge?> = callbackFlow {
-  val listener = AndroidDebugBridge.IDebugBridgeChangeListener { bridge -> trySendBlocking(bridge) }
+/**
+ * Returns the current value of the StateFlow, like StateFlow.value, but if the flow is lazy, also
+ * starts collecting the flow.
+ */
+internal fun <T> StateFlow<T>.firstValue() = runBlocking { first() }
+
+private fun adbFlow(): Flow<DdmlibDeviceLookup?> = callbackFlow {
+  val listener =
+    AndroidDebugBridge.IDebugBridgeChangeListener { bridge ->
+      trySendBlocking(bridge?.asDdmlibDeviceLookup())
+    }
   trySendBlocking(null)
   AndroidDebugBridge.addDebugBridgeChangeListener(listener)
   awaitClose { AndroidDebugBridge.removeDebugBridgeChangeListener(listener) }

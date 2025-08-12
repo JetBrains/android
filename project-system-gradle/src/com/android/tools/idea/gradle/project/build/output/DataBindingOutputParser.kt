@@ -24,7 +24,6 @@ import com.intellij.build.events.impl.FileMessageEventImpl
 import com.intellij.build.events.impl.MessageEventImpl
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
-import com.intellij.openapi.util.NlsSafe
 import java.io.File
 import java.util.function.Consumer
 
@@ -169,7 +168,7 @@ class DataBindingOutputParser : BuildOutputParser {
 
         val sourceFile = File(file)
         val filePosition = FilePosition(sourceFile, startLine, startCol, endLine, endCol)
-        val fileLink = StringBuilder(filePosition.file.path)
+        val fileLink = StringBuilder(filePosition.file!!.path)
         if (filePosition.startLine > 0) {
           fileLink.append(":").append(filePosition.startLine + 1)
           if (filePosition.startColumn > 0) {

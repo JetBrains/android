@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.analysis.leir
 
-import org.objectweb.asm.Handle
-import org.objectweb.asm.Label
-import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes
-import org.objectweb.asm.tree.AbstractInsnNode
-import org.objectweb.asm.tree.InsnList
+import org.jetbrains.org.objectweb.asm.Handle
+import org.jetbrains.org.objectweb.asm.Label
+import org.jetbrains.org.objectweb.asm.MethodVisitor
+import org.jetbrains.org.objectweb.asm.Opcodes
+import org.jetbrains.org.objectweb.asm.tree.AbstractInsnNode
+import org.jetbrains.org.objectweb.asm.tree.InsnList
 
 class IrInstructionList(insnList: InsnList): Iterable<IrInstruction> {
   private val list = mutableListOf<IrInstruction>()

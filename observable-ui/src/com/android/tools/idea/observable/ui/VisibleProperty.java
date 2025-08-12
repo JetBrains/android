@@ -17,11 +17,10 @@ package com.android.tools.idea.observable.ui;
 
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.core.BoolProperty;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import javax.swing.JComponent;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * {@link AbstractProperty} that wraps a Swing component and exposes its visibility state.

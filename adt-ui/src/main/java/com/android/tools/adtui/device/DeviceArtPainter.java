@@ -359,7 +359,7 @@ public class DeviceArtPainter {
 
   /** Information about a particular device; keeps both portrait and landscape data, as well as multiple target image sizes */
   @VisibleForTesting
-  static class DeviceData {
+  public static class DeviceData {
     @NotNull private final DeviceArtDescriptor myDescriptor;
     private final Device myDevice;
 
@@ -433,7 +433,7 @@ public class DeviceArtPainter {
   /** Information for a particular frame picture of a device (e.g. either landscape or portrait). It can also be the half
    * size of a named larger version (if {@link #myDouble} points to an outer image). */
   @VisibleForTesting
-  static class FrameData {
+  public static class FrameData {
     @NotNull private final DeviceData myDeviceData;
     @NotNull private final ScreenOrientation myOrientation;
     private final int myX;

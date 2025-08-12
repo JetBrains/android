@@ -22,8 +22,6 @@ import com.intellij.util.MemoryDumpHelper
 import java.io.File
 import java.lang.management.ManagementFactory
 import java.time.Instant
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 import javax.management.MBeanServer
 import javax.management.ObjectName
 import kotlin.system.measureTimeMillis

@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.WindowConstants;
 
 /**
  * Draw and interact with the easing curve
@@ -338,7 +339,7 @@ public class EasingCurve extends GraphBase {
 
     JFrame f = new JFrame("test panel");
     f.setBounds(new Rectangle(200, 200));
-    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     JPanel base = new JPanel(new BorderLayout());
     JPanel ctl = new JPanel();
     base.add(ctl, BorderLayout.SOUTH);

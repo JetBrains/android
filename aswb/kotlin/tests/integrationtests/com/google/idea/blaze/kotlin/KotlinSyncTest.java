@@ -96,7 +96,7 @@ public class KotlinSyncTest extends BlazeSyncIntegrationTestCase {
         TargetMapBuilder.builder()
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("src/main/kotlin/com/google/BUILD"))
+                    .setBuildFile(sourceRoot("src/main/kotlin/com/google/~BUILD"))
                     .setLabel("//src/main/kotlin/com/google:lib")
                     .setKind("kt_jvm_library_helper")
                     .addSource(sourceRoot("src/main/kotlin/com/google/ClassWithUniqueName1.scala"))
@@ -173,7 +173,7 @@ public class KotlinSyncTest extends BlazeSyncIntegrationTestCase {
         TargetMapBuilder.builder()
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("src/main/kotlin/com/google/BUILD"))
+                    .setBuildFile(sourceRoot("src/main/kotlin/com/google/~BUILD"))
                     .setLabel("//src/main/kotlin/com/google:lib")
                     .setKind("kt_jvm_library_helper")
                     .addSource(sourceRoot("src/main/kotlin/com/google/Source.kotlin"))
@@ -230,7 +230,7 @@ public class KotlinSyncTest extends BlazeSyncIntegrationTestCase {
         TargetMapBuilder.builder()
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("src/main/kotlin/com/google/BUILD"))
+                    .setBuildFile(sourceRoot("src/main/kotlin/com/google/~BUILD"))
                     .setLabel("//src/main/kotlin/com/google:lib")
                     .setKind("kt_jvm_library_helper")
                     .setJavaInfo(JavaIdeInfo.builder())

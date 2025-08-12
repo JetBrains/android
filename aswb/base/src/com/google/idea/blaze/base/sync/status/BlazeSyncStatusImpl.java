@@ -24,7 +24,7 @@ import com.intellij.openapi.project.Project;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Per-project listener for changes to BUILD files, and other changes requiring an incremental sync.
+ * Per-project listener for changes to ~BUILD files, and other changes requiring an incremental sync.
  */
 public class BlazeSyncStatusImpl implements BlazeSyncStatus {
 

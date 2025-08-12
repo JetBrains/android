@@ -42,7 +42,7 @@ public class FileCopyTest extends BuildFileIntegrationTestCase {
             new WorkspacePath("java/Test2.java"), "package java;", "public class Test2 {}");
 
     createBuildFile(
-        new WorkspacePath("java/BUILD"),
+        new WorkspacePath("java/~BUILD"),
         "java_library(",
         "    name = 'lib',",
         "    srcs = glob(['**/*.java']),",

@@ -21,7 +21,6 @@ import com.android.build.attribution.proto.PairEnumFinder
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.util.BuildMode
 import com.google.common.annotations.VisibleForTesting
-import java.io.File
 
 class GradleBuildInvokerRequestRequestDataMessageConverter {
   companion object {

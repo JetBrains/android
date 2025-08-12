@@ -39,7 +39,7 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
 
-/** Defines the BUILD file parser */
+/** Defines the ~BUILD file parser */
 public class BuildParserDefinition implements ParserDefinition {
 
   private static final DeveloperFlag debug = new DeveloperFlag("build.file.debug.mode");

@@ -36,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecker {
-  @NotNull @VisibleForTesting final AndroidVersion myMinSdkVersion;
+  public @NotNull @VisibleForTesting final AndroidVersion myMinSdkVersion;
   @NotNull private final IAndroidTarget myProjectTarget;
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final Set<Abi> mySupportedAbis;

@@ -22,7 +22,7 @@ import java.util.Stack;
 import javax.annotation.Nullable;
 
 /**
- * A tokenizer for the BUILD language.
+ * A tokenizer for the ~BUILD language.
  *
  * <p>Copied from blaze/bazel's lexer. The differences are: 1. Blaze's lexer isn't 'faithful', in
  * that it reorders characters, skips characters, and adds ghost characters. We can't do that,

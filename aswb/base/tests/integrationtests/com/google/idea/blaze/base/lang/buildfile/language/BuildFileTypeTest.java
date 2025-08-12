@@ -25,7 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/** Tests that BUILD files are recognized as such */
+/** Tests that ~BUILD files are recognized as such */
 @RunWith(JUnit4.class)
 public class BuildFileTypeTest extends BuildFileIntegrationTestCase {
 
@@ -37,7 +37,7 @@ public class BuildFileTypeTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testExactNameMatch() {
-    PsiFile file = workspace.createPsiFile(new WorkspacePath("java/com/google/foo/BUILD"));
+    PsiFile file = workspace.createPsiFile(new WorkspacePath("java/com/google/foo/~BUILD"));
     assertThat(file).isInstanceOf(BuildFile.class);
   }
 

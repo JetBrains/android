@@ -48,7 +48,7 @@ public class LocalVariableUsagesTest extends BuildFileIntegrationTestCase {
   public void testLocalFuncallReference() {
     BuildFile buildFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"), "localVar = 5", "funcall(localVar)");
+            new WorkspacePath("java/com/google/~BUILD"), "localVar = 5", "funcall(localVar)");
 
     TargetExpression target =
         buildFile.findChildByClass(AssignmentStatement.class).getLeftHandSideExpression();
@@ -67,7 +67,7 @@ public class LocalVariableUsagesTest extends BuildFileIntegrationTestCase {
   public void testLocalNestedReference() {
     BuildFile buildFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "localVar = 5",
             "def function(name):",
             "    tempVar = localVar");
@@ -91,7 +91,7 @@ public class LocalVariableUsagesTest extends BuildFileIntegrationTestCase {
   public void testMultipleAssignments() {
     BuildFile buildFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"), "var = 5", "var += 1", "var = 0");
+            new WorkspacePath("java/com/google/~BUILD"), "var = 5", "var += 1", "var = 0");
 
     TargetExpression target =
         buildFile.findChildByClass(AssignmentStatement.class).getLeftHandSideExpression();

@@ -16,33 +16,19 @@
 package com.android.tools.idea.projectsystem.gradle.sync;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
-import com.android.tools.idea.gradle.project.model.GradleAndroidModelData;
-import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.ProjectFiles;
-import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.facet.FacetManager;
-import com.intellij.openapi.externalSystem.model.DataNode;
-import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
-import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import java.util.Collections;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 import org.mockito.Mock;
 
 /**

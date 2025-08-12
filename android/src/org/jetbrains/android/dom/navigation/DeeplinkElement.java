@@ -16,7 +16,6 @@
 package org.jetbrains.android.dom.navigation;
 
 import com.intellij.util.xml.DefinesXml;
-import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.Styleable;
 
 /**

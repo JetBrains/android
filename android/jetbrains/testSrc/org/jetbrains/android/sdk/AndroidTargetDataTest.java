@@ -18,19 +18,19 @@ package org.jetbrains.android.sdk;
 import static com.google.common.io.Files.asCharSink;
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.dom.attrs.AttributeDefinitions;
 import com.android.tools.sdk.AndroidSdkData;
 import com.android.tools.sdk.AndroidTargetData;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import java.io.File;
 import org.jetbrains.android.AndroidTestCase;
-import com.android.tools.dom.attrs.AttributeDefinitions;
 
 public class AndroidTargetDataTest extends AndroidTestCase {
 

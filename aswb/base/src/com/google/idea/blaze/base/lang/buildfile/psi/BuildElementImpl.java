@@ -28,7 +28,7 @@ import com.intellij.psi.tree.TokenSet;
 import javax.annotation.Nullable;
 import javax.swing.Icon;
 
-/** Base PSI class for the BUILD language */
+/** Base PSI class for the ~BUILD language */
 public abstract class BuildElementImpl extends ASTWrapperPsiElement implements BuildElement {
 
   public BuildElementImpl(ASTNode astNode) {

@@ -23,10 +23,9 @@ import com.android.tools.rendering.RenderService;
 import com.intellij.openapi.util.Computable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
+import org.jetbrains.annotations.NotNull;
 
 public final class ScrollViewScrollHandler implements ScrollHandler {
   private final int myMaxScrollableSize;

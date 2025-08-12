@@ -31,7 +31,6 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
-import java.awt.Color
 import org.jetbrains.android.AndroidAnnotatorUtil
 import org.jetbrains.android.compose.addComposeRuntimeDep
 import org.jetbrains.android.compose.addComposeUiGraphicsDep
@@ -39,6 +38,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.awt.Color
 
 /** Tests for [ComposeColorLineMarkerProviderDescriptor] */
 class ComposeColorLineMarkerProviderDescriptorTest {

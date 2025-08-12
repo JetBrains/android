@@ -178,7 +178,7 @@ public class BuildLanguageSpecProviderImpl implements BuildLanguageSpecProvider 
         BlazeExecutor.getInstance().getExecutor());
   }
 
-  /** {@link SyncListener} for fetching BUILD language specs after sync, if needed */
+  /** {@link SyncListener} for fetching ~BUILD language specs after sync, if needed */
   public static class Listener implements SyncListener {
 
     // Callback is specific to query sync
@@ -202,7 +202,7 @@ public class BuildLanguageSpecProviderImpl implements BuildLanguageSpecProvider 
 
       ProgressManager.getInstance()
           .run(
-              new Backgroundable(project, "Fetching BUILD language spec") {
+              new Backgroundable(project, "Fetching ~BUILD language spec") {
                 @Override
                 public void run(@NotNull ProgressIndicator progressIndicator) {
                   provider.fetchLanguageSpecIfNeeded(context);

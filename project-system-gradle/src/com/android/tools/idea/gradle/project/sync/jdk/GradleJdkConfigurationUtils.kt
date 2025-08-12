@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.sdk.Jdks
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdk
-import com.jetbrains.rd.util.firstOrNull
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
@@ -53,8 +52,9 @@ object GradleJdkConfigurationUtils {
                                .groupBy { Jdks.getInstance().findVersion(Path(it)) }
                                .mapValues { it.value.toSet() }
                                .toSortedMap(compareByDescending { it?.ordinal })
+                               .values
                                .firstOrNull()
-                               ?.value ?: return null
+                               ?: return null
 
     return maxVersionJdkPaths
       .associateBy { JavaSdk.getInstance().suggestSdkName(null, it) }

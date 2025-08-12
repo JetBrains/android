@@ -17,7 +17,7 @@ package com.google.idea.blaze.base.lang.buildfile.parser;
 
 import com.intellij.lang.PsiBuilder;
 
-/** Shared context between BUILD file parsing components */
+/** Shared context between ~BUILD file parsing components */
 public class ParsingContext {
 
   public final StatementParsing statementParser;

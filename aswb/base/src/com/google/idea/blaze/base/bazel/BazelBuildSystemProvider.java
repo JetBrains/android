@@ -29,7 +29,7 @@ public class BazelBuildSystemProvider implements BuildSystemProvider {
   private static final String BAZEL_DOC_SITE = "https://ij.bazel.build/docs";
 
   private static final ImmutableList<String> BUILD_FILE_NAMES =
-      ImmutableList.of("BUILD.bazel", "BUILD");
+      ImmutableList.of("~BUILD.bazel", "~BUILD");
 
   private final BuildSystem buildSystem = new BazelBuildSystem();
 
@@ -62,7 +62,7 @@ public class BazelBuildSystemProvider implements BuildSystemProvider {
 
   @Override
   public String getRuleDocumentationUrl(RuleDefinition rule) {
-    // TODO: URL pointing to specific BUILD rule.
+    // TODO: URL pointing to specific ~BUILD rule.
     return "https://bazel.build/reference/be/overview#rules";
   }
 

@@ -31,7 +31,7 @@ import org.junit.runners.JUnit4;
 public class BuildFileUtilsTest extends BuildFileIntegrationTestCase {
   @Before
   public void setupMacroDefinitionFile() {
-    workspace.createPsiFile(new WorkspacePath("foo/bar/BUILD"));
+    workspace.createPsiFile(new WorkspacePath("foo/bar/~BUILD"));
     workspace.createPsiFile(new WorkspacePath("foo/bar/build_defs.bzl"));
   }
 
@@ -39,7 +39,7 @@ public class BuildFileUtilsTest extends BuildFileIntegrationTestCase {
   public void findMacroWithMatchingPrefix_onlyMatchMacros() {
     BuildFile buildFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "load('//foo/bar:build_defs.bzl', 'symbol')",
             "java_test(",
             "    name = \"my_lib_test\"",
@@ -59,7 +59,7 @@ public class BuildFileUtilsTest extends BuildFileIntegrationTestCase {
   public void findMacroWithMatchingPrefix_delimitedByDash() {
     BuildFile buildFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "load('//foo/bar:build_defs.bzl', 'symbol')",
             "symbol(",
             "    name = \"my_lib\"",
@@ -76,7 +76,7 @@ public class BuildFileUtilsTest extends BuildFileIntegrationTestCase {
   public void findMacroWithMatchingPrefix_notDelimitedByDashOrUnderscore() {
     BuildFile buildFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "load('//foo/bar:build_defs.bzl', 'symbol')",
             "symbol(",
             "    name = \"my_lib\"",
@@ -93,7 +93,7 @@ public class BuildFileUtilsTest extends BuildFileIntegrationTestCase {
   public void findMacroWithMatchingPrefix_noMatchingMacro() {
     BuildFile buildFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "java_test(",
             "    name = \"my_lib_test\"",
             ")");

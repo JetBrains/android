@@ -103,7 +103,7 @@ public class FuncallExpression extends BuildElementImpl
     return getNode().findChildByType(BuildElementTypes.REFERENCE_EXPRESSION);
   }
 
-  /** Top-level funcalls are almost always BUILD rules. */
+  /** Top-level funcalls are almost always ~BUILD rules. */
   public boolean isTopLevel() {
     ASTNode parent = getNode().getTreeParent();
     return parent == null || parent.getElementType() == BuildElementTypes.BUILD_FILE;

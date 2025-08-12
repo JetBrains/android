@@ -54,7 +54,6 @@ import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.pom.java.LanguageLevel
-import com.jetbrains.rd.util.getOrCreate
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 import java.util.EnumSet
@@ -415,7 +414,7 @@ interface GradleAndroidDependencyModel: GradleAndroidModel {
     fun createFactory(project: Project, libraryResolver: IdeLibraryModelResolver): (GradleAndroidModelData) -> GradleAndroidDependencyModel {
       val models = mutableMapOf<GradleAndroidModelData, GradleAndroidDependencyModel>()
       return fun(data: GradleAndroidModelData): GradleAndroidDependencyModel {
-        return models.getOrCreate(data) { GradleAndroidDependencyModelImpl(GradleAndroidModel.create(project, data) as GradleAndroidModelImpl, libraryResolver) }
+        return models.computeIfAbsent(data) { GradleAndroidDependencyModelImpl(GradleAndroidModel.create(project, data) as GradleAndroidModelImpl, libraryResolver) }
       }
     }
   }

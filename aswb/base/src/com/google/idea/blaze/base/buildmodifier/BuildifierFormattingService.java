@@ -36,7 +36,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
-/** Formatting support for BUILD/bzl sources, delegating to an external 'buildifier' binary. */
+/** Formatting support for ~BUILD/bzl sources, delegating to an external 'buildifier' binary. */
 public final class BuildifierFormattingService extends AsyncDocumentFormattingService {
 
   static final FeatureRolloutExperiment useNewBuildifierFormattingService =

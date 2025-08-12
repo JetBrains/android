@@ -79,7 +79,7 @@ public class AidlParserDefinition implements ParserDefinition {
 
   @NotNull
   @Override
-  public PsiFile createFile(FileViewProvider viewProvider) {
+  public PsiFile createFile(@NotNull FileViewProvider viewProvider) {
     return new AidlFile(viewProvider);
   }
 

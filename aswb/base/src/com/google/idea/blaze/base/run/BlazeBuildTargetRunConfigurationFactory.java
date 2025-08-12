@@ -29,7 +29,7 @@ import com.intellij.openapi.project.Project;
 import javax.annotation.Nullable;
 
 /**
- * A factory creating run configurations based on BUILD file targets. Runs last, as a fallback for
+ * A factory creating run configurations based on ~BUILD file targets. Runs last, as a fallback for
  * the case where no more specialized factory handles the target.
  */
 public class BlazeBuildTargetRunConfigurationFactory extends BlazeRunConfigurationFactory {

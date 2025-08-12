@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.cpu
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
 import com.android.tools.idea.gradle.project.sync.memory.OUTPUT_DIRECTORY
 import com.android.tools.idea.gradle.project.sync.mutateGradleProperties

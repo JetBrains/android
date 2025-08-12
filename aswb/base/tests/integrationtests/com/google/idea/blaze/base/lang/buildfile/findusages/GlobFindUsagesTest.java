@@ -42,7 +42,7 @@ public class GlobFindUsagesTest extends BuildFileIntegrationTestCase {
   @Test
   public void testSimpleGlobReferencingSingleFile() {
     PsiFile ref = workspace.createPsiFile(new WorkspacePath("java/com/google/Test.java"));
-    createBuildFile(new WorkspacePath("java/com/google/BUILD"), "glob(['**/*.java'])");
+    createBuildFile(new WorkspacePath("java/com/google/~BUILD"), "glob(['**/*.java'])");
 
     PsiReference[] references = FindUsages.findAllReferences(ref);
     assertThat(references).hasLength(1);
@@ -53,7 +53,7 @@ public class GlobFindUsagesTest extends BuildFileIntegrationTestCase {
   public void testSimpleGlobReferencingSingleFile2() {
     PsiFile ref = workspace.createPsiFile(new WorkspacePath("java/com/google/Test.java"));
     BuildFile file =
-        createBuildFile(new WorkspacePath("java/com/google/BUILD"), "glob(['*.java'])");
+        createBuildFile(new WorkspacePath("java/com/google/~BUILD"), "glob(['*.java'])");
 
     GlobExpression glob = PsiUtils.findFirstChildOfClassRecursive(file, GlobExpression.class);
 
@@ -66,7 +66,7 @@ public class GlobFindUsagesTest extends BuildFileIntegrationTestCase {
   public void testSimpleGlobReferencingSingleFile3() {
     PsiFile ref = workspace.createPsiFile(new WorkspacePath("java/com/google/Test.java"));
     BuildFile file =
-        createBuildFile(new WorkspacePath("java/com/google/BUILD"), "glob(['T*t.java'])");
+        createBuildFile(new WorkspacePath("java/com/google/~BUILD"), "glob(['T*t.java'])");
 
     GlobExpression glob = PsiUtils.findFirstChildOfClassRecursive(file, GlobExpression.class);
 
@@ -80,7 +80,7 @@ public class GlobFindUsagesTest extends BuildFileIntegrationTestCase {
     PsiFile ref1 = workspace.createPsiFile(new WorkspacePath("java/com/google/Test.java"));
     PsiFile ref2 = workspace.createPsiFile(new WorkspacePath("java/com/google/Foo.java"));
     BuildFile file =
-        createBuildFile(new WorkspacePath("java/com/google/BUILD"), "glob(['*.java'])");
+        createBuildFile(new WorkspacePath("java/com/google/~BUILD"), "glob(['*.java'])");
 
     GlobExpression glob = PsiUtils.findFirstChildOfClassRecursive(file, GlobExpression.class);
 
@@ -97,7 +97,7 @@ public class GlobFindUsagesTest extends BuildFileIntegrationTestCase {
   public void testFindsSubDirectories() {
     PsiFile ref1 = workspace.createPsiFile(new WorkspacePath("java/com/google/test/Test.java"));
     BuildFile file =
-        createBuildFile(new WorkspacePath("java/com/google/BUILD"), "glob(['**/*.java'])");
+        createBuildFile(new WorkspacePath("java/com/google/~BUILD"), "glob(['**/*.java'])");
 
     GlobExpression glob = PsiUtils.findFirstChildOfClassRecursive(file, GlobExpression.class);
 
@@ -112,7 +112,7 @@ public class GlobFindUsagesTest extends BuildFileIntegrationTestCase {
     PsiFile foo = workspace.createPsiFile(new WorkspacePath("java/com/google/Foo.java"));
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "glob(" + "  ['**/*.java']," + "  exclude = ['tests/*.java'])");
 
     GlobExpression glob = PsiUtils.findFirstChildOfClassRecursive(file, GlobExpression.class);
@@ -131,8 +131,8 @@ public class GlobFindUsagesTest extends BuildFileIntegrationTestCase {
     workspace.createPsiFile(new WorkspacePath("java/com/google/Foo.java"));
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
-            "glob(" + "  ['**/*']," + "  exclude = ['BUILD']," + "  exclude_directories = 0)");
+            new WorkspacePath("java/com/google/~BUILD"),
+            "glob(" + "  ['**/*']," + "  exclude = ['~BUILD']," + "  exclude_directories = 0)");
 
     GlobExpression glob = PsiUtils.findFirstChildOfClassRecursive(file, GlobExpression.class);
 
@@ -148,8 +148,8 @@ public class GlobFindUsagesTest extends BuildFileIntegrationTestCase {
     workspace.createPsiFile(new WorkspacePath("java/com/google/Foo.java"));
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
-            "glob(" + "  ['**/*']," + "  exclude = ['BUILD'])");
+            new WorkspacePath("java/com/google/~BUILD"),
+            "glob(" + "  ['**/*']," + "  exclude = ['~BUILD'])");
 
     PsiUtils.findFirstChildOfClassRecursive(file, GlobExpression.class);
 
@@ -160,8 +160,8 @@ public class GlobFindUsagesTest extends BuildFileIntegrationTestCase {
   @Test
   public void testFilesInSubpackagesExcluded() {
     BuildFile pkg =
-        createBuildFile(new WorkspacePath("java/com/google/BUILD"), "glob(['**/*.java'])");
-    BuildFile subPkg = createBuildFile(new WorkspacePath("java/com/google/other/BUILD"));
+        createBuildFile(new WorkspacePath("java/com/google/~BUILD"), "glob(['**/*.java'])");
+    BuildFile subPkg = createBuildFile(new WorkspacePath("java/com/google/other/~BUILD"));
     workspace.createFile(new WorkspacePath("java/com/google/other/Other.java"));
 
     PsiUtils.findFirstChildOfClassRecursive(pkg, GlobExpression.class);
@@ -173,7 +173,7 @@ public class GlobFindUsagesTest extends BuildFileIntegrationTestCase {
   // regression test for b/29267289
   @Test
   public void testInMemoryFileHandledGracefully() {
-    createBuildFile(new WorkspacePath("java/com/google/BUILD"), "glob(['**/*.java'])");
+    createBuildFile(new WorkspacePath("java/com/google/~BUILD"), "glob(['**/*.java'])");
 
     LightVirtualFile inMemoryFile =
         new LightVirtualFile("mockProjectViewFile", ProjectViewLanguage.INSTANCE, "");

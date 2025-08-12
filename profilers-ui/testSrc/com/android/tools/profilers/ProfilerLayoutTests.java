@@ -15,12 +15,11 @@
  */
 package com.android.tools.profilers;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
 public class ProfilerLayoutTests {
 

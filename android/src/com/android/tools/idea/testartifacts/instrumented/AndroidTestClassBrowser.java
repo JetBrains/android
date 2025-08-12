@@ -18,7 +18,6 @@ package com.android.tools.idea.testartifacts.instrumented;
 
 import static com.android.tools.idea.testartifacts.instrumented.AndroidRunConfigurationToken.getModuleForAndroidTestRunConfiguration;
 
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
 import com.intellij.ide.util.ClassFilter;

@@ -90,7 +90,7 @@ public class BuildLangSyncPlugin implements BlazeSyncPlugin {
         Scope.push(
             parentContext,
             (context) -> {
-              context.push(new TimingScope("BUILD language spec", EventType.BlazeInvocation));
+              context.push(new TimingScope("~BUILD language spec", EventType.BlazeInvocation));
               BuildLanguageSpec spec = parseLanguageSpec(project, projectViewSet, context);
               if (spec != null) {
                 return new LanguageSpecResult(spec, System.currentTimeMillis());

@@ -49,11 +49,12 @@ import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.jewel.ui.component.Text
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 
 @RunsInEdt
 class DeviceTableTest {
-  @get:Rule val edtRule = EdtRule()
-  @get:Rule val composeTestRule = createStudioComposeTestRule()
+  val composeTestRule = createStudioComposeTestRule()
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(EdtRule()).around(composeTestRule)
 
   @Test
   fun toggleGoogleOem() {

@@ -21,8 +21,8 @@ import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogFor
 import com.android.repository.api.LocalPackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.analytics.AnalyticsSettings;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.android.instantapps.sdk.api.ExtendedSdk;
 import com.google.android.instantapps.sdk.api.SdkLoader;
@@ -46,9 +46,9 @@ public class InstantAppSdks {
   @NotNull private static final String INSTANT_APP_SDK_PATH = FD_EXTRAS + ";google;instantapps";
   private static final String SDK_LIB_JAR_PATH = "tools/lib.jar";
 
-  @VisibleForTesting static final String UPGRADE_PROMPT_TEXT =
+  public @VisibleForTesting static final String UPGRADE_PROMPT_TEXT =
     "Required Google Play Instant SDK must be updated to run this task. Do you want to update it now?";
-  @VisibleForTesting static final LoadInstantAppSdkException COULD_NOT_LOAD_NEW_SDK_EXCEPTION =
+  public @VisibleForTesting static final LoadInstantAppSdkException COULD_NOT_LOAD_NEW_SDK_EXCEPTION =
     new LoadInstantAppSdkException("Could not load required version of the Google Play Instant SDK");
 
   private ExtendedSdk cachedSdkLib = null;

@@ -20,8 +20,8 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import java.util.concurrent.CopyOnWriteArraySet
 import org.jetbrains.annotations.TestOnly
+import java.util.concurrent.CopyOnWriteArraySet
 
 /**
  * Keeps track of the currently selected device.

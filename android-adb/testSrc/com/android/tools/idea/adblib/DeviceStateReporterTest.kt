@@ -23,6 +23,7 @@ import com.android.adblib.DevicePropertyNames
 import com.android.adblib.DeviceSelector
 import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
 import com.android.adblib.testingutils.CoroutineTestUtils.yieldUntil
+import com.android.test.testutils.EnsureAndroidProjectRule
 import com.android.tools.idea.adblib.testing.FakeAdbSessionRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -40,7 +41,7 @@ class DeviceStateReporterTest {
 
   private val adbSession = fakeAdbSessionRule.adbSession
 
-  @get:Rule val rule = RuleChain(projectRule, fakeAdbSessionRule)
+  @get:Rule val rule = RuleChain(projectRule, fakeAdbSessionRule, EnsureAndroidProjectRule())
 
   private val deviceSerial = "device1"
   private lateinit var deviceStateReporter: DeviceStateReporter

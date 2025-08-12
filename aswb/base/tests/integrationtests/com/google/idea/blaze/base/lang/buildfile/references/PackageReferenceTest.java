@@ -38,11 +38,11 @@ public class PackageReferenceTest extends BuildFileIntegrationTestCase {
   @Test
   public void testDirectReferenceResolves() {
     BuildFile buildFile1 =
-        createBuildFile(new WorkspacePath("java/com/google/tools/BUILD"), "# contents");
+        createBuildFile(new WorkspacePath("java/com/google/tools/~BUILD"), "# contents");
 
     BuildFile buildFile2 =
         createBuildFile(
-            new WorkspacePath("java/com/google/other/BUILD"),
+            new WorkspacePath("java/com/google/other/~BUILD"),
             "package_group(name = \"grp\", packages = [\"//java/com/google/tools\"])");
 
     Argument.Keyword packagesArg =
@@ -59,11 +59,11 @@ public class PackageReferenceTest extends BuildFileIntegrationTestCase {
   public void testLabelFragmentResolves() {
     BuildFile buildFile1 =
         createBuildFile(
-            new WorkspacePath("java/com/google/tools/BUILD"), "java_library(name = \"lib\")");
+            new WorkspacePath("java/com/google/tools/~BUILD"), "java_library(name = \"lib\")");
 
     BuildFile buildFile2 =
         createBuildFile(
-            new WorkspacePath("java/com/google/other/BUILD"),
+            new WorkspacePath("java/com/google/other/~BUILD"),
             "java_library(name = \"lib2\", exports = [\"//java/com/google/tools:lib\"])");
 
     FuncallExpression libTarget = buildFile1.firstChildOfClass(FuncallExpression.class);

@@ -163,7 +163,7 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
     }.toTypedArray()
   }
 
-  override fun validate(executor: Executor?, quickFixCallback: Runnable?): MutableList<ValidationError> {
+  override fun validate(executor: Executor?, quickFixCallback: Runnable?): List<ValidationError> {
     val errors = super.validate(executor, quickFixCallback).toMutableList()
     if (StudioFlags.BACKUP_ENABLED.get()) {
       val section = BackupManager.getInstance(project).getRestoreRunConfigSection(project)

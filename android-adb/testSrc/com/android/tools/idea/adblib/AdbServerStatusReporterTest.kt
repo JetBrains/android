@@ -18,6 +18,7 @@ package com.android.tools.idea.adblib
 
 import com.android.adblib.ServerStatus
 import com.android.ddmlib.testing.FakeAdbRule
+import com.android.test.testutils.EnsureAndroidProjectRule
 import com.android.tools.idea.adb.FakeAdbServiceRule
 import com.android.tools.idea.adb.PreInitAndroidDebugBridgeRule
 import com.intellij.testFramework.ProjectRule
@@ -42,7 +43,7 @@ class AdbServerStatusReporterTest {
 
   @get:Rule
   val ruleChain =
-    RuleChain.outerRule(projectRule).around(preInitRule).around(adbRule).around(adbServiceRule)!!
+    RuleChain.outerRule(projectRule).around(preInitRule).around(adbRule).around(adbServiceRule).around(EnsureAndroidProjectRule())!!
 
   private fun statusReporterCallback(status: ServerStatus) {
     Assert.assertNotNull("No server-status version", status.version)

@@ -60,7 +60,7 @@ import org.jetbrains.annotations.Nullable;
  *   <li><b>Directories</b>: Folders that contain a list of images
  * </ul>
  */
-final class SampleDataResourceRepository extends LocalResourceRepository<VirtualFile> implements SingleNamespaceResourceRepository, Disposable {
+public final class SampleDataResourceRepository extends LocalResourceRepository<VirtualFile> implements SingleNamespaceResourceRepository, Disposable {
   private static final Logger LOG = Logger.getInstance(SampleDataResourceRepository.class);
 
   @NotNull private final AndroidFacet myAndroidFacet;

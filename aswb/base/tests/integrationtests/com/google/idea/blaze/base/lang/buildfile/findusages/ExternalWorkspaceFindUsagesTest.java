@@ -59,7 +59,7 @@ public class ExternalWorkspaceFindUsagesTest extends BuildFileIntegrationTestCas
             ")");
     BuildFile refFile1 =
         createBuildFile(
-            new WorkspacePath("java/com/foo/BUILD"),
+            new WorkspacePath("java/com/foo/~BUILD"),
             "java_library(name = 'javax_inject', exports = ['@javax_inject//jar'])");
 
     BuildFile refFile2 =
@@ -83,7 +83,7 @@ public class ExternalWorkspaceFindUsagesTest extends BuildFileIntegrationTestCas
   public void testFindUsagesFromExternalWorkspaceFile() {
     BuildFile workspaceBuildFile =
         createBuildFile(
-            new WorkspacePath("BUILD"),
+            new WorkspacePath("~BUILD"),
             "java_library(",
             "    name = 'lib',",
             "    exports = ['@junit//:jar'],",
@@ -92,7 +92,7 @@ public class ExternalWorkspaceFindUsagesTest extends BuildFileIntegrationTestCas
         (BuildFile)
             createFileInExternalWorkspace(
                 "junit",
-                new WorkspacePath("BUILD"),
+                new WorkspacePath("~BUILD"),
                 "java_import(",
                 "    name = 'jar',",
                 "    jars = ['junit-4.11.jar'],",
@@ -114,7 +114,7 @@ public class ExternalWorkspaceFindUsagesTest extends BuildFileIntegrationTestCas
   public void testFindUsagesFromExternalWorkspaceFileShortFormLabel() {
     BuildFile workspaceBuildFile =
         createBuildFile(
-            new WorkspacePath("BUILD"),
+            new WorkspacePath("~BUILD"),
             "java_library(",
             "    name = 'lib',",
             "    exports = ['@junit'],",
@@ -123,7 +123,7 @@ public class ExternalWorkspaceFindUsagesTest extends BuildFileIntegrationTestCas
         (BuildFile)
             createFileInExternalWorkspace(
                 "junit",
-                new WorkspacePath("BUILD"),
+                new WorkspacePath("~BUILD"),
                 "java_import(",
                 "    name = 'junit',",
                 "    jars = ['junit-4.11.jar'],",

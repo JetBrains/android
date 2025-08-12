@@ -96,7 +96,7 @@ class StringResourceViewPanelFakeUiTest {
   @Test
   fun toolbarConstructedProperly() {
     val toolbar: ActionToolbar = stringResourceViewPanel.loadingPanel.getDescendant { it.component.name == "toolbar" }
-    assertThat(toolbar.actions).hasSize(8)
+    assertThat(toolbar.actions).hasSize(7)
     assertThat(toolbar.actions[0]).isInstanceOf(AddKeyAction::class.java)
     assertThat(toolbar.actions[1]).isInstanceOf(RemoveKeysAction::class.java)
     assertThat(toolbar.actions[2]).isInstanceOf(AddLocaleAction::class.java)
@@ -104,7 +104,6 @@ class StringResourceViewPanelFakeUiTest {
     assertThat(toolbar.actions[4]).isInstanceOf(FilterLocalesAction::class.java)
     assertThat(toolbar.actions[5]).isInstanceOf(ReloadStringResourcesAction::class.java)
     assertThat(toolbar.actions[6]).isInstanceOf(BrowserHelpAction::class.java)
-    assertThat(toolbar.actions[7]).isInstanceOf(Separator::class.java)
   }
 
   @Test

@@ -24,12 +24,6 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.rendering.RenderResult
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
-import java.awt.Dimension
-import java.awt.Point
-import java.awt.Rectangle
-import java.util.concurrent.CountDownLatch
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -39,6 +33,12 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import java.awt.Dimension
+import java.awt.Point
+import java.awt.Rectangle
+import java.util.concurrent.CountDownLatch
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 /**
  * Class used for bundling together some data used across the tests in [RenderQualityManagerTest].

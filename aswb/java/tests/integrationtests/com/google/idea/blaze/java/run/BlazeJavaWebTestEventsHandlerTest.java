@@ -64,13 +64,13 @@ public class BlazeJavaWebTestEventsHandlerTest extends BlazeIntegrationTestCase 
                 TargetIdeInfo.builder()
                     .setLabel("//java/com/google/lib:JavaClass_chrome-linux")
                     .setKind("java_web_test")
-                    .setBuildFile(src("java/com/google/lib/BUILD"))
+                    .setBuildFile(src("java/com/google/lib/~BUILD"))
                     .addDependency("//java/com/google/lib:JavaClass_wrapped_test"))
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/com/google/lib:JavaClass_wrapped_test")
                     .setKind("java_test")
-                    .setBuildFile(src("java/com/google/lib/BUILD"))
+                    .setBuildFile(src("java/com/google/lib/~BUILD"))
                     .addSource(src("java/com/google/lib/JavaClass.java")))
             .build();
 
@@ -105,13 +105,13 @@ public class BlazeJavaWebTestEventsHandlerTest extends BlazeIntegrationTestCase 
                 TargetIdeInfo.builder()
                     .setLabel("//java/com/google/lib:JavaClass_chrome-linux")
                     .setKind("java_web_test")
-                    .setBuildFile(src("java/com/google/lib/BUILD"))
+                    .setBuildFile(src("java/com/google/lib/~BUILD"))
                     .addDependency("//java/com/google/lib:JavaClass_wrapped_test"))
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/com/google/lib:JavaClass_wrapped_test")
                     .setKind("java_test")
-                    .setBuildFile(src("java/com/google/lib/BUILD"))
+                    .setBuildFile(src("java/com/google/lib/~BUILD"))
                     .addSource(src("java/com/google/lib/JavaClass.java")))
             .build();
 
@@ -151,13 +151,13 @@ public class BlazeJavaWebTestEventsHandlerTest extends BlazeIntegrationTestCase 
                 TargetIdeInfo.builder()
                     .setLabel("//java/com/google/lib:JavaClass_chrome-linux")
                     .setKind("java_web_test")
-                    .setBuildFile(src("java/com/google/lib/BUILD"))
+                    .setBuildFile(src("java/com/google/lib/~BUILD"))
                     .addDependency("//java/com/google/lib:JavaClass_wrapped_test"))
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/com/google/lib:JavaClass_wrapped_test")
                     .setKind("java_test")
-                    .setBuildFile(src("java/com/google/lib/BUILD"))
+                    .setBuildFile(src("java/com/google/lib/~BUILD"))
                     .addSource(src("java/com/google/lib/JavaClass.java")))
             .build();
 

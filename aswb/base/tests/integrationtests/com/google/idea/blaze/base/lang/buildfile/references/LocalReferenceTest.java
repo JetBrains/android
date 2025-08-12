@@ -40,7 +40,7 @@ public class LocalReferenceTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testCreatesReference() {
-    BuildFile file = createBuildFile(new WorkspacePath("java/com/google/BUILD"), "a = 1", "c = a");
+    BuildFile file = createBuildFile(new WorkspacePath("java/com/google/~BUILD"), "a = 1", "c = a");
 
     AssignmentStatement[] stmts = file.childrenOfClass(AssignmentStatement.class);
     assertThat(stmts).hasLength(2);
@@ -52,7 +52,7 @@ public class LocalReferenceTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testReferenceResolves() {
-    BuildFile file = createBuildFile(new WorkspacePath("java/com/google/BUILD"), "a = 1", "c = a");
+    BuildFile file = createBuildFile(new WorkspacePath("java/com/google/~BUILD"), "a = 1", "c = a");
 
     AssignmentStatement[] stmts = file.childrenOfClass(AssignmentStatement.class);
     ReferenceExpression ref = (ReferenceExpression) stmts[1].getAssignedValue();
@@ -64,7 +64,7 @@ public class LocalReferenceTest extends BuildFileIntegrationTestCase {
   @Test
   public void testTargetInOuterScope() {
     BuildFile file =
-        createBuildFile(new WorkspacePath("java/com/google/BUILD"), "a = 1", "function(c = a)");
+        createBuildFile(new WorkspacePath("java/com/google/~BUILD"), "a = 1", "function(c = a)");
 
     TargetExpression target =
         file.findChildByClass(AssignmentStatement.class).getLeftHandSideExpression();
@@ -77,7 +77,7 @@ public class LocalReferenceTest extends BuildFileIntegrationTestCase {
   @Test
   public void testReferenceInsideFuncallExpression() {
     BuildFile file =
-        createBuildFile(new WorkspacePath("java/com/google/BUILD"), "a = 1", "a.function(c)");
+        createBuildFile(new WorkspacePath("java/com/google/~BUILD"), "a = 1", "a.function(c)");
 
     TargetExpression target =
         file.findChildByClass(AssignmentStatement.class).getLeftHandSideExpression();

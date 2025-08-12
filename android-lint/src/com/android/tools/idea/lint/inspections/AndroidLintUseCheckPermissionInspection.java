@@ -17,11 +17,11 @@ package com.android.tools.idea.lint.inspections;
 
 import static com.android.tools.lint.checks.CheckResultDetector.CHECK_PERMISSION;
 
+import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.lint.common.ModCommandLintQuickFix;
 import com.android.tools.idea.lint.common.ReplaceCallFix;
-import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.lint.checks.CheckResultDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.psi.PsiElement;

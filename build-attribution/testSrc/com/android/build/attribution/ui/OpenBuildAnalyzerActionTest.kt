@@ -20,16 +20,21 @@ import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
 import com.android.build.attribution.data.BuildRequestHolder
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.TaskContainer
+import com.android.tools.idea.Projects
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.google.common.truth.Truth.assertThat
 import com.intellij.build.BuildContentManager
 import com.intellij.build.BuildContentManagerImpl
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext.EMPTY_CONTEXT
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.content.impl.ContentImpl
 import org.junit.Before
@@ -38,11 +43,6 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import java.util.UUID
 import javax.swing.JPanel
-import com.android.tools.idea.Projects
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
-import com.intellij.openapi.actionSystem.DataContext.EMPTY_CONTEXT
-import com.intellij.openapi.actionSystem.impl.SimpleDataContext
-import com.intellij.testFramework.TestActionEvent
 
 @RunsInEdt
 class OpenBuildAnalyzerActionTest {
@@ -61,7 +61,7 @@ class OpenBuildAnalyzerActionTest {
   @Test
   fun testActionIsRegistered() {
     val action = ActionManager.getInstance()
-      .getAction("com.android.build.attribution.ui.OpenBuildAnalyzerAction")
+      .getAction("Android.OpenBuildAnalyzerAction")
     assertThat(action).isNotNull()
   }
 

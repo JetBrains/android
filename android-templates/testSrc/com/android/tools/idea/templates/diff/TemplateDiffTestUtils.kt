@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.templates.diff
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.templates.SDK_VERSION_FOR_TEMPLATE_TESTS
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor

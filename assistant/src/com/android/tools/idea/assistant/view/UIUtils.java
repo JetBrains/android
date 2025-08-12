@@ -15,21 +15,24 @@
  */
 package com.android.tools.idea.assistant.view;
 
+import static com.intellij.util.ui.UIUtil.CONTRAST_BORDER_COLOR;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.HTMLEditorKitBuilder;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
+
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
 import java.net.URL;
+import javax.swing.JEditorPane;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-
-import static com.intellij.util.ui.UIUtil.CONTRAST_BORDER_COLOR;
 
 
 /**

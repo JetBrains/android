@@ -24,6 +24,7 @@ import com.intellij.execution.ExecutionException
 import com.intellij.execution.runners.ExecutionEnvironment
 import org.jetbrains.android.facet.AndroidFacet
 
+
 class GradleAndroidTestRunConfigurationExecutorProvider : AndroidConfigurationExecutor.Provider {
   override fun createAndroidConfigurationExecutor(
     env: ExecutionEnvironment,

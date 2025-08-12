@@ -28,7 +28,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.diagnostic.thisLogger
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.kotlin.utils.ThreadSafe
+//import org.jetbrains.kotlin.utils.ThreadSafe
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
@@ -44,7 +44,8 @@ import java.nio.file.Path
  *
  * @param layout the layout corresponding to the default orientation of the virtual device display
  */
-@ThreadSafe
+// TODO AS Ladybug Feature Drop Canary 5 - Find where is the ThreadSafe annotation moved
+//@ThreadSafe
 class SkinDefinition private constructor(val layout: SkinLayout) {
   /**
    * Creates a [SkinLayout] for the given display dimensions and rotation.

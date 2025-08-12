@@ -25,6 +25,7 @@ import static com.android.tools.idea.run.deployment.liveedit.PsiValidatorKt.getP
 import com.android.annotations.Trace;
 import com.android.tools.idea.util.LocalInstallerPathManager;
 import com.android.ddmlib.AndroidDebugBridge;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.analytics.UsageTracker;
@@ -771,9 +772,8 @@ public class LiveEditProjectMonitor implements Disposable {
   static Installer newInstaller(IDevice device) {
     MetricsRecorder metrics = new MetricsRecorder();
     AdbClient adb = new AdbClient(device, LOGGER);
-    return new AdbInstaller(
-      LocalInstallerPathManager.getLocalInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON
-    );
+    // we use EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller() to make sure the path is correctly adjuasted in IJ.
+    return new AdbInstaller(EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON);
   }
 
   private LiveUpdateDeployer.UpdateLiveEditResult pushUpdatesToDevice(

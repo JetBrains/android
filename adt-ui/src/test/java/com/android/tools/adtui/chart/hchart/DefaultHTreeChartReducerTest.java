@@ -15,15 +15,14 @@
  */
 package com.android.tools.adtui.chart.hchart;
 
-import com.android.tools.adtui.model.DefaultHNode;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
+import com.android.tools.adtui.model.DefaultHNode;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
 public class DefaultHTreeChartReducerTest {
   private static final int FAKE_HEIGHT = 5;

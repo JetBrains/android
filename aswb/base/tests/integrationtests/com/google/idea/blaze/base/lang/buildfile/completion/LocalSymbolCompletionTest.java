@@ -29,7 +29,7 @@ import org.junit.runners.JUnit4;
 public class LocalSymbolCompletionTest extends BuildFileIntegrationTestCase {
 
   private PsiFile setInput(String... fileContents) {
-    return testFixture.configureByText("BUILD", Joiner.on("\n").join(fileContents));
+    return testFixture.configureByText("~BUILD", Joiner.on("\n").join(fileContents));
   }
 
   private void assertResult(String... resultingFileContents) {

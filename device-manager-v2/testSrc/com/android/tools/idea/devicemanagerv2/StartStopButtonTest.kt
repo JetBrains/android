@@ -33,7 +33,6 @@ import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.RuleChain
 import icons.StudioIcons
-import javax.swing.SwingUtilities
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.cancel
@@ -45,6 +44,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.SwingUtilities
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class StartStopButtonTest {

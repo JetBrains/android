@@ -29,10 +29,10 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.util.PathUtil
-import java.io.StringReader
-import javax.xml.parsers.DocumentBuilderFactory
 import org.jetbrains.annotations.VisibleForTesting
 import org.xml.sax.InputSource
+import java.io.StringReader
+import javax.xml.parsers.DocumentBuilderFactory
 
 private val GSON = Gson()
 private val XML = DocumentBuilderFactory.newInstance().newDocumentBuilder()

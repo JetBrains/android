@@ -23,18 +23,18 @@ import com.android.tools.idea.testing.virtualFile
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.rendering.classloading.ModuleClassLoader
-import java.awt.event.KeyEvent
-import java.awt.event.KeyEvent.KEY_LOCATION_STANDARD
-import java.nio.file.Paths
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicReference
-import javax.swing.JPanel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.KEY_LOCATION_STANDARD
+import java.nio.file.Paths
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
+import javax.swing.JPanel
 
 class SingleComposePreviewElementRendererTest {
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)

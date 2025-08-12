@@ -19,15 +19,12 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ex.ApplicationEx
-import com.intellij.openapi.project.DumbService
 import com.intellij.testFramework.DumbModeTestUtils
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.SwingUtilities
 
 @Language("XML")
 private val appManifest = """

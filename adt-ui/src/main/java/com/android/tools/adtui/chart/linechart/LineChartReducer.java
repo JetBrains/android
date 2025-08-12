@@ -16,7 +16,6 @@
 package com.android.tools.adtui.chart.linechart;
 
 import com.android.tools.adtui.model.SeriesData;
-
 import java.awt.geom.Path2D;
 import java.util.List;
 

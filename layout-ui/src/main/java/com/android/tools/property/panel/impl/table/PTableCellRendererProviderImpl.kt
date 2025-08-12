@@ -15,8 +15,15 @@
  */
 package com.android.tools.property.panel.impl.table
 
-import com.android.tools.property.panel.api.*
-import com.android.tools.property.ptable.*
+import com.android.tools.property.panel.api.ControlTypeProvider
+import com.android.tools.property.panel.api.EditorProvider
+import com.android.tools.property.panel.api.NewPropertyItem
+import com.android.tools.property.panel.api.PropertyItem
+import com.android.tools.property.ptable.PTable
+import com.android.tools.property.ptable.PTableCellRenderer
+import com.android.tools.property.ptable.PTableCellRendererProvider
+import com.android.tools.property.ptable.PTableColumn
+import com.android.tools.property.ptable.PTableItem
 import com.intellij.util.ui.UIUtil
 
 /**

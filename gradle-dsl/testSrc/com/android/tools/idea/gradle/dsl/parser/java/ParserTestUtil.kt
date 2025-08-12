@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.java
 
-import com.android.tools.idea.gradle.dsl.api.GradleFileModel
-import com.android.tools.idea.gradle.dsl.model.GradleFileModelImpl
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall

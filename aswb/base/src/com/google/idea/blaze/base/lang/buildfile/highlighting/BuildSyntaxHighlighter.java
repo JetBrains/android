@@ -46,25 +46,25 @@ import java.util.Map;
  */
 public class BuildSyntaxHighlighter extends SyntaxHighlighterBase {
 
-  public static final TextAttributesKey BUILD_KEYWORD = key("BUILD.MODIFIER", KEYWORD);
-  public static final TextAttributesKey BUILD_STRING = key("BUILD.STRING", STRING);
-  public static final TextAttributesKey BUILD_NUMBER = key("BUILD.NUMBER", NUMBER);
+  public static final TextAttributesKey BUILD_KEYWORD = key("~BUILD.MODIFIER", KEYWORD);
+  public static final TextAttributesKey BUILD_STRING = key("~BUILD.STRING", STRING);
+  public static final TextAttributesKey BUILD_NUMBER = key("~BUILD.NUMBER", NUMBER);
   public static final TextAttributesKey BUILD_LINE_COMMENT =
-      key("BUILD.LINE_COMMENT", LINE_COMMENT);
-  public static final TextAttributesKey BUILD_BRACES = key("BUILD.BRACES", BRACES);
-  public static final TextAttributesKey BUILD_PARENS = key("BUILD.PARENS", PARENTHESES);
-  public static final TextAttributesKey BUILD_BRACKETS = key("BUILD.BRACKETS", BRACKETS);
+      key("~BUILD.LINE_COMMENT", LINE_COMMENT);
+  public static final TextAttributesKey BUILD_BRACES = key("~BUILD.BRACES", BRACES);
+  public static final TextAttributesKey BUILD_PARENS = key("~BUILD.PARENS", PARENTHESES);
+  public static final TextAttributesKey BUILD_BRACKETS = key("~BUILD.BRACKETS", BRACKETS);
   public static final TextAttributesKey BUILD_OPERATION_SIGN =
-      key("BUILD.OPERATION_SIGN", OPERATION_SIGN);
-  public static final TextAttributesKey BUILD_DOT = key("BUILD.DOT", DOT);
-  public static final TextAttributesKey BUILD_SEMICOLON = key("BUILD.SEMICOLON", SEMICOLON);
-  public static final TextAttributesKey BUILD_COMMA = key("BUILD.COMMA", COMMA);
-  public static final TextAttributesKey BUILD_PARAMETER = key("BUILD.PARAMETER", PARAMETER);
-  public static final TextAttributesKey BUILD_KEYWORD_ARG = key("BUILD.KEYWORD.ARG", PARAMETER);
+      key("~BUILD.OPERATION_SIGN", OPERATION_SIGN);
+  public static final TextAttributesKey BUILD_DOT = key("~BUILD.DOT", DOT);
+  public static final TextAttributesKey BUILD_SEMICOLON = key("~BUILD.SEMICOLON", SEMICOLON);
+  public static final TextAttributesKey BUILD_COMMA = key("~BUILD.COMMA", COMMA);
+  public static final TextAttributesKey BUILD_PARAMETER = key("~BUILD.PARAMETER", PARAMETER);
+  public static final TextAttributesKey BUILD_KEYWORD_ARG = key("~BUILD.KEYWORD.ARG", PARAMETER);
   public static final TextAttributesKey BUILD_FN_DEFINITION =
-      key("BUILD.FN.DEFINITION", FUNCTION_DECLARATION);
+      key("~BUILD.FN.DEFINITION", FUNCTION_DECLARATION);
   public static final TextAttributesKey BUILD_BUILTIN_NAME =
-      TextAttributesKey.createTextAttributesKey("BUILD.BUILTIN_NAME", PREDEFINED_SYMBOL);
+      TextAttributesKey.createTextAttributesKey("~BUILD.BUILTIN_NAME", PREDEFINED_SYMBOL);
 
   private static TextAttributesKey key(String name, TextAttributesKey fallbackKey) {
     return TextAttributesKey.createTextAttributesKey(name, fallbackKey);

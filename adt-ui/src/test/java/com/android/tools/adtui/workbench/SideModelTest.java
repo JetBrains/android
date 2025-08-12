@@ -35,8 +35,6 @@ import java.util.Properties;
 
 import static com.android.tools.adtui.workbench.SideModel.EventType.*;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 

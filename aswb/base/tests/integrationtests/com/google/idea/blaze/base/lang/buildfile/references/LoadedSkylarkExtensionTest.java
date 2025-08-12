@@ -52,7 +52,7 @@ public class LoadedSkylarkExtensionTest extends BuildFileIntegrationTestCase {
 
     BuildFile buildFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "load(",
             "\"//java/com/google:build_defs.bzl\",",
             "\"function\"",
@@ -76,7 +76,7 @@ public class LoadedSkylarkExtensionTest extends BuildFileIntegrationTestCase {
   //    "def function(name, deps)");
   //
   //  BuildFile buildFile = createBuildFile(
-  //    "java/com/google/tools/BUILD",
+  //    "java/com/google/tools/~BUILD",
   //    "load(",
   //    "\"/java/com/google/build_defs.bzl\",",
   //    "\"function\"",
@@ -94,7 +94,7 @@ public class LoadedSkylarkExtensionTest extends BuildFileIntegrationTestCase {
 
     BuildFile buildFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/tools/BUILD"),
+            new WorkspacePath("java/com/google/tools/~BUILD"),
             "load(",
             "\":build_defs.bzl\",",
             "\"function\"",
@@ -114,7 +114,7 @@ public class LoadedSkylarkExtensionTest extends BuildFileIntegrationTestCase {
 
     BuildFile buildFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "load(",
             "\"//java/com/google:build_defs.bzl\",",
             "\"fn1\"",
@@ -136,7 +136,7 @@ public class LoadedSkylarkExtensionTest extends BuildFileIntegrationTestCase {
 
     BuildFile buildFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "load(",
             "\"//java/com/google/tools:build_defs.bzl\",",
             "\"CONSTANT\"",
@@ -170,7 +170,7 @@ public class LoadedSkylarkExtensionTest extends BuildFileIntegrationTestCase {
 
     BuildFile buildFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "load(",
             "\"//java/com/google/tools:build_defs.bzl\",",
             "\"java_library\"",
@@ -202,7 +202,7 @@ public class LoadedSkylarkExtensionTest extends BuildFileIntegrationTestCase {
 
     BuildFile buildFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "load(",
             "\"//java/com/google/tools:build_defs.bzl\",",
             "\"function\"",
@@ -223,7 +223,7 @@ public class LoadedSkylarkExtensionTest extends BuildFileIntegrationTestCase {
 
     BuildFile buildFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "load('//java/com/google/tools:build_defs.bzl', newName = 'function'),",
             "newName(name = \"name\", deps = []");
 
@@ -238,7 +238,7 @@ public class LoadedSkylarkExtensionTest extends BuildFileIntegrationTestCase {
   // are relative to the parent blaze package directory
   @Test
   public void testRelativePathInSubdirectory() {
-    workspace.createFile(new WorkspacePath("java/com/google/BUILD"));
+    workspace.createFile(new WorkspacePath("java/com/google/~BUILD"));
     BuildFile referencedFile =
         createBuildFile(
             new WorkspacePath("java/com/google/nonPackageSubdirectory/skylark.bzl"),

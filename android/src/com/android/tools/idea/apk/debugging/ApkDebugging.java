@@ -26,7 +26,7 @@ public final class ApkDebugging {
   @NotNull public static final ProjectSystemId SYSTEM_ID = new ProjectSystemId("APK Import", "APK Project");
 
   @VisibleForTesting
-  static final String APK_DEBUGGING_PROPERTY = "com.android.ide.apk.debugging";
+  public static final String APK_DEBUGGING_PROPERTY = "com.android.ide.apk.debugging";
 
   private static final boolean APK_DEBUGGING_ENABLED = SystemProperties.getBooleanProperty("apk.importer.enabled", false);
 

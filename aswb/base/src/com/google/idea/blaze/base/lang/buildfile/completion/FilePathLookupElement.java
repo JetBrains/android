@@ -20,7 +20,7 @@ import com.intellij.openapi.util.NullableLazyValue;
 import javax.annotation.Nullable;
 import javax.swing.Icon;
 
-/** Code completion support for file paths within BUILD file labels. */
+/** Code completion support for file paths within ~BUILD file labels. */
 public class FilePathLookupElement extends BuildLookupElement {
 
   private final String itemText;

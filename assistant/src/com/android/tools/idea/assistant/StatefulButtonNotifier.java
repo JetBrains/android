@@ -21,8 +21,8 @@ import com.intellij.util.messages.Topic;
  * Notifier for underlying state of a button being updated. Does not pass the state as this is retrievable separately.
  */
 public interface StatefulButtonNotifier {
-
-  Topic<StatefulButtonNotifier> BUTTON_STATE_TOPIC = Topic.create("Button state change", StatefulButtonNotifier.class);
+  @Topic.ProjectLevel
+  Topic<StatefulButtonNotifier> BUTTON_STATE_TOPIC = new Topic<>(StatefulButtonNotifier.class, Topic.BroadcastDirection.NONE);
 
   /**
    * Called when there is a signal that your underlying state for your

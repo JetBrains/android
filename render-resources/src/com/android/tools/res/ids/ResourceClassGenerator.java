@@ -17,22 +17,22 @@ package com.android.tools.res.ids;
 
 import static com.android.tools.log.LogAnonymizer.anonymizeClassName;
 import static com.android.tools.log.LogAnonymizer.isPublicClass;
-import static org.objectweb.asm.Opcodes.ACC_FINAL;
-import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
-import static org.objectweb.asm.Opcodes.ACC_STATIC;
-import static org.objectweb.asm.Opcodes.ACC_SUPER;
-import static org.objectweb.asm.Opcodes.ALOAD;
-import static org.objectweb.asm.Opcodes.BIPUSH;
-import static org.objectweb.asm.Opcodes.DUP;
-import static org.objectweb.asm.Opcodes.IASTORE;
-import static org.objectweb.asm.Opcodes.ICONST_0;
-import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
-import static org.objectweb.asm.Opcodes.NEWARRAY;
-import static org.objectweb.asm.Opcodes.PUTSTATIC;
-import static org.objectweb.asm.Opcodes.RETURN;
-import static org.objectweb.asm.Opcodes.SIPUSH;
-import static org.objectweb.asm.Opcodes.T_INT;
-import static org.objectweb.asm.Opcodes.V1_6;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_FINAL;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_STATIC;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_SUPER;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ALOAD;
+import static org.jetbrains.org.objectweb.asm.Opcodes.BIPUSH;
+import static org.jetbrains.org.objectweb.asm.Opcodes.DUP;
+import static org.jetbrains.org.objectweb.asm.Opcodes.IASTORE;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ICONST_0;
+import static org.jetbrains.org.objectweb.asm.Opcodes.INVOKESPECIAL;
+import static org.jetbrains.org.objectweb.asm.Opcodes.NEWARRAY;
+import static org.jetbrains.org.objectweb.asm.Opcodes.PUTSTATIC;
+import static org.jetbrains.org.objectweb.asm.Opcodes.RETURN;
+import static org.jetbrains.org.objectweb.asm.Opcodes.SIPUSH;
+import static org.jetbrains.org.objectweb.asm.Opcodes.T_INT;
+import static org.jetbrains.org.objectweb.asm.Opcodes.V1_6;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -54,9 +54,9 @@ import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Type;
+import org.jetbrains.org.objectweb.asm.ClassWriter;
+import org.jetbrains.org.objectweb.asm.MethodVisitor;
+import org.jetbrains.org.objectweb.asm.Type;
 
 /**
  * The {@linkplain ResourceClassGenerator} can generate R classes on the fly for a given resource repository.

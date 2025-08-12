@@ -17,7 +17,7 @@ package com.google.idea.blaze.base.lang.buildfile.psi;
 
 import com.intellij.psi.PsiElementVisitor;
 
-/** Visitor for BUILD file PSI nodes */
+/** Visitor for ~BUILD file PSI nodes */
 public class BuildElementVisitor extends PsiElementVisitor {
 
   public void visitAssignmentStatement(AssignmentStatement node) {

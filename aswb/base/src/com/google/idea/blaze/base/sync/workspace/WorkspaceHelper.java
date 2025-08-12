@@ -79,7 +79,7 @@ public class WorkspaceHelper {
     return workspace != null ? workspace.root.workspacePathForSafe(absoluteFile) : null;
   }
 
-  /** Converts a file to the corresponding BUILD label for this project, if valid. */
+  /** Converts a file to the corresponding ~BUILD label for this project, if valid. */
   @Nullable
   public static Label getBuildLabel(Project project, File absoluteFile) {
     Workspace workspace = resolveWorkspace(project, absoluteFile);

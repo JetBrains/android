@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.navigator.nodes.apk.ndk;
 
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+
 import com.intellij.ide.projectView.impl.nodes.PsiFileSystemItemFilter;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFileSystemItem;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
 import java.util.Objects;
-
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Ensures that the "cpp" node only includes folders that are considered "source folders."

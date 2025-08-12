@@ -18,10 +18,10 @@ package com.android.tools.idea.layoutinspector
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
-import java.util.concurrent.TimeUnit
 import org.jetbrains.kotlin.utils.join
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.TimeUnit
 
 class LayoutInspectorViewIntegrationTest {
 

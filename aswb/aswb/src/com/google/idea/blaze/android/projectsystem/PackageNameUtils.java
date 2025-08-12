@@ -70,7 +70,7 @@ public class PackageNameUtils {
    *
    * <ol>
    *   <li>The {@link ManifestSystemProperty#PACKAGE} manifest override if one is specified by the
-   *       corresponding BUILD target, or
+   *       corresponding ~BUILD target, or
    *   <li>The result of applying placeholder substitution to the raw package name from the module's
    *       primary manifest
    * </ol>

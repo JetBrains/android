@@ -108,7 +108,7 @@ public class KotlinSyncAugmenterTest extends BlazeTestCase {
     TargetIdeInfo target =
         TargetIdeInfo.builder()
             .setLabel("//kt/example:source")
-            .setBuildFile(source("kt/example/BUILD"))
+            .setBuildFile(source("kt/example/~BUILD"))
             .setKind("kt_jvm_library_helper")
             .addSource(source("Source.kt"))
             .setJavaInfo(
@@ -151,7 +151,7 @@ public class KotlinSyncAugmenterTest extends BlazeTestCase {
     TargetIdeInfo target =
         TargetIdeInfo.builder()
             .setLabel("//java/example:source")
-            .setBuildFile(source("java/example/BUILD"))
+            .setBuildFile(source("java/example/~BUILD"))
             .setKind("java_library")
             .addSource(source("Source.java"))
             .setJavaInfo(

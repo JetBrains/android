@@ -18,9 +18,8 @@ package com.android.tools.idea.gradle.project.build.events;
 import com.intellij.build.FilePosition;
 import com.intellij.build.events.FileMessageEventResult;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
+import org.jetbrains.annotations.NotNull;
 
 public class AndroidSyncIssueFileEventResult extends AndroidSyncIssueEventResult implements FileMessageEventResult {
   @NotNull private final FilePosition myFilePosition;

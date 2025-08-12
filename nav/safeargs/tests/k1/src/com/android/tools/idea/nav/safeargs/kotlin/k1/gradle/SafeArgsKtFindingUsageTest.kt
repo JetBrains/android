@@ -30,11 +30,11 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.usages.PsiElementUsageTarget
 import com.intellij.usages.UsageTargetUtil
-import java.io.File
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.io.File
 
 @RunsInEdt
 class SafeArgsKtFindingUsageTest {

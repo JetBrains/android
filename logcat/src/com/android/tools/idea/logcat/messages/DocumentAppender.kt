@@ -26,8 +26,8 @@ import com.intellij.openapi.editor.markup.HighlighterLayer
 import com.intellij.openapi.editor.markup.HighlighterTargetArea
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
-import kotlin.math.max
 import org.jetbrains.annotations.VisibleForTesting
+import kotlin.math.max
 
 val LOGCAT_MESSAGE_KEY = Key.create<LogcatMessage>("LogcatMessage")
 

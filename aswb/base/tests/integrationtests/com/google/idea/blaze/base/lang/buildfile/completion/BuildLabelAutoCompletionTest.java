@@ -32,7 +32,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/** Tests for auto-popup code completion in BUILD labels. */
+/** Tests for auto-popup code completion in ~BUILD labels. */
 @RunWith(JUnit4.class)
 public class BuildLabelAutoCompletionTest extends BuildFileIntegrationTestCase {
 
@@ -53,10 +53,10 @@ public class BuildLabelAutoCompletionTest extends BuildFileIntegrationTestCase {
   public void testPopupAutocompleteAfterSlash() throws Throwable {
     completionTester.runWithAutoPopupEnabled(
             () -> {
-              createBuildFile(new WorkspacePath("java/com/foo/BUILD"));
+              createBuildFile(new WorkspacePath("java/com/foo/~BUILD"));
               BuildFile file =
                   createBuildFile(
-                      new WorkspacePath("BUILD"),
+                      new WorkspacePath("~BUILD"),
                       "java_library(",
                       "    name = 'lib',",
                       "    srcs = [''],");
@@ -74,10 +74,10 @@ public class BuildLabelAutoCompletionTest extends BuildFileIntegrationTestCase {
     completionTester.runWithAutoPopupEnabled(
             () -> {
               createBuildFile(
-                  new WorkspacePath("java/com/foo/BUILD"), "java_library(name = 'target')");
+                  new WorkspacePath("java/com/foo/~BUILD"), "java_library(name = 'target')");
               BuildFile file =
                   createBuildFile(
-                      new WorkspacePath("BUILD"),
+                      new WorkspacePath("~BUILD"),
                       "java_library(",
                       "    name = 'lib',",
                       "    srcs = ['//java/com/foo'],");
@@ -95,10 +95,10 @@ public class BuildLabelAutoCompletionTest extends BuildFileIntegrationTestCase {
     completionTester.runWithAutoPopupEnabled(
             () -> {
               createBuildFile(
-                  new WorkspacePath("java/com/foo/BUILD"), "java_library(name = 'target')");
+                  new WorkspacePath("java/com/foo/~BUILD"), "java_library(name = 'target')");
               BuildFile file =
                   createBuildFile(
-                      new WorkspacePath("BUILD"),
+                      new WorkspacePath("~BUILD"),
                       "java_library(",
                       "    name = 'lib',",
                       "    srcs = ['//'],");

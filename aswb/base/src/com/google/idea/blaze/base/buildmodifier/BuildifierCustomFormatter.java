@@ -28,7 +28,7 @@ import com.intellij.psi.PsiFile;
 import java.util.Collection;
 import javax.annotation.Nullable;
 
-/** Uses buildifier to format BUILD/bzl files. */
+/** Uses buildifier to format ~BUILD/bzl files. */
 final class BuildifierCustomFormatter implements CustomFormatter {
 
   @Override

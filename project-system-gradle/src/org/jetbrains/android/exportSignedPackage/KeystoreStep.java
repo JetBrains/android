@@ -1,8 +1,7 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 
 package org.jetbrains.android.exportSignedPackage;
 
-import static com.android.tools.idea.io.IdeFileUtils.getDesktopDirectoryVirtualFile;
 import static icons.StudioIcons.Common.WARNING_INLINE;
 
 import com.android.annotations.concurrency.Slow;
@@ -20,15 +19,11 @@ import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.CollectionComboBoxModel;
-import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
@@ -36,7 +31,6 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ModalityUiUtil;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Insets;
 import java.io.File;
@@ -69,10 +63,10 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSettingsForm {
+public class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSettingsForm {
   public static final String MODULE_PROPERTY = "ExportedModule";
-  @VisibleForTesting static final String KEY_STORE_PASSWORD_KEY = "KEY_STORE_PASSWORD";
-  @VisibleForTesting static final String KEY_PASSWORD_KEY = "KEY_PASSWORD";
+  public @VisibleForTesting static final String KEY_STORE_PASSWORD_KEY = "KEY_STORE_PASSWORD";
+  public @VisibleForTesting static final String KEY_PASSWORD_KEY = "KEY_PASSWORD";
 
   private JPanel myContentPanel;
   private JButton myCreateKeyStoreButton;
@@ -83,7 +77,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   private JButton myLoadKeyStoreButton;
   private JBCheckBox myRememberPasswordCheckBox;
   @VisibleForTesting
-  JComboBox<AndroidFacet> myModuleCombo;
+  public JComboBox<AndroidFacet> myModuleCombo;
   private JPanel myGradlePanel;
   private JBLabel myGradleWarning;
   private JBLabel myKeyStorePathLabel;
@@ -94,8 +88,8 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   private final boolean myUseGradleForSigning;
   private boolean myIsBundle;
   @VisibleForTesting
-  AndroidFacet mySelection;
-  @VisibleForTesting final List<AndroidFacet> myFacets;
+  public AndroidFacet mySelection;
+  public @VisibleForTesting final List<AndroidFacet> myFacets;
 
   public KeystoreStep(@NotNull ExportSignedPackageWizard wizard,
                       boolean useGradleForSigning,

@@ -115,7 +115,7 @@ public class MultiUserUtils {
    * A {@link com.android.ddmlib.IShellOutputReceiver} responsible for dealing with the output of the "pm list users" shell command.
    */
   @VisibleForTesting
-  static final class PmListUserReceiver extends MultiLineReceiver {
+  public static final class PmListUserReceiver extends MultiLineReceiver {
 
     private int myNumUsers = 0;
 

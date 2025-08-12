@@ -32,10 +32,13 @@ class EmptyRepositoriesModelImpl : EmptyGradleBlockModel(), RepositoriesModel {
 
   override fun containsMethodCall(methodName: String): Boolean = false
 
-  override fun addMavenRepositoryByUrl(url: String, name: String) =
+  override fun addMavenRepositoryByUrl(url: String, name: String?) =
     throw UnsupportedOperationException("Call is not supported for Declarative")
 
   override fun containsMavenRepositoryByUrl(repositoryUrl: String): Boolean = false
+
+  override fun removeRepositoryByUrl(repositoryUrl: String): Boolean =
+    throw UnsupportedOperationException("Call is not supported for Declarative")
 
   override fun hasGoogleMavenRepository(): Boolean = false
 

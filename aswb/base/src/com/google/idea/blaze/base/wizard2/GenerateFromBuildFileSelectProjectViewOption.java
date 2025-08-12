@@ -49,7 +49,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 
-/** Generates a project view given a BUILD file */
+/** Generates a project view given a ~BUILD file */
 public class GenerateFromBuildFileSelectProjectViewOption implements BlazeSelectProjectViewOption {
   private static final String LAST_WORKSPACE_PATH = "generate-from-build-file.last-workspace-path";
   private final BlazeNewProjectBuilder builder;
@@ -74,7 +74,7 @@ public class GenerateFromBuildFileSelectProjectViewOption implements BlazeSelect
 
     JComponent box =
         UiUtil.createHorizontalBox(
-            HORIZONTAL_LAYOUT_GAP, new JLabel("BUILD file:"), buildFilePathField, button);
+            HORIZONTAL_LAYOUT_GAP, new JLabel("~BUILD file:"), buildFilePathField, button);
     UiUtil.setPreferredWidth(box, PREFERRED_COMPONENT_WIDTH);
     this.component = box;
   }
@@ -86,7 +86,7 @@ public class GenerateFromBuildFileSelectProjectViewOption implements BlazeSelect
 
   @Override
   public String getDescription() {
-    return "Generate from BUILD file";
+    return "Generate from ~BUILD file";
   }
 
   @Override
@@ -99,17 +99,17 @@ public class GenerateFromBuildFileSelectProjectViewOption implements BlazeSelect
       throws ConfigurationException {
     String buildFilePath = getBuildFilePath();
     if (buildFilePath.isEmpty()) {
-      throw new ConfigurationException("BUILD file field cannot be empty.");
+      throw new ConfigurationException("~BUILD file field cannot be empty.");
     }
     if (!WorkspacePath.isValid(buildFilePath)) {
       throw new ConfigurationException(
-          "Invalid BUILD file path: specify a path relative to the workspace root.");
+          "Invalid ~BUILD file path: specify a path relative to the workspace root.");
     }
     WorkspacePathResolver workspacePathResolver =
         builder.getWorkspaceData().workspacePathResolver();
     File file = workspacePathResolver.resolveToFile(new WorkspacePath(buildFilePath));
     if (!file.exists()) {
-      throw new ConfigurationException("BUILD file does not exist.");
+      throw new ConfigurationException("~BUILD file does not exist.");
     }
     if (file.isDirectory()) {
       throw new ConfigurationException("Specified path is a directory, not a file");
@@ -118,7 +118,7 @@ public class GenerateFromBuildFileSelectProjectViewOption implements BlazeSelect
         BuildSystemProvider.getBuildSystemProvider(builder.getBuildSystem());
     checkState(buildSystemProvider != null);
     if (!buildSystemProvider.isBuildFile(file.getName())) {
-      throw new ConfigurationException("File must be a BUILD file.");
+      throw new ConfigurationException("File must be a ~BUILD file.");
     }
   }
 
@@ -184,8 +184,8 @@ public class GenerateFromBuildFileSelectProjectViewOption implements BlazeSelect
         new FileChooserDescriptor(true, false, false, false, false, false)
             .withShowHiddenFiles(true) // Show root project view file
             .withHideIgnored(false)
-            .withTitle("Select BUILD File")
-            .withDescription("Select a BUILD file to synthesize a project view from.")
+            .withTitle("Select ~BUILD File")
+            .withDescription("Select a ~BUILD file to synthesize a project view from.")
             .withFileFilter(virtualFile -> buildSystem.isBuildFile(virtualFile.getName()));
     // File filters are broken for the native Mac file chooser.
     descriptor.setForcedToUseIdeaFileChooser(true);
@@ -219,8 +219,8 @@ public class GenerateFromBuildFileSelectProjectViewOption implements BlazeSelect
 
     if (!FileUtil.isAncestor(fileBrowserRoot.getPath(), file.getPath(), true)) {
       Messages.showErrorDialog(
-          String.format("You must choose a BUILD file under %s.", fileBrowserRoot.getPath()),
-          "Cannot Use BUILD File");
+          String.format("You must choose a ~BUILD file under %s.", fileBrowserRoot.getPath()),
+          "Cannot Use ~BUILD File");
       return;
     }
 

@@ -22,7 +22,7 @@ import com.google.devtools.build.lib.query2.proto.proto2api.Build.Attribute.Disc
 import java.util.Set;
 
 /**
- * Groups of attribute types of the BUILD language. The groups are not mutually exclusive; use
+ * Groups of attribute types of the ~BUILD language. The groups are not mutually exclusive; use
  * {@link #uniqueTypesOfGroup} to get elements that are unique to the given group.
  */
 public final class AttributeTypeGroups {

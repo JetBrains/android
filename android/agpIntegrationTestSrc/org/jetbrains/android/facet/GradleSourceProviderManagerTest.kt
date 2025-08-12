@@ -18,8 +18,8 @@ package org.jetbrains.android.facet
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
-import com.google.common.truth.Truth.assertThat
 import com.android.tools.idea.testing.findAppModule
+import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 

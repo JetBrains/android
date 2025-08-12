@@ -57,7 +57,7 @@ public class CopyBlazeTargetPathAction extends BlazeProjectAction {
     return target != null ? target : getTargetBuildingFile(project, e);
   }
 
-  /** Find a BUILD target building the selected file, if relevant. */
+  /** Find a ~BUILD target building the selected file, if relevant. */
   @Nullable
   private static Label getTargetBuildingFile(Project project, AnActionEvent e) {
     VirtualFile vf = e.getData(CommonDataKeys.VIRTUAL_FILE);

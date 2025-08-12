@@ -22,7 +22,6 @@ import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiParameterList
-import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiTypes
 import com.intellij.psi.util.parentOfType
 

@@ -112,7 +112,7 @@ private class SetJavaLanguageLevelProcessor(
    * If setJvmTarget is true, also looks for android.kotlinOptions.jvmTarget and adds usage if its value is lower than [level]. If the elements
    * do not exist then adds usage of the parents.
    */
-  override fun findUsages(): Array<UsageInfo> {
+  protected override fun findUsages(): Array<UsageInfo> {
     val projectBuildModel = ProjectBuildModel.get(myProject)
 
     val usages = ArrayList<UsageInfo>()

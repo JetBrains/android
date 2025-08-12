@@ -22,9 +22,7 @@ import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObject
 import com.intellij.openapi.application.ApplicationManager
 import java.util.concurrent.Executor
 import javax.swing.DefaultComboBoxModel
-import javax.swing.JLabel
 import javax.swing.JList
-import javax.swing.ListCellRenderer
 
 internal class MemoryInstanceFilterMenu(selection: MemoryCaptureSelection): AspectObserver() {
   val component = ProfilerCombobox<CaptureObjectInstanceFilter>()

@@ -16,6 +16,7 @@
 package org.jetbrains.android.sdk
 
 import com.android.sdklib.IAndroidTarget
+import com.android.tools.idea.downloads.AndroidLayoutlibDownloader
 import com.android.tools.idea.util.StudioPathManager
 import com.android.tools.sdk.CompatibilityRenderTarget
 import com.android.tools.sdk.EmbeddedRenderTarget
@@ -36,7 +37,7 @@ class StudioEmbeddedRenderTarget {
     private val LOG = Logger.getInstance(StudioEmbeddedRenderTarget::class.java)
 
     private var ourDisableEmbeddedTargetForTesting = false
-    val ourEmbeddedLayoutlibPath = getEmbeddedLayoutLibPath()
+    val ourEmbeddedLayoutlibPath by lazy { getEmbeddedLayoutLibPath() } // fix exception on startup with lazy {}
 
     /**
      * Method that allows to disable the use of the embedded render target. Only for testing.
@@ -80,9 +81,19 @@ class StudioEmbeddedRenderTarget {
           return rootFile.absolutePath + File.separator
         }
       }
-      if (!ApplicationManager.getApplication().isUnitTestMode) {
-        LOG.error("Unable to find embedded layoutlib in path: $path")
+      val notFoundPaths = mutableListOf<String>()
+      notFoundPaths.add(path)
+
+      AndroidLayoutlibDownloader.getInstance().makeSureComponentIsInPlace()
+      val dir = AndroidLayoutlibDownloader.getInstance().getHostDir("plugins/android/resources/layoutlib/")
+      if (dir.exists()) {
+        return dir.absolutePath + File.separator
       }
+      else {
+        notFoundPaths.add(dir.absolutePath)
+      }
+
+      LOG.error("Unable to find embedded layoutlib in paths:\n$notFoundPaths")
       return null
     }
   }

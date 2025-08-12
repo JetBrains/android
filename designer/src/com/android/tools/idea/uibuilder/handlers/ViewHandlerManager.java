@@ -59,7 +59,7 @@ import org.jetbrains.annotations.TestOnly;
 @Service(Service.Level.PROJECT)
 public final class ViewHandlerManager implements Disposable {
   @VisibleForTesting
-  static final ExtensionPointName<ViewHandlerProvider> EP_NAME =
+  public static final ExtensionPointName<ViewHandlerProvider> EP_NAME =
     ExtensionPointName.create("com.android.tools.idea.uibuilder.handlers.viewHandlerProvider");
 
   /**

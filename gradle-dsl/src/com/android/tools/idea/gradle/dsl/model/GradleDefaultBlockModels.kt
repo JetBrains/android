@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationsModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel
+import com.android.tools.idea.gradle.dsl.api.java.JavaDeclarativeModel
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel
 import com.android.tools.idea.gradle.dsl.api.kotlin.KotlinModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
@@ -37,6 +38,7 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ScriptDependenciesMo
 import com.android.tools.idea.gradle.dsl.model.ext.EmptyExtModelImpl
 import com.android.tools.idea.gradle.dsl.model.ext.ExtModelImpl
 import com.android.tools.idea.gradle.dsl.model.java.EmptyJavaModelImpl
+import com.android.tools.idea.gradle.dsl.model.java.JavaDeclarativeModelImpl
 import com.android.tools.idea.gradle.dsl.model.java.JavaModelImpl
 import com.android.tools.idea.gradle.dsl.model.kotlin.EmptyKotlinModelImpl
 import com.android.tools.idea.gradle.dsl.model.kotlin.KotlinModelImpl
@@ -54,6 +56,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
+import com.android.tools.idea.gradle.dsl.parser.java.JavaDclElement
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslElement
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement
@@ -95,7 +98,9 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
 
     private val DECLARATIVE_ROOT_ELEMENTS_MAP = mapOf(
       "androidApp" to AndroidDslElement.ANDROID_APP,
-      "androidLibrary" to AndroidDslElement.ANDROID_LIBRARY
+      "androidLibrary" to AndroidDslElement.ANDROID_LIBRARY,
+      "javaApplication" to JavaDclElement.JAVA_APPLICATION,
+      "javaLibrary" to JavaDclElement.JAVA_LIBRARY
     )
 
     private fun declarativeBuilder(file: GradleBuildFile): AndroidDeclarativeModel {
@@ -107,6 +112,17 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
       }
       // TODO throw exception for now but need to create add element mechanism
       throw IllegalStateException("Cannot create android[App|Library] dsl element")
+    }
+
+    private fun declarativeJavaBuilder(file: GradleBuildFile): JavaDeclarativeModel {
+      file.getPropertyElement(JavaDclElement.JAVA_APPLICATION)?.let { element ->
+        return JavaDeclarativeModelImpl(element)
+      }
+      file.getPropertyElement(JavaDclElement.JAVA_LIBRARY)?.let { element ->
+        return JavaDeclarativeModelImpl(element)
+      }
+      // TODO throw exception for now but need to create add element mechanism
+      throw IllegalStateException("Cannot create java[Application|Library] dsl element")
     }
 
     private val DEFAULT_ROOT_AVAILABLE_MODELS = listOf<BlockModelBuilder<*, GradleBuildFile>>(
@@ -150,6 +166,10 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
 
       RepositoriesModel::class.java from {
         RepositoriesModelImpl(it.ensurePropertyElement(RepositoriesDslElement.REPOSITORIES))
+      },
+
+      JavaDeclarativeModel::class.java from {
+        declarativeJavaBuilder(it)
       }
     )
 

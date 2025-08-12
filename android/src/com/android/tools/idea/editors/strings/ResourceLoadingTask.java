@@ -17,8 +17,8 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.tools.idea.editors.strings.model.StringResourceRepository;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
-import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
+import com.android.tools.res.LocalResourceRepository;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
@@ -29,7 +29,7 @@ import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class ResourceLoadingTask extends Task.Backgroundable {
+public final class ResourceLoadingTask extends Task.Backgroundable {
   @NotNull
   private final StringResourceViewPanel myPanel;
 

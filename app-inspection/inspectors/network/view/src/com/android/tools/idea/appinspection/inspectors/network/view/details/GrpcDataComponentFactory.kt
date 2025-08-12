@@ -34,12 +34,11 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.readText
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.ProjectScope
-import io.ktor.utils.io.core.toByteArray
+import org.xml.sax.InputSource
 import java.io.StringReader
 import javax.swing.JComponent
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.text.RegexOption.MULTILINE
-import org.xml.sax.InputSource
 
 private val GSON = Gson()
 private val XML = DocumentBuilderFactory.newInstance().newDocumentBuilder()

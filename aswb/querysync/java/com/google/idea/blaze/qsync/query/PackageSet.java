@@ -72,7 +72,7 @@ public class PackageSet {
    * Returns the parent package of a given build package.
    *
    * <p>The parent package is not necessarily the same as the parent path: it may be an indirect
-   * parent if there are paths that are not build packages (e.g. contain no BUILD file).
+   * parent if there are paths that are not build packages (e.g. contain no ~BUILD file).
    */
   public Optional<Path> getParentPackage(Path buildPackage) {
     return findIncludingPackage(buildPackage.getParent());

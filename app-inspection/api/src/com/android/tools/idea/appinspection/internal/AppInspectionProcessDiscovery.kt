@@ -30,7 +30,6 @@ import com.android.tools.profiler.proto.Common
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 /**

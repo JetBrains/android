@@ -18,7 +18,7 @@ package com.android.tools.idea.streaming.device.screenshot
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.adtui.webp.WebpMetadata

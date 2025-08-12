@@ -64,9 +64,9 @@ class PhasedSyncProjectModelProvider : ProjectImportModelProvider {
             // TODO(b/384022658): Reconsider this check if we implement a cache between model providers to avoid fetching the models twice
             ?.takeIf { it.isAtLeastAgp8() } ?: return@BuildAction null
           val modelVersions = versions.convert()
-          val basicAndroidProject = controller.findModel(gradleProject, BasicAndroidProject::class.java)
-          val androidProject = controller.findModel(gradleProject, AndroidProject::class.java)
-          val androidDsl = controller.findModel(gradleProject, AndroidDsl::class.java)
+          val basicAndroidProject = controller.findModel(gradleProject, BasicAndroidProject::class.java)!!
+          val androidProject = controller.findModel(gradleProject, AndroidProject::class.java)!!
+          val androidDsl = controller.findModel(gradleProject, AndroidDsl::class.java)!!
           val modelCache = modelCacheV2Impl(internedModels, modelVersions, syncTestMode = productionMode)
 
           val ideAndroidProject = modelCache.androidProjectFrom(
@@ -77,7 +77,7 @@ class PhasedSyncProjectModelProvider : ProjectImportModelProvider {
             modelVersions,
             androidDsl,
             legacyAndroidGradlePluginProperties = null, // Is this actually needed now?
-            controller.findModel(gradleProject, GradlePropertiesModel::class.java),
+            controller.findModel(gradleProject, GradlePropertiesModel::class.java)!!,
             defaultVariantName = null // Is this actually needed now?
           ).let { it.exceptions.takeIf { it.isNotEmpty() }?.first()?.let { throw it } ?: it.ignoreExceptionsAndGet()!! }
           gradleProject to AndroidProjectData(
@@ -85,7 +85,7 @@ class PhasedSyncProjectModelProvider : ProjectImportModelProvider {
             basicAndroidProject,
             androidProject,
             androidDsl,
-            controller.findModel(gradleProject, DeclaredDependencies::class.java),
+            controller.findModel(gradleProject, DeclaredDependencies::class.java)!!,
             ideAndroidProject
           )
         }

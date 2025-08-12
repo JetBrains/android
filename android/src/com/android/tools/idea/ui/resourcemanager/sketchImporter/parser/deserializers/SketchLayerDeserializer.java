@@ -25,16 +25,6 @@ import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.Ske
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchSymbolInstance;
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchSymbolMaster;
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchText;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.interfaces.SketchLayer;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchArtboard;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchBitmap;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapeGroup;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapePath;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchSlice;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchSymbolInstance;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchSymbolMaster;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchText;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;

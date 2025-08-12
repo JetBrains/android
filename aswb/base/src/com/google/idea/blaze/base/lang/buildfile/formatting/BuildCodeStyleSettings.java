@@ -18,7 +18,7 @@ package com.google.idea.blaze.base.lang.buildfile.formatting;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CustomCodeStyleSettings;
 
-/** BUILD/Starlark-specific code style settings. */
+/** ~BUILD/Starlark-specific code style settings. */
 public class BuildCodeStyleSettings extends CustomCodeStyleSettings {
 
   BuildCodeStyleSettings(CodeStyleSettings container) {

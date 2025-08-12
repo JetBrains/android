@@ -40,7 +40,7 @@ public final class NonProblemFilterWrapper implements Filter, PossiblyDumbAware 
   @Nullable
   @Override
   public Result applyFilter(String line, int entireLength) {
-    // Blaze error message uses absolute path for BUILD files. If it's not processed by
+    // Blaze error message uses absolute path for ~BUILD files. If it's not processed by
     // IssueOutputFilter, it will be processed here. Since we cannot modify how delegate filters
     // process hyper info, update line string before pass it to filter.
     line = AbsolutePathPatcherUtil.fixAllPaths(line);

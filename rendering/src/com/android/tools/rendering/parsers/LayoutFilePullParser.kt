@@ -17,7 +17,20 @@
 
 package com.android.tools.rendering.parsers
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_IGNORE
+import com.android.SdkConstants.ATTR_LAYOUT
+import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
+import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.EXPANDABLE_LIST_VIEW
+import com.android.SdkConstants.GRID_VIEW
+import com.android.SdkConstants.LIST_VIEW
+import com.android.SdkConstants.SPINNER
+import com.android.SdkConstants.TOOLS_URI
+import com.android.SdkConstants.VALUE_FILL_PARENT
+import com.android.SdkConstants.VALUE_MATCH_PARENT
+import com.android.SdkConstants.VIEW_INCLUDE
 import com.android.ide.common.rendering.api.ILayoutPullParser
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ValueXmlHelper

@@ -18,6 +18,7 @@ package com.android.tools.rendering
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
 import com.intellij.openapi.diagnostic.Logger
+import org.jetbrains.annotations.TestOnly
 import java.util.EnumMap
 import java.util.PriorityQueue
 import java.util.Queue
@@ -37,7 +38,6 @@ import java.util.concurrent.atomic.LongAdder
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
-import org.jetbrains.annotations.TestOnly
 
 /**
  * Max number of tasks that can be waiting to execute, without considering cleaning tasks (i.e.

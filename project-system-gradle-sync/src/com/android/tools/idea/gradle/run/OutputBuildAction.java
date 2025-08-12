@@ -20,6 +20,10 @@ import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.ProjectBuildOutput;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.GradleProject;
@@ -27,11 +31,6 @@ import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * {@link BuildAction} to be run when building project pre run. It returns a class containing all the needed

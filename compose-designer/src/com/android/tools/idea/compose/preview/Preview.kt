@@ -1511,7 +1511,6 @@ class ComposePreviewRepresentation(
     BuildAndRefresh { psiFilePointer.element }
       .registerCustomShortcutSet(getBuildAndRefreshShortcut(), applicableTo, this)
   }
-
   private val delegateFastPreviewSurface =
     CommonFastPreviewSurface(
       parentDisposable = this,

@@ -36,7 +36,7 @@ import com.intellij.psi.tree.IElementType;
 import java.util.List;
 import javax.annotation.Nullable;
 
-/** Simple code block folding for BUILD files. */
+/** Simple code block folding for ~BUILD files. */
 public class BuildFileFoldingBuilder implements FoldingBuilder {
 
   private final BoolExperiment enabled =

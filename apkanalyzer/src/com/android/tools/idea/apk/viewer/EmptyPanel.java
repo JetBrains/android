@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.apk.viewer;
 
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class EmptyPanel implements ApkFileEditorComponent {
   @NotNull
