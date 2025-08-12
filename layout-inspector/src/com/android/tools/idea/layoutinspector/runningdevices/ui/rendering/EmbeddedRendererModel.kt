@@ -23,7 +23,6 @@ import com.android.tools.idea.layoutinspector.model.RenderingDimensions.NORMAL_B
 import com.android.tools.idea.layoutinspector.model.RenderingDimensions.RECOMPOSITION_BORDER_THICKNESS
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.runningdevices.OverlayHost
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.RenderSettings
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_ALPHA_VALUE
@@ -82,7 +81,7 @@ class EmbeddedRendererModel(
   private val treeSettings: TreeSettings,
   val renderSettings: RenderSettings,
   private val navigateToSelectedViewOnDoubleClick: () -> Unit,
-) : Disposable, OverlayHost {
+) : Disposable {
 
   private val _interceptClicks = MutableStateFlow<Boolean>(false)
   /** When true, prevents clicks from being dispatched to the app. */
@@ -194,13 +193,8 @@ class EmbeddedRendererModel(
     navigateToSelectedViewOnDoubleClick()
   }
 
-  override fun setOverlay(image: ByteArray?) {
+  fun setOverlay(image: ByteArray?) {
     _overlay.value = image
-  }
-
-  // TODO(b/433223949): remove
-  override fun getOverlay(): ByteArray? {
-    return _overlay.value
   }
 
   /**
@@ -208,7 +202,7 @@ class EmbeddedRendererModel(
    *
    * @param alpha A value between 0 and 1.
    */
-  override fun setOverlayTransparency(alpha: Float) {
+  fun setOverlayTransparency(alpha: Float) {
     _overlayAlpha.value = alpha
   }
 

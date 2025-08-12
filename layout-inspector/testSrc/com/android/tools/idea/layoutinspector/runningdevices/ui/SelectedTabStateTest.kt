@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.runningdevices.ui
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.layoutinspector.FakeForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -33,6 +34,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.runningdevices.RenderingComponents
 import com.android.tools.idea.layoutinspector.runningdevices.actions.UiConfig
+import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.EmbeddedRendererModel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.LayoutInspectorRenderer
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.StudioRendererPanel
 import com.android.tools.idea.layoutinspector.runningdevices.verifyUiInjected
@@ -68,6 +70,7 @@ class SelectedTabStateTest {
   @get:Rule val displayViewRule = EmulatorViewRule()
 
   private lateinit var layoutInspector: LayoutInspector
+  private lateinit var renderModel: EmbeddedRendererModel
   private lateinit var layoutInspectorRenderer: StudioRendererPanel
   private lateinit var emulatorView: EmulatorView
 
@@ -123,17 +126,24 @@ class SelectedTabStateTest {
         treeSettings = FakeTreeSettings(),
       )
 
+    renderModel =
+      EmbeddedRendererModel(
+        parentDisposable = displayViewRule.disposable,
+        inspectorModel = layoutInspector.inspectorModel,
+        treeSettings = layoutInspector.treeSettings,
+        renderSettings = layoutInspector.renderSettings,
+        navigateToSelectedViewOnDoubleClick = {},
+      )
+
     layoutInspectorRenderer =
       StudioRendererPanel(
         disposable = displayViewRule.disposable,
-        coroutineScope = AndroidCoroutineScope(displayViewRule.disposable),
-        renderLogic = layoutInspector.renderLogic,
-        renderModel = layoutInspector.renderModel,
+        scope = displayViewRule.disposable.createCoroutineScope(),
+        renderModel = renderModel,
         notificationModel = NotificationModel(displayViewRule.project),
         displayRectangleProvider = { Rectangle() },
         screenScaleProvider = { 1.0 },
         orientationQuadrantProvider = { 0 },
-        navigateToSelectedViewOnDoubleClick = {},
       )
   }
 
@@ -314,6 +324,6 @@ class SelectedTabStateTest {
   }
 
   private fun getRenderingComponents(): RenderingComponents {
-    return RenderingComponents(FakeLayoutInspectorRenderer(), layoutInspector.renderModel)
+    return RenderingComponents(FakeLayoutInspectorRenderer(), renderModel)
   }
 }

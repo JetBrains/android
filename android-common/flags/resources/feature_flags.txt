@@ -80,7 +80,6 @@ journeys.with.gemini.enable.journeys.with.gemini.auto.gradle.configuration=PREVI
 journeys.with.gemini.enable.journeys.with.gemini.execution=PREVIEW
 journeys.with.gemini.enable.journeys.with.gemini.recording=INTERNAL
 layout.inspector.dynamic.layout.inspector.enable.running.devices=COMPLETE:2023
-layout.inspector.dynamic.layout.inspector.enable.v2.rendering=PREVIEW
 layout.inspector.dynamic.layout.inspector.horizontal.scrollable.component.tree=COMPLETE:2025
 layout.inspector.dynamic.layout.inspector.ignore.framework.recompositions=COMPLETE:2022
 layout.inspector.dynamic.layout.inspector.recomposition.counts.default=COMPLETE:2024

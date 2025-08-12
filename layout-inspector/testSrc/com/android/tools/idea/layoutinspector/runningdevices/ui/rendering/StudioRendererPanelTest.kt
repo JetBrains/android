@@ -17,29 +17,26 @@ package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePathUnchecked
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.swing.FakeMouse
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
-import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.runningdevices.calculateRotationCorrection
 import com.android.tools.idea.layoutinspector.ui.FakeRenderSettings
-import com.android.tools.idea.layoutinspector.ui.RenderLogic
-import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
@@ -56,7 +53,9 @@ import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
 import java.nio.file.Path
 import kotlin.io.path.pathString
-import org.junit.Before
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -67,7 +66,9 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 private val TEST_DATA_PATH = Path.of("tools", "adt", "idea", "layout-inspector", "testData")
-private const val DIFF_THRESHOLD = 0.2
+private const val DIFF_THRESHOLD = 0.5
+
+private val backgroundColor = Color(200, 200, 200)
 
 class StudioRendererPanelTest {
 
@@ -77,16 +78,11 @@ class StudioRendererPanelTest {
   @get:Rule val projectRule = ProjectRule()
   @get:Rule val disposableRule = DisposableRule()
 
-  private lateinit var sessionStats: SessionStatisticsImpl
-
   private val treeSettings = FakeTreeSettings(showRecompositions = false)
   private val renderSettings = FakeRenderSettings()
 
   private val disposable: Disposable
     get() = disposableRule.disposable
-
-  private lateinit var renderModel: RenderModel
-  private lateinit var renderLogic: RenderLogic
 
   private var navigateToSelectedViewInvocations = 0
 
@@ -101,6 +97,7 @@ class StudioRendererPanelTest {
   private val deviceDisplayRectangle =
     Rectangle(10, 10, deviceScreenDimension.width, deviceScreenDimension.height)
 
+  /** An inspector model with views arranged vertically */
   private val verticalInspectorModel: InspectorModel
     get() =
       model(disposable) {
@@ -110,6 +107,7 @@ class StudioRendererPanelTest {
         }
       }
 
+  /** An inspector model with views arranged horizontally */
   private val horizontalInspectorModel: InspectorModel
     get() =
       model(disposable) {
@@ -119,140 +117,99 @@ class StudioRendererPanelTest {
         }
       }
 
-  @Before
-  fun setUp() {
-    renderModel = RenderModel(verticalInspectorModel, mock(), treeSettings) { DisconnectedClient }
-    renderLogic = RenderLogic(renderModel, renderSettings)
-    sessionStats = SessionStatisticsImpl(DisconnectedClient.clientType)
-    navigateToSelectedViewInvocations += 1
-  }
-
   @Test
   fun testViewBordersAreRendered() {
-    val layoutInspectorRenderer = createRenderer()
+    val (_, renderer) = createRenderer()
 
     val renderImage = createRenderImage()
-    paint(renderImage, layoutInspectorRenderer)
+    paint(renderImage, renderer)
     assertSimilar(renderImage, testName.methodName)
   }
 
   @Test
   fun testBoundsOverflowRight() {
-    val inspectorModelWithLeftBorder =
+    val inspectorModelOverflowRight =
       model(disposable) {
         view(ROOT, 10, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
           view(VIEW1, 10, 15, 25, 25) { image() }
         }
       }
-    inspectorModelWithLeftBorder.resourceLookup.screenDimension = deviceScreenDimension
+    inspectorModelOverflowRight.resourceLookup.screenDimension = deviceScreenDimension
 
-    val renderModel =
-      RenderModel(inspectorModelWithLeftBorder, mock(), treeSettings) { DisconnectedClient }
-    val renderLogic = RenderLogic(renderModel, renderSettings)
-    val layoutInspectorRenderer =
-      createRenderer(renderModel = renderModel, renderLogic = renderLogic)
+    val (_, renderer) = createRenderer(inspectorModel = inspectorModelOverflowRight)
 
     val renderImage = createRenderImage()
-    paint(renderImage, layoutInspectorRenderer)
+    paint(renderImage, renderer)
     assertSimilar(renderImage, testName.methodName)
   }
 
   @Test
   fun testBoundsOverflowLeft() {
-    val inspectorModelWithRightBorder =
+    val inspectorModelOverflowLeft =
       model(disposable) {
-        view(ROOT, -10, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
+        view(ROOT, -10, 0, deviceScreenDimension.width - 10, deviceScreenDimension.height) {
           view(VIEW1, 10, 15, 25, 25) { image() }
         }
       }
-    inspectorModelWithRightBorder.resourceLookup.screenDimension = deviceScreenDimension
+    inspectorModelOverflowLeft.resourceLookup.screenDimension = deviceScreenDimension
 
-    val renderModel =
-      RenderModel(inspectorModelWithRightBorder, mock(), treeSettings) { DisconnectedClient }
-    val renderLogic = RenderLogic(renderModel, renderSettings)
-    val layoutInspectorRenderer = createRenderer(renderModel = renderModel, renderLogic)
+    val (_, renderer) = createRenderer(inspectorModel = inspectorModelOverflowLeft)
 
     val renderImage = createRenderImage()
-    paint(renderImage, layoutInspectorRenderer)
+    paint(renderImage, renderer)
     assertSimilar(renderImage, testName.methodName)
   }
 
   @Test
   fun testBoundsOverflowBottom() {
-    val inspectorModelWithTopBorder =
+    val inspectorModelOverflowBottom =
       model(disposable) {
         view(ROOT, 0, 10, deviceScreenDimension.width, deviceScreenDimension.height) {
           view(VIEW1, 10, 15, 25, 25) { image() }
         }
       }
-    inspectorModelWithTopBorder.resourceLookup.screenDimension = deviceScreenDimension
+    inspectorModelOverflowBottom.resourceLookup.screenDimension = deviceScreenDimension
 
-    val renderModel =
-      RenderModel(inspectorModelWithTopBorder, mock(), treeSettings) { DisconnectedClient }
-    val renderLogic = RenderLogic(renderModel, renderSettings)
-    val layoutInspectorRenderer =
-      createRenderer(renderModel = renderModel, renderLogic = renderLogic)
+    val (_, renderer) = createRenderer(inspectorModel = inspectorModelOverflowBottom)
 
     val renderImage = createRenderImage()
-    paint(renderImage, layoutInspectorRenderer)
+    paint(renderImage, renderer)
     assertSimilar(renderImage, testName.methodName)
   }
 
   @Test
   fun testBoundsOverflowTop() {
-    val inspectorModelWithTopBorder =
+    val inspectorModelOverflowTop =
       model(disposable) {
         view(ROOT, 0, -10, deviceScreenDimension.width, deviceScreenDimension.height) {
           view(VIEW1, 10, 15, 25, 25) { image() }
         }
       }
-    inspectorModelWithTopBorder.resourceLookup.screenDimension = deviceScreenDimension
+    inspectorModelOverflowTop.resourceLookup.screenDimension = deviceScreenDimension
 
-    val renderModel =
-      RenderModel(inspectorModelWithTopBorder, mock(), treeSettings) { DisconnectedClient }
-    val renderLogic = RenderLogic(renderModel, renderSettings)
-    val layoutInspectorRenderer =
-      createRenderer(renderModel = renderModel, renderLogic = renderLogic)
+    val (_, renderer) = createRenderer(inspectorModel = inspectorModelOverflowTop)
 
     val renderImage = createRenderImage()
-    paint(renderImage, layoutInspectorRenderer)
+    paint(renderImage, renderer)
     assertSimilar(renderImage, testName.methodName)
-  }
-
-  private data class RotationCombination(val displayQuadrant: Int, val deviceRotation: Int)
-
-  private fun allPossibleCombinations(
-    displayQuadrants: List<Int>,
-    deviceRotations: List<Int>,
-  ): List<RotationCombination> {
-    val combinations = mutableListOf<RotationCombination>()
-
-    for (num1 in displayQuadrants) {
-      for (num2 in deviceRotations) {
-        val pair = RotationCombination(num1, num2)
-        combinations.add(pair)
-      }
-    }
-
-    return combinations
   }
 
   @Test
   fun testRotation() {
-    // test all possible combinations of rotations
-    val combinations = allPossibleCombinations(listOf(0, 1, 2, 3), listOf(0, 90, 180, 270))
+    val combinations = generateAllPossibleRotations(listOf(0, 1, 2, 3), listOf(0, 90, 180, 270))
     combinations.forEach {
       verticalInspectorModel.resourceLookup.displayOrientation = it.deviceRotation
       val inspectorModel =
         when (it.deviceRotation) {
           0,
           180 -> {
+            // App in portrait mode.
             verticalInspectorModel.resourceLookup.screenDimension = Dimension(1080, 1920)
             verticalInspectorModel
           }
-          // assume that when the device is horizontal the app is in landscape mode.
           90,
           270 -> {
+            // App is in landscape mode.
             horizontalInspectorModel.resourceLookup.screenDimension = Dimension(1920, 1080)
             horizontalInspectorModel
           }
@@ -261,95 +218,79 @@ class StudioRendererPanelTest {
 
       val quadrant = calculateRotationCorrection(inspectorModel, { it.displayQuadrant }, { 0 })
 
-      val layoutInspectorRenderer = createRenderer(displayOrientation = quadrant)
+      val (_, renderer) = createRenderer(displayOrientation = quadrant)
 
       val renderImage = createRenderImage()
-      paint(renderImage, layoutInspectorRenderer, displayQuadrant = it.displayQuadrant)
+      paint(renderImage, renderer, displayQuadrant = it.displayQuadrant)
       assertSimilar(renderImage, testName.methodName + "${it.displayQuadrant}_${it.deviceRotation}")
     }
   }
 
   @Test
-  fun testOverlayIsRendered() {
-    val layoutInspectorRenderer = createRenderer()
+  fun testMouseEventsWithDeepInspectDisabled() {
+    val parent = BorderLayoutPanel()
+    val (model, renderer) = createRenderer()
+    parent.add(renderer)
+    parent.size = screenDimension
+    renderer.size = screenDimension
+    val fakeUi = FakeUi(renderer)
 
-    val file = TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile()
-    val imageBytes = file.readBytes()
-    renderModel.overlayBytes = imageBytes
+    assertThat(model.hoveredNode.value).isNull()
+
+    // move mouse above VIEW1.
+    fakeUi.mouse.moveTo(deviceDisplayRectangle.x + 10, deviceDisplayRectangle.y + 15)
+    fakeUi.mouse.click(deviceDisplayRectangle.x + 10, deviceDisplayRectangle.y + 15)
+
+    fakeUi.render()
+
+    // view should not be selected since we're not intercepting clicks.
+    assertThat(model.hoveredNode.value).isNull()
+    assertThat(model.hoveredNode.value).isNull()
 
     val renderImage = createRenderImage()
-    paint(renderImage, layoutInspectorRenderer)
+    paint(renderImage, renderer)
     assertSimilar(renderImage, testName.methodName)
   }
 
   @Test
-  fun testMouseHoverRegular() {
+  fun testHoveredNode() {
     val parent = BorderLayoutPanel()
-    val layoutInspectorRenderer = createRenderer()
-    parent.add(layoutInspectorRenderer)
+    val (model, renderer) = createRenderer()
+    parent.add(renderer)
     parent.size = screenDimension
-    layoutInspectorRenderer.size = screenDimension
-    val fakeUi = FakeUi(layoutInspectorRenderer)
+    renderer.size = screenDimension
+    val fakeUi = FakeUi(renderer)
 
-    assertThat(renderModel.model.hoveredNode).isNull()
+    renderer.interceptClicks = true
+
+    assertThat(model.hoveredNode.value).isNull()
 
     // move mouse above VIEW1.
     fakeUi.mouse.moveTo(deviceDisplayRectangle.x + 10, deviceDisplayRectangle.y + 15)
 
     fakeUi.render()
 
-    // mouse hover should be disabled when we are not in deep inspect mode.
-    assertThat(renderModel.model.hoveredNode).isNull()
-
-    val file = TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile()
-    val imageBytes = file.readBytes()
-    renderModel.overlayBytes = imageBytes
+    assertThat(model.hoveredNode.value!!.bounds)
+      .isEqualTo(model.inspectorModel[VIEW1]!!.layoutBounds)
 
     val renderImage = createRenderImage()
-    paint(renderImage, layoutInspectorRenderer)
-    assertSimilar(renderImage, testName.methodName)
-  }
-
-  @Test
-  fun testMouseHoverInterceptClicks() {
-    val parent = BorderLayoutPanel()
-    val layoutInspectorRenderer = createRenderer()
-    layoutInspectorRenderer.interceptClicks = true
-    parent.add(layoutInspectorRenderer)
-    parent.size = screenDimension
-    layoutInspectorRenderer.size = screenDimension
-    val fakeUi = FakeUi(layoutInspectorRenderer)
-
-    assertThat(renderModel.model.hoveredNode).isNull()
-
-    // move mouse above VIEW1.
-    fakeUi.mouse.moveTo(deviceDisplayRectangle.x + 10, deviceDisplayRectangle.y + 15)
-
-    fakeUi.render()
-
-    assertThat(renderModel.model.hoveredNode).isEqualTo(renderModel.model[VIEW1])
-
-    val file = TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile()
-    val imageBytes = file.readBytes()
-    renderModel.overlayBytes = imageBytes
-
-    val renderImage = createRenderImage()
-    paint(renderImage, layoutInspectorRenderer)
+    paint(renderImage, renderer)
     assertSimilar(renderImage, testName.methodName)
   }
 
   @Test
   @RunsInEdt
-  fun testMouseClick() {
+  fun testSelectedNode() {
     renderSettings.drawLabel = false
-    val layoutInspectorRenderer = createRenderer()
+    val (model, renderer) = createRenderer()
     val parent = BorderLayoutPanel()
-    parent.add(layoutInspectorRenderer)
+    parent.add(renderer)
     parent.size = screenDimension
-    layoutInspectorRenderer.size = screenDimension
-    layoutInspectorRenderer.interceptClicks = true
+    renderer.size = screenDimension
 
-    val fakeUi = FakeUi(layoutInspectorRenderer)
+    renderer.interceptClicks = true
+
+    val fakeUi = FakeUi(renderer)
 
     fakeUi.render()
 
@@ -359,29 +300,180 @@ class StudioRendererPanelTest {
     fakeUi.render()
     fakeUi.layoutAndDispatchEvents()
 
-    assertThat(renderModel.model.selection).isEqualTo(renderModel.model[VIEW1])
-
-    val file = TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile()
-    val imageBytes = file.readBytes()
-    renderModel.overlayBytes = imageBytes
+    assertThat(model.selectedNode.value!!.bounds)
+      .isEqualTo(model.inspectorModel[VIEW1]!!.layoutBounds)
 
     val renderImage = createRenderImage()
-    paint(renderImage, layoutInspectorRenderer)
+    paint(renderImage, renderer)
     assertSimilar(renderImage, testName.methodName)
+  }
+
+  @Test
+  @RunsInEdt
+  fun testRecomposition() {
+    val recompositionModel =
+      model(disposable) {
+        view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
+          view(VIEW1, 10, 15, 25, 25) { image() }
+          compose(COMPOSE1, "name", x = 10, y = 50, width = 80, height = 50, composeCount = 15)
+        }
+      }
+
+    val window =
+      window(ROOT, ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
+        view(drawId = VIEW1, x = 10, y = 15, width = 25, height = 25) { image() }
+        compose(COMPOSE1, "name", x = 10, y = 50, width = 80, height = 50, composeCount = 100)
+      }
+    // Receive an update with recomposition counts.
+    recompositionModel.update(window, listOf(ROOT), 0)
+
+    treeSettings.showRecompositions = true
+
+    renderSettings.drawLabel = false
+    val (model, renderer) = createRenderer(inspectorModel = recompositionModel)
+    val parent = BorderLayoutPanel()
+    parent.add(renderer)
+    parent.size = screenDimension
+    renderer.size = screenDimension
+
+    renderer.interceptClicks = true
+
+    val fakeUi = FakeUi(renderer)
+
+    fakeUi.render()
+
+    // click mouse above VIEW1.
+    fakeUi.mouse.click(deviceDisplayRectangle.x + 10, deviceDisplayRectangle.y + 15)
+
+    fakeUi.render()
+    fakeUi.layoutAndDispatchEvents()
+
+    assertThat(model.recomposingNodes.value).hasSize(1)
+    assertThat(model.recomposingNodes.value.first().bounds)
+      .isEqualTo(model.inspectorModel[COMPOSE1]!!.layoutBounds)
+
+    val renderImage = createRenderImage()
+    paint(renderImage, renderer)
+    assertSimilar(renderImage, testName.methodName)
+  }
+
+  @Test
+  @RunsInEdt
+  fun testLabel() {
+    val (model, renderer) = createRenderer()
+    val parent = BorderLayoutPanel()
+    parent.add(renderer)
+    parent.size = screenDimension
+    renderer.size = screenDimension
+
+    renderSettings.drawLabel = true
+    renderer.interceptClicks = true
+
+    val fakeUi = FakeUi(renderer)
+
+    fakeUi.render()
+
+    // click mouse above COMPOSE1.
+    fakeUi.mouse.click(deviceDisplayRectangle.x + 10, deviceDisplayRectangle.y + 50)
+
+    fakeUi.render()
+    fakeUi.layoutAndDispatchEvents()
+
+    assertThat(model.selectedNode.value!!.bounds)
+      .isEqualTo(model.inspectorModel[COMPOSE1]!!.layoutBounds)
+
+    val renderImage = createRenderImage()
+    paint(renderImage, renderer)
+    assertSimilar(renderImage, testName.methodName)
+
+    renderSettings.drawLabel = false
+  }
+
+  @Test
+  @RunsInEdt
+  fun testLabelTopOffset() {
+    val (model, renderer) = createRenderer()
+    val parent = BorderLayoutPanel()
+    parent.add(renderer)
+    parent.size = screenDimension
+    renderer.size = screenDimension
+
+    renderSettings.drawLabel = true
+    renderer.interceptClicks = true
+
+    val fakeUi = FakeUi(renderer)
+
+    fakeUi.render()
+
+    // click mouse above ROOT.
+    fakeUi.mouse.click(deviceDisplayRectangle.x + 10, deviceDisplayRectangle.y + 10)
+
+    fakeUi.render()
+    fakeUi.layoutAndDispatchEvents()
+
+    assertThat(model.selectedNode.value!!.bounds)
+      .isEqualTo(model.inspectorModel[ROOT]!!.layoutBounds)
+
+    val renderImage = createRenderImage()
+    paint(renderImage, renderer)
+    assertSimilar(renderImage, testName.methodName)
+
+    renderSettings.drawLabel = false
+  }
+
+  @Test
+  @RunsInEdt
+  fun testLabelLeftOffset() {
+    val customModel =
+      model(disposable) {
+        view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
+          view(drawId = VIEW1, x = -10, y = 15, width = 25, height = 25) { image() }
+          compose(COMPOSE1, "name", x = 10, y = 50, width = 80, height = 50, composeCount = 15)
+        }
+      }
+
+    val (model, renderer) = createRenderer(inspectorModel = customModel)
+    val parent = BorderLayoutPanel()
+    parent.add(renderer)
+    parent.size = screenDimension
+    renderer.size = screenDimension
+
+    renderSettings.drawLabel = true
+    renderer.interceptClicks = true
+
+    val fakeUi = FakeUi(renderer)
+
+    fakeUi.render()
+
+    // click mouse above VIEW1.
+    fakeUi.mouse.click(deviceDisplayRectangle.x + 5, deviceDisplayRectangle.y + 15)
+
+    fakeUi.render()
+    fakeUi.layoutAndDispatchEvents()
+
+    assertThat(model.selectedNode.value!!.bounds)
+      .isEqualTo(model.inspectorModel[VIEW1]!!.layoutBounds)
+
+    val renderImage = createRenderImage()
+    paint(renderImage, renderer)
+    assertSimilar(renderImage, testName.methodName)
+
+    renderSettings.drawLabel = false
   }
 
   @Test
   @RunsInEdt
   fun testMouseDoubleClick() {
     renderSettings.drawLabel = false
-    val layoutInspectorRenderer = createRenderer(renderModel)
+    val (_, renderer) = createRenderer()
     val parent = BorderLayoutPanel()
-    parent.add(layoutInspectorRenderer)
+    parent.add(renderer)
     parent.size = screenDimension
-    layoutInspectorRenderer.size = screenDimension
-    layoutInspectorRenderer.interceptClicks = true
+    renderer.size = screenDimension
 
-    val fakeUi = FakeUi(layoutInspectorRenderer)
+    renderer.interceptClicks = true
+
+    val fakeUi = FakeUi(renderer)
 
     fakeUi.render()
 
@@ -397,12 +489,13 @@ class StudioRendererPanelTest {
   @Test
   @RunsInEdt
   fun testContextMenu() {
-    val layoutInspectorRenderer = createRenderer()
+    val (_, renderer) = createRenderer()
     val parent = BorderLayoutPanel()
-    parent.add(layoutInspectorRenderer)
+    parent.add(renderer)
     parent.size = screenDimension
-    layoutInspectorRenderer.size = screenDimension
-    layoutInspectorRenderer.interceptClicks = true
+    renderer.size = screenDimension
+
+    renderer.interceptClicks = true
 
     var latestPopup: FakeActionPopupMenu? = null
     ApplicationManager.getApplication()
@@ -414,7 +507,7 @@ class StudioRendererPanelTest {
       .whenever(ActionManager.getInstance())
       .createActionPopupMenu(anyString(), any<ActionGroup>())
 
-    val fakeUi = FakeUi(layoutInspectorRenderer)
+    val fakeUi = FakeUi(renderer)
     fakeUi.render()
 
     // Right click on VIEW1 when system views are showing:
@@ -433,10 +526,10 @@ class StudioRendererPanelTest {
     val parent = BorderLayoutPanel()
     parent.addMouseListener(fakeMouseListener)
     parent.addMouseMotionListener(fakeMouseListener)
-    val layoutInspectorRenderer = createRenderer()
-    parent.addToCenter(layoutInspectorRenderer)
+    val (_, renderer) = createRenderer()
+    parent.addToCenter(renderer)
     parent.size = screenDimension
-    layoutInspectorRenderer.size = screenDimension
+    renderer.size = screenDimension
 
     val fakeUi = FakeUi(parent)
     fakeUi.render()
@@ -471,12 +564,12 @@ class StudioRendererPanelTest {
     val parent = BorderLayoutPanel()
     parent.addMouseListener(fakeMouseListener)
     parent.addMouseMotionListener(fakeMouseListener)
-    val layoutInspectorRenderer = createRenderer()
-    parent.addToCenter(layoutInspectorRenderer)
+    val (model, renderer) = createRenderer()
+    parent.addToCenter(renderer)
     parent.size = screenDimension
-    layoutInspectorRenderer.size = screenDimension
+    renderer.size = screenDimension
 
-    layoutInspectorRenderer.interceptClicks = true
+    renderer.interceptClicks = true
 
     val fakeUi = FakeUi(parent)
     fakeUi.render()
@@ -513,24 +606,19 @@ class StudioRendererPanelTest {
       }
     inspectorModelWithLeftBorder.resourceLookup.isRunningInMainDisplay = false
 
-    val renderModel =
-      RenderModel(inspectorModelWithLeftBorder, mock(), treeSettings) { DisconnectedClient }
-    val renderLogic = RenderLogic(renderModel, renderSettings)
-
     val notificationModel = NotificationModel(projectRule.project)
     var seenNotificationIds = listOf<String>()
     notificationModel.notificationListeners.add {
       seenNotificationIds = notificationModel.notifications.map { it.id }
     }
-    val layoutInspectorRenderer =
+    val (_, renderer) =
       createRenderer(
-        renderModel = renderModel,
-        renderLogic = renderLogic,
+        inspectorModel = inspectorModelWithLeftBorder,
         notificationModel = notificationModel,
       )
 
     val renderImage = createRenderImage()
-    paint(renderImage, layoutInspectorRenderer)
+    paint(renderImage, renderer)
 
     assertThat(seenNotificationIds).containsExactly("rendering.in.secondary.display.not.supported")
     notificationModel.notifications
@@ -540,7 +628,7 @@ class StudioRendererPanelTest {
 
     inspectorModelWithLeftBorder.resourceLookup.isRunningInMainDisplay = true
 
-    paint(renderImage, layoutInspectorRenderer)
+    paint(renderImage, renderer)
 
     assertThat(seenNotificationIds).isEmpty()
   }
@@ -548,14 +636,15 @@ class StudioRendererPanelTest {
   @Test
   @RunsInEdt
   fun testDisablingInterceptClicksClearsSelection() {
-    val layoutInspectorRenderer = createRenderer()
+    val (model, renderer) = createRenderer()
     val parent = BorderLayoutPanel()
-    parent.add(layoutInspectorRenderer)
+    parent.add(renderer)
     parent.size = screenDimension
-    layoutInspectorRenderer.size = screenDimension
-    layoutInspectorRenderer.interceptClicks = true
+    renderer.size = screenDimension
 
-    val fakeUi = FakeUi(layoutInspectorRenderer)
+    renderer.interceptClicks = true
+
+    val fakeUi = FakeUi(renderer)
 
     fakeUi.render()
 
@@ -566,37 +655,58 @@ class StudioRendererPanelTest {
     fakeUi.render()
     fakeUi.layoutAndDispatchEvents()
 
-    assertThat(renderModel.model.selection).isEqualTo(renderModel.model[VIEW1])
-    assertThat(renderModel.model.hoveredNode).isEqualTo(renderModel.model[VIEW1])
+    assertThat(model.selectedNode.value!!.bounds)
+      .isEqualTo(model.inspectorModel[VIEW1]!!.layoutBounds)
+    assertThat(model.hoveredNode.value!!.bounds)
+      .isEqualTo(model.inspectorModel[VIEW1]!!.layoutBounds)
 
-    layoutInspectorRenderer.interceptClicks = false
+    renderer.interceptClicks = false
 
-    assertThat(renderModel.model.selection).isNull()
-    assertThat(renderModel.model.hoveredNode).isNull()
+    assertThat(model.selectedNode.value).isNull()
+    assertThat(model.hoveredNode.value).isNull()
   }
 
   @Test
-  @RunsInEdt
-  fun testSelectionListenerRemovedOnDispose() {
-    val layoutInspectorRenderer = createRenderer()
+  fun testOverlayIsRendered() = runTest {
+    val file = resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile()
+    val imageBytes = file.readBytes()
 
-    assertThat(renderModel.model.selectionListeners.size()).isEqualTo(1)
+    val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
 
-    Disposer.dispose(layoutInspectorRenderer)
+    val (model, renderer) = createRenderer(scope = scope)
+    model.setOverlay(imageBytes)
 
-    assertThat(renderModel.model.selectionListeners.size()).isEqualTo(0)
+    testScheduler.advanceUntilIdle()
+
+    val renderImage = createRenderImage()
+    paint(renderImage, renderer)
+    assertSimilar(renderImage, testName.methodName)
   }
 
-  private fun paint(
-    image: BufferedImage,
-    layoutInspectorRenderer: StudioRendererPanel,
-    displayQuadrant: Int = 0,
-  ) {
+  @Test
+  fun testOverlayAlpha() = runTest {
+    val file = resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile()
+    val imageBytes = file.readBytes()
+
+    val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
+
+    val (model, renderer) = createRenderer(scope = scope)
+    model.setOverlay(imageBytes)
+    model.setOverlayTransparency(1f)
+
+    testScheduler.advanceUntilIdle()
+
+    val renderImage = createRenderImage()
+    paint(renderImage, renderer)
+    assertSimilar(renderImage, testName.methodName)
+  }
+
+  private fun paint(image: BufferedImage, renderer: StudioRendererPanel, displayQuadrant: Int = 0) {
     val graphics = image.createGraphics()
     // add a gray background
     graphics.fillRect(
       Rectangle(0, 0, screenDimension.width, screenDimension.height),
-      Color(250, 250, 250),
+      backgroundColor,
     )
     // render the display rectangle in black, the rendering from LI should be overlaid to it.
     graphics.color = Color(0, 0, 0)
@@ -618,27 +728,37 @@ class StudioRendererPanelTest {
     graphics.draw(displayRect)
     graphics.font = ImageDiffTestUtil.getDefaultFont()
 
-    layoutInspectorRenderer.paint(graphics)
+    renderer.paint(graphics)
   }
 
   private fun createRenderer(
-    renderModel: RenderModel = this.renderModel,
-    renderLogic: RenderLogic = this.renderLogic,
+    inspectorModel: InspectorModel = verticalInspectorModel,
     deviceDisplayRectangle: Rectangle = this.deviceDisplayRectangle,
     displayOrientation: Int = 0,
     notificationModel: NotificationModel = NotificationModel(projectRule.project),
-  ): StudioRendererPanel {
-    return StudioRendererPanel(
-      disposable,
-      AndroidCoroutineScope(disposable),
-      renderLogic,
-      renderModel,
-      notificationModel,
-      displayRectangleProvider = { deviceDisplayRectangle },
-      screenScaleProvider = { 1.0 },
-      orientationQuadrantProvider = { displayOrientation },
-      navigateToSelectedViewOnDoubleClick = {},
-    )
+    scope: CoroutineScope = disposable.createCoroutineScope(),
+  ): Pair<EmbeddedRendererModel, StudioRendererPanel> {
+    val renderModel =
+      EmbeddedRendererModel(
+        parentDisposable = disposable,
+        inspectorModel = inspectorModel,
+        treeSettings = treeSettings,
+        renderSettings = renderSettings,
+        navigateToSelectedViewOnDoubleClick = { navigateToSelectedViewInvocations += 1 },
+      )
+
+    val panel =
+      StudioRendererPanel(
+        disposable = disposable,
+        scope = scope,
+        renderModel = renderModel,
+        notificationModel = notificationModel,
+        displayRectangleProvider = { deviceDisplayRectangle },
+        screenScaleProvider = { 1.0 },
+        orientationQuadrantProvider = { displayOrientation },
+      )
+
+    return Pair(renderModel, panel)
   }
 
   private fun createRenderImage(): BufferedImage {
@@ -658,6 +778,25 @@ class StudioRendererPanelTest {
       DIFF_THRESHOLD,
     )
   }
+}
+
+private data class RotationCombination(val displayQuadrant: Int, val deviceRotation: Int)
+
+/** Generates all possible combinations of display quadrants and device rotation */
+private fun generateAllPossibleRotations(
+  displayQuadrants: List<Int>,
+  deviceRotations: List<Int>,
+): List<RotationCombination> {
+  val combinations = mutableListOf<RotationCombination>()
+
+  for (num1 in displayQuadrants) {
+    for (num2 in deviceRotations) {
+      val pair = RotationCombination(num1, num2)
+      combinations.add(pair)
+    }
+  }
+
+  return combinations
 }
 
 class FakeMouseListener : MouseAdapter() {

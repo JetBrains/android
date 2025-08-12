@@ -15,32 +15,42 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 
+import com.android.adblib.utils.createChildScope
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
-import com.android.tools.idea.layoutinspector.model.InspectorModel.SelectionListener
 import com.android.tools.idea.layoutinspector.model.NotificationModel
-import com.android.tools.idea.layoutinspector.model.SelectionOrigin
-import com.android.tools.idea.layoutinspector.ui.RenderLogic
-import com.android.tools.idea.layoutinspector.ui.RenderModel
+import com.android.tools.idea.layoutinspector.ui.HQ_RENDERING_HINTS
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.EditorNotificationPanel
+import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
+import com.intellij.ui.scale.JBUIScale
+import java.awt.AlphaComposite
+import java.awt.BasicStroke
+import java.awt.Color
 import java.awt.Component
 import java.awt.Graphics
 import java.awt.Graphics2D
+import java.awt.Image
 import java.awt.Rectangle
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.geom.AffineTransform
 import java.awt.geom.Point2D
+import java.awt.geom.Rectangle2D
+import java.io.ByteArrayInputStream
+import javax.imageio.ImageIO
 import kotlin.math.abs
 import kotlin.math.max
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+
+private const val RENDERING_NOT_SUPPORTED_ID = "rendering.in.secondary.display.not.supported"
 
 /**
- * Panel responsible for rendering the [RenderModel] into a [Graphics] object and reacting to mouse
- * and keyboard events.
+ * Panel responsible for rendering the [EmbeddedRendererModel] into a [Graphics] object and reacting
+ * to mouse and keyboard events.
  *
  * @param displayRectangleProvider Returns the rectangle of the device screen. In physical pixels.
  *   If used for rendering it needs to be scaled to logical pixels. A Physical pixel corresponds to
@@ -54,36 +64,23 @@ import kotlinx.coroutines.CoroutineScope
  */
 class StudioRendererPanel(
   disposable: Disposable,
-  private val coroutineScope: CoroutineScope,
-  private val renderLogic: RenderLogic,
-  private val renderModel: RenderModel,
+  scope: CoroutineScope,
+  private val renderModel: EmbeddedRendererModel,
   private val notificationModel: NotificationModel,
   private val displayRectangleProvider: () -> Rectangle?,
   private val screenScaleProvider: () -> Double,
   private val orientationQuadrantProvider: () -> Int,
-  private val navigateToSelectedViewOnDoubleClick: () -> Unit,
 ) : LayoutInspectorRenderer() {
 
-  override var interceptClicks = false
-    set(value) {
-      field = value
+  private val childScope = scope.createChildScope()
 
-      if (!value) {
-        // TODO(b/406518519): remove this once this class is refactored to use OnDeviceRendererModel
-        // Clear selection and hover to avoid keeping a selected rectangles in the ui, that would be
-        // un-selectable since clicks are not being intercepted.
-        renderModel.model.setSelection(null, SelectionOrigin.INTERNAL)
-        renderModel.model.hoveredNode = null
-      }
+  override var interceptClicks: Boolean
+    get() = renderModel.interceptClicks.value
+    set(value) {
+      renderModel.setInterceptClicks(value)
     }
 
-  private val repaintDisplayView = { refresh() }
-
-  private val selectionChangedListener = SelectionListener { _, _, _ -> refresh() }
-
-  companion object {
-    private const val RENDERING_NOT_SUPPORTED_ID = "rendering.in.secondary.display.not.supported"
-  }
+  private var overlay: Image? = null
 
   init {
     Disposer.register(disposable, this)
@@ -102,19 +99,170 @@ class StudioRendererPanel(
     }
     addMouseListener(LayoutInspectorPopupHandler())
 
-    // re-render each time Layout Inspector model changes
-    renderModel.modificationListeners.add(repaintDisplayView)
-
-    renderModel.model.addSelectionListener(selectionChangedListener)
+    childScope.launch { renderModel.overlay.collect { updateOverlay(it) } }
+    childScope.launch { renderModel.overlayAlpha.collect { refresh() } }
+    childScope.launch { renderModel.interceptClicks.collect { refresh() } }
+    childScope.launch { renderModel.selectedNode.collect { refresh() } }
+    childScope.launch { renderModel.hoveredNode.collect { refresh() } }
+    childScope.launch { renderModel.visibleNodes.collect { refresh() } }
+    childScope.launch { renderModel.recomposingNodes.collect { refresh() } }
   }
 
-  override fun dispose() {
-    renderModel.modificationListeners.remove(repaintDisplayView)
-    renderModel.model.removeSelectionListener(selectionChangedListener)
+  override fun dispose() {}
+
+  override fun paint(g: Graphics) {
+    super.paint(g)
+
+    val g2d = g.create() as Graphics2D
+    g2d.setRenderingHints(HQ_RENDERING_HINTS)
+
+    // TODO(b/293584238) Remove once we support rendering on multiple displays.
+    if (renderModel.inspectorModel.resourceLookup.isRunningInMainDisplay == false) {
+      showMultiDisplayNotSupportedNotification()
+      // Do no render view bounds, because they would be on the wrong display.
+      return
+    } else {
+      if (notificationModel.hasNotification(RENDERING_NOT_SUPPORTED_ID)) {
+        notificationModel.removeNotification(RENDERING_NOT_SUPPORTED_ID)
+      }
+    }
+
+    val displayRectangle = displayRectangleProvider() ?: return
+
+    // Scale the display rectangle from physical to logical pixels.
+    val physicalToLogicalScale = 1.0 / screenScaleProvider()
+    val scaledDisplayRectangle = displayRectangle.scale(physicalToLogicalScale)
+
+    val transform = getTransform(scaledDisplayRectangle)
+    g2d.transform = g2d.transform.apply { concatenate(transform) }
+
+    // The order of the draw operations matters.
+    if (overlay != null) {
+      val bounds = renderModel.inspectorModel.root.layoutBounds
+      g2d.composite = AlphaComposite.SrcOver.derive(renderModel.overlayAlpha.value)
+      g2d.drawImage(overlay, bounds.x, bounds.y, bounds.width, bounds.height, null)
+    }
+    renderModel.recomposingNodes.value.forEach { it.paint(g2d, fill = true) }
+    renderModel.visibleNodes.value.forEach { it.paint(g2d) }
+    renderModel.hoveredNode.value?.paint(g2d)
+    renderModel.selectedNode.value?.paint(g2d)
   }
 
-  fun clearSelection() {
-    renderModel.clearSelection()
+  /**
+   * Paints this [DrawInstruction] on the [graphics] context. The order of the draw operations in
+   * this function matters.
+   */
+  private fun DrawInstruction.paint(graphics: Graphics2D, fill: Boolean = false) {
+    // Thickness of the bounds.
+    val boundsStrokeThickness = strokeThickness.scale()
+    // Thickness of the outline of the bounds.
+    val outlineStrokeThickness = boundsStrokeThickness / 2
+
+    if (outlineColor != null) {
+      // Draw the outline.
+      graphics.color = JBColor(outlineColor, outlineColor)
+      graphics.stroke = BasicStroke(outlineStrokeThickness)
+      val outlineRect =
+        Rectangle2D.Float(
+          bounds.x - boundsStrokeThickness / 2 - outlineStrokeThickness / 2,
+          bounds.y - boundsStrokeThickness / 2 - outlineStrokeThickness / 2,
+          bounds.width + boundsStrokeThickness + outlineStrokeThickness,
+          bounds.height + boundsStrokeThickness + outlineStrokeThickness,
+        )
+      graphics.draw(outlineRect)
+    }
+
+    // Draw the label.
+    label?.paint(
+      graphics = graphics,
+      nodeBounds = bounds,
+      boundsStrokeThickness = boundsStrokeThickness,
+      outlineStrokeThickness = outlineStrokeThickness,
+      backgroundColor = JBColor(color, color),
+      textColor = JBColor(Color.WHITE, Color.WHITE),
+      outlineColor = outlineColor?.let { JBColor(it, it) },
+    )
+
+    graphics.color = JBColor(color, color)
+    graphics.stroke = BasicStroke(boundsStrokeThickness)
+
+    // Draw the bounds.
+    if (fill) {
+      graphics.fillRect(bounds.x, bounds.y, bounds.width, bounds.height)
+    } else {
+      graphics.drawRect(bounds.x, bounds.y, bounds.width, bounds.height)
+    }
+  }
+
+  /**
+   * Paints this [DrawInstruction.Label] on the [graphics] context. The order of the draw operations
+   * in this function matters.
+   */
+  private fun DrawInstruction.Label.paint(
+    graphics: Graphics2D,
+    nodeBounds: Rectangle,
+    boundsStrokeThickness: Float,
+    outlineStrokeThickness: Float,
+    backgroundColor: Color,
+    textColor: Color,
+    outlineColor: Color?,
+  ) {
+    graphics.font = graphics.font.deriveFont(this.size.scale())
+    val fontMetrics = graphics.fontMetrics
+
+    // Distance between the label text and the label borders.
+    val padding = 8f.scale()
+    val textWidth = fontMetrics.stringWidth(this.text)
+    val textHeight = fontMetrics.maxAscent
+
+    val labelWidth = textWidth + 2 * padding
+    val labelHeight = textHeight + 2 * padding
+
+    var labelLeft = nodeBounds.x - boundsStrokeThickness / 2
+    var labelBottom = nodeBounds.y - boundsStrokeThickness / 2
+    var labelTop = labelBottom - labelHeight
+    var labelRight = labelLeft + labelWidth
+
+    // Use inverse transformation of the bounds to make them match the scale of draw instruction
+    // bounds.
+    val canvasBounds = graphics.transform.createInverse().createTransformedShape(bounds).bounds2D
+
+    if (labelLeft < canvasBounds.x) {
+      // If it extends beyond the left edge of the canvas, move it right so it fits.
+      labelLeft = canvasBounds.x.toFloat()
+      labelRight = labelLeft + labelWidth
+    }
+    if (labelTop < canvasBounds.y) {
+      // If the text goes above the top edge of the canvas, move it down so it fits.
+      labelTop = canvasBounds.y.toFloat()
+      labelBottom = labelTop + labelHeight
+    }
+
+    // Use float rectangle to avoid rounding errors resulting from float to int conversion.
+    val labelBounds =
+      Rectangle2D.Float(labelLeft, labelTop, labelRight - labelLeft, labelBottom - labelTop)
+
+    if (outlineColor != null) {
+      // Draw the outline around the label.
+      graphics.color = outlineColor
+      graphics.stroke = BasicStroke(outlineStrokeThickness)
+      val outlineRect =
+        Rectangle2D.Float(
+          labelBounds.x - outlineStrokeThickness / 2,
+          labelBounds.y - outlineStrokeThickness / 2,
+          labelBounds.width + outlineStrokeThickness,
+          labelBounds.height + outlineStrokeThickness,
+        )
+      graphics.draw(outlineRect)
+    }
+
+    // Draw the label.
+    graphics.color = backgroundColor
+    graphics.fill(labelBounds)
+
+    // Draw the label's text.
+    graphics.color = textColor
+    graphics.drawString(this.text, labelLeft + padding, labelBottom - padding)
   }
 
   private fun refresh() {
@@ -130,7 +278,7 @@ class StudioRendererPanel(
    *   rendered.
    */
   private fun getTransform(displayRectangle: Rectangle): AffineTransform {
-    val layoutInspectorScreenDimension = renderModel.model.screenDimension
+    val layoutInspectorScreenDimension = renderModel.inspectorModel.screenDimension
     // The rectangle containing LI rendering, in device scale.
     val layoutInspectorDisplayRectangle =
       Rectangle(0, 0, layoutInspectorScreenDimension.width, layoutInspectorScreenDimension.height)
@@ -139,7 +287,7 @@ class StudioRendererPanel(
     val orientationQuadrant = orientationQuadrantProvider()
 
     // Make sure that borders and labels are scaled accordingly to the size of the render.
-    renderLogic.renderSettings.scalePercent = (scale * 100).toInt()
+    renderModel.renderSettings.scalePercent = (scale * 100).toInt()
 
     val transform = AffineTransform()
 
@@ -170,69 +318,55 @@ class StudioRendererPanel(
     return transform
   }
 
-  /**
-   * Calculate the scale difference between [displayRectangle] and
-   * [layoutInspectorDisplayRectangle]. This function assumes that the two rectangles are the same
-   * rectangle, at different scale.
-   *
-   * @return A scale such that [layoutInspectorDisplayRectangle] * scale is equal to
-   *   [displayRectangle].
-   */
-  private fun calculateScaleDifference(
-    displayRectangle: Rectangle,
-    layoutInspectorDisplayRectangle: Rectangle,
-  ): Double {
-    // Get the biggest side of both rectangles and use them to calculate the difference in scale.
-    // Using the biggest side makes sure that if the rotation of the two rectangles is not the same,
-    // the scale difference is not affected.
-    val displayMaxSide = max(displayRectangle.width, displayRectangle.height)
-    val layoutInspectorDisplayMaxSide =
-      max(layoutInspectorDisplayRectangle.width, layoutInspectorDisplayRectangle.height)
-
-    return displayMaxSide.toDouble() / layoutInspectorDisplayMaxSide.toDouble()
+  private fun updateOverlay(byteArray: ByteArray?) {
+    if (byteArray != null) {
+      overlay = ImageIO.read(ByteArrayInputStream(byteArray))
+      refresh()
+    }
   }
 
-  override fun paint(g: Graphics) {
-    super.paint(g)
+  private inner class LayoutInspectorPopupHandler : PopupHandler() {
+    override fun invokePopup(comp: Component, x: Int, y: Int) {
+      if (!interceptClicks) return
+      val modelCoordinates =
+        toModelCoordinates(Point2D.Double(x.toDouble(), y.toDouble())) ?: return
+      val views = renderModel.findNodesAt(modelCoordinates.x, modelCoordinates.y)
+      showViewContextMenu(
+        views = views.toList(),
+        inspectorModel = renderModel.inspectorModel,
+        source = this@StudioRendererPanel,
+        x = x,
+        y = y,
+      )
+    }
+  }
 
-    val g2d = g.create() as Graphics2D
+  private inner class LayoutInspectorMouseListener(private val renderModel: EmbeddedRendererModel) :
+    MouseAdapter() {
+    override fun mouseClicked(e: MouseEvent) {
+      if (e.isConsumed || !interceptClicks) return
 
-    // TODO(b/293584238) Remove once we support rendering on multiple displays.
-    val notificationId = RENDERING_NOT_SUPPORTED_ID
-    if (renderModel.model.resourceLookup.isRunningInMainDisplay == false) {
-      if (!notificationModel.hasNotification(notificationId)) {
-        notificationModel.addNotification(
-          id = notificationId,
-          text = LayoutInspectorBundle.message(notificationId),
-          status = EditorNotificationPanel.Status.Warning,
-          actions = emptyList(),
-        )
-      }
-      // Do no render view bounds, because they would be on the wrong display.
-      return
-    } else {
-      if (notificationModel.hasNotification(notificationId)) {
-        notificationModel.removeNotification(notificationId)
+      val modelCoordinates = toModelCoordinates(e.coordinates()) ?: return
+      renderModel.selectNode(modelCoordinates.x, modelCoordinates.y)
+
+      if (e.clickCount == 2 && e.button == MouseEvent.BUTTON1) {
+        renderModel.doubleClickNode(modelCoordinates.x, modelCoordinates.y)
       }
     }
 
-    val displayRectangle = displayRectangleProvider() ?: return
+    override fun mouseMoved(e: MouseEvent) {
+      if (e.isConsumed || !interceptClicks) return
 
-    // Scale the display rectangle from physical to logical pixels.
-    val physicalToLogicalScale = 1.0 / screenScaleProvider()
-    val scaledDisplayRectangle = displayRectangle.scale(physicalToLogicalScale)
+      val modelCoordinates = toModelCoordinates(e.coordinates()) ?: return
 
-    val transform = getTransform(scaledDisplayRectangle)
-    g2d.transform = g2d.transform.apply { concatenate(transform) }
-
-    renderLogic.renderBorders(g2d, this, foreground)
-    renderLogic.renderOverlay(g2d)
+      renderModel.hoverNode(modelCoordinates.x, modelCoordinates.y)
+    }
   }
 
   /** Transform panel coordinates to model coordinates. */
   private fun toModelCoordinates(originalCoordinates: Point2D): Point2D? {
     // TODO(b/293584238) Remove once we support rendering on multiple displays.
-    if (renderModel.model.resourceLookup.isRunningInMainDisplay == false) {
+    if (renderModel.inspectorModel.resourceLookup.isRunningInMainDisplay == false) {
       // Do no render provide coordinates, because they would be on the wrong display.
       return null
     }
@@ -247,44 +381,38 @@ class StudioRendererPanel(
     return transformedPoint2D
   }
 
-  private inner class LayoutInspectorPopupHandler : PopupHandler() {
-    override fun invokePopup(comp: Component, x: Int, y: Int) {
-      if (!interceptClicks) return
-      val modelCoordinates =
-        toModelCoordinates(Point2D.Double(x.toDouble(), y.toDouble())) ?: return
-      val views = renderModel.findViewsAt(modelCoordinates.x, modelCoordinates.y)
-      showViewContextMenu(views.toList(), renderModel.model, this@StudioRendererPanel, x, y)
-    }
+  private fun Float.scale(): Float {
+    return JBUIScale.scale(this) / renderModel.renderSettings.scaleFraction.toFloat()
   }
 
-  private inner class LayoutInspectorMouseListener(private val renderModel: RenderModel) :
-    MouseAdapter() {
-    override fun mouseClicked(e: MouseEvent) {
-      if (e.isConsumed || !interceptClicks) return
-
-      val modelCoordinates = toModelCoordinates(e.coordinates()) ?: return
-      renderModel.selectView(modelCoordinates.x, modelCoordinates.y)
-
-      if (e.clickCount == 2 && e.button == MouseEvent.BUTTON1) {
-        navigateToSelectedViewOnDoubleClick()
-      }
-
-      refresh()
-    }
-
-    override fun mouseMoved(e: MouseEvent) {
-      if (e.isConsumed || !interceptClicks) return
-
-      val modelCoordinates = toModelCoordinates(e.coordinates()) ?: return
-
-      val hoveredNodeDrawInfo =
-        renderModel.findDrawInfoAt(modelCoordinates.x, modelCoordinates.y).firstOrNull()
-      renderModel.model.hoveredNode =
-        hoveredNodeDrawInfo?.node?.findFilteredOwner(renderModel.treeSettings)
-
-      refresh()
+  private fun showMultiDisplayNotSupportedNotification() {
+    if (!notificationModel.hasNotification(RENDERING_NOT_SUPPORTED_ID)) {
+      notificationModel.addNotification(
+        id = RENDERING_NOT_SUPPORTED_ID,
+        text = LayoutInspectorBundle.message(RENDERING_NOT_SUPPORTED_ID),
+        status = EditorNotificationPanel.Status.Warning,
+        actions = emptyList(),
+      )
     }
   }
+}
+
+/**
+ * Calculate the scale difference between [displayRectangle] and [layoutInspectorDisplayRectangle].
+ * This function assumes that the two rectangles are the same rectangle, at different scale.
+ */
+private fun calculateScaleDifference(
+  displayRectangle: Rectangle,
+  layoutInspectorDisplayRectangle: Rectangle,
+): Double {
+  // Get the biggest side of both rectangles and use them to calculate the difference in scale.
+  // Using the biggest side makes sure that if the rotation of the two rectangles is not the same,
+  // the scale difference is not affected.
+  val displayMaxSide = max(displayRectangle.width, displayRectangle.height)
+  val layoutInspectorDisplayMaxSide =
+    max(layoutInspectorDisplayRectangle.width, layoutInspectorDisplayRectangle.height)
+
+  return displayMaxSide.toDouble() / layoutInspectorDisplayMaxSide.toDouble()
 }
 
 private fun Rectangle.scale(physicalToLogicalScale: Double): Rectangle {

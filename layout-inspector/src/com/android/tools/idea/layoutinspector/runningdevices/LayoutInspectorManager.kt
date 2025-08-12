@@ -26,7 +26,6 @@ import com.android.tools.idea.layoutinspector.runningdevices.ui.SelectedTabState
 import com.android.tools.idea.layoutinspector.runningdevices.ui.TabComponents
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.EmbeddedRendererModel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.LayoutInspectorRenderer
-import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.NewStudioRendererPanel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.OnDeviceRendererPanel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.StudioRendererPanel
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
@@ -350,8 +349,7 @@ private fun Project.getLayoutInspector(): LayoutInspector {
 
 data class RenderingComponents(
   val renderer: LayoutInspectorRenderer,
-  // TODO(b/433223949): replace with EmbeddedRendererModel
-  val model: OverlayHost,
+  val model: EmbeddedRendererModel,
 )
 
 @VisibleForTesting
@@ -366,19 +364,19 @@ fun createRendererPanel(
 
   statsProvider().setOnDeviceRendering(useOnDeviceRendering)
 
-  return if (useOnDeviceRendering) {
-    val renderModel =
-      EmbeddedRendererModel(
-        parentDisposable = tabComponents,
-        inspectorModel = layoutInspector.inspectorModel,
-        treeSettings = layoutInspector.treeSettings,
-        renderSettings = layoutInspector.renderSettings,
-        navigateToSelectedViewOnDoubleClick = {
-          layoutInspector.navigateToSelectedViewFromRendererDoubleClick()
-        },
-      )
+  val renderModel =
+    EmbeddedRendererModel(
+      parentDisposable = tabComponents,
+      inspectorModel = layoutInspector.inspectorModel,
+      treeSettings = layoutInspector.treeSettings,
+      renderSettings = layoutInspector.renderSettings,
+      navigateToSelectedViewOnDoubleClick = {
+        layoutInspector.navigateToSelectedViewFromRendererDoubleClick()
+      },
+    )
 
-    val renderer =
+  val renderer =
+    if (useOnDeviceRendering) {
       OnDeviceRendererPanel(
         disposable = tabComponents,
         scope = layoutInspector.coroutineScope,
@@ -387,72 +385,27 @@ fun createRendererPanel(
           tabComponents.displayView.rightClicksAreSentToDevice = enable
         },
       )
-
-    RenderingComponents(renderer, renderModel)
-  } else {
-    if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_V2_RENDERING.get()) {
-      val renderModel =
-        EmbeddedRendererModel(
-          parentDisposable = tabComponents,
-          inspectorModel = layoutInspector.inspectorModel,
-          treeSettings = layoutInspector.treeSettings,
-          renderSettings = layoutInspector.renderSettings,
-          navigateToSelectedViewOnDoubleClick = {
-            layoutInspector.navigateToSelectedViewFromRendererDoubleClick()
-          },
-        )
-
-      val renderer =
-        NewStudioRendererPanel(
-          disposable = tabComponents,
-          scope = layoutInspector.coroutineScope,
-          renderModel = renderModel,
-          notificationModel = layoutInspector.notificationModel,
-          displayRectangleProvider = { tabComponents.displayView.displayRectangle },
-          screenScaleProvider = { tabComponents.displayView.screenScalingFactor },
-          orientationQuadrantProvider = {
-            calculateRotationCorrection(
-              layoutInspector.inspectorModel,
-              displayOrientationQuadrant = {
-                tabComponents.displayView.displayOrientationQuadrants
-              },
-              displayOrientationQuadrantCorrection = {
-                tabComponents.displayView.displayOrientationCorrectionQuadrants
-              },
-            )
-          },
-        )
-
-      RenderingComponents(renderer, renderModel)
     } else {
-      val renderer =
-        StudioRendererPanel(
-          disposable = tabComponents,
-          coroutineScope = layoutInspector.coroutineScope,
-          renderLogic = layoutInspector.renderLogic,
-          renderModel = layoutInspector.renderModel,
-          notificationModel = layoutInspector.notificationModel,
-          displayRectangleProvider = { tabComponents.displayView.displayRectangle },
-          screenScaleProvider = { tabComponents.displayView.screenScalingFactor },
-          orientationQuadrantProvider = {
-            calculateRotationCorrection(
-              layoutInspector.inspectorModel,
-              displayOrientationQuadrant = {
-                tabComponents.displayView.displayOrientationQuadrants
-              },
-              displayOrientationQuadrantCorrection = {
-                tabComponents.displayView.displayOrientationCorrectionQuadrants
-              },
-            )
-          },
-          navigateToSelectedViewOnDoubleClick = {
-            layoutInspector.navigateToSelectedViewFromRendererDoubleClick()
-          },
-        )
-
-      RenderingComponents(renderer, layoutInspector.renderModel)
+      StudioRendererPanel(
+        disposable = tabComponents,
+        scope = layoutInspector.coroutineScope,
+        renderModel = renderModel,
+        notificationModel = layoutInspector.notificationModel,
+        displayRectangleProvider = { tabComponents.displayView.displayRectangle },
+        screenScaleProvider = { tabComponents.displayView.screenScalingFactor },
+        orientationQuadrantProvider = {
+          calculateRotationCorrection(
+            layoutInspector.inspectorModel,
+            displayOrientationQuadrant = { tabComponents.displayView.displayOrientationQuadrants },
+            displayOrientationQuadrantCorrection = {
+              tabComponents.displayView.displayOrientationCorrectionQuadrants
+            },
+          )
+        },
+      )
     }
-  }
+
+  return RenderingComponents(renderer, renderModel)
 }
 
 private fun LayoutInspector.navigateToSelectedViewFromRendererDoubleClick() {
@@ -520,18 +473,4 @@ fun calculateRotationCorrection(
   // The difference in quadrant rotation between Layout Inspector rendering and the Running Devices
   // rendering.
   return (layoutInspectorDisplayOrientationQuadrant - displayRectangleOrientationQuadrant).mod(4)
-}
-
-/**
- * Temporary interface used to mark an object that hosts an overlay. This interface must be removed
- * once embedded Layout Inspector fully migrates to [EmbeddedRendererModel] and the flag
- * DYNAMIC_LAYOUT_INSPECTOR_ENABLE_V2_RENDERING is removed.
- */
-// TODO(b/433223949): remove interface
-interface OverlayHost {
-  fun setOverlay(image: ByteArray?)
-
-  fun getOverlay(): ByteArray?
-
-  fun setOverlayTransparency(alpha: Float)
 }

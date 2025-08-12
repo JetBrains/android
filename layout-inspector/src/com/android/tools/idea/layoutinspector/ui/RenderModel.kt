@@ -21,7 +21,6 @@ import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
-import com.android.tools.idea.layoutinspector.runningdevices.OverlayHost
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_ALPHA_VALUE
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_LAYER_SPACING
@@ -57,7 +56,7 @@ class RenderModel(
   val notificationModel: NotificationModel,
   val treeSettings: TreeSettings,
   val currentClientProvider: () -> InspectorClient,
-) : OverlayHost {
+) {
   /**
    * The last rendered level hovered over. This is different from [InspectorModel.hoveredNode],
    * since this differentiates between different layers owned by the same ViewNode.
@@ -436,19 +435,4 @@ class RenderModel(
 
   /** Fire the modification listeners manually. */
   fun fireModified() = modificationListeners.forEach { it() }
-
-  // TODO(b/433223949): remove
-  override fun setOverlay(image: ByteArray?) {
-    overlayBytes = image
-  }
-
-  // TODO(b/433223949): remove
-  override fun getOverlay(): ByteArray? {
-    return overlayBytes
-  }
-
-  // TODO(b/433223949): remove
-  override fun setOverlayTransparency(alpha: Float) {
-    overlayAlpha = alpha
-  }
 }

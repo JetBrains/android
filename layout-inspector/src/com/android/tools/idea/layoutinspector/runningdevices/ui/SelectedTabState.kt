@@ -216,9 +216,8 @@ data class SelectedTabState(
   ): JComponent {
     val toggleDeepInspectAction =
       ToggleDeepInspectAction(
-        // TODO(b/433223949): set on the model directly once StudioRendererPanel is removed
-        isSelected = { renderingComponents.renderer.interceptClicks },
-        setSelected = { renderingComponents.renderer.interceptClicks = it },
+        isSelected = { renderingComponents.model.interceptClicks.value },
+        setSelected = { renderingComponents.model.setInterceptClicks(it) },
         isRendering = { layoutInspector.renderModel.isActive },
         connectedClientProvider = { layoutInspector.currentClient },
       )
@@ -247,7 +246,7 @@ data class SelectedTabState(
         listOf(
           OverlayActionGroup(
             inspectorModel = layoutInspector.inspectorModel,
-            getImage = { renderingComponents.model.getOverlay() },
+            getImage = { renderingComponents.model.overlay.value },
             setImage = { renderingComponents.model.setOverlay(it) },
             setAlpha = { renderingComponents.model.setOverlayTransparency(it) },
           )
@@ -306,8 +305,7 @@ data class SelectedTabState(
     // are invoked.
     if (!project.isDisposed) {
       layoutInspector.inspectorClientSettings.inLiveMode = true
-      // TODO(b/433223949): set on the model directly once StudioRendererPanel is removed
-      renderingComponents.renderer.interceptClicks = false
+      renderingComponents.model.setInterceptClicks(false)
     }
   }
 
