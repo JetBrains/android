@@ -745,8 +745,13 @@ MODULE                        : project
                         releaseWearApp                : <empty>
                         releaseWearBundling           : <empty>
                         runtimeOnly                   : <empty>
+                        test1AnnotationProcessor      : <empty>
+                        test1CompileClasspath         : <empty>
+                        test1CompileOnly              : <empty>
+                        test1Implementation           : <empty>
+                        test1RuntimeClasspath         : <empty>
+                        test1RuntimeOnly              : <empty>
                         testAnnotationProcessor       : <empty>
-                        testCompileClasspath          : <empty>
                         testCompileOnly               : <empty>
                         testDebugAnnotationProcessor  : <empty>
                         testDebugCompileOnly          : <empty>
@@ -780,7 +785,6 @@ MODULE                        : project
                         testReleaseImplementation     : <empty>
                         testReleaseRuntimeOnly        : <empty>
                         testReleaseWearApp            : <empty>
-                        testRuntimeClasspath          : <empty>
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>

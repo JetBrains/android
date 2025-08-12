@@ -129,13 +129,11 @@ enum class TestProject(
     testName = "additionalGradleSourceSets",
     patch = { root ->
       val buildFile = root.resolve("app").resolve("build.gradle")
-      buildFile.writeText(
-        buildFile.readText() + """
-          
-          sourceSets {
-            test.resources.srcDirs += 'src/test/resources'
-          }
-        """.trimIndent()
+      buildFile.writeText(buildFile.readText() + "\n\n" +
+        "sourceSets {\n" +
+        "    def newJavaSourceSet = create(\"test1\")\n" +
+        "    newJavaSourceSet.resources.srcDirs += 'src/test/resources'\n" +
+        "}\n"
       )
     }
   ),
