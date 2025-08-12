@@ -28,7 +28,6 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.BuildEnvironment
-import com.android.tools.idea.testing.TestProjectPaths.MIGRATE_BUILD_CONFIG
 import com.android.tools.idea.testing.TestProjectPaths.MINIMAL_CATALOG_APPLICATION
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_DECLARATIVE
@@ -855,7 +854,7 @@ class PluginsHelperTest{
 
   @Test
   fun testSmartAddPluginNoCatalogPluginsBlock() {
-    doTest(MIGRATE_BUILD_CONFIG,
+    doTest(SIMPLE_APPLICATION_PLUGINS_DSL,
            { _, moduleModel, helper ->
              val changed = helper.addPluginOrClasspath("com.google.gms.google-services",
                                                        "com.google.gms:google-services",
