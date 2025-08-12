@@ -45,8 +45,6 @@ class PropertyValueConverterTest {
          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
            <application>
              <property android:name="com.google.wear.watchface.format.version" android:value="" />
-             <property android:name="" android:value="" />
-             <property android:value="" />
            </application>
          </manifest>
        """
