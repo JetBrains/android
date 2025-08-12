@@ -15,48 +15,57 @@
  */
 package com.android.tools.idea.gradle.refactoring;
 
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED;
+import static com.android.tools.idea.testing.AndroidGradleProjectRuleKt.onEdt;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleProjectRule;
+import com.android.tools.idea.testing.EdtAndroidGradleProjectRule;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
+import com.intellij.testFramework.RunsInEdt;
 import java.io.File;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 /**
  * Tests for {@link GradleAwareSourceRootRenameValidator}.
  */
-public class GradleAwareSourceRootRenameValidatorTest extends AndroidGradleTestCase {
+@RunsInEdt
+public class GradleAwareSourceRootRenameValidatorTest {
+  AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
+  @Rule
+  public EdtAndroidGradleProjectRule rule = onEdt(projectRule);
+
   private GradleAwareSourceRootRenameValidator myValidator;
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @Before
+  public void setup() throws Exception {
     myValidator = new GradleAwareSourceRootRenameValidator();
   }
 
-  public void testIsInputValid() throws Exception {
+  @Test
+  public void testIsInputValid() {
     verifyErrorMessage();
   }
 
-  private void verifyErrorMessage() throws Exception {
-    loadSimpleApplication();
+  private void verifyErrorMessage() {
+    projectRule.loadProject(SIMPLE_APPLICATION);
     // Generate buildConfig.
-    requestSyncAndWait(new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED));
-    generateSources();
+    projectRule.generateSources();
 
-    Project project = getProject();
+    Project project = projectRule.getProject();
     File sourceRoot = new File(project.getBasePath(), "app/build/generated/source/buildConfig/debug");
-    PsiDirectory psiElement = PsiManager.getInstance(getProject()).findDirectory(
+    PsiDirectory psiElement = PsiManager.getInstance(project).findDirectory(
       LocalFileSystem.getInstance().refreshAndFindFileByIoFile(sourceRoot));
     String newName = "debug1";
 
     // Call validator.
     myValidator.isInputValid(newName, psiElement, null);
     // Verify that warning message is shown.
-    assertNotNull(myValidator.getErrorMessage(newName, project));
+    assertThat(myValidator.getErrorMessage(newName, project)).isNotNull();
   }
 }

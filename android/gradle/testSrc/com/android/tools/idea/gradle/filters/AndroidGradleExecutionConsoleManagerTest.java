@@ -18,12 +18,12 @@ package com.android.tools.idea.gradle.filters;
 import static com.android.tools.idea.gradle.filters.AndroidGradleExecutionConsoleManager.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.getConsoleManagerFor;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import com.android.tools.idea.gradle.filters.AndroidGradleExecutionConsoleManager.AndroidReRunSyncFilter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.IdeComponents;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.filters.Filter;
@@ -46,12 +46,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.execution.filters.ReRunSyncFilter;
 import org.jetbrains.plugins.gradle.service.execution.GradleExternalTaskConfigurationType;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
+import org.junit.Rule;
+import org.junit.Test;
 
 /**
  * Test class for {@link AndroidGradleExecutionConsoleManager}.
  */
-public class AndroidGradleExecutionConsoleManagerTest extends AndroidGradleTestCase {
-  @SuppressWarnings("UnstableApiUsage")
+public class AndroidGradleExecutionConsoleManagerTest {
+  @Rule
+  public AndroidProjectRule projectRule = AndroidProjectRule.inMemory();
+
+  @Test
   public void testGetConsoleManager() {
     ExternalSystemTask resolveProjectTask = createResolveProjectTask();
     assertThat(getConsoleManagerFor(resolveProjectTask)).isInstanceOf(AndroidGradleExecutionConsoleManager.class);
@@ -60,6 +65,7 @@ public class AndroidGradleExecutionConsoleManagerTest extends AndroidGradleTestC
     assertThat(getConsoleManagerFor(executeTaskTask)).isNotInstanceOf(AndroidGradleExecutionConsoleManager.class);
   }
 
+  @Test
   public void testGetHyperLinkInfo() {
     AndroidReRunSyncFilter filter = new AndroidReRunSyncFilter("");
 
@@ -71,8 +77,9 @@ public class AndroidGradleExecutionConsoleManagerTest extends AndroidGradleTestC
     List<HyperlinkInfo> hyperLinks = ContainerUtil.map(result.getResultItems(), item -> item.getHyperlinkInfo());
     assertThat(hyperLinks).hasSize(3);
 
-    Project project = getProject();
-    GradleSyncInvoker syncInvoker = new IdeComponents(project).mockApplicationService(GradleSyncInvoker.class);
+    Project project = projectRule.getProject();
+    GradleSyncInvoker syncInvoker = mock(GradleSyncInvoker.class);
+    projectRule.replaceService(GradleSyncInvoker.class, syncInvoker);
 
     // Click the second hyperlink - "Run with --info"
     hyperLinks.get(1).navigate(project);
@@ -84,6 +91,7 @@ public class AndroidGradleExecutionConsoleManagerTest extends AndroidGradleTestC
     assertThat(project.getUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY)).asList().containsExactly("--info");
   }
 
+  @Test
   public void testGetCustomContextActionsAndFilters() {
     var disposable = Disposer.newDisposable("ApplicationServiceRule");
     try {
@@ -91,10 +99,10 @@ public class AndroidGradleExecutionConsoleManagerTest extends AndroidGradleTestC
       var consoleManager = getConsoleManagerFor(resolveProjectTask);
       assertThat(consoleManager).isInstanceOf(AndroidGradleExecutionConsoleManager.class);
       var environment = new ExecutionEnvironment();
-      var filters = consoleManager.getCustomExecutionFilters(getProject(), resolveProjectTask, environment);
+      var filters = consoleManager.getCustomExecutionFilters(projectRule.getProject(), resolveProjectTask, environment);
       assertThat(filters.length).isEqualTo(1);
       assertThat(filters[0]).isInstanceOf(ReRunSyncFilter.class);
-      var actions = consoleManager.getCustomContextActions(getProject(), resolveProjectTask, environment);
+      var actions = consoleManager.getCustomContextActions(projectRule.getProject(), resolveProjectTask, environment);
       assertThat(actions.length).isEqualTo(1);
       assertThat(ActionManager.getInstance().getId(actions[0])).isEqualTo("Android.BuildTree.AdditionalActions");
       assertThat(actions[0]).isInstanceOf(ActionGroup.class);
@@ -107,9 +115,9 @@ public class AndroidGradleExecutionConsoleManagerTest extends AndroidGradleTestC
   @NotNull
   private ExternalSystemTask createResolveProjectTask() {
     ExternalSystemTask resolveProjectTask = new ExternalSystemResolveProjectTask(
-      getProject(),
+      projectRule.getProject(),
       "/some/project/path",
-      new ImportSpecImpl(getProject(), GradleConstants.SYSTEM_ID)
+      new ImportSpecImpl(projectRule.getProject(), GradleConstants.SYSTEM_ID)
     );
     return resolveProjectTask;
   }
@@ -129,9 +137,9 @@ public class AndroidGradleExecutionConsoleManagerTest extends AndroidGradleTestC
     };
     ConfigurationFactory gradleConfigFactory = GradleExternalTaskConfigurationType.getInstance().getFactory();
     return new ExternalSystemExecuteTaskTask(
-      getProject(),
+      projectRule.getProject(),
       settings,
       null,
-      new ExternalSystemRunConfiguration(GradleConstants.SYSTEM_ID, getProject(), gradleConfigFactory, "TestConfigurationName"));
+      new ExternalSystemRunConfiguration(GradleConstants.SYSTEM_ID, projectRule.getProject(), gradleConfigFactory, "TestConfigurationName"));
   }
 }

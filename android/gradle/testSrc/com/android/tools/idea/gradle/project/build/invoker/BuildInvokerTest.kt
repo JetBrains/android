@@ -20,8 +20,7 @@ import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildListener
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.util.BuildMode
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.IdeComponents
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
@@ -31,17 +30,23 @@ import com.intellij.build.events.FinishBuildEvent
 import com.intellij.build.events.StartBuildEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.ProgressIndicatorProvider
+import com.intellij.testFramework.replaceService
 import java.io.File
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+import org.junit.Rule
+import org.junit.Test
 
 /**
  * Tests for making sure that [org.gradle.tooling.BuildAction] is run when passed to [GradleBuildInvoker].
  */
-class BuildInvokerTest : AndroidGradleTestCase() {
+class BuildInvokerTest {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+  val project by lazy { projectRule.project }
 
-  @Throws(Exception::class)
+  @Test
   fun testBuildWithBuildAction() {
     var enabled = false
 
@@ -52,7 +57,7 @@ class BuildInvokerTest : AndroidGradleTestCase() {
     var gradleBuildStateBuildFinishedNotificationReceived = false
 
     // Replace BuildViewManager service before loading a project, but leave it inactive until later moment.
-    IdeComponents(project).replaceProjectService(
+    project.replaceService(
       BuildViewManager::class.java,
       object : BuildViewManager(project) {
         override fun onEvent(buildId: Any, event: BuildEvent) {
@@ -73,9 +78,10 @@ class BuildInvokerTest : AndroidGradleTestCase() {
             }
           }
         }
-      })
+      },
+      projectRule.fixture.testRootDisposable)
 
-    loadProject(SIMPLE_APPLICATION)
+    projectRule.loadProject(SIMPLE_APPLICATION)
     enabled = true
 
     // Subscribe to GradleBuildState notifications.

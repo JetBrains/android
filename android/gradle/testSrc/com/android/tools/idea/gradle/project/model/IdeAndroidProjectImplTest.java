@@ -19,12 +19,11 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl;
 import com.android.tools.idea.gradle.project.sync.ModelCacheKt;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 
 /** Tests for {@link IdeAndroidProjectImpl}. */
-public class IdeAndroidProjectImplTest extends AndroidGradleTestCase {
+public class IdeAndroidProjectImplTest {
 
     @Test
     public void testDefaultVariantHeuristicTest_allVariantsRemoved() {

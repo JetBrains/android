@@ -16,26 +16,36 @@
 package com.android.tools.idea.gradle.project.build.invoker;
 
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.injectBuildOutputDumpingBuildViewManager;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.project.Project;
 import java.io.File;
+import org.junit.Rule;
+import org.junit.Test;
 
 /**
  * Tests for making sure that {@link org.gradle.tooling.BuildAction} is run when passed to {@link GradleBuildInvoker}.
  */
-public class BuildActionInvokerTest extends AndroidGradleTestCase {
+public class BuildActionInvokerTest {
+  @Rule
+  public AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
+  
+  @Test
   public void testBuildWithBuildAction() throws Exception {
-    loadSimpleApplication();
-
-    GradleBuildInvokerImpl invoker = (GradleBuildInvokerImpl)GradleBuildInvoker.getInstance(getProject());
-    injectBuildOutputDumpingBuildViewManager(getProject(), getProject());
+    projectRule.loadProject(SIMPLE_APPLICATION);
+    Project project = projectRule.getProject();
+    
+    GradleBuildInvokerImpl invoker = (GradleBuildInvokerImpl)GradleBuildInvoker.getInstance(project);
+    injectBuildOutputDumpingBuildViewManager(project, projectRule.getFixture().getTestRootDisposable());
     Object model = invoker
       .executeTasks(
         new GradleBuildInvoker.Request.Builder(
-          getProject(),
-          new File(getProject().getBasePath()),
+          project,
+          new File(project.getBasePath()),
           ImmutableList.of("assembleDebug"),
           null
         )
@@ -44,6 +54,6 @@ public class BuildActionInvokerTest extends AndroidGradleTestCase {
         new TestBuildAction()
       ).get().getModel();
 
-    assertEquals("test", model);
+    assertThat(model).isEqualTo("test");
   }
 }

@@ -17,27 +17,32 @@ package com.android.tools.idea.gradle.project.build;
 
 import static com.android.tools.idea.gradle.project.build.BuildStatus.SUCCESS;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.intellij.openapi.module.ModuleManager;
+import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Rule;
+import org.junit.Test;
 
 /**
  * Tests for {@link GradleBuildState}.
  */
-public class GradleBuildStateIntegrationTest extends AndroidGradleTestCase {
+public class GradleBuildStateIntegrationTest {
+  @Rule
+  public AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
 
+  @Test
   public void testEventsReceived() throws Exception {
-    loadSimpleApplication();
+    projectRule.loadProject(SIMPLE_APPLICATION);
 
     BuildContext[] contexts = new BuildContext[2];
     Ref<BuildStatus> statusRef = new Ref<>();
 
-    Project project = getProject();
+    Project project = projectRule.getProject();
     GradleBuildState.subscribe(project, new GradleBuildListener.Adapter() {
       @Override
       public void buildStarted(@NotNull BuildContext context) {
@@ -51,24 +56,24 @@ public class GradleBuildStateIntegrationTest extends AndroidGradleTestCase {
       }
     });
 
-    invokeGradle(project, invoker -> invoker.generateSources(ModuleManager.getInstance(getProject()).getModules()));
+    projectRule.generateSources();
 
     GradleBuildState buildState = GradleBuildState.getInstance(project);
-    assertFalse(buildState.isBuildInProgress());
-    assertNull(buildState.getRunningBuildContext());
+    assertThat(buildState.isBuildInProgress()).isFalse();
+    assertThat(buildState.getRunningBuildContext()).isNull();
 
     BuildContext context1 = contexts[0];
-    assertNotNull(context1);
+    assertThat(context1).isNotNull();
 
-    assertSame(SOURCE_GEN, context1.getBuildMode());
-    assertSame(project, context1.getProject());
+    assertThat(context1.getBuildMode()).isSameAs(SOURCE_GEN);
+    assertThat(context1.getProject()).isSameAs(project);
     assertThat(context1.getGradleTasks()).contains(":app:generateDebugSources");
 
-    assertSame(context1, contexts[1]); // initial context and final context should be the same,
+    assertThat(contexts[1]).isSameAs(context1); // initial context and final context should be the same,
 
     BuildSummary summary = buildState.getLastFinishedBuildSummary();
-    assertNotNull(summary);
-    assertSame(context1, summary.getContext());
-    assertSame(SUCCESS, summary.getStatus());
+    assertThat(summary).isNotNull();
+    assertThat(summary.getContext()).isSameAs(context1);
+    assertThat(summary.getStatus()).isSameAs(SUCCESS);
   }
 }

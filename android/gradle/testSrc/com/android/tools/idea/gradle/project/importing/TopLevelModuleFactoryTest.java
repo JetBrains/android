@@ -16,11 +16,10 @@
 package com.android.tools.idea.gradle.project.importing;
 
 import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
@@ -29,27 +28,37 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import java.io.File;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestRule;
 
 /**
  * Tests for {@link TopLevelModuleFactory}.
  */
-public class TopLevelModuleFactoryTest extends AndroidGradleTestCase {
+@RunsInEdt
+public class TopLevelModuleFactoryTest {
+  AndroidProjectRule projectRule = AndroidProjectRule.withAndroidModels();
+  @Rule
+  public TestRule rule = RuleChain.outerRule(projectRule).around(new EdtRule());
+
   private TopLevelModuleFactory myTopLevelModuleFactory;
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-
+  @Before
+  public void setup() throws Exception {
     myTopLevelModuleFactory = new TopLevelModuleFactory();
   }
 
+  @Test
   public void testCreateTopLevelModule() throws Exception {
-    File projectRootFolderPath = prepareProjectForImport(SIMPLE_APPLICATION);
-
-    Project project = getProject();
+    Project project = projectRule.getProject();
+    File projectRootFolderPath = new File(project.getBasePath());
     GradleProjectImporter.Companion.configureNewProject(project);
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     Module[] modules = moduleManager.getModules();
@@ -62,23 +71,23 @@ public class TopLevelModuleFactoryTest extends AndroidGradleTestCase {
     // Verify we have a top-level module.
     assertThat(modules).hasLength(1);
     Module module = modules[0];
-    assertEquals(getProject().getName(), module.getName());
+    assertThat(module.getName()).isEqualTo(project.getName());
     File moduleFilePath = AndroidRootUtil.findModuleRootFolderPath(module);
-    assertEquals(projectRootFolderPath.getPath(), moduleFilePath.getPath());
+    assertThat(moduleFilePath.getPath()).isEqualTo(projectRootFolderPath.getPath());
 
     // Verify the module has a JDK.
     Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-    assertNotNull(sdk);
+    assertThat(sdk).isNotNull();
 
     ExternalSystemModulePropertyManager externalSystemProperties = ExternalSystemModulePropertyManager.getInstance(module);
-    assertEquals(GRADLE_SYSTEM_ID.getId(), externalSystemProperties.getExternalSystemId());
-    assertEquals(":", externalSystemProperties.getLinkedProjectId());
-    assertEquals(FileUtil.toSystemIndependentName(projectRootFolderPath.getPath()), externalSystemProperties.getRootProjectPath());
+    assertThat(externalSystemProperties.getExternalSystemId()).isEqualTo(GRADLE_SYSTEM_ID.getId());
+    assertThat(externalSystemProperties.getLinkedProjectId()).isEqualTo(":");
+    assertThat(externalSystemProperties.getRootProjectPath()).isEqualTo(FileUtil.toSystemIndependentName(projectRootFolderPath.getPath()));
 
     // Verify the module does not have a "Gradle" facet.
-    assertNull(GradleFacet.getInstance(module));
+    assertThat(GradleFacet.getInstance(module)).isNull();
 
     // Verify the module does not have an "Android" facet.
-    assertNull(AndroidFacet.getInstance(module));
+    assertThat(AndroidFacet.getInstance(module)).isNull();
   }
 }
