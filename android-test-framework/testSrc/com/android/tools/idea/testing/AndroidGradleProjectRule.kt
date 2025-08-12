@@ -158,11 +158,11 @@ class AndroidGradleProjectRule(
   fun loadProject(
     projectPath: String,
     chosenModuleName: String? = null,
-    agpVersion: AgpVersionSoftwareEnvironment = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
+    agpVersion: AgpVersionSoftwareEnvironment? = null,
     ndkVersion: String? = null,
     preLoad: ((projectRoot: File) -> Unit)? = null,
   ) {
-    val resolvedAgpVersion = agpVersion.resolve()
+    val resolvedAgpVersion = (agpVersion ?: AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST).resolve()
 
     fun afterCreate(project: Project) {
       overrideProjectGradleJdkPathWithVersion(
