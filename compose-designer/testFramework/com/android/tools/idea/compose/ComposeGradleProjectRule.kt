@@ -24,12 +24,14 @@ import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createNoSecurityRenderService
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
 import com.android.tools.idea.testing.TestLoggerRule
 import com.android.tools.idea.testing.buildAndWait
 import com.android.tools.idea.testing.withCompileSdk
+import com.android.tools.idea.testing.withTargetSdk
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.rendering.RenderService
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -45,6 +47,8 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
+private const val COMPILE_SDK_VERSION = "35"
+
 /**
  * [TestRule] that implements the [before] and [after] setup specific for Compose rendering tests.
  */
@@ -58,7 +62,10 @@ private class ComposeGradleProjectRuleImpl(
     RenderService.initializeRenderExecutor()
     StudioRenderService.setForTesting(projectRule.project, createNoSecurityRenderService())
     projectRule.fixture.testDataPath = resolveWorkspacePath(testDataPath).toString()
-    projectRule.load(projectPath, AGP_CURRENT.withCompileSdk("35"))
+    projectRule.load(
+      projectPath,
+      AGP_CURRENT.withCompileSdk(COMPILE_SDK_VERSION).withTargetSdk(COMPILE_SDK_VERSION),
+    )
 
     projectRule.invokeTasks("compileDebugSources").apply {
       buildError?.printStackTrace()
@@ -81,7 +88,12 @@ private class ComposeGradleProjectRuleImpl(
 open class ComposeGradleProjectRule(
   projectPath: String,
   testDataPath: String = TEST_DATA_PATH,
-  private val projectRule: AndroidGradleProjectRule = AndroidGradleProjectRule(),
+  private val projectRule: AndroidGradleProjectRule =
+    AndroidGradleProjectRule(
+      agpVersionSoftwareEnvironment =
+        AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT.withTargetSdk(COMPILE_SDK_VERSION)
+          .withCompileSdk(COMPILE_SDK_VERSION)
+    ),
 ) : TestRule {
   val project: Project
     get() = projectRule.project
