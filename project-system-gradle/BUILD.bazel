@@ -329,6 +329,7 @@ jvm_library(
     "//android/testartifacts",
     "//platform/eel",
     "//platform/eel-provider",
+    "//plugins/kotlin/code-insight/api",
   ],
   runtime_deps = [
     ":projectSystem-gradle-tests_test_resources",
