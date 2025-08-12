@@ -162,6 +162,7 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
     EventLoggingService.getInstance().log(
       QuerySyncAutoConversionStats.builder()
         .setStatus(querySyncConversionUtility.calculateStatus(importSettings, projectViewFilePath))
+        .setShardingType(querySyncConversionUtility.calculateShardingType(importSettings, projectViewFilePath, legacySyncShardCount))
         .build());
 
     this.importSettings.set(importSettings);

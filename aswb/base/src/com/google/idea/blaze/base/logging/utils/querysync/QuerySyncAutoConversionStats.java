@@ -23,6 +23,7 @@ public abstract class QuerySyncAutoConversionStats {
   private static final QuerySyncAutoConversionStats EMPTY =
     new AutoValue_QuerySyncAutoConversionStats.Builder()
       .setStatus(Status.UNKNOWN)
+      .setShardingType(ShardingType.UNKNOWN_SHARD)
       .build();
 
   /** The status of auto-conversion. */
@@ -34,7 +35,17 @@ public abstract class QuerySyncAutoConversionStats {
     NOT_NEEDED
   }
 
+  public enum ShardingType {
+    UNKNOWN_SHARD,
+    SINGLE_SHARD,
+    MULTI_SHARD_NO_FULL_SYNC,
+    MULTI_SHARD_SINGLE_COUNT,
+    MULTI_SHARD_MULTI_COUNT
+  }
+
   public abstract Status status();
+
+  public abstract ShardingType shardingType();
 
   public abstract Builder toBuilder();
 
@@ -46,6 +57,8 @@ public abstract class QuerySyncAutoConversionStats {
   @AutoValue.Builder
   public abstract static class Builder {
     public abstract Builder setStatus(Status value);
+
+    public abstract Builder setShardingType(ShardingType value);
 
     public abstract QuerySyncAutoConversionStats build();
   }

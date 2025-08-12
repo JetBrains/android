@@ -35,6 +35,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.IOException;
+import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
@@ -93,7 +94,6 @@ public abstract class ProjectViewManager {
                                                       QuerySyncConversionUtility querySyncConversionUtility) {
     ScalarSection<Boolean> useQuerySyncSection = ScalarSection.builder(UseQuerySyncSection.KEY)
       .set(importSettings.getProjectType() == BlazeImportSettings.ProjectType.QUERY_SYNC).build();
-    ScalarSection<Boolean> enableCodeAnalysisSection = ScalarSection.builder(EnableCodeAnalysisOnSyncSection.KEY).set(true).build();
     ScalarSection<Boolean> existingUseQuerySyncSection = projectView.getLast(UseQuerySyncSection.KEY);
     if (existingUseQuerySyncSection == null) {
       projectView.add(useQuerySyncSection);
@@ -112,7 +112,13 @@ public abstract class ProjectViewManager {
         projectView.add(BaseQuerySyncConversionUtility.AUTO_CONVERSION_SECTION);
       }
       if (projectView.getLast(EnableCodeAnalysisOnSyncSection.KEY) == null) {
-        projectView.add(enableCodeAnalysisSection);
+        Objects.requireNonNull(projectViewFile.projectViewFile);
+        projectView.add(ScalarSection.builder(EnableCodeAnalysisOnSyncSection.KEY).set(
+          querySyncConversionUtility.canEnableCodeAnalysisOnSync(
+            importSettings,
+            projectViewFile.projectViewFile.toPath(),
+            importSettings.getLegacySyncShardCount())
+        ).build());
       }
       Notifications.Bus.notify(
         new Notification(

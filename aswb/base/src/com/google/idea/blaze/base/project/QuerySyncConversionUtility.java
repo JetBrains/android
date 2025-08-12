@@ -17,6 +17,7 @@ package com.google.idea.blaze.base.project;
 
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
+import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import java.nio.file.Path;
 
@@ -29,4 +30,8 @@ public interface QuerySyncConversionUtility {
   void backupExistingProjectDirectories();
   boolean isConverted(ProjectViewSet.ProjectViewFile projectViewFile);
   QuerySyncAutoConversionStats.Status calculateStatus(BlazeImportSettings blazeImportSettings, Path projectViewFilePath);
+  QuerySyncAutoConversionStats.ShardingType calculateShardingType(BlazeImportSettings blazeImportSettings,
+                                                                  Path projectViewFilePath,
+                                                                  int legacySyncShardCount);
+  boolean canEnableCodeAnalysisOnSync(BlazeImportSettings blazeImportSettings, Path projectViewFilePath, int legacySyncShardCount);
 }

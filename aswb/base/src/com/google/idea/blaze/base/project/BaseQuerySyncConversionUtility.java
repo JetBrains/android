@@ -16,10 +16,15 @@
 package com.google.idea.blaze.base.project;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats.ShardingType.MULTI_SHARD_MULTI_COUNT;
+import static com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats.ShardingType.MULTI_SHARD_SINGLE_COUNT;
+import static com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats.ShardingType.MULTI_SHARD_NO_FULL_SYNC;
+import static com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats.ShardingType.SINGLE_SHARD;
 
 import com.android.utils.FileUtils;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
+import com.google.idea.blaze.base.projectview.ProjectView;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.projectview.parser.ProjectViewParser;
 import com.google.idea.blaze.base.projectview.section.sections.ImportSection;
@@ -30,6 +35,7 @@ import com.google.idea.blaze.base.projectview.section.sections.UseQuerySyncSecti
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolverImpl;
+import com.google.idea.common.experiments.BoolExperiment;
 import com.google.idea.common.experiments.FeatureRolloutExperiment;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -40,6 +46,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -48,13 +55,12 @@ import java.util.Optional;
 public class BaseQuerySyncConversionUtility implements QuerySyncConversionUtility {
   private static final Logger logger = Logger.getInstance(BaseQuerySyncConversionUtility.class);
 
-  private record ConversionProjectFields(
-    boolean useQuerySync, boolean shardSync
-  ) {
-  }
-
   public static final FeatureRolloutExperiment AUTO_CONVERT_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT =
     new FeatureRolloutExperiment("aswb.auto.convert.legacy.sync.to.query.sync");
+  public static final FeatureRolloutExperiment AUTO_CONVERT_MULTI_SHARD_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT =
+    new FeatureRolloutExperiment("aswb.auto.convert.multi.shard.legacy.sync.to.query.sync");
+  public static final BoolExperiment ENABLE_CODE_ANALYSIS_ON_SYNC_MULTI_SHARD_EXPERIMENT =
+    new BoolExperiment("aswb.enable.code.analysis.on.sync.multi.shard", false);
   public static final String AUTO_CONVERSION_INDICATOR = "# Auto-converted to query sync mode.";
   public static final TextBlockSection AUTO_CONVERSION_SECTION =
     TextBlockSection.of(TextBlock.of(BaseQuerySyncConversionUtility.AUTO_CONVERSION_INDICATOR));
@@ -72,13 +78,45 @@ public class BaseQuerySyncConversionUtility implements QuerySyncConversionUtilit
 
   @Override
   public boolean canConvert(BlazeImportSettings blazeImportSettings, Path projectViewFilePath) {
-    var conversionProjectFields = parseProjectFields(blazeImportSettings, projectViewFilePath);
+    var useQuerySync = parseUseQuerySync(blazeImportSettings, projectViewFilePath);
     return AUTO_CONVERT_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT.isEnabled() &&
            !hasConversionIndicator(projectViewFilePath) &&
-           conversionProjectFields.isPresent() &&
-           !conversionProjectFields.get().useQuerySync() &&
-           (!conversionProjectFields.get().shardSync() || blazeImportSettings.getLegacySyncShardCount() == 1);
+           useQuerySync.isPresent() &&
+           !useQuerySync.get() &&
+           canConvertSharding(blazeImportSettings, projectViewFilePath, blazeImportSettings.getLegacySyncShardCount());
   }
+
+  private boolean canConvertSharding(BlazeImportSettings blazeImportSettings, Path projectViewFilePath, int legacySyncShardCount) {
+    return calculateShardingType(blazeImportSettings, projectViewFilePath, legacySyncShardCount) == SINGLE_SHARD
+            || AUTO_CONVERT_MULTI_SHARD_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT.isEnabled();
+  }
+
+  @Override
+  public QuerySyncAutoConversionStats.ShardingType calculateShardingType(BlazeImportSettings blazeImportSettings,
+                                                                         Path projectViewFilePath,
+                                                                         int legacySyncShardCount) {
+    var shardSync = parseShardSync(blazeImportSettings, projectViewFilePath);
+    if (shardSync) {
+      if (legacySyncShardCount == 0) {
+        return MULTI_SHARD_NO_FULL_SYNC;
+      }
+      if (legacySyncShardCount == 1) {
+        return MULTI_SHARD_SINGLE_COUNT;
+      }
+      return MULTI_SHARD_MULTI_COUNT;
+    }
+    return SINGLE_SHARD;
+  }
+
+  @Override
+  public boolean canEnableCodeAnalysisOnSync(BlazeImportSettings blazeImportSettings, Path projectViewFilePath, int legacySyncShardCount) {
+    var shardingType = calculateShardingType(blazeImportSettings, projectViewFilePath, legacySyncShardCount);
+    if (shardingType == SINGLE_SHARD) {
+      return true;
+    }
+    return ENABLE_CODE_ANALYSIS_ON_SYNC_MULTI_SHARD_EXPERIMENT.getValue();
+  }
+
 
   private boolean hasConversionIndicator(Path projectViewFilePath) {
     try {
@@ -109,17 +147,18 @@ public class BaseQuerySyncConversionUtility implements QuerySyncConversionUtilit
            QuerySyncAutoConversionStats.Status.NOT_CONVERTED : QuerySyncAutoConversionStats.Status.NOT_NEEDED;
   }
 
-  private Optional<ConversionProjectFields> parseProjectFields(BlazeImportSettings blazeImportSettings, Path projectViewFilePath) {
-    ProjectViewParser parser = new ProjectViewParser(BlazeContext.create(), new WorkspacePathResolverImpl(
-      new WorkspaceRoot(new File(blazeImportSettings.getWorkspaceRoot()))));
-    parser.parseProjectViewFile(projectViewFilePath.toFile(), List.of(ImportSection.PARSER,
-                                                                      ShardBlazeBuildsSection.PARSER,
-                                                                      UseQuerySyncSection.PARSER));
-    // Ignore parsing errors as they are expected when parsing a subset of sections.
-    Optional<Boolean> useQuerySync = parser.getResult().getScalarValue(UseQuerySyncSection.KEY);
-    Boolean shardSync = parser.getResult().getScalarValue(ShardBlazeBuildsSection.KEY).orElse(false);
+ private Optional<Boolean> parseUseQuerySync(BlazeImportSettings blazeImportSettings, Path projectViewFilePath) {
+    final var workspacePathResolver = new WorkspacePathResolverImpl(new WorkspaceRoot(new File(blazeImportSettings.getWorkspaceRoot())));
+    ProjectViewParser parser = new ProjectViewParser(BlazeContext.create(), workspacePathResolver);
+    parser.parseProjectViewFile(projectViewFilePath.toFile(), List.of(ImportSection.PARSER, UseQuerySyncSection.PARSER));
+    return parser.getResult().getScalarValue(UseQuerySyncSection.KEY);
+  }
 
-    return useQuerySync.map(querySync -> new ConversionProjectFields(querySync, shardSync));
+  private Boolean parseShardSync(BlazeImportSettings blazeImportSettings, Path projectViewFilePath) {
+    final var workspacePathResolver = new WorkspacePathResolverImpl(new WorkspaceRoot(new File(blazeImportSettings.getWorkspaceRoot())));
+    ProjectViewParser parser = new ProjectViewParser(BlazeContext.create(), workspacePathResolver);
+    parser.parseProjectViewFile(projectViewFilePath.toFile(), List.of(ImportSection.PARSER, ShardBlazeBuildsSection.PARSER));
+    return parser.getResult().getScalarValue(ShardBlazeBuildsSection.KEY).orElse(false);
   }
 
   @Override
