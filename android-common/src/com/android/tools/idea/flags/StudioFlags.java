@@ -2187,6 +2187,11 @@ public final class StudioFlags {
                     "Enable the apply changes action",
                     "When enabled, applies the code block from the chat to the open editor");
 
+  public static final Flag<Boolean> STUDIOBOT_REPLACE_TEXT_TOOL_ENABLED =
+    new BooleanFlag(STUDIOBOT, "replace.text.tool.enabled",
+                    "Enable the replace text tool",
+                    "When enabled, adds the replace text tool to a set of default tools");
+
   public static final Flag<Boolean> STUDIOBOT_ATTACHMENTS =
     new BooleanFlag(STUDIOBOT, "attachments",
                     "Enable action to add attachments",
