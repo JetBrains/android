@@ -17,6 +17,7 @@ package com.android.tools.asdriver
 
 import javax.accessibility.AccessibleAction
 import javax.accessibility.AccessibleContext
+import javax.accessibility.AccessibleState
 import javax.swing.Action
 import javax.swing.JButton
 import javax.swing.JLabel
@@ -43,6 +44,13 @@ class ComposeJButtonWrapper(con: AccessibleContext) : JButton() {
     return null
   }
 
+  override fun isEnabled(): Boolean {
+    if (context == null) {
+      return false
+    }
+    return context.accessibleStateSet.contains(AccessibleState.ENABLED)
+  }
+
   override fun getText(): String {
     return accessibleName ?: accessibleDescription ?: ""
   }
@@ -64,4 +72,14 @@ class ComposeJLabelWrapper(con: AccessibleContext) : JLabel() {
     return accessibleName ?: ""
   }
 
+  fun doClick() {
+    context.getAccessibleAction()?.doAccessibleAction(0)
+  }
+
+  override fun isEnabled(): Boolean {
+    if (context == null) {
+      return false
+    }
+    return context.accessibleStateSet.contains(AccessibleState.ENABLED)
+  }
 }

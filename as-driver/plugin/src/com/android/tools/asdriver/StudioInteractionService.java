@@ -391,6 +391,10 @@ public class StudioInteractionService {
   }
 
   private void clickLabel(JLabel label) {
+    if (label instanceof ComposeJLabelWrapper) {
+      ((ComposeJLabelWrapper)label).doClick();
+      return;
+    }
     MouseEvent clickEvent = new MouseEvent(label, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0, 10, 10, 1, false);
     label.dispatchEvent(clickEvent);
   }
@@ -598,6 +602,9 @@ public class StudioInteractionService {
   private Set<Component> getComponentsFromContext(Set<AccessibleContext> contexts) {
     Set<Component> components = new HashSet<>();
     for (AccessibleContext context : contexts) {
+      if (context == null) {
+        continue;
+      }
       if (context.getAccessibleRole() != null && context.getAccessibleRole().toString().contains("label")) {
         JLabel label = new ComposeJLabelWrapper(context);
         components.add(label);
