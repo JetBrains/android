@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTable
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.LibraryData
@@ -80,7 +81,11 @@ class ResolvedLibraryTableBuilder(
   private val logger = Logger.getInstance(this.javaClass)
 
   private fun logWarn(message: String) {
-    logger.warn(message)
+    if (ApplicationManager.getApplication().isUnitTestMode) {
+      logger.warn(message) // To avoid failing tests, as this is expected in some scenarios
+    } else {
+      logger.error(message)
+    }
   }
 }
 
