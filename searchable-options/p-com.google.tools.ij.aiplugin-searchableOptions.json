@@ -2,3 +2,4 @@
 {"id":"com.android.studio.ml.McpConfigurable","name":"MCP Servers","entries":[{"hit":"MCP Servers"}]}
 {"id":"com.android.studio.ml.bot.mainConfigurable","name":"Gemini","entries":[{"hit":"Completion"},{"hit":"Enable AI-based inline code completions"},{"hit":"Gemini"},{"hit":"Gemini requires a logged in Google account."},{"hit":"Log in"}]}
 {"id":"com.android.studio.ml.templates","name":"Prompt Library","entries":[{"hit":"\nCreate a prompt by clicking the '+' button or select existing one"},{"hit":"Prompt Library"},{"hit":"Scope:"}]}
+{"id":"templates.modelproviders.configurable","name":"Model Providers","entries":[{"hit":"API key header:"},{"hit":"API key:"},{"hit":"Available models"},{"hit":"Description:"},{"hit":"Fetch"},{"hit":"Gemini requires a logged in Google account."},{"hit":"Learn more"},{"hit":"Log in"},{"hit":"Model Providers"},{"hit":"More"},{"hit":"Port:"},{"hit":"URL:"},{"hit":"http://localhost:"}]}
