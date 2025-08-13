@@ -149,6 +149,9 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
 
     /** Tasks run automatically  */
     AUTOMATIC,
+
+    /** Agent-initiated tasks  */
+    AGENT,
     UNKNOWN
   }
 
