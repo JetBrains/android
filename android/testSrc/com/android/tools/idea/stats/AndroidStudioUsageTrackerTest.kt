@@ -31,6 +31,7 @@ import com.android.tools.idea.stats.AndroidStudioUsageTracker.buildActiveExperim
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.getMachineDetails
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.shouldRequestUserSentiment
 import com.android.tools.idea.stats.FeatureSurveys.shouldInvokeFeatureSurvey
+import com.android.tools.idea.stats.FeatureSurveys.shouldInvokeSurvey
 import com.android.tools.idea.testing.registerServiceInstance
 import com.android.utils.DateProvider
 import com.google.common.truth.Truth
@@ -64,6 +65,11 @@ class AndroidStudioUsageTrackerTest : BasePlatformTestCase() {
     ApplicationManager.getApplication().registerExtension(
       MendelFlagsProvider.EP_NAME, mockMendelFlagsProvider, testRootDisposable
     )
+  }
+
+  override fun tearDown() {
+    FeatureSurveys.FeatureSurveyChoiceLogger.cancel("featureSurvey")
+    super.tearDown()
   }
 
   fun testDeviceToDeviceInfo() {
@@ -336,6 +342,18 @@ class AndroidStudioUsageTrackerTest : BasePlatformTestCase() {
     finally {
       AnalyticsSettings.dateProvider = DateProvider.SYSTEM
     }
+  }
+
+  fun testShouldInvokeSurvey() {
+    // non-opted in users should be presented with surveys
+    AnalyticsSettings.dateProvider = StubDateProvider(2020, 4, 18)
+    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
+      userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+      optedIn = false
+      nextFeatureSurveyDate = Date(120, 4, 17)
+      nextFeatureSurveyDateMap = mutableMapOf("featureSurvey" to Date(120, 4, 17))
+    })
+    assertTrue(shouldInvokeSurvey("featureSurvey"))
   }
 
   fun testShouldInvokeFeatureSurvey() {

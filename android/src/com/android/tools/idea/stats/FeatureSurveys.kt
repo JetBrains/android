@@ -37,7 +37,7 @@ import com.intellij.openapi.application.ApplicationManager
 import java.util.UUID
 
 object FeatureSurveys {
-  private var isFeatureSurveyPending = false
+  private var isSurveyPending = false
   private val lock = Any()
 
   fun processEvent(event: AndroidStudioEvent.Builder) {
@@ -53,10 +53,18 @@ object FeatureSurveys {
   }
 
   // Determines whether the specified feature survey should be invoked.
-  // If so, sets the isFeatureSurveyPending flag to true.
+  // Feature surveys require the user to be opted in to data sharing since
+  // the responses are sent back using the metrics pipeline
   @VisibleForTesting
   fun shouldInvokeFeatureSurvey(name: String): Boolean {
-    if (!AnalyticsSettings.optedIn || isFeatureSurveyPending) {
+    return AnalyticsSettings.optedIn && shouldInvokeSurvey(name)
+  }
+
+  // Determines whether the specified browser survey should be invoked.
+  // If so, sets the isSurveyPending flag to true.
+  @VisibleForTesting
+  fun shouldInvokeSurvey(name: String): Boolean {
+    if (isSurveyPending) {
       return false
     }
 
@@ -79,11 +87,11 @@ object FeatureSurveys {
     }
 
     synchronized(lock) {
-      if (isFeatureSurveyPending) {
+      if (isSurveyPending) {
         return false
       }
 
-      isFeatureSurveyPending = true
+      isSurveyPending = true
     }
 
     return true
@@ -135,7 +143,7 @@ object FeatureSurveys {
                    .getProtoOrNull(name, emptySurvey)
                  ?: return null
 
-    if (!shouldInvokeFeatureSurvey(name)) {
+    if (!shouldInvokeSurvey(name)) {
       return null
     }
 
@@ -198,7 +206,7 @@ object FeatureSurveys {
       AnalyticsSettings.saveSettings()
 
       synchronized(lock) {
-        isFeatureSurveyPending = false
+        isSurveyPending = false
       }
     }
   }
