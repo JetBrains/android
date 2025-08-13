@@ -62,7 +62,6 @@ public final class TestProjectPaths {
   public static final String NAVIGATION_EDITOR_BASIC = "projects/navigationEditor/basic";
   public static final String NAVIGATION_EDITOR_INCLUDE_FROM_LIB = "projects/navigationEditor/includeFromLib";
   public static final String NESTED_MODULE = "projects/nestedModule";
-  public static final String NEW_SYNC_KOTLIN_TEST = "projects/newSyncKotlinTest";
   public static final String PLUGIN_IN_APP = "projects/pluginInApp";
   public static final String PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER = "projects/privacySandboxSdk/libraryAndConsumer";
   public static final String PROJECT_WITH_APPAND_LIB = "projects/projectWithAppandLib";

@@ -16,33 +16,24 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue
-import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.findAppModule
-import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ProjectRule
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
 
-class BuildToolsTooLowReporterIntegrationTest : AndroidGradleTestCase() {
-  private var reporter : BuildToolsTooLowReporter? = null
-
-  override fun setUp() {
-    super.setUp()
-    reporter = BuildToolsTooLowReporter()
-  }
+class BuildToolsTooLowReporterTest {
+  @get:Rule
+  val projectRule = ProjectRule()
 
   @Test
   fun testModuleLink() {
-    loadSimpleApplication()
-    val appModule = project.findAppModule()
-    val appFile = getGradleBuildFile(appModule)!!
+    val module = projectRule.module
+    val virtualFile = projectRule.project.baseDir!!
+    val syncIssues = listOf(mock(IdeSyncIssue::class.java))
 
-    val issue = mock(IdeSyncIssue::class.java)
-
-    val syncIssues = ImmutableList.of(issue)
-    val link = reporter!!.createModuleLink(project, appModule, syncIssues, appFile)
+    val link = BuildToolsTooLowReporter().createModuleLink(projectRule.project, module, syncIssues, virtualFile)
     assertThat(link.lineNumber).isEqualTo(-1)
-    assertThat(link.filePath).isEqualTo(appFile.path)
+    assertThat(link.filePath).isEqualTo(virtualFile.path)
   }
 }

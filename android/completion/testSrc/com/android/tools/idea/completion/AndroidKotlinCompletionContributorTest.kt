@@ -15,55 +15,67 @@
  */
 package com.android.tools.idea.completion
 
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Rule
+import org.junit.Test
 
-class AndroidKotlinCompletionContributorTest : AndroidGradleTestCase() {
+@RunsInEdt
+class AndroidKotlinCompletionContributorTest {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule().onEdt()
+  val project by lazy { projectRule.project }
+  val fixture by lazy { projectRule.fixture }
 
+  @Test
   fun testFilteredPrivateResources() {
-    loadProject(TestProjectPaths.TEST_ARTIFACTS_KOTLIN)
+    projectRule.loadProject(TestProjectPaths.TEST_ARTIFACTS_KOTLIN)
     val activityPath = "app/src/main/java/com/example/android/kotlin/MainActivity.kt"
     val file = project.guessProjectDir()!!.findFileByRelativePath(activityPath)
-    myFixture.openFileInEditor(file!!)
+    fixture.openFileInEditor(file!!)
 
-    myFixture.moveCaret("setContentView(R.layout.|activity_main)")
+    fixture.moveCaret("setContentView(R.layout.|activity_main)")
 
-    myFixture.complete(CompletionType.BASIC)
-    assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_mode_bar")
-    assertThat(myFixture.lookupElementStrings).contains("activity_main")
+    fixture.complete(CompletionType.BASIC)
+    assertThat(fixture.lookupElementStrings).doesNotContain("abc_action_mode_bar")
+    assertThat(fixture.lookupElementStrings).contains("activity_main")
   }
 
+  @Test
   fun testFilteredPrivateResourcesInTests() {
-    loadProject(TestProjectPaths.TEST_ARTIFACTS_KOTLIN)
+    projectRule.loadProject(TestProjectPaths.TEST_ARTIFACTS_KOTLIN)
     val activityPath = "app/src/androidTest/java/com/example/android/kotlin/ExampleInstrumentedTest.kt"
     val file = project.guessProjectDir()!!.findFileByRelativePath(activityPath)
-    myFixture.openFileInEditor(file!!)
+    fixture.openFileInEditor(file!!)
 
-    myFixture.moveCaret("assertEquals(\"com.example.android.kotlin\", appContext.packageName)|")
-    myFixture.type("\ncom.example.android.kotlin.R.layout.")
+    fixture.moveCaret("assertEquals(\"com.example.android.kotlin\", appContext.packageName)|")
+    fixture.type("\ncom.example.android.kotlin.R.layout.")
 
-    myFixture.complete(CompletionType.BASIC)
-    assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_mode_bar")
-    assertThat(myFixture.lookupElementStrings).contains("activity_main")
+    fixture.complete(CompletionType.BASIC)
+    assertThat(fixture.lookupElementStrings).doesNotContain("abc_action_mode_bar")
+    assertThat(fixture.lookupElementStrings).contains("activity_main")
   }
 
+  @Test
   fun testFilteredPrivateResourcesAliasedR() {
-    loadProject(TestProjectPaths.TEST_ARTIFACTS_KOTLIN)
+    projectRule.loadProject(TestProjectPaths.TEST_ARTIFACTS_KOTLIN)
     val activityPath = "app/src/main/java/com/example/android/kotlin/MainActivity.kt"
     val file = project.guessProjectDir()!!.findFileByRelativePath(activityPath)
-    myFixture.openFileInEditor(file!!)
+    fixture.openFileInEditor(file!!)
 
-    myFixture.moveCaret("import android.os.Bundle|")
-    myFixture.type("\nimport com.example.android.kotlin.R as Q")
-    myFixture.moveCaret("setContentView(R.layout.activity_main)|")
-    myFixture.type("\nsetContentView(Q.layout.")
+    fixture.moveCaret("import android.os.Bundle|")
+    fixture.type("\nimport com.example.android.kotlin.R as Q")
+    fixture.moveCaret("setContentView(R.layout.activity_main)|")
+    fixture.type("\nsetContentView(Q.layout.")
 
-    myFixture.complete(CompletionType.BASIC)
-    assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_mode_bar")
-    assertThat(myFixture.lookupElementStrings).contains("activity_main")
+    fixture.complete(CompletionType.BASIC)
+    assertThat(fixture.lookupElementStrings).doesNotContain("abc_action_mode_bar")
+    assertThat(fixture.lookupElementStrings).contains("activity_main")
   }
 }

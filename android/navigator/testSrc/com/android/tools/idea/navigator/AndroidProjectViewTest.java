@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.navigator;
 
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
+import static org.jetbrains.android.AndroidTestBase.refreshProjectFiles;
 import static org.mockito.Mockito.when;
 
 import com.android.testutils.SystemPropertyOverrides;
@@ -33,12 +35,12 @@ import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructurePr
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.TestModuleUtil;
-import com.android.tools.idea.testing.TestProjectPaths;
 import com.android.tools.idea.util.CommonAndroidUtil;
 import com.android.utils.FileUtils;
+import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.ProjectViewDefaultViewEvent;
@@ -53,6 +55,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.projectView.TestProjectTreeStructure;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -63,62 +67,78 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestRule;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 // TODO: Test available actions for each node!
-public class AndroidProjectViewTest extends AndroidGradleTestCase {
+@RunsInEdt
+public class AndroidProjectViewTest {
+  AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
+  @Rule
+  public TestRule rule = RuleChain.outerRule(projectRule).around(new EdtRule());
   private AndroidProjectViewPane myPane;
 
+  @Test
   public void testGeneratedSourceFiles_lightClasses() throws Exception {
-    loadSimpleApplication();
+    projectRule.loadProject(SIMPLE_APPLICATION);
 
     // Create BuildConfig.java in one of the generated source folders.
-    Module appModule = TestModuleUtil.findAppModule(getProject());
+    Module appModule = TestModuleUtil.findAppModule(projectRule.getProject());
     GradleAndroidModel androidModel = GradleAndroidModel.get(appModule);
-    assertNotNull(androidModel);
+    assertThat(androidModel).isNotNull();
     Collection<File> generatedFolders = androidModel.getMainArtifact().getGeneratedSourceFolders();
     assertThat(generatedFolders).isNotEmpty();
 
     File buildConfigFolder = generatedFolders.stream().filter(f -> f.getPath().contains("buildConfig")).findFirst().orElse(null);
-    assertNotNull(buildConfigFolder);
+    assertThat(buildConfigFolder).isNotNull();
     writeToFile(new File(buildConfigFolder, join("com", "application", "BuildConfig.java")),
                 "package com.application; public final class BuildConfig {}");
 
     refreshProjectFiles();
-    AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(getProject());
+    AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(projectRule.getProject());
     myPane = createPane();
-    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
+    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(projectRule.getProject(), projectRule.getFixture().getTestRootDisposable());
 
     Set<List<String>> allNodes = getAllNodes(structure);
     assertThat(allNodes).contains(Arrays.asList("app (Android)", "java (generated)", "application", "BuildConfig"));
   }
 
+  @Test
   public void testGeneratedResources() throws Exception {
-    File projectRoot = prepareProjectForImport(TestProjectPaths.SIMPLE_APPLICATION);
-    Files.append(
-      """
+    Function1<File, Unit> patch = (projectRoot) -> {
+      try {
+        Files.asCharSink(new File(projectRoot, "app/build.gradle"), StandardCharsets.UTF_8, FileWriteMode.APPEND)
+            .write(
+              """
 
-        android {
-          String resGeneratePath = "${buildDir}/generated/my_generated_resources/res"
-            def generateResTask = tasks.create(name: 'generateMyResources').doLast {
-                def rawDir = "${resGeneratePath}/raw"
-                mkdir(rawDir)
-                file("${rawDir}/sample_raw_resource").write("sample text")
-            }
+                android {
+                  String resGeneratePath = "${buildDir}/generated/my_generated_resources/res"
+                    def generateResTask = tasks.create(name: 'generateMyResources').doLast {
+                        def rawDir = "${resGeneratePath}/raw"
+                        mkdir(rawDir)
+                        file("${rawDir}/sample_raw_resource").write("sample text")
+                    }
+                    def resDir = files(resGeneratePath).builtBy(generateResTask)
+                    applicationVariants.all { variant ->
+                        variant.registerGeneratedResFolders(resDir)
+                    }
+                }""");
+      }
+      catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+      return Unit.INSTANCE;
+    };
+    projectRule.loadProject(SIMPLE_APPLICATION, null, null, null, patch);
 
-            def resDir = files(resGeneratePath).builtBy(generateResTask)
-
-            applicationVariants.all { variant ->
-                variant.registerGeneratedResFolders(resDir)
-            }
-        }""",
-      new File(projectRoot, "app/build.gradle"),
-      StandardCharsets.UTF_8);
-    importProject();
-
-    Module appModule = TestModuleUtil.findAppModule(getProject());
+    Module appModule = TestModuleUtil.findAppModule(projectRule.getProject());
     GradleAndroidModel androidModel = GradleAndroidModel.get(appModule);
     File generatedResourcesFolder = androidModel.getMainArtifact()
       .getGeneratedResourceFolders()
@@ -134,41 +154,47 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     refreshProjectFiles();
 
     myPane = createPane();
-    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
+    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(projectRule.getProject(), projectRule.getFixture().getTestRootDisposable());
 
     Set<List<String>> allNodes = getAllNodes(structure);
     assertThat(allNodes).contains(Arrays.asList("app (Android)", "res (generated)", "raw", "sample_raw_resource"));
   }
 
+  @Test
   public void testGeneratedAssets() throws Exception {
-    File projectRoot = prepareProjectForImport(TestProjectPaths.SIMPLE_APPLICATION);
-    Files.append(
-      """
-       
-       abstract class AssetGenerator extends DefaultTask {
-           @OutputDirectory
-           abstract DirectoryProperty getOutputDirectory();
-           @TaskAction
-           void run() {
-               def outputFile = new File(getOutputDirectory().get().getAsFile(), "foo.txt")
-               new FileWriter(outputFile).with {
-                   write("some text")
-                   flush()
-               }
-           }
-       }
+    Function1<File, Unit> patch = (projectRoot) -> {
+      try {
+        Files.asCharSink(new File(projectRoot, "app/build.gradle"), StandardCharsets.UTF_8, FileWriteMode.APPEND)
+          .write(
+            """
 
-       def writeAssetTask = tasks.register("createAssets", AssetGenerator.class)
-       androidComponents {
-           onVariants(selector().all(),  { variant ->
-               variant.sources.assets.addGeneratedSourceDirectory(writeAssetTask, AssetGenerator::getOutputDirectory)
-           })
-       }""",
-      new File(projectRoot, "app/build.gradle"),
-      StandardCharsets.UTF_8);
-    importProject();
+             abstract class AssetGenerator extends DefaultTask {
+                 @OutputDirectory
+                 abstract DirectoryProperty getOutputDirectory();
+                 @TaskAction
+                 void run() {
+                     def outputFile = new File(getOutputDirectory().get().getAsFile(), "foo.txt")
+                     new FileWriter(outputFile).with {
+                         write("some text")
+                         flush()
+                     }
+                 }
+             }
+             def writeAssetTask = tasks.register("createAssets", AssetGenerator.class)
+             androidComponents {
+                 onVariants(selector().all(),  { variant ->
+                     variant.sources.assets.addGeneratedSourceDirectory(writeAssetTask, AssetGenerator::getOutputDirectory)
+                 })
+             }""");
+      }
+      catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+      return Unit.INSTANCE;
+    };
+    projectRule.loadProject(SIMPLE_APPLICATION, null, null, null, patch);
 
-    Module appModule = TestModuleUtil.findAppModule(getProject());
+    Module appModule = TestModuleUtil.findAppModule(projectRule.getProject());
     GradleAndroidModel androidModel = GradleAndroidModel.get(appModule);
     File generatedAssetsFolder = androidModel.getMainArtifact()
       .getGeneratedAssetFolders()
@@ -185,47 +211,51 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     refreshProjectFiles();
 
     myPane = createPane();
-    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
+    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(projectRule.getProject(), projectRule.getFixture().getTestRootDisposable());
 
     Set<List<String>> allNodes = getAllNodes(structure);
     assertThat(allNodes).contains(Arrays.asList("app (Android)", "assets (generated)", "raw", "createAssets"));
   }
 
+  @Test
   public void testShowVisibilityIconsWhenOptionIsSelected() {
-    ProjectViewState projectViewState = getProject().getService(ProjectViewState.class);
+    ProjectViewState projectViewState = projectRule.getProject().getService(ProjectViewState.class);
     projectViewState.setShowVisibilityIcons(true);
 
     myPane = createPane();
     ProjectAbstractTreeStructureBase structure = myPane.createStructure();
-    assertTrue(((ProjectViewSettings)structure).isShowVisibilityIcons());
+    assertThat(((ProjectViewSettings)structure).isShowVisibilityIcons()).isTrue();
   }
 
+  @Test
   public void testShowVisibilityIconsWhenOptionIsUnselected() {
-    ProjectViewState projectViewState = getProject().getService(ProjectViewState.class);
+    ProjectViewState projectViewState = projectRule.getProject().getService(ProjectViewState.class);
     projectViewState.setShowVisibilityIcons(false);
 
     myPane = createPane();
     ProjectAbstractTreeStructureBase structure = myPane.createStructure();
-    assertFalse(((ProjectViewSettings)structure).isShowVisibilityIcons());
+    assertThat(((ProjectViewSettings)structure).isShowVisibilityIcons()).isFalse();
   }
 
+  @Test
   public void testResourcesPropertiesInAndroidView() throws Exception {
-    loadSimpleApplication();
-    FileUtils.createFile(new File(getProjectFolderPath() + "/app/src/main/res/resources.properties"), "");
+    projectRule.loadProject(SIMPLE_APPLICATION);
+    FileUtils.createFile(new File(projectRule.getProject().getBasePath(), "/app/src/main/res/resources.properties"), "");
 
     refreshProjectFiles();
-    AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(getProject());
+    AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(projectRule.getProject());
     myPane = createPane();
-    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
+    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(projectRule.getProject(), projectRule.getFixture().getTestRootDisposable());
 
     Set<List<String>> allNodes = getAllNodes(structure);
     assertThat(allNodes).contains(Arrays.asList("app (Android)", "res", "resources.properties (main)"));
   }
 
+  @Test
   public void testAndroidViewIsDefault() throws Exception {
     IdeInfo ideInfo = Mockito.spy(IdeInfo.getInstance());
     AndroidProjectViewSettingsImpl settings = new AndroidProjectViewSettingsImpl();
-    Project project = getProject();
+    Project project = projectRule.getProject();
     GradleProjectSystem mockGradleProjectSystem = Mockito.mock(GradleProjectSystem.class);
     CommonAndroidUtil commonAndroidUtil = Mockito.mock(CommonAndroidUtil.class);
     MockedStatic<CommonAndroidUtil> commonAndroidUtilMockedStatic = Mockito.mockStatic(CommonAndroidUtil.class);
@@ -285,10 +315,11 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     projectSystemUtilMockedStatic.close();
   }
 
+  @Test
   public void testAndroidViewNotVisibleInUnsupportedProjectSystem() {
     IdeInfo ideInfo = Mockito.spy(IdeInfo.getInstance());
     AndroidProjectViewSettingsImpl settings = new AndroidProjectViewSettingsImpl();
-    Project project = getProject();
+    Project project = projectRule.getProject();
     AndroidProjectSystem mockProjectSystem = Mockito.mock(AndroidProjectSystem.class);
     MockedStatic<ProjectSystemUtil> projectSystemUtilMockedStatic = Mockito.mockStatic(ProjectSystemUtil.class);
     projectSystemUtilMockedStatic.when(() -> ProjectSystemUtil.getProjectSystem(project)).thenReturn(mockProjectSystem);
@@ -306,10 +337,11 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     projectSystemUtilMockedStatic.close();
   }
 
+  @Test
   public void testAndroidViewNotVisibleInNonAndroidProject() {
     IdeInfo ideInfo = Mockito.spy(IdeInfo.getInstance());
     AndroidProjectViewSettingsImpl settings = new AndroidProjectViewSettingsImpl();
-    Project project = getProject();
+    Project project = projectRule.getProject();
     AndroidProjectSystem mockProjectSystem = Mockito.mock(AndroidProjectSystem.class);
     MockedStatic<ProjectSystemUtil> projectSystemUtilMockedStatic = Mockito.mockStatic(ProjectSystemUtil.class);
     projectSystemUtilMockedStatic.when(() -> ProjectSystemUtil.getProjectSystem(project)).thenReturn(mockProjectSystem);
@@ -327,6 +359,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     projectSystemUtilMockedStatic.close();
   }
 
+  @Test
   public void testAndroidViewIsDefaultMetrics() throws Exception {
     myPane = createPane();
     IdeInfo ideInfo = Mockito.spy(IdeInfo.getInstance());
@@ -336,7 +369,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     MockedStatic<ProjectSystemUtil> projectSystemUtilMockedStatic = Mockito.mockStatic(ProjectSystemUtil.class);
     commonAndroidUtilMockedStatic.when(CommonAndroidUtil::getInstance).thenReturn(commonAndroidUtil);
     AndroidProjectViewSettingsImpl settings = new AndroidProjectViewSettingsImpl();
-    Project project = getProject();
+    Project project = projectRule.getProject();
     projectSystemUtilMockedStatic.when(() -> ProjectSystemUtil.getProjectSystem(project)).thenReturn(mockGradleProjectSystem);
     when(mockGradleProjectSystem.isAndroidProjectViewSupported()).thenReturn(true);
     when(commonAndroidUtil.isAndroidProject(project)).thenReturn(true);
@@ -438,9 +471,9 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
 
   @NotNull
   private AndroidProjectViewPane createPane() {
-    AndroidProjectViewPane pane = new AndroidProjectViewPane(getProject());
+    AndroidProjectViewPane pane = new AndroidProjectViewPane(projectRule.getProject());
     pane.createComponent();
-    Disposer.register(getProject(), pane);
+    Disposer.register(projectRule.getProject(), pane);
     return pane;
   }
 }

@@ -16,47 +16,63 @@
 package com.android.tools.idea.imports
 
 import com.android.testutils.waitForCondition
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.getIntentionAction
 import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
+import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.replaceService
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertNotNull as kotlinAssertNotNull
 import org.jetbrains.android.dom.inspections.AndroidDomInspection
 import org.jetbrains.android.dom.inspections.AndroidUnresolvableTagInspection
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
 
-class AndroidMavenImportFixTest : AndroidGradleTestCase() {
-  private val JavaCodeInsightTestFixture.fileEditor: TextEditor
+@RunsInEdt
+class AndroidMavenImportFixTest {
+  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val rule = RuleChain.outerRule(projectRule).around(EdtRule())
+  val project by lazy { projectRule.project }
+  val fixture by lazy { projectRule.fixture }
+
+  private val CodeInsightTestFixture.fileEditor: TextEditor
     get() = TextEditorProvider.getInstance().getTextEditor(this.editor)
 
-  fun testSuggestedImport_unresolvedViewTag() {
-    // Unresolved view class: <androidx.recyclerview.widget.RecyclerView .../>.
+  @Before
+  fun setup() {
     ApplicationManager.getApplication()
       .replaceService(
         MavenClassRegistryManager::class.java,
         fakeMavenClassRegistryManager,
-        myFixture.testRootDisposable,
+        fixture.testRootDisposable,
       )
+    projectRule.loadProject(TestProjectPaths.ANDROIDX_SIMPLE)
+  }
 
+  @Test
+  fun testSuggestedImport_unresolvedViewTag() {
+    // Unresolved view class: <androidx.recyclerview.widget.RecyclerView .../>.
     val inspection = AndroidUnresolvableTagInspection()
-    myFixture.enableInspections(inspection)
-
-    loadProject(TestProjectPaths.ANDROIDX_SIMPLE) // project using AndroidX
+    fixture.enableInspections(inspection)
     assertBuildGradle(project) {
       !it.contains("androidx.recyclerview:recyclerview:")
     } // not already using recyclerview
 
-    myFixture.loadNewFile(
+    fixture.loadNewFile(
       "app/src/main/res/layout/my_layout.xml",
       """
     <?xml version="1.0" encoding="utf-8"?>
@@ -68,45 +84,36 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
         .trimIndent(),
     )
 
-    myFixture.checkHighlighting(false, false, false)
-    myFixture.moveCaret("Recycler|View")
+    fixture.checkHighlighting(false, false, false)
+    fixture.moveCaret("Recycler|View")
     val action =
-      myFixture.getIntentionAction("Add dependency on androidx.recyclerview:recyclerview")!!
+      fixture.getIntentionAction("Add dependency on androidx.recyclerview:recyclerview")!!
 
-    assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
-    WriteCommandAction.runWriteCommandAction(
-      myFixture.project,
-      Runnable { action.invoke(myFixture.project, myFixture.editor, myFixture.file) },
-    )
+    assertThat(action.isAvailable(project, fixture.editor, fixture.file)).isTrue()
+    WriteCommandAction.runWriteCommandAction(project) {
+      action.invoke(project, fixture.editor, fixture.file)
+    }
 
-    // Wait for the sync
-    requestSyncAndWait() // this is redundant but we can't get a handle on the internal sync state
-    // of the first action
+    // Wait for the sync (this is redundant, but we can't get a handle on the internal sync
+    // state of the first action)
+    projectRule.requestSyncAndWait()
 
     assertBuildGradle(project) {
       it.contains("implementation 'androidx.recyclerview:recyclerview:1.1.0")
     }
   }
 
+  @Test
   fun testSuggestedImport_unresolvedAttrName() {
     // Unresolved fragment class: <fragment
     // android:name="com.google.android.gms.maps.SupportMapFragment" .../>.
-    ApplicationManager.getApplication()
-      .replaceService(
-        MavenClassRegistryManager::class.java,
-        fakeMavenClassRegistryManager,
-        myFixture.testRootDisposable,
-      )
-
     val inspection = AndroidDomInspection()
-    myFixture.enableInspections(inspection)
-
-    loadProject(TestProjectPaths.ANDROIDX_SIMPLE) // project using AndroidX
+    fixture.enableInspections(inspection)
     assertBuildGradle(project) {
       !it.contains("com.google.android.gms:play-services-maps:")
     } // not already using SupportMapFragment
 
-    myFixture.loadNewFile(
+    fixture.loadNewFile(
       "app/src/main/res/layout/my_layout.xml",
       """
         <?xml version="1.0" encoding="utf-8"?>
@@ -124,49 +131,40 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
         .trimIndent(),
     )
 
-    myFixture.checkHighlighting(false, false, false)
-    myFixture.moveCaret("gm|s")
+    fixture.checkHighlighting(false, false, false)
+    fixture.moveCaret("gm|s")
     val actionOnPackage =
-      myFixture.getIntentionAction("Add dependency on com.google.android.gms:play-services-maps")!!
-    assertTrue(actionOnPackage.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
+      fixture.getIntentionAction("Add dependency on com.google.android.gms:play-services-maps")!!
+    assertThat(actionOnPackage.isAvailable(project, fixture.editor, fixture.file)).isTrue()
 
-    myFixture.moveCaret("SupportMap|Fragment")
+    fixture.moveCaret("SupportMap|Fragment")
     val actionOnClass =
-      myFixture.getIntentionAction("Add dependency on com.google.android.gms:play-services-maps")!!
-    assertTrue(actionOnClass.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
+      fixture.getIntentionAction("Add dependency on com.google.android.gms:play-services-maps")!!
+    assertThat(actionOnClass.isAvailable(project, fixture.editor, fixture.file)).isTrue()
 
-    WriteCommandAction.runWriteCommandAction(
-      myFixture.project,
-      Runnable { actionOnClass.invoke(myFixture.project, myFixture.editor, myFixture.file) },
-    )
+    WriteCommandAction.runWriteCommandAction(project) {
+      actionOnClass.invoke(project, fixture.editor, fixture.file)
+    }
 
-    // Wait for the sync
-    requestSyncAndWait() // this is redundant but we can't get a handle on the internal sync state
-    // of the first action
+    // Wait for the sync (this is redundant, but we can't get a handle on the internal sync
+    // state of the first action)
+    projectRule.requestSyncAndWait()
 
     assertBuildGradle(project) {
       it.contains("implementation 'com.google.android.gms:play-services-maps:17.0.1")
     }
   }
 
+  @Test
   fun testSuggestedImport_undo() {
     // Unresolved view class: <androidx.recyclerview.widget.RecyclerView .../>.
-    ApplicationManager.getApplication()
-      .replaceService(
-        MavenClassRegistryManager::class.java,
-        fakeMavenClassRegistryManager,
-        myFixture.testRootDisposable,
-      )
-
     val inspection = AndroidUnresolvableTagInspection()
-    myFixture.enableInspections(inspection)
-
-    loadProject(TestProjectPaths.ANDROIDX_SIMPLE) // project using AndroidX
+    fixture.enableInspections(inspection)
     assertBuildGradle(project) {
       !it.contains("androidx.recyclerview:recyclerview:")
     } // not already using recyclerview
 
-    myFixture.loadNewFile(
+    fixture.loadNewFile(
       "app/src/main/res/layout/my_layout.xml",
       """
     <?xml version="1.0" encoding="utf-8"?>
@@ -178,26 +176,25 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
         .trimIndent(),
     )
 
-    myFixture.checkHighlighting(false, false, false)
-    myFixture.moveCaret("Recycler|View")
+    fixture.checkHighlighting(false, false, false)
+    fixture.moveCaret("Recycler|View")
     val action =
-      myFixture.getIntentionAction("Add dependency on androidx.recyclerview:recyclerview")!!
+      fixture.getIntentionAction("Add dependency on androidx.recyclerview:recyclerview")!!
 
-    assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
-    WriteCommandAction.runWriteCommandAction(
-      myFixture.project,
-      Runnable { action.invoke(myFixture.project, myFixture.editor, myFixture.file) },
-    )
+    assertThat(action.isAvailable(project, fixture.editor, fixture.file)).isTrue()
+    WriteCommandAction.runWriteCommandAction(project) {
+      action.invoke(project, fixture.editor, fixture.file)
+    }
 
-    // Wait for the sync
-    requestSyncAndWait() // this is redundant but we can't get a handle on the internal sync state
-    // of the first action
+    // Wait for the sync (this is redundant, but we can't get a handle on the internal sync
+    // state of the first action)
+    projectRule.requestSyncAndWait()
     assertBuildGradle(project) {
       it.contains("implementation 'androidx.recyclerview:recyclerview:")
     }
 
     // Undo.
-    UndoManager.getInstance(myFixture.project).undo(myFixture.fileEditor)
+    UndoManager.getInstance(project).undo(fixture.fileEditor)
     waitForCondition(1, TimeUnit.SECONDS) {
       checkBuildGradle(project, "app/build.gradle") {
         !it.contains("implementation 'androidx.recyclerview:recyclerview:1.1.0")
@@ -205,24 +202,16 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
     }
   }
 
+  @Test
   fun testSuggestedImport_redo() {
     // Unresolved view class: <androidx.recyclerview.widget.RecyclerView .../>.
-    ApplicationManager.getApplication()
-      .replaceService(
-        MavenClassRegistryManager::class.java,
-        fakeMavenClassRegistryManager,
-        myFixture.testRootDisposable,
-      )
-
     val inspection = AndroidUnresolvableTagInspection()
-    myFixture.enableInspections(inspection)
-
-    loadProject(TestProjectPaths.ANDROIDX_SIMPLE) // project using AndroidX
+    fixture.enableInspections(inspection)
     assertBuildGradle(project) {
       !it.contains("androidx.recyclerview:recyclerview:")
     } // not already using recyclerview
 
-    myFixture.loadNewFile(
+    fixture.loadNewFile(
       "app/src/main/res/layout/my_layout.xml",
       """
     <?xml version="1.0" encoding="utf-8"?>
@@ -234,30 +223,30 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
         .trimIndent(),
     )
 
-    myFixture.checkHighlighting(false, false, false)
-    myFixture.moveCaret("Recycler|View")
+    fixture.checkHighlighting(false, false, false)
+    fixture.moveCaret("Recycler|View")
     val action =
-      myFixture.getIntentionAction("Add dependency on androidx.recyclerview:recyclerview")!!
-    val undoManager = UndoManager.getInstance(myFixture.project)
+      fixture.getIntentionAction("Add dependency on androidx.recyclerview:recyclerview")!!
+    val undoManager = UndoManager.getInstance(project)
 
-    assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
-    WriteCommandAction.runWriteCommandAction(myFixture.project) {
-      action.invoke(myFixture.project, myFixture.editor, myFixture.file)
+    assertThat(action.isAvailable(project, fixture.editor, fixture.file)).isTrue()
+    WriteCommandAction.runWriteCommandAction(project) {
+      action.invoke(project, fixture.editor, fixture.file)
     }
 
     // Undo.
-    waitForCondition(1, TimeUnit.SECONDS) { undoManager.isUndoAvailable(myFixture.fileEditor) }
-    undoManager.undo(myFixture.fileEditor)
+    waitForCondition(1, TimeUnit.SECONDS) { undoManager.isUndoAvailable(fixture.fileEditor) }
+    undoManager.undo(fixture.fileEditor)
 
-    // Wait for the sync
-    requestSyncAndWait() // this is redundant but we can't get a handle on the internal sync state
-    // of the first action
+    // Wait for the sync (this is redundant, but we can't get a handle on the internal sync
+    // state of the first action)
+    projectRule.requestSyncAndWait()
     assertBuildGradle(project) {
       !it.contains("implementation 'androidx.recyclerview:recyclerview:")
     }
 
     // Redo.
-    undoManager.redo(myFixture.fileEditor)
+    undoManager.redo(fixture.fileEditor)
     waitForCondition(1, TimeUnit.SECONDS) {
       checkBuildGradle(project, "app/build.gradle") {
         it.contains("implementation 'androidx.recyclerview:recyclerview:1.1.0")
@@ -265,21 +254,14 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
     }
   }
 
+  @Test
   fun testSuggestedImport_kotlinFile() {
-    ApplicationManager.getApplication()
-      .replaceService(
-        MavenClassRegistryManager::class.java,
-        fakeMavenClassRegistryManager,
-        myFixture.testRootDisposable,
-      )
-
-    loadProject(TestProjectPaths.ANDROIDX_SIMPLE)
     assertBuildGradle(project) {
       !it.contains("androidx.palette:palette:") && !it.contains("androidx.palette:palette-ktx:")
     }
 
     val paletteType = "Palette".highlightedAs(ERROR)
-    myFixture.loadNewFile(
+    fixture.loadNewFile(
       "app/src/main/java/Test.kt",
       // language=kotlin
       """
@@ -290,24 +272,23 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
         .trimIndent(),
     )
 
-    myFixture.checkHighlighting(false, false, false)
-    myFixture.moveCaret("Pale|tte")
+    fixture.checkHighlighting(false, false, false)
+    fixture.moveCaret("Pale|tte")
     val action =
-      myFixture.getIntentionAction("Add dependency on androidx.palette:palette-ktx and import")
+      fixture.getIntentionAction("Add dependency on androidx.palette:palette-ktx and import")
     kotlinAssertNotNull(action)
 
-    assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
-    WriteCommandAction.runWriteCommandAction(myFixture.project) {
-      action.invoke(myFixture.project, myFixture.editor, myFixture.file)
+    assertThat(action.isAvailable(project, fixture.editor, fixture.file)).isTrue()
+    WriteCommandAction.runWriteCommandAction(project) {
+      action.invoke(project, fixture.editor, fixture.file)
     }
 
-    // Wait for the sync.
-    // This is redundant but we can't get a handle on the internal sync state of the first action.
-    requestSyncAndWait()
-
+    // Wait for the sync (this is redundant, but we can't get a handle on the internal sync
+    // state of the first action)
+    projectRule.requestSyncAndWait()
     assertBuildGradle(project) { it.contains("implementation 'androidx.palette:palette-ktx:1.0.0") }
 
-    myFixture.checkResult(
+    fixture.checkResult(
       // language=kotlin
       """
       package com.example
@@ -320,21 +301,14 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
     )
   }
 
+  @Test
   fun testSuggestedImport_javaFile() {
-    ApplicationManager.getApplication()
-      .replaceService(
-        MavenClassRegistryManager::class.java,
-        fakeMavenClassRegistryManager,
-        myFixture.testRootDisposable,
-      )
-
-    loadProject(TestProjectPaths.ANDROIDX_SIMPLE)
     assertBuildGradle(project) {
       !it.contains("androidx.palette:palette:") && !it.contains("androidx.palette:palette-ktx:")
     }
 
     val paletteType = "Palette".highlightedAs(ERROR)
-    myFixture.loadNewFile(
+    fixture.loadNewFile(
       "app/src/main/java/Test.java",
       // language=java
       """
@@ -347,24 +321,23 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
         .trimIndent(),
     )
 
-    myFixture.checkHighlighting(false, false, false)
-    myFixture.moveCaret("Pale|tte")
-    val action =
-      myFixture.getIntentionAction("Add dependency on androidx.palette:palette and import")
+    fixture.checkHighlighting(false, false, false)
+    fixture.moveCaret("Pale|tte")
+    val action = fixture.getIntentionAction("Add dependency on androidx.palette:palette and import")
     kotlinAssertNotNull(action)
 
-    assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
-    WriteCommandAction.runWriteCommandAction(myFixture.project) {
-      action.invoke(myFixture.project, myFixture.editor, myFixture.file)
+    assertThat(action.isAvailable(project, fixture.editor, fixture.file)).isTrue()
+    WriteCommandAction.runWriteCommandAction(project) {
+      action.invoke(project, fixture.editor, fixture.file)
     }
 
-    // Wait for the sync.
-    // This is redundant but we can't get a handle on the internal sync state of the first action.
-    requestSyncAndWait()
+    // Wait for the sync (this is redundant, but we can't get a handle on the internal sync
+    // state of the first action)
+    projectRule.requestSyncAndWait()
 
     assertBuildGradle(project) { it.contains("implementation 'androidx.palette:palette:1.0.0") }
 
-    myFixture.checkResult(
+    fixture.checkResult(
       // language=java
       """
       package com.example;

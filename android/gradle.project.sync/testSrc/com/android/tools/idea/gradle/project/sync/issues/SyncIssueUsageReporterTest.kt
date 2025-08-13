@@ -18,14 +18,13 @@ package com.android.tools.idea.gradle.project.sync.issues
 import com.android.builder.model.SyncIssue
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter.Companion.toGradleSyncIssueType
-import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 /**
  * Tests for [SyncIssueUsageReporter]
  */
-class SyncIssueUsageReporterTest : AndroidGradleTestCase() {
+class SyncIssueUsageReporterTest {
   @Test
   fun testAllSyncIssueTypesHaveGradleSyncIssueType() {
     val nonGenericSyncIssues = SyncIssue::class.java.fields.filter { it.name.startsWith("TYPE_") && it.name != "TYPE_GENERIC" }

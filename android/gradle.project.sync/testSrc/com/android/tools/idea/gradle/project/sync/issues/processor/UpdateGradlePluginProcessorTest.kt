@@ -15,24 +15,41 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues.processor
 
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths.NEW_SYNC_KOTLIN_TEST
-import com.intellij.openapi.util.io.FileUtil.loadFile
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.onEdt
+import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Rule
 import org.junit.Test
 
-class UpdateGradlePluginProcessorTest : AndroidGradleTestCase() {
+@RunsInEdt
+class UpdateGradlePluginProcessorTest {
+  @get:Rule
+  val projectRule = AndroidProjectRule.onDisk().onEdt()
+
   @Test
   fun testPluginGetUpgradedCorrectly() {
-    prepareProjectForImport(NEW_SYNC_KOTLIN_TEST)
+    val psiFile = projectRule.fixture.addFileToProject(
+      "build.gradle",
+      """
+        buildscript {
+            ext.kotlin_version = '1.4.32'
+            dependencies {
+                classpath 'com.android.tools.build:gradle:3.4.0-alpha02'
+                classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${'$'}kotlin_version"
+            }
+        }
+      """.trimIndent()
+    )
 
     val gradleInfo = GradlePluginInfo("gradle", "com.android.tools.build")
     val kotlinInfo = GradlePluginInfo("kotlin-gradle-plugin", "org.jetbrains.kotlin")
-    val processor = UpdateGradlePluginProcessor(project, mapOf(gradleInfo to "1.2.3", kotlinInfo to "2.3.4"))
+    val processor = UpdateGradlePluginProcessor(projectRule.project, mapOf(gradleInfo to "1.2.3", kotlinInfo to "2.3.4"))
     processor.run()
 
-    val buildFileContents = loadFile(projectFolderPath.resolve("build.gradle"))
-    assertTrue(buildFileContents.contains("com.android.tools.build:gradle:1.2.3"))
-    assertTrue(buildFileContents.contains("org.jetbrains.kotlin:kotlin-gradle-plugin:${'$'}kotlin_version"))
-    assertTrue(buildFileContents.contains("ext.kotlin_version = '2.3.4'"))
+    val buildFileContents = psiFile.text
+    assertThat(buildFileContents).contains("com.android.tools.build:gradle:1.2.3")
+    assertThat(buildFileContents).contains("org.jetbrains.kotlin:kotlin-gradle-plugin:${'$'}kotlin_version")
+    assertThat(buildFileContents).contains("ext.kotlin_version = '2.3.4'")
   }
 }

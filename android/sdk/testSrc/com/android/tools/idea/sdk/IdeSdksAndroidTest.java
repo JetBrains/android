@@ -21,7 +21,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.util.EmbeddedDistributionPaths;
 import com.android.utils.FileUtils;
 import com.intellij.openapi.application.ApplicationManager;
@@ -34,6 +33,9 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkTypeId;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.ProjectRule;
+import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
 import java.io.IOException;
@@ -41,20 +43,30 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.annotations.Nullable;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestRule;
 import org.mockito.ArgumentCaptor;
 
 /**
  * Tests for {@link IdeSdks}
  */
-public class IdeSdksAndroidTest extends AndroidGradleTestCase {
+@RunsInEdt
+public class IdeSdksAndroidTest {
+  public ProjectRule projectRule = new ProjectRule();
+  @Rule
+  public TestRule rule = RuleChain.outerRule(projectRule).around(new EdtRule());
+
   @Nullable private Path myInitialJdkPath;
   private IdeSdks myIdeSdks;
   private boolean myEmbeddedIsJavaHome;
   private File myJavaHomePath;
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @Before
+  public void setup() {
     myIdeSdks = IdeSdks.getInstance();
     myInitialJdkPath = myIdeSdks.getJdkPath();
     String javaHome = myIdeSdks.getJdkFromJavaHome();
@@ -65,21 +77,18 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
     cleanJdkTable();
   }
 
-  @Override
-  public void tearDown() throws Exception {
-    try {
-      if (myInitialJdkPath != null) {
-        ApplicationManager.getApplication().runWriteAction(() -> {myIdeSdks.setJdkPath(myInitialJdkPath);});
-      }
-    }
-    finally {
-      super.tearDown();
+  @After
+  public void teardown() {
+    if (myInitialJdkPath != null) {
+      ApplicationManager.getApplication().invokeAndWait(() ->
+        ApplicationManager.getApplication().runWriteAction(() -> {myIdeSdks.setJdkPath(myInitialJdkPath);}));
     }
   }
 
   /**
    * Verify that {@link IdeSdks#isUsingJavaHomeJdk} and {@link IdeSdks#isUsingEmbeddedJdk} return correct values when using JAVA_HOME
    */
+  @Test
   public void testJavaHomeJdk() {
     WriteAction.run(() -> {
       Sdk[] jdks = ProjectJdkTable.getInstance().getAllJdks();
@@ -88,22 +97,24 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
       }
     });
     ApplicationManager.getApplication().runWriteAction((Runnable)() -> myIdeSdks.setJdkPath(myJavaHomePath.toPath()));
-    assertTrue(myIdeSdks.isUsingJavaHomeJdk(false /* do not assume it is uint test */));
-    assertEquals(myIdeSdks.isUsingEmbeddedJdk(), myEmbeddedIsJavaHome);
+    assertThat(myIdeSdks.isUsingJavaHomeJdk(false /* do not assume it is unit test */)).isTrue();
+    assertThat(myIdeSdks.isUsingEmbeddedJdk()).isEqualTo(myEmbeddedIsJavaHome);
   }
 
   /**
    * Verify that {@link IdeSdks#isUsingJavaHomeJdk} and {@link IdeSdks#isUsingEmbeddedJdk} return correct values when using embedded JDK
    */
+  @Test
   public void testEmbeddedJdk() {
     ApplicationManager.getApplication().runWriteAction(() -> myIdeSdks.setUseEmbeddedJdk());
-    assertTrue(myIdeSdks.isUsingEmbeddedJdk());
-    assertEquals(myIdeSdks.isUsingJavaHomeJdk(false /* do not assume it is uint test */), myEmbeddedIsJavaHome);
+    assertThat(myIdeSdks.isUsingEmbeddedJdk()).isTrue();
+    assertThat(myIdeSdks.isUsingJavaHomeJdk(false /* do not assume it is uint test */)).isEqualTo(myEmbeddedIsJavaHome);
   }
 
   /**
    * Verify that {@link IdeSdks#isUsingJavaHomeJdk} calls to {@link IdeSdks#getJdkPath} (b/131297172)
    */
+  @Test
   public void testIsUsingJavaHomeJdkCallsGetJdk() {
     IdeSdks spyIdeSdks = spy(myIdeSdks);
     spyIdeSdks.isUsingJavaHomeJdk(false /* do not assume it is uint test */);
@@ -113,6 +124,7 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
   /**
    * Calling doGetJdkFromPathOrParent should not result in NPE if it is set to "/" (b/132219284)
    */
+  @Test
   public void testDoGetJdkFromPathOrParentRoot() {
     String path = IdeSdks.doGetJdkFromPathOrParent("/");
     assertThat(path).isNull();
@@ -121,6 +133,7 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
   /**
    * Calling doGetJdkFromPathOrParent should not result in NPE if it is set to "" (b/132219284)
    */
+  @Test
   public void testDDoGetJdkFromPathOrParentEmpty() {
     String path = IdeSdks.doGetJdkFromPathOrParent("");
     assertThat(path).isNull();
@@ -129,6 +142,7 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
   /**
    * Calling doGetJdkFromPathOrParent should not result in NPE if it is not a valid path (b/132219284)
    */
+  @Test
   public void testDoGetJdkFromPathOrParentSpaces() {
     String path = IdeSdks.doGetJdkFromPathOrParent("  ");
     assertThat(path).isNull();
@@ -137,6 +151,7 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
   /**
    * Confirm that setting Jdk path also changes the result of isUsingEnvVariableJdk
    */
+  @Test
   public void testIsUsingEnvVariableJdk() {
     myIdeSdks.overrideJdkEnvVariable(myInitialJdkPath.toAbsolutePath().toString());
     assertThat(myIdeSdks.isUsingEnvVariableJdk()).isTrue();
@@ -147,6 +162,7 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
   /**
    * Verify that the embedded JDK8 can be used in setJdk
    */
+  @Test
   public void testSetJdk8() throws IOException {
     File jdkPath = new File(getEmbeddedJdk8Path());
     AtomicReference<Sdk> createdJdkRef = new AtomicReference<>(null);
@@ -162,6 +178,7 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
   /**
    * Confirm that isJdkCompatible returns true with embedded JDK 8
    */
+  @Test
   public void testIsJdkCompatibleJdk8() throws IOException {
     @Nullable Sdk jdk = Jdks.getInstance().createAndAddJdk(getEmbeddedJdk8Path());
     assertThat(IdeSdks.getInstance().isJdkCompatible(jdk, myIdeSdks.getRunningVersionOrDefault())).isTrue();
@@ -170,6 +187,7 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
   /**
    * Confirm that isJdkCompatible returns true with embedded JDK
    */
+  @Test
   public void testIsJdkCompatibleEmbedded() {
     @Nullable Sdk jdk = Jdks.getInstance().createAndAddJdk(myIdeSdks.getEmbeddedJdkPath().toString());
     assertThat(IdeSdks.getInstance().isJdkCompatible(jdk, myIdeSdks.getRunningVersionOrDefault())).isTrue();
@@ -178,6 +196,7 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
   /**
    * Recreated JDK should have same class roots
    */
+  @Test
   public void testRecreateJdkInTableSameClassRoots() {
     Sdk originalJdk = myIdeSdks.getJdk();
     assertThat(originalJdk).isNotNull();
@@ -187,7 +206,7 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
     assertThat(sdkType).isInstanceOf(JavaSdk.class);
 
     ProjectJdkTable spyJdkTable = spy(ProjectJdkTable.getInstance());
-    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), ProjectJdkTable.class, spyJdkTable, getProject());
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), ProjectJdkTable.class, spyJdkTable, projectRule.getProject());
 
 
     myIdeSdks.recreateProjectJdkTable();
@@ -213,6 +232,7 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
   /**
    * Recreating JDK should revert changes done in the root classes
    */
+  @Test
   public void testRecreateOrAddJdkInTableRevertsClassRootsChanges() throws CloneNotSupportedException {
     Sdk originalJdk = myIdeSdks.getJdk();
     assertThat(originalJdk).isNotNull();
@@ -224,7 +244,7 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
     assertThat(sdkType).isInstanceOf(JavaSdk.class);
 
     ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
-    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), ProjectJdkTable.class, jdkTable, getProject());
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), ProjectJdkTable.class, jdkTable, projectRule.getProject());
 
     // Created a modified JDK by removing a root class and update the jdkTable with it.
     Sdk finalModifiedJdk = (Sdk)originalJdk.clone();

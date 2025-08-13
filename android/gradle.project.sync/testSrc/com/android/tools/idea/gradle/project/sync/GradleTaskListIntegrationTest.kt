@@ -16,38 +16,43 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.findAppModule
 import com.google.common.truth.Truth
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import org.jetbrains.plugins.gradle.util.GradleUtil
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 /**
  * Tests to verify the functionality of disabling gradle task list during Gradle Sync.
  */
-class GradleTaskListIntegrationTest : AndroidGradleTestCase() {
+class GradleTaskListIntegrationTest {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+
   private var myOriginalTaskListSetting: Boolean = false
 
-  override fun setUp() {
-    super.setUp()
+  @Before
+  fun setup() {
     myOriginalTaskListSetting = GradleExperimentalSettings.getInstance().SKIP_GRADLE_TASKS_LIST
   }
 
-  override fun tearDown() {
-    try {
-      super.tearDown()
-    }
-    finally {
-      GradleExperimentalSettings.getInstance().SKIP_GRADLE_TASKS_LIST = myOriginalTaskListSetting
-    }
+  @After
+  fun teardown() {
+    GradleExperimentalSettings.getInstance().SKIP_GRADLE_TASKS_LIST = myOriginalTaskListSetting
   }
 
+  @Test
   fun testSyncWithGradleTaskListSkipped() {
     GradleExperimentalSettings.getInstance().SKIP_GRADLE_TASKS_LIST = true
-    loadSimpleApplication()
+    projectRule.loadProject(SIMPLE_APPLICATION)
 
-    val moduleData = GradleUtil.findGradleModuleData(project.findAppModule())
+    val moduleData = GradleUtil.findGradleModuleData(projectRule.project.findAppModule())
 
     // Verify that only test tasks are being created.
     val taskNodeData = ExternalSystemApiUtil.findAll(moduleData!!, ProjectKeys.TASK)
@@ -55,14 +60,16 @@ class GradleTaskListIntegrationTest : AndroidGradleTestCase() {
     Truth.assertThat(taskNodeData.map { it.data.name }).isEqualTo(listOf("testDebugUnitTest", "testReleaseUnitTest"))
   }
 
+  @Test
   fun testSyncWithGradleTaskListNotSkipped() {
     GradleExperimentalSettings.getInstance().SKIP_GRADLE_TASKS_LIST = false
-    loadSimpleApplication()
+    projectRule.loadProject(SIMPLE_APPLICATION)
 
-    val moduleData = GradleUtil.findGradleModuleData(project.findAppModule())
+    val moduleData = GradleUtil.findGradleModuleData(projectRule.project.findAppModule())
 
     // Verify that TaskData DataNode is not empty.
     val taskNodeData = ExternalSystemApiUtil.findAll(moduleData!!, ProjectKeys.TASK)
     Truth.assertThat(taskNodeData).isNotEmpty()
+    Truth.assertThat(taskNodeData.size).isGreaterThan(2)
   }
 }
