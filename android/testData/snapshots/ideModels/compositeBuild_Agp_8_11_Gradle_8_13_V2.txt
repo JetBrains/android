@@ -723,6 +723,7 @@ MODULE                        : TestCompositeLib1
                         implementation                : <empty>
                         implementationDependenciesMetadata      : <empty>
                         intransitiveDependenciesMetadata        : <empty>
+                        kotlinBouncyCastleConfiguration         : <empty>
                         kotlinBuildToolsApiClasspath  : <empty>
                         kotlinCompilerClasspath       : <empty>
                         kotlinCompilerPluginClasspath : <empty>
@@ -774,6 +775,8 @@ MODULE                        : TestCompositeLib1
                         releaseWearApp                : <empty>
                         releaseWearBundling           : <empty>
                         runtimeOnly                   : <empty>
+                        swiftExportClasspath          : <empty>
+                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -972,6 +975,7 @@ MODULE                        : TestCompositeLib1
                         implementation                : <empty>
                         implementationDependenciesMetadata      : <empty>
                         intransitiveDependenciesMetadata        : <empty>
+                        kotlinBouncyCastleConfiguration         : <empty>
                         kotlinBuildToolsApiClasspath  : <empty>
                         kotlinCompilerClasspath       : <empty>
                         kotlinCompilerPluginClasspath : <empty>
@@ -1026,6 +1030,8 @@ MODULE                        : TestCompositeLib1
                         releaseUnitTestRuntimeOnly    : <empty>
                         releaseWearApp                : <empty>
                         runtimeOnly                   : <empty>
+                        swiftExportClasspath          : <empty>
+                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -1105,7 +1111,7 @@ MODULE                        : TestCompositeLib1
                     qName                         : :app:testReleaseUnitTest
 MODULE                        : TestCompositeLib1.app
     GradleModuleModel
-        agpVersion                    : 8.11.0-rc02
+        agpVersion                    : 8.11.0
         gradlePath                    : :app
         gradleVersion                 : 8.13
         buildFile                     : <ROOT>/TestCompositeLib1/app/build.gradle
@@ -1126,7 +1132,7 @@ MODULE                        : TestCompositeLib1.app
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>/TestCompositeLib1
     ProjectPath                   : :app
-    ModelVersion                  : 8.11.0-rc02
+    ModelVersion                  : 8.11.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/TestCompositeLib1/app/build
@@ -1295,7 +1301,7 @@ MODULE                        : TestCompositeLib1.app
                     BaselineProfileDirectories    : <ROOT>/TestCompositeLib1/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/TestCompositeLib1/app/build/intermediates/default_proguard_files/global/proguard-android.txt-8.11.0-rc02 [-]
+            ProguardFiles                 : <ROOT>/TestCompositeLib1/app/build/intermediates/default_proguard_files/global/proguard-android.txt-8.11.0 [-]
             ProguardFiles                 : <ROOT>/TestCompositeLib1/app/proguard-rules.pro [-]
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -2206,7 +2212,7 @@ MODULE                        : TestCompositeLib1.app
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
             minor                         : 2
-            patch                         : 0
+            patch                         : 20
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
@@ -2225,7 +2231,7 @@ MODULE                        : TestCompositeLib1.app.main
 MODULE                        : TestCompositeLib1.app.unitTest
 MODULE                        : TestCompositeLib1.lib
     GradleModuleModel
-        agpVersion                    : 8.11.0-rc02
+        agpVersion                    : 8.11.0
         gradlePath                    : :lib
         gradleVersion                 : 8.13
         buildFile                     : <ROOT>/TestCompositeLib1/lib/build.gradle
@@ -2246,7 +2252,7 @@ MODULE                        : TestCompositeLib1.lib
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>/TestCompositeLib1
     ProjectPath                   : :lib
-    ModelVersion                  : 8.11.0-rc02
+    ModelVersion                  : 8.11.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/TestCompositeLib1/lib/build
@@ -2409,7 +2415,7 @@ MODULE                        : TestCompositeLib1.lib
                     BaselineProfileDirectories    : <ROOT>/TestCompositeLib1/lib/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/TestCompositeLib1/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-8.11.0-rc02 [-]
+            ProguardFiles                 : <ROOT>/TestCompositeLib1/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-8.11.0 [-]
             ProguardFiles                 : <ROOT>/TestCompositeLib1/lib/proguard-rules.pro [-]
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -3360,7 +3366,7 @@ MODULE                        : TestCompositeLib1.lib
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
             minor                         : 2
-            patch                         : 0
+            patch                         : 20
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
@@ -3514,6 +3520,7 @@ MODULE                        : TestCompositeLib3
                         implementation                : <empty>
                         implementationDependenciesMetadata      : <empty>
                         intransitiveDependenciesMetadata        : <empty>
+                        kotlinBouncyCastleConfiguration         : <empty>
                         kotlinBuildToolsApiClasspath  : <empty>
                         kotlinCompilerClasspath       : <empty>
                         kotlinCompilerPluginClasspath : <empty>
@@ -3565,6 +3572,8 @@ MODULE                        : TestCompositeLib3
                         releaseWearApp                : <empty>
                         releaseWearBundling           : <empty>
                         runtimeOnly                   : <empty>
+                        swiftExportClasspath          : <empty>
+                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -3777,7 +3786,7 @@ MODULE                        : TestCompositeLib3
                     qName                         : :app:testReleaseUnitTest
 MODULE                        : TestCompositeLib3.app
     GradleModuleModel
-        agpVersion                    : 8.11.0-rc02
+        agpVersion                    : 8.11.0
         gradlePath                    : :app
         gradleVersion                 : 8.13
         buildFile                     : <ROOT>/TestCompositeLib3/app/build.gradle
@@ -3798,7 +3807,7 @@ MODULE                        : TestCompositeLib3.app
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>/TestCompositeLib3
     ProjectPath                   : :app
-    ModelVersion                  : 8.11.0-rc02
+    ModelVersion                  : 8.11.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/TestCompositeLib3/app/build
@@ -3967,7 +3976,7 @@ MODULE                        : TestCompositeLib3.app
                     BaselineProfileDirectories    : <ROOT>/TestCompositeLib3/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/TestCompositeLib3/app/build/intermediates/default_proguard_files/global/proguard-android.txt-8.11.0-rc02 [-]
+            ProguardFiles                 : <ROOT>/TestCompositeLib3/app/build/intermediates/default_proguard_files/global/proguard-android.txt-8.11.0 [-]
             ProguardFiles                 : <ROOT>/TestCompositeLib3/app/proguard-rules.pro [-]
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -4856,7 +4865,7 @@ MODULE                        : TestCompositeLib3.app
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
             minor                         : 2
-            patch                         : 0
+            patch                         : 20
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
@@ -4875,7 +4884,7 @@ MODULE                        : TestCompositeLib3.app.main
 MODULE                        : TestCompositeLib3.app.unitTest
 MODULE                        : TestCompositeLib3.lib
     GradleModuleModel
-        agpVersion                    : 8.11.0-rc02
+        agpVersion                    : 8.11.0
         gradlePath                    : :lib
         gradleVersion                 : 8.13
         buildFile                     : <ROOT>/TestCompositeLib3/lib/build.gradle
@@ -4896,7 +4905,7 @@ MODULE                        : TestCompositeLib3.lib
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>/TestCompositeLib3
     ProjectPath                   : :lib
-    ModelVersion                  : 8.11.0-rc02
+    ModelVersion                  : 8.11.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/TestCompositeLib3/lib/build
@@ -5059,7 +5068,7 @@ MODULE                        : TestCompositeLib3.lib
                     BaselineProfileDirectories    : <ROOT>/TestCompositeLib3/lib/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/TestCompositeLib3/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-8.11.0-rc02 [-]
+            ProguardFiles                 : <ROOT>/TestCompositeLib3/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-8.11.0 [-]
             ProguardFiles                 : <ROOT>/TestCompositeLib3/lib/proguard-rules.pro [-]
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -6386,6 +6395,7 @@ MODULE                        : project
                         implementation                : <empty>
                         implementationDependenciesMetadata      : <empty>
                         intransitiveDependenciesMetadata        : <empty>
+                        kotlinBouncyCastleConfiguration         : <empty>
                         kotlinBuildToolsApiClasspath  : <empty>
                         kotlinCompilerClasspath       : <empty>
                         kotlinCompilerPluginClasspath : <empty>
@@ -6437,6 +6447,8 @@ MODULE                        : project
                         releaseWearApp                : <empty>
                         releaseWearBundling           : <empty>
                         runtimeOnly                   : <empty>
+                        swiftExportClasspath          : <empty>
+                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -6638,6 +6650,7 @@ MODULE                        : project
                         implementation                : <empty>
                         implementationDependenciesMetadata      : <empty>
                         intransitiveDependenciesMetadata        : <empty>
+                        kotlinBouncyCastleConfiguration         : <empty>
                         kotlinBuildToolsApiClasspath  : <empty>
                         kotlinCompilerClasspath       : <empty>
                         kotlinCompilerPluginClasspath : <empty>
@@ -6692,6 +6705,8 @@ MODULE                        : project
                         releaseUnitTestRuntimeOnly    : <empty>
                         releaseWearApp                : <empty>
                         runtimeOnly                   : <empty>
+                        swiftExportClasspath          : <empty>
+                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -6771,7 +6786,7 @@ MODULE                        : project
                     qName                         : :app:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
-        agpVersion                    : 8.11.0-rc02
+        agpVersion                    : 8.11.0
         gradlePath                    : :app
         gradleVersion                 : 8.13
         buildFile                     : <ROOT>/app/build.gradle
@@ -6792,7 +6807,7 @@ MODULE                        : project.app
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
-    ModelVersion                  : 8.11.0-rc02
+    ModelVersion                  : 8.11.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/app/build
@@ -6961,7 +6976,7 @@ MODULE                        : project.app
                     BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-8.11.0-rc02 [-]
+            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-8.11.0 [-]
             ProguardFiles                 : <ROOT>/app/proguard-rules.pro [-]
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -7876,7 +7891,7 @@ MODULE                        : project.app
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
             minor                         : 2
-            patch                         : 0
+            patch                         : 20
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
@@ -7895,7 +7910,7 @@ MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
 MODULE                        : project.lib
     GradleModuleModel
-        agpVersion                    : 8.11.0-rc02
+        agpVersion                    : 8.11.0
         gradlePath                    : :lib
         gradleVersion                 : 8.13
         buildFile                     : <ROOT>/lib/build.gradle
@@ -7916,7 +7931,7 @@ MODULE                        : project.lib
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :lib
-    ModelVersion                  : 8.11.0-rc02
+    ModelVersion                  : 8.11.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/lib/build
@@ -8079,7 +8094,7 @@ MODULE                        : project.lib
                     BaselineProfileDirectories    : <ROOT>/lib/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-8.11.0-rc02 [-]
+            ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-8.11.0 [-]
             ProguardFiles                 : <ROOT>/lib/proguard-rules.pro [-]
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -8997,7 +9012,7 @@ MODULE                        : project.lib
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
             minor                         : 2
-            patch                         : 0
+            patch                         : 20
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties

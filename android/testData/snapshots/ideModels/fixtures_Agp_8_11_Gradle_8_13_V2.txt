@@ -1065,7 +1065,7 @@ MODULE                        : project
                     qName                         : :app:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
-        agpVersion                    : 8.11.0-rc02
+        agpVersion                    : 8.11.0
         gradlePath                    : :app
         gradleVersion                 : 8.13
         buildFile                     : <ROOT>/app/build.gradle
@@ -1086,7 +1086,7 @@ MODULE                        : project.app
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
-    ModelVersion                  : 8.11.0-rc02
+    ModelVersion                  : 8.11.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/app/build
@@ -1255,7 +1255,7 @@ MODULE                        : project.app
                     BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-8.11.0-rc02 [-]
+            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-8.11.0 [-]
             ProguardFiles                 : <ROOT>/app/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -2205,7 +2205,7 @@ MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
 MODULE                        : project.lib
     GradleModuleModel
-        agpVersion                    : 8.11.0-rc02
+        agpVersion                    : 8.11.0
         gradlePath                    : :lib
         gradleVersion                 : 8.13
         buildFile                     : <ROOT>/lib/build.gradle
@@ -2226,7 +2226,7 @@ MODULE                        : project.lib
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :lib
-    ModelVersion                  : 8.11.0-rc02
+    ModelVersion                  : 8.11.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/lib/build

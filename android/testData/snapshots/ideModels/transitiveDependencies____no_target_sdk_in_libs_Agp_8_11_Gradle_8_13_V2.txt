@@ -1285,7 +1285,7 @@ MODULE                        : project
                     qName                         : :app:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
-        agpVersion                    : 8.11.0-rc02
+        agpVersion                    : 8.11.0
         gradlePath                    : :app
         gradleVersion                 : 8.13
         buildFile                     : <ROOT>/app/build.gradle
@@ -1306,7 +1306,7 @@ MODULE                        : project.app
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
-    ModelVersion                  : 8.11.0-rc02
+    ModelVersion                  : 8.11.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/app/build
@@ -1475,7 +1475,7 @@ MODULE                        : project.app
                     BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-8.11.0-rc02 [-]
+            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-8.11.0 [-]
             ProguardFiles                 : <ROOT>/app/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -2382,7 +2382,7 @@ MODULE                        : project.javalib2.main
 MODULE                        : project.javalib2.test
 MODULE                        : project.library1
     GradleModuleModel
-        agpVersion                    : 8.11.0-rc02
+        agpVersion                    : 8.11.0
         gradlePath                    : :library1
         gradleVersion                 : 8.13
         buildFile                     : <ROOT>/library1/build.gradle
@@ -2403,7 +2403,7 @@ MODULE                        : project.library1
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :library1
-    ModelVersion                  : 8.11.0-rc02
+    ModelVersion                  : 8.11.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/library1/build
@@ -2563,7 +2563,7 @@ MODULE                        : project.library1
                     BaselineProfileDirectories    : <ROOT>/library1/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/library1/build/intermediates/default_proguard_files/global/proguard-android.txt-8.11.0-rc02 [-]
+            ProguardFiles                 : <ROOT>/library1/build/intermediates/default_proguard_files/global/proguard-android.txt-8.11.0 [-]
             ProguardFiles                 : <ROOT>/library1/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -3456,7 +3456,7 @@ MODULE                        : project.library1.main
 MODULE                        : project.library1.unitTest
 MODULE                        : project.library2
     GradleModuleModel
-        agpVersion                    : 8.11.0-rc02
+        agpVersion                    : 8.11.0
         gradlePath                    : :library2
         gradleVersion                 : 8.13
         buildFile                     : <ROOT>/library2/build.gradle
@@ -3477,7 +3477,7 @@ MODULE                        : project.library2
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :library2
-    ModelVersion                  : 8.11.0-rc02
+    ModelVersion                  : 8.11.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/library2/build
@@ -3637,7 +3637,7 @@ MODULE                        : project.library2
                     BaselineProfileDirectories    : <ROOT>/library2/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/library2/build/intermediates/default_proguard_files/global/proguard-android.txt-8.11.0-rc02 [-]
+            ProguardFiles                 : <ROOT>/library2/build/intermediates/default_proguard_files/global/proguard-android.txt-8.11.0 [-]
             ProguardFiles                 : <ROOT>/library2/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false

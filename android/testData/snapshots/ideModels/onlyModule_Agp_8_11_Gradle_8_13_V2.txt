@@ -996,7 +996,7 @@ MODULE                        : project
                     qName                         : :app:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
-        agpVersion                    : 8.11.0-rc02
+        agpVersion                    : 8.11.0
         gradlePath                    : :app
         gradleVersion                 : 8.13
         buildFile                     : <ROOT>/app/build.gradle
@@ -1017,7 +1017,7 @@ MODULE                        : project.app
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
-    ModelVersion                  : 8.11.0-rc02
+    ModelVersion                  : 8.11.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/app/build
@@ -1380,7 +1380,7 @@ MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
 MODULE                        : project.benchmark
     GradleModuleModel
-        agpVersion                    : 8.11.0-rc02
+        agpVersion                    : 8.11.0
         gradlePath                    : :benchmark
         gradleVersion                 : 8.13
         buildFile                     : <ROOT>/benchmark/build.gradle
@@ -1401,7 +1401,7 @@ MODULE                        : project.benchmark
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :benchmark
-    ModelVersion                  : 8.11.0-rc02
+    ModelVersion                  : 8.11.0
     ProjectType                   : PROJECT_TYPE_TEST
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/benchmark/build
@@ -1849,7 +1849,7 @@ MODULE                        : project.benchmark
 MODULE                        : project.benchmark.main
 MODULE                        : project.test
     GradleModuleModel
-        agpVersion                    : 8.11.0-rc02
+        agpVersion                    : 8.11.0
         gradlePath                    : :test
         gradleVersion                 : 8.13
         buildFile                     : <ROOT>/test/build.gradle
@@ -1870,7 +1870,7 @@ MODULE                        : project.test
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :test
-    ModelVersion                  : 8.11.0-rc02
+    ModelVersion                  : 8.11.0
     ProjectType                   : PROJECT_TYPE_TEST
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/test/build
@@ -2309,7 +2309,7 @@ MODULE                        : project.test
 MODULE                        : project.test.main
 MODULE                        : project.test2
     GradleModuleModel
-        agpVersion                    : 8.11.0-rc02
+        agpVersion                    : 8.11.0
         gradlePath                    : :test2
         gradleVersion                 : 8.13
         buildFile                     : <ROOT>/test2/build.gradle
@@ -2330,7 +2330,7 @@ MODULE                        : project.test2
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :test2
-    ModelVersion                  : 8.11.0-rc02
+    ModelVersion                  : 8.11.0
     ProjectType                   : PROJECT_TYPE_TEST
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/test2/build
