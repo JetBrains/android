@@ -1,7 +1,6 @@
 ### auto-generated section `build intellij.android.core.jetbrains` start
 load("//build:compiler-options.bzl", "create_kotlinc_options")
-load("@rules_jvm//:jvm.bzl", "jvm_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_javac_options")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "kt_javac_options")
 
 create_kotlinc_options(
   name = "custom_jetbrains",
@@ -15,7 +14,8 @@ kt_javac_options(
   name = "custom-javac-options",
   x_ep_disable_all_checks = True,
   warn = "off",
-  add_exports = ["jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED"]
+  add_exports = ["jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED"],
+  no_proc = True
 )
 
 jvm_library(

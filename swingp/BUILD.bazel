@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.adt.swingp` start
-load("@rules_jvm//:jvm.bzl", "jvm_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_javac_options")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "kt_javac_options")
 
 kt_javac_options(
   name = "custom-javac-options",
@@ -9,7 +8,8 @@ kt_javac_options(
   add_exports = [
     "java.desktop/sun.java2d=ALL-UNNAMED",
     "java.desktop/sun.awt.image=ALL-UNNAMED",
-  ]
+  ],
+  no_proc = True
 )
 
 jvm_library(
