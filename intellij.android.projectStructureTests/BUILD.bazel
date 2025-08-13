@@ -14,6 +14,7 @@ jvm_library(
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util/jdom",
     "//jps/model-serialization",
+    "//java/java-runtime:rt",
   ]
 )
 ### auto-generated section `build intellij.android.projectStructureTests` end
