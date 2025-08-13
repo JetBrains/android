@@ -110,8 +110,11 @@ def main(argv):
         env[e[0]] = e[1]
 
   if platform.system() == "Darwin":
-    app_dir = os.path.join(script_dir, "Android Studio Preview.app")
-    run_command_list = [os.path.join(script_dir, "Android Studio Preview.app/Contents/MacOS/studio")]
+    # On Mac, the root directory name varies based on the app name.
+    (launcher_relpath,) = [f for f in runfiles if f.endswith(".app/Contents/MacOS/studio")]
+    launcher = os.path.join(script_dir, launcher_relpath)
+    app_dir = launcher.removesuffix("/Contents/MacOS/studio")
+    run_command_list = [launcher]
   else:
     app_dir = os.path.join(script_dir, "android-studio")
     run_command_list = [os.path.join(script_dir, "android-studio/bin/studio.sh")]
