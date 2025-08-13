@@ -36,6 +36,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.errorprone.annotations.concurrent.GuardedBy;
+import com.google.idea.blaze.common.AtomicFileWriter;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.PrintOutput;
@@ -480,9 +481,11 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
               .visitDepsMap(builtDeps)
               .visitToolchainMap(ccToolchainMap);
     }
-    // TODO(b/328563748) write to a new file and then rename to avoid the risk of truncation.
-    try (OutputStream stream = new GZIPOutputStream(Files.newOutputStream(stateFile))) {
-      serializer.toProto().writeTo(stream);
+    try (AtomicFileWriter atomicFileWriter = AtomicFileWriter.create(stateFile)) {
+      try (OutputStream stream = new GZIPOutputStream(atomicFileWriter.getOutputStream())) {
+        serializer.toProto().writeTo(stream);
+      }
+      atomicFileWriter.onWriteComplete();
     }
   }
 
