@@ -51,7 +51,7 @@ class AndroidStudioHelpTest : AndroidTestCase() {
     ApplicationManager.getApplication().replaceService(BrowserLauncher::class.java, TestBrowserLauncher, testRootDisposable)
     HelpManager.getInstance().invokeHelp(null)
 
-    val version = "${ApplicationInfo.getInstance().majorVersion}.${ApplicationInfo.getInstance().minorVersion}"
+    val version = "${ApplicationInfo.getInstance().shortVersion}"
     assertThat(TestBrowserLauncher.lastUrl)
       .startsWith("https://www.jetbrains.com/help/idea/$version/?top")
   }
