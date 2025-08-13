@@ -145,6 +145,7 @@ object RecompositionCounts : ToggleAction("Show Recomposition Counts", null, nul
     inspector.currentClient.stats.showRecompositions = state
     val panel = event.treePanel()
     panel?.updateRecompositionColumnVisibility()
+    panel?.resetRecompositionCountsAndChangeSettingsOnDevice()
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT

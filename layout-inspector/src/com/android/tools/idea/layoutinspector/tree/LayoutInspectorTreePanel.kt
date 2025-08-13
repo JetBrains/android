@@ -343,11 +343,18 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   }
 
   private fun resetRecompositionCountsFromTableHeaderClick() {
-    resetRecompositionCounts()
+    resetRecompositionCountsAndChangeSettingsOnDevice()
     layoutInspector?.currentClient?.stats?.resetRecompositionCountsClick()
   }
 
-  fun resetRecompositionCounts() {
+  /**
+   * The reset involves:
+   * - Clearing out the numbers on the Studio side
+   * - Clearing out the numbers on the device side
+   * - Updating the state on the device side (i.e. start/stop counting recompositions)
+   * - Updating the columns in Studio (this will update the data in the recomposition columns)
+   */
+  fun resetRecompositionCountsAndChangeSettingsOnDevice() {
     val inspector = layoutInspector ?: return
     val client = inspector.currentClient as? AppInspectionInspectorClient
     client?.updateRecompositionCountSettings()
