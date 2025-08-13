@@ -2288,6 +2288,11 @@ public final class StudioFlags {
                     "Enable New Project Agent",
                     "Enables the 'New Project Agent'.");
 
+  public static final Flag<Boolean> GEMINI_AGENT_CHANGES_DRAWER_ENABLED =
+    new BooleanFlag(STUDIOBOT, "agent.changes.drawer",
+                    "Enable the Agent Changes Drawer",
+                    "Enables the 'Agent Changes Drawer' for viewing and reviewing changes made by agent tool calls.");
+
   public enum DasherSupportMode {
     /**
      * Don't include any special treatment for dasher users.
