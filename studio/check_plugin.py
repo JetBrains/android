@@ -31,7 +31,7 @@ def check_plugin(kind, id, allow_bundled_updates, files, deps, out):
   # Disallow updates for bundled plugins. We enforce this even for JetBrains plugins, because
   # we want to guarantee compatibility between plugins, and because we want platform plugins
   # to always come from our own IntelliJ fork (which may have patches, for example).
-  if not allow_bundled_updates and element.attrib.get("allow-bundled-update", "false") != "false" and id != "org.jetbrains.kotlin":
+  if not allow_bundled_updates and element.attrib.get("allow-bundled-update", "false") != "false":
       print("Bundled plugin update are not allowed for plugin: %s" % id)
       sys.exit(1)
 
