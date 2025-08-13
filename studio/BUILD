@@ -806,7 +806,7 @@ exports_files([
 android_studio_configuration(
     name = "nightly",
     application_icon = ":nightly-icon",
-    mac_app_name = "Android Studio Preview",
+    mac_app_name = "Android Studio Nightly",
     version_suffix = "Nightly __BUILD_DAY__",
     version_type = "Nightly",
 )
