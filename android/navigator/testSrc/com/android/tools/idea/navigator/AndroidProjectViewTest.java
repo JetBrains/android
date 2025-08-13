@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator;
 
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static com.android.tools.idea.testing.flags.FlagUtils.overrideForTest;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
@@ -32,6 +33,7 @@ import com.android.tools.analytics.LoggedUsage;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.projectView.AndroidProjectViewSettingsImpl;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
@@ -63,6 +65,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.projectView.TestProjectTreeStructure;
+import com.intellij.testFramework.DisposableRule;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
 import com.intellij.util.containers.ContainerUtil;
@@ -91,9 +94,9 @@ import org.mockito.Mockito;
 public class AndroidProjectViewTest {
   AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
   TemporaryFolder tempFolder = new TemporaryFolder();
-
+  DisposableRule disposableRule = new DisposableRule();
   @Rule
-  public TestRule rule = RuleChain.outerRule(projectRule).around(new EdtRule()).around(tempFolder);
+  public TestRule rule = RuleChain.outerRule(projectRule).around(new EdtRule()).around(disposableRule).around(tempFolder);
   private AndroidProjectViewPane myPane;
 
   @Test
@@ -279,6 +282,11 @@ public class AndroidProjectViewTest {
 
     assertThat(myPane.isInitiallyVisible()).isTrue();
 
+    overrideForTest(StudioFlags.SHOW_DEFAULT_PROJECT_VIEW_SETTINGS, false, disposableRule.getDisposable());
+    assertThat(settings.isDefaultToProjectViewVisible()).isFalse();
+
+    overrideForTest(StudioFlags.SHOW_DEFAULT_PROJECT_VIEW_SETTINGS, true, disposableRule.getDisposable());
+    assertThat(settings.isDefaultToProjectViewVisible()).isTrue();
     when(ideInfo.isAndroidStudio()).thenReturn(false);
     when(ideInfo.isGameTools()).thenReturn(false);
     assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault").isFalse();
