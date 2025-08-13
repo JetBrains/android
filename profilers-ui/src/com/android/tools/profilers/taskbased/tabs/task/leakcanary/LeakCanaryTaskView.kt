@@ -15,27 +15,23 @@
  */
 package com.android.tools.profilers.taskbased.tabs.task.leakcanary
 
-import androidx.compose.ui.awt.ComposePanel
-import com.android.tools.adtui.compose.StudioTheme
+import com.android.tools.adtui.compose.StudioComposePanel
 import com.android.tools.profilers.StageView
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.leakcanary.LeakCanaryModel
-import org.jetbrains.jewel.foundation.ExperimentalJewelApi
-import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 import java.awt.BorderLayout
 import javax.swing.JPanel
+import org.jetbrains.jewel.foundation.ExperimentalJewelApi
+import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 
 @OptIn(ExperimentalJewelApi::class)
 class LeakCanaryTaskView(profilersView: StudioProfilersView,
                          model: LeakCanaryModel) : StageView<LeakCanaryModel>(profilersView, model) {
   init {
     enableNewSwingCompositing()
-    val composePanel = ComposePanel()
-    composePanel.setContent {
-      StudioTheme {
-        LeakCanaryScreen(model)
-      }
-    }
+
+    val composePanel = StudioComposePanel { LeakCanaryScreen(model) }
+
     component.add(composePanel, BorderLayout.CENTER)
   }
 
