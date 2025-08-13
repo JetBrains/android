@@ -25,8 +25,10 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.concurrency.SameThreadExecutor;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.AndroidTestCase;
 
 @SuppressWarnings("SpellCheckingInspection")
@@ -85,6 +87,8 @@ public class PsiIncludeReferenceTest extends AndroidTestCase {
     LocalResourceRepository<?> localRepo = (LocalResourceRepository<VirtualFile>)repository;
     CountDownLatch latch = new CountDownLatch(1);
     localRepo.invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE, latch::countDown);
-    latch.await();
+    while (!latch.await(100, TimeUnit.MILLISECONDS)) {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    }
   }
 }
