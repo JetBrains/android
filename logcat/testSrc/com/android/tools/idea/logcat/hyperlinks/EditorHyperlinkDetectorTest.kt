@@ -127,6 +127,15 @@ class EditorHyperlinkDetectorTest {
       .inOrder()
   }
 
+  /** Tests that we are always using the DeobfuscatedFilter filter. */
+  @Test
+  fun usesCorrectFilters_containsDeobfuscatedFilter() {
+    val hyperlinkDetector = editorHyperlinkDetector(editor)
+
+    assertThat(hyperlinkDetector.filter.compositeFilter.filters.map { it::class })
+      .contains(DeobfuscatedFilter::class)
+  }
+
   /**
    * Tests that we actually detect a hyperlink and add to the editor.
    *
