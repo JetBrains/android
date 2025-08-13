@@ -193,7 +193,7 @@ class DetailsViewContentViewTest {
 
     assertThat(view.myBenchmarkView.text).isEqualTo("test benchmark message\n")
     assertThat(view.myBenchmarkTab.isHidden).isFalse()
-    assertThat(view.lastSelectedTab).isEqualTo(view.myBenchmarkTab)
+    assertThat(view.tabs.selectedInfo).isEqualTo(view.myBenchmarkTab)
   }
 
   @Test
@@ -252,6 +252,42 @@ class DetailsViewContentViewTest {
     ))
 
     assertThat(view.myJourneyScreenshotsTab.isHidden).isFalse()
+  }
+
+  @Test
+  fun logsTabIsSelectedWhenErrorProvidedAndUserHasNotYetSelectedATab() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+
+    view.refreshLogsView()
+    view.setErrorStackTrace("error stack trace")
+
+    assertThat(view.tabs.selectedInfo).isEqualTo(view.logsTab)
+  }
+
+  @Test
+  fun logsTabIsNotSelectedWhenErrorProvidedAndUserHasAlreadySelectedADifferentTab() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    view.tabs.select(view.myDeviceInfoTab, false)
+
+    view.refreshLogsView()
+    view.setErrorStackTrace("error stack trace")
+
+    assertThat(view.tabs.selectedInfo).isEqualTo(view.myDeviceInfoTab)
+  }
+
+  @Test
+  fun journeysTabIsSelectedByDefaultWhenUserHasntSelectedATabYet() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+
+    view.setAdditionalTestArtifacts(mapOf(
+      "Journeys.ActionPerformed.action1.screenshotPath" to "/path/to/screenshot.png",
+      "Journeys.ActionPerformed.action1.description" to "The action taken",
+      "Journeys.ActionPerformed.action1.modelReasoning" to "The reasoning behind the action"
+    ))
+    view.setLogcat("test logcat message")
+    view.setErrorStackTrace("error stack trace") // The Journeys tab should be selected even though there is an error stack trace
+
+    assertThat(view.tabs.selectedInfo).isEqualTo(view.myJourneyScreenshotsTab)
   }
 
   private fun device(id: String, name: String): AndroidDevice {

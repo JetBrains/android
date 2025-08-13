@@ -80,7 +80,9 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
   val myJourneyScreenshotsTab: TabInfo
   @VisibleForTesting val logsTab: TabInfo
   @VisibleForTesting val tabs: JBTabs = createTabs(project, parentDisposable)
-  @VisibleForTesting var lastSelectedTab: TabInfo? = null
+
+  @VisibleForTesting
+  var lastTabSelectedByUser: TabInfo? = null
 
   private var myAndroidDevice: AndroidDevice? = null
   private var myAndroidTestCaseResult: AndroidTestCaseResult? = null
@@ -171,17 +173,23 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
       minimumSize = Dimension()
     }
     tabs.setSelectionChangeHandler (MyTabSelectionHandler(this))
+
+    updateSelectedTab()
   }
 
   fun setAndroidDevice(androidDevice: AndroidDevice) {
     myAndroidDevice = androidDevice
     refreshTestResultLabel()
     myDeviceInfoTableView.setAndroidDevice(androidDevice)
+
+    updateSelectedTab()
   }
 
   fun setAndroidTestCaseResult(result: AndroidTestCaseResult?) {
     myAndroidTestCaseResult = result
     refreshTestResultLabel()
+
+    updateSelectedTab()
   }
 
   fun setLogcat(logcat: String) {
@@ -190,6 +198,8 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     if (needsRefreshLogsView) {
       myLogcat = logcat
       refreshLogsView()
+
+      updateSelectedTab()
     }
   }
 
@@ -199,6 +209,8 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
       myErrorStackTrace = errorStackTrace
       refreshTestResultLabel()
       refreshLogsView()
+
+      updateSelectedTab()
     }
   }
 
@@ -209,9 +221,8 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     }
     val benchmarkOutputIsEmpty = benchmarkText.lines.isEmpty()
     myBenchmarkTab.isHidden = benchmarkOutputIsEmpty
-    if (!benchmarkOutputIsEmpty) {
-      this.lastSelectedTab = myBenchmarkTab
-    }
+
+    updateSelectedTab()
   }
 
   fun setAdditionalTestArtifacts(additionalTestArtifacts: Map<String, String>) {
@@ -227,7 +238,6 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
       myScreenshotResultView.diffImagePath = diffImage ?: ""
       myScreenshotResultView.testFailed = (myAndroidTestCaseResult == AndroidTestCaseResult.FAILED)
       myScreenshotResultView.updateView()
-      this.lastSelectedTab = myScreenshotTab
     } else {
       myScreenshotTab.isHidden = true
     }
@@ -236,9 +246,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     myJourneysResultsPanel.updateArtifacts(journeyActionArtifacts)
     myJourneyScreenshotsTab.isHidden = journeyActionArtifacts.isEmpty()
 
-    if (journeyActionArtifacts.isNotEmpty()) {
-      tabs.select(myJourneyScreenshotsTab, false)
-    }
+    updateSelectedTab()
   }
 
   private fun refreshTestResultLabel() {
@@ -310,7 +318,6 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
       return
     }
     logsTab.isHidden = false
-    lastSelectedTab?.let { tabs.select(it, false) }
     if (!StringUtil.isEmptyOrSpaces(myLogcat)) {
       myLogsView.print(myLogcat, ConsoleViewContentType.NORMAL_OUTPUT)
       myLogsView.print("\n", ConsoleViewContentType.NORMAL_OUTPUT)
@@ -318,9 +325,31 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     myLogsView.print(myErrorStackTrace, ConsoleViewContentType.ERROR_OUTPUT)
   }
 
+  private fun updateSelectedTab() {
+    val lastSelectedTab = this.lastTabSelectedByUser
+
+    // Let's always default to the tab last selected by the user (if it's visible)
+    if (lastSelectedTab != null && !lastSelectedTab.isHidden) {
+      tabs.select(lastSelectedTab, false)
+      return
+    }
+
+    // Otherwise select the first visible tab in the ordered set defined below
+    for (tab in setOf(myJourneyScreenshotsTab, myScreenshotTab, myBenchmarkTab, logsTab, myDeviceInfoTab)) {
+      if (!tab.isHidden) {
+        tabs.select(tab, false)
+
+        // We only want to track tabs selected by the user - so reset it to the previous value
+        this.lastTabSelectedByUser = lastSelectedTab
+
+        return
+      }
+    }
+  }
+
   class MyTabSelectionHandler(val view: DetailsViewContentView) : JBTabs.SelectionChangeHandler {
     override fun execute(info: TabInfo, requestFocus: Boolean, doChangeSelection: ActiveRunnable): ActionCallback {
-      view.lastSelectedTab = info
+      view.lastTabSelectedByUser = info
       return doChangeSelection.run()
     }
   }
