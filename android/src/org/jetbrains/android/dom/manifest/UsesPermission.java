@@ -18,6 +18,8 @@ package org.jetbrains.android.dom.manifest;
 import com.intellij.util.xml.Attribute;
 import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.Required;
+import com.intellij.util.xml.SubTagList;
+import java.util.List;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.AndroidPermissionConverter;
@@ -28,4 +30,7 @@ public interface UsesPermission extends ManifestElementWithName {
   @Required
   @Convert(AndroidPermissionConverter.class)
   AndroidAttributeValue<String> getName();
+
+  @SubTagList("purpose")
+  List<Purpose> getPurposes();
 }

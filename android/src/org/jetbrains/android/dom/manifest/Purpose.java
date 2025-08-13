@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,14 @@ package org.jetbrains.android.dom.manifest;
 import com.intellij.util.xml.Attribute;
 import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.Required;
-import com.intellij.util.xml.SubTagList;
 import org.jetbrains.android.dom.AndroidAttributeValue;
-import org.jetbrains.android.dom.converters.AndroidPermissionConverter;
-import java.util.List;
+import org.jetbrains.android.dom.Styleable;
+import org.jetbrains.android.dom.converters.AndroidPermissionPurposeConverter;
 
-public interface UsesPermissionSdk23 extends ManifestElementWithName {
-    @Attribute("name")
-    @Required
-    @Convert(AndroidPermissionConverter.class)
-    AndroidAttributeValue<String> getName();
-
-    @SubTagList("purpose")
-    List<Purpose> getPurposes();
+@Styleable("AndroidManifestPurpose")
+public interface Purpose extends ManifestElementWithName {
+  @Attribute("name")
+  @Required
+  @Convert(AndroidPermissionPurposeConverter.class)
+  AndroidAttributeValue<String> getName();
 }

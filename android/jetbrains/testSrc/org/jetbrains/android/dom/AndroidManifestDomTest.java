@@ -73,6 +73,34 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     assertThat(myFixture.getLookupElementStrings()).containsAllOf("android:label", "android:tag");
   }
 
+  public void testUsesPermissionPurposeNameAttributeCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "  <uses-permission android:name=\"android.permission.USE_SOME_PERMISSION\">" +
+      "    <purpose <caret>\n" +
+      "  </uses-permission>" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).contains("android:name");
+  }
+
+  public void testUsesPermissionSdk23PurposeNameAttributeCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "  <uses-permission-sdk-23 android:name=\"android.permission.USE_SOME_PERMISSION\">" +
+      "    <purpose <caret>\n" +
+      "  </uses-permission>" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).contains("android:name");
+  }
+
   public void testPropertyHighlighting() {
     // UNRESOLVED errors do not relate to the <property> tag which is the purpose of the test.
     VirtualFile file = myFixture.addFileToProject(
