@@ -107,7 +107,7 @@ class NewProjectTemplateRendererTest {
 
   @Test
   fun `Given gradle version with toolchain as default When create project using KTS Then Foojay plugin and Daemon JVM criteria are defined`() {
-    val render = createNewProjectTemplateRender("9.1", true)
+    val render = createNewProjectTemplateRender("9.2.0", true)
     multiTemplateRenderer.requestRender(render)
 
     assertFoojayPlugin(true)
@@ -116,7 +116,7 @@ class NewProjectTemplateRendererTest {
 
   @Test
   fun `Given gradle version with toolchain as default When create project not using KTS Then Foojay plugin and Daemon JVM criteria are defined`() {
-    val render = createNewProjectTemplateRender("9.2", true)
+    val render = createNewProjectTemplateRender("9.2.1", true)
     multiTemplateRenderer.requestRender(render)
 
     assertFoojayPlugin(true)
@@ -127,7 +127,7 @@ class NewProjectTemplateRendererTest {
   fun `Given gradle version with toolchain as default but disable registry When create project Then Foojay plugin and Daemon JVM criteria are not defined`() {
     Registry.get("gradle.daemon.jvm.criteria.new.project").setValue(false)
 
-    val render = createNewProjectTemplateRender("9.1")
+    val render = createNewProjectTemplateRender("9.2.0")
     multiTemplateRenderer.requestRender(render)
 
     assertFoojayPlugin(false)

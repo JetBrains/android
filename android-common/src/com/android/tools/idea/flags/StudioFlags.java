@@ -190,7 +190,7 @@ public final class StudioFlags {
   public static final Flag<String> NPW_DAEMON_JVM_CRITERIA_REQUIRED_GRADLE_VERSION = new StringFlag(
     NPW, "new.project.daemon.jvm.criteria.gradle.version", "New project Daemon JVM criteria required Gradle version",
     "The Gradle version required to configure Daemon JVM criteria for newly created projects",
-    "9.1");
+    "9.2.0");
   //endregion
 
   //region Memory Usage Reporting
