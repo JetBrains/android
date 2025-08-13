@@ -40,7 +40,7 @@ jvm_library(
     "@lib//:truth",
     "//android/adt-ui-model",
     "//android/adt-ui-model:adt-ui-model_test_lib",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:junit4",
     "@lib//:jaxb-api",
     "@lib//:android-tools-sdklib",

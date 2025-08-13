@@ -46,7 +46,7 @@ jvm_library(
     "//platform/extensions",
     "@lib//:kotlinx-coroutines-test",
     "//android/android-test-framework:testFramework_test_lib",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:mockito-kotlin",
     "//platform/lang-api:lang",
     "//platform/lang-impl",

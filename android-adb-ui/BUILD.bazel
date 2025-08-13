@@ -59,7 +59,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "@lib//:kotlinx-coroutines-test",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:mockito-kotlin",
     "@lib//:protobuf",
     "@lib//:truth",

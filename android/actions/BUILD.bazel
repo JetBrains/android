@@ -14,7 +14,7 @@ jvm_library(
     "//android/android:core",
     "//android/adt-ui",
     "//android/adt-ui:adt-ui_test_lib",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:truth",
     "@lib//:kotlinc-kotlin-compiler-common",
     "//android/project-system-gradle-psd:projectSystem-gradle-psd",

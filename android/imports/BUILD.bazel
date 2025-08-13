@@ -15,7 +15,7 @@ jvm_library(
     "@lib//:kotlinx-serialization-json",
     "@lib//:kotlinx-coroutines-test",
     "@lib//:kotlin-test",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:mockito-kotlin",
     "@lib//:protobuf",
     "@lib//:truth",

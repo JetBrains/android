@@ -78,7 +78,7 @@ jvm_library(
     "@lib//:guava",
     "@lib//:junit4",
     "@lib//:kotlinx-coroutines-core",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:mockito-kotlin",
     "@lib//:protobuf",
     "@lib//:truth",

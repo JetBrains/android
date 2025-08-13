@@ -10,7 +10,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:junit4",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:truth",
     "@lib//:kotlinc-kotlin-compiler-common",
     "@lib//:kotlinc-kotlin-scripting-compiler-impl",

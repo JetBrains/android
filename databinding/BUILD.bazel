@@ -94,7 +94,7 @@ jvm_library(
     "@lib//:mockito-kotlin",
     "@lib//:protobuf",
     "@lib//:truth",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/android-common:common",
     "//android/android:core",

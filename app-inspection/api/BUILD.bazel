@@ -35,7 +35,7 @@ jvm_library(
     "@lib//:kotlinx-coroutines-core",
     "@lib//:protobuf",
     "@lib//:junit4",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:truth",
     "@lib//:guava",
     "//android/android-common:common",

@@ -56,7 +56,7 @@ jvm_library(
     "@lib//:junit4",
     "@lib//:http-client",
     "@lib//:jetbrains-annotations",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:truth",
     "@lib//:mockito-kotlin",
     "//android/assistant",

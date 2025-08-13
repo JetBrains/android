@@ -42,7 +42,7 @@ jvm_library(
     "//android/gradle-declarative-lang",
     "//android/lint:lint-common",
     "@lib//:junit4",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:mockito-kotlin",
     "//android/android:core",
     "//platform/core-api:core",

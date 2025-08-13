@@ -59,7 +59,7 @@ jvm_library(
     "//android/artwork",
     "//android/android-common:common",
     "@lib//:truth",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "//android/build-common",
     "//android/project-system",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",

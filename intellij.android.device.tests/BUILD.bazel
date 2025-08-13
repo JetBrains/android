@@ -25,7 +25,7 @@ jvm_library(
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:guava",
     "@lib//:truth",
     "@lib//:kotlinx-coroutines-core",

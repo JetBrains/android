@@ -62,7 +62,7 @@ jvm_library(
     "@lib//:kotlinx-coroutines-core",
     "@lib//:kotlinx-coroutines-guava",
     "@lib//:protobuf",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:mockito-kotlin",
     "//android/android-adb:adb",
     "//android/adt-ui",

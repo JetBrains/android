@@ -12,7 +12,7 @@ jvm_library(
     "@lib//:junit4",
     "//android/adt-ui",
     "//android/adt-ui:adt-ui_test_lib",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:truth",
     "//android/project-system-gradle-psd:projectSystem-gradle-psd",
     "//android/adt-testutils:adt-testutils_test_lib",

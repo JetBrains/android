@@ -60,7 +60,7 @@ jvm_library(
     "@lib//:truth",
     "@lib//:guava",
     "@lib//:junit4",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "//android/android-test-framework:testFramework",
     "//android/android-test-framework:testFramework_test_lib",
     "//android/adt-testutils:adt-testutils_test_lib",

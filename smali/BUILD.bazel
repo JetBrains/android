@@ -37,7 +37,7 @@ jvm_library(
     "@lib//:studio-test-platform",
     "@lib//:guava",
     "@lib//:junit4",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:truth",
     "//platform/analysis-api:analysis",
     "//platform/analysis-impl",

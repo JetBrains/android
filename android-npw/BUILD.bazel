@@ -105,7 +105,7 @@ jvm_library(
     "//android/wizard-model",
     "//android/wizard-model:wizard-model_test_lib",
     "//android/android-common:common",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "//java/idea-ui:ui",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/adt-ui",

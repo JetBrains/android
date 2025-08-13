@@ -53,7 +53,7 @@ jvm_library(
     "@lib//:guava",
     "@lib//:junit4",
     "@lib//:kxml2",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:truth",
     "//android/layoutlib-loader",
     "//android/layoutlib",

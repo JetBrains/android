@@ -189,7 +189,7 @@ jvm_library(
     "//android/adt-ui-model:adt-ui-model_test_lib",
     "//android/deploy",
     "//android/deploy:deploy_test_lib",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "//android/project-system",
     "//android/project-system-gradle:projectSystem-gradle",
     "//android/designer",

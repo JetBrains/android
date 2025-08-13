@@ -73,7 +73,7 @@ jvm_library(
     "//android/adt-ui-compose:adt-ui-compose_test_lib",
     "//android/adt-ui-model",
     "//android/adt-ui-model:adt-ui-model_test_lib",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:truth",
     "//android/artwork",
     "//android/android-transport:transport",

@@ -35,7 +35,7 @@ jvm_library(
     "@lib//:truth",
     "//android/adt-ui",
     "//android/adt-ui:adt-ui_test_lib",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "@lib//:android-tools-analytics-library-testing",
     "//android/adt-testutils:adt-testutils_test_lib",

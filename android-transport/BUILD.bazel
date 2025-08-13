@@ -58,7 +58,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:junit4",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:truth",
     "@lib//:guava",
     "@lib//:fastutil-min",

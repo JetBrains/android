@@ -78,7 +78,7 @@ jvm_library(
     "@lib//:kotlin-test",
     "@lib//:kotlinx-coroutines-core",
     "@lib//:kotlinx-coroutines-test",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:protobuf",
     "//android/execution/common",
     "//android/android-test-framework:testFramework",

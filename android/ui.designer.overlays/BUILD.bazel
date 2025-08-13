@@ -12,7 +12,7 @@ jvm_library(
     "@lib//:junit4",
     "//android/android:core",
     "@lib//:guava",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:truth",
     "//android/adt-ui",
     "//android/adt-ui:adt-ui_test_lib",

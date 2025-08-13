@@ -58,7 +58,7 @@ jvm_library(
     "@lib//:junit4",
     "@lib//:jetbrains-annotations",
     "@lib//:jsoup",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:mockito-kotlin",
     "//android/android:core",
     "//android/android:core-tests_test_lib",

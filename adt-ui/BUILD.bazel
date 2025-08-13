@@ -82,7 +82,7 @@ jvm_library(
     "@lib//:gson",
     "@lib//:kotlin-test",
     "@lib//:kotlinx-coroutines-test",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:mockito-kotlin",
     "@lib//:truth",
     "@lib//:java_compatibility",

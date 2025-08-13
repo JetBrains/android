@@ -46,7 +46,7 @@ jvm_library(
     "@lib//:maven-resolver-provider",
     "@lib//:protobuf",
     "@lib//:junit4",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:truth",
     "//android/analytics",
     "//android/analytics:analytics_test_lib",

@@ -214,7 +214,7 @@ jvm_library(
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-test",
     "@lib//:kotlin-reflect",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:protobuf",
     "@lib//:truth",
     "@lib//:kotlinc-analysis-api-provided",

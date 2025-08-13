@@ -21,7 +21,7 @@ jvm_library(
     "@lib//:guava",
     "@lib//:junit4",
     "//android/android:core",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:truth",
     "@lib//:kotlin-test",
     "@lib//:kotlinc-kotlin-compiler-common",

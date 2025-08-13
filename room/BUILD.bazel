@@ -59,7 +59,7 @@ jvm_library(
     "@lib//:guava",
     "@lib//:junit4",
     "@lib//:jetbrains-annotations",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:mockito-kotlin",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "//android/android-lang:lang",

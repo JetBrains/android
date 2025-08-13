@@ -61,7 +61,7 @@ jvm_library(
     "@lib//:junit4",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlinx-coroutines-core",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:mockito-kotlin",
     "@lib//:truth",
     "//android/android-adb:adb",

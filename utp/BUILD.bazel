@@ -35,7 +35,7 @@ jvm_library(
     "@lib//:guava",
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:mockito-kotlin",
     "@lib//:truth",
     "//plugins/gradle:gradle-common",

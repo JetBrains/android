@@ -49,7 +49,7 @@ jvm_library(
     "@lib//:kotlinx-coroutines-core",
     "@lib//:junit4",
     "@lib//:kotlin-test",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:mockito-kotlin",
     "@lib//:truth",
     "//android/adt-ui",

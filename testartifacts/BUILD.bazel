@@ -77,7 +77,7 @@ jvm_library(
     "//android/adt-ui:adt-ui_test_lib",
     "//android/adt-testutils:adt-testutils_test_lib",
     "@lib//:guava",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:mockito-kotlin",
     "@lib//:truth",
     "@lib//:protobuf",

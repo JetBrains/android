@@ -60,7 +60,7 @@ jvm_library(
     "@lib//:guava",
     "@lib//:junit4",
     "@lib//:kotlinx-coroutines-core",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:protobuf",
     "@lib//:truth",
     "@lib//:android-app-inspection-inspectors-backgroundtask-view-tests-background-inspector-proto",

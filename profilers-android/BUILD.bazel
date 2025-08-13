@@ -85,7 +85,7 @@ jvm_library(
     "@lib//:protobuf",
     "@lib//:junit4",
     "@lib//:kotlin-test",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:truth",
     "@lib//:guava",
     "//android/adt-ui",

@@ -97,7 +97,7 @@ jvm_library(
     "@lib//:junit4",
     "@lib//:kotlin-test",
     "@lib//:kotlinx-coroutines-core",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "//platform/analysis-api:analysis",
     "@lib//:truth",
     "@lib//:guava",

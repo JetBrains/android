@@ -14,7 +14,7 @@ jvm_library(
     "//android/adt-ui",
     "//android/adt-ui:adt-ui_test_lib",
     "//android/android:core",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:truth",
     "//android/apkanalyzer",
     "//android/android:core-tests_test_lib",

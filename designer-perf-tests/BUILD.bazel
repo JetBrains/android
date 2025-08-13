@@ -22,7 +22,7 @@ jvm_library(
     "//android/compose-designer",
     "//android/android-test-framework:testFramework_test_lib",
     "@lib//:layoutlib",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "//android/intellij.android.compose-common:compose-common",
     "//android/adt-ui",
     "//android/adt-ui:adt-ui_test_lib",

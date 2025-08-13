@@ -82,7 +82,7 @@ jvm_library(
     "@lib//:junit4",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlin-test",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:mockito-kotlin",
     "//platform/core-api:core",
     "//platform/editor-ui-api:editor-ui",

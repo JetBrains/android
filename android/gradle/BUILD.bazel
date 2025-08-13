@@ -16,7 +16,7 @@ jvm_library(
     "@lib//:commons-lang3",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-test",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:mockito-kotlin",
     "@lib//:protobuf",
     "@lib//:truth",

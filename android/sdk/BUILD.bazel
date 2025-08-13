@@ -11,7 +11,7 @@ jvm_library(
     "@lib//:studio-test-platform",
     "@lib//:guava",
     "@lib//:junit4",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:truth",
     "@lib//:kotlin-test",
     "//android/adt-testutils:adt-testutils_test_lib",

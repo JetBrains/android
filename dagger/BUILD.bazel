@@ -68,7 +68,7 @@ jvm_library(
     "@lib//:studio-test-platform",
     "@lib//:junit4",
     "@lib//:truth",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:protobuf",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "@lib//:kotlinc-analysis-api-provided",

@@ -15,7 +15,7 @@ jvm_library(
     "@lib//:guava-testlib",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-test",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:mockito-kotlin",
     "@lib//:truth",
     "@lib//:kotlinc-kotlin-compiler-common",

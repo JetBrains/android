@@ -66,7 +66,7 @@ jvm_library(
     "@lib//:swingx",
     "@lib//:junit4",
     "@lib//:kotlinx-coroutines-test",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:mockito-kotlin",
     "@lib//:truth",
     "@lib//:guava",

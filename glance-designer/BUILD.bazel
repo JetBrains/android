@@ -65,7 +65,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "@lib//:kotlinx-coroutines-core",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "//android/designer",
     "//android/designer:designer_test_lib",
     "//android/adt-ui",

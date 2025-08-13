@@ -38,7 +38,7 @@ jvm_library(
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-test",
     "@lib//:kxml2",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:mockito-kotlin",
     "@lib//:truth",
     "@lib//:kotlinc-kotlin-compiler-common",

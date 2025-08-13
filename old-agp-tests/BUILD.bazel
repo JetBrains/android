@@ -13,7 +13,7 @@ jvm_library(
     "@lib//:guava",
     "@lib//:junit4",
     "@lib//:jetbrains-annotations",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:truth",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/android-common:common",

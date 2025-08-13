@@ -68,7 +68,7 @@ jvm_library(
     "//android/android:core-tests_test_lib",
     "//android/android-test-framework:testFramework_test_lib",
     "@lib//:kotlin-test",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "//platform/lang-impl",
     "//platform/core-ui",
     "//java/java-impl:impl",

@@ -115,7 +115,7 @@ jvm_library(
     "//plugins/kotlin/code-insight/api",
     "//xml/xml-psi-impl:psi-impl",
     "@lib//:kotlinc-kotlin-compiler-common",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:mockito-kotlin",
     "@lib//:protobuf",
     "//android/preview-designer:preview-designer-tests_test_lib",

@@ -13,7 +13,7 @@ jvm_library(
     "//android/android:core-tests_test_lib",
     "//android/android-test-framework:testFramework_test_lib",
     "//android/execution/common",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "//android/android/lib:instantapps-api-1-8",
     "@lib//:kotlin-stdlib",
     "@lib//:guava",

@@ -111,7 +111,7 @@ jvm_library(
     "@lib//:junit4",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlinc-kotlin-compiler-common",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:protobuf",
     "@lib//:truth",
     "//android/adt-testutils:adt-testutils_test_lib",

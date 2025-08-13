@@ -77,7 +77,7 @@ jvm_library(
     "@lib//:guava",
     "@lib//:junit4",
     "@lib//:gson",
-    "@lib//:mockito",
+    "//libraries/mockito",
     "@lib//:mockito-kotlin",
     "@lib//:protobuf",
     "@lib//:truth",
