@@ -27,6 +27,7 @@ import com.intellij.ide.dnd.DnDSupport
 import com.intellij.ide.dnd.FileCopyPasteUtil
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.text.StringUtil.shortenTextWithEllipsis
 import com.intellij.util.ui.UIUtil
 import java.io.File
 import java.nio.file.Files
@@ -149,7 +150,7 @@ private class DeviceFileDropHandler(
   }
 
   private fun formatForDisplay(prefixForPluralCase: String, files: List<Path>): String =
-      if (files.size == 1) files.first().fileName.toString() else "$prefixForPluralCase${files.size} files"
+      if (files.size == 1) files.first().fileNameForDisplay() else "$prefixForPluralCase${files.size} files"
 
   private fun getFileTypes(files: List<Path>): Set<FileType> {
     val types = EnumSet.noneOf(FileType::class.java)
@@ -172,6 +173,13 @@ private class DeviceFileDropHandler(
 
   private fun InstallException.isInvalidCompoundApk() =
       errorCode == "INSTALL_FAILED_INVALID_APK" && errorMessage.endsWith(" Split null was defined multiple times")
+
+  private fun Path.fileNameForDisplay(): String {
+    val filename = fileName.toString()
+    val dotOffset = filename.lastIndexOf('.')
+    val suffixLength = if (dotOffset >= 0) filename.length - dotOffset else 0
+    return shortenTextWithEllipsis(filename, 32, suffixLength)
+  }
 
   private enum class FileType { APK, OTHER }
 }
