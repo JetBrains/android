@@ -19,6 +19,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "//android/artwork",
     "@lib//:android-artwork-compose-jewel-ide-laf-bridge-243",
-  ]
+  ],
+  plugins = ["@lib//:compose-plugin"]
 )
 ### auto-generated section `build intellij.android.artwork-compose` end
