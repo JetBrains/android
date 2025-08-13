@@ -50,8 +50,7 @@ public class IntellijImportDialog implements ImportDialog {
       // Configure title and extension
       FileChooserDescriptor chooserDescriptor = FileChooserDescriptorFactory
         .createSingleFileDescriptor()
-        .withFileFilter(file -> validExtensions.stream()
-          .anyMatch(extension -> Comparing.equal(file.getExtension(), extension, file.isCaseSensitive())))
+        .withExtensionFilter("Profiler Recordings", validExtensions.toArray(new String[0]))
         .withHideIgnored(false);
       chooserDescriptor.setTitle(dialogTitleSupplier.get());
       chooserDescriptor.setDescription("Open file from");
