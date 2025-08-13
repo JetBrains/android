@@ -1,0 +1,38 @@
+┬───
+│ GC Root: Local variable in native code
+│
+├─ dalvik.system.PathClassLoader instance
+│    Leaking: NO (InternalLeakCanary↓ is not leaking and A ClassLoader is never leaking)
+│    ↓ ClassLoader.runtimeInternalObjects
+├─ java.lang.Object[] array
+│    Leaking: NO (InternalLeakCanary↓ is not leaking)
+│    ↓ Object[380]
+├─ leakcanary.internal.InternalLeakCanary class
+│    Leaking: NO (MainActivity↓ is not leaking and a class is never leaking)
+│    ↓ static InternalLeakCanary.resumedActivity
+├─ io.github.pastthepixels.freepaint.MainActivity instance
+│    Leaking: NO (Activity#mDestroyed is false)
+│    mApplication instance of io.github.pastthepixels.freepaint.FreePaintApplication
+│    mBase instance of androidx.appcompat.view.ContextThemeWrapper
+│    ↓ MainActivity.toolsBottomSheet3
+│                   ~~~~~~~~~~~~~~~~
+╰→ io.github.pastthepixels.freepaint.MainActivity$ToolsBottomSheet instance
+     Leaking: YES (ObjectWatcher was watching this because io.github.pastthepixels.freepaint.
+     MainActivity$ToolsBottomSheet received Fragment#onDestroy() callback. Conflicts with Fragment.mLifecycleRegistry.
+     state is INITIALIZED)
+     Retaining 2.3 kB in 83 objects
+     key = b84423c0-69da-44e4-b9ab-1525ca3599b4
+     watchDurationMillis = 38786
+     retainedDurationMillis = 33785
+     key = d3410207-a32b-47bb-9b17-1d85002b6935
+     watchDurationMillis = 36654
+     retainedDurationMillis = 31652
+     key = 2a49188a-ef70-4b97-abdc-56b6e4ff3e4f
+     watchDurationMillis = 34749
+     retainedDurationMillis = 29748
+     key = 5bcf2878-99cb-4d55-a23b-b5ebd695ee33
+     watchDurationMillis = 27812
+     retainedDurationMillis = 22786
+     key = 5df5a0dd-be95-4447-85d2-17f8dca274c0
+     watchDurationMillis = 6491
+     retainedDurationMillis = 1487

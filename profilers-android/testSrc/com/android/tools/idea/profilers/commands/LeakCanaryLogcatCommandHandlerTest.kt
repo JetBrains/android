@@ -61,6 +61,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
+import org.mockito.kotlin.verify
 
 class LeakCanaryLogcatCommandHandlerTest {
   private lateinit var mockDevice: IDevice
@@ -318,6 +319,32 @@ class LeakCanaryLogcatCommandHandlerTest {
       // ignored.
       assertEquals(event.leakcanaryLogcat.logcatMessage.trim(), fakedMessages[index++].trim())
     }
+    verifyEndEvent()
+  }
+
+  @Test
+  fun testLogcatWithIncompleteLeak() = runTest {
+    handler = LeakCanaryLogcatCommandHandler(mockDevice, transportServiceGrpc, mockEventQueue)
+    handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LOGCAT_TRACKING).setPid(123).build())
+
+    // Before pushing messages wait for logcat to setup
+    waitForEvent(this)
+
+    val listOfFiles = ImmutableList.of("IncompleteLeakWithoutBytesRetained.txt")
+    pushLogcatMessages(listOfFiles, mockLogcatService, false)
+
+    // Simulate some delay to allow coroutines to process
+    waitForEvent(this)
+
+    // All leaks in logcat are detected and added to queue along with start event.
+    assertEquals(mockEventQueue.size, 2)
+
+    verifyStartEvent()
+
+    val event = mockEventQueue.poll()
+    // -1 is assigned for incomplete trace without retained bytes info
+    assertTrue(event.leakcanaryLogcat.logcatMessage.contains("-1 bytes retained by leaking objects"))
+
     verifyEndEvent()
   }
 

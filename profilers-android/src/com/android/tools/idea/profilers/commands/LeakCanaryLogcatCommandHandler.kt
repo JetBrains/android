@@ -33,6 +33,7 @@ import com.android.tools.profiler.proto.Transport
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.ProjectManager
+import java.security.MessageDigest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -53,20 +54,19 @@ class LeakCanaryLogcatCommandHandler(
   private var pid = 0
   private var sessionId = 0L
   private val logcatService: LogcatService = LogcatService.getInstance(ProjectManager.getInstance().defaultProject)
-  private val startPatternSuccess: String = "HEAP ANALYSIS RESULT"
-  private val startPatternFailure: String = "HEAP ANALYSIS FAILED"
-  private val separatingLine: String = "===================================="
-  private val metaSectionPattern: String = "METADATA"
+  private val bytesRetainedText = "bytes retained by leaking objects"
   private val logger: Logger = Logger.getInstance(LeakCanaryLogcatCommandHandler::class.java)
   private var startTimeNs: Long = 0
-  private var isEnded = false
-  private var prevLeakCanaryLogTimeStamp = 0L
-  private var inLastFrame = false
-  private var capturedLogsForIncompleteTrace = StringBuilder()
-  private val leakStartPattern: String = "bytes retained by leaking objects"
-  private val lastFramePattern: String = "╰→"
-  private val initialTabSpace = "  "
   private val TWO_SECONDS = TimeUnit.SECONDS.toSeconds(2)
+  private var isEnded = false
+
+  private var prevLogTimeStampOfPartialTrace = 0L
+  private var inLastFrameOfPartialTrace = false
+  private var capturedLogsForPartialTrace = StringBuilder()
+
+  private var inMetaSectionOfCompleteTrace = false
+  private var isCapturingCompleteTrace = false
+  private var capturedLogsForCompleteTrace = StringBuilder()
 
   companion object {
     private const val LEAKCANARY_TAG = "LeakCanary"
@@ -176,10 +176,6 @@ class LeakCanaryLogcatCommandHandler(
   private fun readLeakLog() {
     logCollectionJob = CoroutineScope(Dispatchers.Default + Job()).launch {
       try {
-        val capturedLogs = StringBuilder()
-        var capturing = false
-        var isInMetaSection = false
-
         logcatService.readLogcat(
           serialNumber = device.serialNumber,
           sdk = device.version.androidApiLevel,
@@ -189,30 +185,7 @@ class LeakCanaryLogcatCommandHandler(
 
           logcatMessages.forEach { logcatMessage ->
             detectAndHandlePartialLeakTraces(logcatMessage)
-            if (LEAKCANARY_TAG != logcatMessage.header.tag) return@forEach
-
-            // The following logic reads LeakCanary's logs line by line, but LeakCanary may print multiple lines as one logcat entry
-            // (with one header). Therefore, we need to break the message into lines before processing.
-            logcatMessage.message.split("\n").forEach { line ->
-              if (startPatternSuccess in line || startPatternFailure in line) {
-                capturing = true
-                capturedLogs.clear()
-                // Add === since it's skipped before the startPattern check
-                capturedLogs.appendLine(separatingLine)
-              }
-              if (capturing) {
-                capturedLogs.appendLine(line)
-              }
-              if (capturing && metaSectionPattern in line) {
-                isInMetaSection = true
-              }
-              if (isInMetaSection && separatingLine == line) {
-                capturing = false
-                isInMetaSection = false
-                sendLeakCanaryLogcatEvent(capturedLogs.toString())
-                capturedLogs.clear()
-              }
-            }
+            detectAndHandleCompleteLeakTraces(logcatMessage)
           }
         }
       }
@@ -231,7 +204,44 @@ class LeakCanaryLogcatCommandHandler(
     }
   }
 
-  private fun convertIncompleteToCompleteTrace(leaktrace: StringBuilder): String {
+  private fun detectAndHandleCompleteLeakTraces(logcatMessage: LogcatMessage) {
+    val startPatternSuccess = "HEAP ANALYSIS RESULT"
+    val startPatternFailure = "HEAP ANALYSIS FAILED"
+    val separatingLine = "===================================="
+    val metaSectionPattern = "METADATA"
+
+    if (LEAKCANARY_TAG != logcatMessage.header.tag) return
+
+    // The following logic reads LeakCanary's logs line by line, but LeakCanary may print multiple lines as one logcat entry
+    // (with one header). Therefore, we need to break the message into lines before processing.
+    logcatMessage.message.split("\n").forEach { line ->
+      if (startPatternSuccess in line || startPatternFailure in line) {
+        isCapturingCompleteTrace = true
+        capturedLogsForCompleteTrace.clear()
+        // Add === since it's skipped before the startPattern check
+        capturedLogsForCompleteTrace.appendLine(separatingLine)
+      }
+      if (isCapturingCompleteTrace) {
+        capturedLogsForCompleteTrace.appendLine(line)
+      }
+      if (isCapturingCompleteTrace && metaSectionPattern in line) {
+        inMetaSectionOfCompleteTrace = true
+      }
+      if (inMetaSectionOfCompleteTrace && separatingLine == line) {
+        isCapturingCompleteTrace = false
+        inMetaSectionOfCompleteTrace = false
+        sendLeakCanaryLogcatEvent(capturedLogsForCompleteTrace.toString())
+        capturedLogsForCompleteTrace.clear()
+      }
+    }
+  }
+
+  private fun convertPartialToCompleteTrace(leaktrace: StringBuilder): String {
+    val isBytesAvailable = leaktrace.contains(bytesRetainedText)
+    val digest = MessageDigest.getInstance("SHA-256")
+    val hashBytes = digest.digest(leaktrace.toString().toByteArray(Charsets.UTF_8))
+    val hashedSignature = hashBytes.joinToString("") { "%02x".format(it) }
+
     return """====================================
 HEAP ANALYSIS RESULT
 ====================================
@@ -239,7 +249,14 @@ HEAP ANALYSIS RESULT
 
 References underlined with "~~~" are likely causes.
 Learn more at https://squ.re/leaks.
-
+${
+      if (!isBytesAvailable)
+        """
+-1 bytes retained by leaking objects
+Signature: $hashedSignature
+┬───"""
+      else ""
+    }
 $leaktrace
 ====================================
 0 LIBRARY LEAKS
@@ -263,32 +280,38 @@ Heap dump duration: Unknown
   }
 
   private fun detectAndHandlePartialLeakTraces(logcatMessage: LogcatMessage) {
+    val gcRootText = "GC Root"
+    val lastFramePattern = "╰→"
+    val initialTabSpace = "  "
+
     if (logcatMessage.header.tag == LEAKCANARY_TAG) {
-      prevLeakCanaryLogTimeStamp = logcatMessage.header.timestamp.epochSecond
+      prevLogTimeStampOfPartialTrace = logcatMessage.header.timestamp.epochSecond
+      // The following logic reads LeakCanary's logs line by line, but LeakCanary may print multiple lines as one logcat entry
+      // (with one header). Therefore, we need to break the message into lines before processing.
       logcatMessage.message.split("\n").forEach { line ->
-        if (inLastFrame && initialTabSpace !in line) {
-          sendLeakCanaryLogcatEvent(convertIncompleteToCompleteTrace(capturedLogsForIncompleteTrace))
-          capturedLogsForIncompleteTrace.clear()
-          inLastFrame = false
+        if (inLastFrameOfPartialTrace && initialTabSpace !in line) {
+          sendLeakCanaryLogcatEvent(convertPartialToCompleteTrace(capturedLogsForPartialTrace))
+          capturedLogsForPartialTrace.clear()
+          inLastFrameOfPartialTrace = false
         }
-        if (capturedLogsForIncompleteTrace.isNotEmpty()) {
-          capturedLogsForIncompleteTrace.appendLine(line)
+        if (capturedLogsForPartialTrace.isNotEmpty()) {
+          capturedLogsForPartialTrace.appendLine(line)
           if (lastFramePattern in line) {
-            inLastFrame = true
+            inLastFrameOfPartialTrace = true
           }
         }
-        if (leakStartPattern in line) {
-          capturedLogsForIncompleteTrace.clear()
-          inLastFrame = false
-          capturedLogsForIncompleteTrace.appendLine(line)
+        if (bytesRetainedText in line || (gcRootText in line && capturedLogsForPartialTrace.isEmpty())) {
+          capturedLogsForPartialTrace.clear()
+          inLastFrameOfPartialTrace = false
+          capturedLogsForPartialTrace.appendLine(line)
         }
       }
     }
     else {
-      if (inLastFrame && logcatMessage.header.timestamp.epochSecond - prevLeakCanaryLogTimeStamp >= TWO_SECONDS) {
-        sendLeakCanaryLogcatEvent(convertIncompleteToCompleteTrace(capturedLogsForIncompleteTrace))
-        capturedLogsForIncompleteTrace.clear()
-        inLastFrame = false
+      if (inLastFrameOfPartialTrace && logcatMessage.header.timestamp.epochSecond - prevLogTimeStampOfPartialTrace >= TWO_SECONDS) {
+        sendLeakCanaryLogcatEvent(convertPartialToCompleteTrace(capturedLogsForPartialTrace))
+        capturedLogsForPartialTrace.clear()
+        inLastFrameOfPartialTrace = false
       }
     }
   }
