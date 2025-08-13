@@ -21,7 +21,6 @@
   <vendor url="http://www.google.com">Google, Inc.</vendor>
 
   <depends>com.intellij.modules.lang</depends>
-  <depends>com.intellij.java</depends>
   <depends>com.jetbrains.performancePlugin</depends>
 
   <applicationListeners>

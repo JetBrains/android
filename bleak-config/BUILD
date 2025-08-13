@@ -10,6 +10,5 @@ iml_module(
     deps = [
         "//tools/adt/idea/bleak:intellij.android.bleak",
         "@intellij//:intellij-sdk",
-        "@intellij//:com.intellij.java",
     ],
 )

@@ -38,7 +38,6 @@ intellij_plugin(
     ],
     plugin_id = "com.android.tools.asdriver",
     deps = [
-        "@intellij//:com.intellij.java",
         "@intellij//:com.jetbrains.performancePlugin",
     ],
 )
@@ -86,7 +85,6 @@ iml_module(
     deps = [
         "//prebuilts/tools/common/m2:junit-4.12",
         "//tools/adt/idea/as-driver:asdriver_proto",
-        "@intellij//:com.intellij.java",
     ],
 )
 
@@ -112,10 +110,7 @@ iml_module(
     test_srcs = ["integration/testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    deps = [
-        "//prebuilts/tools/common/m2:junit-4.12",
-        "@intellij//:com.intellij.java",
-    ],
+    deps = ["//prebuilts/tools/common/m2:junit-4.12"],
 )
 
 iml_test(
@@ -135,7 +130,6 @@ iml_module(
     deps = [
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "@intellij//:intellij-sdk",
-        "@intellij//:com.intellij.java",
         "//tools/adt/idea/as-driver:asdriver_proto",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/bleak:intellij.android.bleak",
