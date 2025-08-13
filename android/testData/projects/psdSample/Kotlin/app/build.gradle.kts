@@ -63,11 +63,11 @@ android {
     flavorDimensions("foo", "bar")
     productFlavors {
         create("basic") {
-            setDimension("foo")
+            dimension = "foo"
             applicationId = "com.example.psd.sample.app"
         }
         create("paid") {
-            setDimension("foo")
+            dimension = "foo"
             applicationId = "com.example.psd.sample.app.paid"
             testApplicationId = "com.example.psd.sample.app.paid.test"
             maxSdkVersion(25)
@@ -81,11 +81,11 @@ android {
             setTestFunctionalTest(rootProject.extra["rootBool"] as Boolean)
         }
         create("bar") {
-            setDimension("bar")
+            dimension = "bar"
             applicationIdSuffix = "barSuffix"
         }
         create("otherBar") {
-            setDimension("bar")
+            dimension = "bar"
             setMatchingFallbacks(listOf("bar"))
             resConfig("en")
             resConfigs("hdpi", "xhdpi")
