@@ -99,6 +99,9 @@ class NavStatusCacheTest {
 
   @Test
   fun passesInvalidateEvent() {
+    computeStatus = { "foo" }
+    assertThat(cache.currentStatus).isEqualTo("foo")
+
     assertThat(changeReasons).isEmpty()
     invalidate(NavInfoChangeReason.GRADLE_SYNC)
     assertThat(changeReasons).containsExactly(NavInfoChangeReason.GRADLE_SYNC)
@@ -116,6 +119,5 @@ class NavStatusCacheTest {
           modificationCount = modificationCount,
         )
       )
-    assertThat(cache.modificationTracker.modificationCount).isEqualTo(modificationCount)
   }
 }

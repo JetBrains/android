@@ -75,6 +75,12 @@ class SafeArgsResolveExtension(private val module: Module) : KaResolveExtension(
     allClasses.map { it.getFilePackageName() }.toSet()
 
   override fun getShadowedScope(): GlobalSearchScope {
+    // Note: This function _cannot_ depend on any data from currentStatus!
+    // Due to a kotlinc bug, getShadowedScope() is called on a copy of the SafeArgsResolveExtension
+    // that is not properly registered for disposal, and NavStatusCache/NavInfoFetcher needs to
+    // register listeners with that Disposable in order to invalidate its own caches.
+    // See b/433681683 for more details.
+
     if (!NavInfoFetcher.isSafeArgsModule(module, SafeArgsMode.KOTLIN)) {
       return GlobalSearchScope.EMPTY_SCOPE
     }

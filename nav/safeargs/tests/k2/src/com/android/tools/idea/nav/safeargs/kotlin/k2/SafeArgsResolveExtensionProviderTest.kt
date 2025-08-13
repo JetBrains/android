@@ -95,6 +95,28 @@ class SafeArgsResolveExtensionProviderTest : AbstractSafeArgsResolveExtensionTes
     assertThat(isChangeListenerRegistered).isFalse()
   }
 
+  @Test
+  fun shadowedScope_doesNotRegisterForDisposal() {
+    safeArgsRule.androidFacet.safeArgsMode = SafeArgsMode.KOTLIN
+    val debugMode = Disposer.setDebugMode(true)
+    try {
+      val extensions = SafeArgsResolveExtensionProvider().provideExtensionsFor(sourceModule)
+      val extension = extensions.single()
+      extension.getShadowedScope()
+      // Ensure that the extension has not been registered as a Disposable yet. This would generally
+      // be done if the internal event listener has been registered. Due to b/433681683, we need to
+      // ensure that calling getShadowedScope() on the extension does _not_ register it as a
+      // Disposable, so that it can be GC'd without needing to be disposed.
+      assertThat(Disposer.getRegistrationTrace(extension)).isNull()
+
+      // We also exit here without calling any other functions on the extension. If the extension
+      // has been registered for disposal, we will get an exception at the end of the test because
+      // it was never actually disposed.
+    } finally {
+      Disposer.setDebugMode(debugMode)
+    }
+  }
+
   private inline fun KaModule.useExtensions(block: List<KaResolveExtension>.() -> Unit) {
     val disposable = Disposer.newDisposable("SafeArgsResolveExtensions")
     try {

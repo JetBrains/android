@@ -54,12 +54,19 @@ class NavInfoFetcherTest {
         changeReason ->
         changeReasons.add(changeReason)
       }
+  }
+
+  private fun registerAndClearFetcher() {
+    assertThat(fetcher.listenersRegistered).isFalse()
+    fetcher.getCurrentNavInfo()
+    assertThat(fetcher.listenersRegistered).isTrue()
     baselineModificationCount = fetcher.modificationCount
     changeReasons.clear()
   }
 
   @Test
   fun containsCorrectEntries() {
+    registerAndClearFetcher()
     val navInfo = fetcher.getCurrentNavInfo()
     assertThat(navInfo).isNotNull()
     navInfo!!
@@ -136,6 +143,7 @@ class NavInfoFetcherTest {
 
   @Test
   fun updatesOnNavFileChange() {
+    registerAndClearFetcher()
     WriteCommandAction.runWriteCommandAction(projectRule.project) {
       module
         .fileUnderGradleRoot("src/main/res/navigation/nav_graph.xml")!!
@@ -154,6 +162,7 @@ class NavInfoFetcherTest {
 
   @Test
   fun updatesOnSafeArgsModeChange() {
+    registerAndClearFetcher()
     module.androidFacet!!.safeArgsMode = SafeArgsMode.JAVA
 
     assertModified(NavInfoChangeReason.SAFE_ARGS_MODE_CHANGED)
@@ -169,6 +178,7 @@ class NavInfoFetcherTest {
 
   @Test
   fun updatesOnProjectSync() {
+    registerAndClearFetcher()
     module.project.messageBus
       .syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC)
       .syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
@@ -178,12 +188,23 @@ class NavInfoFetcherTest {
 
   @Test
   fun updatesOnDumbModeChange() = runBlocking {
+    registerAndClearFetcher()
     DumbModeTestUtils.runInDumbModeSynchronously(module.project) {
       assertModified(NavInfoChangeReason.DUMB_MODE_CHANGED)
       assertThat(fetcher.isEnabled).isTrue()
 
       assertThrows(IndexNotReadyException::class.java) { fetcher.getCurrentNavInfo() }
     }
+  }
+
+  @Test
+  fun defersListenerRegistrationUntilNeeded() {
+    // Starts unregistered.
+    assertThat(fetcher.listenersRegistered).isFalse()
+
+    // Modification count needs to register listeners.
+    assertThat(fetcher.modificationCount).isAtLeast(0L)
+    assertThat(fetcher.listenersRegistered).isTrue()
   }
 
   private fun assertModified(vararg changeReasons: NavInfoChangeReason) {
