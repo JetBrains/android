@@ -19,6 +19,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.ConfigKey;
 import com.android.sdklib.internal.avd.UserSettingsKey;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.util.text.Strings;
 import java.nio.file.Path;
@@ -85,6 +86,11 @@ public class EmulatorCommandBuilder {
 
     if (myAvdHome != null) {
       command.getEnvironment().put("ANDROID_AVD_HOME", myAvdHome.toString());
+    }
+
+    Path sdkPath = AndroidSdks.getInstance().tryToChooseSdkHandler().getLocation();
+    if (sdkPath != null) {
+      command.getEnvironment().put("ANDROID_HOME", sdkPath.toString());
     }
 
     addParametersIfParameter2IsntNull(command, "-netdelay", myAvd.getProperty(ConfigKey.NETWORK_LATENCY));
