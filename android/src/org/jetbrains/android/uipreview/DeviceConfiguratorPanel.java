@@ -1021,7 +1021,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     @Override
     JComponent getComponent() {
       final JPanel panel = new JPanel(new VerticalFlowLayout());
-      final JBLabel label = new JBLabel("Platform API level (should start with 'v' like 'v36.1'):");
+      final JBLabel label = new JBLabel("Platform API level");
       panel.add(label);
       label.setLabelFor(myTextField);
       myTextField.getDocument().addDocumentListener(myUpdatingDocumentListener);
@@ -1037,7 +1037,13 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     @NotNull
     @Override
     VersionQualifier apply() throws InvalidOptionValueException {
-      VersionQualifier qualifier = VersionQualifier.getQualifier(myTextField.getText().trim());
+      String text = myTextField.getText().trim();
+
+      if(!text.isEmpty() && Character.isDigit(text.charAt(0))){
+        text = "v" + text;
+      }
+
+      VersionQualifier qualifier = VersionQualifier.getQualifier(text);
       if (qualifier == null || qualifier.getVersion() < 0) {
         throw new InvalidOptionValueException("Incorrect API level");
       }
