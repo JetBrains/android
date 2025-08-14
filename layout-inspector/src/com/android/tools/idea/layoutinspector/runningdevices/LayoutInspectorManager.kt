@@ -389,6 +389,7 @@ fun createRendererPanel(
       StudioRendererPanel(
         disposable = tabComponents,
         scope = layoutInspector.coroutineScope,
+        displayId = tabComponents.displayView.displayId,
         renderModel = renderModel,
         notificationModel = layoutInspector.notificationModel,
         displayRectangleProvider = { tabComponents.displayView.displayRectangle },

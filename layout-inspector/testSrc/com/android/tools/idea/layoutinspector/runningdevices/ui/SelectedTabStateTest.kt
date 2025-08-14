@@ -136,6 +136,7 @@ class SelectedTabStateTest {
     layoutInspectorRenderer =
       StudioRendererPanel(
         disposable = displayViewRule.disposable,
+        displayId = emulatorView.displayId,
         scope = displayViewRule.disposable.createCoroutineScope(),
         renderModel = renderModel,
         notificationModel = NotificationModel(displayViewRule.project),

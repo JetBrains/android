@@ -66,6 +66,7 @@ private const val RENDERING_NOT_SUPPORTED_ID = "rendering.in.secondary.display.n
 class StudioRendererPanel(
   disposable: Disposable,
   scope: CoroutineScope,
+  private val displayId: Int,
   private val renderModel: EmbeddedRendererModel,
   private val notificationModel: NotificationModel,
   private val displayRectangleProvider: () -> Rectangle?,
@@ -84,6 +85,11 @@ class StudioRendererPanel(
 
   private var overlay: Image? = null
 
+  private var selectedNode: DrawInstruction? = null
+  private var hoveredNode: DrawInstruction? = null
+  private var visibleNodes: List<DrawInstruction> = emptyList()
+  private var recomposingNodes: List<DrawInstruction> = emptyList()
+
   init {
     Disposer.register(disposable, this)
     isOpaque = false
@@ -101,13 +107,34 @@ class StudioRendererPanel(
     }
     addMouseListener(LayoutInspectorPopupHandler())
 
+    // TODO(b/438162147): add multi display support to overlay
     childScope.launch { renderModel.overlay.collect { updateOverlay(it) } }
     childScope.launch { renderModel.overlayAlpha.collect { refresh() } }
     childScope.launch { renderModel.interceptClicks.collect { refresh() } }
-    childScope.launch { renderModel.selectedNode.collect { refresh() } }
-    childScope.launch { renderModel.hoveredNode.collect { refresh() } }
-    childScope.launch { renderModel.visibleNodes.collect { refresh() } }
-    childScope.launch { renderModel.recomposingNodes.collect { refresh() } }
+    childScope.launch {
+      renderModel.selectedNode.collect {
+        selectedNode = it.filter(displayId)
+        refresh()
+      }
+    }
+    childScope.launch {
+      renderModel.hoveredNode.collect {
+        hoveredNode = it.filter(displayId)
+        refresh()
+      }
+    }
+    childScope.launch {
+      renderModel.visibleNodes.collect {
+        visibleNodes = it.mapNotNull { node -> node.filter(displayId) }
+        refresh()
+      }
+    }
+    childScope.launch {
+      renderModel.recomposingNodes.collect {
+        recomposingNodes = it.mapNotNull { node -> node.filter(displayId) }
+        refresh()
+      }
+    }
   }
 
   override fun dispose() {}
@@ -144,10 +171,10 @@ class StudioRendererPanel(
       g2d.composite = AlphaComposite.SrcOver.derive(renderModel.overlayAlpha.value)
       g2d.drawImage(overlay, bounds.x, bounds.y, bounds.width, bounds.height, null)
     }
-    renderModel.recomposingNodes.value.forEach { it.paint(g2d, fill = true) }
-    renderModel.visibleNodes.value.forEach { it.paint(g2d) }
-    renderModel.hoveredNode.value?.paint(g2d)
-    renderModel.selectedNode.value?.paint(g2d)
+    recomposingNodes.forEach { it.paint(g2d, fill = true) }
+    visibleNodes.forEach { it.paint(g2d) }
+    hoveredNode?.paint(g2d)
+    selectedNode?.paint(g2d)
   }
 
   /**
@@ -429,3 +456,11 @@ private fun Rectangle.scale(physicalToLogicalScale: Double): Rectangle {
 private fun Point2D.scale(scale: Double) = Point2D.Double(x * scale, y * scale)
 
 private fun MouseEvent.coordinates() = Point2D.Double(x.toDouble(), y.toDouble())
+
+private fun DrawInstruction?.filter(displayId: Int): DrawInstruction? {
+  return if (this?.displayId == displayId) {
+    this
+  } else {
+    null
+  }
+}

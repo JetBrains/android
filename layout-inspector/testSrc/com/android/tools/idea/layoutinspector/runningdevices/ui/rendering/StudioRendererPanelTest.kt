@@ -100,7 +100,7 @@ class StudioRendererPanelTest {
   /** An inspector model with views arranged vertically */
   private val verticalInspectorModel: InspectorModel
     get() =
-      model(disposable) {
+      model(disposable, displayId = 1) {
         view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
           view(VIEW1, 10, 15, 25, 25) { image() }
           compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 50, width = 80, height = 50)
@@ -110,7 +110,7 @@ class StudioRendererPanelTest {
   /** An inspector model with views arranged horizontally */
   private val horizontalInspectorModel: InspectorModel
     get() =
-      model(disposable) {
+      model(disposable, displayId = 1) {
         view(ROOT, 0, 0, deviceScreenDimension.height, deviceScreenDimension.width) {
           view(VIEW1, 10, 15, 25, 25) { image() }
           compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 50, width = 80, height = 50)
@@ -312,7 +312,7 @@ class StudioRendererPanelTest {
   @RunsInEdt
   fun testRecomposition() {
     val recompositionModel =
-      model(disposable) {
+      model(disposable, displayId = 1) {
         view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
           view(VIEW1, 10, 15, 25, 25) { image() }
           compose(COMPOSE1, "name", x = 10, y = 50, width = 80, height = 50, composeCount = 15)
@@ -425,7 +425,7 @@ class StudioRendererPanelTest {
   @RunsInEdt
   fun testLabelLeftOffset() {
     val customModel =
-      model(disposable) {
+      model(disposable, displayId = 1) {
         view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
           view(drawId = VIEW1, x = -10, y = 15, width = 25, height = 25) { image() }
           compose(COMPOSE1, "name", x = 10, y = 50, width = 80, height = 50, composeCount = 15)
@@ -701,6 +701,31 @@ class StudioRendererPanelTest {
     assertSimilar(renderImage, testName.methodName)
   }
 
+  @Test
+  fun testViewsFromOtherDisplayAreNotRendered() {
+    val customModel =
+      model(disposable, displayId = 2) {
+        view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
+          view(drawId = VIEW1, x = -10, y = 15, width = 25, height = 25) { image() }
+          compose(COMPOSE1, "name", x = 10, y = 50, width = 80, height = 50, composeCount = 15)
+        }
+      }
+
+    val (model, renderer) = createRenderer(inspectorModel = customModel, displayId = 1)
+    model.selectNode(10.0, 20.0)
+    model.hoverNode(15.0, 55.0)
+
+    assertThat(model.selectedNode.value!!.bounds)
+      .isEqualTo(model.inspectorModel[VIEW1]!!.layoutBounds)
+
+    assertThat(model.hoveredNode.value!!.bounds)
+      .isEqualTo(model.inspectorModel[COMPOSE1]!!.layoutBounds)
+
+    val renderImage = createRenderImage()
+    paint(renderImage, renderer)
+    assertSimilar(renderImage, testName.methodName)
+  }
+
   private fun paint(image: BufferedImage, renderer: StudioRendererPanel, displayQuadrant: Int = 0) {
     val graphics = image.createGraphics()
     // add a gray background
@@ -735,6 +760,7 @@ class StudioRendererPanelTest {
     inspectorModel: InspectorModel = verticalInspectorModel,
     deviceDisplayRectangle: Rectangle = this.deviceDisplayRectangle,
     displayOrientation: Int = 0,
+    displayId: Int = 1,
     notificationModel: NotificationModel = NotificationModel(projectRule.project),
     scope: CoroutineScope = disposable.createCoroutineScope(),
   ): Pair<EmbeddedRendererModel, StudioRendererPanel> {
@@ -750,6 +776,7 @@ class StudioRendererPanelTest {
     val panel =
       StudioRendererPanel(
         disposable = disposable,
+        displayId = displayId,
         scope = scope,
         renderModel = renderModel,
         notificationModel = notificationModel,

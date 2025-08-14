@@ -120,6 +120,7 @@ class EmbeddedRendererModelTest {
     val expectedInstructions =
       DrawInstruction(
         rootViewId = ROOT,
+        displayId = null,
         bounds = Rectangle(10, 50, 80, 50),
         color = SELECTION_COLOR_ARGB,
         label = DrawInstruction.Label(text = "Text", size = LABEL_FONT_SIZE),
@@ -144,6 +145,7 @@ class EmbeddedRendererModelTest {
     val expectedInstructions =
       DrawInstruction(
         rootViewId = ROOT,
+        displayId = null,
         bounds = Rectangle(10, 50, 80, 50),
         color = HOVER_COLOR_ARGB,
         label = null,
@@ -178,6 +180,7 @@ class EmbeddedRendererModelTest {
       listOf(
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = inspectorModel[COMPOSE1]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
           label = null,
@@ -186,6 +189,7 @@ class EmbeddedRendererModelTest {
         ),
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = inspectorModel[VIEW1]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
           label = null,
@@ -194,6 +198,7 @@ class EmbeddedRendererModelTest {
         ),
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = inspectorModel[ROOT]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
           label = null,
@@ -213,6 +218,7 @@ class EmbeddedRendererModelTest {
       listOf(
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = Rectangle(25, 30, 50, 50),
           color = BASE_COLOR_ARGB,
           label = null,
@@ -246,6 +252,7 @@ class EmbeddedRendererModelTest {
       listOf(
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = Rectangle(0, 0, 50, 50),
           color = RECOMPOSITION_COLOR_RED_ARGB.setColorAlpha(160),
           label = null,
@@ -285,6 +292,7 @@ class EmbeddedRendererModelTest {
         listOf(
           DrawInstruction(
             rootViewId = ROOT,
+            displayId = null,
             bounds = Rectangle(25, 30, 50, 50),
             color = BASE_COLOR_ARGB,
             label = null,
@@ -303,6 +311,7 @@ class EmbeddedRendererModelTest {
       .isEqualTo(
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = Rectangle(25, 30, 50, 50),
           color = SELECTION_COLOR_ARGB,
           label = DrawInstruction.Label(text = "View", size = LABEL_FONT_SIZE),
@@ -315,6 +324,7 @@ class EmbeddedRendererModelTest {
       .isEqualTo(
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = Rectangle(25, 30, 50, 50),
           color = HOVER_COLOR_ARGB,
           label = null,
@@ -334,6 +344,7 @@ class EmbeddedRendererModelTest {
         listOf(
           DrawInstruction(
             rootViewId = ROOT,
+            displayId = null,
             bounds = Rectangle(30, 35, 55, 55),
             color = BASE_COLOR_ARGB,
             label = null,
@@ -348,6 +359,7 @@ class EmbeddedRendererModelTest {
       .isEqualTo(
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = Rectangle(30, 35, 55, 55),
           color = SELECTION_COLOR_ARGB,
           label = DrawInstruction.Label("View", LABEL_FONT_SIZE),
@@ -360,6 +372,7 @@ class EmbeddedRendererModelTest {
       .isEqualTo(
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = Rectangle(30, 35, 55, 55),
           color = HOVER_COLOR_ARGB,
           label = null,
@@ -426,6 +439,7 @@ class EmbeddedRendererModelTest {
       listOf(
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = inspectorModel[COMPOSE1]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
           label = null,
@@ -434,6 +448,7 @@ class EmbeddedRendererModelTest {
         ),
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = inspectorModel[VIEW1]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
           label = null,
@@ -442,6 +457,7 @@ class EmbeddedRendererModelTest {
         ),
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = inspectorModel[ROOT]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
           label = null,
@@ -460,6 +476,7 @@ class EmbeddedRendererModelTest {
       listOf(
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = inspectorModel[COMPOSE1]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
           label = null,
@@ -468,6 +485,7 @@ class EmbeddedRendererModelTest {
         ),
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = inspectorModel[ROOT]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
           label = null,
@@ -488,6 +506,7 @@ class EmbeddedRendererModelTest {
     val expectedInstructions1 =
       DrawInstruction(
         rootViewId = ROOT,
+        displayId = null,
         bounds = Rectangle(10, 50, 80, 50),
         color = SELECTION_COLOR_ARGB,
         label = DrawInstruction.Label(text = "Text", size = LABEL_FONT_SIZE),
@@ -512,6 +531,7 @@ class EmbeddedRendererModelTest {
     val expectedInstructions2 =
       DrawInstruction(
         rootViewId = ROOT,
+        displayId = null,
         bounds = Rectangle(0, 0, 100, 100),
         color = SELECTION_COLOR_ARGB,
         label = DrawInstruction.Label(text = "View", size = LABEL_FONT_SIZE),
@@ -530,6 +550,7 @@ class EmbeddedRendererModelTest {
     val expectedInstructions1 =
       DrawInstruction(
         rootViewId = ROOT,
+        displayId = null,
         bounds = Rectangle(10, 50, 80, 50),
         color = HOVER_COLOR_ARGB,
         label = null,
@@ -554,6 +575,7 @@ class EmbeddedRendererModelTest {
     val expectedInstructions2 =
       DrawInstruction(
         rootViewId = ROOT,
+        displayId = null,
         bounds = Rectangle(0, 0, 100, 100),
         color = HOVER_COLOR_ARGB,
         label = null,
@@ -583,6 +605,7 @@ class EmbeddedRendererModelTest {
       listOf(
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = Rectangle(0, 0, 50, 50),
           color = BASE_COLOR_ARGB,
           label = null,
@@ -591,6 +614,7 @@ class EmbeddedRendererModelTest {
         ),
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = Rectangle(0, 0, 10, 10),
           color = BASE_COLOR_ARGB,
           label = null,
@@ -599,6 +623,7 @@ class EmbeddedRendererModelTest {
         ),
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = Rectangle(0, 0, 100, 100),
           color = BASE_COLOR_ARGB,
           label = null,
@@ -617,6 +642,7 @@ class EmbeddedRendererModelTest {
       listOf(
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = Rectangle(0, 0, 10, 10),
           color = BASE_COLOR_ARGB,
           label = null,
@@ -649,6 +675,7 @@ class EmbeddedRendererModelTest {
       .isEqualTo(
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = Rectangle(0, 0, 10, 10),
           color = SELECTION_COLOR_ARGB,
           label = DrawInstruction.Label(text = "View", size = LABEL_FONT_SIZE),
@@ -664,6 +691,7 @@ class EmbeddedRendererModelTest {
       .isEqualTo(
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = Rectangle(0, 0, 10, 10),
           color = SELECTION_COLOR_ARGB,
           label = DrawInstruction.Label(text = "View", size = LABEL_FONT_SIZE),
@@ -694,6 +722,7 @@ class EmbeddedRendererModelTest {
       .isEqualTo(
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = Rectangle(0, 0, 10, 10),
           color = HOVER_COLOR_ARGB,
           label = null,
@@ -709,6 +738,7 @@ class EmbeddedRendererModelTest {
       .isEqualTo(
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = Rectangle(0, 0, 10, 10),
           color = HOVER_COLOR_ARGB,
           label = null,
@@ -728,6 +758,7 @@ class EmbeddedRendererModelTest {
       listOf(
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = inspectorModel[COMPOSE1]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
           label = null,
@@ -736,6 +767,7 @@ class EmbeddedRendererModelTest {
         ),
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = inspectorModel[VIEW1]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
           label = null,
@@ -744,6 +776,7 @@ class EmbeddedRendererModelTest {
         ),
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = inspectorModel[ROOT]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
           label = null,
@@ -760,6 +793,7 @@ class EmbeddedRendererModelTest {
       .isEqualTo(
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = inspectorModel[VIEW1]!!.layoutBounds,
           color = HOVER_COLOR_ARGB,
           label = null,
@@ -779,6 +813,7 @@ class EmbeddedRendererModelTest {
       .isEqualTo(
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = inspectorModel[VIEW1]!!.layoutBounds,
           color = HOVER_COLOR_ARGB,
           label = null,
@@ -793,6 +828,7 @@ class EmbeddedRendererModelTest {
       .isEqualTo(
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = inspectorModel[VIEW1]!!.layoutBounds,
           color = SELECTION_COLOR_ARGB,
           label = DrawInstruction.Label(text = "View", size = LABEL_FONT_SIZE),
@@ -812,6 +848,7 @@ class EmbeddedRendererModelTest {
       .isEqualTo(
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = inspectorModel[VIEW1]!!.layoutBounds,
           color = HOVER_COLOR_ARGB,
           label = null,
@@ -836,6 +873,7 @@ class EmbeddedRendererModelTest {
       .isEqualTo(
         DrawInstruction(
           rootViewId = ROOT,
+          displayId = null,
           bounds = inspectorModel[VIEW1]!!.layoutBounds,
           color = HOVER_COLOR_ARGB,
           label = null,
@@ -859,6 +897,7 @@ class EmbeddedRendererModelTest {
     val expectedInstructions =
       DrawInstruction(
         rootViewId = ROOT,
+        displayId = null,
         bounds = Rectangle(10, 50, 80, 50),
         color = SELECTION_COLOR_ARGB,
         label = null,
@@ -877,6 +916,7 @@ class EmbeddedRendererModelTest {
     val expectedInstructionsForText1 =
       DrawInstruction(
         rootViewId = ROOT,
+        displayId = null,
         bounds = Rectangle(0, 0, 80, 100),
         color = SELECTION_COLOR_ARGB,
         label = DrawInstruction.Label(text = "Text", size = LABEL_FONT_SIZE),
@@ -886,6 +926,7 @@ class EmbeddedRendererModelTest {
     val expectedInstructionsForLayout1 =
       DrawInstruction(
         rootViewId = ROOT,
+        displayId = null,
         bounds = Rectangle(0, 0, 80, 100),
         color = SELECTION_COLOR_ARGB,
         label = DrawInstruction.Label(text = "Layout", size = LABEL_FONT_SIZE),
@@ -895,6 +936,7 @@ class EmbeddedRendererModelTest {
     val expectedInstructionsForText2 =
       DrawInstruction(
         rootViewId = ROOT,
+        displayId = null,
         bounds = Rectangle(20, 20, 80, 100),
         color = SELECTION_COLOR_ARGB,
         label = DrawInstruction.Label(text = "Text", size = LABEL_FONT_SIZE),
@@ -904,6 +946,7 @@ class EmbeddedRendererModelTest {
     val expectedInstructionsForLayout2 =
       DrawInstruction(
         rootViewId = ROOT,
+        displayId = null,
         bounds = Rectangle(20, 20, 80, 100),
         color = SELECTION_COLOR_ARGB,
         label = DrawInstruction.Label(text = "Layout", size = LABEL_FONT_SIZE),
@@ -913,6 +956,7 @@ class EmbeddedRendererModelTest {
     val expectedInstructionsForColumn =
       DrawInstruction(
         rootViewId = ROOT,
+        displayId = null,
         bounds = Rectangle(0, 0, 100, 200),
         color = SELECTION_COLOR_ARGB,
         label = DrawInstruction.Label(text = "Box", size = LABEL_FONT_SIZE),

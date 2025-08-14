@@ -239,6 +239,11 @@ class InspectorModel(
   fun rootFor(view: ViewNode): ViewNode? =
     ViewNode.readAccess { view.parentSequence.firstOrNull { it.parent === root } }
 
+  /** Returns the [AndroidWindow] that has [rootView] as its root */
+  fun windowFor(rootView: ViewNode): AndroidWindow? {
+    return windows.values.find { it.root.drawId == rootView.drawId }
+  }
+
   /**
    * Get the root of the view tree that the view with [viewId] lives in.
    *

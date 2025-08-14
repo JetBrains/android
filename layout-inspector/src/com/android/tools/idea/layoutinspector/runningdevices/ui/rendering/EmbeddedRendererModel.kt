@@ -43,6 +43,7 @@ const val AGENT_PACKAGE = "com.android.tools.agent.appinspection"
  * Draw instructions to render the bounds of a node.
  *
  * @param rootViewId The drawId of the root view the [bounds] belong to.
+ * @param displayId The id of the on-device display this instruction should be drawn on-top of.
  * @param bounds The bounds of the node being rendered.
  * @param color The color used to render these [bounds].
  * @param label Optional label to be rendered with the [bounds].
@@ -51,6 +52,7 @@ const val AGENT_PACKAGE = "com.android.tools.agent.appinspection"
  */
 data class DrawInstruction(
   val rootViewId: Long,
+  val displayId: Int?,
   val bounds: Rectangle,
   val color: Int,
   val label: Label?,
@@ -306,8 +308,10 @@ class EmbeddedRendererModel(
     outlineColor: Int?,
   ): DrawInstruction? {
     val rootView = inspectorModel.rootFor(this) ?: return null
+    val window = inspectorModel.windowFor(rootView)
     return DrawInstruction(
       rootViewId = rootView.drawId,
+      displayId = window?.displayId,
       bounds = layoutBounds,
       color = color,
       strokeThickness = strokeThickness,

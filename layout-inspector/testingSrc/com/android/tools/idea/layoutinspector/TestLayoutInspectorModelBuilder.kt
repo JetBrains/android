@@ -57,8 +57,12 @@ fun model(
   project: Project = mock(),
   treeSettings: TreeSettings = FakeTreeSettings(),
   scheduler: ScheduledExecutorService? = null,
+  displayId: Int? = null,
   body: InspectorModelDescriptor.() -> Unit,
-) = InspectorModelDescriptor(disposable, project, scheduler).also(body).build(treeSettings)
+) =
+  InspectorModelDescriptor(disposable, project, scheduler, displayId = displayId)
+    .also(body)
+    .build(treeSettings)
 
 fun viewWindow(
   rootViewDrawId: Long,
@@ -396,6 +400,7 @@ class InspectorModelDescriptor(
   val disposable: Disposable,
   val project: Project,
   private val scheduler: ScheduledExecutorService?,
+  private val displayId: Int?,
 ) {
   private var root: InspectorViewDescriptor? = null
 
@@ -462,9 +467,12 @@ class InspectorModelDescriptor(
     val model = InspectorModel(project, AndroidCoroutineScope(disposable), scheduler)
     val windowRoot = root?.build() ?: return model
     val newWindow =
-      FakeAndroidWindow(windowRoot, windowRoot.drawId, root?.imageType ?: ImageType.UNKNOWN) {
-        _,
-        window ->
+      FakeAndroidWindow(
+        root = windowRoot,
+        id = windowRoot.drawId,
+        displayId = displayId,
+        imageType = root?.imageType ?: ImageType.UNKNOWN,
+      ) { _, window ->
         ViewNode.writeAccess {
           window.root.flatten().forEach {
             val drawChildren = it.drawChildren
