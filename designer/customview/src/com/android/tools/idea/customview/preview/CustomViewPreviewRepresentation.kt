@@ -84,7 +84,7 @@ fun getXmlLayout(qualifiedName: String, shrinkWidth: Boolean, shrinkHeight: Bool
 fun getBuildState(project: Project): CustomViewVisualStateTracker.BuildState {
   val buildManager = project.getProjectSystem().getBuildManager()
   val prevBuildStatus = buildManager.getLastBuildResult()
-  // TODO(?) shouldn't we be doing something different if the last BuildResult is from a
+  // TODO(b/438661922) shouldn't we be doing something different if the last BuildResult is from a
   //  CLEAN build task?
   return when {
     buildManager.isBuilding -> CustomViewVisualStateTracker.BuildState.IN_PROGRESS
