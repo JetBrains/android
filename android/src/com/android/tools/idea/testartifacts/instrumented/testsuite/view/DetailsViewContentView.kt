@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
@@ -177,7 +178,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     updateSelectedTab()
   }
 
-  fun setAndroidDevice(androidDevice: AndroidDevice) {
+  private fun setAndroidDevice(androidDevice: AndroidDevice) {
     myAndroidDevice = androidDevice
     refreshTestResultLabel()
     myDeviceInfoTableView.setAndroidDevice(androidDevice)
@@ -185,14 +186,14 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     updateSelectedTab()
   }
 
-  fun setAndroidTestCaseResult(result: AndroidTestCaseResult?) {
+  private fun setAndroidTestCaseResult(result: AndroidTestCaseResult?) {
     myAndroidTestCaseResult = result
     refreshTestResultLabel()
 
     updateSelectedTab()
   }
 
-  fun setLogcat(logcat: String) {
+  private fun setLogcat(logcat: String) {
     // force refresh myLogsView on first call to setLogcat
     needsRefreshLogsView = needsRefreshLogsView || (myLogcat != logcat)
     if (needsRefreshLogsView) {
@@ -203,7 +204,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     }
   }
 
-  fun setErrorStackTrace(errorStackTrace: String) {
+  private fun setErrorStackTrace(errorStackTrace: String) {
     needsRefreshLogsView = myErrorStackTrace != errorStackTrace
     if (needsRefreshLogsView) {
       myErrorStackTrace = errorStackTrace
@@ -214,7 +215,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     }
   }
 
-  fun setBenchmarkText(benchmarkText: BenchmarkOutput) {
+  private fun setBenchmarkText(benchmarkText: BenchmarkOutput) {
     myBenchmarkView.clear()
     for (line in benchmarkText.lines) {
       line.print(myBenchmarkView, ConsoleViewContentType.NORMAL_OUTPUT, BenchmarkLinkListener(project))
@@ -225,13 +226,13 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     updateSelectedTab()
   }
 
-  fun setAdditionalTestArtifacts(additionalTestArtifacts: Map<String, String>) {
+  private fun setAdditionalTestArtifacts(additionalTestArtifacts: Map<String, String>) {
     val newImage = additionalTestArtifacts["PreviewScreenshot.newImagePath"]
     val refImage = additionalTestArtifacts["PreviewScreenshot.refImagePath"]
     val diffImage = additionalTestArtifacts["PreviewScreenshot.diffImagePath"]
     if (newImage != null || refImage != null || diffImage != null) {
-      myScreenshotTab.isHidden = false
       myScreenshotAttributesTab.isHidden = false
+      myScreenshotTab.isHidden = false
       myDeviceInfoTab.isHidden = true
       myScreenshotResultView.newImagePath = newImage ?: ""
       myScreenshotResultView.refImagePath = refImage ?: ""
@@ -240,6 +241,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
       myScreenshotResultView.updateView()
     } else {
       myScreenshotTab.isHidden = true
+      myScreenshotAttributesTab.isHidden = true
     }
 
     val journeyActionArtifacts = JourneyActionArtifacts.parseFromAdditionalTestArtifacts(additionalTestArtifacts)
@@ -247,6 +249,15 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     myJourneyScreenshotsTab.isHidden = journeyActionArtifacts.isEmpty()
 
     updateSelectedTab()
+  }
+
+  fun setResults(androidDevice: AndroidDevice, testResults: AndroidTestResults) {
+    setAndroidDevice(androidDevice)
+    setAndroidTestCaseResult(testResults.getTestCaseResult(androidDevice))
+    setLogcat(testResults.getLogcat(androidDevice))
+    setErrorStackTrace(testResults.getErrorStackTrace(androidDevice))
+    setBenchmarkText(testResults.getBenchmark(androidDevice))
+    setAdditionalTestArtifacts(testResults.getAdditionalTestArtifacts(androidDevice))
   }
 
   private fun refreshTestResultLabel() {
@@ -314,7 +325,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     myLogsView.clear()
 
     if (StringUtil.isEmptyOrSpaces(myLogcat) && StringUtil.isEmptyOrSpaces(myErrorStackTrace)) {
-      logsTab.isHidden = true
+      myLogsView.print("No logs available", ConsoleViewContentType.NORMAL_OUTPUT)
       return
     }
     logsTab.isHidden = false

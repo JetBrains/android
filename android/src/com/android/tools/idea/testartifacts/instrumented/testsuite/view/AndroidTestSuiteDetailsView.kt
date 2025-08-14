@@ -239,12 +239,7 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
     }
     myDeviceSelectorListView.setAndroidTestResults(testResults)
     selectedDevice?.let {
-      contentView.setAndroidDevice(it)
-      contentView.setAndroidTestCaseResult(testResults.getTestCaseResult(it))
-      contentView.setLogcat(testResults.getLogcat(it))
-      contentView.setErrorStackTrace(testResults.getErrorStackTrace(it))
-      contentView.setBenchmarkText(testResults.getBenchmark(it))
-      contentView.setAdditionalTestArtifacts(testResults.getAdditionalTestArtifacts(it))
+      contentView.setResults(it, testResults)
     }
   }
 

@@ -16,36 +16,35 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.ui.ConsoleViewContentType
-import com.intellij.openapi.editor.LogicalPosition
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.EdtTestUtil
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.util.ui.UIUtil
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.Answers
 import org.mockito.Mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.whenever
 
 /**
  * Unit tests for [DetailsViewContentView].
@@ -57,6 +56,9 @@ class DetailsViewContentViewTest {
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
   @Mock lateinit var mockLogger: AndroidTestSuiteLogger
+
+  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
+  lateinit var mockTestResults: AndroidTestResults
 
   @get:Rule val rules: RuleChain = RuleChain
     .outerRule(projectRule)
@@ -71,8 +73,11 @@ class DetailsViewContentViewTest {
   @Test
   fun testResultLabelOnPassing() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
-    view.setAndroidTestCaseResult(AndroidTestCaseResult.PASSED)
-    view.setAndroidDevice(device("device id", "device name"))
+    val testDevice = device("device id", "device name")
+    whenever(mockTestResults.getTestCaseResult(testDevice)).thenReturn(AndroidTestCaseResult.PASSED)
+
+    view.setResults(testDevice, mockTestResults)
+
     assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>device name</html>")
     assertThat(view.myTestResultLabel.text)
       .isEqualTo("<html><font color='#6cad74'>Passed</font></html>")
@@ -81,8 +86,12 @@ class DetailsViewContentViewTest {
   @Test
   fun testResultLabelOnFailing() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
-    view.setAndroidTestCaseResult(AndroidTestCaseResult.FAILED)
-    view.setAndroidDevice(device("device id", "device name"))
+    val testDevice = device("device id", "device name")
+    whenever(mockTestResults.getTestCaseResult(testDevice)).thenReturn(AndroidTestCaseResult.FAILED)
+    whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("")
+
+    view.setResults(testDevice, mockTestResults)
+
     assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>device name</html>")
     assertThat(view.myTestResultLabel.text).isEqualTo(
       "<html><font color='#b81708'>Failed</font></html>")
@@ -91,9 +100,12 @@ class DetailsViewContentViewTest {
   @Test
   fun testResultLabelOnFailingWithErrorStackTrace() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
-    view.setAndroidTestCaseResult(AndroidTestCaseResult.FAILED)
-    view.setAndroidDevice(device("device id", "device name"))
-    view.setErrorStackTrace("ErrorStackTrace")
+    val testDevice = device("device id", "device name")
+    whenever(mockTestResults.getTestCaseResult(testDevice)).thenReturn(AndroidTestCaseResult.FAILED)
+    whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("ErrorStackTrace")
+
+    view.setResults(testDevice, mockTestResults)
+
     assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>device name</html>")
     assertThat(view.myTestResultLabel.text).isEqualTo(
       "<html><font color='#b81708'>Failed</font> ErrorStackTrace</html>")
@@ -102,9 +114,12 @@ class DetailsViewContentViewTest {
   @Test
   fun testResultLabelHtmlEscaping() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
-    view.setAndroidTestCaseResult(AndroidTestCaseResult.FAILED)
-    view.setAndroidDevice(device("device id", "<device name>"))
-    view.setErrorStackTrace("<ErrorStackTrace>")
+    val testDevice = device("device id", "<device name>")
+    whenever(mockTestResults.getTestCaseResult(testDevice)).thenReturn(AndroidTestCaseResult.FAILED)
+    whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("<ErrorStackTrace>")
+
+    view.setResults(testDevice, mockTestResults)
+
     assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>&lt;device name&gt;</html>")
     assertThat(view.myTestResultLabel.text).isEqualTo(
       "<html><font color='#b81708'>Failed</font> &lt;ErrorStackTrace&gt;</html>")
@@ -113,8 +128,11 @@ class DetailsViewContentViewTest {
   @Test
   fun testResultLabelOnRunning() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
-    view.setAndroidTestCaseResult(AndroidTestCaseResult.IN_PROGRESS)
-    view.setAndroidDevice(device("device id", "device name"))
+    val testDevice = device("device id", "device name")
+    whenever(mockTestResults.getTestCaseResult(testDevice)).thenReturn(AndroidTestCaseResult.IN_PROGRESS)
+
+    view.setResults(testDevice, mockTestResults)
+
     assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>device name</html>")
     assertThat(view.myTestResultLabel.text).isEqualTo("Running on device name")
   }
@@ -122,8 +140,11 @@ class DetailsViewContentViewTest {
   @Test
   fun testResultLabelNoTestStatus() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
-    view.setAndroidTestCaseResult(null)
-    view.setAndroidDevice(device("device id", "device name"))
+    val testDevice = device("device id", "device name")
+    whenever(mockTestResults.getTestCaseResult(testDevice)).thenReturn(null)
+
+    view.setResults(testDevice, mockTestResults)
+
     assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>device name</html>")
     assertThat(view.myTestResultLabel.text).isEqualTo("No test status available")
   }
@@ -131,8 +152,12 @@ class DetailsViewContentViewTest {
   @Test
   fun logsView() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val testDevice = device("device id", "device name")
+    whenever(mockTestResults.getLogcat(testDevice)).thenReturn("test logcat message")
+    whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("")
 
-    view.setLogcat("test logcat message")
+    view.setResults(testDevice, mockTestResults)
+
     view.myLogsView.waitAllRequests()
     assertThat(view.myLogsView.text).isEqualTo("test logcat message\n")
   }
@@ -140,9 +165,12 @@ class DetailsViewContentViewTest {
   @Test
   fun logsViewWithErrorStackTrace() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val testDevice = device("device id", "device name")
+    whenever(mockTestResults.getLogcat(testDevice)).thenReturn("test logcat message")
+    whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("error stack trace")
 
-    view.setLogcat("test logcat message")
-    view.setErrorStackTrace("error stack trace")
+    view.setResults(testDevice, mockTestResults)
+
     view.myLogsView.waitAllRequests()
     assertThat(view.myLogsView.text).isEqualTo("test logcat message\nerror stack trace")
   }
@@ -150,9 +178,11 @@ class DetailsViewContentViewTest {
   @Test
   fun logsViewWithNoLogsAndErrorStackTrace() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val testDevice = device("device id", "device name")
+    whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("error stack trace")
 
-    view.setLogcat("")
-    view.setErrorStackTrace("error stack trace")
+    view.setResults(testDevice, mockTestResults)
+
     view.myLogsView.waitAllRequests()
     assertThat(view.myLogsView.text).isEqualTo("error stack trace")
   }
@@ -160,22 +190,29 @@ class DetailsViewContentViewTest {
   @Test
   fun logsViewWithNoMessage() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val testDevice = device("device id", "device name")
 
-    view.setLogcat("")
+    view.setResults(testDevice, mockTestResults)
+
     view.myLogsView.waitAllRequests()
-    assertThat(view.myLogsView.text).isEqualTo("")
-    assertThat(view.logsTab.isHidden).isTrue()
+    assertThat(view.myLogsView.text).isEqualTo("No logs available")
+    assertThat(view.logsTab.isHidden).isFalse()
   }
 
   @Test
   fun logsViewShouldClearPreviousMessage() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val testDevice = device("device id", "device name")
 
-    view.setLogcat("test logcat message")
+    whenever(mockTestResults.getLogcat(testDevice)).thenReturn("test logcat message")
+    whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("")
+    view.setResults(testDevice, mockTestResults)
     view.myLogsView.waitAllRequests()
     assertThat(view.myLogsView.text).isEqualTo("test logcat message\n")
 
-    view.setLogcat("test logcat message 2")
+    whenever(mockTestResults.getLogcat(testDevice)).thenReturn("test logcat message 2")
+    whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("")
+    view.setResults(testDevice, mockTestResults)
     view.myLogsView.waitAllRequests()
     assertThat(view.myLogsView.text).isEqualTo("test logcat message 2\n")
   }
@@ -183,9 +220,12 @@ class DetailsViewContentViewTest {
   @Test
   fun logsViewShouldShouldNotRefreshWhenMessageUnchanged() {
     val view = spy(DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger))
+    val testDevice = device("device id", "device name")
+    whenever(mockTestResults.getLogcat(testDevice)).thenReturn("test logcat message")
+    whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("")
 
-    view.setLogcat("test logcat message")
-    view.setLogcat("test logcat message")
+    view.setResults(testDevice, mockTestResults)
+    view.setResults(testDevice, mockTestResults)
     view.myLogsView.waitAllRequests()
 
     verify(view, times(1)).refreshLogsView()
@@ -195,10 +235,12 @@ class DetailsViewContentViewTest {
   @Test
   fun benchmarkTab() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val testDevice = device("device id", "device name")
+    whenever(mockTestResults.getBenchmark(testDevice)).thenReturn(BenchmarkOutput("test benchmark message"))
 
-    view.setBenchmarkText(BenchmarkOutput("test benchmark message"))
+    view.setResults(testDevice, mockTestResults)
+
     view.myBenchmarkView.waitAllRequests()
-
     assertThat(view.myBenchmarkView.text).isEqualTo("test benchmark message\n")
     assertThat(view.myBenchmarkTab.isHidden).isFalse()
     assertThat(view.tabs.selectedInfo).isEqualTo(view.myBenchmarkTab)
@@ -207,10 +249,12 @@ class DetailsViewContentViewTest {
   @Test
   fun benchmarkTabIsHiddenIfNoOutput() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val testDevice = device("device id", "device name")
+    whenever(mockTestResults.getBenchmark(testDevice)).thenReturn(BenchmarkOutput.Empty)
 
-    view.setBenchmarkText(BenchmarkOutput.Empty)
+    view.setResults(testDevice, mockTestResults)
+
     view.myBenchmarkView.waitAllRequests()
-
     assertThat(view.myBenchmarkView.text).isEqualTo("")
     assertThat(view.myBenchmarkTab.isHidden).isTrue()
   }
@@ -218,7 +262,7 @@ class DetailsViewContentViewTest {
   @Test
   fun logging() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
-    verify(mockLogger).addImpressionWhenDisplayed(view.myLogsView,
+    verify(mockLogger).addImpressionWhenDisplayed(view.myLogsView.component,
                                                   ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_LOG_VIEW)
     verify(mockLogger).addImpressionWhenDisplayed(view.myDeviceInfoTableView.getComponent(),
                                                   ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_DEVICE_INFO_VIEW)
@@ -236,10 +280,33 @@ class DetailsViewContentViewTest {
   @Test
   fun screenshotTabsDisplayedForScreenshotTests() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
-    view.setAdditionalTestArtifacts(mapOf(Pair("PreviewScreenshot.newImagePath", "/path/to/newImage")))
+    val testDevice = device("device id", "device name")
+    whenever(mockTestResults.getAdditionalTestArtifacts(testDevice)).thenReturn(
+      mapOf("PreviewScreenshot.newImagePath" to "/path/to/newImage"))
+
+    view.setResults(testDevice, mockTestResults)
 
     assertThat(view.myScreenshotTab.isHidden).isFalse()
     assertThat(view.myScreenshotAttributesTab.isHidden).isFalse()
+    assertThat(view.myDeviceInfoTab.isHidden).isTrue()
+  }
+
+  @Test
+  fun screenshotLogsTabAlwaysDisplayedForScreenshotTests() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val testDevice = device("device id", "device name")
+    whenever(mockTestResults.getAdditionalTestArtifacts(testDevice)).thenReturn(
+      mapOf("PreviewScreenshot.newImagePath" to "/path/to/newImage"))
+    whenever(mockTestResults.getLogcat(testDevice)).thenReturn("")
+    whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("")
+    view.setResults(testDevice, mockTestResults)
+
+    view.myLogsView.waitAllRequests()
+
+    assertThat(view.myScreenshotTab.isHidden).isFalse()
+    assertThat(view.myScreenshotAttributesTab.isHidden).isFalse()
+    assertThat(view.logsTab.isHidden).isFalse()
+    assertThat(view.myLogsView.text).isEqualTo("No logs available")
     assertThat(view.myDeviceInfoTab.isHidden).isTrue()
   }
 
@@ -253,11 +320,15 @@ class DetailsViewContentViewTest {
   @Test
   fun journeysResultsTabDisplayedWhenJourneyArtifactsExist() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
-    view.setAdditionalTestArtifacts(mapOf(
-      "Journeys.ActionPerformed.action1.screenshotPath" to "/path/to/screenshot.png",
-      "Journeys.ActionPerformed.action1.description" to "The action taken",
-      "Journeys.ActionPerformed.action1.modelReasoning" to "The reasoning behind the action"
-    ))
+    val testDevice = device("device id", "device name")
+    whenever(mockTestResults.getAdditionalTestArtifacts(testDevice)).thenReturn(
+      mapOf(
+        "Journeys.ActionPerformed.action1.screenshotPath" to "/path/to/screenshot.png",
+        "Journeys.ActionPerformed.action1.description" to "The action taken",
+        "Journeys.ActionPerformed.action1.modelReasoning" to "The reasoning behind the action"
+      ))
+
+    view.setResults(testDevice, mockTestResults)
 
     assertThat(view.myJourneyScreenshotsTab.isHidden).isFalse()
   }
@@ -265,9 +336,13 @@ class DetailsViewContentViewTest {
   @Test
   fun logsTabIsSelectedWhenErrorProvidedAndUserHasNotYetSelectedATab() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val testDevice = device("device id", "device name")
+    whenever(mockTestResults.getLogcat(testDevice)).thenReturn("This is a test\n")
+    whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("error stack trace")
+    whenever(mockTestResults.getTestCaseResult(testDevice)).thenReturn(null)
+    whenever(mockTestResults.getBenchmark(testDevice)).thenReturn(BenchmarkOutput.Empty)
 
-    view.setLogcat("This is a test\n")
-    view.setErrorStackTrace("error stack trace")
+    view.setResults(testDevice, mockTestResults)
 
     assertThat(view.tabs.selectedInfo).isEqualTo(view.logsTab)
   }
@@ -275,23 +350,28 @@ class DetailsViewContentViewTest {
   @Test
   fun logsAreAutomaticallyScrolledToTheEnd() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val testDevice = device("device id", "device name")
+    whenever(mockTestResults.getLogcat(testDevice)).thenReturn("This is a test\n".repeat(100))
+    whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("error stack trace")
 
-    view.setLogcat("This is a test\n".repeat(100))
-    view.setErrorStackTrace("error stack trace")
-
+    view.setResults(testDevice, mockTestResults)
     view.myLogsView.waitAllRequests()
 
-    assertThat(view.myLogsView.editor!!.caretModel.logicalPosition.line).isEqualTo(
-      view.myLogsView.editor!!.document.lineCount - 1)
+    runInEdtAndWait {
+      assertThat(view.myLogsView.editor?.caretModel?.logicalPosition?.line).isEqualTo(
+        view.myLogsView.editor?.document?.lineCount?.minus(1) ?: -1)
+    }
   }
 
   @Test
   fun logsTabIsNotSelectedWhenErrorProvidedAndUserHasAlreadySelectedADifferentTab() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
     view.tabs.select(view.myDeviceInfoTab, false)
+    val testDevice = device("device id", "device name")
+    whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("error stack trace")
 
     view.refreshLogsView()
-    view.setErrorStackTrace("error stack trace")
+    view.setResults(testDevice, mockTestResults)
 
     assertThat(view.tabs.selectedInfo).isEqualTo(view.myDeviceInfoTab)
   }
@@ -299,14 +379,17 @@ class DetailsViewContentViewTest {
   @Test
   fun journeysTabIsSelectedByDefaultWhenUserHasntSelectedATabYet() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    val testDevice = device("device id", "device name")
+    whenever(mockTestResults.getAdditionalTestArtifacts(testDevice)).thenReturn(
+      mapOf(
+        "Journeys.ActionPerformed.action1.screenshotPath" to "/path/to/screenshot.png",
+        "Journeys.ActionPerformed.action1.description" to "The action taken",
+        "Journeys.ActionPerformed.action1.modelReasoning" to "The reasoning behind the action"
+      ))
+    // The Journeys tab should be selected even though there is an error stack trace
+    whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("error stack trace")
 
-    view.setAdditionalTestArtifacts(mapOf(
-      "Journeys.ActionPerformed.action1.screenshotPath" to "/path/to/screenshot.png",
-      "Journeys.ActionPerformed.action1.description" to "The action taken",
-      "Journeys.ActionPerformed.action1.modelReasoning" to "The reasoning behind the action"
-    ))
-    view.setLogcat("test logcat message")
-    view.setErrorStackTrace("error stack trace") // The Journeys tab should be selected even though there is an error stack trace
+    view.setResults(testDevice, mockTestResults)
 
     assertThat(view.tabs.selectedInfo).isEqualTo(view.myJourneyScreenshotsTab)
   }
