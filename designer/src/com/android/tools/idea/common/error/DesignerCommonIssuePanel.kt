@@ -81,7 +81,7 @@ class DesignerCommonIssuePanel(
   nodeFactoryProvider: () -> NodeFactory,
   issueFilter: DesignerCommonIssueProvider.Filter,
   private val emptyMessageProvider: suspend () -> String,
-  fixWithAiActionProvider: (VisualLintRenderIssue) -> AnAction? = { null },
+  fixWithAiActionProvider: (Issue) -> AnAction? = { null },
   private val onContentPopulated: (Content) -> Unit = {},
 ) : SimpleToolWindowPanel(vertical), ProblemsViewTab, Disposable {
 
@@ -150,7 +150,7 @@ class DesignerCommonIssuePanel(
     treeModel.addTreeModelListener(
       object : TreeModelAdapter() {
         override fun treeNodesInserted(event: TreeModelEvent) {
-          // Make sure the new inserted node (e.g. Layout Validation node) is expanded.
+          // Make sure the new inserted node (e.g., Layout Validation node) is expanded.
           TreeUtil.promiseExpand(tree, event.treePath)
         }
       }
@@ -201,7 +201,7 @@ class DesignerCommonIssuePanel(
       object : TreeModelAdapter() {
         override fun process(event: TreeModelEvent, type: EventType) {
           val count = issueProvider.getFilteredIssues().distinct().size
-          // This change the ui text, run it in the UI thread.
+          // This changes the ui text, runs it in the UI thread.
           runInEdt {
             if (project.isDisposed) return@runInEdt
             content.displayName = getName(count)

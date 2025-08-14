@@ -113,7 +113,11 @@ class DesignerCommonIssueSidePanelTest {
         object : AnAction(expectedActionText) {
           override fun actionPerformed(e: AnActionEvent) {
             currentActionEvent = e
-            currentVisualLintIssue = issue
+            assertTrue(
+              "The provided issue is not of type VisualLintRenderIssue. Issue: $issue",
+              issue is VisualLintRenderIssue
+            )
+            currentVisualLintIssue = issue as VisualLintRenderIssue
           }
         }
       }

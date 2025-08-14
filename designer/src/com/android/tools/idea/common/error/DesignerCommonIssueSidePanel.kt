@@ -62,7 +62,7 @@ import org.jetbrains.annotations.TestOnly
 class DesignerCommonIssueSidePanel(
   private val project: Project,
   parentDisposable: Disposable,
-  private val fixWithAiActionProvider: (VisualLintRenderIssue) -> AnAction?,
+  private val fixWithAiActionProvider: (Issue) -> AnAction?,
 ) : JPanel(BorderLayout()), Disposable {
 
   private val splitter: OnePixelSplitter = OnePixelSplitter(true, 0.5f, 0.1f, 0.9f)
@@ -116,7 +116,7 @@ class DesignerCommonIssueSidePanel(
 class DesignerCommonIssueDetailPanel(
   project: Project,
   issue: Issue,
-  fixWithAiActionProvider: (VisualLintRenderIssue) -> AnAction?,
+  fixWithAiActionProvider: (Issue) -> AnAction?,
 ) : JPanel() {
 
   init {
@@ -154,7 +154,11 @@ class DesignerCommonIssueDetailPanel(
     descriptionEditorPane.readHTML(description)
 
     if (issue is VisualLintRenderIssue) {
-      contentPanel.addVisualRenderIssue(issue, project, fixWithAiActionProvider)
+      contentPanel.addVisualRenderIssue(
+        issue as VisualLintRenderIssue,
+        project,
+        fixWithAiActionProvider,
+      )
     }
   }
 
