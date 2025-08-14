@@ -19,25 +19,27 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.android.utils.FileUtils;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats;
-import com.google.idea.blaze.base.projectview.ProjectView;
+import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.projectview.parser.ProjectViewParser;
+import com.google.idea.blaze.base.projectview.section.sections.ImportSection;
 import com.google.idea.blaze.base.projectview.section.sections.ShardBlazeBuildsSection;
 import com.google.idea.blaze.base.projectview.section.sections.TextBlock;
 import com.google.idea.blaze.base.projectview.section.sections.TextBlockSection;
 import com.google.idea.blaze.base.projectview.section.sections.UseQuerySyncSection;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
+import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolverImpl;
 import com.google.idea.common.experiments.FeatureRolloutExperiment;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -69,13 +71,13 @@ public class BaseQuerySyncConversionUtility implements QuerySyncConversionUtilit
   }
 
   @Override
-  public boolean canConvert(Path projectViewFilePath, int legacySyncShardCount) {
-    var conversionProjectFields = parseProjectFields(projectViewFilePath);
+  public boolean canConvert(BlazeImportSettings blazeImportSettings, Path projectViewFilePath) {
+    var conversionProjectFields = parseProjectFields(blazeImportSettings, projectViewFilePath);
     return AUTO_CONVERT_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT.isEnabled() &&
            !hasConversionIndicator(projectViewFilePath) &&
            conversionProjectFields.isPresent() &&
            !conversionProjectFields.get().useQuerySync() &&
-           (!conversionProjectFields.get().shardSync() || legacySyncShardCount == 1);
+           (!conversionProjectFields.get().shardSync() || blazeImportSettings.getLegacySyncShardCount() == 1);
   }
 
   private boolean hasConversionIndicator(Path projectViewFilePath) {
@@ -100,20 +102,22 @@ public class BaseQuerySyncConversionUtility implements QuerySyncConversionUtilit
     }
     // Though conversion is not yet complete, the CONVERTED status is returned as this method is invoked by
     // `BlazeImportSettingsManager::initImportSettings` which runs before the conversion happens eventually
-    if (canConvert(projectViewFilePath, blazeImportSettings.getLegacySyncShardCount())) {
+    if (canConvert(blazeImportSettings, projectViewFilePath)) {
       return QuerySyncAutoConversionStats.Status.CONVERTED;
     }
     return blazeImportSettings.getProjectType() == BlazeImportSettings.ProjectType.ASPECT_SYNC ?
            QuerySyncAutoConversionStats.Status.NOT_CONVERTED : QuerySyncAutoConversionStats.Status.NOT_NEEDED;
   }
 
-  private Optional<ConversionProjectFields> parseProjectFields(Path projectViewFilePath) {
-    ProjectViewParser parser = new ProjectViewParser(BlazeContext.create(), null);
-    parser.parseProjectViewFile(projectViewFilePath.toFile(), List.of(ShardBlazeBuildsSection.PARSER, UseQuerySyncSection.PARSER));
+  private Optional<ConversionProjectFields> parseProjectFields(BlazeImportSettings blazeImportSettings, Path projectViewFilePath) {
+    ProjectViewParser parser = new ProjectViewParser(BlazeContext.create(), new WorkspacePathResolverImpl(
+      new WorkspaceRoot(new File(blazeImportSettings.getWorkspaceRoot()))));
+    parser.parseProjectViewFile(projectViewFilePath.toFile(), List.of(ImportSection.PARSER,
+                                                                      ShardBlazeBuildsSection.PARSER,
+                                                                      UseQuerySyncSection.PARSER));
     // Ignore parsing errors as they are expected when parsing a subset of sections.
-    ProjectView projectView = Objects.requireNonNull(parser.getResult().getTopLevelProjectViewFile()).projectView;
-    Optional<Boolean> useQuerySync = Optional.ofNullable(projectView.getScalarValue(UseQuerySyncSection.KEY));
-    Boolean shardSync = projectView.getScalarValue(ShardBlazeBuildsSection.KEY, false);
+    Optional<Boolean> useQuerySync = parser.getResult().getScalarValue(UseQuerySyncSection.KEY);
+    Boolean shardSync = parser.getResult().getScalarValue(ShardBlazeBuildsSection.KEY).orElse(false);
 
     return useQuerySync.map(querySync -> new ConversionProjectFields(querySync, shardSync));
   }
