@@ -47,7 +47,7 @@ public class StudioAssetFileOpenerTest {
   public TestRule rule = RuleChain.outerRule(projectRule).around(new EdtRule());
   @Rule
   public TestName testName = new TestName();
-  
+
   private StudioAssetFileOpener myAppRepo;
   private StudioAssetFileOpener myLibRepo;
 

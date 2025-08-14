@@ -63,7 +63,7 @@ sealed class TestRClassesTest {
   val rule = RuleChain.outerRule(projectRule).around(EdtRule())
   val project by lazy { projectRule.project }
   val fixture by lazy { projectRule.fixture }
-    
+
   protected open val disableNonTransitiveRClass = false
 
   lateinit var projectRootDirectory: VirtualFile

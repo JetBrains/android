@@ -33,12 +33,12 @@ import org.junit.Test;
 public class BuildActionInvokerTest {
   @Rule
   public AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
-  
+
   @Test
   public void testBuildWithBuildAction() throws Exception {
     projectRule.loadProject(SIMPLE_APPLICATION);
     Project project = projectRule.getProject();
-    
+
     GradleBuildInvokerImpl invoker = (GradleBuildInvokerImpl)GradleBuildInvoker.getInstance(project);
     injectBuildOutputDumpingBuildViewManager(project, projectRule.getFixture().getTestRootDisposable());
     Object model = invoker

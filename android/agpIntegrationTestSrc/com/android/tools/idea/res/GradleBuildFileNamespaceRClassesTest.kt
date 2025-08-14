@@ -48,7 +48,7 @@ class GradleBuildFileNamespaceRClassesTest {
   val projectRule = AndroidGradleProjectRule().onEdt()
   val project by lazy { projectRule.project }
   val fixture by lazy { projectRule.fixture }
-  
+
   @Before
   fun setup() {
     projectRule.loadProject(TestProjectPaths.PROJECT_WITH_APP_AND_LIB_DEPENDENCY) { projectRoot ->

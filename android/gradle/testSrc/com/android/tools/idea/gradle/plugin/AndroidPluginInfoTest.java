@@ -31,7 +31,7 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link AndroidPluginInfo}.
  */
 public class AndroidPluginInfoTest {
-  @Rule 
+  @Rule
   public AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
 
   @Test
