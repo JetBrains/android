@@ -907,45 +907,6 @@ def _studio_runner(ctx, name, target_to_file, out):
         use_default_shell_env = True,
     )
 
-script_template = """\
-    #!/bin/bash
-    options=
-    tmp_dir=$(mktemp -d -t android-studio-XXXXXXXXXX)
-    if [ "$1" == "--debug" ]; then
-        options="$tmp_dir/.debug.vmoptions"
-	echo "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005" > "$options"
-	shift
-    elif [[ "$1" == "--wrapper_script_flag=--debug="* ]]; then
-        debug_option="$1"
-        options="$tmp_dir/.debug.vmoptions"
-	echo "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=${{debug_option##--wrapper_script_flag=--debug=}}" > "$options"
-	shift
-    fi
-
-    config_base_dir="$HOME/.studio_dev"
-    if [[ "$1" == "--config_base_dir="* ]]; then
-	config_base_dir="${{1##--config_base_dir=}}"
-	shift
-    fi
-
-    unzip -q "{zip_file}" -d "$tmp_dir"
-    mkdir -p "$config_base_dir/.config"
-    mkdir -p "$config_base_dir/.plugins"
-    mkdir -p "$config_base_dir/.system"
-    mkdir -p "$config_base_dir/.log"
-    echo "idea.config.path=$config_base_dir/.config" >> "$tmp_dir/.properties"
-    echo "idea.plugins.path=$config_base_dir/.plugins" >> "$tmp_dir/.properties"
-    echo "idea.system.path=$config_base_dir/.system" >> "$tmp_dir/.properties"
-    echo "idea.log.path=$config_base_dir/.log" >> "$tmp_dir/.properties"
-    properties="$tmp_dir/.properties"
-
-    if [ -z "$options" ]; then
-        STUDIO_PROPERTIES="$properties" {command} $args
-    else
-        STUDIO_VM_OPTIONS="$options" STUDIO_PROPERTIES="$properties" {command} $@
-    fi
-"""
-
 platform_by_name = {platform.name: platform for platform in [LINUX, MAC, MAC_ARM, WIN]}
 
 def _android_studio_impl(ctx):
