@@ -1525,6 +1525,11 @@ Projects:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any,java.io.Serializable
+            kotlin.Pair
+                Name                          : kotlin.Pair
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
+                    ConcreteGeneric GenericType   : <T>
             kotlin.String
                 Name                          : kotlin.String
                 MemberFunctions
@@ -1539,11 +1544,11 @@ Projects:
                 Name                          : kotlin.collections.List
                 GenericArguments
                     ConcreteGeneric GenericType   : <T>
-            org.gradle.api.Buildable
-                Name                          : org.gradle.api.Buildable
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.Any
+            kotlin.collections.Map
+                Name                          : kotlin.collections.Map
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
+                    ConcreteGeneric GenericType   : <T>
             org.gradle.api.JavaVersion
                 Name                          : org.gradle.api.JavaVersion
                 EntryNames
@@ -1632,12 +1637,7 @@ Projects:
                 Name                          : org.gradle.api.artifacts.ProjectDependency
                 MemberFunctions
                 Properties
-                Supertypes                    : org.gradle.api.artifacts.ModuleDependency,org.gradle.api.artifacts.Dependency,kotlin.Any,org.gradle.api.attributes.HasConfigurableAttributes,org.gradle.api.attributes.HasAttributes,org.gradle.api.artifacts.SelfResolvingDependency,org.gradle.api.Buildable
-            org.gradle.api.artifacts.SelfResolvingDependency
-                Name                          : org.gradle.api.artifacts.SelfResolvingDependency
-                MemberFunctions
-                Properties
-                Supertypes                    : org.gradle.api.artifacts.Dependency,kotlin.Any,org.gradle.api.Buildable
+                Supertypes                    : org.gradle.api.artifacts.ModuleDependency,org.gradle.api.artifacts.Dependency,kotlin.Any,org.gradle.api.attributes.HasConfigurableAttributes,org.gradle.api.attributes.HasAttributes
             org.gradle.api.artifacts.dsl.Dependencies
                 Name                          : org.gradle.api.artifacts.dsl.Dependencies
                 MemberFunctions
@@ -1732,6 +1732,20 @@ Projects:
                 Function DataClassWithType    : kotlin.collections.List
                 GenericTypes
                     - ConcreteGeneric GenericType   : <T>
+            mapOf
+                FunctionName                  : mapOf
+                Parameters
+                    - Name                          : pairs
+                      Value DataClassWithType       : kotlin.Array
+                      GenericTypes
+                          - ConcreteGeneric DataClassWithType       : kotlin.Pair
+                            GenericTypes
+                                - ConcreteGeneric GenericType   : <T>
+                                - ConcreteGeneric GenericType   : <T>
+                Function DataClassWithType    : kotlin.collections.Map
+                GenericTypes
+                    - ConcreteGeneric GenericType   : <T>
+                    - ConcreteGeneric GenericType   : <T>
 Settings:
     Settings Schema:
         Name                          : org.gradle.api.internal.SettingsInternal
@@ -1786,6 +1800,11 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
+            kotlin.Pair
+                Name                          : kotlin.Pair
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
+                    ConcreteGeneric GenericType   : <T>
             kotlin.String
                 Name                          : kotlin.String
                 MemberFunctions
@@ -1799,6 +1818,11 @@ Settings:
             kotlin.collections.List
                 Name                          : kotlin.collections.List
                 GenericArguments
+                    ConcreteGeneric GenericType   : <T>
+            kotlin.collections.Map
+                Name                          : kotlin.collections.Map
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
                     ConcreteGeneric GenericType   : <T>
             org.gradle.api.Named
                 Name                          : org.gradle.api.Named
@@ -2063,6 +2087,20 @@ Settings:
                 Function DataClassWithType    : kotlin.collections.List
                 GenericTypes
                     - ConcreteGeneric GenericType   : <T>
+            mapOf
+                FunctionName                  : mapOf
+                Parameters
+                    - Name                          : pairs
+                      Value DataClassWithType       : kotlin.Array
+                      GenericTypes
+                          - ConcreteGeneric DataClassWithType       : kotlin.Pair
+                            GenericTypes
+                                - ConcreteGeneric GenericType   : <T>
+                                - ConcreteGeneric GenericType   : <T>
+                Function DataClassWithType    : kotlin.collections.Map
+                GenericTypes
+                    - ConcreteGeneric GenericType   : <T>
+                    - ConcreteGeneric GenericType   : <T>
     Settings Schema:
         Name                          : org.gradle.api.internal.SettingsInternal
         MemberFunctions
@@ -2116,6 +2154,11 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
+            kotlin.Pair
+                Name                          : kotlin.Pair
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
+                    ConcreteGeneric GenericType   : <T>
             kotlin.String
                 Name                          : kotlin.String
                 MemberFunctions
@@ -2129,6 +2172,11 @@ Settings:
             kotlin.collections.List
                 Name                          : kotlin.collections.List
                 GenericArguments
+                    ConcreteGeneric GenericType   : <T>
+            kotlin.collections.Map
+                Name                          : kotlin.collections.Map
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
                     ConcreteGeneric GenericType   : <T>
             org.gradle.api.Named
                 Name                          : org.gradle.api.Named
@@ -2392,6 +2440,20 @@ Settings:
                           - ConcreteGeneric GenericType   : <T>
                 Function DataClassWithType    : kotlin.collections.List
                 GenericTypes
+                    - ConcreteGeneric GenericType   : <T>
+            mapOf
+                FunctionName                  : mapOf
+                Parameters
+                    - Name                          : pairs
+                      Value DataClassWithType       : kotlin.Array
+                      GenericTypes
+                          - ConcreteGeneric DataClassWithType       : kotlin.Pair
+                            GenericTypes
+                                - ConcreteGeneric GenericType   : <T>
+                                - ConcreteGeneric GenericType   : <T>
+                Function DataClassWithType    : kotlin.collections.Map
+                GenericTypes
+                    - ConcreteGeneric GenericType   : <T>
                     - ConcreteGeneric GenericType   : <T>
     Settings Schema:
         Name                          : org.gradle.internal.declarativedsl.defaults.DefaultsTopLevelReceiver
@@ -3915,6 +3977,11 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any,java.io.Serializable
+            kotlin.Pair
+                Name                          : kotlin.Pair
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
+                    ConcreteGeneric GenericType   : <T>
             kotlin.String
                 Name                          : kotlin.String
                 MemberFunctions
@@ -3929,11 +3996,11 @@ Settings:
                 Name                          : kotlin.collections.List
                 GenericArguments
                     ConcreteGeneric GenericType   : <T>
-            org.gradle.api.Buildable
-                Name                          : org.gradle.api.Buildable
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.Any
+            kotlin.collections.Map
+                Name                          : kotlin.collections.Map
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
+                    ConcreteGeneric GenericType   : <T>
             org.gradle.api.JavaVersion
                 Name                          : org.gradle.api.JavaVersion
                 EntryNames
@@ -4022,12 +4089,7 @@ Settings:
                 Name                          : org.gradle.api.artifacts.ProjectDependency
                 MemberFunctions
                 Properties
-                Supertypes                    : org.gradle.api.artifacts.ModuleDependency,org.gradle.api.artifacts.Dependency,kotlin.Any,org.gradle.api.attributes.HasConfigurableAttributes,org.gradle.api.attributes.HasAttributes,org.gradle.api.artifacts.SelfResolvingDependency,org.gradle.api.Buildable
-            org.gradle.api.artifacts.SelfResolvingDependency
-                Name                          : org.gradle.api.artifacts.SelfResolvingDependency
-                MemberFunctions
-                Properties
-                Supertypes                    : org.gradle.api.artifacts.Dependency,kotlin.Any,org.gradle.api.Buildable
+                Supertypes                    : org.gradle.api.artifacts.ModuleDependency,org.gradle.api.artifacts.Dependency,kotlin.Any,org.gradle.api.attributes.HasConfigurableAttributes,org.gradle.api.attributes.HasAttributes
             org.gradle.api.artifacts.dsl.Dependencies
                 Name                          : org.gradle.api.artifacts.dsl.Dependencies
                 MemberFunctions
@@ -4131,6 +4193,20 @@ Settings:
                 Function DataClassWithType    : kotlin.collections.List
                 GenericTypes
                     - ConcreteGeneric GenericType   : <T>
+            mapOf
+                FunctionName                  : mapOf
+                Parameters
+                    - Name                          : pairs
+                      Value DataClassWithType       : kotlin.Array
+                      GenericTypes
+                          - ConcreteGeneric DataClassWithType       : kotlin.Pair
+                            GenericTypes
+                                - ConcreteGeneric GenericType   : <T>
+                                - ConcreteGeneric GenericType   : <T>
+                Function DataClassWithType    : kotlin.collections.Map
+                GenericTypes
+                    - ConcreteGeneric GenericType   : <T>
+                    - ConcreteGeneric GenericType   : <T>
     Settings Schema:
         Name                          : org.gradle.internal.declarativedsl.plugins.PluginsTopLevelReceiver
         MemberFunctions
@@ -4160,6 +4236,11 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
+            kotlin.Pair
+                Name                          : kotlin.Pair
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
+                    ConcreteGeneric GenericType   : <T>
             kotlin.String
                 Name                          : kotlin.String
                 MemberFunctions
@@ -4173,6 +4254,11 @@ Settings:
             kotlin.collections.List
                 Name                          : kotlin.collections.List
                 GenericArguments
+                    ConcreteGeneric GenericType   : <T>
+            kotlin.collections.Map
+                Name                          : kotlin.collections.Map
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
                     ConcreteGeneric GenericType   : <T>
             org.gradle.internal.declarativedsl.plugins.MutablePluginDependencySpec
                 Name                          : org.gradle.internal.declarativedsl.plugins.MutablePluginDependencySpec
@@ -4253,5 +4339,19 @@ Settings:
                           - ConcreteGeneric GenericType   : <T>
                 Function DataClassWithType    : kotlin.collections.List
                 GenericTypes
+                    - ConcreteGeneric GenericType   : <T>
+            mapOf
+                FunctionName                  : mapOf
+                Parameters
+                    - Name                          : pairs
+                      Value DataClassWithType       : kotlin.Array
+                      GenericTypes
+                          - ConcreteGeneric DataClassWithType       : kotlin.Pair
+                            GenericTypes
+                                - ConcreteGeneric GenericType   : <T>
+                                - ConcreteGeneric GenericType   : <T>
+                Function DataClassWithType    : kotlin.collections.Map
+                GenericTypes
+                    - ConcreteGeneric GenericType   : <T>
                     - ConcreteGeneric GenericType   : <T>
 

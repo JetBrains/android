@@ -311,29 +311,6 @@ Projects:
                     - PropertyName                  : integrityConfigDir
                       Property ReferenceType        : org.gradle.api.file.Directory
                 Supertypes                    : kotlin.Any
-            com.android.build.api.dsl.CommonExtension
-                Name                          : com.android.build.api.dsl.CommonExtension
-                MemberFunctions
-                    - MemberFunctionName            : compileOptions
-                      Receiver ReferenceType        : com.android.build.api.dsl.CommonExtension
-                      Parameters
-                      Block ReferenceType           : com.android.build.api.dsl.CompileOptions
-                    - MemberFunctionName            : getDefaultProguardFile
-                      Receiver ReferenceType        : com.android.build.api.dsl.CommonExtension
-                      Parameters
-                          - Name                          : name
-                            Value SimpleType              : STRING
-                      Function ReferenceType        : java.io.File
-                    - MemberFunctionName            : lint
-                      Receiver ReferenceType        : com.android.build.api.dsl.CommonExtension
-                      Parameters
-                      Block ReferenceType           : com.android.build.api.dsl.Lint
-                Properties
-                    - PropertyName                  : compileSdk
-                      Property SimpleType           : INT
-                    - PropertyName                  : namespace
-                      Property SimpleType           : STRING
-                Supertypes                    : kotlin.Any
             com.android.build.api.dsl.CompileOptions
                 Name                          : com.android.build.api.dsl.CompileOptions
                 MemberFunctions
@@ -539,6 +516,10 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.LibraryExtension
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.Lint
+                    - MemberFunctionName            : prefab
+                      Receiver ReferenceType        : com.android.build.api.dsl.LibraryExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_Prefab
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -730,6 +711,18 @@ Projects:
             com.android.build.gradle.AbstractAppExtension
                 Name                          : com.android.build.gradle.AbstractAppExtension
                 MemberFunctions
+                    - MemberFunctionName            : buildOutputs
+                      Receiver ReferenceType        : com.android.build.gradle.AbstractAppExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
+                    - MemberFunctionName            : signingConfigs
+                      Receiver ReferenceType        : com.android.build.gradle.AbstractAppExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
+                    - MemberFunctionName            : sourceSets
+                      Receiver ReferenceType        : com.android.build.gradle.AbstractAppExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
@@ -737,11 +730,27 @@ Projects:
             com.android.build.gradle.AndroidConfig
                 Name                          : com.android.build.gradle.AndroidConfig
                 MemberFunctions
+                    - MemberFunctionName            : sourceSets
+                      Receiver ReferenceType        : com.android.build.gradle.AndroidConfig
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                 Supertypes                    : kotlin.Any
             com.android.build.gradle.AppExtension
                 Name                          : com.android.build.gradle.AppExtension
                 MemberFunctions
+                    - MemberFunctionName            : buildOutputs
+                      Receiver ReferenceType        : com.android.build.gradle.AppExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
+                    - MemberFunctionName            : signingConfigs
+                      Receiver ReferenceType        : com.android.build.gradle.AppExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
+                    - MemberFunctionName            : sourceSets
+                      Receiver ReferenceType        : com.android.build.gradle.AppExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
@@ -749,6 +758,18 @@ Projects:
             com.android.build.gradle.BaseExtension
                 Name                          : com.android.build.gradle.BaseExtension
                 MemberFunctions
+                    - MemberFunctionName            : buildOutputs
+                      Receiver ReferenceType        : com.android.build.gradle.BaseExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
+                    - MemberFunctionName            : signingConfigs
+                      Receiver ReferenceType        : com.android.build.gradle.BaseExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
+                    - MemberFunctionName            : sourceSets
+                      Receiver ReferenceType        : com.android.build.gradle.BaseExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
@@ -760,6 +781,10 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.LibraryBuildFeatures
+                    - MemberFunctionName            : buildOutputs
+                      Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
                     - MemberFunctionName            : compileOptions
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
                       Parameters
@@ -772,6 +797,18 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.Lint
+                    - MemberFunctionName            : prefab
+                      Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_Prefab
+                    - MemberFunctionName            : signingConfigs
+                      Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
+                    - MemberFunctionName            : sourceSets
+                      Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -785,6 +822,14 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.LibraryBuildFeatures
+                    - MemberFunctionName            : buildOutputs
+                      Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
+                    - MemberFunctionName            : buildTypes
+                      Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeBuildType
                     - MemberFunctionName            : compileOptions
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
                       Parameters
@@ -801,6 +846,22 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.Lint
+                    - MemberFunctionName            : prefab
+                      Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_Prefab
+                    - MemberFunctionName            : productFlavors
+                      Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeProductFlavor
+                    - MemberFunctionName            : signingConfigs
+                      Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
+                    - MemberFunctionName            : sourceSets
+                      Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -810,11 +871,27 @@ Projects:
             com.android.build.gradle.TestedAndroidConfig
                 Name                          : com.android.build.gradle.TestedAndroidConfig
                 MemberFunctions
+                    - MemberFunctionName            : sourceSets
+                      Receiver ReferenceType        : com.android.build.gradle.TestedAndroidConfig
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                 Supertypes                    : com.android.build.gradle.AndroidConfig,kotlin.Any
             com.android.build.gradle.TestedExtension
                 Name                          : com.android.build.gradle.TestedExtension
                 MemberFunctions
+                    - MemberFunctionName            : buildOutputs
+                      Receiver ReferenceType        : com.android.build.gradle.TestedExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
+                    - MemberFunctionName            : signingConfigs
+                      Receiver ReferenceType        : com.android.build.gradle.TestedExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
+                    - MemberFunctionName            : sourceSets
+                      Receiver ReferenceType        : com.android.build.gradle.TestedExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
@@ -842,7 +919,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
@@ -854,7 +931,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
@@ -866,7 +943,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : project
                       Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
@@ -884,7 +961,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                 Properties
                 Supertypes                    : org.gradle.api.artifacts.dsl.GradleDependencies,org.gradle.api.artifacts.dsl.Dependencies,kotlin.Any
@@ -895,6 +972,10 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.ApplicationBuildFeatures
+                    - MemberFunctionName            : buildOutputs
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
                     - MemberFunctionName            : bundle
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
                       Parameters
@@ -911,6 +992,14 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.Lint
+                    - MemberFunctionName            : signingConfigs
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
+                    - MemberFunctionName            : sourceSets
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -924,6 +1013,14 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.ApplicationBuildFeatures
+                    - MemberFunctionName            : buildOutputs
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
+                    - MemberFunctionName            : buildTypes
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeBuildType
                     - MemberFunctionName            : bundle
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
                       Parameters
@@ -944,6 +1041,18 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.Lint
+                    - MemberFunctionName            : productFlavors
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeProductFlavor
+                    - MemberFunctionName            : signingConfigs
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
+                    - MemberFunctionName            : sourceSets
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -989,7 +1098,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
@@ -1001,7 +1110,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnly
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
@@ -1013,7 +1122,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnlyApi
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
@@ -1025,7 +1134,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
@@ -1037,7 +1146,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : project
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
@@ -1055,7 +1164,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                 Properties
                 Supertypes                    : com.android.build.gradle.internal.dsl.VariantDimensionDependenciesExtension,kotlin.Any,org.gradle.api.artifacts.dsl.GradleDependencies,org.gradle.api.artifacts.dsl.Dependencies
@@ -1126,6 +1235,10 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalApplicationExtension
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.Lint
+                    - MemberFunctionName            : signingConfigs
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalApplicationExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -1159,29 +1272,6 @@ Projects:
                     - PropertyName                  : versionNameSuffix
                       Property SimpleType           : STRING
                 Supertypes                    : com.android.build.api.dsl.ApplicationBuildType,com.android.build.api.dsl.BuildType,org.gradle.api.Named,kotlin.Any,com.android.build.api.dsl.VariantDimension,org.gradle.api.plugins.ExtensionAware,com.android.build.api.dsl.ApplicationVariantDimension,com.android.build.api.dsl.LibraryBuildType,com.android.build.api.dsl.LibraryVariantDimension,com.android.build.api.dsl.DynamicFeatureBuildType,com.android.build.api.dsl.DynamicFeatureVariantDimension,com.android.build.api.dsl.TestBuildType,com.android.build.api.dsl.TestVariantDimension,com.android.builder.model.BuildType,com.android.builder.model.BaseConfig,com.android.builder.model.Named
-            com.android.build.gradle.internal.dsl.InternalCommonExtension
-                Name                          : com.android.build.gradle.internal.dsl.InternalCommonExtension
-                MemberFunctions
-                    - MemberFunctionName            : compileOptions
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalCommonExtension
-                      Parameters
-                      Block ReferenceType           : com.android.build.api.dsl.CompileOptions
-                    - MemberFunctionName            : getDefaultProguardFile
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalCommonExtension
-                      Parameters
-                          - Name                          : name
-                            Value SimpleType              : STRING
-                      Function ReferenceType        : java.io.File
-                    - MemberFunctionName            : lint
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalCommonExtension
-                      Parameters
-                      Block ReferenceType           : com.android.build.api.dsl.Lint
-                Properties
-                    - PropertyName                  : compileSdk
-                      Property SimpleType           : INT
-                    - PropertyName                  : namespace
-                      Property SimpleType           : STRING
-                Supertypes                    : com.android.build.api.dsl.CommonExtension,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable
             com.android.build.gradle.internal.dsl.InternalLibraryExtension
                 Name                          : com.android.build.gradle.internal.dsl.InternalLibraryExtension
                 MemberFunctions
@@ -1199,6 +1289,14 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalLibraryExtension
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.Lint
+                    - MemberFunctionName            : prefab
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalLibraryExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_Prefab
+                    - MemberFunctionName            : signingConfigs
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalLibraryExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -1214,33 +1312,6 @@ Projects:
                 MemberFunctions
                 Properties
                 Supertypes                    : com.android.build.api.dsl.SigningConfig,kotlin.Any,com.android.build.api.dsl.ApkSigningConfig,org.gradle.api.Named,com.android.builder.model.SigningConfig
-            com.android.build.gradle.internal.dsl.InternalTestedExtension
-                Name                          : com.android.build.gradle.internal.dsl.InternalTestedExtension
-                MemberFunctions
-                    - MemberFunctionName            : compileOptions
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalTestedExtension
-                      Parameters
-                      Block ReferenceType           : com.android.build.api.dsl.CompileOptions
-                    - MemberFunctionName            : getDefaultProguardFile
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalTestedExtension
-                      Parameters
-                          - Name                          : name
-                            Value SimpleType              : STRING
-                      Function ReferenceType        : java.io.File
-                    - MemberFunctionName            : lint
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalTestedExtension
-                      Parameters
-                      Block ReferenceType           : com.android.build.api.dsl.Lint
-                Properties
-                    - PropertyName                  : compileSdk
-                      Property SimpleType           : INT
-                    - PropertyName                  : namespace
-                      Property SimpleType           : STRING
-                    - PropertyName                  : testBuildType
-                      Property SimpleType           : STRING
-                    - PropertyName                  : testNamespace
-                      Property SimpleType           : STRING
-                Supertypes                    : com.android.build.api.dsl.TestedExtension,kotlin.Any,com.android.build.gradle.internal.dsl.InternalCommonExtension,com.android.build.api.dsl.CommonExtension,com.android.build.gradle.internal.dsl.Lockable
             com.android.build.gradle.internal.dsl.Lockable
                 Name                          : com.android.build.gradle.internal.dsl.Lockable
                 MemberFunctions
@@ -1280,7 +1351,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
@@ -1292,7 +1363,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnly
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
@@ -1304,7 +1375,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnlyApi
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
@@ -1316,7 +1387,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
@@ -1328,7 +1399,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : project
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
@@ -1346,7 +1417,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                 Properties
                 Supertypes                    : com.android.build.gradle.internal.dsl.VariantDimensionDependenciesExtension,kotlin.Any,org.gradle.api.artifacts.dsl.GradleDependencies,org.gradle.api.artifacts.dsl.Dependencies
@@ -1430,6 +1501,10 @@ Projects:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
+            kotlin.Array
+                Name                          : kotlin.Array
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
             kotlin.Boolean
                 Name                          : kotlin.Boolean
                 MemberFunctions
@@ -1440,16 +1515,6 @@ Projects:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
-            kotlin.Comparable
-                Name                          : kotlin.Comparable
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.Any
-            kotlin.Enum
-                Name                          : kotlin.Enum
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.Comparable,kotlin.Any,java.io.Serializable
             kotlin.Int
                 Name                          : kotlin.Int
                 MemberFunctions
@@ -1460,6 +1525,11 @@ Projects:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any,java.io.Serializable
+            kotlin.Pair
+                Name                          : kotlin.Pair
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
+                    ConcreteGeneric GenericType   : <T>
             kotlin.String
                 Name                          : kotlin.String
                 MemberFunctions
@@ -1470,11 +1540,15 @@ Projects:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
-            org.gradle.api.Buildable
-                Name                          : org.gradle.api.Buildable
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.Any
+            kotlin.collections.List
+                Name                          : kotlin.collections.List
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
+            kotlin.collections.Map
+                Name                          : kotlin.collections.Map
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
+                    ConcreteGeneric GenericType   : <T>
             org.gradle.api.JavaVersion
                 Name                          : org.gradle.api.JavaVersion
                 EntryNames
@@ -1563,12 +1637,7 @@ Projects:
                 Name                          : org.gradle.api.artifacts.ProjectDependency
                 MemberFunctions
                 Properties
-                Supertypes                    : org.gradle.api.artifacts.ModuleDependency,org.gradle.api.artifacts.Dependency,kotlin.Any,org.gradle.api.attributes.HasConfigurableAttributes,org.gradle.api.attributes.HasAttributes,org.gradle.api.artifacts.SelfResolvingDependency,org.gradle.api.Buildable
-            org.gradle.api.artifacts.SelfResolvingDependency
-                Name                          : org.gradle.api.artifacts.SelfResolvingDependency
-                MemberFunctions
-                Properties
-                Supertypes                    : org.gradle.api.artifacts.Dependency,kotlin.Any,org.gradle.api.Buildable
+                Supertypes                    : org.gradle.api.artifacts.ModuleDependency,org.gradle.api.artifacts.Dependency,kotlin.Any,org.gradle.api.attributes.HasConfigurableAttributes,org.gradle.api.attributes.HasAttributes
             org.gradle.api.artifacts.dsl.Dependencies
                 Name                          : org.gradle.api.artifacts.dsl.Dependencies
                 MemberFunctions
@@ -1596,11 +1665,6 @@ Projects:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
-            org.gradle.api.attributes.HasConfigurableAttributes
-                Name                          : org.gradle.api.attributes.HasConfigurableAttributes
-                MemberFunctions
-                Properties
-                Supertypes                    : org.gradle.api.attributes.HasAttributes,kotlin.Any
             org.gradle.api.file.Directory
                 Name                          : org.gradle.api.file.Directory
                 MemberFunctions
@@ -1658,6 +1722,30 @@ Projects:
                       Property ReferenceType        : org.gradle.api.file.ProjectLayout
                 Supertypes                    : kotlin.Any
         RootFunctions:
+            listOf
+                FunctionName                  : listOf
+                Parameters
+                    - Name                          : elements
+                      Value DataClassWithType       : kotlin.Array
+                      GenericTypes
+                          - ConcreteGeneric GenericType   : <T>
+                Function DataClassWithType    : kotlin.collections.List
+                GenericTypes
+                    - ConcreteGeneric GenericType   : <T>
+            mapOf
+                FunctionName                  : mapOf
+                Parameters
+                    - Name                          : pairs
+                      Value DataClassWithType       : kotlin.Array
+                      GenericTypes
+                          - ConcreteGeneric DataClassWithType       : kotlin.Pair
+                            GenericTypes
+                                - ConcreteGeneric GenericType   : <T>
+                                - ConcreteGeneric GenericType   : <T>
+                Function DataClassWithType    : kotlin.collections.Map
+                GenericTypes
+                    - ConcreteGeneric GenericType   : <T>
+                    - ConcreteGeneric GenericType   : <T>
 Settings:
     Settings Schema:
         Name                          : org.gradle.api.internal.SettingsInternal
@@ -1703,21 +1791,20 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Comparable,kotlin.Any,java.io.Serializable
+            kotlin.Array
+                Name                          : kotlin.Array
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
             kotlin.CharSequence
                 Name                          : kotlin.CharSequence
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
-            kotlin.Comparable
-                Name                          : kotlin.Comparable
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.Any
-            kotlin.Enum
-                Name                          : kotlin.Enum
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.Comparable,kotlin.Any,java.io.Serializable
+            kotlin.Pair
+                Name                          : kotlin.Pair
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
+                    ConcreteGeneric GenericType   : <T>
             kotlin.String
                 Name                          : kotlin.String
                 MemberFunctions
@@ -1728,51 +1815,20 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
-            kotlin.collections.Collection
-                Name                          : kotlin.collections.Collection
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.collections.Iterable,kotlin.Any
-            kotlin.collections.Iterable
-                Name                          : kotlin.collections.Iterable
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.Any
             kotlin.collections.List
                 Name                          : kotlin.collections.List
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.collections.Collection,kotlin.collections.Iterable,kotlin.Any
-            kotlin.collections.Set
-                Name                          : kotlin.collections.Set
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.collections.Collection,kotlin.collections.Iterable,kotlin.Any
-            org.gradle.api.DomainObjectCollection
-                Name                          : org.gradle.api.DomainObjectCollection
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.collections.Collection,kotlin.collections.Iterable,kotlin.Any
-            org.gradle.api.DomainObjectSet
-                Name                          : org.gradle.api.DomainObjectSet
-                MemberFunctions
-                Properties
-                Supertypes                    : org.gradle.api.DomainObjectCollection,kotlin.collections.Collection,kotlin.collections.Iterable,kotlin.Any,kotlin.collections.Set
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
+            kotlin.collections.Map
+                Name                          : kotlin.collections.Map
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
+                    ConcreteGeneric GenericType   : <T>
             org.gradle.api.Named
                 Name                          : org.gradle.api.Named
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
-            org.gradle.api.NamedDomainObjectCollection
-                Name                          : org.gradle.api.NamedDomainObjectCollection
-                MemberFunctions
-                Properties
-                Supertypes                    : org.gradle.api.DomainObjectCollection,kotlin.collections.Collection,kotlin.collections.Iterable,kotlin.Any
-            org.gradle.api.NamedDomainObjectContainer
-                Name                          : org.gradle.api.NamedDomainObjectContainer
-                MemberFunctions
-                Properties
-                Supertypes                    : org.gradle.api.NamedDomainObjectSet,org.gradle.api.NamedDomainObjectCollection,org.gradle.api.DomainObjectCollection,kotlin.collections.Collection,kotlin.collections.Iterable,kotlin.Any,org.gradle.api.DomainObjectSet,kotlin.collections.Set,org.gradle.util.Configurable
             org.gradle.api.NamedDomainObjectContainer$of$org_gradle_api_initialization_dsl_VersionCatalogBuilder
                 Name                          : org.gradle.api.NamedDomainObjectContainer$of$org_gradle_api_initialization_dsl_VersionCatalogBuilder
                 MemberFunctions
@@ -1795,21 +1851,6 @@ Settings:
                       Block ReferenceType           : org.gradle.authentication.Authentication
                 Properties
                 Supertypes                    :
-            org.gradle.api.NamedDomainObjectList
-                Name                          : org.gradle.api.NamedDomainObjectList
-                MemberFunctions
-                Properties
-                Supertypes                    : org.gradle.api.NamedDomainObjectCollection,org.gradle.api.DomainObjectCollection,kotlin.collections.Collection,kotlin.collections.Iterable,kotlin.Any,kotlin.collections.List
-            org.gradle.api.NamedDomainObjectSet
-                Name                          : org.gradle.api.NamedDomainObjectSet
-                MemberFunctions
-                Properties
-                Supertypes                    : org.gradle.api.NamedDomainObjectCollection,org.gradle.api.DomainObjectCollection,kotlin.collections.Collection,kotlin.collections.Iterable,kotlin.Any,org.gradle.api.DomainObjectSet,kotlin.collections.Set
-            org.gradle.api.PolymorphicDomainObjectContainer
-                Name                          : org.gradle.api.PolymorphicDomainObjectContainer
-                MemberFunctions
-                Properties
-                Supertypes                    : org.gradle.api.NamedDomainObjectContainer,org.gradle.api.NamedDomainObjectSet,org.gradle.api.NamedDomainObjectCollection,org.gradle.api.DomainObjectCollection,kotlin.collections.Collection,kotlin.collections.Iterable,kotlin.Any,org.gradle.api.DomainObjectSet,kotlin.collections.Set,org.gradle.util.Configurable
             org.gradle.api.artifacts.ArtifactRepositoryContainer
                 Name                          : org.gradle.api.artifacts.ArtifactRepositoryContainer
                 MemberFunctions
@@ -1850,6 +1891,10 @@ Settings:
                           - Name                          : name
                             Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.authentication.Authentication
+                    - MemberFunctionName            : configure
+                      Receiver ReferenceType        : org.gradle.api.artifacts.repositories.AuthenticationContainer
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$org_gradle_authentication_Authentication
                 Properties
                 Supertypes                    : org.gradle.api.PolymorphicDomainObjectContainer,org.gradle.api.NamedDomainObjectContainer,org.gradle.api.NamedDomainObjectSet,org.gradle.api.NamedDomainObjectCollection,org.gradle.api.DomainObjectCollection,kotlin.collections.Collection,kotlin.collections.Iterable,kotlin.Any,org.gradle.api.DomainObjectSet,kotlin.collections.Set,org.gradle.util.Configurable
             org.gradle.api.artifacts.repositories.AuthenticationSupported
@@ -1933,6 +1978,10 @@ Settings:
             org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
                 Name                          : org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
                 MemberFunctions
+                    - MemberFunctionName            : configure
+                      Receiver ReferenceType        : org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$org_gradle_api_initialization_dsl_VersionCatalogBuilder
                     - MemberFunctionName            : versionCatalogBuilder
                       Receiver ReferenceType        : org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
                       Parameters
@@ -1997,16 +2046,6 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
-            org.gradle.api.provider.Property
-                Name                          : org.gradle.api.provider.Property
-                MemberFunctions
-                Properties
-                Supertypes                    : org.gradle.api.provider.Provider,kotlin.Any,org.gradle.api.provider.HasConfigurableValue,org.gradle.api.provider.SupportsConvention
-            org.gradle.api.provider.Provider
-                Name                          : org.gradle.api.provider.Provider
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.Any
             org.gradle.api.provider.SupportsConvention
                 Name                          : org.gradle.api.provider.SupportsConvention
                 MemberFunctions
@@ -2037,12 +2076,31 @@ Settings:
                       Block ReferenceType           : org.gradle.api.artifacts.dsl.RepositoryHandler
                 Properties
                 Supertypes                    : kotlin.Any
-            org.gradle.util.Configurable
-                Name                          : org.gradle.util.Configurable
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.Any
         RootFunctions:
+            listOf
+                FunctionName                  : listOf
+                Parameters
+                    - Name                          : elements
+                      Value DataClassWithType       : kotlin.Array
+                      GenericTypes
+                          - ConcreteGeneric GenericType   : <T>
+                Function DataClassWithType    : kotlin.collections.List
+                GenericTypes
+                    - ConcreteGeneric GenericType   : <T>
+            mapOf
+                FunctionName                  : mapOf
+                Parameters
+                    - Name                          : pairs
+                      Value DataClassWithType       : kotlin.Array
+                      GenericTypes
+                          - ConcreteGeneric DataClassWithType       : kotlin.Pair
+                            GenericTypes
+                                - ConcreteGeneric GenericType   : <T>
+                                - ConcreteGeneric GenericType   : <T>
+                Function DataClassWithType    : kotlin.collections.Map
+                GenericTypes
+                    - ConcreteGeneric GenericType   : <T>
+                    - ConcreteGeneric GenericType   : <T>
     Settings Schema:
         Name                          : org.gradle.api.internal.SettingsInternal
         MemberFunctions
@@ -2087,21 +2145,20 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Comparable,kotlin.Any,java.io.Serializable
+            kotlin.Array
+                Name                          : kotlin.Array
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
             kotlin.CharSequence
                 Name                          : kotlin.CharSequence
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
-            kotlin.Comparable
-                Name                          : kotlin.Comparable
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.Any
-            kotlin.Enum
-                Name                          : kotlin.Enum
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.Comparable,kotlin.Any,java.io.Serializable
+            kotlin.Pair
+                Name                          : kotlin.Pair
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
+                    ConcreteGeneric GenericType   : <T>
             kotlin.String
                 Name                          : kotlin.String
                 MemberFunctions
@@ -2112,51 +2169,20 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
-            kotlin.collections.Collection
-                Name                          : kotlin.collections.Collection
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.collections.Iterable,kotlin.Any
-            kotlin.collections.Iterable
-                Name                          : kotlin.collections.Iterable
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.Any
             kotlin.collections.List
                 Name                          : kotlin.collections.List
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.collections.Collection,kotlin.collections.Iterable,kotlin.Any
-            kotlin.collections.Set
-                Name                          : kotlin.collections.Set
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.collections.Collection,kotlin.collections.Iterable,kotlin.Any
-            org.gradle.api.DomainObjectCollection
-                Name                          : org.gradle.api.DomainObjectCollection
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.collections.Collection,kotlin.collections.Iterable,kotlin.Any
-            org.gradle.api.DomainObjectSet
-                Name                          : org.gradle.api.DomainObjectSet
-                MemberFunctions
-                Properties
-                Supertypes                    : org.gradle.api.DomainObjectCollection,kotlin.collections.Collection,kotlin.collections.Iterable,kotlin.Any,kotlin.collections.Set
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
+            kotlin.collections.Map
+                Name                          : kotlin.collections.Map
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
+                    ConcreteGeneric GenericType   : <T>
             org.gradle.api.Named
                 Name                          : org.gradle.api.Named
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
-            org.gradle.api.NamedDomainObjectCollection
-                Name                          : org.gradle.api.NamedDomainObjectCollection
-                MemberFunctions
-                Properties
-                Supertypes                    : org.gradle.api.DomainObjectCollection,kotlin.collections.Collection,kotlin.collections.Iterable,kotlin.Any
-            org.gradle.api.NamedDomainObjectContainer
-                Name                          : org.gradle.api.NamedDomainObjectContainer
-                MemberFunctions
-                Properties
-                Supertypes                    : org.gradle.api.NamedDomainObjectSet,org.gradle.api.NamedDomainObjectCollection,org.gradle.api.DomainObjectCollection,kotlin.collections.Collection,kotlin.collections.Iterable,kotlin.Any,org.gradle.api.DomainObjectSet,kotlin.collections.Set,org.gradle.util.Configurable
             org.gradle.api.NamedDomainObjectContainer$of$org_gradle_api_initialization_dsl_VersionCatalogBuilder
                 Name                          : org.gradle.api.NamedDomainObjectContainer$of$org_gradle_api_initialization_dsl_VersionCatalogBuilder
                 MemberFunctions
@@ -2179,21 +2205,6 @@ Settings:
                       Block ReferenceType           : org.gradle.authentication.Authentication
                 Properties
                 Supertypes                    :
-            org.gradle.api.NamedDomainObjectList
-                Name                          : org.gradle.api.NamedDomainObjectList
-                MemberFunctions
-                Properties
-                Supertypes                    : org.gradle.api.NamedDomainObjectCollection,org.gradle.api.DomainObjectCollection,kotlin.collections.Collection,kotlin.collections.Iterable,kotlin.Any,kotlin.collections.List
-            org.gradle.api.NamedDomainObjectSet
-                Name                          : org.gradle.api.NamedDomainObjectSet
-                MemberFunctions
-                Properties
-                Supertypes                    : org.gradle.api.NamedDomainObjectCollection,org.gradle.api.DomainObjectCollection,kotlin.collections.Collection,kotlin.collections.Iterable,kotlin.Any,org.gradle.api.DomainObjectSet,kotlin.collections.Set
-            org.gradle.api.PolymorphicDomainObjectContainer
-                Name                          : org.gradle.api.PolymorphicDomainObjectContainer
-                MemberFunctions
-                Properties
-                Supertypes                    : org.gradle.api.NamedDomainObjectContainer,org.gradle.api.NamedDomainObjectSet,org.gradle.api.NamedDomainObjectCollection,org.gradle.api.DomainObjectCollection,kotlin.collections.Collection,kotlin.collections.Iterable,kotlin.Any,org.gradle.api.DomainObjectSet,kotlin.collections.Set,org.gradle.util.Configurable
             org.gradle.api.artifacts.ArtifactRepositoryContainer
                 Name                          : org.gradle.api.artifacts.ArtifactRepositoryContainer
                 MemberFunctions
@@ -2234,6 +2245,10 @@ Settings:
                           - Name                          : name
                             Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.authentication.Authentication
+                    - MemberFunctionName            : configure
+                      Receiver ReferenceType        : org.gradle.api.artifacts.repositories.AuthenticationContainer
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$org_gradle_authentication_Authentication
                 Properties
                 Supertypes                    : org.gradle.api.PolymorphicDomainObjectContainer,org.gradle.api.NamedDomainObjectContainer,org.gradle.api.NamedDomainObjectSet,org.gradle.api.NamedDomainObjectCollection,org.gradle.api.DomainObjectCollection,kotlin.collections.Collection,kotlin.collections.Iterable,kotlin.Any,org.gradle.api.DomainObjectSet,kotlin.collections.Set,org.gradle.util.Configurable
             org.gradle.api.artifacts.repositories.AuthenticationSupported
@@ -2317,6 +2332,10 @@ Settings:
             org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
                 Name                          : org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
                 MemberFunctions
+                    - MemberFunctionName            : configure
+                      Receiver ReferenceType        : org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$org_gradle_api_initialization_dsl_VersionCatalogBuilder
                     - MemberFunctionName            : versionCatalogBuilder
                       Receiver ReferenceType        : org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
                       Parameters
@@ -2381,16 +2400,6 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
-            org.gradle.api.provider.Property
-                Name                          : org.gradle.api.provider.Property
-                MemberFunctions
-                Properties
-                Supertypes                    : org.gradle.api.provider.Provider,kotlin.Any,org.gradle.api.provider.HasConfigurableValue,org.gradle.api.provider.SupportsConvention
-            org.gradle.api.provider.Provider
-                Name                          : org.gradle.api.provider.Provider
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.Any
             org.gradle.api.provider.SupportsConvention
                 Name                          : org.gradle.api.provider.SupportsConvention
                 MemberFunctions
@@ -2421,20 +2430,41 @@ Settings:
                       Block ReferenceType           : org.gradle.api.artifacts.dsl.RepositoryHandler
                 Properties
                 Supertypes                    : kotlin.Any
-            org.gradle.util.Configurable
-                Name                          : org.gradle.util.Configurable
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.Any
         RootFunctions:
+            listOf
+                FunctionName                  : listOf
+                Parameters
+                    - Name                          : elements
+                      Value DataClassWithType       : kotlin.Array
+                      GenericTypes
+                          - ConcreteGeneric GenericType   : <T>
+                Function DataClassWithType    : kotlin.collections.List
+                GenericTypes
+                    - ConcreteGeneric GenericType   : <T>
+            mapOf
+                FunctionName                  : mapOf
+                Parameters
+                    - Name                          : pairs
+                      Value DataClassWithType       : kotlin.Array
+                      GenericTypes
+                          - ConcreteGeneric DataClassWithType       : kotlin.Pair
+                            GenericTypes
+                                - ConcreteGeneric GenericType   : <T>
+                                - ConcreteGeneric GenericType   : <T>
+                Function DataClassWithType    : kotlin.collections.Map
+                GenericTypes
+                    - ConcreteGeneric GenericType   : <T>
+                    - ConcreteGeneric GenericType   : <T>
     Settings Schema:
-        Name                          : org.gradle.internal.declarativedsl.evaluator.defaults.DefaultsTopLevelReceiver
+        Name                          : org.gradle.internal.declarativedsl.defaults.DefaultsTopLevelReceiver
         MemberFunctions
             - MemberFunctionName            : defaults
-              Receiver ReferenceType        : org.gradle.internal.declarativedsl.evaluator.defaults.DefaultsTopLevelReceiver
+              Receiver ReferenceType        : org.gradle.internal.declarativedsl.defaults.DefaultsTopLevelReceiver
               Parameters
               Block ReferenceType           : org.gradle.internal.declarativedsl.evaluator.defaults.DefaultsConfiguringBlock
         Properties
+            - PropertyName                  : layout
+              Property ReferenceType        : org.gradle.api.file.ProjectLayout
         Supertypes                    : kotlin.Any
         DataClassesMap:
             com.android.build.OutputFile
@@ -2733,29 +2763,6 @@ Settings:
                     - PropertyName                  : integrityConfigDir
                       Property ReferenceType        : org.gradle.api.file.Directory
                 Supertypes                    : kotlin.Any
-            com.android.build.api.dsl.CommonExtension
-                Name                          : com.android.build.api.dsl.CommonExtension
-                MemberFunctions
-                    - MemberFunctionName            : compileOptions
-                      Receiver ReferenceType        : com.android.build.api.dsl.CommonExtension
-                      Parameters
-                      Block ReferenceType           : com.android.build.api.dsl.CompileOptions
-                    - MemberFunctionName            : getDefaultProguardFile
-                      Receiver ReferenceType        : com.android.build.api.dsl.CommonExtension
-                      Parameters
-                          - Name                          : name
-                            Value SimpleType              : STRING
-                      Function ReferenceType        : java.io.File
-                    - MemberFunctionName            : lint
-                      Receiver ReferenceType        : com.android.build.api.dsl.CommonExtension
-                      Parameters
-                      Block ReferenceType           : com.android.build.api.dsl.Lint
-                Properties
-                    - PropertyName                  : compileSdk
-                      Property SimpleType           : INT
-                    - PropertyName                  : namespace
-                      Property SimpleType           : STRING
-                Supertypes                    : kotlin.Any
             com.android.build.api.dsl.CompileOptions
                 Name                          : com.android.build.api.dsl.CompileOptions
                 MemberFunctions
@@ -2961,6 +2968,10 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.LibraryExtension
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.Lint
+                    - MemberFunctionName            : prefab
+                      Receiver ReferenceType        : com.android.build.api.dsl.LibraryExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_Prefab
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -3152,6 +3163,18 @@ Settings:
             com.android.build.gradle.AbstractAppExtension
                 Name                          : com.android.build.gradle.AbstractAppExtension
                 MemberFunctions
+                    - MemberFunctionName            : buildOutputs
+                      Receiver ReferenceType        : com.android.build.gradle.AbstractAppExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
+                    - MemberFunctionName            : signingConfigs
+                      Receiver ReferenceType        : com.android.build.gradle.AbstractAppExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
+                    - MemberFunctionName            : sourceSets
+                      Receiver ReferenceType        : com.android.build.gradle.AbstractAppExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
@@ -3159,11 +3182,27 @@ Settings:
             com.android.build.gradle.AndroidConfig
                 Name                          : com.android.build.gradle.AndroidConfig
                 MemberFunctions
+                    - MemberFunctionName            : sourceSets
+                      Receiver ReferenceType        : com.android.build.gradle.AndroidConfig
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                 Supertypes                    : kotlin.Any
             com.android.build.gradle.AppExtension
                 Name                          : com.android.build.gradle.AppExtension
                 MemberFunctions
+                    - MemberFunctionName            : buildOutputs
+                      Receiver ReferenceType        : com.android.build.gradle.AppExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
+                    - MemberFunctionName            : signingConfigs
+                      Receiver ReferenceType        : com.android.build.gradle.AppExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
+                    - MemberFunctionName            : sourceSets
+                      Receiver ReferenceType        : com.android.build.gradle.AppExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
@@ -3171,6 +3210,18 @@ Settings:
             com.android.build.gradle.BaseExtension
                 Name                          : com.android.build.gradle.BaseExtension
                 MemberFunctions
+                    - MemberFunctionName            : buildOutputs
+                      Receiver ReferenceType        : com.android.build.gradle.BaseExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
+                    - MemberFunctionName            : signingConfigs
+                      Receiver ReferenceType        : com.android.build.gradle.BaseExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
+                    - MemberFunctionName            : sourceSets
+                      Receiver ReferenceType        : com.android.build.gradle.BaseExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
@@ -3182,6 +3233,10 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.LibraryBuildFeatures
+                    - MemberFunctionName            : buildOutputs
+                      Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
                     - MemberFunctionName            : compileOptions
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
                       Parameters
@@ -3194,6 +3249,18 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.Lint
+                    - MemberFunctionName            : prefab
+                      Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_Prefab
+                    - MemberFunctionName            : signingConfigs
+                      Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
+                    - MemberFunctionName            : sourceSets
+                      Receiver ReferenceType        : com.android.build.gradle.LibraryExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -3207,6 +3274,14 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.LibraryBuildFeatures
+                    - MemberFunctionName            : buildOutputs
+                      Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
+                    - MemberFunctionName            : buildTypes
+                      Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeBuildType
                     - MemberFunctionName            : compileOptions
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
                       Parameters
@@ -3223,6 +3298,22 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.Lint
+                    - MemberFunctionName            : prefab
+                      Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_Prefab
+                    - MemberFunctionName            : productFlavors
+                      Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeProductFlavor
+                    - MemberFunctionName            : signingConfigs
+                      Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
+                    - MemberFunctionName            : sourceSets
+                      Receiver ReferenceType        : com.android.build.gradle.LibraryExtensionInternal
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -3232,11 +3323,27 @@ Settings:
             com.android.build.gradle.TestedAndroidConfig
                 Name                          : com.android.build.gradle.TestedAndroidConfig
                 MemberFunctions
+                    - MemberFunctionName            : sourceSets
+                      Receiver ReferenceType        : com.android.build.gradle.TestedAndroidConfig
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                 Supertypes                    : com.android.build.gradle.AndroidConfig,kotlin.Any
             com.android.build.gradle.TestedExtension
                 Name                          : com.android.build.gradle.TestedExtension
                 MemberFunctions
+                    - MemberFunctionName            : buildOutputs
+                      Receiver ReferenceType        : com.android.build.gradle.TestedExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
+                    - MemberFunctionName            : signingConfigs
+                      Receiver ReferenceType        : com.android.build.gradle.TestedExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
+                    - MemberFunctionName            : sourceSets
+                      Receiver ReferenceType        : com.android.build.gradle.TestedExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                     - PropertyName                  : namespace
                       Property SimpleType           : STRING
@@ -3264,7 +3371,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
@@ -3276,7 +3383,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
@@ -3288,7 +3395,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : project
                       Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
@@ -3306,7 +3413,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.DependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                 Properties
                 Supertypes                    : org.gradle.api.artifacts.dsl.GradleDependencies,org.gradle.api.artifacts.dsl.Dependencies,kotlin.Any
@@ -3317,6 +3424,10 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.ApplicationBuildFeatures
+                    - MemberFunctionName            : buildOutputs
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
                     - MemberFunctionName            : bundle
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
                       Parameters
@@ -3333,6 +3444,14 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.Lint
+                    - MemberFunctionName            : signingConfigs
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
+                    - MemberFunctionName            : sourceSets
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -3346,6 +3465,14 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.ApplicationBuildFeatures
+                    - MemberFunctionName            : buildOutputs
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_BaseVariantOutput
+                    - MemberFunctionName            : buildTypes
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeBuildType
                     - MemberFunctionName            : bundle
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
                       Parameters
@@ -3366,6 +3493,18 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.Lint
+                    - MemberFunctionName            : productFlavors
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_DeclarativeProductFlavor
+                    - MemberFunctionName            : signingConfigs
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
+                    - MemberFunctionName            : sourceSets
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_api_AndroidSourceSet
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -3411,7 +3550,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
@@ -3423,7 +3562,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnly
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
@@ -3435,7 +3574,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnlyApi
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
@@ -3447,7 +3586,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
@@ -3459,7 +3598,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : project
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
@@ -3477,7 +3616,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                 Properties
                 Supertypes                    : com.android.build.gradle.internal.dsl.VariantDimensionDependenciesExtension,kotlin.Any,org.gradle.api.artifacts.dsl.GradleDependencies,org.gradle.api.artifacts.dsl.Dependencies
@@ -3548,6 +3687,10 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalApplicationExtension
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.Lint
+                    - MemberFunctionName            : signingConfigs
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalApplicationExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -3581,29 +3724,6 @@ Settings:
                     - PropertyName                  : versionNameSuffix
                       Property SimpleType           : STRING
                 Supertypes                    : com.android.build.api.dsl.ApplicationBuildType,com.android.build.api.dsl.BuildType,org.gradle.api.Named,kotlin.Any,com.android.build.api.dsl.VariantDimension,org.gradle.api.plugins.ExtensionAware,com.android.build.api.dsl.ApplicationVariantDimension,com.android.build.api.dsl.LibraryBuildType,com.android.build.api.dsl.LibraryVariantDimension,com.android.build.api.dsl.DynamicFeatureBuildType,com.android.build.api.dsl.DynamicFeatureVariantDimension,com.android.build.api.dsl.TestBuildType,com.android.build.api.dsl.TestVariantDimension,com.android.builder.model.BuildType,com.android.builder.model.BaseConfig,com.android.builder.model.Named
-            com.android.build.gradle.internal.dsl.InternalCommonExtension
-                Name                          : com.android.build.gradle.internal.dsl.InternalCommonExtension
-                MemberFunctions
-                    - MemberFunctionName            : compileOptions
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalCommonExtension
-                      Parameters
-                      Block ReferenceType           : com.android.build.api.dsl.CompileOptions
-                    - MemberFunctionName            : getDefaultProguardFile
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalCommonExtension
-                      Parameters
-                          - Name                          : name
-                            Value SimpleType              : STRING
-                      Function ReferenceType        : java.io.File
-                    - MemberFunctionName            : lint
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalCommonExtension
-                      Parameters
-                      Block ReferenceType           : com.android.build.api.dsl.Lint
-                Properties
-                    - PropertyName                  : compileSdk
-                      Property SimpleType           : INT
-                    - PropertyName                  : namespace
-                      Property SimpleType           : STRING
-                Supertypes                    : com.android.build.api.dsl.CommonExtension,kotlin.Any,com.android.build.gradle.internal.dsl.Lockable
             com.android.build.gradle.internal.dsl.InternalLibraryExtension
                 Name                          : com.android.build.gradle.internal.dsl.InternalLibraryExtension
                 MemberFunctions
@@ -3621,6 +3741,14 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalLibraryExtension
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.Lint
+                    - MemberFunctionName            : prefab
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalLibraryExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_Prefab
+                    - MemberFunctionName            : signingConfigs
+                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalLibraryExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_gradle_internal_dsl_SigningConfig
                 Properties
                     - PropertyName                  : compileSdk
                       Property SimpleType           : INT
@@ -3636,33 +3764,6 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : com.android.build.api.dsl.SigningConfig,kotlin.Any,com.android.build.api.dsl.ApkSigningConfig,org.gradle.api.Named,com.android.builder.model.SigningConfig
-            com.android.build.gradle.internal.dsl.InternalTestedExtension
-                Name                          : com.android.build.gradle.internal.dsl.InternalTestedExtension
-                MemberFunctions
-                    - MemberFunctionName            : compileOptions
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalTestedExtension
-                      Parameters
-                      Block ReferenceType           : com.android.build.api.dsl.CompileOptions
-                    - MemberFunctionName            : getDefaultProguardFile
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalTestedExtension
-                      Parameters
-                          - Name                          : name
-                            Value SimpleType              : STRING
-                      Function ReferenceType        : java.io.File
-                    - MemberFunctionName            : lint
-                      Receiver ReferenceType        : com.android.build.gradle.internal.dsl.InternalTestedExtension
-                      Parameters
-                      Block ReferenceType           : com.android.build.api.dsl.Lint
-                Properties
-                    - PropertyName                  : compileSdk
-                      Property SimpleType           : INT
-                    - PropertyName                  : namespace
-                      Property SimpleType           : STRING
-                    - PropertyName                  : testBuildType
-                      Property SimpleType           : STRING
-                    - PropertyName                  : testNamespace
-                      Property SimpleType           : STRING
-                Supertypes                    : com.android.build.api.dsl.TestedExtension,kotlin.Any,com.android.build.gradle.internal.dsl.InternalCommonExtension,com.android.build.api.dsl.CommonExtension,com.android.build.gradle.internal.dsl.Lockable
             com.android.build.gradle.internal.dsl.Lockable
                 Name                          : com.android.build.gradle.internal.dsl.Lockable
                 MemberFunctions
@@ -3702,7 +3803,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
@@ -3714,7 +3815,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnly
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
@@ -3726,7 +3827,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnlyApi
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
@@ -3738,7 +3839,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
@@ -3750,7 +3851,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : project
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
@@ -3768,7 +3869,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.gradle.internal.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                 Properties
                 Supertypes                    : com.android.build.gradle.internal.dsl.VariantDimensionDependenciesExtension,kotlin.Any,org.gradle.api.artifacts.dsl.GradleDependencies,org.gradle.api.artifacts.dsl.Dependencies
@@ -3852,6 +3953,10 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
+            kotlin.Array
+                Name                          : kotlin.Array
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
             kotlin.Boolean
                 Name                          : kotlin.Boolean
                 MemberFunctions
@@ -3862,16 +3967,6 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
-            kotlin.Comparable
-                Name                          : kotlin.Comparable
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.Any
-            kotlin.Enum
-                Name                          : kotlin.Enum
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.Comparable,kotlin.Any,java.io.Serializable
             kotlin.Int
                 Name                          : kotlin.Int
                 MemberFunctions
@@ -3882,6 +3977,11 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any,java.io.Serializable
+            kotlin.Pair
+                Name                          : kotlin.Pair
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
+                    ConcreteGeneric GenericType   : <T>
             kotlin.String
                 Name                          : kotlin.String
                 MemberFunctions
@@ -3892,11 +3992,15 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
-            org.gradle.api.Buildable
-                Name                          : org.gradle.api.Buildable
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.Any
+            kotlin.collections.List
+                Name                          : kotlin.collections.List
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
+            kotlin.collections.Map
+                Name                          : kotlin.collections.Map
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
+                    ConcreteGeneric GenericType   : <T>
             org.gradle.api.JavaVersion
                 Name                          : org.gradle.api.JavaVersion
                 EntryNames
@@ -3985,12 +4089,7 @@ Settings:
                 Name                          : org.gradle.api.artifacts.ProjectDependency
                 MemberFunctions
                 Properties
-                Supertypes                    : org.gradle.api.artifacts.ModuleDependency,org.gradle.api.artifacts.Dependency,kotlin.Any,org.gradle.api.attributes.HasConfigurableAttributes,org.gradle.api.attributes.HasAttributes,org.gradle.api.artifacts.SelfResolvingDependency,org.gradle.api.Buildable
-            org.gradle.api.artifacts.SelfResolvingDependency
-                Name                          : org.gradle.api.artifacts.SelfResolvingDependency
-                MemberFunctions
-                Properties
-                Supertypes                    : org.gradle.api.artifacts.Dependency,kotlin.Any,org.gradle.api.Buildable
+                Supertypes                    : org.gradle.api.artifacts.ModuleDependency,org.gradle.api.artifacts.Dependency,kotlin.Any,org.gradle.api.attributes.HasConfigurableAttributes,org.gradle.api.attributes.HasAttributes
             org.gradle.api.artifacts.dsl.Dependencies
                 Name                          : org.gradle.api.artifacts.dsl.Dependencies
                 MemberFunctions
@@ -4018,11 +4117,6 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
-            org.gradle.api.attributes.HasConfigurableAttributes
-                Name                          : org.gradle.api.attributes.HasConfigurableAttributes
-                MemberFunctions
-                Properties
-                Supertypes                    : org.gradle.api.attributes.HasAttributes,kotlin.Any
             org.gradle.api.file.Directory
                 Name                          : org.gradle.api.file.Directory
                 MemberFunctions
@@ -4045,6 +4139,15 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
+            org.gradle.api.file.ProjectLayout
+                Name                          : org.gradle.api.file.ProjectLayout
+                MemberFunctions
+                Properties
+                    - PropertyName                  : projectDirectory
+                      Property ReferenceType        : org.gradle.api.file.Directory
+                    - PropertyName                  : settingsDirectory
+                      Property ReferenceType        : org.gradle.api.file.Directory
+                Supertypes                    : kotlin.Any
             org.gradle.api.file.RegularFile
                 Name                          : org.gradle.api.file.RegularFile
                 MemberFunctions
@@ -4054,6 +4157,17 @@ Settings:
                 Name                          : org.gradle.api.plugins.ExtensionAware
                 MemberFunctions
                 Properties
+                Supertypes                    : kotlin.Any
+            org.gradle.internal.declarativedsl.defaults.DefaultsTopLevelReceiver
+                Name                          : org.gradle.internal.declarativedsl.defaults.DefaultsTopLevelReceiver
+                MemberFunctions
+                    - MemberFunctionName            : defaults
+                      Receiver ReferenceType        : org.gradle.internal.declarativedsl.defaults.DefaultsTopLevelReceiver
+                      Parameters
+                      Block ReferenceType           : org.gradle.internal.declarativedsl.evaluator.defaults.DefaultsConfiguringBlock
+                Properties
+                    - PropertyName                  : layout
+                      Property ReferenceType        : org.gradle.api.file.ProjectLayout
                 Supertypes                    : kotlin.Any
             org.gradle.internal.declarativedsl.evaluator.defaults.DefaultsConfiguringBlock
                 Name                          : org.gradle.internal.declarativedsl.evaluator.defaults.DefaultsConfiguringBlock
@@ -4068,16 +4182,31 @@ Settings:
                       Block ReferenceType           : com.android.build.gradle.LibraryExtensionInternal
                 Properties
                 Supertypes                    : kotlin.Any
-            org.gradle.internal.declarativedsl.evaluator.defaults.DefaultsTopLevelReceiver
-                Name                          : org.gradle.internal.declarativedsl.evaluator.defaults.DefaultsTopLevelReceiver
-                MemberFunctions
-                    - MemberFunctionName            : defaults
-                      Receiver ReferenceType        : org.gradle.internal.declarativedsl.evaluator.defaults.DefaultsTopLevelReceiver
-                      Parameters
-                      Block ReferenceType           : org.gradle.internal.declarativedsl.evaluator.defaults.DefaultsConfiguringBlock
-                Properties
-                Supertypes                    : kotlin.Any
         RootFunctions:
+            listOf
+                FunctionName                  : listOf
+                Parameters
+                    - Name                          : elements
+                      Value DataClassWithType       : kotlin.Array
+                      GenericTypes
+                          - ConcreteGeneric GenericType   : <T>
+                Function DataClassWithType    : kotlin.collections.List
+                GenericTypes
+                    - ConcreteGeneric GenericType   : <T>
+            mapOf
+                FunctionName                  : mapOf
+                Parameters
+                    - Name                          : pairs
+                      Value DataClassWithType       : kotlin.Array
+                      GenericTypes
+                          - ConcreteGeneric DataClassWithType       : kotlin.Pair
+                            GenericTypes
+                                - ConcreteGeneric GenericType   : <T>
+                                - ConcreteGeneric GenericType   : <T>
+                Function DataClassWithType    : kotlin.collections.Map
+                GenericTypes
+                    - ConcreteGeneric GenericType   : <T>
+                    - ConcreteGeneric GenericType   : <T>
     Settings Schema:
         Name                          : org.gradle.internal.declarativedsl.plugins.PluginsTopLevelReceiver
         MemberFunctions
@@ -4093,6 +4222,10 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
+            kotlin.Array
+                Name                          : kotlin.Array
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
             kotlin.Boolean
                 Name                          : kotlin.Boolean
                 MemberFunctions
@@ -4103,11 +4236,11 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
-            kotlin.Comparable
-                Name                          : kotlin.Comparable
-                MemberFunctions
-                Properties
-                Supertypes                    : kotlin.Any
+            kotlin.Pair
+                Name                          : kotlin.Pair
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
+                    ConcreteGeneric GenericType   : <T>
             kotlin.String
                 Name                          : kotlin.String
                 MemberFunctions
@@ -4118,6 +4251,15 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
+            kotlin.collections.List
+                Name                          : kotlin.collections.List
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
+            kotlin.collections.Map
+                Name                          : kotlin.collections.Map
+                GenericArguments
+                    ConcreteGeneric GenericType   : <T>
+                    ConcreteGeneric GenericType   : <T>
             org.gradle.internal.declarativedsl.plugins.MutablePluginDependencySpec
                 Name                          : org.gradle.internal.declarativedsl.plugins.MutablePluginDependencySpec
                 MemberFunctions
@@ -4188,4 +4330,28 @@ Settings:
                 Properties
                 Supertypes                    : kotlin.Any
         RootFunctions:
+            listOf
+                FunctionName                  : listOf
+                Parameters
+                    - Name                          : elements
+                      Value DataClassWithType       : kotlin.Array
+                      GenericTypes
+                          - ConcreteGeneric GenericType   : <T>
+                Function DataClassWithType    : kotlin.collections.List
+                GenericTypes
+                    - ConcreteGeneric GenericType   : <T>
+            mapOf
+                FunctionName                  : mapOf
+                Parameters
+                    - Name                          : pairs
+                      Value DataClassWithType       : kotlin.Array
+                      GenericTypes
+                          - ConcreteGeneric DataClassWithType       : kotlin.Pair
+                            GenericTypes
+                                - ConcreteGeneric GenericType   : <T>
+                                - ConcreteGeneric GenericType   : <T>
+                Function DataClassWithType    : kotlin.collections.Map
+                GenericTypes
+                    - ConcreteGeneric GenericType   : <T>
+                    - ConcreteGeneric GenericType   : <T>
 

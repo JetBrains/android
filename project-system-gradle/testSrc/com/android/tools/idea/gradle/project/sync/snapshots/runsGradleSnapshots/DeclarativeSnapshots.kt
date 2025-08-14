@@ -34,8 +34,9 @@ class DeclarativeSnapshots(val version: AgpVersionSoftwareEnvironmentDescriptor)
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
     fun testParameters(): Collection<*> {
-      // b/438132778 temporarily disabled
-      return emptyList<AgpVersionSoftwareEnvironmentDescriptor>()
+      return listOf(AGP_DECLARATIVE_GRADLE_SNAPSHOT,
+        // making sure we can consume schema for stable Gradle version
+                    AGP_CURRENT)
     }
   }
 

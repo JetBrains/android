@@ -550,6 +550,7 @@ iml_module(
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
         "//tools/adt/idea/project-system-gradle/testData",
+        "//tools/base/build-system:gradle-distrib-latest-snapshot",
         "//tools/external/gradle:gradle-distrib-9.0.0",
     ],
     # do not sort: must match IML order
