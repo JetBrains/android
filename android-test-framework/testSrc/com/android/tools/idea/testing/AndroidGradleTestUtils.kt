@@ -79,6 +79,7 @@ import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
+import com.android.tools.idea.gradle.model.impl.toImpl
 import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity
@@ -95,6 +96,7 @@ import com.android.tools.idea.gradle.project.model.NdkModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.V1NdkModel
 import com.android.tools.idea.gradle.project.model.V2NdkModel
+import com.android.tools.idea.gradle.project.model.gradleModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
@@ -1829,9 +1831,8 @@ private fun createAndroidModuleDataNode(
         qualifiedModuleName,
         listOf(),
         gradlePath,
-        moduleBasePath,
-        listOf(),
-        moduleBasePath.resolve("build.gradle"),
+        moduleBasePath.toImpl(),
+        moduleBasePath.resolve("build.gradle").toImpl(),
         gradleVersion,
         agpVersion,
         false,
@@ -2042,9 +2043,8 @@ private fun createJavaModuleDataNode(
           qualifiedModuleName,
           listOf(),
           gradlePath,
-          moduleBasePath,
-          listOf(),
-          moduleBasePath.resolve("build.gradle"),
+          moduleBasePath.toImpl(),
+          moduleBasePath.resolve("build.gradle").toImpl(),
           null,
           null,
           false,
@@ -2590,7 +2590,7 @@ inline fun <reified F, reified M> Module.verifyModel(getFacet: Module.() -> F?, 
 
 private fun Project.verifyModelsAttached() {
   ModuleManager.getInstance(this).modules.forEach { module ->
-    module.verifyModel(GradleFacet::getInstance, GradleFacet::getGradleModuleModel)
+    module.verifyModel(GradleFacet::getInstance, { module.gradleModuleModel })
     module.verifyModel(AndroidFacet::getInstance, GradleAndroidModel::get)
     module.verifyModel({ NdkFacet.getInstance(this) }, { ndkModuleModel })
   }

@@ -59,6 +59,7 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
+import com.android.tools.idea.gradle.project.model.gradleModuleModel
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.model.StudioAndroidModuleInfo
@@ -119,7 +120,7 @@ fun ProjectDumper.dumpAndroidIdeModel(
       ModuleManager.getInstance(project).modules.sortedBy { it.name }.forEach { module ->
         head("MODULE") { module.name }
         nest {
-          GradleFacet.getInstance(module)?.gradleModuleModel?.let {
+          module.gradleModuleModel?.let {
             // Skip all but holders to prevent needless spam in the snapshots. All modules
             // point to the same facet.
             if (!dumpAllLinkedModules && !module.isHolderModule()) return@let
@@ -887,11 +888,13 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         prop("agpVersion") { model.agpVersion?.replaceAgpVersion() }
         prop("gradlePath") { model.gradlePath }
         prop("gradleVersion") { model.gradleVersion?.replaceGradleVersion() }
-        prop("buildFile") { model.buildFile?.path?.toPrintablePath() }
+        if (!projectDumper.forSnapshotComparison) { // skip this in comparison as we don't want the VFS state to affect the outcome
+          prop("buildFile") { model.buildFileAsVirtualFile()?.path?.toPrintablePath() }
+        }
         prop("buildFilePath") { model.buildFilePath?.path?.toPrintablePath() }
         prop("rootFolderPath") { model.rootFolderPath.path.toPrintablePath() }
-        prop("hasSafeArgsJava") { model.hasSafeArgsJavaPlugin().toString() }
-        prop("hasSafeArgsKotlin") { model.hasSafeArgsKotlinPlugin().toString() }
+        prop("hasSafeArgsJava") { model.safeArgsJava.toString() }
+        prop("hasSafeArgsKotlin") { model.safeArgsKotlin.toString() }
         model.taskNames.forEach { prop("- taskNames") { it } }
       }
     }

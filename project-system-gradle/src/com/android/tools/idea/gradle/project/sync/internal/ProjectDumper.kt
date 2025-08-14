@@ -49,6 +49,7 @@ class ProjectDumper(
   // It currently makes sure the following:
   // - The library details are always expanded
   // - Only the first level of dependencies are dumped as the second level makes comparison too hard
+  // - Filters some fields affected by the VFS
   internal val forSnapshotComparison: Boolean = false
 ) {
   private val gradleCache: File = getGradleCacheLocation()

@@ -24,6 +24,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
+import com.android.tools.idea.gradle.project.model.gradleModuleModel
 import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT
@@ -165,8 +166,7 @@ fun performRecommendedPluginUpgrade(
 //  - build-adjacent files (e.g. proguard files, AndroidManifest.xml for the change namespacing R classes)
 internal fun isCleanEnoughProject(project: Project): Boolean {
   ModuleManager.getInstance(project).modules.forEach { module ->
-    val gradleFacet = GradleFacet.getInstance(module) ?: return@forEach
-    val buildFile = gradleFacet.gradleModuleModel?.buildFile ?: return@forEach
+    val buildFile = module.gradleModuleModel?.buildFileAsVirtualFile() ?: return@forEach
     when (FileStatusManager.getInstance(project).getStatus(buildFile)) {
       FileStatus.NOT_CHANGED -> return@forEach
       else -> return false

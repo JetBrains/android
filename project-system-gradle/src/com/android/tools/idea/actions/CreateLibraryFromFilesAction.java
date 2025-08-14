@@ -17,8 +17,8 @@ package com.android.tools.idea.actions;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModelKt;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.application.options.ModulesComboBox;
@@ -262,12 +262,8 @@ public class CreateLibraryFromFilesAction extends AnAction {
   @NotNull
   private static List<Module> getAndroidModules(@NotNull Project project) {
     return Arrays.stream(ModuleManager.getInstance(project).getModules()).filter((module) -> {
-      GradleFacet gradleFacet = GradleFacet.getInstance(module);
-      if (gradleFacet != null) {
-        GradleModuleModel gradleModuleModel = gradleFacet.getGradleModuleModel();
-        return gradleModuleModel != null && gradleModuleModel.getBuildFile() != null;
-      }
-      return false;
+      GradleModuleModel gradleModuleModel = GradleModuleModelKt.getGradleModuleModel(module);
+      return gradleModuleModel != null && gradleModuleModel.getBuildFilePath() != null;
     }).collect(Collectors.toList());
   }
 }

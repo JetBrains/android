@@ -171,7 +171,7 @@ public final class GradleModelSource extends GradleModelProvider {
     public VirtualFile getGradleBuildFile(@NotNull Module module) {
       GradleModuleModel moduleModel = GradleProjectSystemUtil.getGradleModuleModel(module);
       if (moduleModel != null) {
-        return moduleModel.getBuildFile();
+        return moduleModel.buildFileAsVirtualFile();
       }
       return null;
     }

@@ -246,7 +246,7 @@ private class SetJavaLevelUsageInfo(element: PsiElement, val buildFile: VirtualF
 fun Project.allBuildFiles(): List<VirtualFile> = ProjectFacetManager.getInstance(this)
   .getModulesWithFacet(AndroidFacet.ID)
   .mapNotNull { GradleProjectSystemUtil.getGradleModuleModel(it) }
-  .mapNotNull { it.buildFile }
+  .mapNotNull { it.buildFileAsVirtualFile() }
   .distinct()
   .toList()
 
@@ -260,7 +260,7 @@ fun Project.moduleBuildFiles(modulePath: String): List<VirtualFile> {
   )
     .filter { AndroidFacet.getInstance(it) != null }
     .mapNotNull { GradleProjectSystemUtil.getGradleModuleModel(it) }
-    .mapNotNull { it.buildFile }
+    .mapNotNull { it.buildFileAsVirtualFile() }
 }
 
 /**

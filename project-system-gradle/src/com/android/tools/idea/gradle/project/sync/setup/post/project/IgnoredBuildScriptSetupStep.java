@@ -23,6 +23,7 @@ import static com.android.utils.BuildScriptUtil.findGradleBuildFile;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModelKt;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileSyncMessageHyperlink;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
@@ -61,11 +62,7 @@ public class IgnoredBuildScriptSetupStep extends ProjectSetupStep {
 
     // Check all Gradle Modules
     for (Module module : ModuleManager.getInstance(project).getModules()) {
-      GradleFacet gradleFacet = GradleFacet.getInstance(module);
-      if (gradleFacet == null) {
-        continue;
-      }
-      GradleModuleModel gradleModel = gradleFacet.getGradleModuleModel();
+      GradleModuleModel gradleModel = GradleModuleModelKt.getGradleModuleModel(module);
       if (gradleModel == null) {
         continue;
       }

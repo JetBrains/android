@@ -22,7 +22,6 @@ import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetTypeId;
 import com.intellij.facet.FacetTypeRegistry;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,8 +33,6 @@ public class GradleFacet extends Facet<GradleFacetConfiguration> {
   public static final String ANDROID_GRADLE_FACET_ID = "android-gradle";
   public static final String ANDROID_GRADLE_FACET_NAME = "Android-Gradle";
   @NotNull private static final FacetTypeId<GradleFacet> TYPE_ID = new FacetTypeId<>("android-gradle");
-
-  @Nullable private GradleModuleModel myGradleModuleModel;
 
   public static boolean isAppliedTo(@NotNull Module module) {
     return getInstance(module) != null;
@@ -83,13 +80,7 @@ public class GradleFacet extends Facet<GradleFacetConfiguration> {
     return ANDROID_GRADLE_FACET_NAME;
   }
 
-  @Nullable
-  public GradleModuleModel getGradleModuleModel() {
-    return myGradleModuleModel;
-  }
-
-  public void setGradleModuleModel(@NotNull GradleModuleModel gradleModuleModel) {
-    myGradleModuleModel = gradleModuleModel;
-    getConfiguration().LAST_KNOWN_AGP_VERSION = myGradleModuleModel.getAgpVersion();
+  public void updateLastKnownAgpVersion(@NotNull GradleModuleModel gradleModuleModel) {
+    getConfiguration().LAST_KNOWN_AGP_VERSION = gradleModuleModel.getAgpVersion();
   }
 }

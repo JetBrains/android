@@ -931,10 +931,27 @@ OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = 
 "com.android.tools.idea.model.AndroidModel"))), supertypes = listOf("com.android.tools.idea.model.AndroidModel"))), withDefault = false)), extProperties = listOf(ExtPropertyMetadata(isComputable = false, isOpen = false, name = "gradleAndroidModel", receiverFqn = "com.intellij.platform.workspace.jps.entities.ModuleEntity", valueType = ValueTypeMetadata.EntityReference(connectionType = ConnectionId.ConnectionType.ONE_TO_ONE, entityFqName = "com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity", isChild = true, isNullable = true), withDefault = false)), isAbstract = false)
         
         addMetadata(typeMetadata)
+        
+        typeMetadata = EntityMetadata(fqName = "com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity", entityDataFqName = "com.android.tools.idea.gradle.project.entities.impl.GradleModuleModelEntityData", supertypes = listOf("com.intellij.platform.workspace.storage.WorkspaceEntity"), properties = listOf(OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "entitySource", valueType = ValueTypeMetadata.SimpleType.CustomType(isNullable = false, typeMetadata = FinalClassMetadata.KnownClass(fqName = "com.intellij.platform.workspace.storage.EntitySource")), withDefault = false),
+OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "module", valueType = ValueTypeMetadata.EntityReference(connectionType = ConnectionId.ConnectionType.ONE_TO_ONE, entityFqName = "com.intellij.platform.workspace.jps.entities.ModuleEntity", isChild = false, isNullable = false), withDefault = false),
+OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "gradleModuleModel", valueType = ValueTypeMetadata.SimpleType.CustomType(isNullable = false, typeMetadata = FinalClassMetadata.ClassMetadata(fqName = "com.android.tools.idea.gradle.project.model.GradleModuleModel", properties = listOf(OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "agpVersion", valueType = primitiveTypeStringNullable, withDefault = false),
+OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "buildFilePath", valueType = ValueTypeMetadata.SimpleType.CustomType(isNullable = true, typeMetadata = FinalClassMetadata.ClassMetadata(fqName = "com.android.tools.idea.gradle.model.impl.FileImpl", properties = listOf(OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "pathString", valueType = primitiveTypeStringNotNullable, withDefault = false)), supertypes = listOf("java.io.File",
+"java.io.Serializable",
+"kotlin.Comparable"))), withDefault = false),
+OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "gradlePath", valueType = primitiveTypeStringNotNullable, withDefault = false),
+OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "gradleVersion", valueType = primitiveTypeStringNullable, withDefault = false),
+OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "moduleNameField", valueType = primitiveTypeStringNotNullable, withDefault = false),
+OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "rootFolderPath", valueType = ValueTypeMetadata.SimpleType.CustomType(isNullable = false, typeMetadata = FinalClassMetadata.KnownClass(fqName = "com.android.tools.idea.gradle.model.impl.FileImpl")), withDefault = false),
+OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "safeArgsJava", valueType = primitiveTypeBooleanNotNullable, withDefault = false),
+OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "safeArgsKotlin", valueType = primitiveTypeBooleanNotNullable, withDefault = false),
+OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "taskNames", valueType = ValueTypeMetadata.ParameterizedType(generics = listOf(primitiveTypeStringNotNullable), primitive = primitiveTypeListNotNullable), withDefault = false)), supertypes = listOf("com.android.tools.idea.gradle.project.model.ModuleModel"))), withDefault = false)), extProperties = listOf(ExtPropertyMetadata(isComputable = false, isOpen = false, name = "gradleModuleModel", receiverFqn = "com.intellij.platform.workspace.jps.entities.ModuleEntity", valueType = ValueTypeMetadata.EntityReference(connectionType = ConnectionId.ConnectionType.ONE_TO_ONE, entityFqName = "com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity", isChild = true, isNullable = true), withDefault = false)), isAbstract = false)
+        
+        addMetadata(typeMetadata)
     }
 
     override fun initializeMetadataHash() {
         addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity", metadataHash = 1655556588)
+        addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity", metadataHash = 901865304)
         addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.model.GradleAndroidModel", metadataHash = -1020030508)
         addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel", metadataHash = 1055057458)
         addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModelImpl", metadataHash = 381077407)
@@ -1049,6 +1066,7 @@ OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = 
         addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.IdeDependencies", metadataHash = -1110627628)
         addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeVariantImpl", metadataHash = 522394943)
         addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeJavaArtifactImpl", metadataHash = -2105405404)
+        addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.model.GradleModuleModel", metadataHash = -496571259)
         addMetadataHash(typeFqn = "com.intellij.platform.workspace.storage.EntitySource", metadataHash = -1716976569)
         addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.sync.idea.entities.AndroidGradleSourceSetEntitySource", metadataHash = 708640741)
         addMetadataHash(typeFqn = "org.jetbrains.plugins.gradle.service.syncContributor.entitites.GradleProjectEntitySource", metadataHash = 1571169140)

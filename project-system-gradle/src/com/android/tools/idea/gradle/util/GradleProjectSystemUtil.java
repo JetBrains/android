@@ -57,6 +57,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModelKt;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.util.StudioPathManager;
@@ -664,7 +665,7 @@ public class GradleProjectSystemUtil {
   public static VirtualFile getGradleBuildFile(@NotNull Module module) {
     GradleModuleModel moduleModel = getGradleModuleModel(module);
     if (moduleModel != null) {
-      return moduleModel.getBuildFile();
+      return moduleModel.buildFileAsVirtualFile();
     }
 
     File moduleRoot = AndroidRootUtil.findModuleRootFolderPath(module);
@@ -722,11 +723,7 @@ public class GradleProjectSystemUtil {
 
   @Nullable
   public static GradleModuleModel getGradleModuleModel(Module module) {
-    GradleFacet gradleFacet = GradleFacet.getInstance(module);
-    if (gradleFacet == null) {
-      return null;
-    }
-    return gradleFacet.getGradleModuleModel();
+    return GradleModuleModelKt.getGradleModuleModel(module);
   }
 
   /**

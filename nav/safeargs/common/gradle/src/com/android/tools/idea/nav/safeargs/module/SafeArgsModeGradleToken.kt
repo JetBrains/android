@@ -17,8 +17,8 @@ package com.android.tools.idea.nav.safeargs.module
 
 import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GoogleMavenArtifactId
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
+import com.android.tools.idea.gradle.project.model.gradleModuleModel
 import com.android.tools.idea.nav.safeargs.SafeArgsFeature
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.projectsystem.DependencyScopeType
@@ -27,10 +27,8 @@ import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.intellij.openapi.module.Module
 
 class SafeArgsModeGradleToken : SafeArgsModeToken<GradleProjectSystem>, GradleToken {
-  override fun getSafeArgsMode(projectSystem: GradleProjectSystem, module: Module): SafeArgsMode {
-    val gradleFacet = GradleFacet.getInstance(module)
-    return gradleFacet?.gradleModuleModel?.toSafeArgsMode() ?: SafeArgsMode.NONE
-  }
+  override fun getSafeArgsMode(projectSystem: GradleProjectSystem, module: Module): SafeArgsMode =
+    module.gradleModuleModel?.toSafeArgsMode() ?: SafeArgsMode.NONE
 
   override fun getSafeArgsFeatures(
     projectSystem: GradleProjectSystem,
@@ -58,8 +56,8 @@ class SafeArgsModeGradleToken : SafeArgsModeToken<GradleProjectSystem>, GradleTo
 
   private fun GradleModuleModel.toSafeArgsMode(): SafeArgsMode {
     return when {
-      hasSafeArgsKotlinPlugin() -> SafeArgsMode.KOTLIN
-      hasSafeArgsJavaPlugin() -> SafeArgsMode.JAVA
+      safeArgsKotlin -> SafeArgsMode.KOTLIN
+      safeArgsJava -> SafeArgsMode.JAVA
       else -> SafeArgsMode.NONE
     }
   }

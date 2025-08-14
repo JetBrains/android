@@ -43,7 +43,8 @@ public class BuildFileProcessor {
    * The supplied processors will never be given null by this method.
    *
    * This method parses the settings file, processes it, then parses build files; as such it is not guaranteed to catch every file.
-   * If finding every file is required look at getting the build files from the model, see {@link GradleModuleModel#getBuildFile()}.
+   * If finding every file is required look at getting the build files from the model,
+   * see {@link GradleModuleModel#buildFileAsVirtualFile()}}.
    */
   public static void processRecursively(@NotNull Project project,
                                         @NotNull Processor<? super GradleSettingsModel> settingsProcessor,

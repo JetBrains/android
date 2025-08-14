@@ -22,7 +22,9 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity
+import com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity
 import com.android.tools.idea.gradle.project.entities.gradleAndroidModel
+import com.android.tools.idea.gradle.project.entities.gradleModuleModel
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NativeHeaderRootType
 import com.android.tools.idea.gradle.project.facet.ndk.NativeSourceRootType
@@ -443,7 +445,19 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
         },
         validate = GradleAndroidModelData::validate
       ),
-      prepare(GRADLE_MODULE_MODEL, ::getModelFromDataNode, GradleFacet::getInstance, GradleFacet::setGradleModuleModel),
+      prepare(GRADLE_MODULE_MODEL, ::getModelFromDataNode, GradleFacet::getInstance, {
+        project.workspaceModel.update("Set GradleModuleModel for compatibility") { storage ->
+          module.findModuleEntity(storage)?.let { entity ->
+            storage.modifyModuleEntity(entity) {
+              this.gradleModuleModel = GradleModuleModelEntity(
+                entitySource = this@modifyModuleEntity.entitySource,
+                gradleModuleModel = it
+              )
+            }
+          }
+        }
+
+      }),
       prepare(NDK_MODEL, ::getModelFromDataNode, NdkFacet::getInstance, NdkFacet::setNdkModuleModel)
     )
   }

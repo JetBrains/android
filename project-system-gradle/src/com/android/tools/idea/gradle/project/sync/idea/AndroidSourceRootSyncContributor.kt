@@ -30,8 +30,9 @@ import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnown
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity
+import com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity
 import com.android.tools.idea.gradle.project.entities.gradleAndroidModel
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
+import com.android.tools.idea.gradle.project.entities.gradleModuleModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
@@ -460,9 +461,6 @@ private fun SyncContributorAndroidProjectContext.linkModuleGroup(
   registerModuleActions(linkedModules.associate {
     it.name to { moduleInstance ->
       moduleInstance.putUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP, androidModuleGroup)
-      val gradleModuleModel = gradleModuleModelFactory(moduleInstance.name)
-      GradleFacet.getInstance(moduleInstance)
-        ?.setGradleModuleModel(gradleModuleModel)
     }
   })
   linkedModules.forEach { entity ->
@@ -470,6 +468,10 @@ private fun SyncContributorAndroidProjectContext.linkModuleGroup(
     entity.gradleAndroidModel = GradleAndroidModelEntity(
       entitySource = entity.entitySource,
       gradleAndroidModel = GradleAndroidModel.create(project, gradleAndroidModelData)
+    )
+    entity.gradleModuleModel = GradleModuleModelEntity(
+      entitySource = entity.entitySource,
+      gradleModuleModel = gradleModuleModelFactory(entity.name)
     )
   }
 }
