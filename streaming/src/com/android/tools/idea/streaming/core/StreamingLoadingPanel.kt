@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.primaryPanelBackground
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.LoadingDecorator
 import com.intellij.ui.components.JBLoadingPanel
+import com.intellij.ui.components.panels.ListLayout
 import com.intellij.ui.components.panels.NonOpaquePanel
 import com.intellij.util.ui.AnimatedIcon
 import com.intellij.util.ui.AsyncProcessIcon
@@ -26,7 +27,6 @@ import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil.findComponentOfType
 import java.awt.BorderLayout
-import java.awt.FlowLayout
 import java.awt.Graphics
 import java.awt.GridBagLayout
 import java.awt.LayoutManager
@@ -71,7 +71,8 @@ class StreamingLoadingPanel(
   ) : LoadingDecorator(panel, parentDisposable, startDelayMs, false, AsyncProcessIcon.Big("Loading")) {
 
     override fun customizeLoadingLayer(parent: JPanel, text: JLabel, icon: AnimatedIcon): NonOpaquePanel {
-      val roundedPanel = RoundedPanel(FlowLayout(FlowLayout.CENTER, JLabel().iconTextGap * 3, 0), 8).apply {
+      @Suppress("UnstableApiUsage")
+      val roundedPanel = RoundedPanel(ListLayout.horizontal(JLabel().iconTextGap * 3, vertGrow = ListLayout.GrowPolicy.GROW), 8).apply {
         border = JBEmptyBorder(8)
         background = primaryPanelBackground
         add(icon)
