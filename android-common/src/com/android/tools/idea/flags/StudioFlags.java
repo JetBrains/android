@@ -1490,6 +1490,11 @@ public final class StudioFlags {
     "Enables a button to fix with AI UI Check errors showing in the error panel"
     );
 
+  public static final Flag<Boolean> COMPOSE_RENDER_ERROR_FIX_WITH_AI = new BooleanFlag(
+    COMPOSE, "render.error.fix.with.ai", "Enable fix with AI button to fix",
+    "Enables a button to fix with AI render errors related to previews"
+  );
+
   public static final Flag<Boolean> COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI = new BooleanFlag(
     COMPOSE, "transform.ui.with.ai", "Enable action to transform UI with Gemini",
     "Enables a context-menu action to transform UI with Gemini."
