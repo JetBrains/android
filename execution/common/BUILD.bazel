@@ -101,6 +101,7 @@ jvm_library(
     "//java/execution/impl",
     "//java/debugger/openapi:java-debugger",
     "//java/debugger/impl",
+    "//java/debugger/impl:impl_test_lib",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/android-common:common",
     "//android/deploy",

@@ -94,6 +94,7 @@ jvm_library(
     "//android/android-test-framework:testFramework_test_lib",
     "//java/debugger/openapi:java-debugger",
     "//java/debugger/impl",
+    "//java/debugger/impl:impl_test_lib",
     "//java/java-frontback-psi-api:frontback-psi",
     "//java/java-indexing-api:indexing",
     "//java/java-psi-api:psi",

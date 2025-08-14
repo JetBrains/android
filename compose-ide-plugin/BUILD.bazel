@@ -162,6 +162,7 @@ jvm_library(
     "//java/openapi:java",
     "//java/debugger/openapi:java-debugger",
     "//java/debugger/impl",
+    "//java/debugger/impl:impl_test_lib",
     "//java/java-psi-api:psi",
     "//java/testFramework",
     "//json/backend",

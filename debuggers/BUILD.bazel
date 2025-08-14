@@ -109,6 +109,7 @@ jvm_library(
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//java/debugger/openapi:java-debugger",
     "//java/debugger/impl",
+    "//java/debugger/impl:impl_test_lib",
     "//java/execution/openapi:java-execution",
     "//java/java-frontback-psi-impl:frontback-psi-impl",
     "//java/testFramework",

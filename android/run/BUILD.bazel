@@ -54,6 +54,7 @@ jvm_library(
     "//java/openapi:java",
     "//java/debugger/openapi:java-debugger",
     "//java/debugger/impl",
+    "//java/debugger/impl:impl_test_lib",
     "//java/execution/openapi:java-execution",
     "//java/execution/impl",
     "//java/java-impl:impl",
