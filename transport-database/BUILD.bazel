@@ -43,7 +43,6 @@ jvm_library(
     "//libraries/mockito",
     "@lib//:junit4",
     "@lib//:jaxb-api",
-    "@lib//:android-tools-sdklib",
     "//android/android-common:common",
     "//android/intellij.android.testutils:testutils_test_lib",
     "//libraries/hamcrest",
