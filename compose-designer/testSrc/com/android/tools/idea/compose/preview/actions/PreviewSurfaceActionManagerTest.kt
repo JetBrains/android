@@ -1,6 +1,7 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.common.actions.CopyResultImageAction
+import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.util.EnableUnderConditionWrapper
 import com.android.tools.idea.common.util.ShowGroupUnderConditionWrapper
@@ -291,6 +292,9 @@ class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
 
   override fun fixComposeAccessibilityAction(visualLintIssues: List<VisualLintRenderIssue>) =
     fakeAction("fixComposeAccessibility")
+
+  override fun fixComposeRenderIssueAction(renderIssues: List<Issue>): AnAction? =
+    fakeAction("fixComposeRender")
 
   override fun alignUiToTargetImageAction(): AnAction? = fakeAction("alignUi")
 

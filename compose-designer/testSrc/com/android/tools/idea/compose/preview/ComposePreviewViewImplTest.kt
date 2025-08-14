@@ -26,6 +26,7 @@ import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
+import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.surface.NopInteractionHandler
@@ -622,6 +623,8 @@ class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
 
   override fun fixComposeAccessibilityAction(visualLintIssues: List<VisualLintRenderIssue>) =
     fakeAction
+
+  override fun fixComposeRenderIssueAction(issues: List<Issue>) = fakeAction
 
   override fun alignUiToTargetImageAction(): AnAction? = fakeAction
 
