@@ -6,19 +6,19 @@ plugins {
 kotlin {
   androidLibrary {
     withJava()
-    withAndroidTestOnJvmBuilder {
+    withHostTestBuilder {
       compilationName = "unitTest"
       defaultSourceSetName = "androidUnitTest"
     }.configure {
       isIncludeAndroidResources = true
     }
 
-    withAndroidTestOnDeviceBuilder {
+    withDeviceTestBuilder {
       compilationName = "instrumentedTest"
       defaultSourceSetName = "androidInstrumentedTest"
     }
 
-    compilations.withType(com.android.build.api.dsl.KotlinMultiplatformAndroidTestOnDeviceCompilation::class.java) {
+    compilations.withType(com.android.build.api.dsl.KotlinMultiplatformAndroidDeviceTestCompilation::class.java) {
       instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
