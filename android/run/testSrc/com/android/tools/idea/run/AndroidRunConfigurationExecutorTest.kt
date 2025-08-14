@@ -220,7 +220,6 @@ class AndroidRunConfigurationExecutorTest {
     processHandler.destroyProcess()
   }
 
-  @Ignore("b/415332589")
   @Test
   fun debugSucceeded() { //TODO: write handler in fakeAdb for "am capabilities --protobuf"
     StudioFlags.DEBUG_ATTEMPT_SUSPENDED_START.overrideForTest(false, projectRule.testRootDisposable)
@@ -272,7 +271,6 @@ class AndroidRunConfigurationExecutorTest {
     assertThat(!processHandler.isProcessTerminating || !processHandler.isProcessTerminated).isTrue()
     deviceState.stopClient(1234)
 
-    processHandler.destroyProcess()
     if (!processHandler.waitFor(5000)) {
       fail("Process handler didn't stop when debug process terminated")
     }
@@ -490,10 +488,6 @@ class AndroidRunConfigurationExecutorTest {
     assertThat(AndroidSessionInfo.from(processHandler)).isNotNull()
     assertThat(liveEditServiceNotified).isEqualTo(false) // Live Edit doesn't need to know if AC was performed.
 
-    deviceState.stopClient(1234) // TODO: flaky test b/273744887
-    //if (!processHandler.waitFor(5000)) {
-    //  fail("Process handler didn't stop when debug process terminated")
-    //}
     processHandler.destroyProcess()
   }
 
