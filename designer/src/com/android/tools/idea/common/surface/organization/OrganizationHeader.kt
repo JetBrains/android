@@ -23,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.awt.ComposePanel
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -31,7 +30,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.common.AdtUiUtils
-import com.android.tools.adtui.compose.StudioTheme
+import com.android.tools.adtui.compose.StudioComposePanel
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
@@ -88,7 +87,7 @@ fun OrganizationHeader(group: OrganizationGroup) {
 @OptIn(ExperimentalJewelApi::class)
 fun createOrganizationHeader(group: OrganizationGroup): JComponent {
   enableNewSwingCompositing()
-  return ComposePanel().apply { setContent { StudioTheme { OrganizationHeader(group) } } }
+  return StudioComposePanel { OrganizationHeader(group) }
 }
 
 fun createTestOrganizationHeader(group: OrganizationGroup): JComponent {
