@@ -1,6 +1,5 @@
 """This file contains Bazel build rules for the Android Studio release distribution"""
 
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("//build/bazel/rules/gathering:prebuilt_package_metadata.bzl", "prebuilt_package_metadata")
 load("//build/bazel/rules/gathering:write_package_metadata.bzl", "write_package_metadata")
 load("//tools/adt/idea/studio/rules:app-icon.bzl", "AppIconInfo", "replace_app_icon")
@@ -1374,26 +1373,37 @@ def intellij_platform_import(name, spec):
 def intellij_platform(
         name,
         src,
-        spec):
+        spec,
+        vmoptions_prefix,
+        sdk_dir_name):
     """Declares an IntelliJ Platform to be used in building a full IDE distribution.
 
     Args:
       name: the platform name
       src: the root directory
       spec: a map of bundled plugins and associated jars
+      vmoptions_prefix: a name that is used as the prefix of the vmoptions file
+      sdk_dir_name: the name of the directory to enter to reach platform root
     """
+    sdk_dirs = struct(
+        windows = src + "/windows/" + sdk_dir_name,
+        darwin = src + "/darwin/" + sdk_dir_name,
+        darwin_aarch64 = src + "/darwin_aarch64/" + sdk_dir_name,
+        linux = src + "/linux/" + sdk_dir_name,
+    )
+
     prebuilt_package_metadata(
         name = name + "_prebuilt_metadata",
-        third_party_dependencies = "AI/linux/android-studio/license/third-party-libraries.json",
+        third_party_dependencies = sdk_dirs.linux + "/license/third-party-libraries.json",
     )
 
     jvm_import(
         name = name + "_jars",
         jars = select({
-            "@platforms//os:windows": [src + "/windows/android-studio" + jar for jar in spec.jars + spec.jars_windows],
-            "//tools/base/bazel/platforms:macos-x86_64": [src + "/darwin/android-studio/Contents" + jar for jar in spec.jars + spec.jars_darwin],
-            "//tools/base/bazel/platforms:macos-arm64": [src + "/darwin_aarch64/android-studio/Contents" + jar for jar in spec.jars + spec.jars_darwin_aarch64],
-            "//conditions:default": [src + "/linux/android-studio" + jar for jar in spec.jars + spec.jars_linux],
+            "@platforms//os:windows": [sdk_dirs.windows + jar for jar in spec.jars + spec.jars_windows],
+            "//tools/base/bazel/platforms:macos-x86_64": [sdk_dirs.darwin + "/Contents" + jar for jar in spec.jars + spec.jars_darwin],
+            "//tools/base/bazel/platforms:macos-arm64": [sdk_dirs.darwin_aarch64 + "/Contents" + jar for jar in spec.jars + spec.jars_darwin_aarch64],
+            "//conditions:default": [sdk_dirs.linux + jar for jar in spec.jars + spec.jars_linux],
         }),
         add_exports = spec.add_exports,
         add_opens = spec.add_opens,
@@ -1414,29 +1424,29 @@ def intellij_platform(
         # Otherwise we get: "link or target filename contains space"
         data = select({
             "@platforms//os:windows": native.glob(
-                include = [src + "/windows/android-studio/**"],
-                exclude = [src + "/windows/android-studio/plugins/textmate/lib/bundles/**"],
+                include = [sdk_dirs.windows + "/**"],
+                exclude = [sdk_dirs.windows + "/plugins/textmate/lib/bundles/**"],
             ),
             "//tools/base/bazel/platforms:macos-x86_64": native.glob(
-                include = [src + "/darwin/android-studio/**"],
-                exclude = [src + "/darwin/android-studio/Contents/plugins/textmate/lib/bundles/**"],
+                include = [sdk_dirs.darwin + "/**"],
+                exclude = [sdk_dirs.darwin + "/Contents/plugins/textmate/lib/bundles/**"],
             ),
             "//tools/base/bazel/platforms:macos-arm64": native.glob(
-                include = [src + "/darwin_aarch64/android-studio/**"],
-                exclude = [src + "/darwin_aarch64/android-studio/Contents/plugins/textmate/lib/bundles/**"],
+                include = [sdk_dirs.darwin_aarch64 + "/**"],
+                exclude = [sdk_dirs.darwin_aarch64 + "/Contents/plugins/textmate/lib/bundles/**"],
             ),
             "//conditions:default": native.glob(
-                include = [src + "/linux/android-studio/**"],
-                exclude = [src + "/linux/android-studio/plugins/textmate/lib/bundles/**"],
+                include = [sdk_dirs.linux + "/**"],
+                exclude = [sdk_dirs.linux + "/plugins/textmate/lib/bundles/**"],
             ),
         }),
     )
 
     ide_paths = {
-        "darwin": src + "/darwin/android-studio",
-        "darwin_aarch64": src + "/darwin_aarch64/android-studio",
-        "linux": src + "/linux/android-studio",
-        "windows": src + "/windows/android-studio",
+        "darwin": sdk_dirs.darwin,
+        "darwin_aarch64": sdk_dirs.darwin_aarch64,
+        "linux": sdk_dirs.linux,
+        "windows": sdk_dirs.windows,
     }
 
     # buildifier: disable=native-py
@@ -1462,10 +1472,10 @@ def intellij_platform(
     native.java_import(
         name = name + "-resources-jar",
         jars = select({
-            "@platforms//os:windows": [src + "/windows/android-studio/lib/resources.jar"],
-            "//tools/base/bazel/platforms:macos-x86_64": [src + "/darwin/android-studio/Contents/lib/resources.jar"],
-            "//tools/base/bazel/platforms:macos-arm64": [src + "/darwin_aarch64/android-studio/Contents/lib/resources.jar"],
-            "//conditions:default": [src + "/linux/android-studio/lib/resources.jar"],
+            "@platforms//os:windows": native.glob([sdk_dirs.windows + "/lib/resources.jar"]),
+            "//tools/base/bazel/platforms:macos-x86_64": native.glob([sdk_dirs.darwin + "/Contents/lib/resources.jar"]),
+            "//tools/base/bazel/platforms:macos-arm64": native.glob([sdk_dirs.darwin_aarch64 + "/Contents/lib/resources.jar"]),
+            "//conditions:default": native.glob([sdk_dirs.linux + "/lib/resources.jar"]),
         }),
         visibility = ["@intellij//:__subpackages__"],
     )
@@ -1474,10 +1484,10 @@ def intellij_platform(
     native.filegroup(
         name = name + "-build-txt",
         srcs = select({
-            "@platforms//os:windows": [src + "/windows/android-studio/build.txt"],
-            "//tools/base/bazel/platforms:macos-x86_64": [src + "/darwin/android-studio/Contents/Resources/build.txt"],
-            "//tools/base/bazel/platforms:macos-arm64": [src + "/darwin_aarch64/android-studio/Contents/Resources/build.txt"],
-            "//conditions:default": [src + "/linux/android-studio/build.txt"],
+            "@platforms//os:windows": [sdk_dirs.windows + "/build.txt"],
+            "//tools/base/bazel/platforms:macos-x86_64": [sdk_dirs.darwin + "/Contents/Resources/build.txt"],
+            "//tools/base/bazel/platforms:macos-arm64": [sdk_dirs.darwin_aarch64 + "/Contents/Resources/build.txt"],
+            "//conditions:default": [sdk_dirs.linux + "/build.txt"],
         }),
         visibility = ["@intellij//:__subpackages__"],
     )
@@ -1486,10 +1496,10 @@ def intellij_platform(
     native.filegroup(
         name = name + "-product-info",
         srcs = select({
-            "@platforms//os:windows": [src + "/windows/android-studio/product-info.json"],
-            "//tools/base/bazel/platforms:macos-x86_64": [src + "/darwin/android-studio/Contents/Resources/product-info.json"],
-            "//tools/base/bazel/platforms:macos-arm64": [src + "/darwin_aarch64/android-studio/Contents/Resources/product-info.json"],
-            "//conditions:default": [src + "/linux/android-studio/product-info.json"],
+            "@platforms//os:windows": [sdk_dirs.windows + "/product-info.json"],
+            "//tools/base/bazel/platforms:macos-x86_64": [sdk_dirs.darwin + "/Contents/Resources/product-info.json"],
+            "//tools/base/bazel/platforms:macos-arm64": [sdk_dirs.darwin_aarch64 + "/Contents/Resources/product-info.json"],
+            "//conditions:default": [sdk_dirs.linux + "/product-info.json"],
         }),
         visibility = ["@intellij//:__subpackages__"],
     )
@@ -1498,18 +1508,20 @@ def intellij_platform(
     native.filegroup(
         name = name + "-vm-options",
         srcs = select({
-            "@platforms//os:windows": [src + "/windows/android-studio/bin/studio64.exe.vmoptions"],
-            "//tools/base/bazel/platforms:macos-x86_64": [src + "/darwin/android-studio/Contents/bin/studio.vmoptions"],
-            "//tools/base/bazel/platforms:macos-arm64": [src + "/darwin_aarch64/android-studio/Contents/bin/studio.vmoptions"],
-            "//conditions:default": [src + "/linux/android-studio/bin/studio64.vmoptions"],
+            "@platforms//os:windows": [sdk_dirs.windows + "/bin/" + vmoptions_prefix + "64.exe.vmoptions"],
+            "//tools/base/bazel/platforms:macos-x86_64": [sdk_dirs.darwin + "/Contents/bin/" + vmoptions_prefix + ".vmoptions"],
+            "//tools/base/bazel/platforms:macos-arm64": [sdk_dirs.darwin_aarch64 + "/Contents/bin/" + vmoptions_prefix + ".vmoptions"],
+            "//conditions:default": [sdk_dirs.linux + "/bin/" + vmoptions_prefix + "64.vmoptions"],
         }),
         visibility = ["@intellij//:__subpackages__"],
     )
 
+    # This gives the path to the intellij_platform rule from root. e.g., "prebuilts/studio/intellij-sdk"
+    prebuilts_dir = native.package_name()
     dir_archive(
         name = name + "-full-linux",
-        dir = "prebuilts/studio/intellij-sdk/" + src + "/linux",
-        files = native.glob([src + "/linux/android-studio/**"]),
+        dir = prebuilts_dir + "/" + src + "/linux",
+        files = native.glob([sdk_dirs.linux + "/**"]),
         visibility = ["//tools/vendor/google/aswb/third_party/java/jetbrains/protobuf:__pkg__"],
     )
 
@@ -1520,10 +1532,10 @@ def intellij_platform(
         files_mac_arm = native.glob([src + "/darwin_aarch64/**"]),
         files_win = native.glob([src + "/windows/**"]),
         mappings = {
-            "prebuilts/studio/intellij-sdk/%s/linux/android-studio/" % src: "",
-            "prebuilts/studio/intellij-sdk/%s/darwin/android-studio/" % src: "",
-            "prebuilts/studio/intellij-sdk/%s/darwin_aarch64/android-studio/" % src: "",
-            "prebuilts/studio/intellij-sdk/%s/windows/android-studio/" % src: "",
+            "%s/%s/" % (prebuilts_dir, sdk_dirs.linux): "",
+            "%s/%s/" % (prebuilts_dir, sdk_dirs.darwin): "",
+            "%s/%s/" % (prebuilts_dir, sdk_dirs.darwin_aarch64): "",
+            "%s/%s/" % (prebuilts_dir, sdk_dirs.windows): "",
         },
     )
 
@@ -1531,7 +1543,7 @@ def intellij_platform(
         # 'kind' indicates whether this is a top-level plugin, or a plugin module inside a host plugin.
         kind = "module" if len(jars) == 1 and "/modules/" in jars[0] else "plugin"
         jars_target_name = "%s-plugin-%s_jars" % (name, plugin)
-        _gen_plugin_jars_import_target(jars_target_name, src, spec, plugin, jars)
+        _gen_plugin_jars_import_target(jars_target_name, spec, sdk_dirs, plugin, jars)
         _intellij_plugin_import(
             name = name + "-plugin-%s" % plugin,
             id = plugin,
@@ -1542,7 +1554,7 @@ def intellij_platform(
 
     jvm_import(
         name = name + "-updater",
-        jars = [src + "/updater-full.jar"],
+        jars = native.glob([src + "/updater-full.jar"]),
         visibility = ["@intellij//:__subpackages__"],
     )
 
@@ -1550,24 +1562,24 @@ def intellij_platform(
     jvm_import(
         name = name + "-test-framework",
         jars = select({
-            "@platforms//os:windows": [src + "/windows/android-studio/lib/testFramework.jar"],
-            "//tools/base/bazel/platforms:macos-x86_64": [src + "/darwin/android-studio/Contents/lib/testFramework.jar"],
-            "//tools/base/bazel/platforms:macos-arm64": [src + "/darwin_aarch64/android-studio/Contents/lib/testFramework.jar"],
-            "//conditions:default": [src + "/linux/android-studio/lib/testFramework.jar"],
+            "@platforms//os:windows": [sdk_dirs.windows + "/lib/testFramework.jar"],
+            "//tools/base/bazel/platforms:macos-x86_64": [sdk_dirs.darwin + "/Contents/lib/testFramework.jar"],
+            "//tools/base/bazel/platforms:macos-arm64": [sdk_dirs.darwin_aarch64 + "/Contents/lib/testFramework.jar"],
+            "//conditions:default": [sdk_dirs.linux + "/lib/testFramework.jar"],
         }),
         visibility = ["@intellij//:__subpackages__"],
     )
 
-def _gen_plugin_jars_import_target(name, src, spec, plugin, jars):
+def _gen_plugin_jars_import_target(name, spec, sdk_dirs, plugin, jars):
     """Generates a jvm_import target for the specified plugin."""
     add_windows = spec.plugin_jars_windows[plugin] if plugin in spec.plugin_jars_windows else []
-    jars_windows = [src + "/windows/android-studio/" + jar for jar in jars + add_windows]
+    jars_windows = [sdk_dirs.windows + "/" + jar for jar in jars + add_windows]
     add_darwin = spec.plugin_jars_darwin[plugin] if plugin in spec.plugin_jars_darwin else []
-    jars_darwin = [src + "/darwin/android-studio/Contents/" + jar for jar in jars + add_darwin]
+    jars_darwin = [sdk_dirs.darwin + "/Contents/" + jar for jar in jars + add_darwin]
     add_darwin_aarch64 = spec.plugin_jars_darwin_aarch64[plugin] if plugin in spec.plugin_jars_darwin_aarch64 else []
-    jars_darwin_aarch64 = [src + "/darwin_aarch64/android-studio/Contents/" + jar for jar in jars + add_darwin_aarch64]
+    jars_darwin_aarch64 = [sdk_dirs.darwin_aarch64 + "/Contents/" + jar for jar in jars + add_darwin_aarch64]
     add_linux = spec.plugin_jars_linux[plugin] if plugin in spec.plugin_jars_linux else []
-    jars_linux = [src + "/linux/android-studio/" + jar for jar in jars + add_linux]
+    jars_linux = [sdk_dirs.linux + "/" + jar for jar in jars + add_linux]
 
     jvm_import(
         name = name,
