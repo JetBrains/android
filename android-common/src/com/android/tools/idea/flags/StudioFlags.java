@@ -2078,6 +2078,11 @@ public final class StudioFlags {
                     "Enable Stop Button",
                     "When enabled, the query box will show a button to stop ongoing responses.");
 
+  public static final Flag<Boolean> STUDIOBOT_CHAT_MULTIPLE_SESSIONS_ENABLED =
+    new BooleanFlag(STUDIOBOT, "chat.multiple.sessions",
+                    "Enable multiple sessions in gemini window",
+                    "When enabled, allows creating and selecting different sessions for the gemini Chat/Agent window.");
+
   public static final Flag<Boolean> COMMIT_MESSAGE_SUGGESTION =
     new BooleanFlag(STUDIOBOT, "commit.message.suggestion",
                     "Use ML model to suggest commit messages",
