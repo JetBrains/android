@@ -120,19 +120,6 @@ public final class EmulatorCommandBuilderTest {
   }
 
   @Test
-  public void buildEmulatorSupportsSnapshots() {
-    // Arrange
-    EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd)
-      .setEmulatorSupportsSnapshots(true);
-
-    // Act
-    GeneralCommandLine command = builder.build();
-
-    // Assert
-    assertEquals("/home/user/Android/Sdk/emulator/emulator -avd Pixel_4_API_30", command.getCommandLineString());
-  }
-
-  @Test
   public void buildStudioParamsIsNotNull() {
     // Arrange
     EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd)

@@ -29,7 +29,6 @@ import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.ConfigKey
 import com.android.sdklib.internal.avd.ConfigKey.SKIN_PATH
-import com.android.sdklib.internal.avd.EmulatorAdvancedFeatures
 import com.android.sdklib.internal.avd.EmulatorPackage
 import com.android.sdklib.internal.avd.getEmulatorPackage
 import com.android.sdklib.repository.AndroidSdkHandler
@@ -360,9 +359,6 @@ constructor(
     return factory
       .newEmulatorCommandBuilder(emulator, avd)
       .setAvdHome(avdManager!!.baseAvdFolder)
-      .setEmulatorSupportsSnapshots(
-        this.emulator.getEmulatorFeatures().contains(EmulatorAdvancedFeatures.FAST_BOOT)
-      )
       .setStudioParams(writeParameterFile())
       .setLaunchInToolWindow(
         canLaunchInToolWindow(avd, project) &&

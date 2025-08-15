@@ -57,13 +57,9 @@ public final class DefaultEmulatorCommandBuilderFactoryTest {
     Mockito.when(myAvd.getProperty(ConfigKey.FORCE_COLD_BOOT_MODE)).thenReturn("yes");
 
     // Act
-    EmulatorCommandBuilder builder = myFactory.newEmulatorCommandBuilder(myEmulator, myAvd);
+    GeneralCommandLine command = myFactory.newEmulatorCommandBuilder(myEmulator, myAvd).build();
 
     // Assert
-    GeneralCommandLine command = builder
-      .setEmulatorSupportsSnapshots(true)
-      .build();
-
     assertEquals("/home/user/Android/Sdk/emulator/emulator -no-snapstorage -avd Pixel_4_API_30", command.getCommandLineString());
   }
 
@@ -74,13 +70,9 @@ public final class DefaultEmulatorCommandBuilderFactoryTest {
     Mockito.when(myAvd.getProperty(ConfigKey.CHOSEN_SNAPSHOT_FILE)).thenReturn("snap_2020-11-10_13-18-17");
 
     // Act
-    EmulatorCommandBuilder builder = myFactory.newEmulatorCommandBuilder(myEmulator, myAvd);
+    GeneralCommandLine command = myFactory.newEmulatorCommandBuilder(myEmulator, myAvd).build();
 
     // Assert
-    GeneralCommandLine command = builder
-      .setEmulatorSupportsSnapshots(true)
-      .build();
-
     assertEquals("/home/user/Android/Sdk/emulator/emulator -snapshot snap_2020-11-10_13-18-17 -no-snapshot-save -avd Pixel_4_API_30",
                  command.getCommandLineString());
   }

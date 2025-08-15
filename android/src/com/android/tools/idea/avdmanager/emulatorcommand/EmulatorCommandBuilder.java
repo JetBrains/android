@@ -42,7 +42,6 @@ public class EmulatorCommandBuilder {
   private final @NotNull AvdInfo myAvd;
 
   private @Nullable Path myAvdHome;
-  private boolean myEmulatorSupportsSnapshots;
   private @Nullable Path myStudioParams;
   private boolean myLaunchInToolWindow;
 
@@ -62,7 +61,6 @@ public class EmulatorCommandBuilder {
   }
 
   public final @NotNull EmulatorCommandBuilder setEmulatorSupportsSnapshots(boolean emulatorSupportsSnapshots) {
-    myEmulatorSupportsSnapshots = emulatorSupportsSnapshots;
     return this;
   }
 
@@ -92,9 +90,7 @@ public class EmulatorCommandBuilder {
     addParametersIfParameter2IsntNull(command, "-netdelay", myAvd.getProperty(ConfigKey.NETWORK_LATENCY));
     addParametersIfParameter2IsntNull(command, "-netspeed", myAvd.getProperty(ConfigKey.NETWORK_SPEED));
 
-    if (myEmulatorSupportsSnapshots) {
-      addSnapshotParameters(command);
-    }
+    addSnapshotParameters(command);
 
     addParametersIfParameter2IsntNull(command, "-studio-params", myStudioParams);
     command.addParameters("-avd", myAvd.getName());

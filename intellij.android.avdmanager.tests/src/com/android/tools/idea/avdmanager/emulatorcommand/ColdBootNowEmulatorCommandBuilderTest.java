@@ -37,8 +37,7 @@ public final class ColdBootNowEmulatorCommandBuilderTest {
     AvdInfo avd = Mockito.mock(AvdInfo.class);
     Mockito.when(avd.getName()).thenReturn("Pixel_4_API_30");
 
-    EmulatorCommandBuilder builder = new ColdBootNowEmulatorCommandBuilder(emulator, avd)
-      .setEmulatorSupportsSnapshots(true);
+    EmulatorCommandBuilder builder = new ColdBootNowEmulatorCommandBuilder(emulator, avd);
 
     // Act
     GeneralCommandLine command = builder.build();

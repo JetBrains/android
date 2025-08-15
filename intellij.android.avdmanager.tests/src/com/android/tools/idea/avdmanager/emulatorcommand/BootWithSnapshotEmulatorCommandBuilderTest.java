@@ -37,8 +37,7 @@ public final class BootWithSnapshotEmulatorCommandBuilderTest {
     AvdInfo avd = Mockito.mock(AvdInfo.class);
     Mockito.when(avd.getName()).thenReturn("Pixel_4_API_30");
 
-    EmulatorCommandBuilder builder = new BootWithSnapshotEmulatorCommandBuilder(emulator, avd, "snap_2020-11-10_13-18-17")
-      .setEmulatorSupportsSnapshots(true);
+    EmulatorCommandBuilder builder = new BootWithSnapshotEmulatorCommandBuilder(emulator, avd, "snap_2020-11-10_13-18-17");
 
     // Act
     GeneralCommandLine command = builder.build();
