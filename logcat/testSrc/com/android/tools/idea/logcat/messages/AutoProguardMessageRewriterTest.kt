@@ -16,6 +16,8 @@
 package com.android.tools.idea.logcat.messages
 
 import com.android.testutils.TestResources
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.logcat.util.waitForCondition
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
@@ -23,6 +25,7 @@ import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.guessModuleDir
 import com.intellij.testFramework.RuleChain
@@ -32,6 +35,7 @@ import java.nio.file.Path
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
 import kotlin.test.fail
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -87,9 +91,14 @@ class AutoProguardMessageRewriterTest {
     )
   @get:Rule val rule = RuleChain(projectRule)
 
+  @After
+  fun tearDown() {
+    StudioFlags.LOGCAT_AUTO_DEOBFUSCATE_CACHE_TIME_MS.clearOverride()
+  }
+
   @Test
   fun rewrite_autoMapping() {
-    val rewriter = AutoProguardMessageRewriter(projectRule.project)
+    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
     val mapId = "map-id-12345"
     copyMapToModule(findModules("app1").first(), "release", mapId)
 
@@ -100,7 +109,7 @@ class AutoProguardMessageRewriterTest {
 
   @Test
   fun rewrite_autoMapping_cachesValue() {
-    val rewriter = AutoProguardMessageRewriter(projectRule.project)
+    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
     val mapId = "map-id-12345"
     val mappingFile = copyMapToModule(findModules("app1").first(), "release", mapId)
     val message = MESSAGE.withMapId(mapId)
@@ -114,7 +123,7 @@ class AutoProguardMessageRewriterTest {
 
   @Test
   fun rewrite_autoMapping_multipleVariants() {
-    val rewriter = AutoProguardMessageRewriter(projectRule.project)
+    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
     val incorrectMapId = "incorrect-map-id"
     val correctMapId = "correct-map-id"
     val module = findModules("app1").first()
@@ -128,7 +137,7 @@ class AutoProguardMessageRewriterTest {
 
   @Test
   fun rewrite_autoMapping_multipleModules() {
-    val rewriter = AutoProguardMessageRewriter(projectRule.project)
+    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
     val mapId = "map-id"
     val module = findModules("app2").first()
     copyMapToModule(module, "release", mapId)
@@ -140,7 +149,7 @@ class AutoProguardMessageRewriterTest {
 
   @Test
   fun rewrite_autoMapping_multipleModulesOfSameAppId() {
-    val rewriter = AutoProguardMessageRewriter(projectRule.project)
+    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
     val incorrectMapId = "incorrect-map-id"
     val correctMapId = "correct-map-id"
     val module1 = findModules("app2")[0]
@@ -151,6 +160,18 @@ class AutoProguardMessageRewriterTest {
     val text = rewriter.rewrite(MESSAGE.withMapId(correctMapId), "app2")
 
     assertThat(text).isEqualTo(CLEAR_MESSAGE)
+  }
+
+  @Test
+  fun cacheIsPurged() {
+    StudioFlags.LOGCAT_AUTO_DEOBFUSCATE_CACHE_TIME_MS.override(0)
+    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
+    val mapId = "map-id-12345"
+    copyMapToModule(findModules("app1").first(), "release", mapId)
+    val text = rewriter.rewrite(MESSAGE.withMapId(mapId), "app1")
+    assertThat(text).isEqualTo(CLEAR_MESSAGE)
+
+    waitForCondition { rewriter.autoRetracer == null }
   }
 
   private fun findModules(applicationId: String): List<Module> {

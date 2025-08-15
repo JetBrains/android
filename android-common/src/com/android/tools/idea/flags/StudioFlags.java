@@ -697,6 +697,14 @@ public final class StudioFlags {
     "Enable automatic stack trace deobfuscation using R8 Retrace",
     "Automatically load a proguard mapping file if the R8 map ID of the stack trace matches the mapping file in the build directory"
   );
+
+  public static final Flag<Long> LOGCAT_AUTO_DEOBFUSCATE_CACHE_TIME_MS = new LongFlag(
+    LOGCAT,
+    "auto.deobfuscate.release.map.sec",
+    "Amount of time in milliseconds before releasing mapping cache",
+    "Amount of time in milliseconds before releasing mapping cache",
+    TimeUnit.MINUTES.toMillis(2)
+  );
   //endregion
 
   //region Project System

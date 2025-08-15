@@ -16,23 +16,24 @@
 
 package com.android.tools.idea.logcat.messages
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.r8.retrace.RetraceCommand
 import com.android.utils.text.dropPrefix
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level.PROJECT
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessModuleDir
-import com.intellij.util.getValue
+import com.intellij.util.Alarm
 import com.intellij.util.io.directoryStreamIfExists
-import com.intellij.util.setValue
 import java.nio.file.Path
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.io.path.isDirectory
 import kotlin.io.path.notExists
 import kotlin.io.path.useLines
+import org.jetbrains.annotations.VisibleForTesting
 
 private val exceptionLinePattern = Regex("\n\\s*at .+\\((?<filename>.+)\\)\n")
 
@@ -47,13 +48,20 @@ private const val MAPPINGS_DIR = "build/outputs/mapping"
  * for a corresponding `mapping.txt` file in the project build directory.
  */
 @Service(PROJECT)
-internal class AutoProguardMessageRewriter(private val project: Project) {
+internal class AutoProguardMessageRewriter(private val project: Project) : Disposable {
+
+  private val lock = Any()
+  private val alarm = Alarm(this)
 
   // We keep a single instance of a retracer for the latest "r8-map-id" we detect. The assumption
   // is that there's usually only going to be a single one at a time.
-  private var autoRetracer by AtomicReference<AutoRetracer?>(null)
+  @VisibleForTesting @GuardedBy("lock") var autoRetracer: AutoRetracer? = null
 
-  fun getMapping() = autoRetracer?.mapping
+  fun getMapping(): Path? {
+    synchronized(lock) {
+      return autoRetracer?.mapping
+    }
+  }
 
   fun rewrite(message: String, applicationId: String): String {
     val match = exceptionLinePattern.find(message) ?: return message
@@ -79,14 +87,26 @@ internal class AutoProguardMessageRewriter(private val project: Project) {
    * ```
    */
   private fun getAutoRetracer(id: String, applicationId: String): RetraceCommand.Builder? {
-    val retracer = autoRetracer
-    if (retracer?.id == id) {
-      return retracer.builder
+    synchronized(lock) {
+      val retracer = autoRetracer
+      if (retracer?.id == id) {
+        rescheduleCachePurge()
+        return retracer.builder
+      }
+      val mapping = findMapping(applicationId, id) ?: return null
+      val builder = createRetracer(mapping)
+      autoRetracer = AutoRetracer(id, builder, mapping)
+      rescheduleCachePurge()
+      return builder
     }
-    val mapping = findMapping(applicationId, id) ?: return null
-    val builder = createRetracer(mapping)
-    autoRetracer = AutoRetracer(id, builder, mapping)
-    return builder
+  }
+
+  private fun rescheduleCachePurge() {
+    alarm.cancelAllRequests()
+    alarm.addRequest(
+      { synchronized(lock) { autoRetracer = null } },
+      StudioFlags.LOGCAT_AUTO_DEOBFUSCATE_CACHE_TIME_MS.get(),
+    )
   }
 
   private fun findMapping(applicationId: String, mapId: String): Path? {
@@ -100,11 +120,10 @@ internal class AutoProguardMessageRewriter(private val project: Project) {
     }
   }
 
-  private class AutoRetracer(
-    val id: String,
-    val builder: RetraceCommand.Builder,
-    val mapping: Path,
-  )
+  override fun dispose() {}
+
+  @VisibleForTesting
+  class AutoRetracer(val id: String, val builder: RetraceCommand.Builder, val mapping: Path)
 }
 
 /**
@@ -119,8 +138,8 @@ private fun Path.findMapping(mapId: String): Path? {
     return null
   }
   val line = "# pg_map_id: $mapId"
-  directoryStreamIfExists {
-    it.forEach variant@{ variant ->
+  directoryStreamIfExists { paths ->
+    paths.forEach variant@{ variant ->
       if (!variant.isDirectory()) {
         return@variant
       }
@@ -129,7 +148,7 @@ private fun Path.findMapping(mapId: String): Path? {
         return@variant
       }
       mapping.useLines { lines ->
-        lines.forEach { it ->
+        lines.forEach {
           if (!it.startsWith('#')) {
             // Skip this file
             return@variant
@@ -141,7 +160,5 @@ private fun Path.findMapping(mapId: String): Path? {
       }
     }
   }
-  iterator().forEach variant@{ variant -> }
-
   return null
 }
