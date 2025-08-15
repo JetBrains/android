@@ -1141,8 +1141,6 @@ iml_module(
     ],
     test_srcs = ["integration/intellij.android.studio.integration/testSrc"],
     visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    deps = ["@intellij//:com.intellij.java"],
 )
 
 iml_test(
