@@ -21,8 +21,10 @@ import com.android.adblib.AdbServerConfiguration
 import com.android.adblib.AdbServerController
 import com.android.adblib.AdbSession
 import com.android.adblib.AdbSessionHost
+import com.android.adblib.CoroutineScopeCache
 import com.android.adblib.ddmlibcompatibility.AdbLibAndroidDebugBridge
 import com.android.adblib.tools.debugging.processinventory.ProcessInventoryServerConnection
+import com.android.adblib.tools.debugging.processinventory.installProcessInventoryJdwpProcessCommandDispatcherFactory
 import com.android.adblib.tools.debugging.processinventory.installProcessInventoryJdwpProcessPropertiesCollectorFactory
 import com.android.adblib.tools.debugging.processinventory.server.ProcessInventoryServerConfiguration
 import com.android.ddmlib.AndroidDebugBridge
@@ -172,10 +174,20 @@ class AdbLibApplicationService : Disposable {
               StudioFlags.ADBLIB_USE_PROCESS_INVENTORY_SERVER.get()
           }
 
-          val inventoryServerConfig = StudioProcessInventoryServerConfiguration()
+          // Store the process inventory server in the session cache so it is closed when the
+          // session is closed.
           val inventoryServerConnection =
-            ProcessInventoryServerConnection.create(session, inventoryServerConfig)
+            session.cache.getOrPut(processInventoryServerConnectionKey) {
+              val inventoryServerConfig = StudioProcessInventoryServerConfiguration()
+              ProcessInventoryServerConnection.create(session, inventoryServerConfig)
+            }
+
           session.installProcessInventoryJdwpProcessPropertiesCollectorFactory(
+            inventoryServerConnection,
+            inventoryServerEnabled,
+          )
+
+          session.installProcessInventoryJdwpProcessCommandDispatcherFactory(
             inventoryServerConnection,
             inventoryServerEnabled,
           )
@@ -280,6 +292,11 @@ class AdbLibApplicationService : Disposable {
   }
 
   companion object {
+    val processInventoryServerConnectionKey =
+      CoroutineScopeCache.Key<ProcessInventoryServerConnection>(
+        "${ProcessInventoryServerConnection::class.java.simpleName}"
+      )
+
     @Volatile private var isInstanceCreated = false
 
     @JvmStatic
