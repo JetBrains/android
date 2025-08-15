@@ -465,6 +465,7 @@ Android Studio Preview.app/Contents/lib/modules/intellij.platform.bookmarks.fron
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.clouds.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.collaborationTools.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.compose.jar
+Android Studio Preview.app/Contents/lib/modules/intellij.platform.compose.markdown.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.coverage.agent.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.coverage.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.debugger.impl.backend.jar
@@ -487,6 +488,7 @@ Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.markdown
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.markdown.extensions.gfmAlerts.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.markdown.extensions.gfmStrikethrough.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.markdown.extensions.gfmTables.jar
+Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.markdown.extensions.images.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.markdown.ideLafBridgeStyling.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.ui.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.kernel.backend.jar
@@ -527,6 +529,7 @@ Android Studio Preview.app/Contents/lib/pty4j/darwin/libpty.dylib
 Android Studio Preview.app/Contents/lib/pty4j/darwin/pty4j-unix-spawn-helper
 Android Studio Preview.app/Contents/lib/rd.jar
 Android Studio Preview.app/Contents/lib/resources.jar
+Android Studio Preview.app/Contents/lib/skiko-awt-runtime-all/libskiko-macos-arm64.dylib
 Android Studio Preview.app/Contents/lib/stats.jar
 Android Studio Preview.app/Contents/lib/testFramework.jar
 Android Studio Preview.app/Contents/lib/trove.jar

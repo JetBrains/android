@@ -29,6 +29,7 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.clouds" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.collaborationTools" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.compose" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.compose.markdown" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.coverage" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.coverage.agent" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.debugger.impl.backend" level="project" />
@@ -51,6 +52,7 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.markdown.extensions.gfmAlerts" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.markdown.extensions.gfmStrikethrough" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.markdown.extensions.gfmTables" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.markdown.extensions.images" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.markdown.ideLafBridgeStyling" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.ui" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.kernel.backend" level="project" />

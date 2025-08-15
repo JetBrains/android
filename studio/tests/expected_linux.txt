@@ -436,7 +436,7 @@ android-studio/jbr/release
 android-studio/lib/annotations.jar
 android-studio/lib/app.jar
 android-studio/lib/bouncy-castle.jar
-android-studio/lib/build-marker-AI-251.26094.121.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-251.27812.49.__BUILD_NUMBER__
 android-studio/lib/external-system-rt.jar
 android-studio/lib/externalProcess-rt.jar
 android-studio/lib/forms_rt.jar
@@ -465,6 +465,7 @@ android-studio/lib/modules/intellij.platform.bookmarks.frontend.jar
 android-studio/lib/modules/intellij.platform.clouds.jar
 android-studio/lib/modules/intellij.platform.collaborationTools.jar
 android-studio/lib/modules/intellij.platform.compose.jar
+android-studio/lib/modules/intellij.platform.compose.markdown.jar
 android-studio/lib/modules/intellij.platform.coverage.agent.jar
 android-studio/lib/modules/intellij.platform.coverage.jar
 android-studio/lib/modules/intellij.platform.debugger.impl.backend.jar
@@ -487,6 +488,7 @@ android-studio/lib/modules/intellij.platform.jewel.markdown.extensions.autolink.
 android-studio/lib/modules/intellij.platform.jewel.markdown.extensions.gfmAlerts.jar
 android-studio/lib/modules/intellij.platform.jewel.markdown.extensions.gfmStrikethrough.jar
 android-studio/lib/modules/intellij.platform.jewel.markdown.extensions.gfmTables.jar
+android-studio/lib/modules/intellij.platform.jewel.markdown.extensions.images.jar
 android-studio/lib/modules/intellij.platform.jewel.markdown.ideLafBridgeStyling.jar
 android-studio/lib/modules/intellij.platform.jewel.ui.jar
 android-studio/lib/modules/intellij.platform.kernel.backend.jar
@@ -526,6 +528,7 @@ android-studio/lib/protobuf.jar
 android-studio/lib/pty4j/linux/x86-64/libpty.so
 android-studio/lib/rd.jar
 android-studio/lib/resources.jar
+android-studio/lib/skiko-awt-runtime-all/libskiko-linux-x64.so
 android-studio/lib/stats.jar
 android-studio/lib/testFramework.jar
 android-studio/lib/trove.jar
