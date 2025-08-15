@@ -33,21 +33,19 @@ import java.util.zip.ZipEntry;
 import org.jetbrains.annotations.NotNull;
 
 final class BazelClassFileFinder implements ClassFileFinder {
-  private final Map<String, Jar> classToJarMap;
+  private final Map<String, List<Jar>> classToJarMultimap;
 
   BazelClassFileFinder(Collection<Path> jars) {
-    classToJarMap = jars.stream()
+    classToJarMultimap = jars.stream()
       .map(Jar::new)
       .flatMap(Jar::entries)
-      .filter(Entry::isNotDirectory)
-      .filter(Entry::isNotInMetaInfDirectory)
-      .collect(Collectors.toMap(Object::toString, Entry::getJar));
+      .collect(Collectors.groupingBy(Object::toString, Collectors.mapping(Entry::getJar, Collectors.toList())));
   }
 
   @Override
   public ClassContent findClassFile(@NotNull String c) {
     c = ClassFileFinderUtil.getPathFromFqcn(c);
-    return classToJarMap.get(c).getContent(c);
+    return classToJarMultimap.get(c).get(0).getContent(c);
   }
 
   private static final class Jar {
@@ -63,6 +61,8 @@ final class BazelClassFileFinder implements ClassFileFinder {
       try (var jar = new JarFile(this.jar)) {
         return jar.stream()
           .map(entry -> new Entry(entry, this))
+          .filter(Entry::isNotDirectory)
+          .filter(Entry::isNotInMetaInfDirectory)
           .toList();
       }
       catch (IOException exception) {
