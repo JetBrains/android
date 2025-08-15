@@ -359,6 +359,7 @@ constructor(
     return factory
       .newEmulatorCommandBuilder(emulator, avd)
       .setAvdHome(avdManager!!.baseAvdFolder)
+      .setSdkLocation(sdkHandler?.location)
       .setStudioParams(writeParameterFile())
       .setLaunchInToolWindow(
         canLaunchInToolWindow(avd, project) &&

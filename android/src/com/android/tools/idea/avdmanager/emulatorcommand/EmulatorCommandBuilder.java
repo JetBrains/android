@@ -19,7 +19,6 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.ConfigKey;
 import com.android.sdklib.internal.avd.UserSettingsKey;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.util.text.Strings;
 import java.nio.file.Path;
@@ -43,6 +42,7 @@ public class EmulatorCommandBuilder {
   private final @NotNull AvdInfo myAvd;
 
   private @Nullable Path myAvdHome;
+  private @Nullable Path mySdkLocation;
   private @Nullable Path myStudioParams;
   private boolean myLaunchInToolWindow;
 
@@ -61,7 +61,8 @@ public class EmulatorCommandBuilder {
     return this;
   }
 
-  public final @NotNull EmulatorCommandBuilder setEmulatorSupportsSnapshots(boolean emulatorSupportsSnapshots) {
+  public final @NotNull EmulatorCommandBuilder setSdkLocation(@Nullable Path sdkLocation) {
+    mySdkLocation = sdkLocation;
     return this;
   }
 
@@ -87,10 +88,8 @@ public class EmulatorCommandBuilder {
     if (myAvdHome != null) {
       command.getEnvironment().put("ANDROID_AVD_HOME", myAvdHome.toString());
     }
-
-    Path sdkPath = AndroidSdks.getInstance().tryToChooseSdkHandler().getLocation();
-    if (sdkPath != null) {
-      command.getEnvironment().put("ANDROID_HOME", sdkPath.toString());
+    if (mySdkLocation != null) {
+      command.getEnvironment().put("ANDROID_HOME", mySdkLocation.toString());
     }
 
     addParametersIfParameter2IsntNull(command, "-netdelay", myAvd.getProperty(ConfigKey.NETWORK_LATENCY));
