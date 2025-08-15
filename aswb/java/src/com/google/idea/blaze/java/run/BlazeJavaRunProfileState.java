@@ -113,7 +113,9 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
       }
     }
     else {
-      invoker = buildSystem.getBuildInvoker(project, ImmutableSet.of(Capability.RETURN_PROCESS_HANDLER)).orElseThrow();
+      invoker = buildSystem.getBuildInvoker(project, getExecutorType().isDebugType()
+                                                     ? ImmutableSet.of(Capability.ATTACH_JAVA_DEBUGGER, Capability.RETURN_PROCESS_HANDLER)
+                                                     : ImmutableSet.of(Capability.RETURN_PROCESS_HANDLER)).orElseThrow();
     }
     return startProcessBazelCliCase(invoker, project, context);
   }
