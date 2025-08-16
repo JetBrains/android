@@ -19,6 +19,7 @@ import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.logging.EventLoggingService;
 import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
+import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationHandler;
 import com.intellij.debugger.impl.GenericDebuggerRunner;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.JavaParameters;
@@ -44,16 +45,13 @@ public class BlazeJavaDebuggerRunner extends GenericDebuggerRunner {
 
   @Override
   public boolean canRun(final String executorId, final RunProfile profile) {
-    if (!executorId.equals(DefaultDebugExecutor.EXECUTOR_ID)
-        || !(profile instanceof BlazeCommandRunConfiguration)) {
-      return false;
+    if (executorId.equals(DefaultDebugExecutor.EXECUTOR_ID) && profile instanceof BlazeCommandRunConfiguration configuration) {
+      BlazeCommandRunConfigurationHandler handler = configuration.getHandler();
+      if (handler instanceof BlazeJavaRunConfigurationHandler) {
+        return canDebug(handler.getCommandName());
+      }
     }
-    BlazeCommandRunConfiguration configuration = (BlazeCommandRunConfiguration) profile;
-    Kind kind = configuration.getTargetKind();
-    if (kind == null || !BlazeJavaRunConfigurationHandlerProvider.supportsKind(kind)) {
-      return false;
-    }
-    return canDebug(configuration.getHandler().getCommandName());
+    return false;
   }
 
   protected boolean canDebug(@Nullable BlazeCommandName command) {
