@@ -70,7 +70,7 @@ class QuerySyncInspectionWidgetActionProvider : InspectionWidgetActionProvider {
       val vfs = e.getVirtualFiles() ?: return
       val querySyncActionStats = QuerySyncActionStatsScope.createForFiles(javaClass, e, ImmutableList.copyOf(vfs))
       buildDepsHelper.determineTargetsAndRun(
-        workspaceRelativePaths = WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(e.project, vfs),
+        workspaceRelativePaths = WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, vfs),
         disambiguateTargetPrompt = BuildDependenciesHelperSelectTargetPopup.createDisambiguateTargetPrompt(
           PopupPositioner.showUnderneathClickedComponentOrCentered(e)),
         targetDisambiguationAnchors = TargetDisambiguationAnchors.NONE,
@@ -105,7 +105,7 @@ class QuerySyncInspectionWidgetActionProvider : InspectionWidgetActionProvider {
       }
       val toBuild = buildDepsHelper.getTargetsToEnableAnalysisForPaths(
         WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(
-          e.project,
+          project,
           ImmutableList.of(vf)
         )
       )
