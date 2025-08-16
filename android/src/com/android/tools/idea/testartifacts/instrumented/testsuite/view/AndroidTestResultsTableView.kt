@@ -309,8 +309,8 @@ interface AndroidTestResultsTableListener {
 }
 
 private class FailedTestsNavigator(private val treetableView: AndroidTestResultsTableViewComponent) : OccurenceNavigator {
-  override fun getNextOccurenceActionName(): String = ExecutionBundle.message("next.faled.test.action.name")
-  override fun getPreviousOccurenceActionName(): String = ExecutionBundle.message("prev.faled.test.action.name")
+  override fun getNextOccurenceActionName(): String = ExecutionBundle.message("next.failed.test.action.name")
+  override fun getPreviousOccurenceActionName(): String = ExecutionBundle.message("prev.failed.test.action.name")
 
   override fun hasNextOccurence(): Boolean {
     return getNextFailedTestNode() != null
