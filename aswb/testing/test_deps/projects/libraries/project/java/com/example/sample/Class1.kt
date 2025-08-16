@@ -19,6 +19,7 @@ import com.example.lib1.Lib1
 import com.example.lib2.Lib2
 
 class Class1(private val name: String) {
+  @Suppress("UNUSED_PARAMETER")
   fun test(lib2: Lib2) {
     Lib1.createTest()
   }
