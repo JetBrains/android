@@ -418,7 +418,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
                 .map(a -> new SimpleEntry<>(a.getArtifactPath(), a.getDigest()))
                 .distinct()
                 .collect(toImmutableMap(Map.Entry::getKey, Map.Entry::getValue)),
-            ImmutableSet.copyOf(outputInfo.getTargetsWithErrors()));
+            !outputInfo.getTargetsWithErrors().isEmpty() || outputInfo.getExitCode() != 0);
 
     final var sw = Stopwatch.createStarted();
     Map<Label, TargetBuildInfo> newTargetInfo =

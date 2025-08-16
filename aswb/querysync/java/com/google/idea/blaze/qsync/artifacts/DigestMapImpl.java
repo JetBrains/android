@@ -28,12 +28,13 @@ import java.util.Optional;
  */
 public class DigestMapImpl implements DigestMap {
   private final ImmutableMap<Path, String> digestMap;
-  private final ImmutableSet<Label> targetsWithErrors;
+
+  private final boolean hasError;
 
   public DigestMapImpl(
-      ImmutableMap<Path, String> digestMap, ImmutableSet<Label> targetsWithErrors) {
+      ImmutableMap<Path, String> digestMap, boolean hasError) {
     this.digestMap = digestMap;
-    this.targetsWithErrors = targetsWithErrors;
+    this.hasError = hasError;
   }
 
   @Override
@@ -43,7 +44,7 @@ public class DigestMapImpl implements DigestMap {
       Preconditions.checkState(!digest.isEmpty(), "Empty digest for %s from %s", path, fromTarget);
       return Optional.of(digest);
     }
-    if (!targetsWithErrors.isEmpty()) {
+    if (this.hasError) {
       // The build had partial failures, so this artifact was not built.
       // This can happen as the aspect can return references to artifacts even if they subsequently
       // fail to build.
