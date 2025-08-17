@@ -33,6 +33,7 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.RunContentBuilder;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.application.ActionsKt;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -42,6 +43,7 @@ import org.jetbrains.concurrency.Promise;
 
 /** Program runner for configurations from {@link BlazeAndroidBinaryRunConfigurationHandler}. */
 public class BlazeAndroidBinaryProgramRunner extends AsyncProgramRunner<RunnerSettings> {
+  private static final Logger logger = Logger.getInstance(BlazeAndroidBinaryProgramRunner.class);
   @Override
   public boolean canRun(String executorId, RunProfile profile) {
     BlazeAndroidRunConfigurationHandler handler =
@@ -86,6 +88,10 @@ public class BlazeAndroidBinaryProgramRunner extends AsyncProgramRunner<RunnerSe
                   promise.setResult(descriptor);
                 } catch (ExecutionException e) {
                   boolean unused = promise.setError(e);
+                }
+                catch (Exception e) {
+                  logger.error(e);
+                  boolean unused = promise.setError(new ExecutionException(e));
                 }
               }
 
