@@ -65,7 +65,10 @@ sourceSets {
   }
   test {
     resources { srcDirs("testResources") }
-    kotlin { srcDirs("testSrc") }
+    kotlin {
+      srcDirs("testSrc")
+      exclude("com/android/tools/adtui/compose/ComposeTestSuite.kt")
+    }
   }
 }
 
