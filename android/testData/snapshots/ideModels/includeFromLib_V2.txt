@@ -1546,10 +1546,10 @@ MODULE                        : navgraph.app
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                        androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
@@ -1594,7 +1594,7 @@ MODULE                        : navgraph.app
                             androidLibrary                : androidx.legacy:legacy-support-core-ui:1.0.0@aar
                             androidLibrary                : androidx.legacy:legacy-support-core-utils:1.0.0@aar
                             androidLibrary                : androidx.fragment:fragment:1.3.4@aar
-                            androidLibrary                : androidx.transition:transition:1.3.0@aar
+                            androidLibrary                : androidx.transition:transition:1.0.0@aar
                             androidLibrary                : androidx.appcompat:appcompat:1.3.0@aar
                             androidLibrary                : androidx.cardview:cardview:1.0.0@aar
                             androidLibrary                : androidx.recyclerview:recyclerview:1.0.0@aar
@@ -1639,11 +1639,9 @@ MODULE                        : navgraph.app
                         androidLibrary                : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
-                        androidLibrary                : androidx.transition:transition:1.3.0@aar
+                        androidLibrary                : androidx.transition:transition:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
-                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
-                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
                         androidLibrary                : androidx.cardview:cardview:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         androidLibrary                : androidx.recyclerview:recyclerview:1.0.0@aar
@@ -1864,8 +1862,13 @@ MODULE                        : navgraph.app
                             androidLibrary                : androidx.navigation:navigation-fragment:2.3.5@aar
                             androidLibrary                : androidx.navigation:navigation-ui:2.3.5@aar
                             androidLibrary                : androidx.constraintlayout:constraintlayout:1.1.3@aar
+                ProvidedDependencies
+                    - provided                    : androidx.arch.core:core-runtime:2.0.0@aar
+                    - provided                    : androidx.transition:transition:1.0.0@aar
                 RuntimeOnlyClasses
+                    - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jars/classes.jar
                     - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
+                    - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/transition-1.3.0/jars/classes.jar
                 ApplicationId                 : com.example.navgraph
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -2278,10 +2281,10 @@ MODULE                        : navgraph.app
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                        androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
@@ -2326,7 +2329,7 @@ MODULE                        : navgraph.app
                             androidLibrary                : androidx.legacy:legacy-support-core-ui:1.0.0@aar
                             androidLibrary                : androidx.legacy:legacy-support-core-utils:1.0.0@aar
                             androidLibrary                : androidx.fragment:fragment:1.3.4@aar
-                            androidLibrary                : androidx.transition:transition:1.3.0@aar
+                            androidLibrary                : androidx.transition:transition:1.0.0@aar
                             androidLibrary                : androidx.appcompat:appcompat:1.3.0@aar
                             androidLibrary                : androidx.cardview:cardview:1.0.0@aar
                             androidLibrary                : androidx.recyclerview:recyclerview:1.0.0@aar
@@ -2371,11 +2374,9 @@ MODULE                        : navgraph.app
                         androidLibrary                : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
-                        androidLibrary                : androidx.transition:transition:1.3.0@aar
+                        androidLibrary                : androidx.transition:transition:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
-                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
-                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
                         androidLibrary                : androidx.cardview:cardview:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         androidLibrary                : androidx.recyclerview:recyclerview:1.0.0@aar
@@ -2609,8 +2610,13 @@ MODULE                        : navgraph.app
                             androidLibrary                : androidx.navigation:navigation-fragment:2.3.5@aar
                             androidLibrary                : androidx.navigation:navigation-ui:2.3.5@aar
                             androidLibrary                : androidx.constraintlayout:constraintlayout:1.1.3@aar
+                ProvidedDependencies
+                    - provided                    : androidx.arch.core:core-runtime:2.0.0@aar
+                    - provided                    : androidx.transition:transition:1.0.0@aar
                 RuntimeOnlyClasses
+                    - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jars/classes.jar
                     - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
+                    - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/transition-1.3.0/jars/classes.jar
                 MockablePlatformJar           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : navgraph.app.androidTest
@@ -2924,10 +2930,10 @@ MODULE                        : navgraph.lib
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                        androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
@@ -2972,7 +2978,7 @@ MODULE                        : navgraph.lib
                             androidLibrary                : androidx.legacy:legacy-support-core-ui:1.0.0@aar
                             androidLibrary                : androidx.legacy:legacy-support-core-utils:1.0.0@aar
                             androidLibrary                : androidx.fragment:fragment:1.3.4@aar
-                            androidLibrary                : androidx.transition:transition:1.3.0@aar
+                            androidLibrary                : androidx.transition:transition:1.0.0@aar
                             androidLibrary                : androidx.appcompat:appcompat:1.3.0@aar
                             androidLibrary                : androidx.cardview:cardview:1.0.0@aar
                             androidLibrary                : androidx.recyclerview:recyclerview:1.0.0@aar
@@ -3017,11 +3023,9 @@ MODULE                        : navgraph.lib
                         androidLibrary                : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
-                        androidLibrary                : androidx.transition:transition:1.3.0@aar
+                        androidLibrary                : androidx.transition:transition:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
-                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
-                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
                         androidLibrary                : androidx.cardview:cardview:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         androidLibrary                : androidx.recyclerview:recyclerview:1.0.0@aar
@@ -3051,21 +3055,22 @@ MODULE                        : navgraph.lib
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
+                        androidLibrary                : androidx.navigation:navigation-fragment:2.3.5@aar
+                            androidLibrary                : androidx.fragment:fragment:1.3.4@aar
+                            androidLibrary                : androidx.navigation:navigation-runtime:2.3.5@aar
+                        androidLibrary                : androidx.navigation:navigation-ui:2.3.5@aar
+                            androidLibrary                : androidx.navigation:navigation-runtime:2.3.5@aar
+                            androidLibrary                : androidx.customview:customview:1.1.0@aar
+                            androidLibrary                : androidx.drawerlayout:drawerlayout:1.1.1@aar
+                            androidLibrary                : com.google.android.material:material:1.0.0@aar
+                            androidLibrary                : androidx.transition:transition:1.3.0@aar
+                        androidLibrary                : androidx.constraintlayout:constraintlayout:1.1.3@aar
+                            javaLibrary                   : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
+                        javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         androidLibrary                : androidx.core:core:1.5.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
                             androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
-                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
-                        androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                        androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         androidLibrary                : androidx.cursoradapter:cursoradapter:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -3078,23 +3083,6 @@ MODULE                        : navgraph.lib
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             androidLibrary                : androidx.tracing:tracing:1.0.0@aar
-                        androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        androidLibrary                : androidx.savedstate:savedstate:1.1.0@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                        androidLibrary                : androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            androidLibrary                : androidx.savedstate:savedstate:1.1.0@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
-                        androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                        androidLibrary                : androidx.tracing:tracing:1.0.0@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         androidLibrary                : androidx.fragment:fragment:1.3.4@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
@@ -3107,63 +3095,39 @@ MODULE                        : navgraph.lib
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar
                             androidLibrary                : androidx.savedstate:savedstate:1.1.0@aar
                             androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
-                        androidLibrary                : androidx.viewpager:viewpager:1.0.0@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            androidLibrary                : androidx.core:core:1.5.0@aar
-                            androidLibrary                : androidx.customview:customview:1.1.0@aar
-                        androidLibrary                : androidx.customview:customview:1.1.0@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            androidLibrary                : androidx.core:core:1.5.0@aar
-                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
-                        androidLibrary                : androidx.loader:loader:1.0.0@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            androidLibrary                : androidx.core:core:1.5.0@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
-                        androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                        androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
                         androidLibrary                : androidx.appcompat:appcompat-resources:1.3.0@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
                             androidLibrary                : androidx.vectordrawable:vectordrawable:1.1.0@aar
                             androidLibrary                : androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
-                        androidLibrary                : androidx.vectordrawable:vectordrawable:1.1.0@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            androidLibrary                : androidx.core:core:1.5.0@aar
-                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
-                        androidLibrary                : androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
-                            androidLibrary                : androidx.vectordrawable:vectordrawable:1.1.0@aar
-                            androidLibrary                : androidx.interpolator:interpolator:1.0.0@aar
-                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
-                        androidLibrary                : androidx.interpolator:interpolator:1.0.0@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         androidLibrary                : androidx.drawerlayout:drawerlayout:1.1.1@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
                             androidLibrary                : androidx.customview:customview:1.1.0@aar
-                        androidLibrary                : androidx.navigation:navigation-fragment:2.3.5@aar
-                            androidLibrary                : androidx.fragment:fragment:1.3.4@aar
-                            androidLibrary                : androidx.navigation:navigation-runtime:2.3.5@aar
+                        androidLibrary                : androidx.savedstate:savedstate:1.1.0@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
+                        javaLibrary                   : androidx.collection:collection:1.1.0@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                        androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                        androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         androidLibrary                : androidx.navigation:navigation-runtime:2.3.5@aar
                             androidLibrary                : androidx.navigation:navigation-common:2.3.5@aar
                             androidLibrary                : androidx.activity:activity:1.2.3@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                             androidLibrary                : androidx.savedstate:savedstate:1.1.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar
-                        androidLibrary                : androidx.navigation:navigation-common:2.3.5@aar
+                        androidLibrary                : androidx.customview:customview:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
-                        androidLibrary                : androidx.navigation:navigation-ui:2.3.5@aar
-                            androidLibrary                : androidx.navigation:navigation-runtime:2.3.5@aar
-                            androidLibrary                : androidx.customview:customview:1.1.0@aar
-                            androidLibrary                : androidx.drawerlayout:drawerlayout:1.1.1@aar
-                            androidLibrary                : com.google.android.material:material:1.0.0@aar
-                            androidLibrary                : androidx.transition:transition:1.3.0@aar
                         androidLibrary                : com.google.android.material:material:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
@@ -3174,6 +3138,55 @@ MODULE                        : navgraph.lib
                             androidLibrary                : androidx.appcompat:appcompat:1.3.0@aar
                             androidLibrary                : androidx.cardview:cardview:1.0.0@aar
                             androidLibrary                : androidx.recyclerview:recyclerview:1.0.0@aar
+                        androidLibrary                : androidx.transition:transition:1.3.0@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            androidLibrary                : androidx.core:core:1.5.0@aar
+                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
+                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
+                        javaLibrary                   : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
+                        androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
+                        androidLibrary                : androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            androidLibrary                : androidx.savedstate:savedstate:1.1.0@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
+                        androidLibrary                : androidx.tracing:tracing:1.0.0@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                        androidLibrary                : androidx.viewpager:viewpager:1.0.0@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            androidLibrary                : androidx.core:core:1.5.0@aar
+                            androidLibrary                : androidx.customview:customview:1.1.0@aar
+                        androidLibrary                : androidx.loader:loader:1.0.0@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            androidLibrary                : androidx.core:core:1.5.0@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
+                        androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
+                        androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
+                        androidLibrary                : androidx.vectordrawable:vectordrawable:1.1.0@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            androidLibrary                : androidx.core:core:1.5.0@aar
+                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
+                        androidLibrary                : androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
+                            androidLibrary                : androidx.vectordrawable:vectordrawable:1.1.0@aar
+                            androidLibrary                : androidx.interpolator:interpolator:1.0.0@aar
+                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
+                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                        androidLibrary                : androidx.navigation:navigation-common:2.3.5@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            androidLibrary                : androidx.core:core:1.5.0@aar
+                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         androidLibrary                : androidx.legacy:legacy-support-core-ui:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
@@ -3194,11 +3207,17 @@ MODULE                        : navgraph.lib
                             androidLibrary                : androidx.loader:loader:1.0.0@aar
                             androidLibrary                : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
                             androidLibrary                : androidx.print:print:1.0.0@aar
-                        androidLibrary                : androidx.documentfile:documentfile:1.0.0@aar
+                        androidLibrary                : androidx.cardview:cardview:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        androidLibrary                : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
+                        androidLibrary                : androidx.recyclerview:recyclerview:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        androidLibrary                : androidx.print:print:1.0.0@aar
+                            androidLibrary                : androidx.core:core:1.5.0@aar
+                            androidLibrary                : androidx.legacy:legacy-support-core-ui:1.0.0@aar
+                        androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                        androidLibrary                : androidx.interpolator:interpolator:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         androidLibrary                : androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -3215,29 +3234,19 @@ MODULE                        : navgraph.lib
                         androidLibrary                : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
-                        androidLibrary                : androidx.transition:transition:1.3.0@aar
+                        androidLibrary                : androidx.documentfile:documentfile:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            androidLibrary                : androidx.core:core:1.5.0@aar
-                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
-                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
-                        androidLibrary                : androidx.cardview:cardview:1.0.0@aar
+                        androidLibrary                : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        androidLibrary                : androidx.recyclerview:recyclerview:1.0.0@aar
+                        androidLibrary                : androidx.print:print:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            androidLibrary                : androidx.core:core:1.5.0@aar
-                            androidLibrary                : androidx.legacy:legacy-support-core-ui:1.0.0@aar
-                        androidLibrary                : androidx.constraintlayout:constraintlayout:1.1.3@aar
-                            javaLibrary                   : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
-                        javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        javaLibrary                   : androidx.collection:collection:1.1.0@jar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        javaLibrary                   : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
+                ProvidedDependencies
+                    - provided                    : androidx.arch.core:core-runtime:2.0.0@aar
+                    - provided                    : androidx.transition:transition:1.0.0@aar
                 RuntimeOnlyClasses
+                    - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jars/classes.jar
                     - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
+                    - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/transition-1.3.0/jars/classes.jar
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
@@ -3345,10 +3354,10 @@ MODULE                        : navgraph.lib
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                        androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
@@ -3393,7 +3402,7 @@ MODULE                        : navgraph.lib
                             androidLibrary                : androidx.legacy:legacy-support-core-ui:1.0.0@aar
                             androidLibrary                : androidx.legacy:legacy-support-core-utils:1.0.0@aar
                             androidLibrary                : androidx.fragment:fragment:1.3.4@aar
-                            androidLibrary                : androidx.transition:transition:1.3.0@aar
+                            androidLibrary                : androidx.transition:transition:1.0.0@aar
                             androidLibrary                : androidx.appcompat:appcompat:1.3.0@aar
                             androidLibrary                : androidx.cardview:cardview:1.0.0@aar
                             androidLibrary                : androidx.recyclerview:recyclerview:1.0.0@aar
@@ -3438,11 +3447,9 @@ MODULE                        : navgraph.lib
                         androidLibrary                : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
-                        androidLibrary                : androidx.transition:transition:1.3.0@aar
+                        androidLibrary                : androidx.transition:transition:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
-                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
-                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
                         androidLibrary                : androidx.cardview:cardview:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         androidLibrary                : androidx.recyclerview:recyclerview:1.0.0@aar
@@ -3710,8 +3717,13 @@ MODULE                        : navgraph.lib
                             androidLibrary                : androidx.navigation:navigation-fragment:2.3.5@aar
                             androidLibrary                : androidx.navigation:navigation-ui:2.3.5@aar
                             androidLibrary                : androidx.constraintlayout:constraintlayout:1.1.3@aar
+                ProvidedDependencies
+                    - provided                    : androidx.arch.core:core-runtime:2.0.0@aar
+                    - provided                    : androidx.transition:transition:1.0.0@aar
                 RuntimeOnlyClasses
+                    - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jars/classes.jar
                     - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
+                    - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/transition-1.3.0/jars/classes.jar
                 ApplicationId                 : com.example.lib.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -3801,10 +3813,10 @@ MODULE                        : navgraph.lib
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                        androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
@@ -3849,7 +3861,7 @@ MODULE                        : navgraph.lib
                             androidLibrary                : androidx.legacy:legacy-support-core-ui:1.0.0@aar
                             androidLibrary                : androidx.legacy:legacy-support-core-utils:1.0.0@aar
                             androidLibrary                : androidx.fragment:fragment:1.3.4@aar
-                            androidLibrary                : androidx.transition:transition:1.3.0@aar
+                            androidLibrary                : androidx.transition:transition:1.0.0@aar
                             androidLibrary                : androidx.appcompat:appcompat:1.3.0@aar
                             androidLibrary                : androidx.cardview:cardview:1.0.0@aar
                             androidLibrary                : androidx.recyclerview:recyclerview:1.0.0@aar
@@ -3894,11 +3906,9 @@ MODULE                        : navgraph.lib
                         androidLibrary                : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
-                        androidLibrary                : androidx.transition:transition:1.3.0@aar
+                        androidLibrary                : androidx.transition:transition:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
-                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
-                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
                         androidLibrary                : androidx.cardview:cardview:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         androidLibrary                : androidx.recyclerview:recyclerview:1.0.0@aar
@@ -4125,8 +4135,13 @@ MODULE                        : navgraph.lib
                             androidLibrary                : androidx.navigation:navigation-fragment:2.3.5@aar
                             androidLibrary                : androidx.navigation:navigation-ui:2.3.5@aar
                             androidLibrary                : androidx.constraintlayout:constraintlayout:1.1.3@aar
+                ProvidedDependencies
+                    - provided                    : androidx.arch.core:core-runtime:2.0.0@aar
+                    - provided                    : androidx.transition:transition:1.0.0@aar
                 RuntimeOnlyClasses
+                    - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jars/classes.jar
                     - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
+                    - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/transition-1.3.0/jars/classes.jar
                 MockablePlatformJar           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :lib (DefaultExternalProject) (*seen*)
 MODULE                        : navgraph.lib.androidTest

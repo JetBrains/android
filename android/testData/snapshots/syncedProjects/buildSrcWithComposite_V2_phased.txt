@@ -400,7 +400,7 @@ PROJECT                       : BuildSrcWithComposite
         LIBRARY                       : Gradle: androidx.appcompat:appcompat-resources:1.3.0@aar [=]
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.3.0@aar [=]
         LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
-        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.1.0@aar [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.cardview:cardview:1.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.collection:collection-ktx:1.1.0 [=]
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0 [=]
@@ -439,7 +439,7 @@ PROJECT                       : BuildSrcWithComposite
         LIBRARY                       : Gradle: androidx.print:print:1.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.recyclerview:recyclerview:1.1.0@aar [=]
         LIBRARY                       : Gradle: androidx.savedstate:savedstate:1.1.0@aar [=]
-        LIBRARY                       : Gradle: androidx.transition:transition:1.3.0@aar [=]
+        LIBRARY                       : Gradle: androidx.transition:transition:1.2.0@aar [=]
         LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.1.0@aar [=]
         LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable:1.1.0@aar [=]
         LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.1.1@aar [=]
@@ -560,7 +560,7 @@ PROJECT                       : BuildSrcWithComposite
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.1.0@aar [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.cardview:cardview:1.0.0@aar [=]
             Scope                         : Test
@@ -638,7 +638,7 @@ PROJECT                       : BuildSrcWithComposite
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.savedstate:savedstate:1.1.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.transition:transition:1.3.0@aar [=]
+        LIBRARY                       : Gradle: androidx.transition:transition:1.2.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.1.0@aar [=]
             Scope                         : Test
@@ -1352,7 +1352,7 @@ PROJECT                       : BuildSrcWithComposite
         LIBRARY                       : Gradle: androidx.appcompat:appcompat-resources:1.3.0@aar [=]
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.3.0@aar [=]
         LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
-        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.1.0@aar [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0 [=]
         LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.4@aar [=]
         LIBRARY                       : Gradle: androidx.core:core:1.5.0@aar [=]
@@ -1480,7 +1480,7 @@ PROJECT                       : BuildSrcWithComposite
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.1.0@aar [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0 [=]
             Scope                         : Test
@@ -1998,9 +1998,6 @@ PROJECT                       : BuildSrcWithComposite
         LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.1.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.cardview:cardview:1.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cardview-1.0.0/AndroidManifest.xml
             *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cardview-1.0.0/res
@@ -2168,11 +2165,6 @@ PROJECT                       : BuildSrcWithComposite
             *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/transition-1.2.0/res
             *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/transition-1.2.0/jars/classes.jar!/
             *ANNOTATIONS                  : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/transition-1.2.0/annotations.zip!/
-        LIBRARY                       : Gradle: androidx.transition:transition:1.3.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/transition-1.3.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/transition-1.3.0/res
-            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/transition-1.3.0/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/transition-1.3.0/annotations.zip!/
         LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
             *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/jars/classes.jar!/

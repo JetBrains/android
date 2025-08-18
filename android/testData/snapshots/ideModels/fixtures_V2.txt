@@ -2691,6 +2691,9 @@ MODULE                        : project.lib
                             javaLibrary                   : com.googlecode.java-diff-utils:diffutils:1.3.0@jar
                             javaLibrary                   : com.google.auto.value:auto-value-annotations:1.6.3@jar
                             javaLibrary                   : com.google.errorprone:error_prone_annotations:2.3.1@jar
+                        module                        : <ROOT>-:lib-MAIN
+                            javaLibrary                   : commons-io:commons-io:2.4@jar
+                        javaLibrary                   : com.google.code.gson:gson:2.2.4@jar
                         javaLibrary                   : com.google.guava:guava:27.0.1-android@jar
                             javaLibrary                   : com.google.guava:failureaccess:1.0.1@jar
                             javaLibrary                   : com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava@jar
@@ -2699,22 +2702,19 @@ MODULE                        : project.lib
                             javaLibrary                   : com.google.errorprone:error_prone_annotations:2.3.1@jar
                             javaLibrary                   : com.google.j2objc:j2objc-annotations:1.1@jar
                             javaLibrary                   : org.codehaus.mojo:animal-sniffer-annotations:1.17@jar
+                        javaLibrary                   : org.checkerframework:checker-compat-qual:2.5.5@jar
+                        javaLibrary                   : junit:junit:4.12@jar
+                            javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
+                        javaLibrary                   : com.googlecode.java-diff-utils:diffutils:1.3.0@jar
+                        javaLibrary                   : com.google.auto.value:auto-value-annotations:1.6.3@jar
+                        javaLibrary                   : com.google.errorprone:error_prone_annotations:2.3.1@jar
+                        javaLibrary                   : commons-io:commons-io:2.4@jar
                         javaLibrary                   : com.google.guava:failureaccess:1.0.1@jar
                         javaLibrary                   : com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava@jar
                         javaLibrary                   : com.google.code.findbugs:jsr305:3.0.2@jar
-                        javaLibrary                   : org.checkerframework:checker-compat-qual:2.5.5@jar
-                        javaLibrary                   : com.google.errorprone:error_prone_annotations:2.3.1@jar
                         javaLibrary                   : com.google.j2objc:j2objc-annotations:1.1@jar
                         javaLibrary                   : org.codehaus.mojo:animal-sniffer-annotations:1.17@jar
-                        javaLibrary                   : junit:junit:4.12@jar
-                            javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
-                        javaLibrary                   : com.googlecode.java-diff-utils:diffutils:1.3.0@jar
-                        javaLibrary                   : com.google.auto.value:auto-value-annotations:1.6.3@jar
-                        javaLibrary                   : commons-io:commons-io:2.4@jar
-                        javaLibrary                   : com.google.code.gson:gson:2.2.4@jar
-                        module                        : <ROOT>-:lib-MAIN
-                            javaLibrary                   : commons-io:commons-io:2.4@jar
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation

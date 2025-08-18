@@ -133,6 +133,7 @@ maven_repository(
         "@maven//:androidx.appcompat.appcompat_1.0.2",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
         "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.2.4",
+        "@maven//:androidx.collection.collection_1.4.0",
         "@maven//:androidx.compose.compiler.compiler_1.2.0",
         "@maven//:androidx.compose.ui.ui-test-junit4_1.2.0",
         "@maven//:androidx.compose.ui.ui-tooling_1.2.0",

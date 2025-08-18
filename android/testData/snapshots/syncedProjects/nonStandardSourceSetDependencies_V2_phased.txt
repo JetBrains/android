@@ -969,7 +969,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.1.0@aar [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0 [=]
             Scope                         : Test
@@ -1110,7 +1110,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: androidx.appcompat:appcompat-resources:1.3.0@aar [=]
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.3.0@aar [=]
         LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
-        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.1.0@aar [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0 [=]
         LIBRARY                       : Gradle: androidx.core:core:1.5.0@aar [=]
         LIBRARY                       : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar [=]
@@ -1235,7 +1235,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.1.0@aar [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0 [=]
             Scope                         : Test
@@ -2940,9 +2940,9 @@ PROJECT                       : NonStandardSourceSetDependencies
             *ANNOTATIONS                  : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.3.0/annotations.zip!/
         LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0
             *CLASSES                      : jar://<M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar!/
-        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.1.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0
             *CLASSES                      : jar://<M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar!/
         LIBRARY                       : Gradle: androidx.core:core:1.5.0@aar

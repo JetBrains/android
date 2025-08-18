@@ -175,22 +175,22 @@ class TargetModulesTreeStructureTest {
                           (via) lib1:1.0 (com.example.libs)
           modulePlus
               debug
-                  (via) lib3:1.0 (com.example.jlib)
+                  (via) lib3:0.9.1 (com.example.jlib)
                       (via) lib2:0.9.1 (com.example.libs)
                           (via) lib1:0.9.1 (com.example.libs)
                               (by) implementation
               release
-                  (via) lib3:1.0 (com.example.jlib)
+                  (via) lib3:0.9.1 (com.example.jlib)
                       (via) lib2:0.9.1 (com.example.libs)
                           (via) lib1:0.9.1 (com.example.libs)
                               (by) implementation
                               (by) releaseImplementation
               debug (androidTest)
-                  (via) lib3:1.0 (com.example.jlib)
+                  (via) lib3:0.9.1 (com.example.jlib)
                       (via) lib2:0.9.1 (com.example.libs)
                           (via) lib1:0.9.1 (com.example.libs)
               debug (test)
-                  (via) lib3:1.0 (com.example.jlib)
+                  (via) lib3:0.9.1 (com.example.jlib)
                       (via) lib2:0.9.1 (com.example.libs)
                           (via) lib1:0.9.1 (com.example.libs)""".trimIndent()
       treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })

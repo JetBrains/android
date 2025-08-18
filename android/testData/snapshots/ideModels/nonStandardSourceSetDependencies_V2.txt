@@ -111,6 +111,24 @@ LIBRARY_TABLE
         resStaticLibrary              : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.3.0/res.apk [-]
         - runtimeJarFiles             : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.3.0/jars/classes.jar
         symbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.3.0/R.txt
+    - library                     : androidx.arch.core:core-runtime:2.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/aidl [-]
+        artifact                      : <M2>/androidx/arch/core/core-runtime/2.0.0/core-runtime-2.0.0.aar
+        artifactAddress               : androidx.arch.core:core-runtime:2.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar
+        component                     : androidx.arch.core:core-runtime:2.0.0
+        externalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0
+        jniFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/R.txt
     - library                     : androidx.arch.core:core-runtime:2.1.0@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/aidl [-]
         artifact                      : <M2>/androidx/arch/core/core-runtime/2.1.0/core-runtime-2.1.0.aar
@@ -3897,10 +3915,10 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                        androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
@@ -3938,6 +3956,12 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                         module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        module                        : <ROOT>-:common-commonMain
+                        module                        : <ROOT>-:common-jvmMain
+                        module                        : <ROOT>-:common-commonMain
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         androidLibrary                : androidx.appcompat:appcompat:1.3.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
@@ -3950,21 +3974,12 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         androidLibrary                : androidx.core:core:1.5.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
                             androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
-                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
-                        androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                        androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
                         androidLibrary                : androidx.cursoradapter:cursoradapter:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -3977,23 +3992,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             androidLibrary                : androidx.tracing:tracing:1.0.0@aar
-                        androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        androidLibrary                : androidx.savedstate:savedstate:1.1.0@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                        androidLibrary                : androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            androidLibrary                : androidx.savedstate:savedstate:1.1.0@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
-                        androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
-                        androidLibrary                : androidx.tracing:tracing:1.0.0@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         androidLibrary                : androidx.fragment:fragment:1.3.4@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
@@ -4006,29 +4004,53 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar
                             androidLibrary                : androidx.savedstate:savedstate:1.1.0@aar
                             androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
-                        androidLibrary                : androidx.viewpager:viewpager:1.0.0@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            androidLibrary                : androidx.core:core:1.5.0@aar
-                            androidLibrary                : androidx.customview:customview:1.0.0@aar
-                        androidLibrary                : androidx.customview:customview:1.0.0@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            androidLibrary                : androidx.core:core:1.5.0@aar
-                        androidLibrary                : androidx.loader:loader:1.0.0@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                            androidLibrary                : androidx.core:core:1.5.0@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
-                        androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                        androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
                         androidLibrary                : androidx.appcompat:appcompat-resources:1.3.0@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
                             androidLibrary                : androidx.vectordrawable:vectordrawable:1.1.0@aar
                             androidLibrary                : androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
+                        androidLibrary                : androidx.drawerlayout:drawerlayout:1.0.0@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            androidLibrary                : androidx.core:core:1.5.0@aar
+                            androidLibrary                : androidx.customview:customview:1.0.0@aar
+                        androidLibrary                : androidx.savedstate:savedstate:1.1.0@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
+                        javaLibrary                   : androidx.collection:collection:1.1.0@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                        androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                        androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                        androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            javaLibrary                   : androidx.collection:collection:1.1.0@jar
+                        androidLibrary                : androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            androidLibrary                : androidx.savedstate:savedstate:1.1.0@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
+                        androidLibrary                : androidx.tracing:tracing:1.0.0@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                        androidLibrary                : androidx.viewpager:viewpager:1.0.0@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            androidLibrary                : androidx.core:core:1.5.0@aar
+                            androidLibrary                : androidx.customview:customview:1.0.0@aar
+                        androidLibrary                : androidx.loader:loader:1.0.0@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            androidLibrary                : androidx.core:core:1.5.0@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
+                        androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
+                        androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
                         androidLibrary                : androidx.vectordrawable:vectordrawable:1.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
@@ -4037,27 +4059,26 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.vectordrawable:vectordrawable:1.1.0@aar
                             androidLibrary                : androidx.interpolator:interpolator:1.0.0@aar
                             javaLibrary                   : androidx.collection:collection:1.1.0@jar
-                        androidLibrary                : androidx.interpolator:interpolator:1.0.0@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        androidLibrary                : androidx.drawerlayout:drawerlayout:1.0.0@aar
+                        androidLibrary                : androidx.customview:customview:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
-                            androidLibrary                : androidx.customview:customview:1.0.0@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        javaLibrary                   : androidx.collection:collection:1.1.0@jar
+                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
-                        module                        : <ROOT>-:common-commonMain
-                        module                        : <ROOT>-:common-jvmMain
-                        module                        : <ROOT>-:common-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                        androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
+                            javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
+                        androidLibrary                : androidx.interpolator:interpolator:1.0.0@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                ProvidedDependencies
+                    - provided                    : androidx.arch.core:core-runtime:2.0.0@aar
                 RuntimeOnlyClasses
+                    - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jars/classes.jar
                     - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
                 IsSigned                      : false
                 CodeShrinker                  : null
@@ -4142,10 +4163,10 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                        androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
@@ -4310,7 +4331,10 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                         module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                ProvidedDependencies
+                    - provided                    : androidx.arch.core:core-runtime:2.0.0@aar
                 RuntimeOnlyClasses
+                    - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jars/classes.jar
                     - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
                 ApplicationId                 : me.monori.feature.a.test
                 SigningConfigName             : debug
@@ -4402,10 +4426,10 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
                         androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
-                        androidLibrary                : androidx.arch.core:core-runtime:2.1.0@aar
+                        androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                         androidLibrary                : androidx.annotation:annotation-experimental:1.0.0@aar
@@ -4570,7 +4594,10 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                         module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                ProvidedDependencies
+                    - provided                    : androidx.arch.core:core-runtime:2.0.0@aar
                 RuntimeOnlyClasses
+                    - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jars/classes.jar
                     - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
                 MockablePlatformJar           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     kotlinGradleModel             : KotlinGradleModelImpl
@@ -4930,11 +4957,11 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     runtimeClasspath
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
@@ -6135,12 +6162,12 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     runtimeClasspath
-                        androidLibrary                : com.example:with-runtime:1.0@aar
-                            androidLibrary                : com.example:runtime:1.0@aar
-                        androidLibrary                : com.example:runtime:1.0@aar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        androidLibrary                : com.example:with-runtime:1.0@aar
+                            androidLibrary                : com.example:runtime:1.0@aar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        androidLibrary                : com.example:runtime:1.0@aar
                 RuntimeOnlyClasses
                     - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/jars/classes.jar
                 IsSigned                      : false

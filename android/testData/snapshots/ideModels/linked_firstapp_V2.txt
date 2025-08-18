@@ -2449,6 +2449,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
                         javaLibrary                   : androidx.arch.core:core-common:2.0.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
                     runtimeClasspath
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         androidLibrary                : androidx.appcompat:appcompat:1.0.2@aar
                             javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
                             androidLibrary                : androidx.core:core:1.0.1@aar
@@ -2458,18 +2460,16 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             androidLibrary                : androidx.fragment:fragment:1.0.0@aar
                             androidLibrary                : androidx.vectordrawable:vectordrawable:1.0.1@aar
                             androidLibrary                : androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
                         androidLibrary                : androidx.core:core:1.0.1@aar
                             javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
                             javaLibrary                   : androidx.collection:collection:1.0.0@jar
                             androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.0.0@aar
                             androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.0.0@aar
-                        androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.0.0@aar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.0.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.0.0@jar
+                        javaLibrary                   : androidx.collection:collection:1.0.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
-                        androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.0.0@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
-                            javaLibrary                   : androidx.collection:collection:1.0.0@jar
                         androidLibrary                : androidx.cursoradapter:cursoradapter:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
                         androidLibrary                : androidx.legacy:legacy-support-core-utils:1.0.0@aar
@@ -2479,30 +2479,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             androidLibrary                : androidx.loader:loader:1.0.0@aar
                             androidLibrary                : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
                             androidLibrary                : androidx.print:print:1.0.0@aar
-                        androidLibrary                : androidx.documentfile:documentfile:1.0.0@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
-                        androidLibrary                : androidx.loader:loader:1.0.0@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
-                            androidLibrary                : androidx.core:core:1.0.1@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
-                        androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
-                            androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
-                            javaLibrary                   : androidx.arch.core:core-common:2.0.0@jar
-                        androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.0.0@jar
-                        androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
-                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.0.0@jar
-                            javaLibrary                   : androidx.arch.core:core-common:2.0.0@jar
-                            androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
-                        androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
-                        androidLibrary                : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
-                        androidLibrary                : androidx.print:print:1.0.0@aar
-                            javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
                         androidLibrary                : androidx.fragment:fragment:1.0.0@aar
                             androidLibrary                : androidx.core:core:1.0.1@aar
                             androidLibrary                : androidx.legacy:legacy-support-core-ui:1.0.0@aar
@@ -2510,6 +2486,31 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
                             androidLibrary                : androidx.loader:loader:1.0.0@aar
                             androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
+                        androidLibrary                : androidx.vectordrawable:vectordrawable:1.0.1@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
+                            androidLibrary                : androidx.core:core:1.0.1@aar
+                        androidLibrary                : androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
+                            androidLibrary                : androidx.vectordrawable:vectordrawable:1.0.1@aar
+                            androidLibrary                : androidx.legacy:legacy-support-core-ui:1.0.0@aar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.0.0@aar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.0.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.0.0@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
+                        androidLibrary                : androidx.versionedparcelable:versionedparcelable:1.0.0@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
+                            javaLibrary                   : androidx.collection:collection:1.0.0@jar
+                        androidLibrary                : androidx.documentfile:documentfile:1.0.0@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
+                        androidLibrary                : androidx.loader:loader:1.0.0@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
+                            androidLibrary                : androidx.core:core:1.0.1@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
+                        androidLibrary                : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
+                        androidLibrary                : androidx.print:print:1.0.0@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
                         androidLibrary                : androidx.legacy:legacy-support-core-ui:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
                             androidLibrary                : androidx.core:core:1.0.1@aar
@@ -2523,6 +2524,16 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             androidLibrary                : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
                             androidLibrary                : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                             androidLibrary                : androidx.cursoradapter:cursoradapter:1.0.0@aar
+                        androidLibrary                : androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
+                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.0.0@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
+                        javaLibrary                   : androidx.arch.core:core-common:2.0.0@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
+                        androidLibrary                : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                            androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+                            javaLibrary                   : androidx.arch.core:core-common:2.0.0@jar
                         androidLibrary                : androidx.customview:customview:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
                             androidLibrary                : androidx.core:core:1.0.1@aar
@@ -2551,24 +2562,13 @@ MODULE                        : My_First_App.app.mysharedlibrary
                         androidLibrary                : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
                             androidLibrary                : androidx.core:core:1.0.1@aar
-                        androidLibrary                : androidx.vectordrawable:vectordrawable:1.0.1@aar
+                        androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
-                            androidLibrary                : androidx.core:core:1.0.1@aar
-                        androidLibrary                : androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
-                            androidLibrary                : androidx.vectordrawable:vectordrawable:1.0.1@aar
-                            androidLibrary                : androidx.legacy:legacy-support-core-ui:1.0.0@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
-                        javaLibrary                   : androidx.collection:collection:1.0.0@jar
-                            javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
-                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.0.0@jar
-                            javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
-                        javaLibrary                   : androidx.arch.core:core-common:2.0.0@jar
-                            javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.0.0@jar
+                        androidLibrary                : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.0.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.0.0@jar
+                            androidLibrary                : androidx.arch.core:core-runtime:2.0.0@aar
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation

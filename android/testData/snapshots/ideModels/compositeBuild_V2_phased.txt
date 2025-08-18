@@ -2508,6 +2508,7 @@ MODULE                        : TestCompositeLib1.lib
                             module                        : <ROOT>/TestCompositeLib4-:-MAIN
                         module                        : <ROOT>/TestCompositeLib4-:-MAIN
                     runtimeClasspath
+                        module                        : <ROOT>/TestCompositeLib2-:-MAIN
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                             androidLibrary                : com.android.support:support-compat:28.0.0@aar
@@ -2517,18 +2518,19 @@ MODULE                        : TestCompositeLib1.lib
                             androidLibrary                : com.android.support:support-fragment:28.0.0@aar
                             androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
                             androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        module                        : <ROOT>/TestCompositeLib3-:lib-MAIN
+                            module                        : <ROOT>/TestCompositeLib4-:-MAIN
+                            androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                        javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         androidLibrary                : com.android.support:support-compat:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                             javaLibrary                   : com.android.support:collections:28.0.0@jar
                             androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
                             androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
-                        androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
-                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
-                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                            javaLibrary                   : com.android.support:collections:28.0.0@jar
                         androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
@@ -2538,30 +2540,6 @@ MODULE                        : TestCompositeLib1.lib
                             androidLibrary                : com.android.support:loader:28.0.0@aar
                             androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
                             androidLibrary                : com.android.support:print:28.0.0@aar
-                        androidLibrary                : com.android.support:documentfile:28.0.0@aar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        androidLibrary                : com.android.support:loader:28.0.0@aar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
-                            androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
-                            androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
-                        androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
-                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
-                            androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
-                            javaLibrary                   : android.arch.core:common:1.1.1@jar
-                        androidLibrary                : android.arch.core:runtime:1.1.1@aar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                            javaLibrary                   : android.arch.core:common:1.1.1@jar
-                        androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
-                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
-                            javaLibrary                   : android.arch.core:common:1.1.1@jar
-                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
-                        androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        androidLibrary                : com.android.support:print:28.0.0@aar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         androidLibrary                : com.android.support:support-fragment:28.0.0@aar
                             androidLibrary                : com.android.support:support-compat:28.0.0@aar
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
@@ -2569,6 +2547,33 @@ MODULE                        : TestCompositeLib1.lib
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                             androidLibrary                : com.android.support:loader:28.0.0@aar
                             androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
+                            androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        module                        : <ROOT>/TestCompositeLib4-:-MAIN
+                        androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            javaLibrary                   : com.android.support:collections:28.0.0@jar
+                        androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:loader:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                            androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:print:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                             androidLibrary                : com.android.support:support-compat:28.0.0@aar
@@ -2582,6 +2587,17 @@ MODULE                        : TestCompositeLib1.lib
                             androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
                             androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
                             androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                            androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
                         androidLibrary                : com.android.support:customview:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                             androidLibrary                : com.android.support:support-compat:28.0.0@aar
@@ -2610,29 +2626,13 @@ MODULE                        : TestCompositeLib1.lib
                         androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                             androidLibrary                : com.android.support:support-compat:28.0.0@aar
-                        androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                        androidLibrary                : android.arch.core:runtime:1.1.1@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
-                        androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
-                            androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
-                            androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
-                        javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : com.android.support:collections:28.0.0@jar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : android.arch.core:common:1.1.1@jar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        module                        : <ROOT>/TestCompositeLib2-:-MAIN
-                        module                        : <ROOT>/TestCompositeLib3-:lib-MAIN
-                            module                        : <ROOT>/TestCompositeLib4-:-MAIN
-                            androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
-                        module                        : <ROOT>/TestCompositeLib4-:-MAIN
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
@@ -5055,6 +5055,7 @@ MODULE                        : TestCompositeLib3.lib
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         module                        : <ROOT>/TestCompositeLib4-:-MAIN
                     runtimeClasspath
+                        module                        : <ROOT>/TestCompositeLib4-:-MAIN
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                             androidLibrary                : com.android.support:support-compat:28.0.0@aar
@@ -5064,18 +5065,14 @@ MODULE                        : TestCompositeLib3.lib
                             androidLibrary                : com.android.support:support-fragment:28.0.0@aar
                             androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
                             androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
+                        javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         androidLibrary                : com.android.support:support-compat:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                             javaLibrary                   : com.android.support:collections:28.0.0@jar
                             androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
                             androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
-                        androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
-                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
-                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                            javaLibrary                   : com.android.support:collections:28.0.0@jar
                         androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
@@ -5085,30 +5082,6 @@ MODULE                        : TestCompositeLib3.lib
                             androidLibrary                : com.android.support:loader:28.0.0@aar
                             androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
                             androidLibrary                : com.android.support:print:28.0.0@aar
-                        androidLibrary                : com.android.support:documentfile:28.0.0@aar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        androidLibrary                : com.android.support:loader:28.0.0@aar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
-                            androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
-                            androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
-                        androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
-                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
-                            androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
-                            javaLibrary                   : android.arch.core:common:1.1.1@jar
-                        androidLibrary                : android.arch.core:runtime:1.1.1@aar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                            javaLibrary                   : android.arch.core:common:1.1.1@jar
-                        androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
-                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
-                            javaLibrary                   : android.arch.core:common:1.1.1@jar
-                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
-                        androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        androidLibrary                : com.android.support:print:28.0.0@aar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         androidLibrary                : com.android.support:support-fragment:28.0.0@aar
                             androidLibrary                : com.android.support:support-compat:28.0.0@aar
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
@@ -5116,6 +5089,30 @@ MODULE                        : TestCompositeLib3.lib
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                             androidLibrary                : com.android.support:loader:28.0.0@aar
                             androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
+                            androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            javaLibrary                   : com.android.support:collections:28.0.0@jar
+                        androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:loader:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                            androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:print:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                             androidLibrary                : com.android.support:support-compat:28.0.0@aar
@@ -5129,6 +5126,16 @@ MODULE                        : TestCompositeLib3.lib
                             androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
                             androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
                             androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                            androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
                         androidLibrary                : com.android.support:customview:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                             androidLibrary                : com.android.support:support-compat:28.0.0@aar
@@ -5157,20 +5164,13 @@ MODULE                        : TestCompositeLib3.lib
                         androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                             androidLibrary                : com.android.support:support-compat:28.0.0@aar
-                        androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                        androidLibrary                : android.arch.core:runtime:1.1.1@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
-                        androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
-                            androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
-                            androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
-                        javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : com.android.support:collections:28.0.0@jar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : android.arch.core:common:1.1.1@jar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        module                        : <ROOT>/TestCompositeLib4-:-MAIN
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
@@ -7985,18 +7985,16 @@ MODULE                        : project.lib
                             androidLibrary                : com.android.support:support-fragment:28.0.0@aar
                             androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
                             androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         androidLibrary                : com.android.support:support-compat:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                             javaLibrary                   : com.android.support:collections:28.0.0@jar
                             androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
                             androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
-                        androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
-                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
-                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                            javaLibrary                   : com.android.support:collections:28.0.0@jar
                         androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
@@ -8006,30 +8004,6 @@ MODULE                        : project.lib
                             androidLibrary                : com.android.support:loader:28.0.0@aar
                             androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
                             androidLibrary                : com.android.support:print:28.0.0@aar
-                        androidLibrary                : com.android.support:documentfile:28.0.0@aar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        androidLibrary                : com.android.support:loader:28.0.0@aar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
-                            androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
-                            androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
-                        androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
-                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
-                            androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
-                            javaLibrary                   : android.arch.core:common:1.1.1@jar
-                        androidLibrary                : android.arch.core:runtime:1.1.1@aar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                            javaLibrary                   : android.arch.core:common:1.1.1@jar
-                        androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
-                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
-                            javaLibrary                   : android.arch.core:common:1.1.1@jar
-                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
-                        androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        androidLibrary                : com.android.support:print:28.0.0@aar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         androidLibrary                : com.android.support:support-fragment:28.0.0@aar
                             androidLibrary                : com.android.support:support-compat:28.0.0@aar
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
@@ -8037,6 +8011,32 @@ MODULE                        : project.lib
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                             androidLibrary                : com.android.support:loader:28.0.0@aar
                             androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
+                            androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            javaLibrary                   : com.android.support:collections:28.0.0@jar
+                        androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:loader:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                            androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:print:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                             androidLibrary                : com.android.support:support-compat:28.0.0@aar
@@ -8050,6 +8050,17 @@ MODULE                        : project.lib
                             androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
                             androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
                             androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                            androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
                         androidLibrary                : com.android.support:customview:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                             androidLibrary                : com.android.support:support-compat:28.0.0@aar
@@ -8078,24 +8089,13 @@ MODULE                        : project.lib
                         androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                             androidLibrary                : com.android.support:support-compat:28.0.0@aar
-                        androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                        androidLibrary                : android.arch.core:runtime:1.1.1@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
-                        androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
-                            androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
-                            androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
-                        javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : com.android.support:collections:28.0.0@jar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : android.arch.core:common:1.1.1@jar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
