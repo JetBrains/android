@@ -29,7 +29,13 @@ class LegacyAndroidWindow(
   private val client: LegacyClient,
   root: ViewNode,
   private val windowName: String,
-) : AndroidWindow(root, windowName, ImageType.BITMAP_AS_REQUESTED) {
+) :
+  AndroidWindow(
+    root = root,
+    displayId = null,
+    id = windowName,
+    imageType = ImageType.BITMAP_AS_REQUESTED,
+  ) {
 
   override suspend fun refreshImages(scale: Double) {
     val image =

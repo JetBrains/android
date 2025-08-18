@@ -26,11 +26,17 @@ import java.awt.Shape
  * @param root The root view node associated with this layout tree.
  * @param id An arbitrary ID, which can be any unique value, the details of which are left up to
  *   each implementing class.
+ * @param displayId The id of the display the root view of this window is attached to.
  * @param imageType The type of image backing this window's screenshot. Note that this value is
  *   mutable and may change after receiving new layout events.
  */
 // TODO(b/177374701): Investigate separating the response parsing logic from the window model data
-abstract class AndroidWindow(val root: ViewNode, val id: Any, imageType: ImageType) {
+abstract class AndroidWindow(
+  val root: ViewNode,
+  val displayId: Int?,
+  val id: Any,
+  imageType: ImageType,
+) {
   var imageType: ImageType = imageType
     private set
 

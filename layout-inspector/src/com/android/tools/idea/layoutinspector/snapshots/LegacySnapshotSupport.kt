@@ -99,7 +99,13 @@ class LegacySnapshotLoader : SnapshotLoader {
 
         windows.add(windowName)
         val window =
-          object : AndroidWindow(node, windowName, ImageType.BITMAP_AS_REQUESTED) {
+          object :
+            AndroidWindow(
+              root = node,
+              displayId = null,
+              id = windowName,
+              imageType = ImageType.BITMAP_AS_REQUESTED,
+            ) {
             override suspend fun refreshImages(scale: Double) {
               ViewNode.writeAccess {
                 root.flatten().forEach { it.drawChildren.clear() }

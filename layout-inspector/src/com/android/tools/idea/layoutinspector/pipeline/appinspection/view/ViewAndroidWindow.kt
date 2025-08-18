@@ -63,7 +63,13 @@ class ViewAndroidWindow(
   folderConfiguration: FolderConfiguration,
   private val isInterrupted: () -> Boolean,
   private val logEvent: (DynamicLayoutInspectorEventType) -> Unit,
-) : AndroidWindow(root, root.drawId, event.screenshot.type.toImageType()) {
+) :
+  AndroidWindow(
+    root = root,
+    displayId = if (event.rootView.hasDisplayId()) event.rootView.displayId else null,
+    id = root.drawId,
+    imageType = event.screenshot.type.toImageType(),
+  ) {
 
   // capturing screenshots can be disabled, in which case the event will have no screenshot
   private var screenshotBytes =
