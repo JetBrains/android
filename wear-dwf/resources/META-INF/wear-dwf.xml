@@ -16,6 +16,7 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
     <xml.schemaProvider implementation="com.android.tools.idea.wear.dwf.dom.raw.RawWatchfaceXmlSchemaProvider"/>
+    <postStartupActivity implementation="com.android.tools.idea.wear.dwf.dom.raw.RawWatchFaceXmlSchemaUpdaterStartupActivity"/>
     <dom.fileMetaData implementation="com.android.tools.idea.wear.dwf.dom.xml.WatchFaceShapesDescription" rootTagName="WatchFaces" />
     <dom.fileMetaData implementation="com.android.tools.idea.wear.dwf.dom.xml.WatchFaceInfoDescription" rootTagName="WatchFaceInfo" />
     <externalAnnotator language="XML" implementationClass="com.android.tools.idea.wear.dwf.dom.raw.RawWatchFaceDrawableResourceExternalAnnotator" />

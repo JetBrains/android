@@ -38,11 +38,14 @@ import com.android.utils.concurrency.AsyncSupplier
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.codeInsight.completion.CompletionType
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.replaceService
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Rule
@@ -55,6 +58,7 @@ import org.mockito.kotlin.whenever
 
 private const val RES_RAW_FOLDER = "${FD_RES}/${FD_RES_RAW}"
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class RawWatchfaceXmlSchemaProviderTest {
 
   private val projectRule =
@@ -70,6 +74,9 @@ class RawWatchfaceXmlSchemaProviderTest {
     get() =
       projectRule.module.getModuleSystem().getProductionAndroidModule()
         ?: error("expected main module to exist")
+
+  private val fixture
+    get() = projectRule.fixture
 
   @Before
   fun setup() {
@@ -287,6 +294,66 @@ class RawWatchfaceXmlSchemaProviderTest {
     domRule.testHighlighting("watch_face_completion_metadata_tag_after.xml")
 
     verify(mockTracker, atLeastOnce()).trackXmlSchemaUsed(WFFVersion1, isFallback = true)
+  }
+
+  @Test
+  // regression test for b/437100221
+  fun `test watch face file's schema updates after the merged manifest has loaded`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watchface.xml",
+        // language=XML
+        """
+       <WatchFace
+           clipShape="<caret>">
+       </WatchFace>
+     """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    // the merged manifest is not yet loaded
+    fixture.addFileToProject(FN_ANDROID_MANIFEST_XML, manifestWithWFFVersion("1"))
+    assertThat(fixture.complete(CompletionType.BASIC)).isEmpty()
+
+    // wait for it to load
+    MergedManifestManager.getMergedManifest(mainModule).get()
+
+    // the schema should be updated now
+    assertThat(fixture.complete(CompletionType.BASIC).map { it.lookupString }.toList())
+      .containsExactly("CIRCLE", "NONE", "RECTANGLE")
+  }
+
+  @Test
+  // Regression test for b/437100221
+  fun `test watch face file's schema updates after the WFF version is updated in the manifest`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watchface.xml",
+        // language=XML
+        """
+       <WatchFace clipShape="CIRCLE" height="450" width="450">
+        <UserConfigurations>
+          <!-- available from version 2 onwards -->
+          <Flavors defaultValue="" />
+        </UserConfigurations>
+      </WatchFace>
+     """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    // initially we're using the wrong version
+    addManifestWithWFFVersion("1")
+
+    assertThat(fixture.doHighlighting(HighlightSeverity.ERROR).map { it.text })
+      .containsExactly("Flavors")
+
+    // override manifest with the correct version and wait for the merged manifest to update
+    addManifestWithWFFVersion("2")
+
+    // the highlighting should now be ok
+    assertThat(fixture.doHighlighting(HighlightSeverity.ERROR)).isEmpty()
   }
 
   private fun addManifestWithWFFVersion(version: String) {
