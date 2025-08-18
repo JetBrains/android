@@ -67,9 +67,7 @@ class TargetModulesTreeStructureTest {
               freeDebug (androidTest)
               paidDebug (androidTest)
               freeDebug (test)
-              freeRelease (test)
               paidDebug (test)
-              paidRelease (test)
           modulePlus
               debug
                   (by) implementation
@@ -77,8 +75,7 @@ class TargetModulesTreeStructureTest {
                   (by) implementation
                   (by) releaseImplementation
               debug (androidTest)
-              debug (test)
-              release (test)""".trimIndent()
+              debug (test)""".trimIndent()
       var treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
       // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
       Truth.assertThat(treeStructure.toString()).isEqualTo(expectedProjectStructure)
@@ -112,11 +109,7 @@ class TargetModulesTreeStructureTest {
                   (via) lib1:1.0 (com.example.libs)
               freeDebug (test)
                   (via) lib1:1.0 (com.example.libs)
-              freeRelease (test)
-                  (via) lib1:1.0 (com.example.libs)
               paidDebug (test)
-                  (via) lib1:1.0 (com.example.libs)
-              paidRelease (test)
                   (via) lib1:1.0 (com.example.libs)
           modulePlus
               debug
@@ -129,8 +122,6 @@ class TargetModulesTreeStructureTest {
               debug (androidTest)
                   (via) lib1:0.9.1 (com.example.libs)
               debug (test)
-                  (via) lib1:0.9.1 (com.example.libs)
-              release (test)
                   (via) lib1:0.9.1 (com.example.libs)""".trimIndent()
       treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
       // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
@@ -178,15 +169,7 @@ class TargetModulesTreeStructureTest {
                   (via) lib3:1.0 (com.example.jlib)
                       (via) lib2:1.0 (com.example.libs)
                           (via) lib1:1.0 (com.example.libs)
-              freeRelease (test)
-                  (via) lib3:1.0 (com.example.jlib)
-                      (via) lib2:1.0 (com.example.libs)
-                          (via) lib1:1.0 (com.example.libs)
               paidDebug (test)
-                  (via) lib3:1.0 (com.example.jlib)
-                      (via) lib2:1.0 (com.example.libs)
-                          (via) lib1:1.0 (com.example.libs)
-              paidRelease (test)
                   (via) lib3:1.0 (com.example.jlib)
                       (via) lib2:1.0 (com.example.libs)
                           (via) lib1:1.0 (com.example.libs)
@@ -207,10 +190,6 @@ class TargetModulesTreeStructureTest {
                       (via) lib2:0.9.1 (com.example.libs)
                           (via) lib1:0.9.1 (com.example.libs)
               debug (test)
-                  (via) lib3:1.0 (com.example.jlib)
-                      (via) lib2:0.9.1 (com.example.libs)
-                          (via) lib1:0.9.1 (com.example.libs)
-              release (test)
                   (via) lib3:1.0 (com.example.jlib)
                       (via) lib2:0.9.1 (com.example.libs)
                           (via) lib1:0.9.1 (com.example.libs)""".trimIndent()

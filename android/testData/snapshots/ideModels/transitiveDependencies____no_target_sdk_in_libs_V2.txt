@@ -765,9 +765,6 @@ MODULE                        : project
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
                         runtimeOnly                   : <empty>
                         testAnnotationProcessor       : <empty>
                         testCompileOnly               : <empty>
@@ -803,8 +800,6 @@ MODULE                        : project
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testReleaseUnitTest
             javalib1                      : :javalib1 (DefaultExternalProject)
                 path                          : :javalib1 [-]
                 identityPath                  : :javalib1 [-]
@@ -1073,9 +1068,6 @@ MODULE                        : project
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
                         runtimeOnly                   : <empty>
                         testAnnotationProcessor       : <empty>
                         testCompileOnly               : <empty>
@@ -1111,8 +1103,6 @@ MODULE                        : project
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :library1:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :library1:testReleaseUnitTest
             library2                      : :library2 (DefaultExternalProject)
                 path                          : :library2 [-]
                 identityPath                  : :library2 [-]
@@ -1193,9 +1183,6 @@ MODULE                        : project
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
                         runtimeOnly                   : <empty>
                         testAnnotationProcessor       : <empty>
                         testCompileOnly               : <empty>
@@ -1231,8 +1218,6 @@ MODULE                        : project
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :library2:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :library2:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
@@ -1240,8 +1225,6 @@ MODULE                        : project
                     qName                         : :javalib1:test
                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testDebugUnitTest
-                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -1448,20 +1431,6 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/app/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/app/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -2528,20 +2497,6 @@ MODULE                        : project.library1
             AssetsDirectories             : <ROOT>/library1/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/library1/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/library1/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/library1/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/library1/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/library1/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/library1/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/library1/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/library1/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/library1/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/library1/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/library1/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -3594,20 +3549,6 @@ MODULE                        : project.library2
             AssetsDirectories             : <ROOT>/library2/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/library2/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/library2/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/library2/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/library2/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/library2/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/library2/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/library2/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/library2/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/library2/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/library2/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/library2/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

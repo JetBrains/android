@@ -983,7 +983,6 @@ MODULE                        : project
                         kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
                         kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                         kotlinCompilerPluginClasspathRelease    : <empty>
-                        kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinInternalAbiValidation   : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
@@ -1013,21 +1012,6 @@ MODULE                        : project
                         releaseRuntimeOnly            : <empty>
                         - releaseSourcesElements      : <ROOT>/ads-sdk-implementation/build/libs/ads-sdk-implementation-sources.jar [-]
                         - releaseSourcesElements-published      : <ROOT>/ads-sdk-implementation/build/libs/ads-sdk-implementation-sources.jar [-]
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestApi            : <empty>
-                        releaseUnitTestApiDependenciesMetadata  : <empty>
-                        releaseUnitTestCompilationApi : <empty>
-                        releaseUnitTestCompilationCompileOnly   : <empty>
-                        releaseUnitTestCompilationImplementation          : <empty>
-                        releaseUnitTestCompilationRuntimeOnly   : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestCompileOnly    : <empty>
-                        releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                        releaseUnitTestImplementation : <empty>
-                        releaseUnitTestImplementationDependenciesMetadata : <empty>
-                        releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
-                        releaseUnitTestRuntimeOnly    : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -1092,8 +1076,6 @@ MODULE                        : project
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :ads-sdk-implementation:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :ads-sdk-implementation:testReleaseUnitTest
             app                           : :app (DefaultExternalProject)
                 path                          : :app [-]
                 identityPath                  : :app [-]
@@ -1221,7 +1203,6 @@ MODULE                        : project
                         kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
                         kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                         kotlinCompilerPluginClasspathRelease    : <empty>
-                        kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinInternalAbiValidation   : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
@@ -1247,21 +1228,6 @@ MODULE                        : project
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestApi            : <empty>
-                        releaseUnitTestApiDependenciesMetadata  : <empty>
-                        releaseUnitTestCompilationApi : <empty>
-                        releaseUnitTestCompilationCompileOnly   : <empty>
-                        releaseUnitTestCompilationImplementation          : <empty>
-                        releaseUnitTestCompilationRuntimeOnly   : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestCompileOnly    : <empty>
-                        releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                        releaseUnitTestImplementation : <empty>
-                        releaseUnitTestImplementationDependenciesMetadata : <empty>
-                        releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
-                        releaseUnitTestRuntimeOnly    : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -1326,8 +1292,6 @@ MODULE                        : project
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testReleaseUnitTest
             app-with-dynamic-feature      : :app-with-dynamic-feature (DefaultExternalProject)
                 path                          : :app-with-dynamic-feature [-]
                 identityPath                  : :app-with-dynamic-feature [-]
@@ -1455,7 +1419,6 @@ MODULE                        : project
                         kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
                         kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                         kotlinCompilerPluginClasspathRelease    : <empty>
-                        kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinInternalAbiValidation   : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
@@ -1481,21 +1444,6 @@ MODULE                        : project
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestApi            : <empty>
-                        releaseUnitTestApiDependenciesMetadata  : <empty>
-                        releaseUnitTestCompilationApi : <empty>
-                        releaseUnitTestCompilationCompileOnly   : <empty>
-                        releaseUnitTestCompilationImplementation          : <empty>
-                        releaseUnitTestCompilationRuntimeOnly   : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestCompileOnly    : <empty>
-                        releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                        releaseUnitTestImplementation : <empty>
-                        releaseUnitTestImplementationDependenciesMetadata : <empty>
-                        releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
-                        releaseUnitTestRuntimeOnly    : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -1560,8 +1508,6 @@ MODULE                        : project
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :app-with-dynamic-feature:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app-with-dynamic-feature:testReleaseUnitTest
             feature                       : :feature (DefaultExternalProject)
                 path                          : :feature [-]
                 identityPath                  : :feature [-]
@@ -1689,7 +1635,6 @@ MODULE                        : project
                         kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
                         kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                         kotlinCompilerPluginClasspathRelease    : <empty>
-                        kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinInternalAbiValidation   : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
@@ -1715,21 +1660,6 @@ MODULE                        : project
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestApi            : <empty>
-                        releaseUnitTestApiDependenciesMetadata  : <empty>
-                        releaseUnitTestCompilationApi : <empty>
-                        releaseUnitTestCompilationCompileOnly   : <empty>
-                        releaseUnitTestCompilationImplementation          : <empty>
-                        releaseUnitTestCompilationRuntimeOnly   : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestCompileOnly    : <empty>
-                        releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                        releaseUnitTestImplementation : <empty>
-                        releaseUnitTestImplementationDependenciesMetadata : <empty>
-                        releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
-                        releaseUnitTestRuntimeOnly    : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -1794,15 +1724,11 @@ MODULE                        : project
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :feature:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :feature:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                     qName                         : :ads-sdk-implementation:testDebugUnitTest
-                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :ads-sdk-implementation:testReleaseUnitTest
 MODULE                        : project.ads-sdk
     GradleModuleModel
         gradlePath                    : :ads-sdk
@@ -2009,20 +1935,6 @@ MODULE                        : project.ads-sdk-implementation
             AssetsDirectories             : <ROOT>/ads-sdk-implementation/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/ads-sdk-implementation/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/ads-sdk-implementation/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/ads-sdk-implementation/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/ads-sdk-implementation/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/testRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/testRelease/java [-]
-                    ResourcesDirectories          : <ROOT>/ads-sdk-implementation/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/ads-sdk-implementation/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/ads-sdk-implementation/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/ads-sdk-implementation/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/ads-sdk-implementation/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -2516,20 +2428,6 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/app/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
-                    ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/app/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -3700,20 +3598,6 @@ MODULE                        : project.app-with-dynamic-feature
             AssetsDirectories             : <ROOT>/app-with-dynamic-feature/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app-with-dynamic-feature/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app-with-dynamic-feature/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/app-with-dynamic-feature/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app-with-dynamic-feature/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app-with-dynamic-feature/src/testRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/app-with-dynamic-feature/src/testRelease/java [-]
-                    ResourcesDirectories          : <ROOT>/app-with-dynamic-feature/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/app-with-dynamic-feature/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/app-with-dynamic-feature/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/app-with-dynamic-feature/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/app-with-dynamic-feature/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -4891,20 +4775,6 @@ MODULE                        : project.feature
             AssetsDirectories             : <ROOT>/feature/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/feature/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/feature/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/feature/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/feature/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/feature/src/testRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/feature/src/testRelease/java [-]
-                    ResourcesDirectories          : <ROOT>/feature/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/feature/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/feature/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/feature/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/feature/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

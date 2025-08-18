@@ -877,7 +877,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
                         kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                         kotlinCompilerPluginClasspathRelease    : <empty>
-                        kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinInternalAbiValidation   : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
@@ -903,21 +902,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestApi            : <empty>
-                        releaseUnitTestApiDependenciesMetadata  : <empty>
-                        releaseUnitTestCompilationApi : <empty>
-                        releaseUnitTestCompilationCompileOnly   : <empty>
-                        releaseUnitTestCompilationImplementation          : <empty>
-                        releaseUnitTestCompilationRuntimeOnly   : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestCompileOnly    : <empty>
-                        releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                        releaseUnitTestImplementation : <empty>
-                        releaseUnitTestImplementationDependenciesMetadata : <empty>
-                        releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
-                        releaseUnitTestRuntimeOnly    : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -982,8 +966,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testReleaseUnitTest
             common                        : :common (DefaultExternalProject)
                 path                          : :common [-]
                 identityPath                  : :common [-]
@@ -1399,7 +1381,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
                         kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                         kotlinCompilerPluginClasspathRelease    : <empty>
-                        kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinInternalAbiValidation   : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
@@ -1429,21 +1410,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         releaseRuntimeOnly            : <empty>
                         - releaseSourcesElements      : <ROOT>/feature-a/build/libs/feature-a-sources.jar [-]
                         - releaseSourcesElements-published      : <ROOT>/feature-a/build/libs/feature-a-sources.jar [-]
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestApi            : <empty>
-                        releaseUnitTestApiDependenciesMetadata  : <empty>
-                        releaseUnitTestCompilationApi : <empty>
-                        releaseUnitTestCompilationCompileOnly   : <empty>
-                        releaseUnitTestCompilationImplementation          : <empty>
-                        releaseUnitTestCompilationRuntimeOnly   : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestCompileOnly    : <empty>
-                        releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                        releaseUnitTestImplementation : <empty>
-                        releaseUnitTestImplementationDependenciesMetadata : <empty>
-                        releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
-                        releaseUnitTestRuntimeOnly    : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -1508,8 +1474,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :feature-a:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :feature-a:testReleaseUnitTest
             feature-b                     : :feature-b (DefaultExternalProject)
                 path                          : :feature-b [-]
                 identityPath                  : :feature-b [-]
@@ -1613,12 +1577,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         androidReleaseResolvableDependenciesMetadata      : <empty>
                         androidReleaseRuntimeClasspath          : <empty>
                         androidReleaseRuntimeOnly     : <empty>
-                        androidReleaseUnitTestCompilationApi    : <empty>
-                        androidReleaseUnitTestCompilationCompileOnly      : <empty>
-                        androidReleaseUnitTestCompilationImplementation   : <empty>
-                        androidReleaseUnitTestCompilationRuntimeOnly      : <empty>
-                        androidReleaseUnitTestCompileClasspath  : <empty>
-                        androidReleaseUnitTestRuntimeClasspath  : <empty>
                         androidTestAnnotationProcessor          : <empty>
                         androidTestCompileOnly        : <empty>
                         androidTestDebugAnnotationProcessor     : <empty>
@@ -1648,15 +1606,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         androidUnitTestImplementation : <empty>
                         androidUnitTestImplementationDependenciesMetadata : <empty>
                         androidUnitTestIntransitiveDependenciesMetadata   : <empty>
-                        androidUnitTestReleaseApi     : <empty>
-                        androidUnitTestReleaseApiDependenciesMetadata     : <empty>
-                        androidUnitTestReleaseCompileOnly       : <empty>
-                        androidUnitTestReleaseCompileOnlyDependenciesMetadata       : <empty>
-                        androidUnitTestReleaseImplementation    : <empty>
-                        androidUnitTestReleaseImplementationDependenciesMetadata    : <empty>
-                        androidUnitTestReleaseIntransitiveDependenciesMetadata      : <empty>
-                        androidUnitTestReleaseResolvableDependenciesMetadata        : <empty>
-                        androidUnitTestReleaseRuntimeOnly       : <empty>
                         androidUnitTestResolvableDependenciesMetadata     : <empty>
                         androidUnitTestRuntimeOnly    : <empty>
                         annotationProcessor           : <empty>
@@ -1714,7 +1663,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinCompilerPluginClasspathAndroidDebugAndroidTest        : <empty>
                         kotlinCompilerPluginClasspathAndroidDebugUnitTest : <empty>
                         kotlinCompilerPluginClasspathAndroidRelease       : <empty>
-                        kotlinCompilerPluginClasspathAndroidReleaseUnitTest         : <empty>
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinInternalAbiValidation   : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
@@ -1743,9 +1691,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         releaseRuntimeOnly            : <empty>
                         - releaseSourcesElements      : <ROOT>/feature-b/build/libs/feature-b-android-sources.jar [-]
                         - releaseSourcesElements-published      : <ROOT>/feature-b/build/libs/feature-b-android-sources.jar [-]
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -1784,8 +1729,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :feature-b:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :feature-b:testReleaseUnitTest
             jarWrapperLib                 : :jarWrapperLib (DefaultExternalProject)
                 path                          : :jarWrapperLib [-]
                 identityPath                  : :jarWrapperLib [-]
@@ -2285,9 +2228,6 @@ MODULE                        : NonStandardSourceSetDependencies
                                 releaseRuntimeClasspath       : <empty>
                                 releaseRuntimeElements        : <empty>
                                 releaseRuntimeOnly            : <empty>
-                                releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                                releaseUnitTestCompileClasspath         : <empty>
-                                releaseUnitTestRuntimeClasspath         : <empty>
                                 runtimeOnly                   : <empty>
                                 testAnnotationProcessor       : <empty>
                                 testCompileOnly               : <empty>
@@ -2323,8 +2263,6 @@ MODULE                        : NonStandardSourceSetDependencies
                             tasks
                                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                                     qName                         : :kmp-java:sample-test:testDebugUnitTest
-                                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                                    qName                         : :kmp-java:sample-test:testReleaseUnitTest
                 sourceSetModel                : DefaultGradleSourceSetModel
                 taskModel                     : DefaultGradleTaskModel
                     tasks
@@ -2332,8 +2270,6 @@ MODULE                        : NonStandardSourceSetDependencies
                             qName                         : :kmp-java:sample:jvmTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :kmp-java:sample-test:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :kmp-java:sample-test:testReleaseUnitTest
             lib                           : :lib (DefaultExternalProject)
                 path                          : :lib [-]
                 identityPath                  : :lib [-]
@@ -2466,7 +2402,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
                         kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                         kotlinCompilerPluginClasspathRelease    : <empty>
-                        kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinInternalAbiValidation   : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
@@ -2497,21 +2432,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         releaseRuntimeOnly            : <empty>
                         - releaseSourcesElements      : <ROOT>/lib/build/libs/manual-test-fixtures-sources.jar [-]
                         - releaseSourcesElements-published      : <ROOT>/lib/build/libs/manual-test-fixtures-sources.jar [-]
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestApi            : <empty>
-                        releaseUnitTestApiDependenciesMetadata  : <empty>
-                        releaseUnitTestCompilationApi : <empty>
-                        releaseUnitTestCompilationCompileOnly   : <empty>
-                        releaseUnitTestCompilationImplementation          : <empty>
-                        releaseUnitTestCompilationRuntimeOnly   : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestCompileOnly    : <empty>
-                        releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                        releaseUnitTestImplementation : <empty>
-                        releaseUnitTestImplementationDependenciesMetadata : <empty>
-                        releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
-                        releaseUnitTestRuntimeOnly    : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -2577,8 +2497,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :lib:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :lib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
@@ -2588,8 +2506,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     qName                         : :desktop:test
                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testDebugUnitTest
-                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testReleaseUnitTest
 MODULE                        : NonStandardSourceSetDependencies.aarWrapperLib
     GradleModuleModel
         gradlePath                    : :aarWrapperLib
@@ -2806,20 +2722,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/app/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
-                    ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/app/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -3894,20 +3796,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
             AssetsDirectories             : <ROOT>/feature-a/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/feature-a/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/feature-a/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/feature-a/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/feature-a/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/feature-a/src/testRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/feature-a/src/testRelease/java [-]
-                    ResourcesDirectories          : <ROOT>/feature-a/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/feature-a/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/feature-a/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/feature-a/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/feature-a/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -4991,25 +4879,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
             JniLibsDirectories            : <ROOT>/feature-b/src/release/jniLibs [-]
             JniLibsDirectories            : <ROOT>/feature-b/src/androidRelease/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/feature-b/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/feature-b/src/androidUnitTestRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/feature-b/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/feature-b/src/androidUnitTestRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/feature-b/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/feature-b/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/feature-b/src/testRelease/resources [-]
-                    ResourcesDirectories          : <ROOT>/feature-b/src/androidUnitTestRelease/resources [-]
-                    ResDirectories                : <ROOT>/feature-b/src/testRelease/res [-]
-                    ResDirectories                : <ROOT>/feature-b/src/androidUnitTestRelease/res [-]
-                    AssetsDirectories             : <ROOT>/feature-b/src/testRelease/assets [-]
-                    AssetsDirectories             : <ROOT>/feature-b/src/androidUnitTestRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/feature-b/src/testRelease/jniLibs [-]
-                    JniLibsDirectories            : <ROOT>/feature-b/src/androidUnitTestRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/feature-b/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -5169,6 +5038,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
             androidMain
                 - dependency                  : :feature-b::feature-b/commonMain
             androidUnitTest
+                - dependency                  : :feature-b::feature-b/androidDebug
                 - dependency                  : :feature-b::feature-b/androidMain
                 - dependency                  : :feature-b::feature-b/commonMain
                 - dependency                  : :feature-b::feature-b/commonTest
@@ -5323,7 +5193,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
                         androidSourceSetName          : test
                         - androidVariantNames         : debugUnitTest
-                        - androidVariantNames         : releaseUnitTest
                         kotlinSourceSetName           : androidUnitTest
                     isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
@@ -5393,9 +5262,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
             - testRunTasks                : KotlinTestRunTaskImpl
                 compilationName               : test
                 taskName                      : testDebugUnitTest
-            - testRunTasks                : KotlinTestRunTaskImpl
-                compilationName               : test
-                taskName                      : testReleaseUnitTest
         sourceSets
             androidInstrumentedTest       : androidInstrumentedTest (KotlinSourceSetImpl) (*seen*)
             androidMain                   : androidMain (KotlinSourceSetImpl) (*seen*)
@@ -5926,20 +5792,6 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
             AssetsDirectories             : <ROOT>/kmp-java/sample-test/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/kmp-java/sample-test/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/kmp-java/sample-test/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/kmp-java/sample-test/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/kmp-java/sample-test/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/kmp-java/sample-test/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/kmp-java/sample-test/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/kmp-java/sample-test/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/kmp-java/sample-test/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/kmp-java/sample-test/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/kmp-java/sample-test/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/kmp-java/sample-test/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -6235,20 +6087,6 @@ MODULE                        : NonStandardSourceSetDependencies.lib
             AssetsDirectories             : <ROOT>/lib/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/lib/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/lib/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/lib/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/lib/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/lib/src/testRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/lib/src/testRelease/java [-]
-                    ResourcesDirectories          : <ROOT>/lib/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/lib/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/lib/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/lib/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/lib/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

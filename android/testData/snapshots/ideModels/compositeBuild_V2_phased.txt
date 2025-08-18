@@ -725,7 +725,6 @@ MODULE                        : TestCompositeLib1
                         kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
                         kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                         kotlinCompilerPluginClasspathRelease    : <empty>
-                        kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinInternalAbiValidation   : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
@@ -751,21 +750,6 @@ MODULE                        : TestCompositeLib1
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestApi            : <empty>
-                        releaseUnitTestApiDependenciesMetadata  : <empty>
-                        releaseUnitTestCompilationApi : <empty>
-                        releaseUnitTestCompilationCompileOnly   : <empty>
-                        releaseUnitTestCompilationImplementation          : <empty>
-                        releaseUnitTestCompilationRuntimeOnly   : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestCompileOnly    : <empty>
-                        releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                        releaseUnitTestImplementation : <empty>
-                        releaseUnitTestImplementationDependenciesMetadata : <empty>
-                        releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
-                        releaseUnitTestRuntimeOnly    : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -830,8 +814,6 @@ MODULE                        : TestCompositeLib1
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testReleaseUnitTest
             lib                           : :includedLib1:lib (DefaultExternalProject)
                 path                          : :lib [-]
                 identityPath                  : :includedLib1:lib [-]
@@ -963,7 +945,6 @@ MODULE                        : TestCompositeLib1
                         kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
                         kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                         kotlinCompilerPluginClasspathRelease    : <empty>
-                        kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinInternalAbiValidation   : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
@@ -993,21 +974,6 @@ MODULE                        : TestCompositeLib1
                         releaseRuntimeOnly            : <empty>
                         - releaseSourcesElements      : <ROOT>/TestCompositeLib1/lib/build/libs/lib-1.0-sources.jar [-]
                         - releaseSourcesElements-published      : <ROOT>/TestCompositeLib1/lib/build/libs/lib-1.0-sources.jar [-]
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestApi            : <empty>
-                        releaseUnitTestApiDependenciesMetadata  : <empty>
-                        releaseUnitTestCompilationApi : <empty>
-                        releaseUnitTestCompilationCompileOnly   : <empty>
-                        releaseUnitTestCompilationImplementation          : <empty>
-                        releaseUnitTestCompilationRuntimeOnly   : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestCompileOnly    : <empty>
-                        releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                        releaseUnitTestImplementation : <empty>
-                        releaseUnitTestImplementationDependenciesMetadata : <empty>
-                        releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
-                        releaseUnitTestRuntimeOnly    : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -1072,15 +1038,11 @@ MODULE                        : TestCompositeLib1
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :lib:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :lib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testDebugUnitTest
-                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testReleaseUnitTest
 MODULE                        : TestCompositeLib1.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -1287,20 +1249,6 @@ MODULE                        : TestCompositeLib1.app
             AssetsDirectories             : <ROOT>/TestCompositeLib1/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/TestCompositeLib1/app/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/TestCompositeLib1/app/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/TestCompositeLib1/app/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/TestCompositeLib1/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/testRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/testRelease/java [-]
-                    ResourcesDirectories          : <ROOT>/TestCompositeLib1/app/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/TestCompositeLib1/app/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/TestCompositeLib1/app/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/TestCompositeLib1/app/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/TestCompositeLib1/app/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -2393,20 +2341,6 @@ MODULE                        : TestCompositeLib1.lib
             AssetsDirectories             : <ROOT>/TestCompositeLib1/lib/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/TestCompositeLib1/lib/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/TestCompositeLib1/lib/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/TestCompositeLib1/lib/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/TestCompositeLib1/lib/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/testRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/testRelease/java [-]
-                    ResourcesDirectories          : <ROOT>/TestCompositeLib1/lib/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/TestCompositeLib1/lib/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/TestCompositeLib1/lib/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/TestCompositeLib1/lib/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/TestCompositeLib1/lib/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -3478,7 +3412,6 @@ MODULE                        : TestCompositeLib3
                         kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
                         kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                         kotlinCompilerPluginClasspathRelease    : <empty>
-                        kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinInternalAbiValidation   : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
@@ -3504,21 +3437,6 @@ MODULE                        : TestCompositeLib3
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestApi            : <empty>
-                        releaseUnitTestApiDependenciesMetadata  : <empty>
-                        releaseUnitTestCompilationApi : <empty>
-                        releaseUnitTestCompilationCompileOnly   : <empty>
-                        releaseUnitTestCompilationImplementation          : <empty>
-                        releaseUnitTestCompilationRuntimeOnly   : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestCompileOnly    : <empty>
-                        releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                        releaseUnitTestImplementation : <empty>
-                        releaseUnitTestImplementationDependenciesMetadata : <empty>
-                        releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
-                        releaseUnitTestRuntimeOnly    : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -3583,8 +3501,6 @@ MODULE                        : TestCompositeLib3
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testReleaseUnitTest
             lib                           : :TestCompositeLib3:lib (DefaultExternalProject)
                 path                          : :lib [-]
                 identityPath                  : :TestCompositeLib3:lib [-]
@@ -3665,9 +3581,6 @@ MODULE                        : TestCompositeLib3
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
                         runtimeOnly                   : <empty>
                         testAnnotationProcessor       : <empty>
                         testCompileOnly               : <empty>
@@ -3703,15 +3616,11 @@ MODULE                        : TestCompositeLib3
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :lib:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :lib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testDebugUnitTest
-                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testReleaseUnitTest
 MODULE                        : TestCompositeLib3.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -3918,20 +3827,6 @@ MODULE                        : TestCompositeLib3.app
             AssetsDirectories             : <ROOT>/TestCompositeLib3/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/TestCompositeLib3/app/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/TestCompositeLib3/app/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/TestCompositeLib3/app/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/TestCompositeLib3/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/testRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/testRelease/java [-]
-                    ResourcesDirectories          : <ROOT>/TestCompositeLib3/app/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/TestCompositeLib3/app/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/TestCompositeLib3/app/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/TestCompositeLib3/app/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/TestCompositeLib3/app/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -5002,20 +4897,6 @@ MODULE                        : TestCompositeLib3.lib
             AssetsDirectories             : <ROOT>/TestCompositeLib3/lib/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/TestCompositeLib3/lib/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/TestCompositeLib3/lib/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/TestCompositeLib3/lib/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/TestCompositeLib3/lib/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/TestCompositeLib3/lib/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/TestCompositeLib3/lib/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/TestCompositeLib3/lib/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/TestCompositeLib3/lib/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/TestCompositeLib3/lib/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/TestCompositeLib3/lib/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/TestCompositeLib3/lib/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -6309,7 +6190,6 @@ MODULE                        : project
                         kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
                         kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                         kotlinCompilerPluginClasspathRelease    : <empty>
-                        kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinInternalAbiValidation   : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
@@ -6335,21 +6215,6 @@ MODULE                        : project
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestApi            : <empty>
-                        releaseUnitTestApiDependenciesMetadata  : <empty>
-                        releaseUnitTestCompilationApi : <empty>
-                        releaseUnitTestCompilationCompileOnly   : <empty>
-                        releaseUnitTestCompilationImplementation          : <empty>
-                        releaseUnitTestCompilationRuntimeOnly   : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestCompileOnly    : <empty>
-                        releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                        releaseUnitTestImplementation : <empty>
-                        releaseUnitTestImplementationDependenciesMetadata : <empty>
-                        releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
-                        releaseUnitTestRuntimeOnly    : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -6414,8 +6279,6 @@ MODULE                        : project
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testReleaseUnitTest
             composite2                    : :TestCompositeLib2 (DefaultExternalProject) (*seen*)
             composite4                    : :TestCompositeLib4 (DefaultExternalProject) (*seen*)
             compositeNest                 : :TestCompositeLib3:TestCompositeLibNested_3 (DefaultExternalProject) (*seen*)
@@ -6550,7 +6413,6 @@ MODULE                        : project
                         kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
                         kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                         kotlinCompilerPluginClasspathRelease    : <empty>
-                        kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinInternalAbiValidation   : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
@@ -6580,21 +6442,6 @@ MODULE                        : project
                         releaseRuntimeOnly            : <empty>
                         - releaseSourcesElements      : <ROOT>/lib/build/libs/lib-1.0-sources.jar [-]
                         - releaseSourcesElements-published      : <ROOT>/lib/build/libs/lib-1.0-sources.jar [-]
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestApi            : <empty>
-                        releaseUnitTestApiDependenciesMetadata  : <empty>
-                        releaseUnitTestCompilationApi : <empty>
-                        releaseUnitTestCompilationCompileOnly   : <empty>
-                        releaseUnitTestCompilationImplementation          : <empty>
-                        releaseUnitTestCompilationRuntimeOnly   : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestCompileOnly    : <empty>
-                        releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                        releaseUnitTestImplementation : <empty>
-                        releaseUnitTestImplementationDependenciesMetadata : <empty>
-                        releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
-                        releaseUnitTestRuntimeOnly    : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -6659,15 +6506,11 @@ MODULE                        : project
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :lib:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :lib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testDebugUnitTest
-                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -6874,20 +6717,6 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/app/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
-                    ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/app/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -7984,20 +7813,6 @@ MODULE                        : project.lib
             AssetsDirectories             : <ROOT>/lib/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/lib/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/lib/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/lib/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/lib/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/lib/src/testRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/lib/src/testRelease/java [-]
-                    ResourcesDirectories          : <ROOT>/lib/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/lib/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/lib/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/lib/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/lib/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

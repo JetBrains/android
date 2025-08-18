@@ -510,25 +510,6 @@ MODULE: gradle_project.app
                     file://./gradle_project/app/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./gradle_project/app/src/testDebug/resources
-            testRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./gradle_project/app/src/testRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./gradle_project/app/src/testRelease
-                AssetsDirectoryUrls:
-                    file://./gradle_project/app/src/testRelease/assets
-                JavaDirectoryUrls:
-                    file://./gradle_project/app/src/testRelease/java
-                KotlinDirectoryUrls:
-                    file://./gradle_project/app/src/testRelease/java
-                    file://./gradle_project/app/src/testRelease/kotlin
-                JniLibsDirectoryUrls:
-                    file://./gradle_project/app/src/testRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./gradle_project/app/src/testRelease/res
-                ResourcesDirectoryUrls:
-                    file://./gradle_project/app/src/testRelease/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN

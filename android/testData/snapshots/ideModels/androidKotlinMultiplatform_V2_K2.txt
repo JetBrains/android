@@ -923,10 +923,6 @@ MODULE                        : Kotlin_Multiplatform
                         testTypeoneModeoneDebugImplementation   : <empty>
                         testTypeoneModeoneDebugRuntimeOnly      : <empty>
                         testTypeoneModeoneImplementation        : <empty>
-                        testTypeoneModeoneReleaseAnnotationProcessor      : <empty>
-                        testTypeoneModeoneReleaseCompileOnly    : <empty>
-                        testTypeoneModeoneReleaseImplementation : <empty>
-                        testTypeoneModeoneReleaseRuntimeOnly    : <empty>
                         testTypeoneModeoneRuntimeOnly : <empty>
                         testTypeoneModetwoAnnotationProcessor   : <empty>
                         testTypeoneModetwoCompileOnly : <empty>
@@ -935,10 +931,6 @@ MODULE                        : Kotlin_Multiplatform
                         testTypeoneModetwoDebugImplementation   : <empty>
                         testTypeoneModetwoDebugRuntimeOnly      : <empty>
                         testTypeoneModetwoImplementation        : <empty>
-                        testTypeoneModetwoReleaseAnnotationProcessor      : <empty>
-                        testTypeoneModetwoReleaseCompileOnly    : <empty>
-                        testTypeoneModetwoReleaseImplementation : <empty>
-                        testTypeoneModetwoReleaseRuntimeOnly    : <empty>
                         testTypeoneModetwoRuntimeOnly : <empty>
                         testTypeoneRuntimeOnly        : <empty>
                         testTypetwoAnnotationProcessor          : <empty>
@@ -951,10 +943,6 @@ MODULE                        : Kotlin_Multiplatform
                         testTypetwoModeoneDebugImplementation   : <empty>
                         testTypetwoModeoneDebugRuntimeOnly      : <empty>
                         testTypetwoModeoneImplementation        : <empty>
-                        testTypetwoModeoneReleaseAnnotationProcessor      : <empty>
-                        testTypetwoModeoneReleaseCompileOnly    : <empty>
-                        testTypetwoModeoneReleaseImplementation : <empty>
-                        testTypetwoModeoneReleaseRuntimeOnly    : <empty>
                         testTypetwoModeoneRuntimeOnly : <empty>
                         testTypetwoModetwoAnnotationProcessor   : <empty>
                         testTypetwoModetwoCompileOnly : <empty>
@@ -963,10 +951,6 @@ MODULE                        : Kotlin_Multiplatform
                         testTypetwoModetwoDebugImplementation   : <empty>
                         testTypetwoModetwoDebugRuntimeOnly      : <empty>
                         testTypetwoModetwoImplementation        : <empty>
-                        testTypetwoModetwoReleaseAnnotationProcessor      : <empty>
-                        testTypetwoModetwoReleaseCompileOnly    : <empty>
-                        testTypetwoModetwoReleaseImplementation : <empty>
-                        testTypetwoModetwoReleaseRuntimeOnly    : <empty>
                         testTypetwoModetwoRuntimeOnly : <empty>
                         testTypetwoRuntimeOnly        : <empty>
                         typeoneAnnotationProcessor    : <empty>
@@ -1007,9 +991,6 @@ MODULE                        : Kotlin_Multiplatform
                         typeoneModeoneReleaseRuntimeClasspath   : <empty>
                         typeoneModeoneReleaseRuntimeElements    : <empty>
                         typeoneModeoneReleaseRuntimeOnly        : <empty>
-                        typeoneModeoneReleaseUnitTestAnnotationProcessorClasspath   : <empty>
-                        typeoneModeoneReleaseUnitTestCompileClasspath     : <empty>
-                        typeoneModeoneReleaseUnitTestRuntimeClasspath     : <empty>
                         typeoneModeoneRuntimeOnly     : <empty>
                         typeoneModetwoAnnotationProcessor       : <empty>
                         typeoneModetwoApi             : <empty>
@@ -1044,9 +1025,6 @@ MODULE                        : Kotlin_Multiplatform
                         typeoneModetwoReleaseRuntimeClasspath   : <empty>
                         typeoneModetwoReleaseRuntimeElements    : <empty>
                         typeoneModetwoReleaseRuntimeOnly        : <empty>
-                        typeoneModetwoReleaseUnitTestAnnotationProcessorClasspath   : <empty>
-                        typeoneModetwoReleaseUnitTestCompileClasspath     : <empty>
-                        typeoneModetwoReleaseUnitTestRuntimeClasspath     : <empty>
                         typeoneModetwoRuntimeOnly     : <empty>
                         typeoneRuntimeOnly            : <empty>
                         typetwoAnnotationProcessor    : <empty>
@@ -1087,9 +1065,6 @@ MODULE                        : Kotlin_Multiplatform
                         typetwoModeoneReleaseRuntimeClasspath   : <empty>
                         typetwoModeoneReleaseRuntimeElements    : <empty>
                         typetwoModeoneReleaseRuntimeOnly        : <empty>
-                        typetwoModeoneReleaseUnitTestAnnotationProcessorClasspath   : <empty>
-                        typetwoModeoneReleaseUnitTestCompileClasspath     : <empty>
-                        typetwoModeoneReleaseUnitTestRuntimeClasspath     : <empty>
                         typetwoModeoneRuntimeOnly     : <empty>
                         typetwoModetwoAnnotationProcessor       : <empty>
                         typetwoModetwoApi             : <empty>
@@ -1124,29 +1099,18 @@ MODULE                        : Kotlin_Multiplatform
                         typetwoModetwoReleaseRuntimeClasspath   : <empty>
                         typetwoModetwoReleaseRuntimeElements    : <empty>
                         typetwoModetwoReleaseRuntimeOnly        : <empty>
-                        typetwoModetwoReleaseUnitTestAnnotationProcessorClasspath   : <empty>
-                        typetwoModetwoReleaseUnitTestCompileClasspath     : <empty>
-                        typetwoModetwoReleaseUnitTestRuntimeClasspath     : <empty>
                         typetwoModetwoRuntimeOnly     : <empty>
                         typetwoRuntimeOnly            : <empty>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testTypeoneModeoneDebugUnitTest         : testTypeoneModeoneDebugUnitTest (DefaultExternalTask)
                             qName                         : :androidLib:testTypeoneModeoneDebugUnitTest
-                        testTypeoneModeoneReleaseUnitTest       : testTypeoneModeoneReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :androidLib:testTypeoneModeoneReleaseUnitTest
                         testTypeoneModetwoDebugUnitTest         : testTypeoneModetwoDebugUnitTest (DefaultExternalTask)
                             qName                         : :androidLib:testTypeoneModetwoDebugUnitTest
-                        testTypeoneModetwoReleaseUnitTest       : testTypeoneModetwoReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :androidLib:testTypeoneModetwoReleaseUnitTest
                         testTypetwoModeoneDebugUnitTest         : testTypetwoModeoneDebugUnitTest (DefaultExternalTask)
                             qName                         : :androidLib:testTypetwoModeoneDebugUnitTest
-                        testTypetwoModeoneReleaseUnitTest       : testTypetwoModeoneReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :androidLib:testTypetwoModeoneReleaseUnitTest
                         testTypetwoModetwoDebugUnitTest         : testTypetwoModetwoDebugUnitTest (DefaultExternalTask)
                             qName                         : :androidLib:testTypetwoModetwoDebugUnitTest
-                        testTypetwoModetwoReleaseUnitTest       : testTypetwoModetwoReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :androidLib:testTypetwoModetwoReleaseUnitTest
             app                           : :app (DefaultExternalProject)
                 path                          : :app [-]
                 identityPath                  : :app [-]
@@ -1229,9 +1193,6 @@ MODULE                        : Kotlin_Multiplatform
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
                         runtimeOnly                   : <empty>
                         testAnnotationProcessor       : <empty>
                         testCompileOnly               : <empty>
@@ -1267,8 +1228,6 @@ MODULE                        : Kotlin_Multiplatform
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testReleaseUnitTest
             kmpFirstLib                   : :kmpFirstLib (DefaultExternalProject)
                 path                          : :kmpFirstLib [-]
                 identityPath                  : :kmpFirstLib [-]
@@ -1767,24 +1726,14 @@ MODULE                        : Kotlin_Multiplatform
                     qName                         : :kmpFirstLib:testAndroidUnitTest
                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testDebugUnitTest
-                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testReleaseUnitTest
                 testTypeoneModeoneDebugUnitTest         : testTypeoneModeoneDebugUnitTest (DefaultExternalTask)
                     qName                         : :androidLib:testTypeoneModeoneDebugUnitTest
-                testTypeoneModeoneReleaseUnitTest       : testTypeoneModeoneReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :androidLib:testTypeoneModeoneReleaseUnitTest
                 testTypeoneModetwoDebugUnitTest         : testTypeoneModetwoDebugUnitTest (DefaultExternalTask)
                     qName                         : :androidLib:testTypeoneModetwoDebugUnitTest
-                testTypeoneModetwoReleaseUnitTest       : testTypeoneModetwoReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :androidLib:testTypeoneModetwoReleaseUnitTest
                 testTypetwoModeoneDebugUnitTest         : testTypetwoModeoneDebugUnitTest (DefaultExternalTask)
                     qName                         : :androidLib:testTypetwoModeoneDebugUnitTest
-                testTypetwoModeoneReleaseUnitTest       : testTypetwoModeoneReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :androidLib:testTypetwoModeoneReleaseUnitTest
                 testTypetwoModetwoDebugUnitTest         : testTypetwoModetwoDebugUnitTest (DefaultExternalTask)
                     qName                         : :androidLib:testTypetwoModetwoDebugUnitTest
-                testTypetwoModetwoReleaseUnitTest       : testTypetwoModetwoReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :androidLib:testTypetwoModetwoReleaseUnitTest
 MODULE                        : Kotlin_Multiplatform.androidLib
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -1997,20 +1946,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             AssetsDirectories             : <ROOT>/androidLib/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/androidLib/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/androidLib/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/androidLib/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/androidLib/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/androidLib/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/androidLib/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/androidLib/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/androidLib/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/androidLib/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/androidLib/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/androidLib/src/testRelease/baselineProfiles [-]
     ProductFlavors
         ProductFlavor
             Name                          : typeone
@@ -2563,20 +2498,6 @@ MODULE                        : Kotlin_Multiplatform.app
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/app/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/app/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

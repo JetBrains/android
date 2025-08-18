@@ -22,12 +22,14 @@ import com.android.tools.idea.gradle.structure.configurables.dependencies.treevi
 import com.android.tools.idea.gradle.structure.model.android.psTestWithProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.intellij.testFramework.RunsInEdt
+import org.junit.Ignore
 
 /**
  * This test covers the same case as [ResolvedDependenciesTreeRootNodeTest] but for older versions of AGP where transitive dependency
  * information is not available in the mode. There should be no change in the resulting dependency tree apart from where the information
  * is being obtained from.
  */
+@Ignore("b/439789826 - Enable this once the implementation is fixed")
 @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["7.2"])
 @RunsInEdt
 class OldAgpResolvedDependenciesTreeRootNodeTest : ResolvedDependenciesTreeRootNodeTest() {

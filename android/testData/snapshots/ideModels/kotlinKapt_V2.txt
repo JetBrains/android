@@ -750,12 +750,10 @@ MODULE                        : MainActivity
                         _agp_internal_javaPreCompileLocalDebugAndroidTest_kaptClasspath       : <empty>
                         _agp_internal_javaPreCompileLocalDebugUnitTest_kaptClasspath          : <empty>
                         _agp_internal_javaPreCompileLocalDebug_kaptClasspath        : <empty>
-                        _agp_internal_javaPreCompileLocalReleaseUnitTest_kaptClasspath        : <empty>
                         _agp_internal_javaPreCompileLocalRelease_kaptClasspath      : <empty>
                         _agp_internal_javaPreCompileRemoteDebugAndroidTest_kaptClasspath      : <empty>
                         _agp_internal_javaPreCompileRemoteDebugUnitTest_kaptClasspath         : <empty>
                         _agp_internal_javaPreCompileRemoteDebug_kaptClasspath       : <empty>
-                        _agp_internal_javaPreCompileRemoteReleaseUnitTest_kaptClasspath       : <empty>
                         _agp_internal_javaPreCompileRemoteRelease_kaptClasspath     : <empty>
                         _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
                         _internal-unified-test-platform-android-driver-instrumentation        : <empty>
@@ -869,12 +867,10 @@ MODULE                        : MainActivity
                         kaptClasspath_kaptLocalDebugKotlin      : <empty>
                         kaptClasspath_kaptLocalDebugUnitTestKotlin        : <empty>
                         kaptClasspath_kaptLocalReleaseKotlin    : <empty>
-                        kaptClasspath_kaptLocalReleaseUnitTestKotlin      : <empty>
                         kaptClasspath_kaptRemoteDebugAndroidTestKotlin    : <empty>
                         kaptClasspath_kaptRemoteDebugKotlin     : <empty>
                         kaptClasspath_kaptRemoteDebugUnitTestKotlin       : <empty>
                         kaptClasspath_kaptRemoteReleaseKotlin   : <empty>
-                        kaptClasspath_kaptRemoteReleaseUnitTestKotlin     : <empty>
                         kaptDebug                     : <empty>
                         kaptLocal                     : <empty>
                         kaptLocalDebug                : <empty>
@@ -892,11 +888,9 @@ MODULE                        : MainActivity
                         kaptTestFixturesRemote        : <empty>
                         kaptTestLocal                 : <empty>
                         kaptTestLocalDebug            : <empty>
-                        kaptTestLocalRelease          : <empty>
                         kaptTestRelease               : <empty>
                         kaptTestRemote                : <empty>
                         kaptTestRemoteDebug           : <empty>
-                        kaptTestRemoteRelease         : <empty>
                         kotlinBouncyCastleConfiguration         : <empty>
                         kotlinBuildToolsApiClasspath  : <empty>
                         kotlinCompilerClasspath       : <empty>
@@ -905,12 +899,10 @@ MODULE                        : MainActivity
                         kotlinCompilerPluginClasspathLocalDebugAndroidTest          : <empty>
                         kotlinCompilerPluginClasspathLocalDebugUnitTest   : <empty>
                         kotlinCompilerPluginClasspathLocalRelease         : <empty>
-                        kotlinCompilerPluginClasspathLocalReleaseUnitTest : <empty>
                         kotlinCompilerPluginClasspathRemoteDebug          : <empty>
                         kotlinCompilerPluginClasspathRemoteDebugAndroidTest         : <empty>
                         kotlinCompilerPluginClasspathRemoteDebugUnitTest  : <empty>
                         kotlinCompilerPluginClasspathRemoteRelease        : <empty>
-                        kotlinCompilerPluginClasspathRemoteReleaseUnitTest          : <empty>
                         kotlinInternalAbiValidation   : <empty>
                         kotlinKaptWorkerDependencies  : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
@@ -996,21 +988,6 @@ MODULE                        : MainActivity
                         localReleaseRuntimeClasspath  : <empty>
                         localReleaseRuntimeElements   : <empty>
                         localReleaseRuntimeOnly       : <empty>
-                        localReleaseUnitTestAnnotationProcessorClasspath  : <empty>
-                        localReleaseUnitTestApi       : <empty>
-                        localReleaseUnitTestApiDependenciesMetadata       : <empty>
-                        localReleaseUnitTestCompilationApi      : <empty>
-                        localReleaseUnitTestCompilationCompileOnly        : <empty>
-                        localReleaseUnitTestCompilationImplementation     : <empty>
-                        localReleaseUnitTestCompilationRuntimeOnly        : <empty>
-                        localReleaseUnitTestCompileClasspath    : <empty>
-                        localReleaseUnitTestCompileOnly         : <empty>
-                        localReleaseUnitTestCompileOnlyDependenciesMetadata         : <empty>
-                        localReleaseUnitTestImplementation      : <empty>
-                        localReleaseUnitTestImplementationDependenciesMetadata      : <empty>
-                        localReleaseUnitTestIntransitiveDependenciesMetadata        : <empty>
-                        localReleaseUnitTestRuntimeClasspath    : <empty>
-                        localReleaseUnitTestRuntimeOnly         : <empty>
                         localRuntimeOnly              : <empty>
                         releaseAnnotationProcessor    : <empty>
                         releaseApi                    : <empty>
@@ -1101,21 +1078,6 @@ MODULE                        : MainActivity
                         remoteReleaseRuntimeClasspath : <empty>
                         remoteReleaseRuntimeElements  : <empty>
                         remoteReleaseRuntimeOnly      : <empty>
-                        remoteReleaseUnitTestAnnotationProcessorClasspath : <empty>
-                        remoteReleaseUnitTestApi      : <empty>
-                        remoteReleaseUnitTestApiDependenciesMetadata      : <empty>
-                        remoteReleaseUnitTestCompilationApi     : <empty>
-                        remoteReleaseUnitTestCompilationCompileOnly       : <empty>
-                        remoteReleaseUnitTestCompilationImplementation    : <empty>
-                        remoteReleaseUnitTestCompilationRuntimeOnly       : <empty>
-                        remoteReleaseUnitTestCompileClasspath   : <empty>
-                        remoteReleaseUnitTestCompileOnly        : <empty>
-                        remoteReleaseUnitTestCompileOnlyDependenciesMetadata        : <empty>
-                        remoteReleaseUnitTestImplementation     : <empty>
-                        remoteReleaseUnitTestImplementationDependenciesMetadata     : <empty>
-                        remoteReleaseUnitTestIntransitiveDependenciesMetadata       : <empty>
-                        remoteReleaseUnitTestRuntimeClasspath   : <empty>
-                        remoteReleaseUnitTestRuntimeOnly        : <empty>
                         remoteRuntimeOnly             : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
@@ -1204,15 +1166,6 @@ MODULE                        : MainActivity
                         testLocalImplementation       : <empty>
                         testLocalImplementationDependenciesMetadata       : <empty>
                         testLocalIntransitiveDependenciesMetadata         : <empty>
-                        testLocalReleaseAnnotationProcessor     : <empty>
-                        testLocalReleaseApi           : <empty>
-                        testLocalReleaseApiDependenciesMetadata : <empty>
-                        testLocalReleaseCompileOnly   : <empty>
-                        testLocalReleaseCompileOnlyDependenciesMetadata   : <empty>
-                        testLocalReleaseImplementation          : <empty>
-                        testLocalReleaseImplementationDependenciesMetadata          : <empty>
-                        testLocalReleaseIntransitiveDependenciesMetadata  : <empty>
-                        testLocalReleaseRuntimeOnly   : <empty>
                         testLocalRuntimeOnly          : <empty>
                         testReleaseAnnotationProcessor          : <empty>
                         testReleaseApi                : <empty>
@@ -1240,27 +1193,14 @@ MODULE                        : MainActivity
                         testRemoteImplementation      : <empty>
                         testRemoteImplementationDependenciesMetadata      : <empty>
                         testRemoteIntransitiveDependenciesMetadata        : <empty>
-                        testRemoteReleaseAnnotationProcessor    : <empty>
-                        testRemoteReleaseApi          : <empty>
-                        testRemoteReleaseApiDependenciesMetadata          : <empty>
-                        testRemoteReleaseCompileOnly  : <empty>
-                        testRemoteReleaseCompileOnlyDependenciesMetadata  : <empty>
-                        testRemoteReleaseImplementation         : <empty>
-                        testRemoteReleaseImplementationDependenciesMetadata         : <empty>
-                        testRemoteReleaseIntransitiveDependenciesMetadata : <empty>
-                        testRemoteReleaseRuntimeOnly  : <empty>
                         testRemoteRuntimeOnly         : <empty>
                         testRuntimeOnly               : <empty>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testLocalDebugUnitTest        : testLocalDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testLocalDebugUnitTest
-                        testLocalReleaseUnitTest      : testLocalReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testLocalReleaseUnitTest
                         testRemoteDebugUnitTest       : testRemoteDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testRemoteDebugUnitTest
-                        testRemoteReleaseUnitTest     : testRemoteReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testRemoteReleaseUnitTest
             javaLib                       : :javaLib (DefaultExternalProject)
                 path                          : :javaLib [-]
                 identityPath                  : :javaLib [-]
@@ -1538,7 +1478,6 @@ MODULE                        : MainActivity
                         kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
                         kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                         kotlinCompilerPluginClasspathRelease    : <empty>
-                        kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinInternalAbiValidation   : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
@@ -1568,21 +1507,6 @@ MODULE                        : MainActivity
                         releaseRuntimeOnly            : <empty>
                         - releaseSourcesElements      : <ROOT>/lib/build/libs/lib-sources.jar [-]
                         - releaseSourcesElements-published      : <ROOT>/lib/build/libs/lib-sources.jar [-]
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestApi            : <empty>
-                        releaseUnitTestApiDependenciesMetadata  : <empty>
-                        releaseUnitTestCompilationApi : <empty>
-                        releaseUnitTestCompilationCompileOnly   : <empty>
-                        releaseUnitTestCompilationImplementation          : <empty>
-                        releaseUnitTestCompilationRuntimeOnly   : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestCompileOnly    : <empty>
-                        releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                        releaseUnitTestImplementation : <empty>
-                        releaseUnitTestImplementationDependenciesMetadata : <empty>
-                        releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
-                        releaseUnitTestRuntimeOnly    : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -1647,8 +1571,6 @@ MODULE                        : MainActivity
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :lib:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :lib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
@@ -1658,14 +1580,8 @@ MODULE                        : MainActivity
                     qName                         : :lib:testDebugUnitTest
                 testLocalDebugUnitTest        : testLocalDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testLocalDebugUnitTest
-                testLocalReleaseUnitTest      : testLocalReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testLocalReleaseUnitTest
-                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :lib:testReleaseUnitTest
                 testRemoteDebugUnitTest       : testRemoteDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testRemoteDebugUnitTest
-                testRemoteReleaseUnitTest     : testRemoteReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testRemoteReleaseUnitTest
 MODULE                        : MainActivity.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -1880,20 +1796,6 @@ MODULE                        : MainActivity.app
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/app/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
-                    ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/app/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/testRelease/baselineProfiles [-]
     ProductFlavors
         ProductFlavor
             Name                          : local
@@ -2827,20 +2729,6 @@ MODULE                        : MainActivity.lib
             AssetsDirectories             : <ROOT>/lib/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/lib/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/lib/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/lib/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/lib/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/lib/src/testRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/lib/src/testRelease/java [-]
-                    ResourcesDirectories          : <ROOT>/lib/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/lib/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/lib/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/lib/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/lib/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

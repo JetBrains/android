@@ -621,9 +621,6 @@ MODULE                        : project
                         basicReleaseRuntimeClasspath  : <empty>
                         basicReleaseRuntimeElements   : <empty>
                         basicReleaseRuntimeOnly       : <empty>
-                        basicReleaseUnitTestAnnotationProcessorClasspath  : <empty>
-                        basicReleaseUnitTestCompileClasspath    : <empty>
-                        basicReleaseUnitTestRuntimeClasspath    : <empty>
                         basicRuntimeOnly              : <empty>
                         compileOnly                   : <empty>
                         compileOnlyApi                : <empty>
@@ -673,9 +670,6 @@ MODULE                        : project
                         paidReleaseRuntimeClasspath   : <empty>
                         paidReleaseRuntimeElements    : <empty>
                         paidReleaseRuntimeOnly        : <empty>
-                        paidReleaseUnitTestAnnotationProcessorClasspath   : <empty>
-                        paidReleaseUnitTestCompileClasspath     : <empty>
-                        paidReleaseUnitTestRuntimeClasspath     : <empty>
                         paidRuntimeOnly               : <empty>
                         releaseAnnotationProcessor    : <empty>
                         releaseApi                    : <empty>
@@ -692,10 +686,6 @@ MODULE                        : project
                         testBasicDebugImplementation  : <empty>
                         testBasicDebugRuntimeOnly     : <empty>
                         testBasicImplementation       : <empty>
-                        testBasicReleaseAnnotationProcessor     : <empty>
-                        testBasicReleaseCompileOnly   : <empty>
-                        testBasicReleaseImplementation          : <empty>
-                        testBasicReleaseRuntimeOnly   : <empty>
                         testBasicRuntimeOnly          : <empty>
                         testCompileOnly               : <empty>
                         testDebugAnnotationProcessor  : <empty>
@@ -740,10 +730,6 @@ MODULE                        : project
                         testPaidDebugImplementation   : <empty>
                         testPaidDebugRuntimeOnly      : <empty>
                         testPaidImplementation        : <empty>
-                        testPaidReleaseAnnotationProcessor      : <empty>
-                        testPaidReleaseCompileOnly    : <empty>
-                        testPaidReleaseImplementation : <empty>
-                        testPaidReleaseRuntimeOnly    : <empty>
                         testPaidRuntimeOnly           : <empty>
                         testReleaseAnnotationProcessor          : <empty>
                         testReleaseCompileOnly        : <empty>
@@ -754,12 +740,8 @@ MODULE                        : project
                     tasks
                         testBasicDebugUnitTest        : testBasicDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testBasicDebugUnitTest
-                        testBasicReleaseUnitTest      : testBasicReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testBasicReleaseUnitTest
                         testPaidDebugUnitTest         : testPaidDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testPaidDebugUnitTest
-                        testPaidReleaseUnitTest       : testPaidReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testPaidReleaseUnitTest
             lib                           : :lib (DefaultExternalProject)
                 path                          : :lib [-]
                 identityPath                  : :lib [-]
@@ -840,9 +822,6 @@ MODULE                        : project
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
                         runtimeOnly                   : <empty>
                         testAnnotationProcessor       : <empty>
                         testCompileOnly               : <empty>
@@ -878,23 +857,15 @@ MODULE                        : project
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :lib:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :lib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
                 testBasicDebugUnitTest        : testBasicDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testBasicDebugUnitTest
-                testBasicReleaseUnitTest      : testBasicReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testBasicReleaseUnitTest
                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                     qName                         : :lib:testDebugUnitTest
                 testPaidDebugUnitTest         : testPaidDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testPaidDebugUnitTest
-                testPaidReleaseUnitTest       : testPaidReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testPaidReleaseUnitTest
-                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :lib:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -1105,20 +1076,6 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/app/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/app/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/testRelease/baselineProfiles [-]
     ProductFlavors
         ProductFlavor
             Name                          : basic
@@ -2186,20 +2143,6 @@ MODULE                        : project.lib
             AssetsDirectories             : <ROOT>/lib/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/lib/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/lib/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/lib/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/lib/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/lib/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/lib/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/lib/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/lib/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/lib/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/lib/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/lib/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

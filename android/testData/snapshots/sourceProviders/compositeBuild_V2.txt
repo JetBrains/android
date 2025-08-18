@@ -510,25 +510,6 @@ MODULE: TestCompositeLib1.app
                     file://./TestCompositeLib1/app/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./TestCompositeLib1/app/src/testDebug/resources
-            testRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./TestCompositeLib1/app/src/testRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./TestCompositeLib1/app/src/testRelease
-                AssetsDirectoryUrls:
-                    file://./TestCompositeLib1/app/src/testRelease/assets
-                JavaDirectoryUrls:
-                    file://./TestCompositeLib1/app/src/testRelease/java
-                KotlinDirectoryUrls:
-                    file://./TestCompositeLib1/app/src/testRelease/kotlin
-                    file://./TestCompositeLib1/app/src/testRelease/java
-                JniLibsDirectoryUrls:
-                    file://./TestCompositeLib1/app/src/testRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./TestCompositeLib1/app/src/testRelease/res
-                ResourcesDirectoryUrls:
-                    file://./TestCompositeLib1/app/src/testRelease/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1249,25 +1230,6 @@ MODULE: TestCompositeLib1.lib
                     file://./TestCompositeLib1/lib/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/testDebug/resources
-            testRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./TestCompositeLib1/lib/src/testRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./TestCompositeLib1/lib/src/testRelease
-                AssetsDirectoryUrls:
-                    file://./TestCompositeLib1/lib/src/testRelease/assets
-                JavaDirectoryUrls:
-                    file://./TestCompositeLib1/lib/src/testRelease/java
-                KotlinDirectoryUrls:
-                    file://./TestCompositeLib1/lib/src/testRelease/kotlin
-                    file://./TestCompositeLib1/lib/src/testRelease/java
-                JniLibsDirectoryUrls:
-                    file://./TestCompositeLib1/lib/src/testRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./TestCompositeLib1/lib/src/testRelease/res
-                ResourcesDirectoryUrls:
-                    file://./TestCompositeLib1/lib/src/testRelease/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1988,25 +1950,6 @@ MODULE: TestCompositeLib3.app
                     file://./TestCompositeLib3/app/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./TestCompositeLib3/app/src/testDebug/resources
-            testRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./TestCompositeLib3/app/src/testRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./TestCompositeLib3/app/src/testRelease
-                AssetsDirectoryUrls:
-                    file://./TestCompositeLib3/app/src/testRelease/assets
-                JavaDirectoryUrls:
-                    file://./TestCompositeLib3/app/src/testRelease/java
-                KotlinDirectoryUrls:
-                    file://./TestCompositeLib3/app/src/testRelease/kotlin
-                    file://./TestCompositeLib3/app/src/testRelease/java
-                JniLibsDirectoryUrls:
-                    file://./TestCompositeLib3/app/src/testRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./TestCompositeLib3/app/src/testRelease/res
-                ResourcesDirectoryUrls:
-                    file://./TestCompositeLib3/app/src/testRelease/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -2727,25 +2670,6 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/testDebug/resources
-            testRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./TestCompositeLib3/lib/src/testRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./TestCompositeLib3/lib/src/testRelease
-                AssetsDirectoryUrls:
-                    file://./TestCompositeLib3/lib/src/testRelease/assets
-                JavaDirectoryUrls:
-                    file://./TestCompositeLib3/lib/src/testRelease/java
-                KotlinDirectoryUrls:
-                    file://./TestCompositeLib3/lib/src/testRelease/java
-                    file://./TestCompositeLib3/lib/src/testRelease/kotlin
-                JniLibsDirectoryUrls:
-                    file://./TestCompositeLib3/lib/src/testRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./TestCompositeLib3/lib/src/testRelease/res
-                ResourcesDirectoryUrls:
-                    file://./TestCompositeLib3/lib/src/testRelease/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -3466,25 +3390,6 @@ MODULE: project.app
                     file://./app/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testDebug/resources
-            testRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./app/src/testRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./app/src/testRelease
-                AssetsDirectoryUrls:
-                    file://./app/src/testRelease/assets
-                JavaDirectoryUrls:
-                    file://./app/src/testRelease/java
-                KotlinDirectoryUrls:
-                    file://./app/src/testRelease/kotlin
-                    file://./app/src/testRelease/java
-                JniLibsDirectoryUrls:
-                    file://./app/src/testRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./app/src/testRelease/res
-                ResourcesDirectoryUrls:
-                    file://./app/src/testRelease/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -4205,25 +4110,6 @@ MODULE: project.lib
                     file://./lib/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/testDebug/resources
-            testRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./lib/src/testRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./lib/src/testRelease
-                AssetsDirectoryUrls:
-                    file://./lib/src/testRelease/assets
-                JavaDirectoryUrls:
-                    file://./lib/src/testRelease/java
-                KotlinDirectoryUrls:
-                    file://./lib/src/testRelease/kotlin
-                    file://./lib/src/testRelease/java
-                JniLibsDirectoryUrls:
-                    file://./lib/src/testRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./lib/src/testRelease/res
-                ResourcesDirectoryUrls:
-                    file://./lib/src/testRelease/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN

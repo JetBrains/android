@@ -812,7 +812,6 @@ MODULE                        : project
                         kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
                         kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                         kotlinCompilerPluginClasspathRelease    : <empty>
-                        kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinInternalAbiValidation   : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
@@ -841,21 +840,6 @@ MODULE                        : project
                         releaseScreenshotTestAnnotationProcessorClasspath : <empty>
                         releaseScreenshotTestCompileClasspath   : <empty>
                         releaseScreenshotTestRuntimeClasspath   : <empty>
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestApi            : <empty>
-                        releaseUnitTestApiDependenciesMetadata  : <empty>
-                        releaseUnitTestCompilationApi : <empty>
-                        releaseUnitTestCompilationCompileOnly   : <empty>
-                        releaseUnitTestCompilationImplementation          : <empty>
-                        releaseUnitTestCompilationRuntimeOnly   : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestCompileOnly    : <empty>
-                        releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                        releaseUnitTestImplementation : <empty>
-                        releaseUnitTestImplementationDependenciesMetadata : <empty>
-                        releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
-                        releaseUnitTestRuntimeOnly    : <empty>
                         runtimeOnly                   : <empty>
                         screenshotTestAnnotationProcessor       : <empty>
                         screenshotTestApi             : <empty>
@@ -945,15 +929,11 @@ MODULE                        : project
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testDebugUnitTest
-                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -1186,20 +1166,6 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/app/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
-                    ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/app/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/testRelease/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _screenshot_test_

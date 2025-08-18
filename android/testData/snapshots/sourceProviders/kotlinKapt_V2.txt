@@ -879,25 +879,6 @@ MODULE: MainActivity.app
                     file://./app/src/testLocalDebug/jniLibs
                 ResourcesDirectoryUrls:
                     file://./app/src/testLocalDebug/resources
-            testRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./app/src/testRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./app/src/testRelease
-                AssetsDirectoryUrls:
-                    file://./app/src/testRelease/assets
-                JavaDirectoryUrls:
-                    file://./app/src/testRelease/java
-                KotlinDirectoryUrls:
-                    file://./app/src/testRelease/kotlin
-                    file://./app/src/testRelease/java
-                JniLibsDirectoryUrls:
-                    file://./app/src/testRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./app/src/testRelease/res
-                ResourcesDirectoryUrls:
-                    file://./app/src/testRelease/resources
             testRemote (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1764,25 +1745,6 @@ MODULE: MainActivity.lib
                     file://./lib/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/testDebug/resources
-            testRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./lib/src/testRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./lib/src/testRelease
-                AssetsDirectoryUrls:
-                    file://./lib/src/testRelease/assets
-                JavaDirectoryUrls:
-                    file://./lib/src/testRelease/java
-                KotlinDirectoryUrls:
-                    file://./lib/src/testRelease/kotlin
-                    file://./lib/src/testRelease/java
-                JniLibsDirectoryUrls:
-                    file://./lib/src/testRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./lib/src/testRelease/res
-                ResourcesDirectoryUrls:
-                    file://./lib/src/testRelease/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN

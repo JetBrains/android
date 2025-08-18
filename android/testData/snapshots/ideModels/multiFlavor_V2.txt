@@ -726,9 +726,6 @@ MODULE                        : MultiFlavor
                         firstAbcSecondAbcReleaseRuntimeClasspath          : <empty>
                         firstAbcSecondAbcReleaseRuntimeElements : <empty>
                         firstAbcSecondAbcReleaseRuntimeOnly     : <empty>
-                        firstAbcSecondAbcReleaseUnitTestAnnotationProcessorClasspath          : <empty>
-                        firstAbcSecondAbcReleaseUnitTestCompileClasspath  : <empty>
-                        firstAbcSecondAbcReleaseUnitTestRuntimeClasspath  : <empty>
                         firstAbcSecondAbcRuntimeOnly  : <empty>
                         firstAbcSecondXyzAnnotationProcessor    : <empty>
                         firstAbcSecondXyzApi          : <empty>
@@ -765,9 +762,6 @@ MODULE                        : MultiFlavor
                         firstAbcSecondXyzReleaseRuntimeClasspath          : <empty>
                         firstAbcSecondXyzReleaseRuntimeElements : <empty>
                         firstAbcSecondXyzReleaseRuntimeOnly     : <empty>
-                        firstAbcSecondXyzReleaseUnitTestAnnotationProcessorClasspath          : <empty>
-                        firstAbcSecondXyzReleaseUnitTestCompileClasspath  : <empty>
-                        firstAbcSecondXyzReleaseUnitTestRuntimeClasspath  : <empty>
                         firstAbcSecondXyzRuntimeOnly  : <empty>
                         firstXyzAnnotationProcessor   : <empty>
                         firstXyzApi                   : <empty>
@@ -810,9 +804,6 @@ MODULE                        : MultiFlavor
                         firstXyzSecondAbcReleaseRuntimeClasspath          : <empty>
                         firstXyzSecondAbcReleaseRuntimeElements : <empty>
                         firstXyzSecondAbcReleaseRuntimeOnly     : <empty>
-                        firstXyzSecondAbcReleaseUnitTestAnnotationProcessorClasspath          : <empty>
-                        firstXyzSecondAbcReleaseUnitTestCompileClasspath  : <empty>
-                        firstXyzSecondAbcReleaseUnitTestRuntimeClasspath  : <empty>
                         firstXyzSecondAbcRuntimeOnly  : <empty>
                         firstXyzSecondXyzAnnotationProcessor    : <empty>
                         firstXyzSecondXyzApi          : <empty>
@@ -849,9 +840,6 @@ MODULE                        : MultiFlavor
                         firstXyzSecondXyzReleaseRuntimeClasspath          : <empty>
                         firstXyzSecondXyzReleaseRuntimeElements : <empty>
                         firstXyzSecondXyzReleaseRuntimeOnly     : <empty>
-                        firstXyzSecondXyzReleaseUnitTestAnnotationProcessorClasspath          : <empty>
-                        firstXyzSecondXyzReleaseUnitTestCompileClasspath  : <empty>
-                        firstXyzSecondXyzReleaseUnitTestRuntimeClasspath  : <empty>
                         firstXyzSecondXyzRuntimeOnly  : <empty>
                         implementation                : <empty>
                         lintChecks                    : <empty>
@@ -892,10 +880,6 @@ MODULE                        : MultiFlavor
                         testFirstAbcSecondAbcDebugImplementation          : <empty>
                         testFirstAbcSecondAbcDebugRuntimeOnly   : <empty>
                         testFirstAbcSecondAbcImplementation     : <empty>
-                        testFirstAbcSecondAbcReleaseAnnotationProcessor   : <empty>
-                        testFirstAbcSecondAbcReleaseCompileOnly : <empty>
-                        testFirstAbcSecondAbcReleaseImplementation        : <empty>
-                        testFirstAbcSecondAbcReleaseRuntimeOnly : <empty>
                         testFirstAbcSecondAbcRuntimeOnly        : <empty>
                         testFirstAbcSecondXyzAnnotationProcessor          : <empty>
                         testFirstAbcSecondXyzCompileOnly        : <empty>
@@ -904,10 +888,6 @@ MODULE                        : MultiFlavor
                         testFirstAbcSecondXyzDebugImplementation          : <empty>
                         testFirstAbcSecondXyzDebugRuntimeOnly   : <empty>
                         testFirstAbcSecondXyzImplementation     : <empty>
-                        testFirstAbcSecondXyzReleaseAnnotationProcessor   : <empty>
-                        testFirstAbcSecondXyzReleaseCompileOnly : <empty>
-                        testFirstAbcSecondXyzReleaseImplementation        : <empty>
-                        testFirstAbcSecondXyzReleaseRuntimeOnly : <empty>
                         testFirstAbcSecondXyzRuntimeOnly        : <empty>
                         testFirstXyzAnnotationProcessor         : <empty>
                         testFirstXyzCompileOnly       : <empty>
@@ -920,10 +900,6 @@ MODULE                        : MultiFlavor
                         testFirstXyzSecondAbcDebugImplementation          : <empty>
                         testFirstXyzSecondAbcDebugRuntimeOnly   : <empty>
                         testFirstXyzSecondAbcImplementation     : <empty>
-                        testFirstXyzSecondAbcReleaseAnnotationProcessor   : <empty>
-                        testFirstXyzSecondAbcReleaseCompileOnly : <empty>
-                        testFirstXyzSecondAbcReleaseImplementation        : <empty>
-                        testFirstXyzSecondAbcReleaseRuntimeOnly : <empty>
                         testFirstXyzSecondAbcRuntimeOnly        : <empty>
                         testFirstXyzSecondXyzAnnotationProcessor          : <empty>
                         testFirstXyzSecondXyzCompileOnly        : <empty>
@@ -932,10 +908,6 @@ MODULE                        : MultiFlavor
                         testFirstXyzSecondXyzDebugImplementation          : <empty>
                         testFirstXyzSecondXyzDebugRuntimeOnly   : <empty>
                         testFirstXyzSecondXyzImplementation     : <empty>
-                        testFirstXyzSecondXyzReleaseAnnotationProcessor   : <empty>
-                        testFirstXyzSecondXyzReleaseCompileOnly : <empty>
-                        testFirstXyzSecondXyzReleaseImplementation        : <empty>
-                        testFirstXyzSecondXyzReleaseRuntimeOnly : <empty>
                         testFirstXyzSecondXyzRuntimeOnly        : <empty>
                         testFixturesAnnotationProcessor         : <empty>
                         testFixturesApi               : <empty>
@@ -997,39 +969,23 @@ MODULE                        : MultiFlavor
                     tasks
                         testFirstAbcSecondAbcDebugUnitTest      : testFirstAbcSecondAbcDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testFirstAbcSecondAbcDebugUnitTest
-                        testFirstAbcSecondAbcReleaseUnitTest    : testFirstAbcSecondAbcReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testFirstAbcSecondAbcReleaseUnitTest
                         testFirstAbcSecondXyzDebugUnitTest      : testFirstAbcSecondXyzDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testFirstAbcSecondXyzDebugUnitTest
-                        testFirstAbcSecondXyzReleaseUnitTest    : testFirstAbcSecondXyzReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testFirstAbcSecondXyzReleaseUnitTest
                         testFirstXyzSecondAbcDebugUnitTest      : testFirstXyzSecondAbcDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testFirstXyzSecondAbcDebugUnitTest
-                        testFirstXyzSecondAbcReleaseUnitTest    : testFirstXyzSecondAbcReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testFirstXyzSecondAbcReleaseUnitTest
                         testFirstXyzSecondXyzDebugUnitTest      : testFirstXyzSecondXyzDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testFirstXyzSecondXyzDebugUnitTest
-                        testFirstXyzSecondXyzReleaseUnitTest    : testFirstXyzSecondXyzReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testFirstXyzSecondXyzReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
                 testFirstAbcSecondAbcDebugUnitTest      : testFirstAbcSecondAbcDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testFirstAbcSecondAbcDebugUnitTest
-                testFirstAbcSecondAbcReleaseUnitTest    : testFirstAbcSecondAbcReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testFirstAbcSecondAbcReleaseUnitTest
                 testFirstAbcSecondXyzDebugUnitTest      : testFirstAbcSecondXyzDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testFirstAbcSecondXyzDebugUnitTest
-                testFirstAbcSecondXyzReleaseUnitTest    : testFirstAbcSecondXyzReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testFirstAbcSecondXyzReleaseUnitTest
                 testFirstXyzSecondAbcDebugUnitTest      : testFirstXyzSecondAbcDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testFirstXyzSecondAbcDebugUnitTest
-                testFirstXyzSecondAbcReleaseUnitTest    : testFirstXyzSecondAbcReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testFirstXyzSecondAbcReleaseUnitTest
                 testFirstXyzSecondXyzDebugUnitTest      : testFirstXyzSecondXyzDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testFirstXyzSecondXyzDebugUnitTest
-                testFirstXyzSecondXyzReleaseUnitTest    : testFirstXyzSecondXyzReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testFirstXyzSecondXyzReleaseUnitTest
 MODULE                        : MultiFlavor.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -1277,20 +1233,6 @@ MODULE                        : MultiFlavor.app
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/app/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/app/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/testRelease/baselineProfiles [-]
     ProductFlavors
         ProductFlavor
             Name                          : firstAbc

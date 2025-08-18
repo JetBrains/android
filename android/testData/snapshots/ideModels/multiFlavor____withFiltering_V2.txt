@@ -166,9 +166,6 @@ MODULE                        : MultiFlavor
                         firstAbcSecondAbcReleaseRuntimeClasspath          : <empty>
                         firstAbcSecondAbcReleaseRuntimeElements : <empty>
                         firstAbcSecondAbcReleaseRuntimeOnly     : <empty>
-                        firstAbcSecondAbcReleaseUnitTestAnnotationProcessorClasspath          : <empty>
-                        firstAbcSecondAbcReleaseUnitTestCompileClasspath  : <empty>
-                        firstAbcSecondAbcReleaseUnitTestRuntimeClasspath  : <empty>
                         firstAbcSecondAbcRuntimeOnly  : <empty>
                         firstXyzAnnotationProcessor   : <empty>
                         firstXyzApi                   : <empty>
@@ -215,10 +212,6 @@ MODULE                        : MultiFlavor
                         testFirstAbcSecondAbcDebugImplementation          : <empty>
                         testFirstAbcSecondAbcDebugRuntimeOnly   : <empty>
                         testFirstAbcSecondAbcImplementation     : <empty>
-                        testFirstAbcSecondAbcReleaseAnnotationProcessor   : <empty>
-                        testFirstAbcSecondAbcReleaseCompileOnly : <empty>
-                        testFirstAbcSecondAbcReleaseImplementation        : <empty>
-                        testFirstAbcSecondAbcReleaseRuntimeOnly : <empty>
                         testFirstAbcSecondAbcRuntimeOnly        : <empty>
                         testFirstXyzAnnotationProcessor         : <empty>
                         testFirstXyzCompileOnly       : <empty>
@@ -284,15 +277,11 @@ MODULE                        : MultiFlavor
                     tasks
                         testFirstAbcSecondAbcDebugUnitTest      : testFirstAbcSecondAbcDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testFirstAbcSecondAbcDebugUnitTest
-                        testFirstAbcSecondAbcReleaseUnitTest    : testFirstAbcSecondAbcReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testFirstAbcSecondAbcReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
                 testFirstAbcSecondAbcDebugUnitTest      : testFirstAbcSecondAbcDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testFirstAbcSecondAbcDebugUnitTest
-                testFirstAbcSecondAbcReleaseUnitTest    : testFirstAbcSecondAbcReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testFirstAbcSecondAbcReleaseUnitTest
 MODULE                        : MultiFlavor.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -519,20 +508,6 @@ MODULE                        : MultiFlavor.app
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/app/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/app/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/testRelease/baselineProfiles [-]
     ProductFlavors
         ProductFlavor
             Name                          : firstAbc

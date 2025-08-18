@@ -510,25 +510,6 @@ MODULE: project_sm_src.app
                     file://._sm_src/app/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://._sm_src/app/src/testDebug/resources
-            testRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://._sm_src/app/src/testRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://._sm_src/app/src/testRelease
-                AssetsDirectoryUrls:
-                    file://._sm_src/app/src/testRelease/assets
-                JavaDirectoryUrls:
-                    file://._sm_src/app/src/testRelease/java
-                KotlinDirectoryUrls:
-                    file://._sm_src/app/src/testRelease/java
-                    file://._sm_src/app/src/testRelease/kotlin
-                JniLibsDirectoryUrls:
-                    file://._sm_src/app/src/testRelease/jniLibs
-                ResDirectoryUrls:
-                    file://._sm_src/app/src/testRelease/res
-                ResourcesDirectoryUrls:
-                    file://._sm_src/app/src/testRelease/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN

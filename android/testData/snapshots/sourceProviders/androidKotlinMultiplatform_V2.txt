@@ -1105,25 +1105,6 @@ MODULE: Kotlin_Multiplatform.androidLib
                     file://./androidLib/src/testModetwo/res
                 ResourcesDirectoryUrls:
                     file://./androidLib/src/testModetwo/resources
-            testRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./androidLib/src/testRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./androidLib/src/testRelease
-                AssetsDirectoryUrls:
-                    file://./androidLib/src/testRelease/assets
-                JavaDirectoryUrls:
-                    file://./androidLib/src/testRelease/java
-                KotlinDirectoryUrls:
-                    file://./androidLib/src/testRelease/java
-                    file://./androidLib/src/testRelease/kotlin
-                JniLibsDirectoryUrls:
-                    file://./androidLib/src/testRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./androidLib/src/testRelease/res
-                ResourcesDirectoryUrls:
-                    file://./androidLib/src/testRelease/resources
             testTypeone (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -2304,25 +2285,6 @@ MODULE: Kotlin_Multiplatform.app
                     file://./app/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testDebug/resources
-            testRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./app/src/testRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./app/src/testRelease
-                AssetsDirectoryUrls:
-                    file://./app/src/testRelease/assets
-                JavaDirectoryUrls:
-                    file://./app/src/testRelease/java
-                KotlinDirectoryUrls:
-                    file://./app/src/testRelease/java
-                    file://./app/src/testRelease/kotlin
-                JniLibsDirectoryUrls:
-                    file://./app/src/testRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./app/src/testRelease/res
-                ResourcesDirectoryUrls:
-                    file://./app/src/testRelease/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN

@@ -876,9 +876,6 @@ MODULE                        : project
                         basicBarReleaseRuntimeClasspath         : <empty>
                         basicBarReleaseRuntimeElements          : <empty>
                         basicBarReleaseRuntimeOnly    : <empty>
-                        basicBarReleaseUnitTestAnnotationProcessorClasspath         : <empty>
-                        basicBarReleaseUnitTestCompileClasspath : <empty>
-                        basicBarReleaseUnitTestRuntimeClasspath : <empty>
                         basicBarRuntimeOnly           : <empty>
                         basicBarSpecialReleaseAnnotationProcessor         : <empty>
                         basicBarSpecialReleaseAnnotationProcessorClasspath          : <empty>
@@ -892,9 +889,6 @@ MODULE                        : project
                         basicBarSpecialReleaseRuntimeClasspath  : <empty>
                         basicBarSpecialReleaseRuntimeElements   : <empty>
                         basicBarSpecialReleaseRuntimeOnly       : <empty>
-                        basicBarSpecialReleaseUnitTestAnnotationProcessorClasspath  : <empty>
-                        basicBarSpecialReleaseUnitTestCompileClasspath    : <empty>
-                        basicBarSpecialReleaseUnitTestRuntimeClasspath    : <empty>
                         basicCompileOnly              : <empty>
                         basicCompileOnlyApi           : <empty>
                         basicImplementation           : <empty>
@@ -933,9 +927,6 @@ MODULE                        : project
                         basicOtherBarReleaseRuntimeClasspath    : <empty>
                         basicOtherBarReleaseRuntimeElements     : <empty>
                         basicOtherBarReleaseRuntimeOnly         : <empty>
-                        basicOtherBarReleaseUnitTestAnnotationProcessorClasspath    : <empty>
-                        basicOtherBarReleaseUnitTestCompileClasspath      : <empty>
-                        basicOtherBarReleaseUnitTestRuntimeClasspath      : <empty>
                         basicOtherBarRuntimeOnly      : <empty>
                         basicOtherBarSpecialReleaseAnnotationProcessor    : <empty>
                         basicOtherBarSpecialReleaseAnnotationProcessorClasspath     : <empty>
@@ -949,9 +940,6 @@ MODULE                        : project
                         basicOtherBarSpecialReleaseRuntimeClasspath       : <empty>
                         basicOtherBarSpecialReleaseRuntimeElements        : <empty>
                         basicOtherBarSpecialReleaseRuntimeOnly  : <empty>
-                        basicOtherBarSpecialReleaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        basicOtherBarSpecialReleaseUnitTestCompileClasspath         : <empty>
-                        basicOtherBarSpecialReleaseUnitTestRuntimeClasspath         : <empty>
                         basicRuntimeOnly              : <empty>
                         compileOnly                   : <empty>
                         compileOnlyApi                : <empty>
@@ -1009,9 +997,6 @@ MODULE                        : project
                         paidBarReleaseRuntimeClasspath          : <empty>
                         paidBarReleaseRuntimeElements : <empty>
                         paidBarReleaseRuntimeOnly     : <empty>
-                        paidBarReleaseUnitTestAnnotationProcessorClasspath          : <empty>
-                        paidBarReleaseUnitTestCompileClasspath  : <empty>
-                        paidBarReleaseUnitTestRuntimeClasspath  : <empty>
                         paidBarRuntimeOnly            : <empty>
                         paidBarSpecialReleaseAnnotationProcessor          : <empty>
                         paidBarSpecialReleaseAnnotationProcessorClasspath : <empty>
@@ -1025,9 +1010,6 @@ MODULE                        : project
                         paidBarSpecialReleaseRuntimeClasspath   : <empty>
                         paidBarSpecialReleaseRuntimeElements    : <empty>
                         paidBarSpecialReleaseRuntimeOnly        : <empty>
-                        paidBarSpecialReleaseUnitTestAnnotationProcessorClasspath   : <empty>
-                        paidBarSpecialReleaseUnitTestCompileClasspath     : <empty>
-                        paidBarSpecialReleaseUnitTestRuntimeClasspath     : <empty>
                         paidCompileOnly               : <empty>
                         paidCompileOnlyApi            : <empty>
                         paidImplementation            : <empty>
@@ -1066,9 +1048,6 @@ MODULE                        : project
                         paidOtherBarReleaseRuntimeClasspath     : <empty>
                         paidOtherBarReleaseRuntimeElements      : <empty>
                         paidOtherBarReleaseRuntimeOnly          : <empty>
-                        paidOtherBarReleaseUnitTestAnnotationProcessorClasspath     : <empty>
-                        paidOtherBarReleaseUnitTestCompileClasspath       : <empty>
-                        paidOtherBarReleaseUnitTestRuntimeClasspath       : <empty>
                         paidOtherBarRuntimeOnly       : <empty>
                         paidOtherBarSpecialReleaseAnnotationProcessor     : <empty>
                         paidOtherBarSpecialReleaseAnnotationProcessorClasspath      : <empty>
@@ -1082,9 +1061,6 @@ MODULE                        : project
                         paidOtherBarSpecialReleaseRuntimeClasspath        : <empty>
                         paidOtherBarSpecialReleaseRuntimeElements         : <empty>
                         paidOtherBarSpecialReleaseRuntimeOnly   : <empty>
-                        paidOtherBarSpecialReleaseUnitTestAnnotationProcessorClasspath        : <empty>
-                        paidOtherBarSpecialReleaseUnitTestCompileClasspath          : <empty>
-                        paidOtherBarSpecialReleaseUnitTestRuntimeClasspath          : <empty>
                         paidRuntimeOnly               : <empty>
                         releaseAnnotationProcessor    : <empty>
                         releaseApi                    : <empty>
@@ -1112,15 +1088,7 @@ MODULE                        : project
                         testBasicBarDebugImplementation         : <empty>
                         testBasicBarDebugRuntimeOnly  : <empty>
                         testBasicBarImplementation    : <empty>
-                        testBasicBarReleaseAnnotationProcessor  : <empty>
-                        testBasicBarReleaseCompileOnly          : <empty>
-                        testBasicBarReleaseImplementation       : <empty>
-                        testBasicBarReleaseRuntimeOnly          : <empty>
                         testBasicBarRuntimeOnly       : <empty>
-                        testBasicBarSpecialReleaseAnnotationProcessor     : <empty>
-                        testBasicBarSpecialReleaseCompileOnly   : <empty>
-                        testBasicBarSpecialReleaseImplementation          : <empty>
-                        testBasicBarSpecialReleaseRuntimeOnly   : <empty>
                         testBasicCompileOnly          : <empty>
                         testBasicImplementation       : <empty>
                         testBasicOtherBarAnnotationProcessor    : <empty>
@@ -1130,15 +1098,7 @@ MODULE                        : project
                         testBasicOtherBarDebugImplementation    : <empty>
                         testBasicOtherBarDebugRuntimeOnly       : <empty>
                         testBasicOtherBarImplementation         : <empty>
-                        testBasicOtherBarReleaseAnnotationProcessor       : <empty>
-                        testBasicOtherBarReleaseCompileOnly     : <empty>
-                        testBasicOtherBarReleaseImplementation  : <empty>
-                        testBasicOtherBarReleaseRuntimeOnly     : <empty>
                         testBasicOtherBarRuntimeOnly  : <empty>
-                        testBasicOtherBarSpecialReleaseAnnotationProcessor          : <empty>
-                        testBasicOtherBarSpecialReleaseCompileOnly        : <empty>
-                        testBasicOtherBarSpecialReleaseImplementation     : <empty>
-                        testBasicOtherBarSpecialReleaseRuntimeOnly        : <empty>
                         testBasicRuntimeOnly          : <empty>
                         testCompileOnly               : <empty>
                         testDebugAnnotationProcessor  : <empty>
@@ -1206,15 +1166,7 @@ MODULE                        : project
                         testPaidBarDebugImplementation          : <empty>
                         testPaidBarDebugRuntimeOnly   : <empty>
                         testPaidBarImplementation     : <empty>
-                        testPaidBarReleaseAnnotationProcessor   : <empty>
-                        testPaidBarReleaseCompileOnly : <empty>
-                        testPaidBarReleaseImplementation        : <empty>
-                        testPaidBarReleaseRuntimeOnly : <empty>
                         testPaidBarRuntimeOnly        : <empty>
-                        testPaidBarSpecialReleaseAnnotationProcessor      : <empty>
-                        testPaidBarSpecialReleaseCompileOnly    : <empty>
-                        testPaidBarSpecialReleaseImplementation : <empty>
-                        testPaidBarSpecialReleaseRuntimeOnly    : <empty>
                         testPaidCompileOnly           : <empty>
                         testPaidImplementation        : <empty>
                         testPaidOtherBarAnnotationProcessor     : <empty>
@@ -1224,15 +1176,7 @@ MODULE                        : project
                         testPaidOtherBarDebugImplementation     : <empty>
                         testPaidOtherBarDebugRuntimeOnly        : <empty>
                         testPaidOtherBarImplementation          : <empty>
-                        testPaidOtherBarReleaseAnnotationProcessor        : <empty>
-                        testPaidOtherBarReleaseCompileOnly      : <empty>
-                        testPaidOtherBarReleaseImplementation   : <empty>
-                        testPaidOtherBarReleaseRuntimeOnly      : <empty>
                         testPaidOtherBarRuntimeOnly   : <empty>
-                        testPaidOtherBarSpecialReleaseAnnotationProcessor : <empty>
-                        testPaidOtherBarSpecialReleaseCompileOnly         : <empty>
-                        testPaidOtherBarSpecialReleaseImplementation      : <empty>
-                        testPaidOtherBarSpecialReleaseRuntimeOnly         : <empty>
                         testPaidRuntimeOnly           : <empty>
                         testReleaseAnnotationProcessor          : <empty>
                         testReleaseCompileOnly        : <empty>
@@ -1247,28 +1191,12 @@ MODULE                        : project
                     tasks
                         testBasicBarDebugUnitTest     : testBasicBarDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testBasicBarDebugUnitTest
-                        testBasicBarReleaseUnitTest   : testBasicBarReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testBasicBarReleaseUnitTest
-                        testBasicBarSpecialReleaseUnitTest      : testBasicBarSpecialReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testBasicBarSpecialReleaseUnitTest
                         testBasicOtherBarDebugUnitTest          : testBasicOtherBarDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testBasicOtherBarDebugUnitTest
-                        testBasicOtherBarReleaseUnitTest        : testBasicOtherBarReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testBasicOtherBarReleaseUnitTest
-                        testBasicOtherBarSpecialReleaseUnitTest : testBasicOtherBarSpecialReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testBasicOtherBarSpecialReleaseUnitTest
                         testPaidBarDebugUnitTest      : testPaidBarDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testPaidBarDebugUnitTest
-                        testPaidBarReleaseUnitTest    : testPaidBarReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testPaidBarReleaseUnitTest
-                        testPaidBarSpecialReleaseUnitTest       : testPaidBarSpecialReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testPaidBarSpecialReleaseUnitTest
                         testPaidOtherBarDebugUnitTest : testPaidOtherBarDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testPaidOtherBarDebugUnitTest
-                        testPaidOtherBarReleaseUnitTest         : testPaidOtherBarReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testPaidOtherBarReleaseUnitTest
-                        testPaidOtherBarSpecialReleaseUnitTest  : testPaidOtherBarSpecialReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testPaidOtherBarSpecialReleaseUnitTest
             dyn_feature                   : :dyn_feature (DefaultExternalProject)
                 path                          : :dyn_feature [-]
                 identityPath                  : :dyn_feature [-]
@@ -1351,9 +1279,6 @@ MODULE                        : project
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
                         runtimeOnly                   : <empty>
                         testAnnotationProcessor       : <empty>
                         testCompileOnly               : <empty>
@@ -1389,8 +1314,6 @@ MODULE                        : project
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :dyn_feature:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :dyn_feature:testReleaseUnitTest
             jav                           : :jav (DefaultExternalProject)
                 path                          : :jav [-]
                 identityPath                  : :jav [-]
@@ -1551,9 +1474,6 @@ MODULE                        : project
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
                         runtimeOnly                   : <empty>
                         testAnnotationProcessor       : <empty>
                         testCompileOnly               : <empty>
@@ -1589,8 +1509,6 @@ MODULE                        : project
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :lib:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :lib:testReleaseUnitTest
             nested1                       : :nested1 (DefaultExternalProject)
                 path                          : :nested1 [-]
                 identityPath                  : :nested1 [-]
@@ -1683,9 +1601,6 @@ MODULE                        : project
                                 releaseRuntimeClasspath       : <empty>
                                 releaseRuntimeElements        : <empty>
                                 releaseRuntimeOnly            : <empty>
-                                releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                                releaseUnitTestCompileClasspath         : <empty>
-                                releaseUnitTestRuntimeClasspath         : <empty>
                                 runtimeOnly                   : <empty>
                                 testAnnotationProcessor       : <empty>
                                 testCompileOnly               : <empty>
@@ -1721,8 +1636,6 @@ MODULE                        : project
                             tasks
                                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                                     qName                         : :nested1:deep:testDebugUnitTest
-                                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                                    qName                         : :nested1:deep:testReleaseUnitTest
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1792,9 +1705,6 @@ MODULE                        : project
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
                         runtimeOnly                   : <empty>
                         testAnnotationProcessor       : <empty>
                         testCompileOnly               : <empty>
@@ -1830,8 +1740,6 @@ MODULE                        : project
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :nested1:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :nested1:testReleaseUnitTest
             nested2                       : :nested2 (DefaultExternalProject)
                 path                          : :nested2 [-]
                 identityPath                  : :nested2 [-]
@@ -1924,9 +1832,6 @@ MODULE                        : project
                                 releaseRuntimeClasspath       : <empty>
                                 releaseRuntimeElements        : <empty>
                                 releaseRuntimeOnly            : <empty>
-                                releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                                releaseUnitTestCompileClasspath         : <empty>
-                                releaseUnitTestRuntimeClasspath         : <empty>
                                 runtimeOnly                   : <empty>
                                 testAnnotationProcessor       : <empty>
                                 testCompileOnly               : <empty>
@@ -1962,8 +1867,6 @@ MODULE                        : project
                             tasks
                                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                                     qName                         : :nested2:deep:testDebugUnitTest
-                                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                                    qName                         : :nested2:deep:testReleaseUnitTest
                     trans                         : :nested2:trans (DefaultExternalProject)
                         path                          : :nested2:trans [-]
                         identityPath                  : :nested2:trans [-]
@@ -2056,9 +1959,6 @@ MODULE                        : project
                                         releaseRuntimeClasspath       : <empty>
                                         releaseRuntimeElements        : <empty>
                                         releaseRuntimeOnly            : <empty>
-                                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                                        releaseUnitTestCompileClasspath         : <empty>
-                                        releaseUnitTestRuntimeClasspath         : <empty>
                                         runtimeOnly                   : <empty>
                                         testAnnotationProcessor       : <empty>
                                         testCompileOnly               : <empty>
@@ -2094,15 +1994,11 @@ MODULE                        : project
                                     tasks
                                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                                             qName                         : :nested2:trans:deep2:testDebugUnitTest
-                                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                                            qName                         : :nested2:trans:deep2:testReleaseUnitTest
                         sourceSetModel                : DefaultGradleSourceSetModel
                         taskModel                     : DefaultGradleTaskModel
                             tasks
                                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                                     qName                         : :nested2:trans:deep2:testDebugUnitTest
-                                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                                    qName                         : :nested2:trans:deep2:testReleaseUnitTest
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -2186,9 +2082,6 @@ MODULE                        : project
                         basicReleaseRuntimeClasspath  : <empty>
                         basicReleaseRuntimeElements   : <empty>
                         basicReleaseRuntimeOnly       : <empty>
-                        basicReleaseUnitTestAnnotationProcessorClasspath  : <empty>
-                        basicReleaseUnitTestCompileClasspath    : <empty>
-                        basicReleaseUnitTestRuntimeClasspath    : <empty>
                         basicRuntimeOnly              : <empty>
                         compileOnly                   : <empty>
                         compileOnlyApi                : <empty>
@@ -2236,9 +2129,6 @@ MODULE                        : project
                         paidReleaseRuntimeClasspath   : <empty>
                         paidReleaseRuntimeElements    : <empty>
                         paidReleaseRuntimeOnly        : <empty>
-                        paidReleaseUnitTestAnnotationProcessorClasspath   : <empty>
-                        paidReleaseUnitTestCompileClasspath     : <empty>
-                        paidReleaseUnitTestRuntimeClasspath     : <empty>
                         paidRuntimeOnly               : <empty>
                         releaseAnnotationProcessor    : <empty>
                         releaseApi                    : <empty>
@@ -2255,10 +2145,6 @@ MODULE                        : project
                         testBasicDebugImplementation  : <empty>
                         testBasicDebugRuntimeOnly     : <empty>
                         testBasicImplementation       : <empty>
-                        testBasicReleaseAnnotationProcessor     : <empty>
-                        testBasicReleaseCompileOnly   : <empty>
-                        testBasicReleaseImplementation          : <empty>
-                        testBasicReleaseRuntimeOnly   : <empty>
                         testBasicRuntimeOnly          : <empty>
                         testCompileOnly               : <empty>
                         testDebugAnnotationProcessor  : <empty>
@@ -2303,10 +2189,6 @@ MODULE                        : project
                         testPaidDebugImplementation   : <empty>
                         testPaidDebugRuntimeOnly      : <empty>
                         testPaidImplementation        : <empty>
-                        testPaidReleaseAnnotationProcessor      : <empty>
-                        testPaidReleaseCompileOnly    : <empty>
-                        testPaidReleaseImplementation : <empty>
-                        testPaidReleaseRuntimeOnly    : <empty>
                         testPaidRuntimeOnly           : <empty>
                         testReleaseAnnotationProcessor          : <empty>
                         testReleaseCompileOnly        : <empty>
@@ -2317,16 +2199,10 @@ MODULE                        : project
                     tasks
                         testBasicDebugUnitTest        : testBasicDebugUnitTest (DefaultExternalTask)
                             qName                         : :nested2:testBasicDebugUnitTest
-                        testBasicReleaseUnitTest      : testBasicReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :nested2:testBasicReleaseUnitTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :nested2:deep:testDebugUnitTest
                         testPaidDebugUnitTest         : testPaidDebugUnitTest (DefaultExternalTask)
                             qName                         : :nested2:testPaidDebugUnitTest
-                        testPaidReleaseUnitTest       : testPaidReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :nested2:testPaidReleaseUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :nested2:deep:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
@@ -2334,40 +2210,18 @@ MODULE                        : project
                     qName                         : :jav:test
                 testBasicBarDebugUnitTest     : testBasicBarDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testBasicBarDebugUnitTest
-                testBasicBarReleaseUnitTest   : testBasicBarReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testBasicBarReleaseUnitTest
-                testBasicBarSpecialReleaseUnitTest      : testBasicBarSpecialReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testBasicBarSpecialReleaseUnitTest
                 testBasicDebugUnitTest        : testBasicDebugUnitTest (DefaultExternalTask)
                     qName                         : :nested2:testBasicDebugUnitTest
                 testBasicOtherBarDebugUnitTest          : testBasicOtherBarDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testBasicOtherBarDebugUnitTest
-                testBasicOtherBarReleaseUnitTest        : testBasicOtherBarReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testBasicOtherBarReleaseUnitTest
-                testBasicOtherBarSpecialReleaseUnitTest : testBasicOtherBarSpecialReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testBasicOtherBarSpecialReleaseUnitTest
-                testBasicReleaseUnitTest      : testBasicReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :nested2:testBasicReleaseUnitTest
                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                     qName                         : :dyn_feature:testDebugUnitTest
                 testPaidBarDebugUnitTest      : testPaidBarDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testPaidBarDebugUnitTest
-                testPaidBarReleaseUnitTest    : testPaidBarReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testPaidBarReleaseUnitTest
-                testPaidBarSpecialReleaseUnitTest       : testPaidBarSpecialReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testPaidBarSpecialReleaseUnitTest
                 testPaidDebugUnitTest         : testPaidDebugUnitTest (DefaultExternalTask)
                     qName                         : :nested2:testPaidDebugUnitTest
                 testPaidOtherBarDebugUnitTest : testPaidOtherBarDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testPaidOtherBarDebugUnitTest
-                testPaidOtherBarReleaseUnitTest         : testPaidOtherBarReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testPaidOtherBarReleaseUnitTest
-                testPaidOtherBarSpecialReleaseUnitTest  : testPaidOtherBarSpecialReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testPaidOtherBarSpecialReleaseUnitTest
-                testPaidReleaseUnitTest       : testPaidReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :nested2:testPaidReleaseUnitTest
-                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :dyn_feature:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -2621,20 +2475,6 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/app/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/app/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/testRelease/baselineProfiles [-]
         BuildType
             Name                          : specialRelease
             VersionNameSuffix             : vnsSpecial
@@ -2656,20 +2496,6 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/specialRelease/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/specialRelease/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/specialRelease/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testSpecialRelease
-                    Manifest                      : <ROOT>/app/src/testSpecialRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/testSpecialRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testSpecialRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testSpecialRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/app/src/testSpecialRelease/resources [-]
-                    ResDirectories                : <ROOT>/app/src/testSpecialRelease/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/testSpecialRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/testSpecialRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/testSpecialRelease/baselineProfiles [-]
     ProductFlavors
         ProductFlavor
             Name                          : basic
@@ -4041,20 +3867,6 @@ MODULE                        : project.dyn_feature
             AssetsDirectories             : <ROOT>/dyn_feature/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/dyn_feature/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/dyn_feature/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/dyn_feature/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/dyn_feature/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/dyn_feature/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/dyn_feature/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/dyn_feature/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/dyn_feature/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/dyn_feature/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/dyn_feature/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/dyn_feature/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -4356,20 +4168,6 @@ MODULE                        : project.lib
             AssetsDirectories             : <ROOT>/lib/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/lib/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/lib/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/lib/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/lib/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/lib/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/lib/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/lib/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/lib/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/lib/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/lib/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/lib/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -5354,20 +5152,6 @@ MODULE                        : project.nested1
             AssetsDirectories             : <ROOT>/nested1/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/nested1/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/nested1/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/nested1/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested1/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested1/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested1/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested1/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/nested1/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/nested1/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested1/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/nested1/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -5646,20 +5430,6 @@ MODULE                        : project.nested1.deep
             AssetsDirectories             : <ROOT>/nested1/deep/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/nested1/deep/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/nested1/deep/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/nested1/deep/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested1/deep/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested1/deep/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested1/deep/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested1/deep/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/nested1/deep/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/nested1/deep/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested1/deep/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/nested1/deep/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -5948,20 +5718,6 @@ MODULE                        : project.nested2
             AssetsDirectories             : <ROOT>/nested2/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/nested2/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/nested2/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested2/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested2/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/nested2/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/nested2/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested2/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/nested2/src/testRelease/baselineProfiles [-]
     ProductFlavors
         ProductFlavor
             Name                          : basic
@@ -6364,20 +6120,6 @@ MODULE                        : project.nested2.deep
             AssetsDirectories             : <ROOT>/nested2/deep/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/deep/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/nested2/deep/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/nested2/deep/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested2/deep/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/deep/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/deep/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested2/deep/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/nested2/deep/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/nested2/deep/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested2/deep/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/nested2/deep/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -6665,20 +6407,6 @@ MODULE                        : project.nested2.trans.deep2
             AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/nested2/trans/deep2/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/nested2/trans/deep2/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested2/trans/deep2/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested2/trans/deep2/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/nested2/trans/deep2/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/nested2/trans/deep2/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

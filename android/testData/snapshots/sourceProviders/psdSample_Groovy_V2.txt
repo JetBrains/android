@@ -1302,44 +1302,6 @@ MODULE: project.app
                     file://./app/src/testPaid/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testPaid/resources
-            testRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./app/src/testRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./app/src/testRelease
-                AssetsDirectoryUrls:
-                    file://./app/src/testRelease/assets
-                JavaDirectoryUrls:
-                    file://./app/src/testRelease/java
-                KotlinDirectoryUrls:
-                    file://./app/src/testRelease/java
-                    file://./app/src/testRelease/kotlin
-                JniLibsDirectoryUrls:
-                    file://./app/src/testRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./app/src/testRelease/res
-                ResourcesDirectoryUrls:
-                    file://./app/src/testRelease/resources
-            testSpecialRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./app/src/testSpecialRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./app/src/testSpecialRelease
-                AssetsDirectoryUrls:
-                    file://./app/src/testSpecialRelease/assets
-                JavaDirectoryUrls:
-                    file://./app/src/testSpecialRelease/java
-                KotlinDirectoryUrls:
-                    file://./app/src/testSpecialRelease/java
-                    file://./app/src/testSpecialRelease/kotlin
-                JniLibsDirectoryUrls:
-                    file://./app/src/testSpecialRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./app/src/testSpecialRelease/res
-                ResourcesDirectoryUrls:
-                    file://./app/src/testSpecialRelease/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -2375,25 +2337,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/testDebug/resources
-            testRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./dyn_feature/src/testRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./dyn_feature/src/testRelease
-                AssetsDirectoryUrls:
-                    file://./dyn_feature/src/testRelease/assets
-                JavaDirectoryUrls:
-                    file://./dyn_feature/src/testRelease/java
-                KotlinDirectoryUrls:
-                    file://./dyn_feature/src/testRelease/java
-                    file://./dyn_feature/src/testRelease/kotlin
-                JniLibsDirectoryUrls:
-                    file://./dyn_feature/src/testRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./dyn_feature/src/testRelease/res
-                ResourcesDirectoryUrls:
-                    file://./dyn_feature/src/testRelease/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -3066,25 +3009,6 @@ MODULE: project.lib
                     file://./lib/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/testDebug/resources
-            testRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./lib/src/testRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./lib/src/testRelease
-                AssetsDirectoryUrls:
-                    file://./lib/src/testRelease/assets
-                JavaDirectoryUrls:
-                    file://./lib/src/testRelease/java
-                KotlinDirectoryUrls:
-                    file://./lib/src/testRelease/java
-                    file://./lib/src/testRelease/kotlin
-                JniLibsDirectoryUrls:
-                    file://./lib/src/testRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./lib/src/testRelease/res
-                ResourcesDirectoryUrls:
-                    file://./lib/src/testRelease/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -3751,25 +3675,6 @@ MODULE: project.nested1
                     file://./nested1/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested1/src/testDebug/resources
-            testRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./nested1/src/testRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./nested1/src/testRelease
-                AssetsDirectoryUrls:
-                    file://./nested1/src/testRelease/assets
-                JavaDirectoryUrls:
-                    file://./nested1/src/testRelease/java
-                KotlinDirectoryUrls:
-                    file://./nested1/src/testRelease/java
-                    file://./nested1/src/testRelease/kotlin
-                JniLibsDirectoryUrls:
-                    file://./nested1/src/testRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./nested1/src/testRelease/res
-                ResourcesDirectoryUrls:
-                    file://./nested1/src/testRelease/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -4424,25 +4329,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested1/deep/src/testDebug/resources
-            testRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./nested1/deep/src/testRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./nested1/deep/src/testRelease
-                AssetsDirectoryUrls:
-                    file://./nested1/deep/src/testRelease/assets
-                JavaDirectoryUrls:
-                    file://./nested1/deep/src/testRelease/java
-                KotlinDirectoryUrls:
-                    file://./nested1/deep/src/testRelease/java
-                    file://./nested1/deep/src/testRelease/kotlin
-                JniLibsDirectoryUrls:
-                    file://./nested1/deep/src/testRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./nested1/deep/src/testRelease/res
-                ResourcesDirectoryUrls:
-                    file://./nested1/deep/src/testRelease/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -5479,25 +5365,6 @@ MODULE: project.nested2
                     file://./nested2/src/testPaid/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/testPaid/resources
-            testRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./nested2/src/testRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./nested2/src/testRelease
-                AssetsDirectoryUrls:
-                    file://./nested2/src/testRelease/assets
-                JavaDirectoryUrls:
-                    file://./nested2/src/testRelease/java
-                KotlinDirectoryUrls:
-                    file://./nested2/src/testRelease/java
-                    file://./nested2/src/testRelease/kotlin
-                JniLibsDirectoryUrls:
-                    file://./nested2/src/testRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./nested2/src/testRelease/res
-                ResourcesDirectoryUrls:
-                    file://./nested2/src/testRelease/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -6321,25 +6188,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/deep/src/testDebug/resources
-            testRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./nested2/deep/src/testRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./nested2/deep/src/testRelease
-                AssetsDirectoryUrls:
-                    file://./nested2/deep/src/testRelease/assets
-                JavaDirectoryUrls:
-                    file://./nested2/deep/src/testRelease/java
-                KotlinDirectoryUrls:
-                    file://./nested2/deep/src/testRelease/java
-                    file://./nested2/deep/src/testRelease/kotlin
-                JniLibsDirectoryUrls:
-                    file://./nested2/deep/src/testRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./nested2/deep/src/testRelease/res
-                ResourcesDirectoryUrls:
-                    file://./nested2/deep/src/testRelease/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -6994,25 +6842,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/trans/deep2/src/testDebug/resources
-            testRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./nested2/trans/deep2/src/testRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./nested2/trans/deep2/src/testRelease
-                AssetsDirectoryUrls:
-                    file://./nested2/trans/deep2/src/testRelease/assets
-                JavaDirectoryUrls:
-                    file://./nested2/trans/deep2/src/testRelease/java
-                KotlinDirectoryUrls:
-                    file://./nested2/trans/deep2/src/testRelease/java
-                    file://./nested2/trans/deep2/src/testRelease/kotlin
-                JniLibsDirectoryUrls:
-                    file://./nested2/trans/deep2/src/testRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./nested2/trans/deep2/src/testRelease/res
-                ResourcesDirectoryUrls:
-                    file://./nested2/trans/deep2/src/testRelease/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN

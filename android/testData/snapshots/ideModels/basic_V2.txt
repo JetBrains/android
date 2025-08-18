@@ -775,20 +775,6 @@ MODULE                        : project
             AssetsDirectories             : <ROOT>/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -1596,9 +1582,6 @@ MODULE                        : project
                 releaseRuntimeClasspath       : <empty>
                 releaseRuntimeElements        : <empty>
                 releaseRuntimeOnly            : <empty>
-                releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                releaseUnitTestCompileClasspath         : <empty>
-                releaseUnitTestRuntimeClasspath         : <empty>
                 runtimeOnly                   : <empty>
                 testAnnotationProcessor       : <empty>
                 testCompileOnly               : <empty>
@@ -1634,8 +1617,6 @@ MODULE                        : project
             tasks
                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                     qName                         : :testDebugUnitTest
-                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :testReleaseUnitTest
 MODULE                        : project.androidTest
 MODULE                        : project.main
 MODULE                        : project.unitTest

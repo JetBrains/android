@@ -130,9 +130,6 @@ MODULE                        : project
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
                         runtimeOnly                   : <empty>
                         testAnnotationProcessor       : <empty>
                         testCompileOnly               : <empty>
@@ -168,8 +165,6 @@ MODULE                        : project
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testReleaseUnitTest
             library                       : :library (DefaultExternalProject)
                 path                          : :library [-]
                 identityPath                  : :library [-]
@@ -250,9 +245,6 @@ MODULE                        : project
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
                         runtimeOnly                   : <empty>
                         testAnnotationProcessor       : <empty>
                         testCompileOnly               : <empty>
@@ -288,8 +280,6 @@ MODULE                        : project
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :library:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :library:testReleaseUnitTest
             library-remote                : :library-remote (DefaultExternalProject)
                 path                          : :library-remote [-]
                 identityPath                  : :library-remote [-]
@@ -370,9 +360,6 @@ MODULE                        : project
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
                         - releaseVariantReleaseApiPublication   : <ROOT>/library-remote/build/outputs/aar/library-remote-release.aar [-]
                         - releaseVariantReleaseRuntimePublication         : <ROOT>/library-remote/build/outputs/aar/library-remote-release.aar [-]
                         runtimeOnly                   : <empty>
@@ -410,8 +397,6 @@ MODULE                        : project
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :library-remote:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :library-remote:testReleaseUnitTest
             lint                          : :lint (DefaultExternalProject)
                 path                          : :lint [-]
                 identityPath                  : :lint [-]
@@ -794,8 +779,6 @@ MODULE                        : project
                     qName                         : :lint:test
                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testDebugUnitTest
-                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -997,20 +980,6 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/app/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/app/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -1319,20 +1288,6 @@ MODULE                        : project.library
             AssetsDirectories             : <ROOT>/library/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/library/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/library/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/library/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/library/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/library/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/library/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/library/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/library/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/library/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/library/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/library/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -1616,20 +1571,6 @@ MODULE                        : project.library-remote
             AssetsDirectories             : <ROOT>/library-remote/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/library-remote/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/library-remote/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/library-remote/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/library-remote/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/library-remote/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/library-remote/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/library-remote/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/library-remote/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/library-remote/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/library-remote/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/library-remote/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

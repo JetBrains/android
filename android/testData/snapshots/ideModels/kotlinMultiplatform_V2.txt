@@ -722,7 +722,6 @@ MODULE                        : kotlinMultiPlatform
                         kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
                         kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                         kotlinCompilerPluginClasspathRelease    : <empty>
-                        kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinInternalAbiValidation   : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
@@ -748,21 +747,6 @@ MODULE                        : kotlinMultiPlatform
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestApi            : <empty>
-                        releaseUnitTestApiDependenciesMetadata  : <empty>
-                        releaseUnitTestCompilationApi : <empty>
-                        releaseUnitTestCompilationCompileOnly   : <empty>
-                        releaseUnitTestCompilationImplementation          : <empty>
-                        releaseUnitTestCompilationRuntimeOnly   : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestCompileOnly    : <empty>
-                        releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                        releaseUnitTestImplementation : <empty>
-                        releaseUnitTestImplementationDependenciesMetadata : <empty>
-                        releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
-                        releaseUnitTestRuntimeOnly    : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -827,8 +811,6 @@ MODULE                        : kotlinMultiPlatform
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testReleaseUnitTest
             module2                       : :module2 (DefaultExternalProject)
                 path                          : :module2 [-]
                 identityPath                  : :module2 [-]
@@ -932,12 +914,6 @@ MODULE                        : kotlinMultiPlatform
                         androidReleaseResolvableDependenciesMetadata      : <empty>
                         androidReleaseRuntimeClasspath          : <empty>
                         androidReleaseRuntimeOnly     : <empty>
-                        androidReleaseUnitTestCompilationApi    : <empty>
-                        androidReleaseUnitTestCompilationCompileOnly      : <empty>
-                        androidReleaseUnitTestCompilationImplementation   : <empty>
-                        androidReleaseUnitTestCompilationRuntimeOnly      : <empty>
-                        androidReleaseUnitTestCompileClasspath  : <empty>
-                        androidReleaseUnitTestRuntimeClasspath  : <empty>
                         androidTestAnnotationProcessor          : <empty>
                         androidTestCompileOnly        : <empty>
                         androidTestDebugAnnotationProcessor     : <empty>
@@ -967,15 +943,6 @@ MODULE                        : kotlinMultiPlatform
                         androidUnitTestImplementation : <empty>
                         androidUnitTestImplementationDependenciesMetadata : <empty>
                         androidUnitTestIntransitiveDependenciesMetadata   : <empty>
-                        androidUnitTestReleaseApi     : <empty>
-                        androidUnitTestReleaseApiDependenciesMetadata     : <empty>
-                        androidUnitTestReleaseCompileOnly       : <empty>
-                        androidUnitTestReleaseCompileOnlyDependenciesMetadata       : <empty>
-                        androidUnitTestReleaseImplementation    : <empty>
-                        androidUnitTestReleaseImplementationDependenciesMetadata    : <empty>
-                        androidUnitTestReleaseIntransitiveDependenciesMetadata      : <empty>
-                        androidUnitTestReleaseResolvableDependenciesMetadata        : <empty>
-                        androidUnitTestReleaseRuntimeOnly       : <empty>
                         androidUnitTestResolvableDependenciesMetadata     : <empty>
                         androidUnitTestRuntimeOnly    : <empty>
                         annotationProcessor           : <empty>
@@ -1033,7 +1000,6 @@ MODULE                        : kotlinMultiPlatform
                         kotlinCompilerPluginClasspathAndroidDebugAndroidTest        : <empty>
                         kotlinCompilerPluginClasspathAndroidDebugUnitTest : <empty>
                         kotlinCompilerPluginClasspathAndroidRelease       : <empty>
-                        kotlinCompilerPluginClasspathAndroidReleaseUnitTest         : <empty>
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinInternalAbiValidation   : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
@@ -1062,9 +1028,6 @@ MODULE                        : kotlinMultiPlatform
                         releaseRuntimeOnly            : <empty>
                         - releaseSourcesElements      : <ROOT>/module2/build/libs/module2-android-sources.jar [-]
                         - releaseSourcesElements-published      : <ROOT>/module2/build/libs/module2-android-sources.jar [-]
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -1103,15 +1066,11 @@ MODULE                        : kotlinMultiPlatform
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :module2:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :module2:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testDebugUnitTest
-                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testReleaseUnitTest
 MODULE                        : kotlinMultiPlatform.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -1316,20 +1275,6 @@ MODULE                        : kotlinMultiPlatform.app
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/app/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
-                    ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/app/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -2427,25 +2372,6 @@ MODULE                        : kotlinMultiPlatform.module2
             JniLibsDirectories            : <ROOT>/module2/src/release/jniLibs [-]
             JniLibsDirectories            : <ROOT>/module2/src/androidRelease/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/module2/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/module2/src/androidUnitTestRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/module2/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/module2/src/androidUnitTestRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/module2/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/module2/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/module2/src/testRelease/resources [-]
-                    ResourcesDirectories          : <ROOT>/module2/src/androidUnitTestRelease/resources [-]
-                    ResDirectories                : <ROOT>/module2/src/testRelease/res [-]
-                    ResDirectories                : <ROOT>/module2/src/androidUnitTestRelease/res [-]
-                    AssetsDirectories             : <ROOT>/module2/src/testRelease/assets [-]
-                    AssetsDirectories             : <ROOT>/module2/src/androidUnitTestRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/module2/src/testRelease/jniLibs [-]
-                    JniLibsDirectories            : <ROOT>/module2/src/androidUnitTestRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/module2/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -2608,6 +2534,7 @@ MODULE                        : kotlinMultiPlatform.module2
             androidMain
                 - dependency                  : :module2::module2/commonMain
             androidUnitTest
+                - dependency                  : :module2::module2/androidDebug
                 - dependency                  : :module2::module2/androidMain
                 - dependency                  : :module2::module2/commonMain
                 - dependency                  : :module2::module2/commonTest
@@ -2762,7 +2689,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
                         androidSourceSetName          : test
                         - androidVariantNames         : debugUnitTest
-                        - androidVariantNames         : releaseUnitTest
                         kotlinSourceSetName           : androidUnitTest
                     isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
@@ -2832,9 +2758,6 @@ MODULE                        : kotlinMultiPlatform.module2
             - testRunTasks                : KotlinTestRunTaskImpl
                 compilationName               : test
                 taskName                      : testDebugUnitTest
-            - testRunTasks                : KotlinTestRunTaskImpl
-                compilationName               : test
-                taskName                      : testReleaseUnitTest
         sourceSets
             androidInstrumentedTest       : androidInstrumentedTest (KotlinSourceSetImpl) (*seen*)
             androidMain                   : androidMain (KotlinSourceSetImpl) (*seen*)

@@ -714,7 +714,6 @@ MODULE                        : My_First_App
                                 kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
                                 kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                                 kotlinCompilerPluginClasspathRelease    : <empty>
-                                kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                                 kotlinInternalAbiValidation   : <empty>
                                 kotlinKlibCommonizerClasspath : <empty>
                                 kotlinNativeCompilerPluginClasspath     : <empty>
@@ -744,21 +743,6 @@ MODULE                        : My_First_App
                                 releaseRuntimeOnly            : <empty>
                                 - releaseSourcesElements      : <ROOT>/shared/mysharedlibrary/build/libs/mysharedlibrary-sources.jar [-]
                                 - releaseSourcesElements-published      : <ROOT>/shared/mysharedlibrary/build/libs/mysharedlibrary-sources.jar [-]
-                                releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                                releaseUnitTestApi            : <empty>
-                                releaseUnitTestApiDependenciesMetadata  : <empty>
-                                releaseUnitTestCompilationApi : <empty>
-                                releaseUnitTestCompilationCompileOnly   : <empty>
-                                releaseUnitTestCompilationImplementation          : <empty>
-                                releaseUnitTestCompilationRuntimeOnly   : <empty>
-                                releaseUnitTestCompileClasspath         : <empty>
-                                releaseUnitTestCompileOnly    : <empty>
-                                releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                                releaseUnitTestImplementation : <empty>
-                                releaseUnitTestImplementationDependenciesMetadata : <empty>
-                                releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
-                                releaseUnitTestRuntimeClasspath         : <empty>
-                                releaseUnitTestRuntimeOnly    : <empty>
                                 runtimeOnly                   : <empty>
                                 swiftExportClasspath          : <empty>
                                 swiftExportClasspathResolvable          : <empty>
@@ -823,8 +807,6 @@ MODULE                        : My_First_App
                             tasks
                                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                                     qName                         : :app:mysharedlibrary:testDebugUnitTest
-                                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                                    qName                         : :app:mysharedlibrary:testReleaseUnitTest
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -941,7 +923,6 @@ MODULE                        : My_First_App
                         kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
                         kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                         kotlinCompilerPluginClasspathRelease    : <empty>
-                        kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinInternalAbiValidation   : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
@@ -967,21 +948,6 @@ MODULE                        : My_First_App
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
-                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                        releaseUnitTestApi            : <empty>
-                        releaseUnitTestApiDependenciesMetadata  : <empty>
-                        releaseUnitTestCompilationApi : <empty>
-                        releaseUnitTestCompilationCompileOnly   : <empty>
-                        releaseUnitTestCompilationImplementation          : <empty>
-                        releaseUnitTestCompilationRuntimeOnly   : <empty>
-                        releaseUnitTestCompileClasspath         : <empty>
-                        releaseUnitTestCompileOnly    : <empty>
-                        releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                        releaseUnitTestImplementation : <empty>
-                        releaseUnitTestImplementationDependenciesMetadata : <empty>
-                        releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
-                        releaseUnitTestRuntimeClasspath         : <empty>
-                        releaseUnitTestRuntimeOnly    : <empty>
                         runtimeOnly                   : <empty>
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
@@ -1046,15 +1012,11 @@ MODULE                        : My_First_App
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :app:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testDebugUnitTest
-                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                    qName                         : :app:testReleaseUnitTest
 MODULE                        : My_First_App.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -1261,20 +1223,6 @@ MODULE                        : My_First_App.app
             AssetsDirectories             : <ROOT>/firstapp/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/firstapp/app/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/firstapp/app/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/firstapp/app/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/firstapp/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/firstapp/app/src/testRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/firstapp/app/src/testRelease/java [-]
-                    ResourcesDirectories          : <ROOT>/firstapp/app/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/firstapp/app/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/firstapp/app/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/firstapp/app/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/firstapp/app/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -2337,20 +2285,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
             AssetsDirectories             : <ROOT>/shared/mysharedlibrary/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/shared/mysharedlibrary/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/shared/mysharedlibrary/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/shared/mysharedlibrary/src/testRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/shared/mysharedlibrary/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/testRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/testRelease/java [-]
-                    ResourcesDirectories          : <ROOT>/shared/mysharedlibrary/src/testRelease/resources [-]
-                    ResDirectories                : <ROOT>/shared/mysharedlibrary/src/testRelease/res [-]
-                    AssetsDirectories             : <ROOT>/shared/mysharedlibrary/src/testRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/shared/mysharedlibrary/src/testRelease/jniLibs [-]
-                    BaselineProfileDirectories    : <ROOT>/shared/mysharedlibrary/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

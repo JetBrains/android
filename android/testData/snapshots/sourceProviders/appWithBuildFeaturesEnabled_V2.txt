@@ -698,33 +698,6 @@ MODULE: project.app
                     file://./app/src/testDebug/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/testDebug/ml
-            testRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./app/src/testRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./app/src/testRelease
-                AidlDirectoryUrls:
-                    file://./app/src/testRelease/aidl
-                AssetsDirectoryUrls:
-                    file://./app/src/testRelease/assets
-                JavaDirectoryUrls:
-                    file://./app/src/testRelease/java
-                KotlinDirectoryUrls:
-                    file://./app/src/testRelease/java
-                    file://./app/src/testRelease/kotlin
-                JniLibsDirectoryUrls:
-                    file://./app/src/testRelease/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/testRelease/rs
-                ResDirectoryUrls:
-                    file://./app/src/testRelease/res
-                ResourcesDirectoryUrls:
-                    file://./app/src/testRelease/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/testRelease/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/testRelease/ml
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN

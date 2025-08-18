@@ -673,8 +673,10 @@ class BuildVariantsIntegrationTest {
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
-      expect.thatModuleVariantIs(project, ":testDependency", "release")
-      val allReleaseSnapshot = project.saveAndDump(ignoreModuleFileAndType = true)
+      // The 'release' variant of 'app' has no test artifacts by default, so it doesn't pull in its test dependencies.
+      // As a result, 'testDependency' is not switched and remains on 'debug'.
+      expect.thatModuleVariantIs(project, ":testDependency", "debug")
+      val appReleaseSnapshot = project.saveAndDump(ignoreModuleFileAndType = true)
 
       switchVariant(project, ":app", "debug")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
@@ -687,8 +689,8 @@ class BuildVariantsIntegrationTest {
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
-      expect.thatModuleVariantIs(project, ":testDependency", "release")
-      expect.that(project.saveAndDump(ignoreModuleFileAndType = true)).isEqualTo(allReleaseSnapshot)
+      expect.thatModuleVariantIs(project, ":testDependency", "debug")
+      expect.that(project.saveAndDump(ignoreModuleFileAndType = true)).isEqualTo(appReleaseSnapshot)
     }
   }
 

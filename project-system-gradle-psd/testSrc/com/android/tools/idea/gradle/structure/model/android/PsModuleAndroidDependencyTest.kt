@@ -61,15 +61,15 @@ class PsModuleAndroidDependencyTest {
     projectRule.psTestWithProject(preparedProject) {
       val appModule = project.findModuleByName("app") as PsAndroidModule
 
-      val freeReleaseMainArtifact = appModule.findVariant("freeRelease")?.findArtifact(IdeArtifactName.UNIT_TEST)!!
-      val artifactDependencies = freeReleaseMainArtifact.dependencies
+      val freeDebugUnitTestArtifact = appModule.findVariant("freeDebug")?.findArtifact(IdeArtifactName.UNIT_TEST)!!
+      val artifactDependencies = freeDebugUnitTestArtifact.dependencies
 
       val moduleDependency = artifactDependencies.findModuleDependency(":mainModule")
       assertThat(moduleDependency, notNullValue())
 
       val referredArtifact = (moduleDependency?.targetModuleResolvedDependencies as? PsAndroidArtifactDependencyCollection)?.artifact
       assertThat(referredArtifact, notNullValue())
-      assertThat(referredArtifact!!.parent.name, equalTo("freeRelease"))
+      assertThat(referredArtifact!!.parent.name, equalTo("freeDebug"))
       assertThat(referredArtifact.resolvedName, equalTo(IdeArtifactName.MAIN))
     }
   }

@@ -510,25 +510,6 @@ MODULE: AS36_noiml.app
                     file://./app/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testDebug/resources
-            testRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./app/src/testRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./app/src/testRelease
-                AssetsDirectoryUrls:
-                    file://./app/src/testRelease/assets
-                JavaDirectoryUrls:
-                    file://./app/src/testRelease/java
-                KotlinDirectoryUrls:
-                    file://./app/src/testRelease/java
-                    file://./app/src/testRelease/kotlin
-                JniLibsDirectoryUrls:
-                    file://./app/src/testRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./app/src/testRelease/res
-                ResourcesDirectoryUrls:
-                    file://./app/src/testRelease/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1207,25 +1188,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./features/dynamicfeature/src/testDebug/resources
-            testRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./features/dynamicfeature/src/testRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./features/dynamicfeature/src/testRelease
-                AssetsDirectoryUrls:
-                    file://./features/dynamicfeature/src/testRelease/assets
-                JavaDirectoryUrls:
-                    file://./features/dynamicfeature/src/testRelease/java
-                KotlinDirectoryUrls:
-                    file://./features/dynamicfeature/src/testRelease/java
-                    file://./features/dynamicfeature/src/testRelease/kotlin
-                JniLibsDirectoryUrls:
-                    file://./features/dynamicfeature/src/testRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./features/dynamicfeature/src/testRelease/res
-                ResourcesDirectoryUrls:
-                    file://./features/dynamicfeature/src/testRelease/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1880,25 +1842,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./features/dynamicfeature2/src/testDebug/resources
-            testRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./features/dynamicfeature2/src/testRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./features/dynamicfeature2/src/testRelease
-                AssetsDirectoryUrls:
-                    file://./features/dynamicfeature2/src/testRelease/assets
-                JavaDirectoryUrls:
-                    file://./features/dynamicfeature2/src/testRelease/java
-                KotlinDirectoryUrls:
-                    file://./features/dynamicfeature2/src/testRelease/java
-                    file://./features/dynamicfeature2/src/testRelease/kotlin
-                JniLibsDirectoryUrls:
-                    file://./features/dynamicfeature2/src/testRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./features/dynamicfeature2/src/testRelease/res
-                ResourcesDirectoryUrls:
-                    file://./features/dynamicfeature2/src/testRelease/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -2595,25 +2538,6 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./libs/android_library/src/testDebug/resources
-            testRelease (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./libs/android_library/src/testRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./libs/android_library/src/testRelease
-                AssetsDirectoryUrls:
-                    file://./libs/android_library/src/testRelease/assets
-                JavaDirectoryUrls:
-                    file://./libs/android_library/src/testRelease/java
-                KotlinDirectoryUrls:
-                    file://./libs/android_library/src/testRelease/java
-                    file://./libs/android_library/src/testRelease/kotlin
-                JniLibsDirectoryUrls:
-                    file://./libs/android_library/src/testRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./libs/android_library/src/testRelease/res
-                ResourcesDirectoryUrls:
-                    file://./libs/android_library/src/testRelease/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
