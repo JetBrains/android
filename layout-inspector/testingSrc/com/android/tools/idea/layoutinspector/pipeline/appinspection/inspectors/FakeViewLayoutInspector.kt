@@ -67,9 +67,14 @@ class FakeViewLayoutInspector(connection: Connection<Event>) :
           layoutEvent =
             LayoutEvent.newBuilder()
               .apply {
-                rootViewBuilder.id = 123
-                rootViewBuilder.packageName = 40
-                rootViewBuilder.className = 41
+                rootView =
+                  LayoutInspectorViewProtocol.RootView.newBuilder()
+                    .apply {
+                      nodeBuilder.id = 123
+                      nodeBuilder.packageName = 40
+                      nodeBuilder.className = 41
+                    }
+                    .build()
                 ViewString(40, "android.view")
                 ViewString(41, "TextView")
               }

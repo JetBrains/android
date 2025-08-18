@@ -740,7 +740,7 @@ class AppInspectionInspectorClientTest {
       for (i in 0..10) {
         inspectionRule.viewInspector.connection.sendEvent {
           layoutEventBuilder.apply {
-            rootViewBuilder.apply { id = 1 }
+            rootViewBuilder.apply { nodeBuilder.id = 1 }
             screenshotBuilder.apply { bytes = ByteString.copyFrom(byteArrayOf(i.toByte())) }
           }
         }
@@ -757,7 +757,7 @@ class AppInspectionInspectorClientTest {
       for (i in 11..20) {
         inspectionRule.viewInspector.connection.sendEvent {
           layoutEventBuilder.apply {
-            rootViewBuilder.apply { id = 1 }
+            rootViewBuilder.apply { nodeBuilder.id = 1 }
             screenshotBuilder.apply { bytes = ByteString.copyFrom(byteArrayOf(i.toByte())) }
           }
         }
@@ -774,7 +774,7 @@ class AppInspectionInspectorClientTest {
     inspectorRule.launcher.addClientChangedListener { client ->
       client.registerTreeEventCallback { data ->
         (data as ViewLayoutInspectorClient.Data).viewEvent.let { viewEvent ->
-          assertThat(viewEvent.rootView.id).isEqualTo(1)
+          assertThat(viewEvent.rootView.node.id).isEqualTo(1)
 
           if (handlingFirstBatch) {
             if (!sawInitialFirstBatchEvent && viewEvent.screenshot.bytes.byteAt(0) < 10) {

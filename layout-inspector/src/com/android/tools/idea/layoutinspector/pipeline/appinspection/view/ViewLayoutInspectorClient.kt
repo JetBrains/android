@@ -203,7 +203,7 @@ class ViewLayoutInspectorClient(
         .onEach { event ->
           // Keep track of the last LayoutEvent received.
           if (event.specializedCase == Event.SpecializedCase.LAYOUT_EVENT) {
-            recentLayouts[event.layoutEvent.rootView.id] = event.layoutEvent
+            recentLayouts[event.layoutEvent.rootView.node.id] = event.layoutEvent
           }
         }
         // Buffering allows event collection to happen even while we're processing older events.
@@ -211,7 +211,7 @@ class ViewLayoutInspectorClient(
         .filter { event ->
           // Filter out all LayoutEvents that are not the last one received.
           event.specializedCase != Event.SpecializedCase.LAYOUT_EVENT ||
-            event.layoutEvent === recentLayouts[event.layoutEvent.rootView.id]
+            event.layoutEvent === recentLayouts[event.layoutEvent.rootView.node.id]
         }
         .catch {
           if (it is CancellationException) {
@@ -340,19 +340,19 @@ class ViewLayoutInspectorClient(
     launchMonitor.updateProgress(AttachErrorState.LAYOUT_EVENT_RECEIVED)
     generation++
     stats.frameReceived()
-    propertiesCache.clearFor(layoutEvent.rootView.id)
-    composeInspector?.parametersCache?.clearFor(layoutEvent.rootView.id)
+    propertiesCache.clearFor(layoutEvent.rootView.node.id)
+    composeInspector?.parametersCache?.clearFor(layoutEvent.rootView.node.id)
 
     val composablesResult =
       composeInspector?.getComposeables(
-        layoutEvent.rootView.id,
+        layoutEvent.rootView.node.id,
         generation,
         !isFetchingContinuously,
       )
 
     val data = Data(generation, currRoots, layoutEvent, composablesResult)
     if (!isFetchingContinuously) {
-      lastData[layoutEvent.rootView.id] = data
+      lastData[layoutEvent.rootView.node.id] = data
     }
     fireTreeEvent(data)
   }

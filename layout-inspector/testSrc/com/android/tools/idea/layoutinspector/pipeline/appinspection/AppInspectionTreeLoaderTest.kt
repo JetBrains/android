@@ -158,41 +158,49 @@ class AppInspectionTreeLoaderTest {
             }
           }
 
-          rootView = ViewNode {
-            id = 1
-            packageName = 2
-            className = 3
-            bounds = ViewBounds(ViewRect(sample565.image.width, sample565.image.height))
+          rootView =
+            LayoutInspectorViewProtocol.RootView.newBuilder()
+              .apply {
+                node = ViewNode {
+                  id = 1
+                  packageName = 2
+                  className = 3
+                  bounds = ViewBounds(ViewRect(sample565.image.width, sample565.image.height))
 
-            ViewNode {
-              id = 2
-              packageName = 2
-              className = 4
-              bounds = ViewBounds(ViewRect(10, 10, 50, 100))
+                  ViewNode {
+                    id = 2
+                    packageName = 2
+                    className = 4
+                    bounds = ViewBounds(ViewRect(10, 10, 50, 100))
 
-              ViewNode {
-                id = 3
-                packageName = 2
-                className = 3
-                bounds = ViewBounds(ViewRect(20, 20, 20, 50))
+                    ViewNode {
+                      id = 3
+                      packageName = 2
+                      className = 3
+                      bounds = ViewBounds(ViewRect(20, 20, 20, 50))
+                    }
+                  }
+
+                  ViewNode {
+                    id = 4
+                    packageName = 2
+                    className = 4
+                    bounds =
+                      ViewBounds(
+                        ViewRect(30, 120, 40, 50),
+                        ViewQuad(25, 125, 75, 127, 23, 250, 78, 253),
+                      )
+                  }
+
+                  ViewNode {
+                    id = 5
+                    packageName = 5
+                    className = 6
+                    bounds = ViewBounds(ViewRect(300, 200))
+                  }
+                }
               }
-            }
-
-            ViewNode {
-              id = 4
-              packageName = 2
-              className = 4
-              bounds =
-                ViewBounds(ViewRect(30, 120, 40, 50), ViewQuad(25, 125, 75, 127, 23, 250, 78, 253))
-            }
-
-            ViewNode {
-              id = 5
-              packageName = 5
-              className = 6
-              bounds = ViewBounds(ViewRect(300, 200))
-            }
-          }
+              .build()
 
           if (hasScreenshot) {
             screenshotBuilder.apply {

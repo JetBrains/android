@@ -276,12 +276,17 @@ class AppInspectionInspectorMetricsTest {
 
           appContextBuilder.apply { configurationBuilder.apply { countryCode = 1 } }
 
-          rootView = ViewNode {
-            id = rootId
-            packageName = 2
-            className = 3
-            bounds = ViewBounds(ViewRect(100, 200))
-          }
+          rootView =
+            LayoutInspectorViewProtocol.RootView.newBuilder()
+              .apply {
+                node = ViewNode {
+                  id = rootId
+                  packageName = 2
+                  className = 3
+                  bounds = ViewBounds(ViewRect(100, 200))
+                }
+              }
+              .build()
 
           screenshotBuilder.apply {
             type = screenshotType

@@ -81,7 +81,7 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
           ?: return null
       val snapshot = parseDelimitedFrom(input, Snapshot.parser()) ?: return null
       val response = snapshot.viewSnapshot
-      val allWindows = response.windowSnapshotsList.associateBy { it.layout.rootView.id }
+      val allWindows = response.windowSnapshotsList.associateBy { it.layout.rootView.node.id }
       val rootIds = response.windowRoots.idsList
       val allComposeInfo = snapshot.composeInfoList.associateBy { it.viewId }
       val metrics =
@@ -93,7 +93,7 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
         .forEach { windowInfo ->
           // should always be true
           if (windowInfo != null) {
-            val composeInfo = allComposeInfo[windowInfo.layout.rootView.id]
+            val composeInfo = allComposeInfo[windowInfo.layout.rootView.node.id]
             val composeResult = composeInfo?.let { GetComposablesResult(it.composables, false) }
             val data = ViewLayoutInspectorClient.Data(0, rootIds, windowInfo.layout, composeResult)
 

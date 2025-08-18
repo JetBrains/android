@@ -17,6 +17,7 @@
 
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl
 
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.AppContext
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Bounds
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.FlagValue
@@ -42,7 +43,8 @@ fun LayoutEvent.Builder.ViewString(id: Int, str: String) {
 }
 
 fun LayoutEvent.Builder.Root(init: ViewNode.Builder.() -> Unit) {
-  rootView = createViewNode(init)
+  rootView =
+    LayoutInspectorViewProtocol.RootView.newBuilder().apply { node = createViewNode(init) }.build()
 }
 
 // Need to create a helper function to avoid name ambiguity

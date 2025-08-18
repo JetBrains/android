@@ -37,7 +37,7 @@ class ViewNodeCreator(
   composeResult: GetComposablesResult?,
 ) {
   val strings: StringTable = StringTableImpl(layoutEvent.stringsList)
-  private val rootView = layoutEvent.rootView
+  private val rootView = layoutEvent.rootView.node
 
   private val composeNodeCreator = composeResult?.let { ComposeViewNodeCreator(it) }
 

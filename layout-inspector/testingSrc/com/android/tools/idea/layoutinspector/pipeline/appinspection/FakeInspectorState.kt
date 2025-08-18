@@ -884,7 +884,10 @@ class FakeInspectorState(
                       layoutBuilder
                         .apply {
                           addAllStrings(viewStrings)
-                          this.rootView = rootNode
+                          this.rootView =
+                            LayoutInspectorViewProtocol.RootView.newBuilder()
+                              .apply { node = rootNode }
+                              .build()
                           configurationBuilder.apply {
                             density = Density.HIGH.dpiValue
                             fontScale = 1.5f
@@ -1120,7 +1123,8 @@ class FakeInspectorState(
     viewInspector.connection.sendEvent {
       layoutEventBuilder.apply {
         addAllStrings(viewStrings)
-        this.rootView = rootView
+        this.rootView =
+          LayoutInspectorViewProtocol.RootView.newBuilder().apply { node = rootView }.build()
         if (!excludeConfiguration) {
           configurationBuilder.apply {
             density = Density.HIGH.dpiValue
