@@ -348,14 +348,14 @@ class ComposePreviewViewImplTest {
   fun `empty preview state when flag is disabled`() {
     StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(false)
     geminiPluginApi.contextAllowed = true
-    checkEmptyPreviewState(showAutoGenerateAction = false, showSyntaxErrorNote = false)
+    checkEmptyPreviewState(showAutoGenerateAction = false)
   }
 
   @Test
   fun `empty preview state when context-sharing is disabled`() {
     StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
     geminiPluginApi.contextAllowed = false
-    checkEmptyPreviewState(showAutoGenerateAction = false, showSyntaxErrorNote = false)
+    checkEmptyPreviewState(showAutoGenerateAction = false)
   }
 
   @Test
@@ -363,14 +363,14 @@ class ComposePreviewViewImplTest {
     StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
     geminiPluginApi.contextAllowed = true
     fakeStudioBotActionFactory.isNullPreviewGeneratorAction = true
-    checkEmptyPreviewState(showAutoGenerateAction = false, showSyntaxErrorNote = false)
+    checkEmptyPreviewState(showAutoGenerateAction = false)
   }
 
   @Test
   fun `empty preview state when flag and context-sharing are enabled`() {
     StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
     geminiPluginApi.contextAllowed = true
-    checkEmptyPreviewState(showAutoGenerateAction = true, showSyntaxErrorNote = false)
+    checkEmptyPreviewState(showAutoGenerateAction = true)
   }
 
   @Test
@@ -385,13 +385,10 @@ class ComposePreviewViewImplTest {
       wolfTheProblemSolver,
       fixture.testRootDisposable,
     )
-    checkEmptyPreviewState(showAutoGenerateAction = false, showSyntaxErrorNote = true)
+    checkEmptyPreviewState(showAutoGenerateAction = false)
   }
 
-  private fun checkEmptyPreviewState(
-    showAutoGenerateAction: Boolean,
-    showSyntaxErrorNote: Boolean,
-  ) = runBlocking {
+  private fun checkEmptyPreviewState(showAutoGenerateAction: Boolean) = runBlocking {
     previewView.hasRendered = true
     previewView.hasContent = false
     runBlocking { previewView.updateVisibilityAndNotifications() }
@@ -406,9 +403,7 @@ class ComposePreviewViewImplTest {
         listOfNotNull(
             "No preview found.",
             "Add preview by annotating Composables with @Preview.",
-            if (showSyntaxErrorNote)
-              "Note: syntax errors could cause existing previews not to be found."
-            else null,
+            "Note: syntax errors could cause existing previews not to be found.",
             "[Using the Compose preview]",
             if (showAutoGenerateAction) "[Auto-generate Compose Previews for this file]" else null,
           )

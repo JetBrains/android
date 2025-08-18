@@ -61,7 +61,6 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.EditorNotifications
@@ -79,7 +78,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
-import org.jetbrains.kotlin.idea.util.projectStructure.getModule
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
@@ -395,12 +393,6 @@ internal class ComposePreviewViewImpl(
 
   @RequiresBackgroundThread
   private suspend fun handleUpdateVisibilityAndNotificationsRequest() {
-    val fileInModuleHasErrors =
-      readAction {
-        psiFilePointer.virtualFile.getModule(project)?.let {
-          WolfTheProblemSolver.getInstance(project).hasProblemFilesBeneath(it)
-        }
-      } ?: false
     withContext(uiThread) {
       if (
         workbench.isMessageVisible &&
@@ -428,8 +420,7 @@ internal class ComposePreviewViewImpl(
             workbench.hideLoading()
             workbench.hideContent()
             workbench.loadingStopped(
-              message("panel.no.previews.defined") +
-                if (fileInModuleHasErrors) message("panel.no.previews.syntax.error.note") else "",
+              message("panel.no.previews.defined") + message("panel.no.previews.syntax.error.note"),
               null,
               UrlData(message("panel.no.previews.action"), COMPOSE_PREVIEW_DOC_URL),
               generatePreviewsActionData,
