@@ -121,8 +121,16 @@ internal data class SourceSetUpdateResult(
 
   /** To be used with [MutableEntityStorage.replaceBySource], to make sure we only update relevant entities. */
   val updatedStorage: EntityStorage,
-  val knownEntitySources: Set<EntitySource>
+  val knownEntitySources: Set<EntitySource>,
 )
+
+private fun updateStorage(
+  storage: MutableEntityStorage,
+  result: SourceSetUpdateResult,
+) {
+  // Only replace the android related source sets
+  storage.replaceBySource({ it in result.knownEntitySources }, result.updatedStorage)
+}
 
 internal data class AndroidGradleProjectEntitySource(
   override val projectPath: String,
@@ -294,12 +302,13 @@ internal class AndroidDependencySyncContributor: GradleSyncContributor {
     context: ProjectResolverContext,
     storage: MutableEntityStorage,
   ) {
-    LOG.info("Processing phase $phase for Android.")
+    LOG.info("Processing DEPENDENCY_MODEL_PHASE for Android.")
     if (StudioFlags.PHASED_SYNC_DEPENDENCY_RESOLUTION_ENABLED.get()) {
       val previousResult = checkNotNull(context.getUserData(SOURCE_SET_UPDATE_RESULT_KEY)) {
         "No result from source set phase!"
       }
-      setupAndroidDependenciesForAllProjects(context, phase, previousResult.allAndroidProjectContexts, storage.toSnapshot())
+      val result = setupAndroidDependenciesForAllProjects(context, phase, previousResult.allAndroidProjectContexts, storage.toSnapshot())
+      updateStorage(storage, result)
     }
   }
 }
@@ -341,11 +350,10 @@ internal class AndroidSourceRootSyncContributor : GradleSyncContributor {
     context: ProjectResolverContext,
     storage: MutableEntityStorage,
   ) {
-    LOG.info("Processing phase $phase for Android.")
+    LOG.info("Processing SOURCE_SET_MODEL_PHASE for Android.")
     val result = configureModulesForSourceSets(context, storage.toSnapshot())
-    // Only replace the android related source sets
-    storage.replaceBySource({ it in result.knownEntitySources }, result.updatedStorage)
     context.putUserData(SOURCE_SET_UPDATE_RESULT_KEY, result)
+    updateStorage(storage, result)
   }
 
   /**
