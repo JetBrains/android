@@ -17,6 +17,7 @@ load(
     "AGP_8_1",
     "AGP_8_10_1",
     "AGP_8_11",
+    "AGP_8_12",
     "AGP_8_2",
     "AGP_8_3",
     "AGP_8_4",
@@ -411,6 +412,13 @@ local_generate_old_agp_tests_from_list(
         {
             "additional_jdks": ["17"],
             "agp_version": AGP_8_11,
+            "gradle_version": GRADLE_8_13,
+            "shard_count": 5,
+            "tags": COMMON_OLD_AGP_TEST_TARGETS_TAGS,
+        },
+        {
+            "additional_jdks": ["17"],
+            "agp_version": AGP_8_12,
             "gradle_version": GRADLE_8_13,
             "shard_count": 5,
             "tags": COMMON_OLD_AGP_TEST_TARGETS_TAGS,
