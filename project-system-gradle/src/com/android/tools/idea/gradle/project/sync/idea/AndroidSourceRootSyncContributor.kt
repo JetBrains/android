@@ -81,6 +81,7 @@ import com.intellij.platform.workspace.storage.EntitySource
 import com.intellij.platform.workspace.storage.EntityStorage
 import com.intellij.platform.workspace.storage.ImmutableEntityStorage
 import com.intellij.platform.workspace.storage.MutableEntityStorage
+import com.intellij.platform.workspace.storage.toBuilder
 import com.intellij.platform.workspace.storage.url.VirtualFileUrl
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_RESOURCE_ROOT_ENTITY_TYPE_ID
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_SOURCE_ROOT_ENTITY_TYPE_ID
@@ -125,11 +126,13 @@ internal data class SourceSetUpdateResult(
 )
 
 private fun updateStorage(
-  storage: MutableEntityStorage,
+  storage: ImmutableEntityStorage,
   result: SourceSetUpdateResult,
-) {
+): ImmutableEntityStorage {
+  val builder = storage.toBuilder()
   // Only replace the android related source sets
-  storage.replaceBySource({ it in result.knownEntitySources }, result.updatedStorage)
+  builder.replaceBySource({ it in result.knownEntitySources }, result.updatedStorage)
+  return builder.toSnapshot()
 }
 
 internal data class AndroidGradleProjectEntitySource(
@@ -298,18 +301,19 @@ internal class AndroidDependencySyncContributor: GradleSyncContributor {
 
   override val phase: GradleSyncPhase = GradleSyncPhase.DEPENDENCY_MODEL_PHASE
 
-  override suspend fun updateProjectModel(
+  override suspend fun createProjectModel(
     context: ProjectResolverContext,
-    storage: MutableEntityStorage,
-  ) {
+    storage: ImmutableEntityStorage,
+  ): ImmutableEntityStorage {
     LOG.info("Processing DEPENDENCY_MODEL_PHASE for Android.")
     if (StudioFlags.PHASED_SYNC_DEPENDENCY_RESOLUTION_ENABLED.get()) {
       val previousResult = checkNotNull(context.getUserData(SOURCE_SET_UPDATE_RESULT_KEY)) {
         "No result from source set phase!"
       }
-      val result = setupAndroidDependenciesForAllProjects(context, phase, previousResult.allAndroidProjectContexts, storage.toSnapshot())
-      updateStorage(storage, result)
+      val result = setupAndroidDependenciesForAllProjects(context, phase, previousResult.allAndroidProjectContexts, storage)
+      return updateStorage(storage, result)
     }
+    return storage
   }
 }
 
@@ -346,14 +350,14 @@ internal class AndroidSourceRootSyncContributor : GradleSyncContributor {
 
   override val phase: GradleSyncPhase = GradleSyncPhase.SOURCE_SET_MODEL_PHASE
 
-  override suspend fun updateProjectModel(
+  override suspend fun createProjectModel(
     context: ProjectResolverContext,
-    storage: MutableEntityStorage,
-  ) {
+    storage: ImmutableEntityStorage,
+  ): ImmutableEntityStorage {
     LOG.info("Processing SOURCE_SET_MODEL_PHASE for Android.")
-    val result = configureModulesForSourceSets(context, storage.toSnapshot())
+    val result = configureModulesForSourceSets(context, storage)
     context.putUserData(SOURCE_SET_UPDATE_RESULT_KEY, result)
-    updateStorage(storage, result)
+    return updateStorage(storage, result)
   }
 
   /**
