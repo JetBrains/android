@@ -28,6 +28,7 @@ import com.android.flags.overrides.InMemoryFlagValueContainer;
 import com.android.flags.overrides.PropertyOverrides;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
+import com.android.tools.idea.flags.overrides.AgpReleaseBranchProvider;
 import com.android.tools.idea.flags.overrides.FeatureConfigurationProvider;
 import com.android.tools.idea.flags.overrides.MendelOverrides;
 import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
@@ -63,7 +64,8 @@ public final class StudioFlags {
       userOverrides,
       new PropertyOverrides(),
       new MendelOverrides(),
-      new ServerFlagOverrides());
+      new ServerFlagOverrides(),
+      new AgpReleaseBranchProvider());
   }
 
   // This class is a workaround for b/355292387: IntelliJ 2024.2 does not allow services to be instantiated inside static initializers.
@@ -897,25 +899,13 @@ public final class StudioFlags {
    * baked in).  If it is set to {@code false}, the last known stable version at the point of build
    * will be used instead.</p>
    *
-   * <p>If when reading this, you wonder why the semantics were defined in this direction, with the
-   * confusing double-negative around {@code DO_NOT_USE_} and {@code false}, well, there's another
-   * wrinkle: {@code Boolean} {@link StudioFlags} are only allowed to be defined to go from
-   * {@code true} to {@code false} in stability space (from Dev through Canary towards Release).
-   * We need the historical behaviour for Dev builds, because that is the mode for running the
-   * vast majority of our tests; we need the different behaviour for release builds, because that
-   * is what our users will see.  This implies that the historical behaviour must correspond to a
-   * flag value of {@code true} and the novel behaviour a flag value of {@code false}.</p>
-   *
-   * <p>Finally, this implies that for branches of Android Studio where we <b>will</b> release a
-   * corresponding version of AGP (and hence beta and release candidate builds of that branch of
-   * Studio will have a corresponding AGP version), this flag's value will need to be updated <b>in
-   * the branch</b> to be {@code true} <b>always</b> &ndash; i.e. marked as {@code COMPLETE}.  For
-   * other branches, where no corresponding AGP version is being released, the value of
-   * {@code PREVIEW} inherited from the main branch will produce the right behaviour.</p>
+   * <p>This flag's value is provided by a special {@link AgpReleaseBranchProvider}, to provide the
+   * correct value for the particular release branch and stability level of the release.  It should
+   * probably not be overridden.</p>
    */
-  public static final Flag<Boolean> DO_NOT_USE_STABLE_AGP_AS_LATEST_KNOWN_FOR_RELEASE_BUILDS =
+  public static final Flag<Boolean> USE_ALONGSIDE_AGP =
     new BooleanFlag(
-      GRADLE_IDE, "do.not.use.stable.agp.as.latest.known.for.release.builds", "DO NOT MESS WITH THIS FLAG",
+      GRADLE_IDE, "use.alongside.agp", "DO NOT MESS WITH THIS FLAG",
       "SERIOUSLY, DON'T MESS WITH THIS FLAG.  See the comment in the sources for more information."
   );
 

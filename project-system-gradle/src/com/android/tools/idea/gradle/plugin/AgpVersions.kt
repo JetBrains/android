@@ -70,7 +70,7 @@ object AgpVersions {
       // Allow explicit override by the studio flag
       studioFlagOverride?.let { return it }
 
-      if (!StudioFlags.DO_NOT_USE_STABLE_AGP_AS_LATEST_KNOWN_FOR_RELEASE_BUILDS.get())
+      if (!StudioFlags.USE_ALONGSIDE_AGP.get())
         return LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION
 
       // When running from sources allow fallback to the latest stable if AGP has not been built locally
@@ -106,7 +106,7 @@ object AgpVersions {
   @JvmStatic
   val latestKnown: AgpVersion
     get() {
-      val version = when (StudioFlags.DO_NOT_USE_STABLE_AGP_AS_LATEST_KNOWN_FOR_RELEASE_BUILDS.get()) {
+      val version = when (StudioFlags.USE_ALONGSIDE_AGP.get()) {
         true -> ANDROID_GRADLE_PLUGIN_VERSION
         false -> LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION
       }

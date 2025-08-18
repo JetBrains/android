@@ -40,6 +40,7 @@ iml_module(
         "//tools/adt/idea/jps-model:intellij.android.jps.model",
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
         "//tools/adt/idea/android-common:libandroid-core-proto",
+        "//tools/adt/idea/.idea/libraries:agp-version",
     ],
 )
 
