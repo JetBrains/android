@@ -131,6 +131,8 @@ public class LintIdeClient extends LintClient implements Disposable {
 
   @Nullable protected Map<Issue, PartialResult> partialResults;
 
+  @Nullable protected Map<String, Object> clientProperties;
+
   public LintIdeClient(@NonNull Project project, @NonNull LintResult lintResult) {
     super(CLIENT_STUDIO);
     myProject = project;
@@ -309,6 +311,24 @@ public class LintIdeClient extends LintClient implements Disposable {
     } else {
       return new LintIdeConfiguration(configurations, project, myLintResult.getEnabledIssues(), myLintResult.getDisabledIssues());
     }
+  }
+
+  @Override
+  public @Nullable Object getClientProperty(@NotNull String key) {
+    if (clientProperties != null) {
+      Object value = clientProperties.get(key);
+      if (value != null) {
+        return value;
+      }
+    }
+    return super.getClientProperty(key);
+  }
+
+  public void putClientProperty(@NotNull String key, @NotNull Object value) {
+    if (clientProperties == null) {
+      clientProperties = new HashMap<>();
+    }
+    clientProperties.put(key, value);
   }
 
   @Override
