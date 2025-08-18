@@ -315,6 +315,8 @@ jvm_library(
     "//platform/projectModel-api:projectModel",
     "//platform/projectModel-impl",
     "//platform/refactoring",
+    "//platform/smRunner",
+    "//platform/smRunner:smRunner_test_lib",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//platform/testFramework/common",

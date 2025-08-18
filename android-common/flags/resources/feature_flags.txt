@@ -7,6 +7,7 @@
 # Comments can be added on the same line as a flag with a #.
 #
 # All flag entries must be sorted.
+agp.test.suites.enabled=INTERNAL
 apk.ide.enable.apk.project.system=COMPLETE:2024
 app.links.assistant.gemini.add.logic.for.a.new.link=PREVIEW
 app.links.assistant.service.compatibility.enabled=COMPLETE:2025
@@ -81,6 +82,7 @@ journeys.with.gemini.enable.journeys.with.gemini.auto.gradle.configuration.init.
 journeys.with.gemini.enable.journeys.with.gemini.auto.gradle.configuration=PREVIEW
 journeys.with.gemini.enable.journeys.with.gemini.execution=PREVIEW
 journeys.with.gemini.enable.journeys.with.gemini.recording=INTERNAL
+journeys.with.gemini.enable.journeys.with.gemini.test.suite=INTERNAL
 layout.inspector.dynamic.layout.inspector.enable.running.devices=COMPLETE:2023
 layout.inspector.dynamic.layout.inspector.horizontal.scrollable.component.tree=COMPLETE:2025
 layout.inspector.dynamic.layout.inspector.ignore.framework.recompositions=COMPLETE:2022
