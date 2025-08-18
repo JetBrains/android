@@ -195,7 +195,7 @@ fun modelCacheV2Impl(
       aidlDirectories = emptyList(),
       renderscriptDirectories = emptyList(),
       resDirectories = emptyList(),
-      assetsDirectories = emptyList(),
+      assetsDirectories = providers.map { it.makeRelativeAndDeduplicate() },
       jniLibsDirectories = emptyList(),
       shadersDirectories = emptyList(),
       mlModelsDirectories = emptyList(),

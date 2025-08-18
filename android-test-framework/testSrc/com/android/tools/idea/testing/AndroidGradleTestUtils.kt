@@ -69,6 +69,7 @@ import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
+import com.android.tools.idea.gradle.model.impl.IdeTestSuiteImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestSuiteTargetImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestSuiteVariantTargetImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
@@ -445,6 +446,7 @@ interface AndroidProjectStubBuilder {
   val internedModels: InternedModels
   val defaultVariantName: String?
   val includeShadersSources: Boolean
+  val testSuites: List<IdeTestSuiteImpl>
 }
 
 /**
@@ -517,6 +519,7 @@ data class AndroidProjectBuilder(
   val includeBuildConfigSources: AndroidProjectStubBuilder.() -> Boolean = { false },
   val defaultVariantName: AndroidProjectStubBuilder.() -> String? = { null },
   val includeShadersSources: AndroidProjectStubBuilder.() -> Boolean = { false },
+  val testSuites: AndroidProjectStubBuilder.() -> List<IdeTestSuiteImpl> = { emptyList() }
 ) {
   fun withBuildId(buildId: AndroidProjectStubBuilder.() -> String) =
     copy(buildId = buildId)
@@ -614,7 +617,6 @@ data class AndroidProjectBuilder(
 
   fun withNamespace(namespace: String) = copy(namespace = { namespace })
 
-
   fun build(): AndroidProjectBuilderCore =
     fun(
       projectName: String,
@@ -689,6 +691,7 @@ data class AndroidProjectBuilder(
         override val internedModels: InternedModels get() = internedModels
         override val defaultVariantName: String? get() = defaultVariantName()
         override val includeShadersSources: Boolean get() = includeShadersSources()
+        override val testSuites: List<IdeTestSuiteImpl> get() = testSuites()
       }
       return AndroidProjectModels(
         androidProject = builder.androidProject,
@@ -1379,7 +1382,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
     desugarLibraryConfigFiles = listOf(),
     defaultVariantName = defaultVariantName,
     lintJar = null,
-    testSuites = emptyList()
+    testSuites = testSuites
   )
 }
 
