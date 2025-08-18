@@ -220,7 +220,7 @@ public class AndroidProjectViewTest {
 
     File assetFile = FileUtils.join(generatedAssetsFolder, "raw", "createAssets");
     Files.createParentDirs(assetFile);
-    Files.write("\nsample text", assetFile, StandardCharsets.UTF_8);
+    Files.asCharSink(assetFile, StandardCharsets.UTF_8).write("\nsample text");
 
     refreshProjectFiles();
 
