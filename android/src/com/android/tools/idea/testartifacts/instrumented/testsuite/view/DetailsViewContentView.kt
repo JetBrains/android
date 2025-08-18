@@ -312,7 +312,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
   @VisibleForTesting fun refreshLogsView() {
     needsRefreshLogsView = false
     myLogsView.clear()
-    myLogsView.scrollTo(0)
+
     if (StringUtil.isEmptyOrSpaces(myLogcat) && StringUtil.isEmptyOrSpaces(myErrorStackTrace)) {
       logsTab.isHidden = true
       return
@@ -323,6 +323,8 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
       myLogsView.print("\n", ConsoleViewContentType.NORMAL_OUTPUT)
     }
     myLogsView.print(myErrorStackTrace, ConsoleViewContentType.ERROR_OUTPUT)
+
+    myLogsView.scrollToEnd()
   }
 
   private fun updateSelectedTab() {
