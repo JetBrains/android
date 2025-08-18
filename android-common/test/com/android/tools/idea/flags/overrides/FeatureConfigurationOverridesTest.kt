@@ -107,14 +107,30 @@ class FeatureConfigurationOverridesTest {
   }
 
   @Test
-  fun testComments() {
-    // Unit test should match to DEV channel.
+  fun testTrailingWhitespace() {
+    val content = """
+    #some comments
+    group1.flag1=INTERNAL${' '}
+    group1.flag2=PREVIEW${' '}
+    group1.flag3=COMPLETE:2025${' '}
+    """.trimIndent()
 
+    Truth.assertThat(
+      FeatureConfigurationProvider.loadValues(content.byteInputStream(), FeatureConfiguration.INTERNAL).toMap()
+    ).containsExactly(
+      "group1.flag1", "true",
+      "group1.flag2", "true",
+      "group1.flag3", "true",
+    )
+  }
+
+  @Test
+  fun testComments() {
     val content = """
     #some comments
     group1.flag1=INTERNAL # some comments
     group1.flag2=PREVIEW # some comments
-    group1.flag3=COMPLETE:2025 # some comments
+    group1.flag3=COMPLETE:2025 # some comments with = sign
     """.trimIndent()
 
     Truth.assertThat(

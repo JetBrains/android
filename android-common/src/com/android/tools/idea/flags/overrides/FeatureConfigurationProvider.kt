@@ -32,7 +32,7 @@ import java.io.InputStream
  * Therefore, this [FlagValueProvider] is used to provide default values
  * by reading the values from a file.
  *
- * It must be added to [com.android.flags.Flags] as the *last* override in the list
+ * It must be added to [com.android.flags.Flags] as the fileBasedDefaultContainer provider
  * since it's not actually an override.
  */
 class FeatureConfigurationProvider private constructor(
@@ -92,21 +92,22 @@ class FeatureConfigurationProvider private constructor(
       removeDate: Boolean = true,
       throwOnInvalidValue: Boolean = false,
       ): Pair<String, String>? {
-      val tokens = line.split("=")
+
+      // remove comments
+      val commentCharPos = line.indexOf('#')
+      val lineWithoutComments = when (commentCharPos) {
+        -1 -> line.trim()
+        else -> line.substring(0, commentCharPos).trim()
+      }
+
+      val tokens = lineWithoutComments.split("=")
       if (tokens.size != 2) {
         if (throwOnInvalidValue)
-          throw RuntimeException("line '$line' does not split in 2 components around =")
+          throw RuntimeException("line '$lineWithoutComments' does not split in 2 components around =")
         else
           return null
       }
-
-      // remove comments
-      val commentCharPos = tokens[1].indexOf('#')
-      val flagValue = if (commentCharPos != -1) {
-        tokens[1].substring(0, commentCharPos).trim()
-      } else {
-        tokens[1]
-      }
+      val flagValue = tokens[1]
 
       return tokens[0] to if (removeDate) {
         if (flagValue.startsWith("${FeatureConfiguration.COMPLETE.name}:")) { FeatureConfiguration.COMPLETE.name } else flagValue
