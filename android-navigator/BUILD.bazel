@@ -56,6 +56,7 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util:util-ui",
     "@lib//:kotlinx-collections-immutable",
+    "//plugins/kotlin/base/util",
   ],
   runtime_deps = [":navigator_resources"]
 )

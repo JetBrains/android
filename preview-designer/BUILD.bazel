@@ -145,6 +145,9 @@ jvm_library(
     "//android/designer:designer-tests_test_lib",
     "@lib//:mockito-kotlin",
     "@lib//:asm",
+    "//android/artwork",
+    "//platform/platform-impl/ui",
+    "@lib//:kotlinx-coroutines-test",
   ]
 )
 

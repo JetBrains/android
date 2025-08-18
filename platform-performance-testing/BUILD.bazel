@@ -10,7 +10,7 @@ java_library(
 jvm_library(
   name = "platform-performance-testing_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:io-ktor-utils",
     "@lib//:jetbrains-annotations",

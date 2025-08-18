@@ -85,6 +85,7 @@ jvm_library(
     "//platform/core-ui",
     "//platform/ide-core-impl",
     "//android/android-adb:adb",
+    "//android/android-adb:adb-testUtil_test_lib",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/adt-ui",
     "//android/adt-ui:adt-ui_test_lib",

@@ -17,7 +17,7 @@ jvm_library(
   name = "projectSystem-gradle",
   module_name = "intellij.android.projectSystem.gradle",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "gen/**/*.kt", "gen/**/*.java"], allow_empty = True),
   kotlinc_opts = ":custom",
   deps = [
     "@lib//:studio-platform-provided",

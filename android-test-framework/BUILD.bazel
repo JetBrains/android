@@ -87,6 +87,8 @@ jvm_library(
     "//platform/backend/workspace",
     "//platform/workspace/jps",
     "//platform/workspace/storage",
+    "//platform/diagnostic/telemetry",
+    "//platform/diagnostic/telemetry:telemetry_test_lib",
   ]
 )
 

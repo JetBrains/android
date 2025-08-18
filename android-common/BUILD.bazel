@@ -55,6 +55,8 @@ jvm_library(
     "@lib//:kotlinx-datetime-jvm",
     "//android/server-flags",
     "@lib//:protobuf",
+    "//platform/platform-impl/ui",
+    "//platform/util/progress",
   ],
   runtime_deps = [":common_resources"]
 )
@@ -105,6 +107,7 @@ jvm_library(
     "//plugins/kotlin/base/plugin:plugin_test_lib",
     "@lib//:mockito-kotlin",
     "@lib//:protobuf",
+    "//platform/projectModel-api:projectModel",
   ]
 )
 

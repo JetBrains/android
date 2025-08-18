@@ -68,6 +68,8 @@ jvm_library(
     "//platform/util/jdom",
     "//platform/util-rt",
     "//platform/util:util-ui",
+    "@lib//:kotlinc-kotlin-jps-common-provided",
+    "//plugins/kotlin/base/facet",
   ],
   runtime_deps = [":projectSystem-gradle-psd_resources"]
 )

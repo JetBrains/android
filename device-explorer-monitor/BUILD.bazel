@@ -74,6 +74,7 @@ jvm_library(
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
+    "//java/testFramework",
   ]
 )
 

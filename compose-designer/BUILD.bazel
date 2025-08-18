@@ -107,6 +107,7 @@ jvm_library(
     "//platform/diff-impl",
     "//android/preview-fast-compile",
     "//android/visual-lint",
+    "//plugins/kotlin/idea",
   ],
   runtime_deps = [":compose-designer_resources"],
   plugins = ["@lib//:compose-plugin"]
@@ -267,6 +268,8 @@ jvm_library(
     "//android/backup:backup-api",
     "//android/execution/common",
     "@lib//:kotlinx-coroutines-test",
+    "//plugins/kotlin/gradle/gradle-tooling/impl",
+    "//plugins/kotlin/gradle/gradle-tooling/impl:impl_test_lib",
   ],
   runtime_deps = [
     ":compose-designer-tests_test_resources",

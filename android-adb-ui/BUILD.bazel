@@ -92,6 +92,8 @@ jvm_library(
     "@lib//:kotlinc-kotlin-compiler-common",
     "//android/intellij.android.testutils:testutils_test_lib",
     "@lib//:guava",
+    "//android/android-adb:adb-testUtil_test_lib",
+    "//android/android:core",
   ]
 )
 

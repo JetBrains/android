@@ -28,6 +28,7 @@ jvm_library(
     "//android/gradle-declarative-lang",
     "@lib//:commons-lang3",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "@lib//:guava",
   ],
   runtime_deps = [
     ":gradle-dsl-declarative_resources",

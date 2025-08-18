@@ -49,6 +49,7 @@ jvm_library(
     "//platform/util/base",
     "//platform/util-rt",
     "//platform/util:util-ui",
+    "//plugins/kotlin/base/util",
   ],
   runtime_deps = [":lang_resources"]
 )
@@ -119,6 +120,8 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util-rt:util-rt_test_lib",
     "//plugins/kotlin/base/psi",
+    "@lib//:mockito-kotlin",
+    "@lib//:mockito",
   ]
 )
 

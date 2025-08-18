@@ -52,6 +52,7 @@ jvm_library(
     "//android/adt-ui-model",
     "//java/java-psi-api:psi",
     "//platform/lang-impl",
+    "@lib//:gson",
   ],
   runtime_deps = [":apkanalyzer_resources"]
 )

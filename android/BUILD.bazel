@@ -238,6 +238,7 @@ jvm_library(
     "@lib//:jgoodies-forms",
     "//spellchecker/xml",
     "//plugins/kotlin/base/fir/project-structure",
+    "//platform/vcs-api:vcs",
     ":artifactResolver-m31_provided",
   ],
   exports = ["//android/build-common"],
