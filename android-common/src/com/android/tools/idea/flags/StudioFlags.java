@@ -861,6 +861,64 @@ public final class StudioFlags {
     ""
   );
 
+  /**
+   * <p>This is a gigantic hack, working around a number of thoroughly-embedded implicit constraints
+   * in our build, test and release infrastructure.</p>
+   *
+   * <p>Historically (until August 2025, Android Studio N.3 / AGP 8.13.0), Android Studio and AGP
+   * release series went in lockstep: every Android Studio would have a corresponding AGP release,
+   * and vice versa.  This meant that a particular version of Android Studio could have the
+   * version number of the corresponding AGP development series "baked in" as the latest known
+   * version of AGP (for operations such as compatibility testing, offering project upgrades, etc.)
+   * and everything would magically work together at release time (except for a short period post
+   * release, where stale caches could lead to Studio offering an upgrade to an AGP version
+   * that had not yet propagated.)</p>
+   *
+   * <p>In September 2025, in the Android Studio N.4 development cycle, this changed: this was the
+   * AGP 9.0.0 development branch, and AGP was not expected to be ready for release at the end of
+   * the shorter, one-month Studio development cycle.  This meant that Android Studio needed to be
+   * released without a corresponding AGP version, falling back to the Stable release series at the
+   * time (8.12.0 during development, 8.13.0 close to release).</p>
+   *
+   * <p>So for Android Studio N.4, we need to consider the latest stable AGP as the latest known
+   * version, so that that version of Studio automatically generates new projects with that version
+   * of AGP, does not consider itself compatible with the ongoing 9.0.0 development series, does
+   * not offer upgrades to that series, and so on.  However, it is not as simple as providing the
+   * {@link #AGP_VERSION_TO_USE} flag above with a default value of "stable": doing so causes
+   * essentially all the Gradle-invoking test suites to fail.  Likewise, adapting the build
+   * process to give different version numbers trips various build or test consistency checks in
+   * a fairly fundamental way.  (The fully-principled way of managing this, constructing a new
+   * build process for Studio which does not build AGP at all, but substitutes in already-built
+   * versions of AGP and related artifacts wherever they are used in the current build and test
+   * process, was substantially out of scope for the timescale leading up to this branch.)</p>
+   *
+   * <p>So, this flag.  What it does is: acts as a way to preserve the historical assumptions around
+   * version numbers if it is set to {@code true} (that is, that the latest-known AGP version is
+   * baked in).  If it is set to {@code false}, the last known stable version at the point of build
+   * will be used instead.</p>
+   *
+   * <p>If when reading this, you wonder why the semantics were defined in this direction, with the
+   * confusing double-negative around {@code DO_NOT_USE_} and {@code false}, well, there's another
+   * wrinkle: {@code Boolean} {@link StudioFlags} are only allowed to be defined to go from
+   * {@code true} to {@code false} in stability space (from Dev through Canary towards Release).
+   * We need the historical behaviour for Dev builds, because that is the mode for running the
+   * vast majority of our tests; we need the different behaviour for release builds, because that
+   * is what our users will see.  This implies that the historical behaviour must correspond to a
+   * flag value of {@code true} and the novel behaviour a flag value of {@code false}.</p>
+   *
+   * <p>Finally, this implies that for branches of Android Studio where we <b>will</b> release a
+   * corresponding version of AGP (and hence beta and release candidate builds of that branch of
+   * Studio will have a corresponding AGP version), this flag's value will need to be updated <b>in
+   * the branch</b> to be {@code true} <b>always</b> &ndash; i.e. marked as {@code COMPLETE}.  For
+   * other branches, where no corresponding AGP version is being released, the value of
+   * {@code PREVIEW} inherited from the main branch will produce the right behaviour.</p>
+   */
+  public static final Flag<Boolean> DO_NOT_USE_STABLE_AGP_AS_LATEST_KNOWN_FOR_RELEASE_BUILDS =
+    new BooleanFlag(
+      GRADLE_IDE, "do.not.use.stable.agp.as.latest.known.for.release.builds", "DO NOT MESS WITH THIS FLAG",
+      "SERIOUSLY, DON'T MESS WITH THIS FLAG.  See the comment in the sources for more information."
+  );
+
   public static final Flag<Boolean> USE_STABLE_AGP_VERSION_FOR_NEW_PROJECTS = new BooleanFlag(
     GRADLE_IDE, "use.stable.agp.version.for.new.projects",
     "Use the stable AGP version for new projects",
