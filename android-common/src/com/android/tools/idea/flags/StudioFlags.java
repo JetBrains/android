@@ -2555,6 +2555,10 @@ public final class StudioFlags {
     JOURNEYS_WITH_GEMINI, "journeys.with.gemini.editor.disable.xml.space.preserve", "Disable insertion of 'xml:space:\"preserve\" attribute",
     "Disable insertion of 'xml:space:\"preserve\" attribute when editing a Journey XML file."
   );
+  public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_TEST_SUITE = new BooleanFlag(
+    JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.test.suite", "Enable Journeys with Gemini test suite",
+    "Toggles IDE support for Journeys tests configured as AGP test suites"
+  );
   // endregion JOURNEYS_WITH_GEMINI
 
   // region WIZARD_MIGRATION
@@ -2672,6 +2676,16 @@ public final class StudioFlags {
       "Show an action for Uninstall App");
   // endregion Device Explorer
 
+  // region AGP Test Suites
+  private static final FlagGroup AGP_TEST_SUITES = new FlagGroup(FLAGS, "agp.test.suites", "AGP Test Suites");
+  public static final Flag<Boolean> AGP_TEST_SUITES_ENABLED =
+    new BooleanFlag(
+      AGP_TEST_SUITES,
+      "enabled",
+      "Enable IDE support for AGP test suites",
+      "Enables IDE support for AGP test suites"
+    );
+  // endregion AGP Test Suites
 
   private StudioFlags() { }
 
