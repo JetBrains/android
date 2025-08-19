@@ -31,8 +31,10 @@ import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.message.LogcatHeader
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
+import java.io.IOException
 import icons.StudioIcons
 import javax.swing.Icon
 import kotlinx.coroutines.launch
@@ -118,7 +120,13 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) :
       process: JdwpProcess,
       packageName: String,
     ) {
-      adbSession.scope.launch { process.device.activityManager.forceStop(packageName) }
+      process.scope.launch {
+        try {
+          process.device.activityManager.forceStop(packageName)
+        } catch (e: IOException) {
+          thisLogger().warn("forceStop failed", e)
+        }
+      }
     }
   }
 
@@ -138,7 +146,13 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) :
       process: JdwpProcess,
       packageName: String,
     ) {
-      process.scope.launch { process.sendDdmsExit(1) }
+      process.scope.launch {
+        try {
+          process.sendDdmsExit(1)
+        } catch (e: IOException) {
+          thisLogger().warn("kill failed", e)
+        }
+      }
     }
   }
 
@@ -178,7 +192,13 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) :
       process: JdwpProcess,
       packageName: String,
     ) {
-      adbSession.scope.launch { process.device.activityManager.crash(packageName) }
+      process.scope.launch {
+        try {
+          process.device.activityManager.crash(packageName)
+        } catch (e: IOException) {
+          thisLogger().warn("crash failed", e)
+        }
+      }
     }
   }
 }
