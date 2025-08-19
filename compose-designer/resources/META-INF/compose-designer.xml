@@ -22,10 +22,10 @@
     A notification provider that wants this behaviour should extend this point and not the regular editorNotificationProvider.
     -->
     <extensionPoint qualifiedName="com.android.tools.idea.compose.preview.composeEditorNotificationProvider"
-                    interface="com.intellij.ui.EditorNotificationProvider" />
+                    interface="com.intellij.ui.EditorNotificationProvider"/>
 
     <extensionPoint qualifiedName="com.android.tools.idea.compose.preview.composeStudioBotActionFactory"
-                    interface="com.android.tools.idea.compose.preview.ComposeStudioBotActionFactory" />
+                    interface="com.android.tools.idea.compose.preview.ComposeStudioBotActionFactory"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -128,9 +128,10 @@
     <languageInjectionContributor language="kotlin"
                                   implementationClass="com.android.tools.idea.compose.preview.util.device.ComposeDeviceSpecInjectionContributor"/>
 
-    <deadCode implementation="com.android.tools.idea.compose.preview.PreviewEntryPoint" />
+    <deadCode implementation="com.android.tools.idea.compose.preview.PreviewEntryPoint"/>
 
-    <postStartupActivity implementation="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationStartupActivity" />
+    <postStartupActivity
+        implementation="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationStartupActivity"/>
     <configurationType implementation="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType"/>
     <runConfigurationProducer
         implementation="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationProducer"/>
@@ -146,11 +147,15 @@
     <postStartupActivity implementation="com.android.tools.idea.compose.preview.ComposeNewPreviewNotificationManager$MyStartupActivity"/>
   </extensions>
 
+  <extensions defaultExtensionNs="com.android.tools.idea.designer">
+    <issueFixActionProvider implementation="com.android.tools.idea.compose.preview.RenderIssueFixProvider"/>
+  </extensions>
+
   <extensions defaultExtensionNs="com.android.tools.idea.uibuilder">
     <editor.multirepresentation.sourcecode.sourceCodePreviewRepresentationProvider
         implementation="com.android.tools.idea.compose.preview.ComposePreviewRepresentationProvider"/>
-    <handlers.viewHandlerProvider implementation="com.android.tools.idea.compose.preview.uibuilder.handler.ComposeViewHandlerProvider" />
-    <troubleshooting.infoCollector implementation="com.android.tools.idea.compose.preview.ComposePreviewTroubleInfoCollector" />
+    <handlers.viewHandlerProvider implementation="com.android.tools.idea.compose.preview.uibuilder.handler.ComposeViewHandlerProvider"/>
+    <troubleshooting.infoCollector implementation="com.android.tools.idea.compose.preview.ComposePreviewTroubleInfoCollector"/>
     <analytics.resizeTracker implementation="com.android.tools.idea.compose.preview.analytics.ComposeResizeTracker"/>
   </extensions>
 
@@ -160,8 +165,9 @@
             class="com.android.tools.idea.common.actions.IssueNotificationAction"
             text="Toggle Issue Panel"
             description="Toggle the visibility of Issue Panel"
-            use-shortcut-of="Android.Designer.IssueNotificationAction" />
-    <action internal="true" id="FastRefresh.RestartProcess" class="com.android.tools.idea.compose.preview.actions.internal.ForcePreviewDaemonStop" />
+            use-shortcut-of="Android.Designer.IssueNotificationAction"/>
+    <action internal="true" id="FastRefresh.RestartProcess"
+            class="com.android.tools.idea.compose.preview.actions.internal.ForcePreviewDaemonStop"/>
 
     <action id="Android.Designer.ReRunUiCheckModeAction"
             icon="AllIcons.Actions.Refresh"

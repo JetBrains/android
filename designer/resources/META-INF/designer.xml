@@ -47,6 +47,9 @@
                     dynamic="true" />
     <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.handlers.uiBuilderHandlerToken"
                     interface="com.android.tools.idea.uibuilder.handlers.UIBuilderHandlerToken"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.designer.issueFixActionProvider"
+                    interface="com.android.tools.idea.common.error.IssueFixActionProvider"
+                    dynamic="true"/>
   </extensionPoints>
 
   <!-- New layout editor -->

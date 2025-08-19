@@ -49,6 +49,7 @@ class DesignerCommonIssueSidePanelTest {
   @After
   fun tearDown() {
     StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.clearOverride()
+    StudioFlags.COMPOSE_RENDER_ERROR_FIX_WITH_AI.clearOverride()
   }
 
   @Test
@@ -90,6 +91,23 @@ class DesignerCommonIssueSidePanelTest {
   @Test
   fun testFixWithAiButtonNotVisibleWhenFlagDisabled() {
     assertFixWithAiButton(fixWithAiFlagEnabled = false)
+  }
+
+  @Test
+  fun testFixWithAiButtonNotVisibleWhenComposeRenderErrorFlagIsOff() {
+    StudioFlags.COMPOSE_RENDER_ERROR_FIX_WITH_AI.override(false)
+
+    val issue = TestIssue()
+    val panel =
+      DesignerCommonIssueSidePanel(rule.project, rule.testRootDisposable) {
+        object : AnAction("Fix with AI") {
+          override fun actionPerformed(e: AnActionEvent) {}
+        }
+      }
+    panel.loadIssueNode(TestIssueNode(issue))
+
+    val actionToolbar = panel.findDescendant(ActionToolbar::class.java)
+    assertNull(actionToolbar)
   }
 
   private fun assertFixWithAiButton(fixWithAiFlagEnabled: Boolean) {

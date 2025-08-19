@@ -136,6 +136,10 @@ private class DesignerCommonIssueDetailPanel(
       contentPanel.addVisualRenderIssue(issue)
     }
 
+    if (StudioFlags.COMPOSE_RENDER_ERROR_FIX_WITH_AI.get()) {
+      addFixWithAiButton(contentPanel)
+    }
+
     return JBScrollPane(
       contentPanel,
       ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
