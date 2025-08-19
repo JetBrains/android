@@ -25,7 +25,6 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.ApplicationRule
-import com.intellij.testFramework.TestActionEvent
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
