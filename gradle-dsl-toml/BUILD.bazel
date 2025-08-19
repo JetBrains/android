@@ -11,7 +11,7 @@ jvm_library(
   name = "gradle-dsl-toml",
   module_name = "intellij.android.gradle.dsl.toml",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",

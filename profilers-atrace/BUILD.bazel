@@ -5,7 +5,7 @@ jvm_library(
   name = "profilers-atrace",
   module_name = "intellij.android.profilers.atrace",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/core/common/src/main/kotlin/**/*.kt", "src/core/common/src/main/kotlin/**/*.java", "src/core/model/src/main/kotlin/**/*.kt", "src/core/model/src/main/kotlin/**/*.java"], allow_empty = True),
+  srcs = glob(["src/core/common/src/main/kotlin/**/*.kt", "src/core/common/src/main/kotlin/**/*.java", "src/core/common/src/main/kotlin/**/*.form", "src/core/model/src/main/kotlin/**/*.kt", "src/core/model/src/main/kotlin/**/*.java", "src/core/model/src/main/kotlin/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:kotlin-reflect",
@@ -16,7 +16,7 @@ jvm_library(
 jvm_library(
   name = "profilers-atrace_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   associates = [":profilers-atrace"],
   deps = [
     "@lib//:studio-platform-provided",

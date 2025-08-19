@@ -11,7 +11,7 @@ jvm_library(
   name = "ui",
   module_name = "intellij.android.inspectors-common.ui",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:jetbrains-annotations",
@@ -39,7 +39,7 @@ jvm_library(
 jvm_library(
   name = "ui_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   associates = [":ui"],
   deps = [
     "@lib//:studio-platform-provided",

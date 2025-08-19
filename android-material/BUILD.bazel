@@ -5,7 +5,7 @@ jvm_library(
   name = "android-material",
   module_name = "intellij.android.android-material",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:guava",
@@ -35,7 +35,7 @@ jvm_resources(
 jvm_library(
   name = "android-material-tests_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   associates = ["//android/android-material"],
   deps = [
     "@lib//:studio-platform-provided",

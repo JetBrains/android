@@ -11,7 +11,7 @@ jvm_library(
   name = "gradle-dsl",
   module_name = "intellij.android.gradle.dsl",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:jetbrains-annotations",
@@ -48,7 +48,7 @@ jvm_library(
   name = "gradle-dsl-tests_test_lib",
   module_name = "intellij.android.gradle.dsl.tests",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -125,7 +125,7 @@ jvm_library(
   name = "gradle-dsl-testutils_test_lib",
   module_name = "intellij.android.gradle.dsl.testutils",
   visibility = ["//visibility:public"],
-  srcs = glob(["testutils/**/*.kt", "testutils/**/*.java"], allow_empty = True),
+  srcs = glob(["testutils/**/*.kt", "testutils/**/*.java", "testutils/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",

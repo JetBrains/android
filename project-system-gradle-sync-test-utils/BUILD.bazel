@@ -19,7 +19,7 @@ jvm_library(
   name = "projectSystem-gradle-sync-testUtils",
   module_name = "intellij.android.projectSystem.gradle.sync.testUtils",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   kotlinc_opts = ":custom_projectSystem-gradle-sync-testUtils",
   deps = [
     "@lib//:studio-platform-provided",

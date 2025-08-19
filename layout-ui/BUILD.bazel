@@ -11,7 +11,7 @@ jvm_library(
   name = "layout-ui",
   module_name = "intellij.android.layout-ui",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java"], allow_empty = True),
+  srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java", "src/main/java/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:guava",
@@ -41,7 +41,7 @@ jvm_library(
 jvm_library(
   name = "layout-ui_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/test/java/**/*.kt", "src/test/java/**/*.java"], allow_empty = True),
+  srcs = glob(["src/test/java/**/*.kt", "src/test/java/**/*.java", "src/test/java/**/*.form"], allow_empty = True),
   associates = [":layout-ui"],
   deps = [
     "@lib//:studio-platform-provided",

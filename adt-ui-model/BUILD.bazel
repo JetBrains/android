@@ -5,7 +5,7 @@ jvm_library(
   name = "adt-ui-model",
   module_name = "intellij.android.adt.ui.model",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java"], allow_empty = True),
+  srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java", "src/main/java/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:guava",
@@ -20,7 +20,7 @@ jvm_library(
 jvm_library(
   name = "adt-ui-model_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   associates = [":adt-ui-model"],
   deps = [
     "@lib//:studio-platform-provided",

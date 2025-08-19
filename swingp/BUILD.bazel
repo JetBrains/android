@@ -16,7 +16,7 @@ jvm_library(
   name = "swingp",
   module_name = "intellij.android.adt.swingp",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java"], allow_empty = True),
+  srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java", "src/main/java/**/*.form"], allow_empty = True),
   javac_opts = ":custom-javac-options",
   deps = [
     "@lib//:studio-platform-provided",
@@ -31,7 +31,7 @@ jvm_library(
 jvm_library(
   name = "swingp_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   javac_opts = ":custom-javac-options",
   associates = [":swingp"],
   deps = [

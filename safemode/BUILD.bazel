@@ -5,7 +5,7 @@ jvm_library(
   name = "safemode",
   module_name = "intellij.android.safemode",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
@@ -22,7 +22,7 @@ jvm_library(
   name = "safemode-integration-tests_test_lib",
   module_name = "intellij.android.safemode.integration.tests",
   visibility = ["//visibility:public"],
-  srcs = glob(["integration/testSrc/**/*.kt", "integration/testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["integration/testSrc/**/*.kt", "integration/testSrc/**/*.java", "integration/testSrc/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",

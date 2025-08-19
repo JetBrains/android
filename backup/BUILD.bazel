@@ -11,7 +11,7 @@ jvm_library(
   name = "backup",
   module_name = "intellij.android.backup",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
@@ -54,7 +54,7 @@ jvm_library(
   name = "backup-api",
   module_name = "intellij.android.backup.api",
   visibility = ["//visibility:public"],
-  srcs = glob(["api/src/**/*.kt", "api/src/**/*.java"], allow_empty = True),
+  srcs = glob(["api/src/**/*.kt", "api/src/**/*.java", "api/src/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
@@ -70,7 +70,7 @@ jvm_library(
 jvm_library(
   name = "backup-tests_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   associates = ["//android/backup"],
   deps = [
     "@lib//:studio-platform-provided",

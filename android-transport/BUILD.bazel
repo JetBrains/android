@@ -11,7 +11,7 @@ jvm_library(
   name = "transport",
   module_name = "intellij.android.transport",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:kotlin-stdlib",
     "@lib//:studio-platform-provided",
@@ -51,7 +51,7 @@ jvm_library(
 jvm_library(
   name = "transport_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   associates = [":transport"],
   deps = [
     "@lib//:kotlin-stdlib",

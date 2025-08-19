@@ -18,7 +18,7 @@ jvm_library(
   name = "android-gradle-tooling-impl",
   module_name = "intellij.android.gradle-tooling.impl",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   kotlinc_opts = ":custom_android-gradle-tooling-impl",
   deps = [
     "@lib//:studio-platform-provided",
@@ -33,7 +33,7 @@ jvm_library(
 jvm_library(
   name = "android-gradle-tooling-impl_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   kotlinc_opts = ":custom_android-gradle-tooling-impl",
   associates = [":android-gradle-tooling-impl"],
   deps = [

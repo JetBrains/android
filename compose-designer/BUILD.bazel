@@ -18,7 +18,7 @@ jvm_library(
   name = "compose-designer",
   module_name = "intellij.android.compose-designer",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   kotlinc_opts = ":custom_compose-designer",
   deps = [
     "@lib//:studio-platform-provided",
@@ -119,7 +119,7 @@ jvm_library(
   name = "compose-designer-integration_test_lib",
   module_name = "intellij.android.compose-designer.integration",
   visibility = ["//visibility:public"],
-  srcs = glob(["integrationTestSrc/**/*.kt", "integrationTestSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["integrationTestSrc/**/*.kt", "integrationTestSrc/**/*.java", "integrationTestSrc/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -169,7 +169,7 @@ jvm_library(
 jvm_library(
   name = "compose-designer-tests_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   kotlinc_opts = ":custom_compose-designer-tests",
   associates = ["//android/compose-designer"],
   deps = [

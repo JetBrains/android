@@ -11,7 +11,7 @@ jvm_library(
   name = "adb-ui",
   module_name = "intellij.android.adb.ui",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:guava",
@@ -51,7 +51,7 @@ jvm_library(
 jvm_library(
   name = "adb-ui-tests_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   associates = ["//android/android-adb-ui:adb-ui"],
   deps = [
     "@lib//:studio-platform-provided",

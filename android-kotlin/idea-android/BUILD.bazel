@@ -20,7 +20,7 @@ jvm_library(
   name = "android-kotlin-idea",
   module_name = "intellij.android.kotlin.idea",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   kotlinc_opts = ":custom_android-kotlin-idea",
   deps = [
     "@lib//:studio-platform-provided",
@@ -57,7 +57,7 @@ jvm_library(
   name = "android-kotlin-tests_test_lib",
   module_name = "intellij.android.kotlin.tests",
   visibility = ["//visibility:public"],
-  srcs = glob(["tests/**/*.kt", "tests/**/*.java"], allow_empty = True),
+  srcs = glob(["tests/**/*.kt", "tests/**/*.java", "tests/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",

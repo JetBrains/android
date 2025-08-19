@@ -11,7 +11,7 @@ jvm_library(
   name = "device-manager-v2",
   module_name = "intellij.android.device-manager-v2",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:jetbrains-annotations",
@@ -53,7 +53,7 @@ jvm_library(
 jvm_library(
   name = "device-manager-v2_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   associates = [":device-manager-v2"],
   deps = [
     "@lib//:studio-platform-provided",

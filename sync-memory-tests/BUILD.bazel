@@ -5,7 +5,7 @@ jvm_library(
   name = "sync-memory-tests",
   module_name = "intellij.android.sync-memory-tests",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:gson",
@@ -16,7 +16,7 @@ jvm_library(
 jvm_library(
   name = "sync-memory-tests_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   associates = [":sync-memory-tests"],
   deps = [
     "@lib//:studio-platform-provided",

@@ -11,7 +11,7 @@ jvm_library(
   name = "layout-inspector",
   module_name = "intellij.android.layout-inspector",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:jetbrains-annotations",
@@ -90,7 +90,7 @@ jvm_library(
 jvm_library(
   name = "layout-inspector_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testingSrc/**/*.kt", "testingSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testingSrc/**/*.kt", "testingSrc/**/*.java", "testingSrc/**/*.form"], allow_empty = True),
   associates = [":layout-inspector"],
   deps = [
     "@lib//:studio-platform-provided",
@@ -216,7 +216,7 @@ jvm_library(
   name = "layout-inspector-integration_test_lib",
   module_name = "intellij.android.layout-inspector.integration",
   visibility = ["//visibility:public"],
-  srcs = glob(["integration/testSrc/**/*.kt", "integration/testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["integration/testSrc/**/*.kt", "integration/testSrc/**/*.java", "integration/testSrc/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -253,7 +253,7 @@ jvm_library(
   name = "layout-inspector-tests_test_lib",
   module_name = "intellij.android.layout-inspector.tests",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",

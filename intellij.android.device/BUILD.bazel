@@ -12,7 +12,7 @@ jvm_library(
   name = "device",
   module_name = "intellij.android.device",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   kotlinc_opts = ":custom_device",
   deps = [
     "@lib//:studio-platform-provided",

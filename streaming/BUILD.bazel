@@ -11,7 +11,7 @@ jvm_library(
   name = "streaming",
   module_name = "intellij.android.streaming",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:android-streaming-ffmpeg-javacpp",
@@ -73,7 +73,7 @@ jvm_library(
 jvm_library(
   name = "streaming-integration_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["integration/**/*.kt", "integration/**/*.java"], allow_empty = True, exclude = [
+  srcs = glob(["integration/**/*.kt", "integration/**/*.java", "integration/**/*.form"], allow_empty = True, exclude = [
     "integration/event-logger/**/*",
     "integration/languages/**/*",
   ]),
@@ -132,7 +132,7 @@ jvm_library(
 jvm_library(
   name = "streaming-testUtil_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testUtil/**/*.kt", "testUtil/**/*.java"], allow_empty = True),
+  srcs = glob(["testUtil/**/*.kt", "testUtil/**/*.java", "testUtil/**/*.form"], allow_empty = True),
   associates = ["//android/streaming"],
   deps = [
     "@lib//:studio-platform-provided",
@@ -208,7 +208,7 @@ jps_test(
 jvm_library(
   name = "streaming-tests_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["testSrc/testApp/**/*"]),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True, exclude = ["testSrc/testApp/**/*"]),
   associates = ["//android/streaming"],
   deps = [
     "@lib//:studio-platform-provided",

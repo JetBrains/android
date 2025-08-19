@@ -24,7 +24,7 @@ jvm_library(
   name = "adt-ui-compose",
   module_name = "intellij.android.adt.ui.compose",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   kotlinc_opts = ":custom_adt-ui-compose",
   deps = [
     "@lib//:studio-platform-provided",
@@ -54,7 +54,7 @@ jvm_library(
 jvm_library(
   name = "adt-ui-compose_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   kotlinc_opts = ":custom_adt-ui-compose",
   associates = [":adt-ui-compose"],
   deps = [

@@ -18,7 +18,7 @@ jvm_library(
   name = "adb",
   module_name = "intellij.android.adb",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   kotlinc_opts = ":custom_adb",
   deps = [
     "@lib//:studio-platform-provided",
@@ -72,7 +72,7 @@ jvm_library(
   name = "adb-testUtil_test_lib",
   module_name = "intellij.android.adb.testUtil",
   visibility = ["//visibility:public"],
-  srcs = glob(["testUtil/**/*.kt", "testUtil/**/*.java"], allow_empty = True),
+  srcs = glob(["testUtil/**/*.kt", "testUtil/**/*.java", "testUtil/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -112,7 +112,7 @@ jvm_library(
 jvm_library(
   name = "adb-tests_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   associates = ["//android/android-adb:adb"],
   deps = [
     "@lib//:studio-platform-provided",

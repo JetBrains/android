@@ -5,7 +5,7 @@ jvm_library(
   name = "model",
   module_name = "intellij.android.app-inspection.inspectors.backgroundtask.model",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:jetbrains-annotations",
@@ -23,7 +23,7 @@ jvm_library(
 jvm_library(
   name = "model_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   associates = [":model"],
   deps = [
     "@lib//:studio-platform-provided",

@@ -11,7 +11,7 @@ jvm_library(
   name = "rendering",
   module_name = "intellij.android.rendering",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:asm",
@@ -48,7 +48,7 @@ jvm_library(
 jvm_library(
   name = "rendering-tests_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   associates = ["//android/rendering"],
   deps = [
     "@lib//:studio-platform-provided",

@@ -11,7 +11,7 @@ jvm_library(
   name = "ml-api",
   module_name = "intellij.android.ml-api",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/main/kotlin/**/*.kt", "src/main/kotlin/**/*.java"], allow_empty = True),
+  srcs = glob(["src/main/kotlin/**/*.kt", "src/main/kotlin/**/*.java", "src/main/kotlin/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:kotlin-stdlib",
     "@lib//:studio-platform-provided",
@@ -27,7 +27,7 @@ jvm_library(
 jvm_library(
   name = "ml-api-tests_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/testSrc/kotlin/**/*.kt", "src/testSrc/kotlin/**/*.java"], allow_empty = True),
+  srcs = glob(["src/testSrc/kotlin/**/*.kt", "src/testSrc/kotlin/**/*.java", "src/testSrc/kotlin/**/*.form"], allow_empty = True),
   associates = ["//android/ml-api"],
   deps = [
     "@lib//:studio-platform-provided",

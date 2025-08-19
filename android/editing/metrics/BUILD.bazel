@@ -11,7 +11,7 @@ jvm_library(
   name = "metrics",
   module_name = "intellij.android.core.editing.metrics",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
@@ -31,7 +31,7 @@ jvm_library(
 jvm_library(
   name = "metrics_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   associates = [":metrics"],
   deps = [
     "@lib//:kotlin-stdlib",

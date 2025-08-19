@@ -11,7 +11,7 @@ jvm_library(
   name = "device-explorer",
   module_name = "intellij.android.device-explorer",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:jetbrains-annotations",
@@ -45,7 +45,7 @@ jvm_library(
   name = "device-explorer-integration-tests_test_lib",
   module_name = "intellij.android.device-explorer.integration.tests",
   visibility = ["//visibility:public"],
-  srcs = glob(["integration/**/*.kt", "integration/**/*.java"], allow_empty = True),
+  srcs = glob(["integration/**/*.kt", "integration/**/*.java", "integration/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -73,7 +73,7 @@ jvm_library(
   name = "device-explorer-tests_test_lib",
   module_name = "intellij.android.device-explorer.tests",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",

@@ -20,7 +20,7 @@ jvm_library(
   name = "projectSystem-gradle",
   module_name = "intellij.android.projectSystem.gradle",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "gen/**/*.kt", "gen/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form", "gen/**/*.kt", "gen/**/*.java"], allow_empty = True),
   kotlinc_opts = ":custom_projectSystem-gradle",
   deps = [
     "@lib//:studio-platform-provided",
@@ -195,7 +195,7 @@ jvm_library(
   name = "projectSystem-gradle-tests_test_lib",
   module_name = "intellij.android.projectSystem.gradle.tests",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",

@@ -5,7 +5,7 @@ jvm_library(
   name = "memory-usage",
   module_name = "intellij.android.memory-usage",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java"], allow_empty = True),
+  srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java", "src/main/java/**/*.form"], allow_empty = True),
   kotlinc_opts = "@community//:k8",
   deps = ["@lib//:studio-platform-provided"]
 )
@@ -13,7 +13,7 @@ jvm_library(
 jvm_library(
   name = "memory-usage_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/test/java/**/*.kt", "src/test/java/**/*.java"], allow_empty = True),
+  srcs = glob(["src/test/java/**/*.kt", "src/test/java/**/*.java", "src/test/java/**/*.form"], allow_empty = True),
   kotlinc_opts = "@community//:k8",
   associates = [":memory-usage"],
   deps = [

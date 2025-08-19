@@ -11,7 +11,7 @@ jvm_library(
   name = "profilers-android",
   module_name = "intellij.android.profilersAndroid",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:fastutil-min",
@@ -71,7 +71,7 @@ jvm_library(
 jvm_library(
   name = "profilers-android_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   associates = [":profilers-android"],
   deps = [
     "@lib//:studio-platform-provided",

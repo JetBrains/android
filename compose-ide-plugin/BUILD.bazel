@@ -21,7 +21,7 @@ jvm_library(
   name = "compose-ide-plugin",
   module_name = "intellij.android.compose-ide-plugin",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   kotlinc_opts = ":custom_compose-ide-plugin",
   deps = [
     "@lib//:studio-platform-provided",
@@ -124,7 +124,7 @@ jvm_library(
 jvm_library(
   name = "compose-ide-plugin-tests_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
   associates = ["//android/compose-ide-plugin"],
   deps = [
     "@lib//:studio-platform",
