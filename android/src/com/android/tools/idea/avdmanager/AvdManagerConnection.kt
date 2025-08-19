@@ -27,6 +27,7 @@ import com.android.sdklib.deviceprovisioner.ProcessHandleProvider
 import com.android.sdklib.devices.Abi
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
+import com.android.sdklib.internal.avd.BootMode
 import com.android.sdklib.internal.avd.ConfigKey
 import com.android.sdklib.internal.avd.ConfigKey.SKIN_PATH
 import com.android.sdklib.internal.avd.EmulatorPackage
@@ -35,11 +36,7 @@ import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode
 import com.android.tools.idea.avdmanager.AvdManagerConnection.Companion.NULL_CONNECTION
 import com.android.tools.idea.avdmanager.DeviceSkinUpdater.updateSkin
-import com.android.tools.idea.avdmanager.emulatorcommand.BootWithSnapshotEmulatorCommandBuilder
-import com.android.tools.idea.avdmanager.emulatorcommand.ColdBootEmulatorCommandBuilder
-import com.android.tools.idea.avdmanager.emulatorcommand.DefaultEmulatorCommandBuilderFactory
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder
-import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilderFactory
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
@@ -127,9 +124,7 @@ constructor(
   }
 
   /** Delete the given AVD if it exists. */
-  @Slow
-  fun deleteAvd(info: AvdInfo): Boolean =
-    avdManager?.deleteAvd(info) ?: false
+  @Slow fun deleteAvd(info: AvdInfo): Boolean = avdManager?.deleteAvd(info) ?: false
 
   /** Stops the emulator if it is running and waits for it to terminate. */
   @Slow
@@ -156,56 +151,12 @@ constructor(
     }
   }
 
-  /**
-   * Starts the emulator without mounting a file to store or load state snapshots, forcing a full
-   * boot and disabling state snapshot functionality.
-   */
-  suspend fun coldBoot(
-    project: Project?,
-    avd: AvdInfo,
-    forceLaunchInToolWindow: Boolean = false,
-  ): IDevice {
-    return startAvd(project, avd, forceLaunchInToolWindow, ::ColdBootEmulatorCommandBuilder)
-  }
-
-  /** Starts the emulator, booting from the "default_boot" snapshot. */
-  suspend fun quickBoot(
-    project: Project?,
-    avd: AvdInfo,
-    forceLaunchInToolWindow: Boolean = false,
-  ): IDevice {
-    return startAvd(project, avd, forceLaunchInToolWindow, ::EmulatorCommandBuilder)
-  }
-
-  /**
-   * Starts the emulator, booting from the given snapshot (specified as the directory name beneath
-   * "snapshots", not a full path).
-   */
-  suspend fun bootWithSnapshot(
-    project: Project?,
-    avd: AvdInfo,
-    snapshot: String,
-    forceLaunchInToolWindow: Boolean = false,
-  ): IDevice {
-    return startAvd(project, avd, forceLaunchInToolWindow) { emulator, avd ->
-      BootWithSnapshotEmulatorCommandBuilder(emulator, avd, snapshot)
-    }
-  }
-
-  /** Boots the AVD, using its .ini file to determine the booting method. */
+  /** Starts the AVD, after running checks and possibly resolving some errors. */
   open suspend fun startAvd(
     project: Project?,
     avd: AvdInfo,
     forceLaunchInToolWindow: Boolean = false,
-  ): IDevice {
-    return startAvd(project, avd, forceLaunchInToolWindow, DefaultEmulatorCommandBuilderFactory())
-  }
-
-  suspend fun startAvd(
-    project: Project?,
-    avd: AvdInfo,
-    forceLaunchInToolWindow: Boolean = false,
-    factory: EmulatorCommandBuilderFactory,
+    bootMode: BootMode = BootMode.fromProperties(avd.properties),
   ): IDevice {
     avdManager ?: throw DeviceActionException("No Android SDK Found")
     checkNotNull(sdkHandler)
@@ -224,7 +175,13 @@ constructor(
 
     return withContext(AndroidDispatchers.workerThread) {
       val code = checkAcceleration(sdkHandler)
-      continueToStartAvdIfAccelerationErrorIsNotBlocking(code, project, avd, forceLaunchInToolWindow, factory)
+      continueToStartAvdIfAccelerationErrorIsNotBlocking(
+        code,
+        project,
+        avd,
+        forceLaunchInToolWindow,
+        bootMode,
+      )
     }
   }
 
@@ -233,33 +190,33 @@ constructor(
     project: Project?,
     avd: AvdInfo,
     forceLaunchInToolWindow: Boolean,
-    factory: EmulatorCommandBuilderFactory,
+    bootMode: BootMode,
   ): IDevice {
     if (!code.problem.isEmpty()) {
       IJ_LOG.warn(String.format("Launching %s: %s: %s", avd.name, code, code.problem))
     }
     when (code) {
       AccelerationErrorCode.ALREADY_INSTALLED ->
-        return continueToStartAvd(project, avd, forceLaunchInToolWindow, factory)
+        return continueToStartAvd(project, avd, forceLaunchInToolWindow, bootMode)
       AccelerationErrorCode.PLATFORM_TOOLS_UPDATE_ADVISED,
       AccelerationErrorCode.SYSTEM_IMAGE_UPDATE_ADVISED ->
         // Launch the virtual device with possibly degraded performance even if there are updates
         // noinspection DuplicateBranchesInSwitch
-        return continueToStartAvd(project, avd, forceLaunchInToolWindow, factory)
+        return continueToStartAvd(project, avd, forceLaunchInToolWindow, bootMode)
       AccelerationErrorCode.EMULATOR_UPDATE_REQUIRED,
       AccelerationErrorCode.NO_EMULATOR_INSTALLED ->
-        return handleAccelerationError(project, avd, forceLaunchInToolWindow, code)
+        return handleAccelerationError(project, avd, forceLaunchInToolWindow, bootMode, code)
       else -> {
         val abi =
           Abi.getEnum(avd.abiType)
-            ?: return continueToStartAvd(project, avd, forceLaunchInToolWindow, factory)
+            ?: return continueToStartAvd(project, avd, forceLaunchInToolWindow, bootMode)
 
         if (abi == Abi.X86 || abi == Abi.X86_64) {
-          return handleAccelerationError(project, avd, forceLaunchInToolWindow, code)
+          return handleAccelerationError(project, avd, forceLaunchInToolWindow, bootMode, code)
         }
 
         // Let ARM and MIPS virtual devices launch without hardware acceleration
-        return continueToStartAvd(project, avd, forceLaunchInToolWindow, factory)
+        return continueToStartAvd(project, avd, forceLaunchInToolWindow, bootMode)
       }
     }
   }
@@ -268,7 +225,7 @@ constructor(
     project: Project?,
     avd: AvdInfo,
     forceLaunchInToolWindow: Boolean,
-    factory: EmulatorCommandBuilderFactory,
+    bootMode: BootMode,
   ): IDevice = coroutineScope {
     var avd = avd
     val emulator = emulator
@@ -298,13 +255,7 @@ constructor(
     }
 
     val commandLine =
-      newEmulatorCommand(
-        project,
-        emulatorBinary,
-        avd,
-        forceLaunchInToolWindow,
-        factory,
-      )
+      newEmulatorCommand(project, emulatorBinary, avd, forceLaunchInToolWindow, bootMode)
     val runner = EmulatorRunner(commandLine, avd)
 
     val processHandler =
@@ -352,12 +303,11 @@ constructor(
     emulator: Path,
     avd: AvdInfo,
     forceLaunchInToolWindow: Boolean,
-    factory: EmulatorCommandBuilderFactory,
+    bootMode: BootMode,
   ): GeneralCommandLine {
     val params = System.getenv("studio.emu.params")?.split(',') ?: emptyList()
 
-    return factory
-      .newEmulatorCommandBuilder(emulator, avd)
+    return EmulatorCommandBuilder(emulator, avd)
       .setAvdHome(avdManager!!.baseAvdFolder)
       .setSdkLocation(sdkHandler?.location)
       .setStudioParams(writeParameterFile())
@@ -366,6 +316,7 @@ constructor(
           (forceLaunchInToolWindow || EmulatorSettings.getInstance().launchInToolWindow)
       )
       .addAllStudioEmuParams(params)
+      .setBootMode(bootMode)
       .build()
   }
 
@@ -387,6 +338,7 @@ constructor(
     project: Project?,
     info: AvdInfo,
     launchInToolWindow: Boolean,
+    bootMode: BootMode,
     code: AccelerationErrorCode,
   ): IDevice {
     if (code.solution == SolutionCode.NONE) {
@@ -398,7 +350,7 @@ constructor(
       throw DeviceActionCanceledException("Could not start AVD")
     }
 
-    return tryFixingAccelerationError(project, info, launchInToolWindow, code)
+    return tryFixingAccelerationError(project, info, launchInToolWindow, bootMode, code)
   }
 
   private suspend fun showAccelerationErrorDialog(
@@ -421,6 +373,7 @@ constructor(
     project: Project?,
     avd: AvdInfo,
     launchInToolWindow: Boolean,
+    bootMode: BootMode,
     code: AccelerationErrorCode,
   ): IDevice {
     val changeWasMade = CompletableDeferred<Boolean>()
@@ -436,7 +389,7 @@ constructor(
       )
 
     if (changeWasMade.await()) {
-      return startAvd(project, avd, launchInToolWindow)
+      return startAvd(project, avd, launchInToolWindow, bootMode)
     } else {
       throw DeviceActionCanceledException("Retry after fixing problem by hand")
     }
@@ -529,9 +482,9 @@ constructor(
     /** Checks whether the emulator can be launched in the Running Device tool window. */
     private fun canLaunchInToolWindow(avd: AvdInfo, project: Project?): Boolean {
       return project != null &&
-             ToolWindowManager.getInstance(project).getToolWindow("Running Devices") != null &&
-             (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_HEADSET_AVD.get() || !avd.isXrHeadsetDevice) &&
-             (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_GLASSES_AVD.get() || !avd.isXrGlassesDevice)
+        ToolWindowManager.getInstance(project).getToolWindow("Running Devices") != null &&
+        (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_HEADSET_AVD.get() || !avd.isXrHeadsetDevice) &&
+        (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_GLASSES_AVD.get() || !avd.isXrGlassesDevice)
     }
 
     @JvmStatic

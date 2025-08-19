@@ -18,6 +18,8 @@ package com.android.tools.idea.avdmanager.emulatorcommand;
 import static org.junit.Assert.assertEquals;
 
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.internal.avd.BootSnapshot;
+import com.android.sdklib.internal.avd.ColdBoot;
 import com.android.sdklib.internal.avd.ConfigKey;
 import com.android.sdklib.internal.avd.UserSettingsKey;
 import com.android.tools.idea.flags.StudioFlags;
@@ -117,6 +119,27 @@ public final class EmulatorCommandBuilderTest {
 
     // Assert
     assertEquals("/home/user/Android/Sdk/emulator/emulator -netspeed full -avd Pixel_4_API_30", command.getCommandLineString());
+  }
+
+
+  @Test
+  public void buildColdBoot() {
+    EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd);
+    builder.setBootMode(ColdBoot.INSTANCE);
+
+    GeneralCommandLine command = builder.build();
+
+    assertEquals("/home/user/Android/Sdk/emulator/emulator -no-snapstorage -avd Pixel_4_API_30", command.getCommandLineString());
+  }
+
+  @Test
+  public void buildBootSnapshot() {
+    EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd);
+    builder.setBootMode(new BootSnapshot("snap_123"));
+
+    GeneralCommandLine command = builder.build();
+
+    assertEquals("/home/user/Android/Sdk/emulator/emulator -snapshot snap_123 -no-snapshot-save -avd Pixel_4_API_30", command.getCommandLineString());
   }
 
   @Test

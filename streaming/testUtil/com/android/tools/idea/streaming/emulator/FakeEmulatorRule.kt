@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.internal.avd.AvdInfo
+import com.android.sdklib.internal.avd.BootMode
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.testutils.ProcessHandleProviderRule
 import com.android.tools.idea.avdmanager.AvdManagerConnection
@@ -125,10 +126,10 @@ class FakeEmulatorRule : TestRule {
       return super.getAvds(true) // Always refresh in tests.
     }
 
-    override suspend fun startAvd(project: Project?, avd: AvdInfo, forceStartInToolWindow: Boolean): IDevice {
+    override suspend fun startAvd(project: Project?, avd: AvdInfo, forceLaunchInToolWindow: Boolean, bootMode: BootMode): IDevice {
       val emulator = emulators.firstOrNull { it.avdFolder == avd.dataFolderPath } ?:
           throw IllegalArgumentException("Unknown AVD: ${avd.id}")
-      emulator.start(standalone = !forceStartInToolWindow)
+      emulator.start(standalone = !forceLaunchInToolWindow)
       return mock<IDevice>()
     }
   }

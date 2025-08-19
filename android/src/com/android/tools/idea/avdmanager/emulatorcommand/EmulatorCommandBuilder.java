@@ -16,7 +16,9 @@
 package com.android.tools.idea.avdmanager.emulatorcommand;
 
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.internal.avd.BootMode;
 import com.android.sdklib.internal.avd.ConfigKey;
+import com.android.sdklib.internal.avd.QuickBoot;
 import com.android.sdklib.internal.avd.UserSettingsKey;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.execution.configurations.GeneralCommandLine;
@@ -45,6 +47,7 @@ public class EmulatorCommandBuilder {
   private @Nullable Path mySdkLocation;
   private @Nullable Path myStudioParams;
   private boolean myLaunchInToolWindow;
+  private BootMode myBootMode = QuickBoot.INSTANCE;
 
   private final @NotNull List<String> myStudioEmuParams;
 
@@ -78,6 +81,11 @@ public class EmulatorCommandBuilder {
 
   public final @NotNull EmulatorCommandBuilder addAllStudioEmuParams(@NotNull Collection<String> studioEmuParams) {
     myStudioEmuParams.addAll(studioEmuParams);
+    return this;
+  }
+
+  public final @NotNull EmulatorCommandBuilder setBootMode(BootMode bootMode) {
+    myBootMode = bootMode;
     return this;
   }
 
@@ -128,6 +136,7 @@ public class EmulatorCommandBuilder {
   }
 
   void addSnapshotParameters(@NotNull GeneralCommandLine command) {
+    command.addParameters(myBootMode.arguments());
   }
 
   private List<String> parseCommandLineOptions(@Nullable String options) {
