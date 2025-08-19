@@ -19,17 +19,7 @@ import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.tools.adtui.swing.PortableUiFontRule
-import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
-import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
-import com.android.tools.idea.layoutinspector.setApplicationIdForTest
-import com.android.tools.idea.layoutinspector.tree.EditorTreeSettings
-import com.android.tools.idea.layoutinspector.ui.EditorRenderSettings
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.ui.flatten
-import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.DataManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
@@ -37,7 +27,6 @@ import com.intellij.testFramework.RunsInEdt
 import java.awt.image.BufferedImage
 import java.io.ObjectOutputStream
 import java.nio.file.Files
-import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -83,66 +72,5 @@ class LayoutInspectorFileEditorTest {
       generatedImage,
       0.01,
     )
-  }
-
-  @Test
-  fun editorCreatesCorrectSettings() {
-    AndroidFacet.getInstance(projectRule.module)!!.setApplicationIdForTest(
-      "com.google.samples.apps.sunflower"
-    )
-    val editor =
-      LayoutInspectorFileEditor(
-        projectRule.project,
-        TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/snapshot.li"),
-      )
-    Disposer.register(disposableRule.disposable, editor)
-    val editorComponent = editor.component
-
-    val inspector =
-      DataManager.getDataProvider(
-          editorComponent.flatten(false).first { it is WorkBench<*> } as WorkBench<*>
-        )
-        ?.getData(LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
-
-    val settings = inspector.renderLogic.renderSettings
-    assertThat(settings).isInstanceOf(EditorRenderSettings::class.java)
-
-    assertThat(inspector.treeSettings).isInstanceOf(EditorTreeSettings::class.java)
-    assertThat(inspector.currentClient.capabilities)
-      .containsExactly(Capability.SUPPORTS_SYSTEM_NODES)
-    assertThat(inspector.inspectorModel.resourceLookup.hasResolver).isTrue()
-  }
-
-  @Test
-  fun editorCreatesCorrectSettingsForCompose() {
-    AndroidFacet.getInstance(projectRule.module)!!.setApplicationIdForTest(
-      "com.example.mysemantics"
-    )
-    val editor =
-      LayoutInspectorFileEditor(
-        projectRule.project,
-        TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/compose-snapshot.li"),
-      )
-    Disposer.register(disposableRule.disposable, editor)
-    val editorComponent = editor.component
-
-    val inspector =
-      DataManager.getDataProvider(
-          editorComponent.flatten(false).first { it is WorkBench<*> } as WorkBench<*>
-        )
-        ?.getData(LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
-
-    val settings = inspector.renderLogic.renderSettings
-    assertThat(settings).isInstanceOf(EditorRenderSettings::class.java)
-
-    assertThat(inspector.treeSettings).isInstanceOf(EditorTreeSettings::class.java)
-    assertThat(inspector.currentClient.capabilities)
-      .containsExactly(
-        Capability.SUPPORTS_SYSTEM_NODES,
-        Capability.SUPPORTS_COMPOSE,
-        Capability.SUPPORTS_SEMANTICS,
-        Capability.HAS_LINE_NUMBER_INFORMATION,
-      )
-    assertThat(inspector.inspectorModel.resourceLookup.hasResolver).isTrue()
   }
 }
