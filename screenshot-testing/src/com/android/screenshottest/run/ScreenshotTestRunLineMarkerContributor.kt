@@ -20,8 +20,6 @@ import com.intellij.execution.lineMarker.ExecutorAction
 import com.intellij.execution.lineMarker.RunLineMarkerContributor
 import com.intellij.psi.PsiElement
 import com.android.tools.idea.flags.StudioFlags
-import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiAnnotation
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
@@ -33,7 +31,6 @@ import com.intellij.icons.AllIcons
 import org.jetbrains.kotlin.idea.base.util.isUnderKotlinSourceRootTypes
 
 class ScreenshotTestRunLineMarkerContributor: RunLineMarkerContributor() {
-  private val annotationsVisited = mutableMapOf<String, Boolean>()
   override fun getInfo(element: PsiElement): Info? {
     return null
   }
@@ -44,7 +41,8 @@ class ScreenshotTestRunLineMarkerContributor: RunLineMarkerContributor() {
 
     val declaration = element.getStrictParentOfType<KtNamedDeclaration>()?.takeIf { it.nameIdentifier == element } ?: return null
     if (isValidKtMethodIdentifier(declaration) || isValidKtTestClassIdentifier(declaration)) {
-      return Info(AllIcons.RunConfigurations.TestState.Run, ExecutorAction.getActions()) { "Run something" }
+      val actions = arrayOf(UpdateReferenceImagesAction(), *ExecutorAction.getActions())
+      return Info(AllIcons.RunConfigurations.TestState.Run, actions) { "Run screenshot tests" }
     }
     return null
   }
