@@ -30,6 +30,7 @@ import com.android.tools.lint.checks.UnusedResourceDetector
 import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.LintFix
 import com.android.tools.lint.detector.api.Scope
+import com.android.utils.associateWithNotNull
 import com.intellij.analysis.AnalysisScope
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -56,8 +57,11 @@ import com.intellij.usageView.UsageViewUtil
 import com.intellij.util.IncorrectOperationException
 import java.io.File
 
-class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
-  BaseRefactoringProcessor(project, null) {
+class UnusedResourcesProcessor(
+  project: Project,
+  filter: Filter? = null,
+  private val includeIds: Boolean = false,
+) : BaseRefactoringProcessor(project, null) {
 
   interface Filter {
     fun shouldProcessFile(psiFile: PsiFile): Boolean
@@ -103,7 +107,6 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
   }
 
   private var elements = PsiElement.EMPTY_ARRAY
-  var includeIds = false
   private val performerMap: MutableMap<PsiElement, UnusedResourcesPerformer> = mutableMapOf()
   private val filter = filter ?: AllFilter
 
@@ -125,46 +128,59 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
     val psiManager = PsiManager.getInstance(myProject)
 
     val localFileSystem = LocalFileSystem.getInstance()
-    val files =
+    val fileToPsiFile =
       unusedMap.values
         .flatMap { value -> value.keys }
         .distinct()
-        .associateWith { javaFile ->
+        .associateWithNotNull { javaFile ->
           localFileSystem
             .findFileByIoFile(javaFile)
             ?.takeUnless(VirtualFile::isDirectory)
             ?.let(psiManager::findFile)
         }
-        .mapNotNull { (javaFile, psiFile) -> psiFile?.let { javaFile to it } }
-        .toMap()
 
-    val excludedFiles = files.values.filter { !filter.shouldProcessFile(it) }
+    // TODO(b/223643511): This refactoring can break the project if it removes unused resources that
+    //  are referenced by other unused resources that are not included in the filter. For example, a
+    //  string resource can reference a string resource from a different module. A previous version
+    //  of this code claimed to handle this, but it did not. This would require the resource graph.
 
-    // We cannot just skip removing references in modules outside of the scope.
-    // If an unused resource is referenced from outside the included scope,
-    // then deleting it partially would result in a broken project. Therefore,
-    // track which references appear in excluded files, which we'll then later
-    // use to also skip removing references in included scopes that are referenced
-    // from excluded files.
-    val excludedResources =
-      unusedMap.values
-        .flatMap { fileMap -> fileMap.entries }
-        .filter { (file, _) -> excludedFiles.contains(files[file]) }
-        .flatMap { (_, problems) -> problems.mapNotNull { problem -> getResource(problem) } }
-        .toSet()
-
-    for ((issue, fileListMap) in unusedMap) {
-      if (fileListMap.isEmpty() || files.isEmpty()) continue
-
-      for ((file, psiFile) in files) {
-        if (
-          excludedFiles.contains(psiFile) ||
-            !CommonRefactoringUtil.checkReadOnlyStatus(myProject, psiFile)
-        ) {
-          continue
+    // Resources can be declared in multiple locations (e.g. string resources can have
+    // translations). We want to include resource locations that are outside "includedFiles" if we
+    // see that the resource is (also) declared in "includedFiles".
+    // So, we compute includedResources, and use this for filtering (rather than includedFiles).
+    val includedResources = HashSet<String>()
+    run {
+      val includedFiles = fileToPsiFile.values.filter { filter.shouldProcessFile(it) }
+      for ((_, fileToProblems) in unusedMap) {
+        for ((file, problems) in fileToProblems) {
+          val psiFile = fileToPsiFile[file] ?: continue
+          if (psiFile !in includedFiles) continue
+          for (problem in problems) {
+            val resource = getResource(problem)
+            if (resource != null && filter.shouldProcessResource(resource)) {
+              includedResources.add(resource)
+            }
+          }
         }
+      }
+    }
 
-        val problems = fileListMap[file] ?: continue
+    // Used to avoid reporting the same file more than once.
+    val unusedVirtualFiles = HashSet<VirtualFile>()
+    fun addUnusedFile(file: PsiFile) {
+      val virtualFile = file.virtualFile
+      // Unlike PsiFile, VirtualFiles always support equals, hashCode, etc.
+      if (virtualFile != null) {
+        val newlyAdded = unusedVirtualFiles.add(virtualFile)
+        if (!newlyAdded) return
+      }
+      unusedElements.add(file)
+    }
+
+    for ((issue, fileToProblems) in unusedMap) {
+      for ((file, problems) in fileToProblems) {
+        val psiFile = fileToPsiFile[file] ?: continue
+        if (!CommonRefactoringUtil.checkReadOnlyStatus(myProject, psiFile)) continue
 
         val projectSystem = myProject.getProjectSystem()
         val performer =
@@ -180,39 +196,38 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
         }
 
         if (psiFile.fileType.isBinary) {
-          // Delete the whole file
-          if (problems.any { filter.shouldProcessResource(getResource(it)) }) {
-            unusedElements.add(psiFile)
+          // Delete the whole file.
+          if (problems.any { problemData -> getResource(problemData) in includedResources }) {
+            addUnusedFile(psiFile)
           }
         } else {
           when (getFolderType(psiFile)) {
             // Not found in a resource folder and not handled by the Project System;
             // ignore this resource (it would be dangerous to just delete the file; see
-            // for example http://b.android.com/220069.)
-            null -> Unit
+            // for example http://b.android.com/220069).
+            null -> {}
             ResourceFolderType.VALUES -> {
-              unusedElements.addAll(getElementsInFile(psiFile, problems, excludedResources))
+              unusedElements.addAll(getElementsInFile(psiFile, problems, includedResources))
             }
             else -> {
               when (issue) {
                 UnusedResourceDetector.ISSUE_IDS -> {
                   // Make sure it's not an unused id declaration in a layout/menu/etc file that's
                   // also being deleted as unused.
-                  // The current `fileListMap` contains those identified as having unused ids. Get
-                  // the other list containing resources, which could contain the layout/menu/etc
-                  // file containing this id.
-                  if (unusedMap[UnusedResourceDetector.ISSUE]?.containsKey(file) == true) {
-                    // Skip the current id since it's containing file will be deleted.
+                  // The `problems` list only contains unused ids. Get the other list containing
+                  // resources, which could contain the layout/menu/etc. file containing this id.
+                  if (unusedMap[UnusedResourceDetector.ISSUE]?.get(file)?.any { problemData -> getResource(problemData) in includedResources } == true) {
+                    // Skip the current id since its containing file will be deleted.
                     continue
                   }
 
-                  // Delete ranges within the file
-                  unusedElements.addAll(getElementsInFile(psiFile, problems, excludedResources))
+                  // Delete ranges within the file.
+                  unusedElements.addAll(getElementsInFile(psiFile, problems, includedResources))
                 }
                 UnusedResourceDetector.ISSUE -> {
-                  // Unused non-value resource file: Delete the whole file
-                  if (problems.any { filter.shouldProcessResource(getResource(it)) }) {
-                    unusedElements.add(psiFile)
+                  // Unused non-value resource file. Delete the whole file.
+                  if (problems.any { problemData -> getResource(problemData) in includedResources }) {
+                    addUnusedFile(psiFile)
                   }
                 }
               }
@@ -228,17 +243,13 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
   private fun getElementsInFile(
     psiFile: PsiFile,
     problems: List<LintProblemData>,
-    excludedResources: Set<String>,
+    includedResources: Set<String>,
   ): Sequence<PsiElement> {
-    // Delete all the resources in the given file
-    if (psiFile !is XmlFile || !psiFile.isValid()) return emptySequence()
+    if (psiFile !is XmlFile || !psiFile.isValid) return emptySequence()
 
     return problems
       .asSequence()
-      .filter { problem ->
-        val resource = getResource(problem)
-        !excludedResources.contains(resource) && filter.shouldProcessResource(resource)
-      }
+      .filter { problem -> includedResources.contains(getResource(problem)) }
       .map { problem -> problem.textRange.startOffset }
       .sortedDescending()
       .mapNotNull { startOffset ->
@@ -273,13 +284,21 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
     val lintResult = LintBatchResult(myProject, map, scope, enabledIssues, null)
     val issueRegistry = lint().getIssueRegistry(enabledIssues.toList())
     val client = lint().createIsolatedClient(myProject, lintResult, issueRegistry)
+
+    // This forces the detector to include all resource versions (e.g. for a string resource with
+    // translations, every translation will be included). When run as an inspection (or from command
+    // line Lint), the UnusedResourceDetector only reports the default version of each unused
+    // resource, but the refactoring needs to include all resource versions. This also affects
+    // UnusedResourcesQuickFix, ensuring that the quick-fix removes all versions of resources.
+    client.putClientProperty(UnusedResourceDetector.KEY_INCLUDE_ALL_RESOURCE_VERSIONS, true)
+
     // Note: We pass in *all* modules in the project here, not just those in the scope of the
     // resource refactoring. If you for example are running the unused resource refactoring on a
     // library module, we want to only remove unused resources from the specific library
     // module, but we still have to have lint analyze all modules such that it doesn't consider
     // resources in the library as unused when they could be referenced from other modules.
-    // So, we'll analyze all modules with lint, and then in the UnusedResourceProcessor
-    // we'll filter the matches down to only those in the target modules when we're done.
+    // So, we analyze all modules with lint, and then in computeUnusedDeclarationElements we filter
+    // the matches down to only those included by "filter".
     val modules = ModuleManager.getInstance(myProject).modules.toList()
     val request =
       LintIdeRequest(client, myProject, null, modules, false).apply { setScope(Scope.ALL) }

@@ -37,8 +37,7 @@ public class UnusedResourcesTest extends AndroidTestCase {
     VirtualFile layout2 = myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout2.xml");
     myFixture.copyFileToProject(BASE_PATH + "TestCode.java", "src/p1/p2/TestCode.java");
 
-    UnusedResourcesProcessor processor = new UnusedResourcesProcessor(getProject(), null);
-    processor.setIncludeIds(true);
+    UnusedResourcesProcessor processor = new UnusedResourcesProcessor(getProject(), null, true);
     processor.run();
 
     myFixture.checkResultByFile("res/values/strings.xml", BASE_PATH + "strings_after.xml", true);
@@ -52,7 +51,7 @@ public class UnusedResourcesTest extends AndroidTestCase {
 
     VfsTestUtil.createFile(ProjectUtil.guessProjectDir(myFixture.getProject()), "res/raw/foo.bin", new byte[]{0,1,2});
 
-    UnusedResourcesProcessor processor = new UnusedResourcesProcessor(getProject(), null);
+    UnusedResourcesProcessor processor = new UnusedResourcesProcessor(getProject(), null, false);
 
     assertThat(myFixture.getUsageViewTreeTextRepresentation(Arrays.asList(processor.findUsages())))
       .isEqualTo("<root> (2)\n" +

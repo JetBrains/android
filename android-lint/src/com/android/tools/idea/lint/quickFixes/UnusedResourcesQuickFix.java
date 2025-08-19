@@ -37,8 +37,7 @@ public class UnusedResourcesQuickFix extends DefaultLintQuickFix {
     Project project = startElement.getProject();
     MyResourcesProcessorFilter filter = myResource != null ? new MyResourcesProcessorFilter(myResource) : null;
 
-    UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, filter);
-    processor.setIncludeIds(true);
+    UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, filter, true);
     processor.run();
   }
 

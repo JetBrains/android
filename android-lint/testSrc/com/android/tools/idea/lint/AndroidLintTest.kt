@@ -2009,6 +2009,8 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     // normally are, but which is forbidden by the refactoring framework.)
     val file = myFixture.copyFileToProject("$globalTestDir/strings.xml", "res/values/strings.xml")
     myFixture.configureFromExistingVirtualFile(file)
+    val otherFile =
+      myFixture.copyFileToProject("$globalTestDir/strings.xml", "res/values-de/strings.xml")
     val map = doGlobalInspectionTest(AndroidLintUnusedResourcesInspection())
     var targetDescriptor: CommonProblemDescriptor? = null
     var targetFix: QuickFix<CommonProblemDescriptor?>? = null
@@ -2035,6 +2037,11 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     assertNotNull(targetFix)
     // TODO: Consider using CodeInsightTestFixtureImpl#invokeIntention
     targetFix!!.applyFix(project, targetDescriptor!!)
+    myFixture.checkResultByFile("$globalTestDir/strings_after.xml")
+
+    // Even though there is just one problem reported (for res/values/strings.xml),
+    // the quick-fix also removes the resource from translations (res/values-de/strings.xml).
+    myFixture.openFileInEditor(otherFile)
     myFixture.checkResultByFile("$globalTestDir/strings_after.xml")
   }
 

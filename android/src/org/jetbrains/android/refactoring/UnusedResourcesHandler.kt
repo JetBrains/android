@@ -26,18 +26,27 @@ import com.intellij.refactoring.RefactoringActionHandler
 class UnusedResourcesHandler : RefactoringActionHandler {
   @UiThread
   override fun invoke(project: Project, editor: Editor, file: PsiFile, dataContext: DataContext) {
-    val filter = UnusedResourcesProcessor.FileFilter.from(setOf(file))
-    invokeWithDialog(project, filter)
+    UnusedResourcesDialog(
+      project,
+      UnusedResourcesDialog.FilterAndDescription(
+        UnusedResourcesProcessor.FileFilter.from(setOf(file)),
+        "the refactoring is restricted to the resources in the currently open file",
+      ),
+    ).show()
   }
 
   @UiThread
   override fun invoke(project: Project, elements: Array<PsiElement>, dataContext: DataContext) {
-    val filter = UnusedResourcesProcessor.FileFilter.from(elements.toList())
-    invokeWithDialog(project, filter)
+    UnusedResourcesDialog(
+      project,
+      if (elements.isEmpty()) {
+        null
+      } else {
+        UnusedResourcesDialog.FilterAndDescription(
+          UnusedResourcesProcessor.FileFilter.from (elements.toList()),
+          "the refactoring is restricted to the resources in the currently selected files/directories",
+        )
+      },
+    ).show()
   }
-}
-
-private fun invokeWithDialog(project: Project, filter: UnusedResourcesProcessor.Filter) {
-  val processor = UnusedResourcesProcessor(project, filter)
-  UnusedResourcesDialog(project, processor).show()
 }

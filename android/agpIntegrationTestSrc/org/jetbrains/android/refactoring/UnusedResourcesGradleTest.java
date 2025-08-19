@@ -21,17 +21,12 @@ import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.getTextFor
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.util.UserDataHolder;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.RunsInEdt;
@@ -55,8 +50,7 @@ public class UnusedResourcesGradleTest {
     openPreparedTestProject(preparedProject, project -> {
       assertThat(getTextForFile(project, "mipmap/build.gradle")).contains("resValue");
 
-      UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, null);
-      processor.setIncludeIds(true);
+      UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, null, true);
       processor.run();
 
       assertThat(getTextForFile(project, "mipmap/src/main/res/values/strings.xml")).isEqualTo(
@@ -77,8 +71,7 @@ public class UnusedResourcesGradleTest {
     openPreparedTestProject(preparedProject, project -> {
       assertThat(getTextForFile(project, "app/build.gradle")).contains("resValue");
 
-      UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, null);
-      processor.setIncludeIds(true);
+      UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, null, true);
       processor.run();
 
       assertThat(getTextForFile(project, "app/src/main/res/values/strings.xml")).isEqualTo(
@@ -106,8 +99,7 @@ public class UnusedResourcesGradleTest {
       PsiDirectory modulePsiDir = PsiManager.getInstance(project).findDirectory(moduleDir);
 
       UnusedResourcesProcessor.FileFilter filter = UnusedResourcesProcessor.FileFilter.from(ImmutableSet.of(modulePsiDir));
-      UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, filter);
-      processor.setIncludeIds(true);
+      UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, filter, true);
       processor.run();
 
       assertThat(getTextForFile(project, "app/src/main/res/values/strings.xml")).isEqualTo(
@@ -138,8 +130,7 @@ public class UnusedResourcesGradleTest {
       PsiDirectory modulePsiDir = PsiManager.getInstance(project).findDirectory(moduleDir);
 
       UnusedResourcesProcessor.FileFilter filter = UnusedResourcesProcessor.FileFilter.from(ImmutableSet.of(modulePsiDir));
-      UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, filter);
-      processor.setIncludeIds(true);
+      UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, filter, true);
       processor.run();
 
       // Make sure we have NOT deleted the unused resources in app
@@ -169,8 +160,7 @@ public class UnusedResourcesGradleTest {
     openPreparedTestProject(preparedProject, project -> {
       assertThat(getTextForFile(project, "mipmap/build.gradle.kts")).contains("resValue");
 
-      UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, null);
-      processor.setIncludeIds(true);
+      UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, null, true);
       processor.run();
 
       assertThat(getTextForFile(project, "mipmap/src/main/res/values/strings.xml")).isEqualTo(
@@ -194,8 +184,7 @@ public class UnusedResourcesGradleTest {
       PsiFile valuesPsiFile = PsiManager.getInstance(project).findFile(valuesFile);
 
       UnusedResourcesProcessor.FileFilter filter = UnusedResourcesProcessor.FileFilter.from(ImmutableSet.of(valuesPsiFile));
-      UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, filter);
-      processor.setIncludeIds(true);
+      UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, filter, true);
       processor.run();
 
       // Make sure that the main module's file was *not* modified.
@@ -228,11 +217,18 @@ public class UnusedResourcesGradleTest {
       PsiFile valuesPsiFile = PsiManager.getInstance(project).findFile(valuesFile);
 
       UnusedResourcesProcessor.FileFilter filter = UnusedResourcesProcessor.FileFilter.from(ImmutableSet.of(stringsPsiFile, valuesPsiFile));
-      UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, filter);
-      processor.setIncludeIds(true);
+      UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, filter, true);
       processor.run();
 
       assertThat(getTextForFile(project, "app/src/main/res/values/strings.xml")).isEqualTo(
+        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+        "<resources>\n" +
+        "    <string name=\"app_name\">Hello World</string>\n" +
+        "    <string name=\"used_from_test\">Referenced from test</string>\n" +
+        "</resources>\n");
+
+      // Even though values-de/strings.xml is not in the filter, the newstring string is still removed.
+      assertThat(getTextForFile(project, "app/src/main/res/values-de/strings.xml")).isEqualTo(
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
         "<resources>\n" +
         "    <string name=\"app_name\">Hello World</string>\n" +

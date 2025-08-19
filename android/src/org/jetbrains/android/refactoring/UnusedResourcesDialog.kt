@@ -15,39 +15,68 @@
  */
 package org.jetbrains.android.refactoring
 
+import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.DialogPanel
 import com.intellij.refactoring.ui.RefactoringDialog
-import com.intellij.ui.StateRestoringCheckBox
-import java.awt.BorderLayout
+import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.builder.selected
 import javax.swing.JComponent
-import javax.swing.JPanel
 
 internal class UnusedResourcesDialog(
   project: Project,
-  private val processor: UnusedResourcesProcessor
+  private val filterAndDescription: FilterAndDescription?,
 ) : RefactoringDialog(project, true) {
 
-  private lateinit var checkBoxIncludeIds: StateRestoringCheckBox
+  class FilterAndDescription(val filter: UnusedResourcesProcessor.Filter, val description: String)
+
+  private var centerPanel: DialogPanel? = null
+
+  private var searchEntireProject = false
+  private var includeIds = false
 
   init {
     title = "Remove Unused Resources"
     init()
   }
 
-  override fun createNorthPanel(): JComponent {
-    val panel = JPanel(BorderLayout())
-
-    checkBoxIncludeIds = StateRestoringCheckBox()
-    checkBoxIncludeIds.setText("Delete unused @id declarations too")
-    panel.add(checkBoxIncludeIds, BorderLayout.CENTER)
-
-    return panel
+  override fun createCenterPanel(): JComponent {
+    return panel {
+      row {
+        if (filterAndDescription != null) {
+          checkBox("Search entire project")
+            .bindSelected(::searchEntireProject)
+            .comment("When unchecked, ${filterAndDescription.description}.")
+        } else {
+          checkBox("Search entire project")
+            .bindSelected(::searchEntireProject)
+            .enabled(false)
+            .selected(true)
+            .comment("To restrict the scope, open a resource file or " +
+                     "select some files/directories in the Project tool window, " +
+                     "and then invoke the refactoring.")
+        }
+      }
+      row {
+        checkBox("Delete unused @id declarations too")
+          .bindSelected(::includeIds)
+      }
+    }.also { centerPanel = it }
   }
 
-  override fun createCenterPanel(): JComponent? = null
-
   override fun doAction() {
-    processor.includeIds = checkBoxIncludeIds.isSelected
+    // Must call apply for "bindSelected" to work.
+    // There is some logic to make this happen automatically for the center panel,
+    // but this does not seem to work with RefactoringDialog.
+    centerPanel?.apply()
+
+    val filter = if (searchEntireProject) {
+      null
+    } else {
+      filterAndDescription?.filter
+    }
+
+    val processor = UnusedResourcesProcessor(myProject, filter, includeIds)
     processor.setPreviewUsages(isPreviewUsages)
     close(OK_EXIT_CODE)
     processor.run()
