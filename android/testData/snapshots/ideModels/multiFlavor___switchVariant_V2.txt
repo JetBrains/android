@@ -1391,7 +1391,7 @@ MODULE                        : MultiFlavor.app
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateFirstXyzSecondXyzReleaseSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/firstXyzSecondXyzRelease/out [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstXyzSecondXyzRelease/processFirstXyzSecondXyzReleaseResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/firstXyzSecondXyzRelease/generateFirstXyzSecondXyzReleaseRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/firstXyzSecondXyzRelease/compileFirstXyzSecondXyzReleaseJavaWithJavac/classes [-]
                 VariantSourceProvider
                     Name                          : firstXyzSecondXyzRelease

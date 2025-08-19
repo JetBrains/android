@@ -807,6 +807,7 @@ MODULE                        : project
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
+                        androidApis                   : <empty>
                         androidJdkImage               : <empty>
                         androidTestUtil               : <empty>
                         annotationProcessor           : <empty>
@@ -865,6 +866,7 @@ MODULE                        : project
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
+                        androidApis                   : <empty>
                         androidJdkImage               : <empty>
                         androidTestUtil               : <empty>
                         annotationProcessor           : <empty>
@@ -917,6 +919,7 @@ MODULE                        : project
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
+                        androidApis                   : <empty>
                         androidJdkImage               : <empty>
                         androidTestUtil               : <empty>
                         annotationProcessor           : <empty>
@@ -1224,7 +1227,7 @@ MODULE                        : project.app
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
@@ -1249,7 +1252,7 @@ MODULE                        : project.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
@@ -1452,7 +1455,7 @@ MODULE                        : project.benchmark
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateBenchmarkSources
                 GeneratedSourceFolders        : <ROOT>/benchmark/build/generated/ap_generated_sources/benchmark/out [-]
-                ClassesFolder                 : <ROOT>/benchmark/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/benchmark/processBenchmarkResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/benchmark/build/intermediates/compile_r_class_jar/benchmark/generateBenchmarkRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/benchmark/build/intermediates/javac/benchmark/compileBenchmarkJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
@@ -1910,7 +1913,7 @@ MODULE                        : project.test
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/test/build/generated/ap_generated_sources/debug/out [-]
-                ClassesFolder                 : <ROOT>/test/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/test/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/test/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
@@ -2367,7 +2370,7 @@ MODULE                        : project.test2
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/test2/build/generated/ap_generated_sources/debug/out [-]
-                ClassesFolder                 : <ROOT>/test2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/test2/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/test2/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath

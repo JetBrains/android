@@ -2216,7 +2216,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateTypeoneModetwoDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebugAndroidTest/out [-]
-                ClassesFolder                 : <ROOT>/androidLib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/typeoneModetwoDebugAndroidTest/processTypeoneModetwoDebugAndroidTestResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/androidLib/build/intermediates/compile_r_class_jar/typeoneModetwoDebugAndroidTest/generateTypeoneModetwoDebugAndroidTestRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/androidLib/build/intermediates/javac/typeoneModetwoDebugAndroidTest/compileTypeoneModetwoDebugAndroidTestJavaWithJavac/classes [-]
                 VariantSourceProvider
                     Name                          : androidTestTypeoneModetwoDebug
@@ -2542,7 +2542,7 @@ MODULE                        : Kotlin_Multiplatform.app
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
@@ -2595,7 +2595,7 @@ MODULE                        : Kotlin_Multiplatform.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath

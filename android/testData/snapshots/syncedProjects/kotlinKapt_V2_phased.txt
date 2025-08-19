@@ -244,7 +244,7 @@ PROJECT                       : MainActivity
             -                             : file://<PROJECT>/app/build/intermediates/javac/localDebugAndroidTest/compileLocalDebugAndroidTestJavaWithJavac/classes
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/localDebugAndroidTest
             -                             : file://<PROJECT>/app/build/tmp/kapt3/classes/localDebugAndroidTest
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/localDebugAndroidTest/processLocalDebugAndroidTestResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/localDebugAndroidTest/generateLocalDebugAndroidTestRFile/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/local/debug
         BUILD_TASKS
                 CLEAN                         : :app:generateLocalDebugAndroidTestSources
@@ -379,7 +379,7 @@ PROJECT                       : MainActivity
             -                             : file://<PROJECT>/app/build/intermediates/javac/localDebug/compileLocalDebugJavaWithJavac/classes
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/localDebug
             -                             : file://<PROJECT>/app/build/tmp/kapt3/classes/localDebug
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/localDebug/processLocalDebugResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/localDebug/generateLocalDebugRFile/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/local/debug
         BUILD_TASKS
                 CLEAN                         : :app:generateLocalDebugSources

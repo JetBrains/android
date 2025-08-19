@@ -241,7 +241,7 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/exampleDebugAndroidTest/compileExampleDebugAndroidTestJavaWithJavac/classes
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/exampleDebugAndroidTest/processExampleDebugAndroidTestResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/exampleDebugAndroidTest/generateExampleDebugAndroidTestRFile/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/example/debug
         BUILD_TASKS
                 CLEAN                         : :app:generateExampleDebugAndroidTestSources
@@ -357,7 +357,7 @@ PROJECT                       : project
         LIBRARY                       : Gradle: com.google.guava:guava:19.0 [=]
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/exampleDebug/compileExampleDebugJavaWithJavac/classes
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/exampleDebug/processExampleDebugResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/exampleDebug/generateExampleDebugRFile/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/example/debug
         BUILD_TASKS
                 CLEAN                         : :app:generateExampleDebugSources

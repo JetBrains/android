@@ -863,7 +863,7 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateDebugSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             Dependencies
                 compileClasspath
@@ -1128,7 +1128,7 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : generateDebugAndroidTestSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
             Dependencies
                 compileClasspath
@@ -1648,7 +1648,7 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/release/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/release/processReleaseResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/release/generateReleaseRFile/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes [-]
             Dependencies
                 compileClasspath

@@ -387,7 +387,7 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.lib.main
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/basicBarDebug/compileBasicBarDebugJavaWithJavac/classes
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/processBasicBarDebugResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/basicBarDebug/generateBasicBarDebugRFile/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/basicBar/debug
         BUILD_TASKS
                 CLEAN                         : :app:generateBasicBarDebugSources

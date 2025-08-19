@@ -59,7 +59,7 @@ MODULE                        : MainActivity.app
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
-            - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/localDebug/processLocalDebugResources/R.jar [-]
+            - ClassOutputs                : <ROOT>/app/build/intermediates/compile_r_class_jar/localDebug/generateLocalDebugRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/localDebug/compileLocalDebugJavaWithJavac/classes [-]
             - ClassOutputs                : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
             - ClassOutputs                : <ROOT>/app/build/tmp/kotlin-classes/localDebug [-]
@@ -160,7 +160,7 @@ MODULE                        : MainActivity.app
                 org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                 org.hamcrest:hamcrest-integration       : null => org.hamcrest:hamcrest-integration:1.3
                 org.hamcrest:hamcrest-library : null => org.hamcrest:hamcrest-library:1.3
-        - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/localDebugAndroidTest/processLocalDebugAndroidTestResources/R.jar [-]
+        - ClassOutputs                : <ROOT>/app/build/intermediates/compile_r_class_jar/localDebugAndroidTest/generateLocalDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/app/build/intermediates/javac/localDebugAndroidTest/compileLocalDebugAndroidTestJavaWithJavac/classes [-]
         - ClassOutputs                : <ROOT>/app/build/tmp/kapt3/classes/localDebugAndroidTest [-]
         - ClassOutputs                : <ROOT>/app/build/tmp/kotlin-classes/localDebugAndroidTest [-]
@@ -659,7 +659,7 @@ MODULE                        : MainActivity.lib
                 artifacts::lib                : null => :lib@main
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
-        - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+        - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         - ClassOutputs                : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion                 : API 16

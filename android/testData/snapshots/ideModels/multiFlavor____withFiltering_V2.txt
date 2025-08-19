@@ -694,7 +694,7 @@ MODULE                        : MultiFlavor.app
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateFirstAbcSecondAbcDebugSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebug/out [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebug/processFirstAbcSecondAbcDebugResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/firstAbcSecondAbcDebug/generateFirstAbcSecondAbcDebugRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebug/compileFirstAbcSecondAbcDebugJavaWithJavac/classes [-]
                 VariantSourceProvider
                     Name                          : firstAbcSecondAbcDebug
@@ -742,7 +742,7 @@ MODULE                        : MultiFlavor.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateFirstAbcSecondAbcDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugAndroidTest/out [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebugAndroidTest/processFirstAbcSecondAbcDebugAndroidTestResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/firstAbcSecondAbcDebugAndroidTest/generateFirstAbcSecondAbcDebugAndroidTestRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebugAndroidTest/compileFirstAbcSecondAbcDebugAndroidTestJavaWithJavac/classes [-]
                 VariantSourceProvider
                     Name                          : androidTestFirstAbcSecondAbcDebug

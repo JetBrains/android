@@ -57,6 +57,10 @@ Task                          : :app:generateDebugAssets
     TaskType                      : org.gradle.api.DefaultTask
     PrimaryTaskCategory           : UNCATEGORIZED
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:generateDebugRFile
+    TaskType                      : com.android.build.gradle.internal.res.GenerateLibraryRFileTask
+    PrimaryTaskCategory           : ANDROID_RESOURCES
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:generateDebugResValues
     TaskType                      : com.android.build.gradle.tasks.GenerateResValues
     PrimaryTaskCategory           : ANDROID_RESOURCES
@@ -115,6 +119,15 @@ Task                          : :app:overlappingOutputTask2
 Task                          : :app:packageDebug
     TaskType                      : com.android.build.gradle.tasks.PackageApplication
     PrimaryTaskCategory           : APK_PACKAGING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:packageDebugResources
+    TaskType                      : com.android.build.gradle.tasks.MergeResources
+    PrimaryTaskCategory           : ANDROID_RESOURCES
+    SecondaryTaskCategories       : MERGING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:parseDebugLocalResources
+    TaskType                      : com.android.build.gradle.internal.res.ParseLibraryResourcesTask
+    PrimaryTaskCategory           : ANDROID_RESOURCES
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:preBuild
     TaskType                      : org.gradle.api.DefaultTask

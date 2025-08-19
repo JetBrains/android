@@ -1950,7 +1950,7 @@ MODULE                        : MainActivity.app
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/localDebug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/kapt/localDebug [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/kaptKotlin/localDebug [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/localDebug/processLocalDebugResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/localDebug/generateLocalDebugRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/localDebug/compileLocalDebugJavaWithJavac/classes [-]
                 ClassesFolder                 : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
                 ClassesFolder                 : <ROOT>/app/build/tmp/kotlin-classes/localDebug [-]
@@ -2057,7 +2057,7 @@ MODULE                        : MainActivity.app
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/localDebugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/kapt/localDebugAndroidTest [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/kaptKotlin/localDebugAndroidTest [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/localDebugAndroidTest/processLocalDebugAndroidTestResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/localDebugAndroidTest/generateLocalDebugAndroidTestRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/localDebugAndroidTest/compileLocalDebugAndroidTestJavaWithJavac/classes [-]
                 ClassesFolder                 : <ROOT>/app/build/tmp/kapt3/classes/localDebugAndroidTest [-]
                 ClassesFolder                 : <ROOT>/app/build/tmp/kotlin-classes/localDebugAndroidTest [-]
@@ -3020,7 +3020,7 @@ MODULE                        : MainActivity.lib
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
                 ClassesFolder                 : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest [-]
                 Dependencies

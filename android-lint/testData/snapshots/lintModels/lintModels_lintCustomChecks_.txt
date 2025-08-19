@@ -32,7 +32,7 @@ MODULE                        : project.app
                     artifacts::library            : null => :library@main
                 PackageDependencies
                     artifacts::library            : null => :library@main
-            - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+            - ClassOutputs                : <ROOT>/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
         TestArtifact
             Dependencies
@@ -55,7 +55,7 @@ MODULE                        : project.app
             PackageDependencies
                 artifacts::app                : null => :app@main
                 artifacts::library            : null => :library@main
-        - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+        - ClassOutputs                : <ROOT>/app/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         MinSdkVersion                 : API 16
         TargetSdkVersion              : API 34
@@ -152,7 +152,7 @@ MODULE                        : project.library
                 artifacts::library            : null => :library@main
             PackageDependencies
                 artifacts::library            : null => :library@main
-        - ClassOutputs                : <ROOT>/library/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+        - ClassOutputs                : <ROOT>/library/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/library/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         MinSdkVersion                 : API 16
         TargetSdkVersion              : API 34
@@ -243,7 +243,7 @@ MODULE                        : project.library-remote
                 artifacts::library-remote     : null => :library-remote@main
             PackageDependencies
                 artifacts::library-remote     : null => :library-remote@main
-        - ClassOutputs                : <ROOT>/library-remote/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+        - ClassOutputs                : <ROOT>/library-remote/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/library-remote/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         MinSdkVersion                 : API 16
         TargetSdkVersion              : API 34

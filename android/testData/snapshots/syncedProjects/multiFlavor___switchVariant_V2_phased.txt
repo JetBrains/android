@@ -183,7 +183,7 @@ PROJECT                       : MultiFlavor
         LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/firstXyzSecondXyzRelease/compileFirstXyzSecondXyzReleaseJavaWithJavac/classes
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstXyzSecondXyzRelease/processFirstXyzSecondXyzReleaseResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/firstXyzSecondXyzRelease/generateFirstXyzSecondXyzReleaseRFile/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/firstXyzSecondXyz/release
         BUILD_TASKS
                 CLEAN                         : :app:generateFirstXyzSecondXyzReleaseSources

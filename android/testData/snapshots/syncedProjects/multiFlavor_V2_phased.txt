@@ -245,7 +245,7 @@ PROJECT                       : MultiFlavor
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/firstAbcSecondAbcDebugAndroidTest/compileFirstAbcSecondAbcDebugAndroidTestJavaWithJavac/classes
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebugAndroidTest/processFirstAbcSecondAbcDebugAndroidTestResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/firstAbcSecondAbcDebugAndroidTest/generateFirstAbcSecondAbcDebugAndroidTestRFile/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/firstAbcSecondAbc/debug
         BUILD_TASKS
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugAndroidTestSources
@@ -370,7 +370,7 @@ PROJECT                       : MultiFlavor
         LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/firstAbcSecondAbcDebug/compileFirstAbcSecondAbcDebugJavaWithJavac/classes
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebug/processFirstAbcSecondAbcDebugResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/firstAbcSecondAbcDebug/generateFirstAbcSecondAbcDebugRFile/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/firstAbcSecondAbc/debug
         BUILD_TASKS
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources

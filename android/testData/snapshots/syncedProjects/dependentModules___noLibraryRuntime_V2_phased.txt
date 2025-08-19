@@ -323,7 +323,7 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.lib.main
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/basicDebug/compileBasicDebugJavaWithJavac/classes
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicDebug/processBasicDebugResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/basicDebug/generateBasicDebugRFile/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/basic/debug
         BUILD_TASKS
                 CLEAN                         : :app:generateBasicDebugSources

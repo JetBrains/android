@@ -53,7 +53,9 @@ class ResourceCompilationXmlErrorTest : BuildOutputIntegrationTestBase() {
 
       val errorTreePath = "root > [Task :app:mergeDebugResources] > ERROR:'Resource compilation failed (Failed to compile resource file: $projectRoot/app/src/main/res/layout/activity_my.xml: . Cause: javax.xml.stream.XMLStreamException: ParseError at [row,col]:[9,33]'"
 
-      assertThat(buildEvents.printEvents()).isEqualTo("""
+      // b/439843451: The build output may contain unrelated warning (e.g. about deprecated Java versions)
+      // we should look into this.
+      assertThat(buildEvents.printEvents()).contains("""
 $errorTreePath
 root > 'failed'
 """.trimIndent())
