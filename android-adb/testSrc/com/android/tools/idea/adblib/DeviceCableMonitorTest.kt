@@ -25,6 +25,7 @@ import com.intellij.notification.Notification
 import com.intellij.notification.Notifications
 import com.intellij.testFramework.ProjectRule
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -41,7 +42,6 @@ class DeviceCableMonitorTest {
   private val adbServiceRule = FakeAdbServiceRule(projectRule::project, adbRule)
   private lateinit var monitor: DeviceCableMonitor
 
-  private var notificationDetected = false
   private val latch = CountDownLatch(1)
 
   @get:Rule
@@ -60,7 +60,6 @@ class DeviceCableMonitorTest {
         object : Notifications {
           override fun notify(notification: Notification) {
             if (notification.groupId == DeviceCableMonitor.NOTIFICATION_GROUP_ID) {
-              notificationDetected = true
               latch.countDown()
             }
           }
@@ -86,7 +85,8 @@ class DeviceCableMonitorTest {
 
   @Test
   fun badUSBCableNotificationTest() {
-    latch.await()
-    Assert.assertTrue("Bad cable notification not detected", notificationDetected)
+    if (!latch.await(5, TimeUnit.SECONDS)) {
+      Assert.fail("Bad cable notification not detected")
+    }
   }
 }
