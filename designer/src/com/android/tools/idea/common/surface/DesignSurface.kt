@@ -355,17 +355,6 @@ abstract class DesignSurface<T : SceneManager>(
     sceneViewPanel.repaint()
   }
 
-  /** Converts a given point that is in view coordinates to viewport coordinates. */
-  @TestOnly
-  fun getCoordinatesOnViewportForTest(viewCoordinates: Point): Point {
-    return SwingUtilities.convertPoint(
-      sceneViewPanel,
-      viewCoordinates.x,
-      viewCoordinates.y,
-      viewport.viewportComponent,
-    )
-  }
-
   fun registerIndicator(indicator: ProgressIndicator) {
     if (project.isDisposed || isDisposed()) {
       return
