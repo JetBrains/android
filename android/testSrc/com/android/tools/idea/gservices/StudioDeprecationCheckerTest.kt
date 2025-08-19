@@ -19,7 +19,6 @@ import com.android.testutils.delayUntilCondition
 import com.android.testutils.waitForCondition
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.concurrency.createCoroutineScope
-import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DevServiceDeprecationInfo
@@ -30,7 +29,8 @@ import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationType
 import com.intellij.notification.NotificationsManager
 import com.intellij.openapi.Disposable
-import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
@@ -38,6 +38,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -51,13 +52,14 @@ import org.junit.Test
 private const val PROP_KEY = "com.android.tools.idea.gservices.deprecation.last.date.checked"
 
 class StudioDeprecationCheckerTest {
-  @get:Rule val projectRule = ProjectRule()
+  @get:Rule val applicationRule = ApplicationRule()
+  @get:Rule val disposableRule = DisposableRule()
   @get:Rule val usageTrackerRule = UsageTrackerRule()
 
   private val notifications: List<Notification>
     get() =
       NotificationsManager.getNotificationsManager()
-        .getNotificationsOfType(Notification::class.java, projectRule.project)
+        .getNotificationsOfType(Notification::class.java, null)
         .filter { it.groupId == "StudioDeprecationNotification" }
         .toList()
 
@@ -83,7 +85,7 @@ class StudioDeprecationCheckerTest {
     application.replaceService(
       DevServicesDeprecationDataProvider::class.java,
       service,
-      projectRule.disposable,
+      disposableRule.disposable,
     )
     PropertiesComponent.getInstance().unsetValue(PROP_KEY)
     deprecationData =
@@ -95,13 +97,15 @@ class StudioDeprecationCheckerTest {
         DevServicesDeprecationStatus.DEPRECATED,
         null,
       )
-    scope = projectRule.project.createCoroutineScope()
+    scope = disposableRule.disposable.createCoroutineScope()
     checker = StudioDeprecationChecker(scope)
   }
 
   @After
-  fun teardown() {
+  fun teardown() = runBlocking {
     notifications.forEach { it.expire() }
+    delayUntilCondition(200) { notifications.isEmpty() }
+    scope.cancel()
   }
 
   @Test

@@ -32,7 +32,7 @@ import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
@@ -91,18 +91,8 @@ class StudioDeprecationChecker(scope: CoroutineScope) : Disposable {
 
           notification =
             createNotification(deprecationData).apply {
-              showNotification(this)
+              showNotification()
               trackEvent(deprecationData.status, userNotified = true)
-              runInEdt {
-                balloon?.addListener(
-                  object : JBPopupListener {
-                    override fun onClosed(event: LightweightWindowEvent) {
-                      super.onClosed(event)
-                      expire()
-                    }
-                  }
-                )
-              }
             }
         }
     }
@@ -225,10 +215,18 @@ class StudioDeprecationChecker(scope: CoroutineScope) : Disposable {
       else -> throw IllegalStateException("Cannot request notification type for $this")
     }
 
-  private fun showNotification(notif: Notification) {
-    notif.notify(null)
+  private fun Notification.showNotification() = invokeLater {
+    notify(null)
     // Reset var for new notification
     userClickedUpdateAction = false
+    balloon?.addListener(
+      object : JBPopupListener {
+        override fun onClosed(event: LightweightWindowEvent) {
+          super.onClosed(event)
+          expire()
+        }
+      }
+    )
   }
 
   private fun trackEvent(
