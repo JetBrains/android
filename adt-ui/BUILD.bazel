@@ -131,6 +131,7 @@ jvm_library(
     "//platform/platform-impl/ui",
     "@lib//:android-adt-ui-ibm-db2-jcc",
   ],
+  exports = ["@lib//:android-adt-ui-ibm-db2-jcc"],
   runtime_deps = [
     ":adt-ui_resources",
     ":adt-ui_test_resources",

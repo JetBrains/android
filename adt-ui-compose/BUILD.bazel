@@ -76,6 +76,12 @@ jvm_library(
     "//platform/util:util-ui",
     "//platform/util",
   ],
+  exports = [
+    "@lib//:android-adt-ui-compose-jetbrains-compose-ui-test-junit4-desktop",
+    "@lib//:android-adt-ui-compose-jewel-markdown-int-ui-standalone-styling-243",
+    "@lib//:android-adt-ui-compose-jewel-int-ui-standalone-243",
+    "@lib//:android-adt-ui-compose-jewel-ide-laf-bridge-243",
+  ],
   runtime_deps = [
     ":adt-ui-compose_resources",
     ":adt-ui-compose_test_resources",
