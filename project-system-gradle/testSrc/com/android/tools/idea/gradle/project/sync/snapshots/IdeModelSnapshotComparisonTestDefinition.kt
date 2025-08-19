@@ -193,40 +193,8 @@ data class IdeModelSnapshotComparisonTestDefinition(
       )
     }
     v2snapshots.assertIsEqualToSnapshot(dump)
-    // Do not remove `return`.
-    return when (agpVersion) {
-      AGP_72 -> testV1vsV2(AGP_72_V1, AGP_72)
-      // Do not replace with when.
-      AGP_31 -> Unit
-      AGP_33_WITH_5_3_1 -> Unit
-      AGP_33 -> Unit
-      AGP_35_JDK_8 -> Unit
-      AGP_35 -> Unit
-      AGP_40 -> Unit
-      AGP_41 -> Unit
-      AGP_42 -> Unit
-      AGP_70 -> Unit
-      AGP_71 -> Unit
-      AGP_72_V1 -> Unit
-      AGP_73 -> Unit
-      AGP_74 -> Unit
-      AGP_80 -> Unit
-      AGP_81 -> Unit
-      AGP_82 -> Unit
-      AGP_83 -> Unit
-      AGP_84 -> Unit
-      AGP_85 -> Unit
-      AGP_86 -> Unit
-      AGP_87 -> Unit
-      AGP_88 -> Unit
-      AGP_89 -> Unit
-      AGP_8_10_1 -> Unit
-      AGP_8_11 -> Unit
-      AGP_8_12 -> Unit
-      AGP_LATEST -> Unit
-      AGP_LATEST_GRADLE_SNAPSHOT -> Unit
-      AGP_DECLARATIVE_GRADLE_SNAPSHOT -> Unit
-      AGP_LATEST_KOTLIN_SNAPSHOT -> Unit
+    when {
+      agpVersion == AGP_72 -> testV1vsV2(AGP_72_V1, AGP_72)
     }
   }
 
