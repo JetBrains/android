@@ -4,18 +4,18 @@ plugins {
 
 android {
     namespace = "com.android.tools.screensharing"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.android.tools.screensharing"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
         externalNativeBuild {
             cmake {
-                cppFlags += "-std=c++17"
+                cppFlags += "-std=c++20"
             }
         }
     }
