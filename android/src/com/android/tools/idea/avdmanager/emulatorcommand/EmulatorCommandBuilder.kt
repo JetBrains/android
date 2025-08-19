@@ -13,137 +13,89 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager.emulatorcommand;
+package com.android.tools.idea.avdmanager.emulatorcommand
 
-import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.sdklib.internal.avd.BootMode;
-import com.android.sdklib.internal.avd.ConfigKey;
-import com.android.sdklib.internal.avd.QuickBoot;
-import com.android.sdklib.internal.avd.UserSettingsKey;
-import com.android.tools.idea.flags.StudioFlags;
-import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.openapi.util.text.Strings;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.sdklib.internal.avd.AvdInfo
+import com.android.sdklib.internal.avd.BootMode
+import com.android.sdklib.internal.avd.ConfigKey
+import com.android.sdklib.internal.avd.QuickBoot
+import com.android.sdklib.internal.avd.UserSettingsKey
+import com.android.tools.idea.flags.StudioFlags
+import com.intellij.execution.configurations.GeneralCommandLine
+import java.nio.file.Path
 
 /**
- * Builds emulator GeneralCommandLines such as {@code /home/user/Android/Sdk/emulator/emulator -netdelay none -netspeed full
- * -avd Pixel_4_API_30}. The subclasses map to different ways of booting a virtual device: cold boot, cold boot now, quick boot, snapshot
- * boot, etc.
+ * Builds emulator GeneralCommandLines such as `/home/user/Android/Sdk/emulator/emulator -netdelay
+ * none -netspeed full -avd Pixel_4_API_30`.
  */
-public class EmulatorCommandBuilder {
-  /** The path to the emulator executable, something like /home/user/Android/Sdk/emulator/emulator on Linux. */
-  private final @NotNull Path myEmulator;
-
-  private final @NotNull AvdInfo myAvd;
-
-  private @Nullable Path myAvdHome;
-  private @Nullable Path mySdkLocation;
-  private @Nullable Path myStudioParams;
-  private boolean myLaunchInToolWindow;
-  private BootMode myBootMode = QuickBoot.INSTANCE;
-
-  private final @NotNull List<String> myStudioEmuParams;
-
-  public EmulatorCommandBuilder(@NotNull Path emulator, @NotNull AvdInfo avd) {
-    String emulatorBinary = avd.getUserSettings().get(UserSettingsKey.EMULATOR_BINARY);
-    myEmulator = emulatorBinary == null ? emulator : emulator.resolveSibling(emulatorBinary).normalize();
-    myAvd = avd;
-
-    myStudioEmuParams = new ArrayList<>();
-  }
-
-  public final @NotNull EmulatorCommandBuilder setAvdHome(@Nullable Path avdHome) {
-    myAvdHome = avdHome;
-    return this;
-  }
-
-  public final @NotNull EmulatorCommandBuilder setSdkLocation(@Nullable Path sdkLocation) {
-    mySdkLocation = sdkLocation;
-    return this;
-  }
-
-  public final @NotNull EmulatorCommandBuilder setStudioParams(@Nullable Path studioParams) {
-    myStudioParams = studioParams;
-    return this;
-  }
-
-  public final @NotNull EmulatorCommandBuilder setLaunchInToolWindow(boolean launchInToolWindow) {
-    myLaunchInToolWindow = launchInToolWindow;
-    return this;
-  }
-
-  public final @NotNull EmulatorCommandBuilder addAllStudioEmuParams(@NotNull Collection<String> studioEmuParams) {
-    myStudioEmuParams.addAll(studioEmuParams);
-    return this;
-  }
-
-  public final @NotNull EmulatorCommandBuilder setBootMode(BootMode bootMode) {
-    myBootMode = bootMode;
-    return this;
-  }
-
-  public final @NotNull GeneralCommandLine build() {
-    GeneralCommandLine command = new GeneralCommandLine();
-    command.setExePath(myEmulator.toString());
-
-    if (myAvdHome != null) {
-      command.getEnvironment().put("ANDROID_AVD_HOME", myAvdHome.toString());
-    }
-    if (mySdkLocation != null) {
-      command.getEnvironment().put("ANDROID_HOME", mySdkLocation.toString());
+class EmulatorCommandBuilder(emulator: Path, val avd: AvdInfo) {
+  /**
+   * The path to the emulator executable, something like /home/user/Android/Sdk/emulator/emulator on
+   * Linux.
+   */
+  private val emulator: Path =
+    when (val emulatorBinary = avd.userSettings[UserSettingsKey.EMULATOR_BINARY]) {
+      null -> emulator
+      else -> emulator.resolveSibling(emulatorBinary).normalize()
     }
 
-    addParametersIfParameter2IsntNull(command, "-netdelay", myAvd.getProperty(ConfigKey.NETWORK_LATENCY));
-    addParametersIfParameter2IsntNull(command, "-netspeed", myAvd.getProperty(ConfigKey.NETWORK_SPEED));
+  var avdHome: Path? = null
+  var sdkLocation: Path? = null
+  var studioParams: Path? = null
+  var launchInToolWindow = false
+  var bootMode: BootMode = QuickBoot
+  val studioEmuParams = mutableListOf<String>()
 
-    addSnapshotParameters(command);
+  fun build(): GeneralCommandLine {
+    val command = GeneralCommandLine()
+    command.exePath = emulator.toString()
 
-    addParametersIfParameter2IsntNull(command, "-studio-params", myStudioParams);
-    command.addParameters("-avd", myAvd.getName());
-
-    if (myLaunchInToolWindow) {
-      command.addParameter("-qt-hide-window");
-      command.addParameter("-grpc-use-token");
-      command.addParameters("-idle-grpc-timeout", "300");
+    if (avdHome != null) {
+      command.environment.put("ANDROID_AVD_HOME", avdHome.toString())
+    }
+    if (sdkLocation != null) {
+      command.environment.put("ANDROID_HOME", sdkLocation.toString())
     }
 
-    command.addParameters(myStudioEmuParams);
-    String avdCommandLineOptions = myAvd.getUserSettings().get(UserSettingsKey.COMMAND_LINE_OPTIONS);
-    command.addParameters(parseCommandLineOptions(avdCommandLineOptions));
+    command.addParametersIfParameter2IsntNull(
+      "-netdelay",
+      avd.getProperty(ConfigKey.NETWORK_LATENCY),
+    )
+    command.addParametersIfParameter2IsntNull("-netspeed", avd.getProperty(ConfigKey.NETWORK_SPEED))
+
+    command.addParameters(bootMode.arguments())
+
+    command.addParametersIfParameter2IsntNull("-studio-params", studioParams)
+    command.addParameters("-avd", avd.name)
+
+    if (launchInToolWindow) {
+      command.addParameter("-qt-hide-window")
+      command.addParameter("-grpc-use-token")
+      command.addParameters("-idle-grpc-timeout", "300")
+    }
+
+    command.addParameters(studioEmuParams)
+    avd.userSettings[UserSettingsKey.COMMAND_LINE_OPTIONS]?.let {
+      command.addParameters(parseCommandLineOptions(it))
+    }
 
     if (StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.get()) {
-      avdCommandLineOptions = myAvd.getProperty(UserSettingsKey.COMMAND_LINE_OPTIONS);
-      command.addParameters(parseCommandLineOptions(avdCommandLineOptions));
+      avd.getProperty(UserSettingsKey.COMMAND_LINE_OPTIONS)?.let {
+        command.addParameters(parseCommandLineOptions(it))
+      }
     }
-    return command;
+    return command
   }
+}
 
-  private static void addParametersIfParameter2IsntNull(@NotNull GeneralCommandLine command,
-                                                        @NotNull String parameter1,
-                                                        @Nullable Object parameter2) {
-    if (parameter2 == null) {
-      return;
-    }
+private fun parseCommandLineOptions(options: String): List<String> {
+  return options.trim().split("\\s+".toRegex())
+}
 
-    command.addParameters(parameter1, parameter2.toString());
-  }
-
-  void addSnapshotParameters(@NotNull GeneralCommandLine command) {
-    command.addParameters(myBootMode.arguments());
-  }
-
-  private List<String> parseCommandLineOptions(@Nullable String options) {
-    if (Strings.isEmptyOrSpaces(options)) {
-      return Collections.emptyList();
-    }
-    String withoutLineBreaks = options.trim().replaceAll("\\n", " ");
-    return Arrays.asList(withoutLineBreaks.split("\\s+"));
-  }
+private fun GeneralCommandLine.addParametersIfParameter2IsntNull(
+  parameter1: String,
+  parameter2: Any?,
+) {
+  parameter2 ?: return
+  addParameters(parameter1, parameter2.toString())
 }

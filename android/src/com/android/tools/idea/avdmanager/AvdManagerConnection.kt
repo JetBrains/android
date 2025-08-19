@@ -308,15 +308,16 @@ constructor(
     val params = System.getenv("studio.emu.params")?.split(',') ?: emptyList()
 
     return EmulatorCommandBuilder(emulator, avd)
-      .setAvdHome(avdManager!!.baseAvdFolder)
-      .setSdkLocation(sdkHandler?.location)
-      .setStudioParams(writeParameterFile())
-      .setLaunchInToolWindow(
-        canLaunchInToolWindow(avd, project) &&
-          (forceLaunchInToolWindow || EmulatorSettings.getInstance().launchInToolWindow)
-      )
-      .addAllStudioEmuParams(params)
-      .setBootMode(bootMode)
+      .apply {
+        avdHome = avdManager!!.baseAvdFolder
+        sdkLocation = sdkHandler?.location
+        studioParams = writeParameterFile()
+        launchInToolWindow =
+          canLaunchInToolWindow(avd, project) &&
+            (forceLaunchInToolWindow || EmulatorSettings.getInstance().launchInToolWindow)
+        studioEmuParams.addAll(params)
+        this.bootMode = bootMode
+      }
       .build()
   }
 
