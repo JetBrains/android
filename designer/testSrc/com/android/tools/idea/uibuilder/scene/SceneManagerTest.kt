@@ -153,12 +153,12 @@ class SceneManagerTest {
 
     val source = Object()
 
-    sceneManager.deactivate(source)
+    sceneManager.deactivate()
     verify(mockedManager, times(0)).removeListener(any(), any(), any(), any())
 
-    sceneManager.activate(source)
-    sceneManager.activate(source)
-    sceneManager.deactivate(source)
+    sceneManager.activate()
+    sceneManager.activate()
+    sceneManager.deactivate()
     verify(mockedManager, times(1)).addListener(any(), any(), any(), any())
     verify(mockedManager, times(1)).removeListener(any(), any(), any(), any())
 

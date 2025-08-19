@@ -383,8 +383,8 @@ open class LayoutlibSceneManager(
     }
   }
 
-  override fun activate(source: Any): Boolean {
-    val active = super.activate(source)
+  override fun activate(): Boolean {
+    val active = super.activate()
     layoutlibSceneRenderer.activate()
     if (active && updateAndRenderWhenActivated) {
       val manager = getInstance(model.project)
@@ -397,8 +397,8 @@ open class LayoutlibSceneManager(
     return active
   }
 
-  override fun deactivate(source: Any): Boolean =
-    super.deactivate(source).also { if (it) layoutlibSceneRenderer.deactivate() }
+  override fun deactivate(): Boolean =
+    super.deactivate().also { if (it) layoutlibSceneRenderer.deactivate() }
 
   override fun dispose() {
     if (isDisposed()) return

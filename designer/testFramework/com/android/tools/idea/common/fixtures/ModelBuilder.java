@@ -131,7 +131,7 @@ public class ModelBuilder {
     if (activate) {
       // We use the class to activate the model since the builder might be collected and we do not want the model to accidentally be
       // deactivated.
-      model.activate(ModelBuilder.class);
+      model.activate();
     }
     EdtTestUtil.runInEdtAndWait(() -> WriteAction.run(() -> {
       // TODO(b/194482298): Refactor below functions, to create DesignSurface<?> first then add the NlModel.

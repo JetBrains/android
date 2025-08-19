@@ -40,8 +40,6 @@ import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
-import java.util.Collections
-import java.util.WeakHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.function.BiFunction
@@ -98,7 +96,6 @@ protected constructor(
   var lintAnnotationsModel: LintAnnotationsModel? = null
   val type: DesignerEditorFileType = file.typeOf()
 
-  private val activations: MutableSet<Any> = Collections.newSetFromMap(WeakHashMap())
   private val modelVersion = ModelVersion()
   private var configurationModificationCount: Long = configuration.modificationCount
 
@@ -115,6 +112,8 @@ protected constructor(
   var isDisposed: Boolean = false
     private set
 
+  private val isActive = AtomicBoolean(false)
+
   /**
    * Indicate which group this NlModel belongs. This can be used to categorize the NlModel when
    * rendering or layouting.
@@ -127,79 +126,34 @@ protected constructor(
     }
   }
 
-  /** Returns if this model is currently active. */
-  private val isActive: Boolean
-    get() {
-      synchronized(activations) {
-        return activations.isNotEmpty()
-      }
-    }
-
   /**
-   * Notify model that it's active. A model is active by default.
+   * Notify model that it's active.
    *
-   * @param source caller used to keep track of the references to this model. See [.deactivate]
    * @return true if the model was not active before and was activated.
    */
-  fun activate(source: Any): Boolean {
-    if (buildTarget.facet.isDisposed) {
-      return false
+  fun activate(): Boolean {
+    if (isDisposed) return false
+    if (isActive.getAndSet(true)) return false
+
+    if (configuration.modificationCount != configurationModificationCount) {
+      updateTheme()
     }
-
-    // TODO: Tracking the source is just a workaround for the model being shared so the activations
-    // and deactivations are
-    // handled correctly. This should be solved by moving the removing this responsibility from the
-    // model. The model shouldn't
-    // need to keep track of activations/deactivation and they should be handled by the caller.
-    var wasActive: Boolean
-    synchronized(activations) {
-      wasActive = activations.isNotEmpty()
-      activations.add(source)
-    }
-    if (!wasActive) {
-      // This was the first activation so enable listeners
-
-      // If the resources have changed or the configuration has been modified, request a model
-      // update
-
-      if (configuration.modificationCount != configurationModificationCount) {
-        updateTheme()
-      }
-      listeners.forEach { listener: ModelListener -> listener.modelActivated(this) }
-      if (notifyModificationWhenActivated.getAndSet(false))
-        notifyModified(ChangeType.MODEL_ACTIVATION)
-      return true
-    } else {
-      return false
-    }
-  }
-
-  private fun deactivate() {
-    configurationModificationCount = configuration.modificationCount
+    listeners.forEach { listener: ModelListener -> listener.modelActivated(this) }
+    if (notifyModificationWhenActivated.getAndSet(false))
+      notifyModified(ChangeType.MODEL_ACTIVATION)
+    return true
   }
 
   /**
    * Notify model that it's not active. This means it can stop watching for events etc. It may be
    * activated again in the future.
    *
-   * @param source the source is used to keep track of the references that are using this model.
-   *   Only when all the sources have called deactivate(Object), the model will be really
-   *   deactivated.
    * @return true if the model was active before and was deactivated.
    */
-  fun deactivate(source: Any): Boolean {
-    var shouldDeactivate: Boolean
-    synchronized(activations) {
-      val removed = activations.remove(source)
-      // If there are no more activations, call the private #deactivate()
-      shouldDeactivate = removed && activations.isEmpty()
-    }
-    if (shouldDeactivate) {
-      deactivate()
-      return true
-    } else {
-      return false
-    }
+  fun deactivate(): Boolean {
+    if (!isActive.getAndSet(false)) return false
+    configurationModificationCount = configuration.modificationCount
+    return true
   }
 
   val file: XmlFile
@@ -287,17 +241,8 @@ protected constructor(
 
   override fun dispose() {
     isDisposed = true
-    var shouldDeactivate: Boolean
     lintAnnotationsModel = null
-    synchronized(activations) {
-      // If there are no activations left, make sure we deactivate the model correctly
-      shouldDeactivate = activations.isNotEmpty()
-      activations.clear()
-    }
-    if (shouldDeactivate) {
-      deactivate() // ensure listeners are unregistered if necessary
-    }
-
+    deactivate()
     listeners.clear()
   }
 
@@ -335,7 +280,7 @@ protected constructor(
   fun notifyModified(reason: ChangeType) {
     // Notify modification now if the model is active, or in the next activation if it's currently
     // not active.
-    if (isActive) {
+    if (isActive.get()) {
       fireNotifyModified(reason)
     } else notifyModificationWhenActivated.set(true)
   }

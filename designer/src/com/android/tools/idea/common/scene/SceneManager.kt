@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.scene
 
-import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.common.model.ChangeType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
@@ -33,8 +32,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 
 private val NL_MODEL_CHANGE_TYPE =
   mapOf(
@@ -87,8 +84,7 @@ abstract class SceneManager(
 
   val scene: Scene
   private val hitProvider: HitProvider = DefaultHitProvider()
-  private val activationLock = ReentrantLock()
-  @GuardedBy("myActivationLock") private var isActivated = false
+  private val isActive = AtomicBoolean(false)
   protected val resourceChangeListener = ResourceChangeListenerImpl(model)
 
   // This will be initialized when constructor calls updateSceneView().
@@ -150,7 +146,7 @@ abstract class SceneManager(
 
   override fun dispose() {
     isDisposed.set(true)
-    deactivate(this)
+    deactivate()
   }
 
   /**
@@ -259,61 +255,44 @@ abstract class SceneManager(
   /**
    * Notify this [SceneManager] that is active. It will be active by default.
    *
-   * @param source caller used to keep track of the references to this model. See [.deactivate]
    * @returns true if the [SceneManager] was not active before and was activated.
    */
-  open fun activate(source: Any): Boolean {
-    activationLock.withLock {
-      if (!isActivated) {
-        if (listenToResourceChanges) {
-          ResourceNotificationManager.getInstance(model.project)
-            .addListener(
-              resourceChangeListener,
-              model.facet,
-              model.virtualFile,
-              model.configuration,
-            )
-        }
-        isActivated = true
+  open fun activate(): Boolean =
+    (!isActive.getAndSet(true)).also { isActivating ->
+      if (isActivating && listenToResourceChanges) {
+        ResourceNotificationManager.getInstance(model.project)
+          .addListener(resourceChangeListener, model.facet, model.virtualFile, model.configuration)
       }
+      // NlModel handles the double activation/deactivation itself.
+      model.activate()
     }
-    // NlModel handles the double activation/deactivation itself.
-    return model.activate(source)
-  }
 
   /**
    * Notify this [SceneManager] that it's not active. This means it can stop watching for events
    * etc. It may be activated again in the future.
    *
-   * @param source the source is used to keep track of the references that are using this model.
-   *   Only when all the sources have called deactivate(Object), the model will be really
-   *   deactivated.
    * @returns true if the [SceneManager] was active before and was deactivated.
    */
-  open fun deactivate(source: Any): Boolean {
-    activationLock.withLock {
-      if (isActivated) {
-        if (listenToResourceChanges) {
-          ResourceNotificationManager.getInstance(model.project)
-            .removeListener(
-              resourceChangeListener,
-              model.facet,
-              model.virtualFile,
-              model.configuration,
-            )
-          // Assert that the configuration has not changed.
-          // The configuration is mutable in the NlModel to allow for model re-use in Compose.
-          // Compose does not listen to resource changes so this should never happen. If it happens
-          // it could case a leak because the configuration here and the one used on activate
-          // might have changed.
-          assert(model.configuration == resourceChangeListener.configuration) {
-            "Configuration can not change when using listenToResourceChanges = true in SceneManager"
-          }
+  open fun deactivate(): Boolean =
+    isActive.getAndSet(false).also { isDeactivating ->
+      if (isDeactivating && listenToResourceChanges) {
+        ResourceNotificationManager.getInstance(model.project)
+          .removeListener(
+            resourceChangeListener,
+            model.facet,
+            model.virtualFile,
+            model.configuration,
+          )
+        // Assert that the configuration has not changed.
+        // The configuration is mutable in the NlModel to allow for model re-use in Compose.
+        // Compose does not listen to resource changes so this should never happen. If it happens
+        // it could case a leak because the configuration here and the one used on activate
+        // might have changed.
+        assert(model.configuration == resourceChangeListener.configuration) {
+          "Configuration can not change when using listenToResourceChanges = true in SceneManager"
         }
-        isActivated = false
       }
+      // NlModel handles the double activation/deactivation itself.
+      model.deactivate()
     }
-    // NlModel handles the double activation/deactivation itself.
-    return model.deactivate(source)
-  }
 }

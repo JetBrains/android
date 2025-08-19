@@ -423,7 +423,7 @@ public class NlModelTest extends LayoutTestCase {
           .height("100dp")
       ))
       .build();
-    model.activate(this);
+    model.activate();
 
     NlComponent linearLayout = model.getTreeReader().getComponents().get(0);
     NlComponent frameLayout = linearLayout.getChild(0);
@@ -650,25 +650,25 @@ public class NlModelTest extends LayoutTestCase {
 
     // Set a valid theme
     configuration.setTheme("@style/Theme.MyTheme");
-    model.deactivate(this);
-    model.activate(this);
+    model.deactivate();
+    model.activate();
     assertEquals("@style/Theme.MyTheme", configuration.getTheme());
 
     // Set a valid framework theme
     configuration.setTheme("@android:style/Theme.Material");
-    model.deactivate(this);
-    model.activate(this);
+    model.deactivate();
+    model.activate();
     assertEquals("@android:style/Theme.Material", configuration.getTheme());
 
     // Check that if we try to select an invalid theme, NlModel will set back the default theme
-    model.deactivate(this);
+    model.deactivate();
     configuration.setTheme("@style/InvalidTheme");
-    model.activate(this);
+    model.activate();
     waitForCondition(2, TimeUnit.SECONDS, () -> !configuration.getTheme().equals("@style/InvalidTheme"));
     assertEquals(defaultTheme, configuration.getTheme());
-    model.deactivate(this);
+    model.deactivate();
     configuration.setTheme("@android:style/InvalidTheme");
-    model.activate(this);
+    model.activate();
     waitForCondition(2, TimeUnit.SECONDS, () -> !configuration.getTheme().equals("@android:style/InvalidTheme"));
     assertEquals(defaultTheme, configuration.getTheme());
   }
@@ -822,7 +822,7 @@ public class NlModelTest extends LayoutTestCase {
     model.addListener(remove1);
     model.addListener(listener2);
 
-    model.activate(this);
+    model.activate();
     verify(listener1).modelActivated(any());
     verify(remove1).modelActivated(any());
     verify(listener2).modelActivated(any());
@@ -831,7 +831,7 @@ public class NlModelTest extends LayoutTestCase {
       return null;
     });
     model.addListener(remove2);
-    model.deactivate(this);
+    model.deactivate();
 
     verifyNoMoreInteractions(remove1);
   }
@@ -847,18 +847,17 @@ public class NlModelTest extends LayoutTestCase {
     ModelListener listener1 = mock(ModelListener.class);
     model.addListener(listener1);
 
-    Object sourceA = new Object();
-    Object sourceB = new Object();
-    model.activate(sourceA);
-    model.activate(sourceB);
+    model.activate();
     verify(listener1).modelActivated(any());
 
-    model.deactivate(sourceB);
-    model.deactivate(sourceB);
-    // Only one of the two sources was deactivated so do not expect any deactivate calls to the listeners
+    // Activating again should not trigger the listeners
+    model.activate();
     verifyNoMoreInteractions(listener1);
 
-    model.deactivate(sourceA);
+    // Deactivating does not trigger the listeners
+    model.deactivate();
+    verifyNoMoreInteractions(listener1);
+    model.deactivate();
     verifyNoMoreInteractions(listener1);
   }
 
@@ -907,7 +906,7 @@ public class NlModelTest extends LayoutTestCase {
     model.notifyModified(ChangeType.RESOURCE_CHANGED);
     assertEquals("", listener.callLogToString());
 
-    model.activate(this);
+    model.activate();
     assertEquals(
       """
         modelActivated (null)
@@ -924,7 +923,7 @@ public class NlModelTest extends LayoutTestCase {
   @NotNull
   private SyncNlModel createAndActivateModel(@NotNull XmlFile modelXml) {
     SyncNlModel model =  createModel(modelXml);
-    model.activate(this);
+    model.activate();
     return model;
   }
 
@@ -967,7 +966,7 @@ public class NlModelTest extends LayoutTestCase {
       }
     });
     Disposer.dispose(secondFacet);
-    model.activate(new Object());
+    model.activate();
     // Check that the model was not activated
     assertEquals(0, modelActivations.get());
   }

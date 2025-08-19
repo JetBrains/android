@@ -73,7 +73,7 @@ class HostPanelTest {
     panel.list.model = listModel
 
     DumbModeTestUtils.runInDumbModeSynchronously(projectRule.project) {
-      model.activate(this)
+      model.activate()
       waitFor("list expected to be empty") { listModel.isEmpty }
     }
 
@@ -81,8 +81,8 @@ class HostPanelTest {
     // panel will
     // detect that no changes have happened and ignore the changes.
     panel.resetCachedVersionCount()
-    model.deactivate(this)
-    model.activate(this)
+    model.deactivate()
+    model.activate()
     waitFor("list should be re-populated") { !listModel.isEmpty }
   }
 

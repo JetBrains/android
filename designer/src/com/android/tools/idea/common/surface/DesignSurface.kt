@@ -375,8 +375,9 @@ abstract class DesignSurface<T : SceneManager>(
     }
   }
 
-  var isActive: Boolean = false
-    private set
+  private val isActive = AtomicBoolean(false)
+
+  @TestOnly fun isActiveForTest() = isActive.get()
 
   /** The editor has been activated */
   open fun activate() {
@@ -384,29 +385,21 @@ abstract class DesignSurface<T : SceneManager>(
       // Prevent activating a disposed surface.
       return
     }
-
-    if (!isActive) {
-      for (manager in sceneManagers) {
-        manager.activate(this)
-      }
+    if (!isActive.getAndSet(true)) {
+      sceneManagers.forEach { it.activate() }
       if (zoomControlsPolicy == ZoomControlsPolicy.AUTO_HIDE) {
         Toolkit.getDefaultToolkit().addAWTEventListener(onHoverListener, AWTEvent.MOUSE_EVENT_MASK)
       }
     }
-    isActive = true
     issueModel.activate()
   }
 
   open fun deactivate() {
-    if (isActive) {
+    if (isActive.getAndSet(false)) {
       Toolkit.getDefaultToolkit().removeAWTEventListener(onHoverListener)
-      for (manager in sceneManagers) {
-        manager.deactivate(this)
-      }
+      sceneManagers.forEach { it.deactivate() }
     }
-    isActive = false
     issueModel.deactivate()
-
     guiInputHandler.cancelInteraction()
   }
 
@@ -1228,7 +1221,7 @@ abstract class DesignSurface<T : SceneManager>(
           when {
             // Case 1: model removal (oldManager exists, newManager is null)
             oldManager != null && newManager == null -> {
-              model.deactivate(this@DesignSurface)
+              model.deactivate()
               model.removeListener(modelListener)
               Disposer.dispose(model)
               Disposer.dispose(oldManager)
@@ -1236,18 +1229,12 @@ abstract class DesignSurface<T : SceneManager>(
             // Case 2: model addition (oldManager is null, newManager exists)
             oldManager == null && newManager != null -> {
               model.addListener(modelListener)
-              if (isActive) {
-                newManager.activate(this@DesignSurface)
-              }
+              if (isActive.get()) newManager.activate()
             }
             // Case 3: model manager replacement (both exist)
             oldManager != null && newManager != null -> {
-              if (oldManager !== newManager) {
-                Disposer.dispose(oldManager)
-              }
-              if (isActive) {
-                newManager.activate(this@DesignSurface)
-              }
+              if (oldManager !== newManager) Disposer.dispose(oldManager)
+              if (isActive.get()) newManager.activate()
             }
           }
         }

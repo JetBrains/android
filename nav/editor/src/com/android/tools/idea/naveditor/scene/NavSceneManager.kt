@@ -558,8 +558,8 @@ class NavSceneManager(model: NlModel, surface: NavDesignSurface) :
     }
   }
 
-  override fun activate(source: Any): Boolean =
-    super.activate(source).also {
+  override fun activate(): Boolean =
+    super.activate().also {
       if (it) {
         updateHierarchy(model, model)
         requestRender()
