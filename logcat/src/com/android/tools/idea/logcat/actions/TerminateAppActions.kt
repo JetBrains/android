@@ -29,13 +29,16 @@ import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.message.LogcatHeader
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
-import java.io.IOException
 import icons.StudioIcons
+import java.io.IOException
 import javax.swing.Icon
 import kotlinx.coroutines.launch
 
@@ -93,6 +96,15 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) :
 
   abstract fun actionPerformed(adbSession: AdbSession, process: JdwpProcess, packageName: String)
 
+  fun notifyError(content: String) {
+    val notification = Notification(NOTIFICATION_GROUP, "Logcat", content, NotificationType.ERROR)
+    Notifications.Bus.notify(notification, /* project= */ null)
+  }
+
+  companion object {
+    const val NOTIFICATION_GROUP = "TerminateAppAction"
+  }
+
   /**
    * An action that uses `adb shell am force-stop` to terminate an app
    *
@@ -125,6 +137,7 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) :
           process.device.activityManager.forceStop(packageName)
         } catch (e: IOException) {
           thisLogger().warn("forceStop failed", e)
+          notifyError("Force stop application failed")
         }
       }
     }
@@ -151,6 +164,7 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) :
           process.sendDdmsExit(1)
         } catch (e: IOException) {
           thisLogger().warn("kill failed", e)
+          notifyError("Kill process failed")
         }
       }
     }
@@ -197,6 +211,7 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) :
           process.device.activityManager.crash(packageName)
         } catch (e: IOException) {
           thisLogger().warn("crash failed", e)
+          notifyError("Crash application failed")
         }
       }
     }
