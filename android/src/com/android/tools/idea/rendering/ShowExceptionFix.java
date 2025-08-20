@@ -78,6 +78,6 @@ public class ShowExceptionFix implements HtmlLinkManager.Action {
     while (t.getCause() != null && t.getCause() != t) {
       t = t.getCause();
     }
-    AndroidUtils.showStackStace(module, new Throwable[]{t}, file, linkManager);
+    AndroidUtils.showStackStace(file.getProject(), new Throwable[]{t});
   }
 }
