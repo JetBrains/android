@@ -20,10 +20,8 @@ import androidx.compose.compiler.plugins.kotlin.ComposeClassIds
 import androidx.compose.compiler.plugins.kotlin.k1.hasComposableAnnotation
 import com.android.tools.idea.kotlin.hasAnnotation
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.intellij.codeInsight.daemon.impl.HighlightInfoType
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
-import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaSession
@@ -63,19 +61,12 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.util.OperatorNameConventions
 
-private const val COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME = "ComposableCallTextAttributes"
+private const val COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME = "IntelliJComposableCallTextAttributes"
 
 internal val COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY: TextAttributesKey =
   TextAttributesKey.createTextAttributesKey(
     COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME,
     DefaultLanguageHighlighterColors.FUNCTION_CALL,
-  )
-
-internal val COMPOSABLE_CALL_TEXT_TYPE: HighlightInfoType =
-  HighlightInfoType.HighlightInfoTypeImpl(
-    HighlightInfoType.SYMBOL_TYPE_SEVERITY,
-    COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY,
-    false,
   )
 
 fun isComposeEnabled(element: PsiElement): Boolean = element.getModuleSystem()?.usesCompose ?: false
@@ -158,11 +149,6 @@ internal fun KaSession.isComposableInvocation(callableSymbol: KaCallableSymbol):
     else -> hasComposableAnnotation(callableSymbol)
   }
 }
-
-internal fun isInLibrarySource(element: PsiElement) =
-  element.containingFile.virtualFile != null &&
-    ProjectFileIndex.getInstance(element.project)
-      .isInLibrarySource(element.containingFile.virtualFile)
 
 private val KotlinType.fqName: FqName?
   get() =
