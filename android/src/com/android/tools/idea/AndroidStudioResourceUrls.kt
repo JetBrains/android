@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea
 
-import com.intellij.idea.customization.base.IntelliJIdeaExternalResourceUrls
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.PermanentInstallationID
 import com.intellij.openapi.application.ex.ApplicationInfoEx
@@ -32,8 +31,6 @@ class AndroidStudioResourceUrls : ExternalProductResourceUrls {
     // The overriding AS_UPDATE_URL environment variable is used by QA and some E2E tests (UpdateTest).
     private val UPDATE_BASE_URL: String = System.getenv("AS_UPDATE_URL") ?: "https://dl.google.com/android/studio/patches"
   }
-
-  private val jetbrainsUrls = IntelliJIdeaExternalResourceUrls()
 
   // We add the extra parameters below when querying updateMetadataUrl. On the server-side these are used for analytics, to aggregate
   // usage counts by build version number, operating system, etc. Do not remove any of these without checking the consuming code!
@@ -93,9 +90,15 @@ class AndroidStudioResourceUrls : ExternalProductResourceUrls {
 
   // Help topics dispatched via HelpManager should generally go to JetBrains pages (https://www.jetbrains.com/help/idea).
   override val helpPageUrl: ((topicId: String) -> Url)?
-    get() = jetbrainsUrls.helpPageUrl
+    get() = { topicId ->
+      val shortVersion = ApplicationInfo.getInstance().shortVersion
+      Urls.newFromEncoded("https://www.jetbrains.com/help/idea/$shortVersion/").addParameters(mapOf(topicId to ""))
+    }
 
   // The keymap reference cards are hosted by JetBrains (https://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard.pdf).
   override val keyboardShortcutsPdfUrl: Url
-    get() = jetbrainsUrls.keyboardShortcutsPdfUrl
+    get() {
+      val suffix = if (SystemInfo.isMac) "_Mac" else ""
+      return Urls.newFromEncoded("https://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard$suffix.pdf")
+    }
 }

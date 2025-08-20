@@ -18,6 +18,7 @@ package com.android.tools.idea
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.util.BuildNumber
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.platform.ide.customization.ExternalProductResourceUrls
 import com.intellij.testFramework.ApplicationRule
 import org.assertj.core.api.Assumptions.assumeThat
@@ -49,12 +50,17 @@ class AndroidStudioResourceUrlsTest {
   @Suppress("OverrideOnly")
   fun miscUrls() {
     val urls = ExternalProductResourceUrls.getInstance()
+    val shortVersion = ApplicationInfo.getInstance().shortVersion // E.g. 2025.2
     assertThat(urls.downloadPageUrl.toString()).isEqualTo("https://developer.android.com/r/studio-ui/download-stable")
     assertThat(urls.youTubeChannelUrl.toString()).isEqualTo("https://www.youtube.com/c/AndroidDevelopers")
     assertThat(urls.whatIsNewPageUrl.toString()).isEqualTo("https://developer.android.com/r/studio-ui/menu-whats-new.html")
     assertThat(urls.gettingStartedPageUrl.toString()).isEqualTo("http://developer.android.com/r/studio-ui/menu-start.html")
-    assertThat(urls.helpPageUrl!!("topic").toString()).contains("jetbrains.com")
-    assertThat(urls.keyboardShortcutsPdfUrl.toString()).contains("jetbrains.com")
+    assertThat(urls.helpPageUrl!!("project.scopes").toString()).isEqualTo("https://www.jetbrains.com/help/idea/$shortVersion/?project.scopes")
+    if (SystemInfo.isMac) {
+      assertThat(urls.keyboardShortcutsPdfUrl.toString()).isEqualTo("https://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard_Mac.pdf")
+    } else {
+      assertThat(urls.keyboardShortcutsPdfUrl.toString()).isEqualTo("https://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard.pdf")
+    }
   }
 
   @Test
