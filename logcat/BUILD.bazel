@@ -116,6 +116,7 @@ jvm_library(
     "//platform/testFramework:testFramework_test_lib",
     "//xml/xml-parser:parser",
     "//java/testFramework",
+    "//android/android-adb:adb-testUtil_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.logcat.tests` end

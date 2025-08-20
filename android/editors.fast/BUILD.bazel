@@ -33,6 +33,7 @@ jvm_library(
     "//android/adt-testutils:adt-testutils_test_lib",
     "//plugins/kotlin/base/plugin",
     "//plugins/kotlin/base/plugin:plugin_test_lib",
+    "//android/project-system",
   ]
 )
 ### auto-generated section `build intellij.android.core.editors.fast` end

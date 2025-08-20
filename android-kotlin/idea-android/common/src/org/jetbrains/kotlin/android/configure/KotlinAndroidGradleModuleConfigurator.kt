@@ -16,6 +16,8 @@
 
 package org.jetbrains.kotlin.android.configure
 
+import com.android.ide.common.gradle.RichVersion
+import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_CORE_KTX
 import com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_LIFECYCLE_EXTENSIONS
@@ -37,8 +39,10 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.projectsystem.DependencyManagementException
+import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.projectsystem.toReason
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_LANGUAGE_KOTLIN_CONFIGURED
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE
@@ -139,10 +143,9 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
             }
         }
         if (file.project.isAndroidx()) {
-            val ktxCoreVersion = IdeGoogleMavenRepository
-                                     .findVersion(ANDROIDX_CORE_KTX.mavenGroupId, ANDROIDX_CORE_KTX.mavenArtifactId)
-                                     ?.toString() ?: "+"
-            (addDependency(projectBuildModel, moduleBuildModel, ANDROIDX_CORE_KTX, ktxCoreVersion) +
+            val ktxCoreVersion = IdeGoogleMavenRepository.findVersion(ANDROIDX_CORE_KTX.mavenGroupId, ANDROIDX_CORE_KTX.mavenArtifactId)
+            val richVersion = ktxCoreVersion?.let { RichVersion.require(it) } ?: RichVersion.parse("+")
+            (addDependency(projectBuildModel, moduleBuildModel, ANDROIDX_CORE_KTX, richVersion) +
              addKtxDependenciesFromMap(projectBuildModel, module, moduleBuildModel, androidxKtxLibraryMap))
                 .let {
                     changedFiles.addAll(it)
@@ -221,19 +224,19 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
     }
 
     private fun addDependency(
-        projectBuildModel: ProjectBuildModel,
-        moduleBuildModel: GradleBuildModel,
-        id: GoogleMavenArtifactId,
-        version: String
+      projectBuildModel: ProjectBuildModel,
+      moduleBuildModel: GradleBuildModel,
+      id: GoogleMavenArtifactId,
+      version: RichVersion
     ): Set<PsiFile> =
-        DependenciesHelper.withModel(projectBuildModel).addDependency("implementation",
-                                                                      ArtifactDependencySpec.create(id.mavenArtifactId, id.mavenGroupId, version).compactNotation(),
-                                                                      moduleBuildModel)
+      DependenciesHelper.withModel(projectBuildModel).addDependency("implementation",
+                                                                    ArtifactDependencySpec.create(id.mavenArtifactId, id.mavenGroupId, version.toString()).compactNotation(),
+                                                                    moduleBuildModel)
 
-    // Return version string of the specified dependency if module depends on it, and null otherwise.
-    private fun getDependencyVersion(module: Module, id: GoogleMavenArtifactId): String? {
-        try {
-            return module.getModuleSystem().getResolvedDependency(id)?.revision
+    // Return the Version of the resolved dependency if the module depends on it, and null otherwise.
+    private fun getDependencyVersion(module: Module, id: GoogleMavenArtifactId): Version? {
+        return try {
+            (module.getModuleSystem() as? GradleModuleSystem)?.getResolvedDependency(id.getModule(), DependencyScopeType.MAIN)?.version
         }
         catch (e: DependencyManagementException) {
             return null
@@ -250,7 +253,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         for ((library, ktxLibrary) in libraryMap) {
             getDependencyVersion(module, library)?.let {
                 updatedFiles.addAll(
-                    addDependency(projectBuildModel, moduleBuildModel, ktxLibrary, it)
+                  addDependency(projectBuildModel, moduleBuildModel, ktxLibrary, RichVersion.require(it))
                 )
             }
         }

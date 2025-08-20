@@ -84,7 +84,7 @@ class AndroidDefaultGradleJvmCriteriaControlBuilder(
 
   private fun createDefaultGradleJvmCriteriaView() = GradleDaemonJvmCriteriaView(
     criteria = GradleDaemonJvmCriteria(IdeSdks.DEFAULT_JDK_VERSION.maxLanguageLevel.feature().toString(), null),
-      versionsDropdownList = LanguageLevel.JDK_1_8.toJavaVersion().feature..LanguageLevel.HIGHEST.toJavaVersion().feature,
+      versionsDropdownList = (LanguageLevel.JDK_1_8.toJavaVersion().feature..LanguageLevel.HIGHEST.toJavaVersion().feature).toList(),
       vendorDropdownList =  JvmVendor.KnownJvmVendor.entries.filter { it != JvmVendor.KnownJvmVendor.UNKNOWN },
       displayAdvancedSettings = true,
       disposable = disposable

@@ -210,10 +210,10 @@ data class PhasedSyncSnapshotConsistencyTestDef(
 
   override fun runTest(root: File, project: Project) {
     if (!StudioFlags.PHASED_SYNC_ENABLED.get()) return
-    Truth.assertThat(knownAndroidPaths).isNotNull()
+    Truth.assertThat(isAndroidByPath).isNotNull()
     Truth.assertThat(intermediateDump).isNotNull()
 
-    val fullDump = project.dumpModules(knownAndroidPaths)
+    val fullDump = project.dumpModules(isAndroidByPath)
     val filteredIntermediateDump = intermediateDump.filterOutExpectedInconsistencies().filterOutKnownConsistencyIssues(testProject).filterOutRootModule()
     val filteredFullDump = fullDump.filterOutExpectedInconsistencies().filterOutKnownConsistencyIssues(testProject).filterOutRootModule().filterToPhasedSyncModules()
 

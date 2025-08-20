@@ -54,6 +54,7 @@
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.parser" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adb.testUtil" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.logcat" />
 </module>

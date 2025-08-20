@@ -113,6 +113,8 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util-rt:util-rt_test_lib",
     "//plugins/kotlin/base/psi",
+    "@lib//:mockito-kotlin",
+    "@lib//:mockito",
   ]
 )
 ### auto-generated section `build intellij.android.lang.tests` end

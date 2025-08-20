@@ -99,7 +99,7 @@ class GradleDependencyCompatibilityAnalyzer(
       val dependenciesToAdd = dependenciesToCoordinates.keys.toList()
       findVersions(dependenciesToAdd).transform(MoreExecutors.directExecutor()) { results ->
         analyzeCompatibility(dependenciesToCoordinates.map { it.key to it.value.toString() }, results).run {
-          val found = first.map { component -> GradleCoordinate(component.group, component.name, component.version.toString()) }
+          val found = first.values.map { component -> GradleCoordinate(component.group, component.name, component.version.toString()) }
           val missing = second.mapNotNull { dependency -> dependenciesToCoordinates[dependency] }
           val message = third
           Triple(found, missing, message)

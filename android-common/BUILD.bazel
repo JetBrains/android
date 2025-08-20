@@ -88,6 +88,7 @@ jvm_library(
     "//libraries/mockito",
     "//platform/core-api:core",
     "//platform/core-ui",
+    "//platform/projectModel-api:projectModel",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//java/testFramework",

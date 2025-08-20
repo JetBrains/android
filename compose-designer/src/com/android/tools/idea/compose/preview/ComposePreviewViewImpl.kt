@@ -57,6 +57,7 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -79,7 +80,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
-import org.jetbrains.kotlin.idea.util.projectStructure.getModule
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
@@ -397,7 +397,7 @@ internal class ComposePreviewViewImpl(
   private suspend fun handleUpdateVisibilityAndNotificationsRequest() {
     val fileInModuleHasErrors =
       readAction {
-        psiFilePointer.virtualFile.getModule(project)?.let {
+        ModuleUtilCore.findModuleForFile(psiFilePointer.virtualFile, project)?.let {
           WolfTheProblemSolver.getInstance(project).hasProblemFilesBeneath(it)
         }
       } ?: false
