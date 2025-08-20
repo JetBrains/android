@@ -407,17 +407,14 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector, disposableParent: Di
         // XR windows are not all loaded at the same time, just using the root's layout bounds all
         // the time would cause jarring rescale if for example a small window is loaded first.
         val dim1 = layoutInspector.inspectorModel.root.layoutBounds.toDimension()
-        val dim2 =
-          layoutInspector.inspectorModel.windowBounds?.toDimension()
-            ?: layoutInspector.inspectorModel.screenDimension
+        val dim2 = layoutInspector.inspectorModel.screenDimension
         if (dim1.width * dim1.height > dim2.width * dim2.height) {
           dim1
         } else {
           dim2
         }
       } else {
-        layoutInspector.inspectorModel.windowBounds?.toDimension()
-          ?: layoutInspector.inspectorModel.screenDimension
+        layoutInspector.inspectorModel.screenDimension
       }
 
     val availableWidth = scrollPane.width - scrollPane.verticalScrollBar.width

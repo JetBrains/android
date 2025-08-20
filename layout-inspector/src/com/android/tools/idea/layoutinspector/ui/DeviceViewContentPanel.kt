@@ -26,7 +26,6 @@ import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.getDrawNodeLabelHeight
 import com.android.tools.idea.layoutinspector.model.getEmphasizedBorderOutlineThickness
 import com.android.tools.idea.layoutinspector.model.getLabelFontSize
-import com.android.tools.idea.layoutinspector.model.toDimension
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
@@ -123,10 +122,9 @@ class DeviceViewContentPanel(
     get() {
       return AffineTransform().apply {
         // The container of the app ui, either the app window or the screen
-        val maxBounds =
-          renderModel.model.windowBounds?.toDimension() ?: renderModel.model.screenDimension
+        val maxBounds = renderModel.model.screenDimension
         // The bounds of the app, either the app window or the bounds of the root view
-        val appBounds = renderModel.model.windowBounds ?: renderModel.model.root.layoutBounds
+        val appBounds = renderModel.model.root.layoutBounds
 
         // translate to center of the panel
         translate(size.width / 2.0, size.height / 2.0)

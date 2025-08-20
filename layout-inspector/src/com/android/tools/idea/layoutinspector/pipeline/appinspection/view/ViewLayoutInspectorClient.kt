@@ -383,7 +383,6 @@ class ViewLayoutInspectorClient(
         sourceVersion = ApplicationInfo.getInstance().fullVersion,
         dpi = model.resourceLookup.dpi,
         fontScale = model.resourceLookup.fontScale,
-        windowBounds = model.resourceLookup.windowBounds,
       )
 
     try {

@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.resource.data
 
 import java.awt.Dimension
-import java.awt.Rectangle
 
 /**
  * Misc. context about the current running app.
@@ -26,7 +25,6 @@ import java.awt.Rectangle
 class AppContext(
   val theme: Resource = Resource(),
   val screenSize: Dimension? = null,
-  val windowBounds: Rectangle? = null,
   val mainDisplayOrientation: Int,
   val isRunningInMainDisplay: Boolean,
 )

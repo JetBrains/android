@@ -145,7 +145,6 @@ fun LayoutInspectorViewProtocol.AppContext.convert(): AppContext {
   return AppContext(
     theme.convert(),
     Dimension(mainDisplayWidth, mainDisplayHeight).takeIf { it.width > 0 && it.height > 0 },
-    windowBounds.toRectangle().takeIf { it.width > 0 && it.height > 0 },
     mainDisplayOrientation,
     isRunningInMainDisplay,
   )

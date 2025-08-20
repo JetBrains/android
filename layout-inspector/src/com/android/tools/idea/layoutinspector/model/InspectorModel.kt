@@ -212,11 +212,6 @@ class InspectorModel(
       return Dimension(root.layoutBounds.width, root.layoutBounds.height)
     }
 
-  val windowBounds: Rectangle?
-    get() {
-      return resourceLookup.windowBounds
-    }
-
   private val hiddenNodes = ConcurrentHashMap.newKeySet<ViewNode>()
 
   /** Get a ViewNode by drawId */

@@ -25,7 +25,6 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.runInEdtAndGet
 import java.awt.Dimension
-import java.awt.Rectangle
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -43,7 +42,6 @@ class ConfigurationParamsBuilder(private val strings: TestStringTable) {
         )!!,
       screenSize = Dimension(1080, 1920),
       mainDisplayOrientation = 90,
-      windowBounds = Rectangle(0, 0, 1080, 1920),
       isRunningInMainDisplay = true,
     )
   }
