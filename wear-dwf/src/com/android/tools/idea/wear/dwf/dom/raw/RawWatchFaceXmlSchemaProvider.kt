@@ -83,7 +83,7 @@ class RawWatchfaceXmlSchemaProvider() : XmlSchemaProvider() {
 /** [StartupActivity] that activates [RawWatchFaceXmlSchemaUpdater] */
 private class RawWatchFaceXmlSchemaUpdaterStartupActivity : ProjectActivity {
   override suspend fun execute(project: Project) {
-    RawWatchFaceXmlSchemaUpdater.listenToManifestUpdates(project)
+    project.service<RawWatchFaceXmlSchemaUpdater>()
   }
 }
 
@@ -147,8 +147,4 @@ private class RawWatchFaceXmlSchemaUpdater private constructor(val project: Proj
         }
       }
       .mapNotNull { it.getSourceAsVirtualFile() }
-
-  companion object {
-    fun listenToManifestUpdates(project: Project) = project.service<RawWatchFaceXmlSchemaUpdater>()
-  }
 }
