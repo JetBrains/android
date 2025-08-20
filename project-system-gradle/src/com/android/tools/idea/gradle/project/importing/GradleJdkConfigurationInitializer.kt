@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.importing
 import com.android.tools.idea.flags.StudioFlags.GRADLE_USES_LOCAL_JAVA_HOME_FOR_NEW_CREATED_PROJECTS
 import com.android.tools.idea.gradle.config.GradleConfigManager
 import com.android.tools.idea.gradle.extensions.isDaemonJvmCriteriaRequiredForNewProjects
+import com.android.tools.idea.gradle.extensions.isProjectUsingDaemonJvmCriteria
 import com.android.tools.idea.gradle.project.ProjectMigrationsPersistentState
 import com.android.tools.idea.gradle.project.sync.jdk.ProjectJdkUtils
 import com.android.tools.idea.gradle.toolchain.GradleDaemonJvmCriteriaInitializer
@@ -55,6 +56,11 @@ class GradleJdkConfigurationInitializer private constructor() {
     projectSettings: GradleProjectSettings,
     newProjectConfiguration: GradleNewProjectConfiguration
   ) {
+    if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(project, projectSettings.externalProjectPath)) {
+      // Skip initialization and reuse the already defined daemon JVM criteria
+      return
+    }
+
     setUpDaemonJvmCriteria(project, externalProjectPath, projectSettings, newProjectConfiguration).handle { result, exception ->
       if (result == false || exception != null) {
         if (GRADLE_USES_LOCAL_JAVA_HOME_FOR_NEW_CREATED_PROJECTS.get() || ApplicationManager.getApplication().isUnitTestMode) {

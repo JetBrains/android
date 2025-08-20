@@ -130,7 +130,10 @@ class ImportProjectWithoutIdeaJdkIntegrationTest(private val jdkVersion: Int) {
   }
 
   @Test
-  fun `Given not configured project using Daemon JVM criteria When import project Then was configured with JDK matching defined criteria`() =
+  fun `Given not configured project using Daemon JVM criteria When import project Then was configured with JDK matching defined criteria`() {
+    Registry.get("gradle.daemon.jvm.criteria.new.project").setValue(true)
+    GradleJdkConfigurationInitializer.getInstance().canInitializeDaemonJvmCriteria = true
+    StudioFlags.NPW_DAEMON_JVM_CRITERIA_REQUIRED_GRADLE_VERSION.override("8.10")
     jdkIntegrationTest.run(
       project = SimpleApplicationWithoutIdea(
         gradleDaemonToolchain = GradleDaemonToolchain("17")
@@ -141,6 +144,7 @@ class ImportProjectWithoutIdeaJdkIntegrationTest(private val jdkVersion: Int) {
         expectedProjectJdkPath = JDK_17_PATH
       )
     }
+  }
 
   @Test
   fun `Given not configured project using Gradle version requiring Daemon Jvm criteria When import project Then was configured with compatible criteria`() {
