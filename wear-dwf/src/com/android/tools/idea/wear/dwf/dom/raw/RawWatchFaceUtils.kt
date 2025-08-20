@@ -108,3 +108,16 @@ fun XmlFile.extractUserConfigurations(): List<UserConfiguration> {
 
 /** Removes both surrounding and single and double quotes from a given string. */
 fun String.removeSurroundingQuotes() = removeSurrounding("\"").removeSurrounding("'")
+
+/**
+ * Creates a [LookupElementBuilder] for a data source. A data source is surrounded by brackets. The
+ * lookup element has lookup strings with and without the brackets to make the autocomplete trigger
+ * both when the user starts with or without a bracket.
+ *
+ * @param lookupString the data source id **without** the brackets, e.g `STEP_COUNT`
+ */
+fun createDataSourceLookupElement(lookupString: String) =
+  LookupElementBuilder.create(lookupString)
+    .withLookupStrings(listOf(lookupString, "[$lookupString]"))
+    .withPresentableText("[$lookupString]")
+    .insertBracketsAroundIfNeeded()

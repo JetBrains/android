@@ -16,9 +16,8 @@
 package com.android.tools.idea.wear.dwf.dom.raw.configurations
 
 import com.android.tools.idea.wear.dwf.WFFConstants.CONFIGURATION_PREFIX
+import com.android.tools.idea.wear.dwf.dom.raw.createDataSourceLookupElement
 import com.android.tools.idea.wear.dwf.dom.raw.extractUserConfigurations
-import com.android.tools.idea.wear.dwf.dom.raw.insertBracketsAroundIfNeeded
-import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReferenceBase
 import com.intellij.psi.xml.XmlFile
@@ -99,10 +98,7 @@ class UserConfigurationReference(
             listOf(userConfiguration.id)
           }
         }
-    return ids
-      .map { "[$CONFIGURATION_PREFIX$it]" }
-      .map { LookupElementBuilder.create(it).insertBracketsAroundIfNeeded() }
-      .toTypedArray()
+    return ids.map { createDataSourceLookupElement("$CONFIGURATION_PREFIX$it") }.toTypedArray()
   }
 
   private fun extractUserConfigurationIdParts(): List<String>? {

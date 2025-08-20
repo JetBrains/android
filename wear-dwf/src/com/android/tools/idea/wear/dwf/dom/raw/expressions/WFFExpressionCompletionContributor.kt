@@ -22,6 +22,7 @@ import com.android.tools.idea.wear.dwf.WFFConstants.DataSources.DAYS_TOKEN
 import com.android.tools.idea.wear.dwf.WFFConstants.DataSources.HOURS_TOKEN
 import com.android.tools.idea.wear.dwf.WFFConstants.Functions
 import com.android.tools.idea.wear.dwf.dom.raw.CurrentWFFVersionService
+import com.android.tools.idea.wear.dwf.dom.raw.createDataSourceLookupElement
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionTypes.FUNCTION_ID
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionTypes.LITERAL_EXPR
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionTypes.OPEN_BRACKET
@@ -216,12 +217,6 @@ class WFFExpressionCompletionContributor : CompletionContributor() {
     }
     return null
   }
-
-  private fun createDataSourceLookupElement(lookupString: String) =
-    LookupElementBuilder.create(lookupString)
-      .withLookupStrings(listOf(lookupString, "[$lookupString]"))
-      .withPresentableText("[$lookupString]")
-      .insertBracketsAroundIfNeeded()
 
   /**
    * Finds the [PatternedDataSource.lookupCursorToken] in the `lookupItem`, moves the cursor to that

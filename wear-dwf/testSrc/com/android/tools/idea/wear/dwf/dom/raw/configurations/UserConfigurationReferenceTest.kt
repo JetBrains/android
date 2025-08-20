@@ -160,9 +160,37 @@ class UserConfigurationReferenceTest {
 
     assertThat(fixture.completeBasic().map { it.lookupString })
       .containsExactly(
+        "CONFIGURATION.color_config_1",
+        "CONFIGURATION.color_config_2",
+        "CONFIGURATION.color_config_3",
+      )
+  }
+
+  @Test
+  fun `variant lookup strings contain configurations with and without brackets`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <UserConfigurations>
+            <ColorConfiguration id="color_config_1" />
+            <ColorConfiguration id="color_config_2" />
+          </UserConfigurations>
+          <Scene backgroundColor="[$caret" />
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    assertThat(fixture.completeBasic().flatMap { it.allLookupStrings })
+      .containsExactly(
+        "CONFIGURATION.color_config_1",
         "[CONFIGURATION.color_config_1]",
+        "CONFIGURATION.color_config_2",
         "[CONFIGURATION.color_config_2]",
-        "[CONFIGURATION.color_config_3]",
       )
   }
 
@@ -191,14 +219,14 @@ class UserConfigurationReferenceTest {
 
     assertThat(fixture.completeBasic().map { it.lookupString })
       .containsExactly(
-        "[CONFIGURATION.color_config_1]",
-        "[CONFIGURATION.color_config_2]",
-        "[CONFIGURATION.color_config_3]",
+        "CONFIGURATION.color_config_1",
+        "CONFIGURATION.color_config_2",
+        "CONFIGURATION.color_config_3",
       )
 
     fixture.moveCaret("<Photos source=\"photo_|\" />")
     assertThat(fixture.completeBasic().map { it.lookupString })
-      .containsExactly("[CONFIGURATION.photo_config_1]", "[CONFIGURATION.photo_config_2]")
+      .containsExactly("CONFIGURATION.photo_config_1", "CONFIGURATION.photo_config_2")
   }
 
   @Test
@@ -225,10 +253,10 @@ class UserConfigurationReferenceTest {
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
     assertThat(fixture.completeBasic().map { it.lookupString })
       .containsExactly(
-        "[CONFIGURATION.color_config_with_one_color]",
-        "[CONFIGURATION.color_config_with_multiple_colors.0]",
-        "[CONFIGURATION.color_config_with_multiple_colors.1]",
-        "[CONFIGURATION.color_config_with_multiple_colors.2]",
+        "CONFIGURATION.color_config_with_one_color",
+        "CONFIGURATION.color_config_with_multiple_colors.0",
+        "CONFIGURATION.color_config_with_multiple_colors.1",
+        "CONFIGURATION.color_config_with_multiple_colors.2",
       )
   }
 
@@ -259,7 +287,7 @@ class UserConfigurationReferenceTest {
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
 
     assertThat(fixture.completeBasic().map { it.lookupString })
-      .containsExactly("[CONFIGURATION.photo_config_1]", "[CONFIGURATION.photo_config_2]")
+      .containsExactly("CONFIGURATION.photo_config_1", "CONFIGURATION.photo_config_2")
   }
 
   @Test
@@ -373,10 +401,10 @@ class UserConfigurationReferenceTest {
 
     assertThat(fixture.completeBasic().map { it.lookupString })
       .containsExactly(
-        "[CONFIGURATION.boolean_configuration]",
-        "[CONFIGURATION.color_config]",
-        "[CONFIGURATION.photo_config]",
-        "[CONFIGURATION.list_configuration]",
+        "CONFIGURATION.boolean_configuration",
+        "CONFIGURATION.color_config",
+        "CONFIGURATION.photo_config",
+        "CONFIGURATION.list_configuration",
       )
   }
 
@@ -404,9 +432,9 @@ class UserConfigurationReferenceTest {
 
     assertThat(fixture.completeBasic().map { it.lookupString })
       .containsExactly(
-        "[CONFIGURATION.color_config.0]",
-        "[CONFIGURATION.color_config.1]",
-        "[CONFIGURATION.color_config.2]",
+        "CONFIGURATION.color_config.0",
+        "CONFIGURATION.color_config.1",
+        "CONFIGURATION.color_config.2",
       )
   }
 
@@ -618,17 +646,17 @@ class UserConfigurationReferenceTest {
     assertThat(fixture.completeBasic().map { it.lookupString })
       .containsAllIn(
         arrayOf(
-          "[CONFIGURATION.boolean_configuration]",
-          "[CONFIGURATION.color_config_1]",
-          "[CONFIGURATION.color_config_2]",
-          "[CONFIGURATION.photo_config]",
-          "[CONFIGURATION.list_configuration]",
+          "CONFIGURATION.boolean_configuration",
+          "CONFIGURATION.color_config_1",
+          "CONFIGURATION.color_config_2",
+          "CONFIGURATION.photo_config",
+          "CONFIGURATION.list_configuration",
         )
       )
 
     fixture.type("[CONFIGURATION.color_config_1] * list")
     assertThat(fixture.completeBasic().map { it.lookupString })
-      .containsExactly("[CONFIGURATION.list_configuration]")
+      .containsExactly("CONFIGURATION.list_configuration")
   }
 
   @Test
