@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.wear.dwf.dom.raw
 
+import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionLiteralExpr
 import com.android.tools.wear.wff.WFFVersion
+import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.psi.util.parentOfType
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.replaceService
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
@@ -62,3 +66,9 @@ fun overrideCurrentWFFVersion(wffVersion: WFFVersion?, disposable: Disposable) {
   ApplicationManager.getApplication()
     .replaceService(CurrentWFFVersionService::class.java, mockCurrentWFFVersionService, disposable)
 }
+
+/** Finds the injected [WFFExpressionLiteralExpr] at the caret offset. */
+fun JavaCodeInsightTestFixture.findInjectedExpressionLiteralAtCaret() =
+  InjectedLanguageManager.getInstance(project)
+    .findInjectedElementAt(file, caretOffset)
+    ?.parentOfType<WFFExpressionLiteralExpr>(withSelf = true)

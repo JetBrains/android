@@ -23,10 +23,9 @@ import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionLiteralExpr
+import com.android.tools.idea.wear.dwf.dom.raw.findInjectedExpressionLiteralAtCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.Lookup
-import com.intellij.lang.injection.InjectedLanguageManager
-import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -349,15 +348,13 @@ class UserConfigurationReferenceTest {
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
 
     fixture.moveCaret("[DATA_|SOURCE]")
-    val dataSource =
-      findInjectedElementAtCaret()?.parentOfType<WFFExpressionLiteralExpr>(withSelf = true)
+    val dataSource = fixture.findInjectedExpressionLiteralAtCaret()
     assertThat(dataSource).isNotNull()
     assertThat(dataSource?.userConfigurationReference).isNotNull()
     assertThat(dataSource?.userConfigurationReference?.resolve()).isNull()
 
     fixture.moveCaret("[CONFIGURATION.boolean|_configuration]")
-    val configuration =
-      findInjectedElementAtCaret()?.parentOfType<WFFExpressionLiteralExpr>(withSelf = true)
+    val configuration = fixture.findInjectedExpressionLiteralAtCaret()
     assertThat(configuration).isNotNull()
     assertThat(configuration?.userConfigurationReference).isNotNull()
     assertThat(configuration?.userConfigurationReference?.resolve())
@@ -369,8 +366,7 @@ class UserConfigurationReferenceTest {
       )
 
     fixture.moveCaret("[CONFIGURATION.|unknown]")
-    val unknownConfiguration =
-      findInjectedElementAtCaret()?.parentOfType<WFFExpressionLiteralExpr>(withSelf = true)
+    val unknownConfiguration = fixture.findInjectedExpressionLiteralAtCaret()
     assertThat(unknownConfiguration).isNotNull()
     assertThat(unknownConfiguration?.userConfigurationReference).isNotNull()
     assertThat(unknownConfiguration?.userConfigurationReference?.resolve()).isNull()
@@ -501,8 +497,7 @@ class UserConfigurationReferenceTest {
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
 
     fixture.moveCaret("expression=\"[CONFIGURATION.|boolean_config]\"")
-    val expressionConfiguration =
-      findInjectedElementAtCaret()?.parentOfType<WFFExpressionLiteralExpr>(withSelf = true)
+    val expressionConfiguration = fixture.findInjectedExpressionLiteralAtCaret()
     // this shouldn't be injected when the flag is disabled
     assertThat(expressionConfiguration).isNull()
 
@@ -567,8 +562,7 @@ class UserConfigurationReferenceTest {
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
 
     fixture.moveCaret("[CONFIGURATION.|boolean_config]")
-    val validBooleanConfig =
-      findInjectedElementAtCaret()?.parentOfType<WFFExpressionLiteralExpr>(withSelf = true)
+    val validBooleanConfig = fixture.findInjectedExpressionLiteralAtCaret()
     assertThat(validBooleanConfig).isNotNull()
     assertThat(validBooleanConfig?.userConfigurationReference?.resolve())
       .isEqualTo(
@@ -579,8 +573,7 @@ class UserConfigurationReferenceTest {
       )
 
     fixture.moveCaret("[CONFIGURATION.|boolean_config.0]")
-    val invalidBooleanConfig =
-      findInjectedElementAtCaret()?.parentOfType<WFFExpressionLiteralExpr>(withSelf = true)
+    val invalidBooleanConfig = fixture.findInjectedExpressionLiteralAtCaret()
     assertThat(invalidBooleanConfig).isNotNull()
     assertThat(invalidBooleanConfig?.userConfigurationReference?.resolve()).isNull()
   }
@@ -604,8 +597,7 @@ class UserConfigurationReferenceTest {
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
 
     fixture.moveCaret("[CONFIGURATION.|list_config]")
-    val validListConfig =
-      findInjectedElementAtCaret()?.parentOfType<WFFExpressionLiteralExpr>(withSelf = true)
+    val validListConfig = fixture.findInjectedExpressionLiteralAtCaret()
     assertThat(validListConfig).isNotNull()
     assertThat(validListConfig?.userConfigurationReference?.resolve())
       .isEqualTo(
@@ -613,8 +605,7 @@ class UserConfigurationReferenceTest {
       )
 
     fixture.moveCaret("[CONFIGURATION.|list_config.0]")
-    val invalidListConfig =
-      findInjectedElementAtCaret()?.parentOfType<WFFExpressionLiteralExpr>(withSelf = true)
+    val invalidListConfig = fixture.findInjectedExpressionLiteralAtCaret()
     assertThat(invalidListConfig).isNotNull()
     assertThat(invalidListConfig?.userConfigurationReference?.resolve()).isNull()
   }
@@ -681,10 +672,6 @@ class UserConfigurationReferenceTest {
 
     assertThat(fixture.completeBasic().map { it.lookupString }).isEmpty()
   }
-
-  private fun findInjectedElementAtCaret() =
-    InjectedLanguageManager.getInstance(projectRule.project)
-      .findInjectedElementAt(fixture.file, fixture.caretOffset)
 
   private val WFFExpressionLiteralExpr.userConfigurationReference
     get() =
