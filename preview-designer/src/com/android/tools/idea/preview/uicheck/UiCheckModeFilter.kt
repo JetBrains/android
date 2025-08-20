@@ -28,7 +28,6 @@ import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.android.tools.preview.PreviewElementInstance
 import com.android.tools.preview.config.referenceDeviceIds
-import org.jetbrains.annotations.VisibleForTesting
 
 private const val DEVICE_CLASS_LANDSCAPE_PHONE_ID = "$DEVICE_CLASS_PHONE_ID-landscape"
 private val idToName =
@@ -116,8 +115,16 @@ sealed class UiCheckModeFilter<T : PreviewElementInstance<*>> {
     override fun filterGroups(groups: Set<PreviewGroup.Named>): Set<PreviewGroup.Named> =
       uiCheckPreviewGroups
 
-    @VisibleForTesting
     companion object {
+      /**
+       * Calculates the collection of all the possible generated previews for the UI Check
+       * calculation.
+       *
+       * @param base The Preview to calculate all the [PreviewElementInstance]s
+       * @param isWearPreview true if the Preview to calculate is a wearable Preview
+       * @return A collection of Previews showing different form factors, font sizes and color
+       *   filters.
+       */
       fun <T : PreviewElementInstance<*>> calculatePreviews(
         base: T?,
         isWearPreview: Boolean,
