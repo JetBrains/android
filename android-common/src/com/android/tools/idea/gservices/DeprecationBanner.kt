@@ -19,8 +19,6 @@ import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.updateSettings.impl.UpdateChecker
 import com.intellij.ui.EditorNotificationPanel
-import com.intellij.ui.util.preferredHeight
-import com.intellij.ui.util.preferredWidth
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.CurrentTheme.Banner
@@ -80,7 +78,7 @@ abstract class DeprecationBanner(
       object : ComponentAdapter() {
         override fun componentResized(e: ComponentEvent) {
           this@DeprecationBanner.preferredSize =
-            JBDimension(this@DeprecationBanner.preferredWidth, getCorrectedPreferredHeight())
+            JBDimension(this@DeprecationBanner.width, getCorrectedPreferredHeight())
         }
       }
     )
@@ -100,7 +98,7 @@ abstract class DeprecationBanner(
     }
 
   private fun JComponent.getPreferredFullHeight(): Int =
-    preferredHeight + insets.top + insets.bottom
+    height + insets.top + insets.bottom
 
   /**
    * Move the action labels to the south of the banner.
