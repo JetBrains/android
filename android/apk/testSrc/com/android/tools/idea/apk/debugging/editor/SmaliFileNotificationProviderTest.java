@@ -32,10 +32,14 @@ import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.ui.EditorNotificationPanel;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.mockito.Mock;
 
 import java.io.File;
 
+import static com.android.testutils.AssumeUtil.assumeNotWindows;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddApkFacet;
 import static com.android.tools.idea.testing.TestProjectPaths.APK_SAN_ANGELES;
@@ -48,6 +52,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link SmaliFileNotificationProvider}.
  */
+@RunWith(JUnit4.class)
 public class SmaliFileNotificationProviderTest extends HeavyPlatformTestCase {
   @Mock private FileEditor myFileEditor;
   private SmaliFileNotificationProvider myNotificationProvider;
@@ -65,7 +70,11 @@ public class SmaliFileNotificationProviderTest extends HeavyPlatformTestCase {
     super.tearDown();
   }
 
+  @Test
   public void testCreateNotificationPanelWithSmaliFile() throws Exception {
+    // b/440156195 Flaky by 0.2% on windows. Disabling for now.
+    assumeNotWindows();
+
     loadProject(APK_SAN_ANGELES);
 
     File outputFolderPath = DexSourceFiles.getInstance(getProject()).getDefaultSmaliOutputFolderPath();
@@ -81,6 +90,7 @@ public class SmaliFileNotificationProviderTest extends HeavyPlatformTestCase {
     assertNotNull(notificationPanel);
   }
 
+  @Test
   public void testCreateNotificationPanelWithNonSmaliFile() throws Exception {
     loadProject(APK_SAN_ANGELES);
     var panelProvider = myNotificationProvider.collectNotificationData(myProject, PlatformTestUtil.getOrCreateProjectBaseDir(myProject));

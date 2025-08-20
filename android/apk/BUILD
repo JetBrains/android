@@ -25,6 +25,7 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/adt/idea/apkanalyzer:intellij.android.apkanalyzer",
         "//tools/adt/idea/android:intellij.android.core.tests",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
     ],
     test_jvm_flags = [
         "-Djdk.attach.allowAttachSelf=true",
