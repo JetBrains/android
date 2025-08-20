@@ -736,6 +736,7 @@ studio_plugin(
         "aiplugin.jar": [
             "//tools/vendor/google/ml/aiplugin/model/api:aiplugin.model.api",
             "//tools/vendor/google/ml/aiplugin/core/primitives:aiplugin.core.primitives",
+            "//tools/vendor/google/ml/aiplugin/core/terminal:aiplugin.core.terminal",
             "//tools/vendor/google/ml/aiplugin/core/aicore:aiplugin.core.aicore",
             "//tools/vendor/google/ml/aiplugin/agents/agents-core:aiplugin.agents.agents-core",
             "//tools/vendor/google/ml/aiplugin/android:aiplugin.android",
@@ -782,6 +783,7 @@ studio_plugin(
         "@intellij//:intellij.platform.vcs.log.impl",
         "@intellij//:org.intellij.groovy",
         "@intellij//:org.jetbrains.kotlin",
+        "@intellij//:org.jetbrains.plugins.terminal",
     ],
 )
 
