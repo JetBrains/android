@@ -22,6 +22,7 @@ import com.android.tools.idea.wear.dwf.WFFConstants.ATTRIBUTE_COLORS
 import com.android.tools.idea.wear.dwf.WFFConstants.ATTRIBUTE_ID
 import com.android.tools.idea.wear.dwf.WFFConstants.CONFIGURATION_PREFIX
 import com.android.tools.idea.wear.dwf.WFFConstants.DataSources
+import com.android.tools.idea.wear.dwf.WFFConstants.REFERENCE_PREFIX
 import com.android.tools.idea.wear.dwf.WFFConstants.TAG_BOOLEAN_CONFIGURATION
 import com.android.tools.idea.wear.dwf.WFFConstants.TAG_COLOR_CONFIGURATION
 import com.android.tools.idea.wear.dwf.WFFConstants.TAG_COLOR_OPTION
@@ -139,6 +140,14 @@ fun createDataSourceLookupElement(lookupString: String) =
  *   User configurations</a>
  */
 fun WFFExpressionDataSource.isUserConfiguration() = id.text.startsWith(CONFIGURATION_PREFIX)
+
+/**
+ * Whether this data source is a reference data source.
+ *
+ * @see <a
+ *   href="https://developer.android.com/reference/wear-os/wff/common/reference/reference">Reference</a>
+ */
+fun WFFExpressionDataSource.isReference() = id.text.startsWith(REFERENCE_PREFIX)
 
 /** Finds the [DataSource] that matches [WFFExpressionDataSource]'s ID, if any. */
 fun WFFExpressionDataSource.findDataSourceDefinition(): DataSource? {

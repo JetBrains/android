@@ -44,6 +44,7 @@ enum class WFFExpressionTextAttributes(fallback: TextAttributesKey) {
   DATA_SOURCE(DefaultLanguageHighlighterColors.STATIC_FIELD),
   CONFIGURATION(DefaultLanguageHighlighterColors.INSTANCE_FIELD),
   PARENTHESES(DefaultLanguageHighlighterColors.PARENTHESES),
+  REFERENCE(DefaultLanguageHighlighterColors.INSTANCE_FIELD),
   BRACKETS(DefaultLanguageHighlighterColors.BRACKETS),
   STRING(DefaultLanguageHighlighterColors.STRING),
   FUNCTION_ID(DefaultLanguageHighlighterColors.STATIC_METHOD),

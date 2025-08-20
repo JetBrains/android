@@ -20,6 +20,8 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
 import com.android.tools.idea.wear.dwf.dom.raw.overrideCurrentWFFVersion
 import com.android.tools.wear.wff.WFFVersion.WFFVersion1
+import com.android.tools.wear.wff.WFFVersion.WFFVersion3
+import com.android.tools.wear.wff.WFFVersion.WFFVersion4
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.editor.colors.CodeInsightColors
@@ -203,6 +205,96 @@ class WFFExpressionAnnotatorTest {
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
 
     val errors = fixture.doHighlighting().filter { it.severity == HighlightSeverity.ERROR }
+    assertThat(errors).isEmpty()
+  }
+
+  @Test
+  fun `references are annotated`() {
+    overrideCurrentWFFVersion(WFFVersion4, projectRule.testRootDisposable)
+    // wrap in a watch face file for the references to resolve
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <PartText><Reference name="someReference" /></PartText>
+          <Parameter expression="[REFERENCE.someReference] * [REFERENCE.unknownReference]" />
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    val infos = fixture.doHighlighting().filter { it.severity == HighlightSeverity.INFORMATION }
+    assertThat(infos).hasSize(2)
+    assertThat(infos[0].text).isEqualTo("REFERENCE.someReference")
+    assertThat(infos[0].forcedTextAttributesKey)
+      .isEqualTo(WFFExpressionTextAttributes.REFERENCE.key)
+    assertThat(infos[1].text).isEqualTo("REFERENCE.unknownReference")
+    assertThat(infos[1].forcedTextAttributesKey)
+      .isEqualTo(WFFExpressionTextAttributes.REFERENCE.key)
+  }
+
+  @Test
+  fun `unknown references are annotated as unknown when the WFF version is 4`() {
+    overrideCurrentWFFVersion(WFFVersion4, projectRule.testRootDisposable)
+    // wrap in a watch face file for the references to resolve
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <Scene>
+            <PartText>
+              <Reference name="headerPosition" />
+            </PartText>
+            <PartDraw>
+              <Transform target="x" value="[REFERENCE.headerPosition]" />
+            </PartDraw>
+            <PartDraw>
+              <Transform target="x" value="[REFERENCE.unknownReference]" />
+            </PartDraw>
+          </Scene>
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    val error = fixture.doHighlighting(HighlightSeverity.ERROR).single()
+    assertThat(error.text).isEqualTo("REFERENCE.unknownReference")
+    assertThat(error.forcedTextAttributesKey)
+      .isEqualTo(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
+    assertThat(error.toolTip).isEqualTo("<html>Unknown reference</html>")
+  }
+
+  @Test
+  fun `unknown references are not annotated as unknown when the WFF version is lower than 4`() {
+    overrideCurrentWFFVersion(WFFVersion3, projectRule.testRootDisposable)
+    // wrap in a watch face file for the references to resolve
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <Scene>
+            <PartDraw>
+              <Transform target="x" value="[REFERENCE.unknownReference]" />
+            </PartDraw>
+          </Scene>
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    val errors = fixture.doHighlighting(HighlightSeverity.ERROR)
     assertThat(errors).isEmpty()
   }
 }

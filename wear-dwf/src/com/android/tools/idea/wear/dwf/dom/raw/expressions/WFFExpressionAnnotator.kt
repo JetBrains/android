@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.wear.dwf.dom.raw.expressions
 
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.wear.dwf.WFFConstants.DataSources
 import com.android.tools.idea.wear.dwf.WearDwfBundle.message
+import com.android.tools.idea.wear.dwf.dom.raw.CurrentWFFVersionService
 import com.android.tools.idea.wear.dwf.dom.raw.configurations.UserConfigurationReference
 import com.android.tools.idea.wear.dwf.dom.raw.findDataSourceDefinition
+import com.android.tools.idea.wear.dwf.dom.raw.isReference
 import com.android.tools.idea.wear.dwf.dom.raw.isUserConfiguration
+import com.android.tools.wear.wff.WFFVersion.WFFVersion4
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
@@ -42,6 +46,7 @@ class WFFExpressionAnnotator() : Annotator {
   private fun annotateDataSource(dataSource: WFFExpressionDataSource, holder: AnnotationHolder) {
     when {
       dataSource.isUserConfiguration() -> annotateConfiguration(dataSource, holder)
+      dataSource.isReference() -> annotateReference(dataSource, holder)
       else -> annotatePredefinedDataSource(dataSource, holder)
     }
   }
@@ -86,6 +91,23 @@ class WFFExpressionAnnotator() : Annotator {
     )
   }
 
+  private fun annotateReference(reference: WFFExpressionDataSource, holder: AnnotationHolder) {
+    val currentWFFVersion =
+      reference.getModuleSystem()?.module?.let { module ->
+        CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module)?.wffVersion
+      }
+    val versionSupportsReferences = currentWFFVersion != null && currentWFFVersion >= WFFVersion4
+    annotateSymbol(
+      holder = holder,
+      element = reference.id,
+      textAttributes = WFFExpressionTextAttributes.REFERENCE,
+      // When the version does not support references, the use of a reference will be reported as
+      // needing a higher version
+      isUnknown = versionSupportsReferences && reference.referenceTagReference?.resolve() == null,
+      unknownMessage = message("wff.expression.annotator.unknown.reference"),
+    )
+  }
+
   private fun annotateSymbol(
     holder: AnnotationHolder,
     element: PsiElement,
@@ -112,5 +134,12 @@ class WFFExpressionAnnotator() : Annotator {
       parentOfType<WFFExpressionLiteralExpr>(withSelf = true)
         ?.references
         ?.filterIsInstance<UserConfigurationReference>()
+        ?.firstOrNull()
+
+  private val WFFExpressionDataSource.referenceTagReference
+    get() =
+      parentOfType<WFFExpressionLiteralExpr>(withSelf = true)
+        ?.references
+        ?.filterIsInstance<ReferenceTagReference>()
         ?.firstOrNull()
 }
