@@ -15,41 +15,51 @@
  */
 package com.android.tools.idea.npw.project;
 
+import static com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion;
 import static com.android.tools.idea.npw.project.AndroidGradleModuleUtils.getContainingModule;
 import static com.android.tools.idea.testing.TestProjectPaths.IMPORTING;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.join;
 
-import com.android.tools.idea.npw.NewProjectWizardTestUtils;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import java.io.File;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.RuleChain;
 
-public class AndroidGradleModuleUtilsTest extends AndroidGradleTestCase {
-  public AndroidGradleModuleUtilsTest() {
-    super(NewProjectWizardTestUtils.getAgpVersion());
-  }
+@RunsInEdt
+public class AndroidGradleModuleUtilsTest {
+  public AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule(
+    "tools/adt/idea/android/testData", getAgpVersion());
+  @Rule
+  public RuleChain rule = RuleChain.outerRule(projectRule).around(new EdtRule());
 
-  public void testGetContainingModule() throws Exception {
-    Project project = getProject();
-
-    loadProject(IMPORTING);
+  @Test
+  public void testGetContainingModule() {
+    projectRule.loadProject(IMPORTING);
+    Project project = projectRule.getProject();
     File archiveToImport = new File(project.getBasePath(), join("simple", "lib", "library.jar"));
 
-    assertEquals(getModule("simple"), getContainingModule(archiveToImport, project));
+    assertThat(getContainingModule(archiveToImport, project)).isEqualTo(projectRule.getModule("simple"));
   }
 
-  public void testGetContainingModuleNested() throws Exception {
-    Project project = getProject();
-
-    loadProject(IMPORTING);
+  @Test
+  public void testGetContainingModuleNested() {
+    projectRule.loadProject(IMPORTING);
+    Project project = projectRule.getProject();
     File archiveToImport = new File(project.getBasePath(), join("nested", "sourcemodule", "lib", "library.jar"));
 
-    assertEquals(getModule("sourcemodule"), getContainingModule(archiveToImport, project));
+    assertThat(getContainingModule(archiveToImport, project)).isEqualTo(projectRule.getModule("sourcemodule"));
   }
 
-  public void testGetContainingModuleNotInModule() throws Exception {
-    Module module = getContainingModule(new File(getTestDataPath(), join(IMPORTING, "simple", "lib", "library.jar")), getProject());
-    assertEquals(null, module);
+  @Test
+  public void testGetContainingModuleNotInModule() {
+    File file = new File(projectRule.getFixture().getTestDataPath(), join(IMPORTING, "simple", "lib", "library.jar"));
+    Module module = getContainingModule(file, projectRule.getProject());
+    assertThat(module).isNull();
   }
 }

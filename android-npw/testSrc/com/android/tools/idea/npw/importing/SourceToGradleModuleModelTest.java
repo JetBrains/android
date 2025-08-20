@@ -16,23 +16,31 @@
 
 package com.android.tools.idea.npw.importing;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.ProjectRule;
+import org.junit.Rule;
+import org.junit.Test;
 
-public class SourceToGradleModuleModelTest extends AndroidGradleTestCase {
+public class SourceToGradleModuleModelTest {
+  @Rule
+  public ProjectRule projectRule = new ProjectRule();
 
+  @Test
   public void testContextCreation() {
-    Project project = getProject();
+    Project project = projectRule.getProject();
     SourceToGradleModuleModel model = new SourceToGradleModuleModel(project, new ProjectSyncInvoker.DefaultProjectSyncInvoker());
-    assertEquals(project, model.getContext().getProject());
+    assertThat(model.getContext().getProject()).isEqualTo(project);
   }
 
+  @Test
   public void testPropertiesAreStripped() {
     String testString = "some Test String";
-    SourceToGradleModuleModel model = new SourceToGradleModuleModel(getProject(), new ProjectSyncInvoker.DefaultProjectSyncInvoker());
+    SourceToGradleModuleModel model = new SourceToGradleModuleModel(projectRule.getProject(), new ProjectSyncInvoker.DefaultProjectSyncInvoker());
 
     model.sourceLocation.set(" " + testString + " ");
-    assertEquals(testString, model.sourceLocation.get());
+    assertThat(model.sourceLocation.get()).isEqualTo(testString);
   }
 }

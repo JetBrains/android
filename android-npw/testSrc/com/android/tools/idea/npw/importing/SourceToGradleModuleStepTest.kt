@@ -19,60 +19,72 @@ import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion
 import com.android.tools.idea.npw.model.ProjectSyncInvoker.DefaultProjectSyncInvoker
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.wizard.model.ModelWizard
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import java.io.File
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.util.AndroidBundle.message
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.mockito.kotlin.mock
 
-class SourceToGradleModuleStepTest : AndroidGradleTestCase(getAgpVersion()) {
+class SourceToGradleModuleStepTest {
   private lateinit var page: SourceToGradleModuleStep
 
-  override fun setUp() {
-    super.setUp()
-    page = SourceToGradleModuleStep(SourceToGradleModuleModel(project, DefaultProjectSyncInvoker()))
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
+
+  @Before
+  fun setup() {
+    page =
+      SourceToGradleModuleStep(
+        SourceToGradleModuleModel(projectRule.project, DefaultProjectSyncInvoker())
+      )
     page.onWizardStarting(mock<ModelWizard.Facade>())
-    Disposer.register(testRootDisposable, page)
+    Disposer.register(projectRule.fixture.testRootDisposable, page)
   }
 
+  @Test
   fun testCheckPathValidInput() {
     val path = File(AndroidTestBase.getTestDataPath(), TestProjectPaths.IMPORTING).path
-    assertEquals(Validator.Severity.OK, page.checkPath(path).severity)
+    assertThat(page.checkPath(path).severity).isEqualTo(Validator.Severity.OK)
   }
 
+  @Test
   fun testUpdateForwardStatusValidInput() {
     val path = File(AndroidTestBase.getTestDataPath(), TestProjectPaths.IMPORTING).path
     page.updateForwardStatus(path)
-    assertEquals(true, page.canGoForward().get())
+    assertThat(page.canGoForward().get()).isTrue()
   }
 
+  @Test
   fun testCheckPathDoesNotExist() {
     val path = File(AndroidTestBase.getTestDataPath(), "path_that_does_not_exist").path
-    assertEquals(
-      message("android.wizard.module.import.source.browse.invalid.location"),
-      page.checkPath(path).message,
-    )
+    assertThat(page.checkPath(path).message)
+      .isEqualTo(message("android.wizard.module.import.source.browse.invalid.location"))
   }
 
+  @Test
   fun testCheckPathEmptyPath() {
     // Don't validate default empty input: jetbrains.github.io/ui/principles/validation_errors/#23
-    assertEquals(Validator.Severity.OK, page.updateForwardStatus("").severity)
+    assertThat(page.updateForwardStatus("").severity).isEqualTo(Validator.Severity.OK)
   }
 
+  @Test
   fun testCheckDirectoryWithNoModules() {
     val noModulesDirectory =
       File(AndroidTestBase.getTestDataPath(), TestProjectPaths.IMPORTING + "/simple/lib/")
     assertThat(noModulesDirectory).exists()
     assertThat(noModulesDirectory).isDirectory()
-    assertEquals(
-      Validator.Severity.ERROR,
-      page.updateForwardStatus(noModulesDirectory.path).severity,
-    )
+    assertThat(page.updateForwardStatus(noModulesDirectory.path).severity)
+      .isEqualTo(Validator.Severity.ERROR)
   }
 
+  @Test
   fun testCheckSelectFile() {
     val jarFile =
       File(
@@ -81,23 +93,21 @@ class SourceToGradleModuleStepTest : AndroidGradleTestCase(getAgpVersion()) {
       )
     assertThat(jarFile).exists()
     assertThat(jarFile).isFile()
-    assertEquals(Validator.Severity.ERROR, page.updateForwardStatus(jarFile.path).severity)
+    assertThat(page.updateForwardStatus(jarFile.path).severity).isEqualTo(Validator.Severity.ERROR)
   }
 
+  @Test
   fun testCheckPathNotAProject() {
     val path = AndroidTestBase.getTestDataPath()
-    assertEquals(
-      message("android.wizard.module.import.source.browse.cant.import"),
-      page.checkPath(path).message,
-    )
+    assertThat(page.checkPath(path).message)
+      .isEqualTo(message("android.wizard.module.import.source.browse.cant.import"))
   }
 
+  @Test
   fun testCheckPathInProject() {
-    loadProject(TestProjectPaths.IMPORTING)
-    val path = projectFolderPath.path
-    assertEquals(
-      message("android.wizard.module.import.source.browse.taken.location"),
-      page.checkPath(path).message,
-    )
+    projectRule.loadProject(TestProjectPaths.IMPORTING)
+    val path = projectRule.project.basePath!!
+    assertThat(page.checkPath(path).message)
+      .isEqualTo(message("android.wizard.module.import.source.browse.taken.location"))
   }
 }

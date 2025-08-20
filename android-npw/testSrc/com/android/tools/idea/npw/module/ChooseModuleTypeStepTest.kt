@@ -16,26 +16,30 @@
 package com.android.tools.idea.npw.module
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion
 import com.android.tools.idea.npw.baselineprofiles.NewBaselineProfilesModuleDescriptionProvider
 import com.android.tools.idea.npw.benchmark.NewBenchmarkModuleDescriptionProvider
 import com.android.tools.idea.npw.dynamicapp.NewDynamicAppModuleDescriptionProvider
 import com.android.tools.idea.npw.importing.ImportModuleGalleryEntryProvider
 import com.android.tools.idea.npw.java.NewLibraryModuleDescriptionProvider
-import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ProjectRule
 import org.jetbrains.android.util.AndroidBundle.message
+import org.junit.Rule
+import org.junit.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 
-class ChooseModuleTypeStepTest : AndroidGradleTestCase(getAgpVersion()) {
+class ChooseModuleTypeStepTest {
+  @get:Rule val projectRule = ProjectRule()
 
+  @Test
   fun testSortSingleModuleEntries() {
     assertThat(sort(message("android.wizard.module.new.mobile")))
       .containsExactly(message("android.wizard.module.new.mobile"))
       .inOrder()
   }
 
+  @Test
   fun testSortTwoModuleEntries() {
     assertThat(
         sort(
@@ -57,6 +61,7 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase(getAgpVersion()) {
     assertThat(sort("C", "A")).containsExactly("A", "C").inOrder()
   }
 
+  @Test
   fun testSortFullModuleEntries() {
     assertThat(
         sort(
@@ -89,6 +94,7 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase(getAgpVersion()) {
       .inOrder()
   }
 
+  @Test
   fun testSortExistingModuleEntries() {
     val providers =
       listOf(
@@ -99,7 +105,7 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase(getAgpVersion()) {
         NewBenchmarkModuleDescriptionProvider(),
         NewBaselineProfilesModuleDescriptionProvider(),
       )
-    val moduleDescriptions = providers.flatMap { it.getDescriptions(project) }
+    val moduleDescriptions = providers.flatMap { it.getDescriptions(projectRule.project) }
 
     val sortedEntries = sortModuleEntries(moduleDescriptions, ":").map { it.name }
 
@@ -133,6 +139,7 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase(getAgpVersion()) {
     assertThat(sortedEntries).containsExactlyElementsIn(expectedEntries).inOrder()
   }
 
+  @Test
   fun testKMPOnlyInTopLevel() {
     assertThat(
         sort(
