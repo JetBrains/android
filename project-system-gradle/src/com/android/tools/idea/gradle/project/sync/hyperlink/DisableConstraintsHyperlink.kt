@@ -20,16 +20,16 @@ import com.android.tools.idea.gradle.project.sync.issues.processor.GradlePropert
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.project.Project
 
-class DisableLibraryConstraintsHyperlink: SyncIssueNotificationHyperlink(
-  "disable.libraryConstraints",
-  "Enable property to exclude library constraints",
+class DisableConstraintsHyperlink: SyncIssueNotificationHyperlink(
+  "disable.constraints",
+  "Disable dependency constraints property ",
   AndroidStudioEvent.GradleSyncQuickFix.DISABLE_LIBRARY_CONSTRAINTS_HYPERLINK
 ) {
   override fun execute(project: Project) {
     if (project.isDisposed) {
       return
     }
-    val processor = GradlePropertyProcessor(project, "android.dependency.excludeLibraryComponentsFromConstraints", true.toString())
+    val processor = GradlePropertyProcessor(project, "android.dependency.useConstraints", false.toString())
     processor.setPreviewUsages(true)
     processor.run()
   }

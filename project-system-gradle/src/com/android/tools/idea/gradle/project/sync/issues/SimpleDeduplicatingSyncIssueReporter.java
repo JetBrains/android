@@ -93,7 +93,9 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
       if (module == null) {
         continue;
       }
-
+      if (!shouldReport(module.getProject())) {
+        return new ArrayList<>();
+      }
       List<Module> affectedModules =
         entry.stream().map(moduleMap::get).filter(Objects::nonNull).distinct().sorted(Comparator.comparing(Module::getName))
              .collect(Collectors.toList());
@@ -107,6 +109,11 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
     boolean isError = syncIssues.stream().anyMatch(i -> i.getSeverity() == SEVERITY_ERROR);
     // All errors are displayed as warnings and all warnings displayed as info.
     return isError ? WARNING : INFO;
+  }
+
+  /** Returns whether this issue reporter should return anything at all. */
+  protected boolean shouldReport(@NotNull Project project) {
+    return true;
   }
 
   private SyncMessage createSyncMessage(@NotNull Project project,

@@ -16,9 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue
-import com.android.tools.idea.gradle.project.sync.hyperlink.DisableLibraryConstraintsHyperlink
+import com.android.tools.idea.gradle.project.sync.hyperlink.DisableConstraintsHyperlink
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.modules
 import com.intellij.openapi.vfs.VirtualFile
 
 class LibraryConstraintsEnabledReporter: SimpleDeduplicatingSyncIssueReporter() {
@@ -35,6 +36,15 @@ class LibraryConstraintsEnabledReporter: SimpleDeduplicatingSyncIssueReporter() 
     syncIssues: MutableList<IdeSyncIssue>,
     affectedModules: MutableList<Module>,
     buildFileMap: MutableMap<Module, VirtualFile>
-  ): List<SyncIssueNotificationHyperlink> = listOf(DisableLibraryConstraintsHyperlink())
+  ): List<SyncIssueNotificationHyperlink> = listOf(DisableConstraintsHyperlink())
 
+  /** We don't want to report this in case the project is small. */
+  override fun shouldReport(project: Project): Boolean {
+    return project.modules.size > MODULE_COUNT_THRESHOLD;
+  }
+
+  companion object {
+    // Roughly ~100 Android projects (assuming main/unitTest/androidTest) modules.
+    private const val MODULE_COUNT_THRESHOLD = 300;
+  }
 }
