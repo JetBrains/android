@@ -808,7 +808,7 @@ class InferredConstraints private constructor(
           is PsiAnnotationOwner -> element.annotations.mapNotNull { UastFacade.convertElement(it, null) as? UAnnotation }.toList()
           else -> evaluator.getAllAnnotations(annotated, false)
         }
-      val ignore = annotated.uAnnotations.any {
+      val ignore = annotations.any {
         val qualifiedName = it.qualifiedName
         (qualifiedName == KOTLIN_SUPPRESS || qualifiedName == "java.lang.SuppressWarnings") &&
           it.sourcePsi?.text?.contains("InferAnnotations") == true
