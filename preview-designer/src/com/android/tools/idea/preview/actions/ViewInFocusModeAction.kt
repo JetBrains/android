@@ -16,7 +16,6 @@
 package com.android.tools.idea.preview.actions
 
 import com.android.tools.idea.actions.SCENE_VIEW
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
@@ -41,11 +40,9 @@ class ViewInFocusModeAction : AnAction(message("action.view.in.focus.mode")) {
     val isFocusMode: Boolean = modeManager?.mode?.value is PreviewMode.Focus
     val isDefault: Boolean = modeManager?.mode?.value is PreviewMode.Default
 
-    // Hide completely the action if:
-    // * View-in-focus flag is disabled
-    // * The selected preview mode is neither Default nor Focus.
+    // Hide completely the action if the selected preview mode is neither Default nor Focus.
     // When in Focus mode, we want to show up the action, but disabled.
-    e.presentation.isVisible = StudioFlags.VIEW_IN_FOCUS_MODE.get() && (isDefault || isFocusMode)
+    e.presentation.isVisible = isDefault || isFocusMode
 
     val hasRendered: Boolean =
       (e.getData(SCENE_VIEW)?.sceneManager as? LayoutlibSceneManager)?.renderResult != null

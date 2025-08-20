@@ -129,7 +129,6 @@ playpolicyinsights.play.policy.insights=COMPLETE:2025
 preview.add.image.to.ai.request.for.preview=COMPLETE:2024
 preview.essentials.mode=PREVIEW
 preview.render.quality=COMPLETE:2024
-preview.view.preview.in.focus=PREVIEW
 processnamemonitor.processnamemonitor.adblib.enable=COMPLETE:2023
 processnamemonitor.processnamemonitor.tracker.agent.enable=COMPLETE:2023
 profiler.task.based.ux=COMPLETE:2024

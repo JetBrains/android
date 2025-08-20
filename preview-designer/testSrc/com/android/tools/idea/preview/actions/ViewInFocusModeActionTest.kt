@@ -19,7 +19,6 @@ import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PsiPreviewElementInstance
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
@@ -40,7 +39,6 @@ import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.TestActionEvent
 import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.MutableStateFlow
-import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Rule
@@ -59,16 +57,10 @@ class ViewInFocusModeActionTest {
 
   @Before
   fun setUp() {
-    StudioFlags.VIEW_IN_FOCUS_MODE.override(true)
     dataContextBuilder =
       SimpleDataContext.builder()
         .add(DESIGN_SURFACE, designSurface)
         .add(PreviewModeManager.KEY, modeManager)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.VIEW_IN_FOCUS_MODE.clearOverride()
   }
 
   @Test
@@ -129,24 +121,6 @@ class ViewInFocusModeActionTest {
     assertTrue(event.presentation.isVisible)
     // Action should be disabled.
     assertFalse(event.presentation.isEnabled)
-  }
-
-  @Test
-  fun `Action not visible, Flag is disabled`() {
-    StudioFlags.VIEW_IN_FOCUS_MODE.override(false)
-
-    // We aren't focussing any screen view.
-    val dataContext = dataContextBuilder.add(SCENE_VIEW, null).build()
-
-    val viewInFocusModeAction = ViewInFocusModeAction()
-    val event = TestActionEvent.createTestEvent(viewInFocusModeAction, dataContext)
-
-    viewInFocusModeAction.update(event)
-
-    // Action should not be visible.
-    assertFalse(event.presentation.isVisible)
-
-    StudioFlags.VIEW_IN_FOCUS_MODE.clearOverride()
   }
 
   // Regression test for b/385686357
