@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,102 +13,86 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.apk.viewer;
+package com.android.tools.idea.apk.viewer
 
-import static com.android.SdkConstants.EXT_DEX;
-import static com.android.SdkConstants.UTF_8;
-import static com.android.tools.idea.FileEditorUtil.DISABLE_GENERATED_FILE_NOTIFICATION_KEY;
-import static com.android.tools.idea.apk.viewer.pagealign.AlignmentFindingKt.IS_PAGE_ALIGN_ENABLED;
-import static com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerUtil.withChecksDisabledForSupplier;
+import com.android.SdkConstants.EXT_DEX
+import com.android.tools.apk.analyzer.ApkSizeCalculator
+import com.android.tools.apk.analyzer.Archive
+import com.android.tools.apk.analyzer.ArchiveContext
+import com.android.tools.apk.analyzer.Archives
+import com.android.tools.apk.analyzer.BinaryXmlParser
+import com.android.tools.apk.analyzer.dex.ProguardMappings
+import com.android.tools.apk.analyzer.internal.AppBundleArchive
+import com.android.tools.apk.analyzer.internal.ArchiveTreeNode
+import com.android.tools.idea.FileEditorUtil
+import com.android.tools.idea.apk.viewer.arsc.ArscViewer
+import com.android.tools.idea.apk.viewer.dex.DexFileViewer
+import com.android.tools.idea.apk.viewer.diff.ApkDiffPanel
+import com.android.tools.idea.log.LogWrapper
+import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerUtil
+import com.android.tools.proguard.ProguardMap
+import com.android.utils.FileUtils
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.fileChooser.FileChooser
+import com.intellij.openapi.fileChooser.FileChooserDescriptor
+import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.FileEditorProvider
+import com.intellij.openapi.fileEditor.FileEditorState
+import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.DialogBuilder
+import com.intellij.openapi.util.Condition
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.UserDataHolderBase
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.JarFileSystem
+import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.vfs.limits.FileSizeLimit
+import com.intellij.openapi.vfs.newvfs.BulkFileListener
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent
+import com.intellij.ui.JBSplitter
+import com.intellij.ui.components.JBLabel
+import com.intellij.util.io.URLUtil
+import org.jetbrains.annotations.VisibleForTesting
+import java.beans.PropertyChangeListener
+import java.io.File
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Path
+import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
+import java.util.Optional
+import javax.swing.JComponent
+import javax.swing.LayoutFocusTraversalPolicy
+import kotlin.io.path.name
+import kotlin.math.max
 
-import com.android.tools.apk.analyzer.ApkSizeCalculator;
-import com.android.tools.apk.analyzer.Archive;
-import com.android.tools.apk.analyzer.ArchiveContext;
-import com.android.tools.apk.analyzer.ArchiveEntry;
-import com.android.tools.apk.analyzer.Archives;
-import com.android.tools.apk.analyzer.BinaryXmlParser;
-import com.android.tools.apk.analyzer.dex.ProguardMappings;
-import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
-import com.android.tools.idea.apk.viewer.arsc.ArscViewer;
-import com.android.tools.idea.apk.viewer.dex.DexFileViewer;
-import com.android.tools.idea.apk.viewer.diff.ApkDiffPanel;
-import com.android.tools.idea.apk.viewer.pagealign.AlignmentFinding;
-import com.android.tools.idea.apk.viewer.pagealign.AlignmentFindingKt;
-import com.android.tools.idea.apk.viewer.pagealign.AlignmentWarningViewer;
-import com.android.tools.idea.log.LogWrapper;
-import com.android.utils.FileUtils;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileChooser.FileChooser;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorProvider;
-import com.intellij.openapi.fileEditor.FileEditorState;
-import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.Task;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogBuilder;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.UserDataHolderBase;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.JarFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.openapi.vfs.limits.FileSizeLimit;
-import com.intellij.openapi.vfs.newvfs.BulkFileListener;
-import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
-import com.intellij.ui.JBSplitter;
-import com.intellij.ui.components.JBLabel;
-import com.intellij.util.io.URLUtil;
-import com.intellij.util.messages.MessageBusConnection;
-import java.beans.PropertyChangeListener;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.List;
-import java.util.Optional;
-import javax.swing.JComponent;
-import javax.swing.LayoutFocusTraversalPolicy;
-import kotlin.io.FilesKt;
-import kotlin.text.Charsets;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.VisibleForTesting;
+internal class ApkEditor(
+  private val project: Project,
+  private val baseFile: VirtualFile,
+  private val root: VirtualFile,
+  private val applicationInfoProvider: AndroidApplicationInfoProvider,
+) : UserDataHolderBase(), FileEditor, ApkViewPanel.Listener {
+  private var baseFileHash: String = ""
+  private var apkViewPanel: ApkViewPanel? = null
+  private var archiveContext: ArchiveContext? = null
 
-public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkViewPanel.Listener {
-  private final Project myProject;
-  private final VirtualFile myBaseFile;
-  @NotNull
-  private String myBaseFileHash = "";
-  private final VirtualFile myRoot;
-  private final AndroidApplicationInfoProvider myApplicationInfoProvider;
-  private ApkViewPanel myApkViewPanel;
-  private ArchiveContext myArchiveContext;
+  private val splitter: JBSplitter
+  private var currentEditor: ApkFileEditorComponent? = null
+  @VisibleForTesting
+  var proguardMapping: ProguardMappings? = null
 
-  private final JBSplitter mySplitter;
-  private ApkFileEditorComponent myCurrentEditor;
-  private ProguardMappings myProguardMapping;
+  init {
+    FileEditorUtil.DISABLE_GENERATED_FILE_NOTIFICATION_KEY.set(this, true)
 
-  public ApkEditor(
-    @NotNull Project project,
-    @NotNull VirtualFile baseFile,
-    @NotNull VirtualFile root,
-    @NotNull AndroidApplicationInfoProvider applicationInfoProvider) {
-    myProject = project;
-    myBaseFile = baseFile;
-    myRoot = root;
-    myApplicationInfoProvider = applicationInfoProvider;
-
-    DISABLE_GENERATED_FILE_NOTIFICATION_KEY.set(this, true);
-
-    mySplitter = new JBSplitter(true, "android.apk.viewer", 0.62f);
-    mySplitter.setName("apkViewerContainer");
+    splitter = JBSplitter(true, "android.apk.viewer", 0.62f)
+    splitter.setName("apkViewerContainer")
 
     // Setup focus root for a11y purposes
     // Given that
@@ -120,8 +104,8 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     // We need to declare the root component of this custom editor to be a focus cycle root and
     // set up the default focus traversal policy (layout) to ensure the TAB key cycles through all
     // the components of this custom panel.
-    mySplitter.setFocusCycleRoot(true);
-    mySplitter.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
+    splitter.setFocusCycleRoot(true)
+    splitter.setFocusTraversalPolicy(LayoutFocusTraversalPolicy())
 
     // The APK Analyzer uses a copy of the APK to open it as an Archive. It does so far two reasons:
     // 1. We don't want the editor holding a lock on an APK (applies only to Windows)
@@ -129,403 +113,377 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     // to change while the FileSystem is open, since this may lead to JVM crashes
     // But if we do a copy, we need to update it whenever the real file changes. So we listen to changes
     // in the VFS as long as this editor is open.
-    MessageBusConnection connection = project.getMessageBus().connect(this);
-    connection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
-      @Override
-      public void after(@NotNull List<? extends VFileEvent> events) {
-        String basePath = myBaseFile.getPath();
-        for (VFileEvent event : events) {
+    val connection = project.messageBus.connect(this)
+    connection.subscribe<BulkFileListener>(VirtualFileManager.VFS_CHANGES, object : BulkFileListener {
+      override fun after(events: MutableList<out VFileEvent>) {
+        val basePath = baseFile.path
+        for (event in events) {
           if (FileUtil.pathsEqual(basePath, event.getPath())) {
-            if (myBaseFile.isValid()) { // If the file is deleted, the editor is automatically closed.
-              String hash = generateHash(myBaseFile.toNioPath());
-              if (hash == null || !hash.equals(myBaseFileHash)) {
-                refreshApk(myBaseFile);
+            if (baseFile.isValid) { // If the file is deleted, the editor is automatically closed.
+              if (baseFileHash != generateHash(Path.of(event.getPath()))) {
+                refreshApk(baseFile)
               }
             }
           }
         }
       }
-    });
+    })
 
-    refreshApk(myBaseFile);
-    mySplitter.setSecondComponent(new EmptyPanel().getComponent());
+    refreshApk(baseFile)
+    splitter.setSecondComponent(EmptyPanel().getComponent())
   }
 
-  @Nullable
-  private static String generateHash(Path path) {
-    try {
-      MessageDigest digest = MessageDigest.getInstance("SHA-256");
-      byte[] bytes = Files.readAllBytes(path);
-      byte[] hashBytes = digest.digest(bytes);
-      StringBuilder hashString = new StringBuilder();
-      for (byte b : hashBytes) {
-        // Append each byte as a two-character hexadecimal string.
-        hashString.append(String.format("%02x", b));
-      }
-      return hashString.toString();
-    }
-    catch (NoSuchAlgorithmException | IOException e) {
-      return null;
-    }
-  }
-
-  @NotNull
-  private static Logger getLog() {
-    return Logger.getInstance(ApkEditor.class);
-  }
-
-  private void refreshApk(@NotNull VirtualFile apkVirtualFile) {
-    Task.Backgroundable task = new Task.Backgroundable(myProject, "Reading APK contents") {
-      @Override
-      public void run(@NotNull ProgressIndicator indicator) {
-        disposeArchive();
+  private fun refreshApk(apkVirtualFile: VirtualFile) {
+    ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Reading APK contents") {
+      override fun run(indicator: ProgressIndicator) {
+        disposeArchive()
         try {
           // This temporary copy is destroyed while disposing the archive, the disposeArchive method.
-          Path copyOfApk = Files.createTempFile(apkVirtualFile.getNameWithoutExtension(), "." + apkVirtualFile.getExtension());
-          FileUtils.copyFile(VfsUtilCore.virtualToIoFile(apkVirtualFile).toPath(), copyOfApk);
-          myArchiveContext = Archives.open(copyOfApk, new LogWrapper(getLog()));
+          val copyOfApk = Files.createTempFile(apkVirtualFile.nameWithoutExtension, "." + apkVirtualFile.getExtension())
+          FileUtils.copyFile(VfsUtilCore.virtualToIoFile(apkVirtualFile).toPath(), copyOfApk)
+          val context = Archives.open(copyOfApk, LogWrapper(log))
+          archiveContext = context
+          proguardMapping = loadProguardMapping(context.getArchive(), apkVirtualFile.toNioPath())
           // TODO(b/244771241) ApkViewPanel should be created on the UI thread
-          myProguardMapping = myArchiveContext.getArchive().loadProguardMapping();
-          myApkViewPanel = withChecksDisabledForSupplier(() -> new ApkViewPanel(
-            new ApkParser(myArchiveContext, ApkSizeCalculator.getDefault()),
-            apkVirtualFile.getName(),
-            myApplicationInfoProvider));
-          myApkViewPanel.setListener(ApkEditor.this);
-          ApplicationManager.getApplication().invokeLater(() -> {
-            mySplitter.setFirstComponent(myApkViewPanel.getContainer());
-            selectionChanged(null);
-          });
-          String hash = generateHash(apkVirtualFile.toNioPath());
-          if (hash != null) {
-            myBaseFileHash = hash;
+          val panel = ThreadingCheckerUtil.withChecksDisabledForSupplier {
+            ApkViewPanel(
+              ApkParser(context, ApkSizeCalculator.getDefault()),
+              apkVirtualFile.name,
+              applicationInfoProvider
+            )
           }
-        }
-        catch (IOException e) {
-          getLog().error(e);
-          disposeArchive();
-          mySplitter.setFirstComponent(new JBLabel(e.toString()));
+          apkViewPanel = panel
+          panel.setListener(this@ApkEditor)
+          ApplicationManager.getApplication().invokeLater {
+            splitter.setFirstComponent(panel.container)
+            selectionChanged(null)
+          }
+          val hash = generateHash(apkVirtualFile.toNioPath())
+          if (hash != null) {
+            baseFileHash = hash
+          }
+        } catch (e: IOException) {
+          log.error(e)
+          disposeArchive()
+          splitter.setFirstComponent(JBLabel(e.toString()))
         }
       }
-    };
-    task.queue();
+    })
   }
 
   /**
    * Changes the editor displayed based on the path selected in the tree.
    */
-  @Override
-  public void selectionChanged(ArchiveTreeNode @Nullable [] entries) {
-    if (myCurrentEditor != null) {
-      Disposer.dispose(myCurrentEditor);
+  override fun selectionChanged(entries: Array<ArchiveTreeNode>?) {
+    if (currentEditor != null) {
+      Disposer.dispose(currentEditor!!)
       // Null out the field immediately after disposal, in case an exception is thrown later in the method.
-      myCurrentEditor = null;
+      currentEditor = null
     }
 
-    myCurrentEditor = getEditor(entries);
-    mySplitter.setSecondComponent(myCurrentEditor.getComponent());
+    val editor = getEditor(entries)
+    splitter.setSecondComponent(editor.getComponent())
+    currentEditor = editor
   }
 
-  @Override
-  public void selectApkAndCompare() {
-    FileChooserDescriptor desc = new FileChooserDescriptor(true, false, false, false, false, false);
-    desc.withFileFilter(file -> ApkFileSystem.EXTENSIONS.contains(file.getExtension()));
-    VirtualFile file = FileChooser.chooseFile(desc, myProject, null);
+  override fun selectApkAndCompare() {
+    val desc = FileChooserDescriptor(true, false, false, false, false, false)
+    desc.withFileFilter(Condition { file: VirtualFile? -> ApkFileSystem.EXTENSIONS.contains(file!!.getExtension()) })
+    val file = FileChooser.chooseFile(desc, project, null)
     if (file == null) {
-      return; // User canceled.
+      return  // User canceled.
     }
-    VirtualFile oldApk = ApkFileSystem.getInstance().getRootByLocal(file);
-    assert oldApk != null;
-
-    DialogBuilder builder = new DialogBuilder(myProject);
-    builder.setTitle(oldApk.getName() + " (old) vs " + myRoot.getName() + " (new)");
-    ApkDiffPanel panel = new ApkDiffPanel(oldApk, myRoot);
-    builder.setCenterPanel(panel.getContainer());
-    builder.setPreferredFocusComponent(panel.getPreferredFocusedComponent());
-    builder.addCloseButton();
-    builder.show();
+    val oldApk: VirtualFile? = checkNotNull(ApkFileSystem.getInstance().getRootByLocal(file))
+    val builder = DialogBuilder(project)
+    builder.setTitle(oldApk!!.name + " (old) vs " + root.name + " (new)")
+    val panel = ApkDiffPanel(oldApk, root)
+    builder.setCenterPanel(panel.container)
+    builder.setPreferredFocusComponent(panel.preferredFocusedComponent)
+    builder.addCloseButton()
+    builder.show()
   }
 
-  @NotNull
-  @Override
-  public JComponent getComponent() {
-    return mySplitter;
+  override fun getComponent(): JComponent {
+    return splitter
   }
 
-  @Nullable
-  @Override
-  public JComponent getPreferredFocusedComponent() {
-    if (myApkViewPanel == null) {
-      return null;
+  override fun getPreferredFocusedComponent(): JComponent? {
+    if (apkViewPanel == null) {
+      return null
     }
-    return myApkViewPanel.getPreferredFocusedComponent();
+    return apkViewPanel!!.preferredFocusedComponent
   }
 
-  @NotNull
-  @Override
-  public String getName() {
-    return myBaseFile.getName();
+  override fun getName(): String {
+    return baseFile.name
   }
 
-  @Override
-  public void setState(@NotNull FileEditorState state) {
+  override fun setState(state: FileEditorState) {
   }
 
-  @Override
-  public boolean isModified() {
-    return false;
+  override fun isModified(): Boolean {
+    return false
   }
 
-  @Override
-  public boolean isValid() {
-    return myBaseFile.isValid();
+  override fun isValid(): Boolean {
+    return baseFile.isValid
   }
 
-  @Override
-  public void addPropertyChangeListener(@NotNull PropertyChangeListener listener) {
+  override fun addPropertyChangeListener(listener: PropertyChangeListener) {
   }
 
-  @Override
-  public void removePropertyChangeListener(@NotNull PropertyChangeListener listener) {
+  override fun removePropertyChangeListener(listener: PropertyChangeListener) {
   }
 
-  @Override
-  public @NotNull VirtualFile getFile() {
-    return myBaseFile;
+  override fun getFile(): VirtualFile {
+    return baseFile
   }
 
-  @Override
-  public void dispose() {
-    if (myCurrentEditor != null) {
-      Disposer.dispose(myCurrentEditor);
-      myCurrentEditor = null;
+  override fun dispose() {
+    if (currentEditor != null) {
+      Disposer.dispose(currentEditor!!)
+      currentEditor = null
     }
-    getLog().info("Disposing ApkEditor with ApkViewPanel: " + myApkViewPanel);
-    disposeArchive();
+    log.info("Disposing ApkEditor with ApkViewPanel: $apkViewPanel")
+    disposeArchive()
   }
 
-  private void disposeArchive() {
-    if (myApkViewPanel != null){
-      myApkViewPanel.clearArchive();
+  private fun disposeArchive() {
+    if (apkViewPanel != null) {
+      apkViewPanel!!.clearArchive()
     }
-    if (myArchiveContext != null) {
+    if (archiveContext != null) {
       try {
-        myArchiveContext.close();
+        archiveContext!!.close()
         // The archive was constructed out of a temporary file.
-        Files.deleteIfExists(myArchiveContext.getArchive().getPath());
+        Files.deleteIfExists(archiveContext!!.getArchive().getPath())
+      } catch (e: IOException) {
+        log.warn(e)
       }
-      catch (IOException e) {
-        getLog().warn(e);
-      }
-      myArchiveContext = null;
+      archiveContext = null
     }
   }
 
   @VisibleForTesting
-  @NotNull
-  ApkFileEditorComponent getEditor(ArchiveTreeNode @Nullable [] nodes) {
-    if (nodes == null || nodes.length == 0) {
-      return new EmptyPanel();
-    }
-
-    if (IS_PAGE_ALIGN_ENABLED) {
-      // Check whether there is an alignment warning and show a warning panel.
-      // If there are multiple, then give precedence to other viewers.
-      if (nodes.length == 1 && nodes[0] != null) {
-        ArchiveEntry archiveEntry = nodes[0].getData();
-        AlignmentFinding alignment = AlignmentFindingKt.getAlignmentFinding(
-          archiveEntry,
-          myApkViewPanel.getTreeModel().getExtractNativeLibs());
-        if (alignment.getHasWarning()) {
-          return new AlignmentWarningViewer();
-        }
-      }
+  fun getEditor(nodes: Array<out ArchiveTreeNode>?): ApkFileEditorComponent {
+    if (nodes.isNullOrEmpty()) {
+      return EmptyPanel()
     }
 
     // Check if multiple dex files are selected and return a multiple dex viewer.
-    boolean allDex = true;
-    for (ArchiveTreeNode path : nodes) {
-      if (path == null) {
-        allDex = false;
-        break;
-      }
-      Path dataPath = path.getData().getPath();
-      Path fileName = dataPath.getFileName();
-      if (fileName == null || Files.isDirectory(dataPath) || !fileName.toString().endsWith("." + EXT_DEX)){
-        allDex = false;
-        break;
+    var allDex = true
+    for (path in nodes) {
+      val dataPath = path.data.path
+      val fileName = dataPath.fileName
+      if (fileName == null || Files.isDirectory(dataPath) || !fileName.toString().endsWith(".$EXT_DEX")) {
+        allDex = false
+        break
       }
     }
 
-    if (allDex){
-      Path[] paths = new Path[nodes.length];
-      for (int i = 0; i < nodes.length; i++) {
-        paths[i] = nodes[i].getData().getPath();
-      }
-      return new DexFileViewer(myProject, paths, myBaseFile.getParent(), myProguardMapping);
+    if (allDex) {
+      val paths = nodes.map { it.data.path }.toTypedArray()
+      return DexFileViewer(project, paths, baseFile.parent, proguardMapping)
     }
 
     // Only one file or many files with different extensions are selected. We can only show
     // a single editor for a single filetype, so arbitrarily pick the first file:
-    ArchiveTreeNode n = nodes[0];
-    Path p = n.getData().getPath();
-    Path fileName = p.getFileName();
+    val n: ArchiveTreeNode = nodes[0]
+    val p = n.data.path
+    val fileName = p.fileName
     if (fileName == null) {
-      return new EmptyPanel();
+      return EmptyPanel()
     }
-    if ("resources.arsc".equals(fileName.toString())) {
-      byte[] arscContent;
+    if ("resources.arsc" == fileName.toString()) {
+      val arscContent: ByteArray?
       try {
-        arscContent = Files.readAllBytes(p);
+        arscContent = Files.readAllBytes(p)
+      } catch (_: IOException) {
+        return EmptyPanel()
       }
-      catch (IOException e) {
-        return new EmptyPanel();
-      }
-      return new ArscViewer(arscContent);
+      return ArscViewer(arscContent)
     }
 
     // Attempting to view these kinds of files is going to trigger the Kotlin metadata decompilers, which all assume the .class files
     // accompanying them can be found next to them. But in our case the class files have been dexed, so the Kotlin compiler backend is going
     // to attempt code generation, and that will fail with some rather cryptic errors.
     if (p.toString().endsWith("kotlin_builtins") || p.toString().endsWith("kotlin_metadata")) {
-      return new EmptyPanel();
+      return EmptyPanel()
     }
 
-    VirtualFile file = createVirtualFile(n.getData().getArchive(), p);
-    Optional<FileEditorProvider> providers = getFileEditorProviders(file);
-    if (providers.isEmpty()) {
-      return new EmptyPanel();
-    }
-    else if (file != null) {
-      FileEditor editor = providers.get().createEditor(myProject, file);
-      return new FileEditorComponent(editor);
+    val file = createVirtualFile(n.data.archive, p)
+    val providers = getFileEditorProviders(file)
+    if (providers.isEmpty) {
+      return EmptyPanel()
+    } else if (file != null) {
+      val editor = providers.get().createEditor(project, file)
+      return FileEditorComponent(editor)
     } else {
-      return new EmptyPanel();
+      return EmptyPanel()
     }
   }
 
-  @Nullable
-  private VirtualFile createVirtualFile(@NotNull Archive archive, @NotNull Path p) {
-    Path name = p.getFileName();
+  private fun createVirtualFile(archive: Archive, p: Path): VirtualFile? {
+    val name = p.fileName
     if (name == null) {
-      return null;
+      return null
     }
 
     // No virtual file for directories.
     if (Files.isDirectory(p)) {
-      return null;
+      return null
     }
 
     // Read file contents and decode it.
-    byte[] content;
+    var content: ByteArray?
     try {
-      content = Files.readAllBytes(p);
-    }
-    catch (IOException e) {
-      getLog().warn(String.format("Error loading entry \"%s\" from archive", p), e);
-      return null;
+      content = Files.readAllBytes(p)
+    } catch (e: IOException) {
+      log.warn(String.format("Error loading entry \"%s\" from archive", p), e)
+      return null
     }
 
     if (archive.isBinaryXml(p, content)) {
-      content = BinaryXmlParser.decodeXml(content);
-      return ApkVirtualFile.create(p, content);
-    }
-
-    if (name.toString().endsWith(".json")) {
-      String text = JsonPrettyPrinter.prettyPrint(new String(content, StandardCharsets.UTF_8));
-      return ApkVirtualFile.createText(p, text);
+      content = BinaryXmlParser.decodeXml(content)
+      return ApkVirtualFile.create(p, content)
     }
 
     if (archive.isProtoXml(p, content)) {
       try {
-        ProtoXmlPrettyPrinter prettyPrinter = new ProtoXmlPrettyPrinterImpl();
-        String text = prettyPrinter.prettyPrint(content);
-        return ApkVirtualFile.createText(p, text);
-      }
-      catch (IOException e) {
+        val prettyPrinter: ProtoXmlPrettyPrinter = ProtoXmlPrettyPrinterImpl()
+        val text = prettyPrinter.prettyPrint(content)
+        return ApkVirtualFile.createText(p, text)
+      } catch (e: IOException) {
         // Ignore error, show encoded content.
-        getLog().warn(String.format("Error decoding XML entry \"%s\" from archive", p), e);
+        log.warn(String.format("Error decoding XML entry \"%s\" from archive", p), e)
       }
-      return ApkVirtualFile.create(p, content);
+      return ApkVirtualFile.create(p, content)
     }
 
     if (archive.isBaselineProfile(p, content)) {
-      @SuppressWarnings("UnstableApiUsage")
-      String text = getPrettyPrintedBaseline(myBaseFile, content, p, FileSizeLimit.getContentLoadLimit(myBaseFile.getExtension()));
-      if (text != null) {
-        return ApkVirtualFile.createText(p, text);
-      }
-      else {
-        return ApkVirtualFile.create(p, content);
+      @Suppress("UnstableApiUsage") val text: String? =
+        getPrettyPrintedBaseline(baseFile, content, p, FileSizeLimit.getContentLoadLimit(baseFile.getExtension()))
+      return when (text) {
+        null -> ApkVirtualFile.create(p, content)
+        else -> ApkVirtualFile.createText(p, text)
       }
     }
 
-    String jarRootPath = archive.getPath().toString();
-    if (!jarRootPath.contains(URLUtil.JAR_SEPARATOR)) jarRootPath += URLUtil.JAR_SEPARATOR;
-    VirtualFile file = JarFileSystem.getInstance().findFileByPath(jarRootPath);
-    if (file != null) {
-      return file.findFileByRelativePath(p.toString());
-    }
-    else {
-      return ApkVirtualFile.create(p, content);
-    }
+    var jarRootPath: String = archive.path.toString()
+    if (URLUtil.JAR_SEPARATOR !in jarRootPath) jarRootPath += URLUtil.JAR_SEPARATOR
+    val file = JarFileSystem.getInstance().findFileByPath(jarRootPath)
+    return file?.findFileByRelativePath(p.toString()) ?: ApkVirtualFile.create(p, content)
   }
 
-  @Nullable
-  public static String getPrettyPrintedBaseline(@NotNull VirtualFile basefile, byte[] content, @NotNull Path path, int maxChars) {
-    String text;
-    try {
-      text = BaselineProfilePrettyPrinter.prettyPrint(basefile, path, content);
-    }
-    catch (IOException e) {
-      getLog().warn(String.format("Error decoding baseline entry \"%s\" from archive", path), e);
-      return null;
-    }
-    if (text.length() > maxChars) {
-      StringBuilder truncated = new StringBuilder(100000);
-      int length = text.getBytes(Charsets.UTF_8).length;
-      truncated.append(
-          """
-            The contents of this baseline file is too large to show by default.
-            You can increase the maximum buffer size by setting the property
-                idea.max.content.load.filesize=""")
-        .append(length)
-        .append("\n(or higher)\n\n");
-
-      try {
-        File file = File.createTempFile("baseline", ".txt");
-        FilesKt.writeText(file, text, Charsets.UTF_8);
-        truncated.append(
-            "Alternatively, the full contents have been written to the following\ntemp file:\n")
-          .append(file.getPath())
-          .append("\n\n");
-      }
-      catch (IOException ignore) {
-        // Couldn't write temp file -- oh well, we just aren't including a mention of it.
-      }
-
-      // The header has taken up around 380 characters. It varies slightly, based on the path
-      // to the temporary file. We want to make the test output stable (such that the "truncated X chars"
-      // string doesn't vary from run to run) so we'll round up to say 450, instead of using
-      // truncated.length() here.
-      int truncateAt = Math.max(0, maxChars - 450);
-      truncated.append(text, 0, truncateAt).append("\n....truncated ").append(length - truncateAt).append(" characters.");
-
-      return truncated.toString();
+  private fun getFileEditorProviders(file: VirtualFile?): Optional<FileEditorProvider> {
+    if (file == null || file.isDirectory) {
+      return Optional.empty<FileEditorProvider>()
     }
 
-    return text;
-  }
-
-  @NotNull
-  private Optional<FileEditorProvider> getFileEditorProviders(@Nullable VirtualFile file) {
-    if (file == null || file.isDirectory()) {
-      return Optional.empty();
-    }
-
-    List<FileEditorProvider> providers = FileEditorProviderManager.getInstance().getProviderList(myProject, file);
+    val providers = FileEditorProviderManager.getInstance().getProviderList(project, file)
 
     // Skip 9 patch editor since nine patch information has been stripped out.
-    return providers.stream().filter(
-      fileEditorProvider -> !fileEditorProvider.getClass().getName().equals("com.android.tools.idea.editors.NinePatchEditorProvider")).findFirst();
+    return providers.stream()
+      .filter { fileEditorProvider: FileEditorProvider? -> fileEditorProvider!!.javaClass.getName() != "com.android.tools.idea.editors.NinePatchEditorProvider" }
+      .findFirst()
+  }
+
+  companion object {
+    private fun generateHash(path: Path): String? {
+      try {
+        val digest = MessageDigest.getInstance("SHA-256")
+        val bytes = Files.readAllBytes(path)
+        val hashBytes = digest.digest(bytes)
+        val hashString = java.lang.StringBuilder()
+        for (b in hashBytes) {
+          // Append each byte as a two-character hexadecimal string.
+          hashString.append(String.format("%02x", b))
+        }
+        return hashString.toString()
+      }
+      catch (_: NoSuchAlgorithmException) {
+        return null
+      }
+      catch (_: IOException) {
+        return null
+      }
+    }
+
+    private val log: Logger
+      get() = Logger.getInstance(ApkEditor::class.java)
+
+    @VisibleForTesting
+    fun getPrettyPrintedBaseline(basefile: VirtualFile, content: ByteArray, path: Path, maxChars: Int): String? {
+      val text: String?
+      try {
+        text = BaselineProfilePrettyPrinter.prettyPrint(basefile, path, content)
+      } catch (e: IOException) {
+        log.warn(String.format("Error decoding baseline entry \"%s\" from archive", path), e)
+        return null
+      }
+
+      if (text.length > maxChars) {
+        val truncated = StringBuilder(100000)
+        val length = text.toByteArray(Charsets.UTF_8).size
+        truncated.append(
+          """
+              The contents of this baseline file is too large to show by default.
+              You can increase the maximum buffer size by setting the property
+                  idea.max.content.load.filesize=$length
+              (or higher)
+              
+              
+          """.trimIndent()
+        )
+
+        try {
+          val file = File.createTempFile("baseline", ".txt")
+          file.writeText(text, Charsets.UTF_8)
+          truncated.append(
+            """
+              Alternatively, the full contents have been written to the following
+              temp file:
+              ${file.path}
+              
+              
+            """.trimIndent()
+          )
+        } catch (_: IOException) {
+          // Couldn't write temp file -- oh well, we just aren't including a mention of it.
+        }
+
+        // The header has taken up around 380 characters. It varies slightly, based on the path
+        // to the temporary file. We want to make the test output stable (such that the "truncated X chars"
+        // string doesn't vary from run to run) so we'll round up to say 450, instead of using
+        // truncated.length() here.
+        val truncateAt = max(0, maxChars - 450)
+        truncated.append(text, 0, truncateAt).append("\n....truncated ").append(length - truncateAt).append(" characters.")
+
+        return truncated.toString()
+      }
+      return text
+    }
+
+    private fun loadProguardMapping(archive: Archive, path: Path): ProguardMappings? {
+      if (archive is AppBundleArchive) {
+        // App bundles contain their mapping.
+        return archive.loadProguardMapping()
+      }
+
+      // Try to find the mapping file assuming file structure:
+      //  module/build/outputs/apk/variant/app-variant.apk
+      //  module/build/outputs/mapping/variant/mapping.txt
+      val parent = path.parent  ?: return null
+      val variant = parent.name
+      val mapping = parent.parent?.parent?.resolve("mapping/$variant/mapping.txt") ?: return null
+      return try {
+        val proguardMap = ProguardMap()
+        proguardMap.readFromFile(mapping.toFile())
+        ProguardMappings(proguardMap, null, null)
+      } catch (e: IOException) {
+        log.warn("Error loading Proguard mapping from $mapping", e)
+        null
+      }
+    }
   }
 }
