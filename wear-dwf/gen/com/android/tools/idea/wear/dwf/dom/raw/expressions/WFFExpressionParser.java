@@ -153,11 +153,11 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // OPEN_BRACKET ID CLOSE_BRACKET
-  public static boolean data_source_or_configuration(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "data_source_or_configuration")) return false;
+  public static boolean data_source(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "data_source")) return false;
     if (!nextTokenIs(b, OPEN_BRACKET)) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, DATA_SOURCE_OR_CONFIGURATION, null);
+    Marker m = enter_section_(b, l, _NONE_, DATA_SOURCE, null);
     r = consumeTokens(b, 2, OPEN_BRACKET, ID, CLOSE_BRACKET);
     p = r; // pin = 2
     exit_section_(b, l, m, r, p, null);
@@ -394,7 +394,7 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // NUMBER | QUOTED_STRING | ID | data_source_or_configuration | NULL | HEX_COLOR
+  // NUMBER | QUOTED_STRING | ID | data_source | NULL | HEX_COLOR
   public static boolean literal_expr(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "literal_expr")) return false;
     boolean r;
@@ -402,7 +402,7 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
     r = consumeTokenSmart(b, NUMBER);
     if (!r) r = consumeTokenSmart(b, QUOTED_STRING);
     if (!r) r = consumeTokenSmart(b, ID);
-    if (!r) r = data_source_or_configuration(b, l + 1);
+    if (!r) r = data_source(b, l + 1);
     if (!r) r = consumeTokenSmart(b, NULL);
     if (!r) r = consumeTokenSmart(b, HEX_COLOR);
     exit_section_(b, l, m, r, false, null);

@@ -35,7 +35,7 @@ fun getReferences(literalExpr: WFFExpressionLiteralExpr): Array<PsiReference> {
       ?.let { watchFaceFile ->
         UserConfigurationReference(literalExpr, watchFaceFile, literalExpr.text)
       }
-      ?.takeIf { literalExpr.id != null || literalExpr.dataSourceOrConfiguration != null }
+      ?.takeIf { literalExpr.id != null || literalExpr.dataSource != null }
   return listOfNotNull(userConfigurationReference, templateParameterStringReference(literalExpr))
     .toTypedArray()
 }

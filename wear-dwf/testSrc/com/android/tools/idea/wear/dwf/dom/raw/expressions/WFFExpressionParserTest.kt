@@ -33,7 +33,7 @@ FILE
       PsiElement(()('(')
       WFFExpressionConditionalExprImpl(CONDITIONAL_EXPR)
         WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-          WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+          WFFExpressionDataSourceImpl(DATA_SOURCE)
             PsiElement([)('[')
             PsiElement(ID)('CONFIGURATION.showBackgroundInAfternoon')
             PsiElement(])(']')
@@ -48,7 +48,7 @@ FILE
       PsiElement(()('(')
       WFFExpressionConditionalExprImpl(CONDITIONAL_EXPR)
         WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-          WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+          WFFExpressionDataSourceImpl(DATA_SOURCE)
             PsiElement([)('[')
             PsiElement(ID)('SECONDS_IN_DAY')
             PsiElement(])(']')
@@ -132,7 +132,7 @@ FILE
       """
 FILE
   WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+    WFFExpressionDataSourceImpl(DATA_SOURCE)
       PsiElement([)('[')
       PsiElement(ID)('CONFIGURATION.themeColor')
       PsiElement(])(']')
@@ -145,7 +145,7 @@ FILE
       """
 FILE
   WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+    WFFExpressionDataSourceImpl(DATA_SOURCE)
       PsiElement([)('[')
       PsiElement(ID)('CONFIGURATION.themeColor.1')
       PsiElement(])(']')
@@ -159,7 +159,7 @@ FILE
       """
 FILE
   WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+    WFFExpressionDataSourceImpl(DATA_SOURCE)
       PsiElement([)('[')
       PsiElement(ID)('CONFIGURATION.')
       PsiErrorElement:']' expected
@@ -174,7 +174,7 @@ FILE
       """
 FILE
   WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+    WFFExpressionDataSourceImpl(DATA_SOURCE)
       PsiElement([)('[')
       PsiElement(ID)('CONFIGURATION.themeColor.1')
       PsiErrorElement:']' expected
@@ -191,7 +191,7 @@ FILE
       """
 FILE
   WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+    WFFExpressionDataSourceImpl(DATA_SOURCE)
       PsiElement([)('[')
       PsiElement(ID)('CONFIGURATION.40fc6b01_0756_400d_8903_20a8808c8115')
       PsiElement(])(']')
@@ -207,7 +207,7 @@ FILE
       """
 FILE
   WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+    WFFExpressionDataSourceImpl(DATA_SOURCE)
       PsiElement([)('[')
       PsiElement(ID)('CONFIGURATION.0')
       PsiElement(])(']')
@@ -237,7 +237,7 @@ FILE
       """
 FILE
   WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+    WFFExpressionDataSourceImpl(DATA_SOURCE)
       PsiElement([)('[')
       PsiElement(ID)('WEATHER.IS_AVAILABLE')
       PsiElement(])(']')
@@ -250,7 +250,7 @@ FILE
       """
 FILE
   WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+    WFFExpressionDataSourceImpl(DATA_SOURCE)
       PsiElement([)('[')
       PsiElement(ID)('WEATHER.HOURS.0.CONDITION')
       PsiElement(])(']')
@@ -275,13 +275,13 @@ FILE
         PsiElement(NUMBER)('0')
     PsiElement(?)('?')
     WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-      WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+      WFFExpressionDataSourceImpl(DATA_SOURCE)
         PsiElement([)('[')
         PsiElement(ID)('HOUR_0_23_Z')
         PsiElement(])(']')
     PsiElement(:)(':')
     WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-      WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+      WFFExpressionDataSourceImpl(DATA_SOURCE)
         PsiElement([)('[')
         PsiElement(ID)('HOUR_1_12_Z')
         PsiElement(])(']')
@@ -298,7 +298,7 @@ FILE
 FILE
   WFFExpressionElvisExprImpl(ELVIS_EXPR)
     WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-      WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+      WFFExpressionDataSourceImpl(DATA_SOURCE)
         PsiElement([)('[')
         PsiElement(ID)('CONFIGURATION.leadingZero')
         PsiElement(])(']')
@@ -307,19 +307,19 @@ FILE
       PsiElement(()('(')
       WFFExpressionElvisExprImpl(ELVIS_EXPR)
         WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-          WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+          WFFExpressionDataSourceImpl(DATA_SOURCE)
             PsiElement([)('[')
             PsiElement(ID)('IS_24_HOUR_MODE')
             PsiElement(])(']')
         PsiElement(?)('?')
         WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-          WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+          WFFExpressionDataSourceImpl(DATA_SOURCE)
             PsiElement([)('[')
             PsiElement(ID)('HOUR_0_23_Z')
             PsiElement(])(']')
         PsiElement(:)(':')
         WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-          WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+          WFFExpressionDataSourceImpl(DATA_SOURCE)
             PsiElement([)('[')
             PsiElement(ID)('HOUR_1_12_Z')
             PsiElement(])(']')
@@ -329,26 +329,28 @@ FILE
       PsiElement(()('(')
       WFFExpressionElvisExprImpl(ELVIS_EXPR)
         WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-          WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+          WFFExpressionDataSourceImpl(DATA_SOURCE)
             PsiElement([)('[')
             PsiElement(ID)('IS_24_HOUR_MODE')
             PsiElement(])(']')
         PsiElement(?)('?')
         WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-          WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+          WFFExpressionDataSourceImpl(DATA_SOURCE)
             PsiElement([)('[')
             PsiElement(ID)('HOUR_0_23')
             PsiElement(])(']')
         PsiElement(:)(':')
         WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-          WFFExpressionDataSourceOrConfigurationImpl(DATA_SOURCE_OR_CONFIGURATION)
+          WFFExpressionDataSourceImpl(DATA_SOURCE)
             PsiElement([)('[')
             PsiElement(ID)('HOUR_1_12')
             PsiElement(])(']')
       PsiElement())(')')
           """
         .trimIndent(),
-      toParseTreeText("[CONFIGURATION.leadingZero] ? ([IS_24_HOUR_MODE] ? [HOUR_0_23_Z] : [HOUR_1_12_Z]) : ([IS_24_HOUR_MODE] ? [HOUR_0_23] : [HOUR_1_12])"),
+      toParseTreeText(
+        "[CONFIGURATION.leadingZero] ? ([IS_24_HOUR_MODE] ? [HOUR_0_23_Z] : [HOUR_1_12_Z]) : ([IS_24_HOUR_MODE] ? [HOUR_0_23] : [HOUR_1_12])"
+      ),
     )
   }
 

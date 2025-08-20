@@ -32,7 +32,7 @@ public interface WFFExpressionTypes {
   IElementType CALL_EXPR = new WFFExpressionElementType("CALL_EXPR");
   IElementType CONDITIONAL_EXPR = new WFFExpressionElementType("CONDITIONAL_EXPR");
   IElementType CONDITIONAL_OP = new WFFExpressionElementType("CONDITIONAL_OP");
-  IElementType DATA_SOURCE_OR_CONFIGURATION = new WFFExpressionElementType("DATA_SOURCE_OR_CONFIGURATION");
+  IElementType DATA_SOURCE = new WFFExpressionElementType("DATA_SOURCE");
   IElementType DIV_EXPR = new WFFExpressionElementType("DIV_EXPR");
   IElementType ELVIS_EXPR = new WFFExpressionElementType("ELVIS_EXPR");
   IElementType EXPR = new WFFExpressionElementType("EXPR");
@@ -83,8 +83,8 @@ public interface WFFExpressionTypes {
       else if (type == CONDITIONAL_OP) {
         return new WFFExpressionConditionalOpImpl(node);
       }
-      else if (type == DATA_SOURCE_OR_CONFIGURATION) {
-        return new WFFExpressionDataSourceOrConfigurationImpl(node);
+      else if (type == DATA_SOURCE) {
+        return new WFFExpressionDataSourceImpl(node);
       }
       else if (type == DIV_EXPR) {
         return new WFFExpressionDivExprImpl(node);

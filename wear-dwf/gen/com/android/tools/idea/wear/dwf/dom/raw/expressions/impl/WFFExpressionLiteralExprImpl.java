@@ -48,8 +48,8 @@ public class WFFExpressionLiteralExprImpl extends WFFExpressionExprImpl implemen
 
   @Override
   @Nullable
-  public WFFExpressionDataSourceOrConfiguration getDataSourceOrConfiguration() {
-    return findChildByClass(WFFExpressionDataSourceOrConfiguration.class);
+  public WFFExpressionDataSource getDataSource() {
+    return findChildByClass(WFFExpressionDataSource.class);
   }
 
   @Override

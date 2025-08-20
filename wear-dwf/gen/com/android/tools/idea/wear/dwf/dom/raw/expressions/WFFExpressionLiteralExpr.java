@@ -27,7 +27,7 @@ import com.intellij.psi.PsiReference;
 public interface WFFExpressionLiteralExpr extends WFFExpressionExpr {
 
   @Nullable
-  WFFExpressionDataSourceOrConfiguration getDataSourceOrConfiguration();
+  WFFExpressionDataSource getDataSource();
 
   @Nullable
   PsiElement getHexColor();

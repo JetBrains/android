@@ -72,7 +72,7 @@ private primary_group ::= literal_expr | paren_expr
 function_id ::= ID &OPEN_PAREN
 call_expr ::= function_id arg_list
 arg_list ::= OPEN_PAREN [ !CLOSE_PAREN expr  (',' expr) * ] CLOSE_PAREN
-literal_expr ::= NUMBER | QUOTED_STRING | ID | data_source_or_configuration | NULL | HEX_COLOR {
+literal_expr ::= NUMBER | QUOTED_STRING | ID | data_source | NULL | HEX_COLOR {
   methods=[getReferences]
 }
 unary_min_expr ::= '-' expr
@@ -91,6 +91,6 @@ mod_expr ::= expr '%' expr
 paren_expr ::= OPEN_PAREN expr CLOSE_PAREN
 elvis_expr ::= expr QUESTION_MARK expr COLON expr
 
-data_source_or_configuration ::= OPEN_BRACKET ID CLOSE_BRACKET {
+data_source ::= OPEN_BRACKET ID CLOSE_BRACKET {
  pin=2
 }

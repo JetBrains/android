@@ -29,14 +29,14 @@ import static com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionT
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.*;
 
-public class WFFExpressionDataSourceOrConfigurationImpl extends ASTWrapperPsiElement implements WFFExpressionDataSourceOrConfiguration {
+public class WFFExpressionDataSourceImpl extends ASTWrapperPsiElement implements WFFExpressionDataSource {
 
-  public WFFExpressionDataSourceOrConfigurationImpl(@NotNull ASTNode node) {
+  public WFFExpressionDataSourceImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull WFFExpressionVisitor visitor) {
-    visitor.visitDataSourceOrConfiguration(this);
+    visitor.visitDataSource(this);
   }
 
   @Override

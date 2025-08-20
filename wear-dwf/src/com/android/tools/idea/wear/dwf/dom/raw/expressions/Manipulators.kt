@@ -40,7 +40,7 @@ class WFFExpressionLiteralExprManipulator : AbstractElementManipulator<WFFExpres
     val builder =
       PsiBuilderFactory.getInstance()
         .createBuilder(WFFExpressionParserDefinition(), WFFExpressionLexer(), text)
-    val ast = WFFExpressionParser().parse(WFFExpressionTypes.DATA_SOURCE_OR_CONFIGURATION, builder)
+    val ast = WFFExpressionParser().parse(WFFExpressionTypes.LITERAL_EXPR, builder)
     val newElement = ast.psi as? WFFExpressionLiteralExpr ?: return null
     // Give the new PSI element a parent, otherwise it will be invalid.
     val holder = DummyHolderFactory.createHolder(element.manager, element.language, element)

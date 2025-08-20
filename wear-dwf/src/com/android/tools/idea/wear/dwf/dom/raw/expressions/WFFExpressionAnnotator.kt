@@ -42,20 +42,19 @@ class WFFExpressionAnnotator() : Annotator {
       }
     when (element) {
       is WFFExpressionFunctionId -> annotateFunctionId(wffVersion, element, holder)
-      is WFFExpressionDataSourceOrConfiguration ->
-        annotateDataSourceOrConfiguration(wffVersion, element, holder)
+      is WFFExpressionDataSource -> annotateDataSource(wffVersion, element, holder)
     }
   }
 
-  private fun annotateDataSourceOrConfiguration(
+  private fun annotateDataSource(
     wffVersion: WFFVersion?,
-    sourceType: WFFExpressionDataSourceOrConfiguration,
+    dataSource: WFFExpressionDataSource,
     holder: AnnotationHolder,
   ) {
     when {
-      sourceType.id.text.startsWith(WFFConstants.CONFIGURATION_PREFIX) ->
-        annotateConfiguration(sourceType, holder)
-      else -> annotateDataSourceId(wffVersion, sourceType.id, holder)
+      dataSource.id.text.startsWith(WFFConstants.CONFIGURATION_PREFIX) ->
+        annotateConfiguration(dataSource, holder)
+      else -> annotateDataSourceId(wffVersion, dataSource.id, holder)
     }
   }
 
@@ -138,7 +137,7 @@ class WFFExpressionAnnotator() : Annotator {
   }
 
   private fun annotateConfiguration(
-    configuration: WFFExpressionDataSourceOrConfiguration,
+    configuration: WFFExpressionDataSource,
     holder: AnnotationHolder,
   ) {
     val reference =

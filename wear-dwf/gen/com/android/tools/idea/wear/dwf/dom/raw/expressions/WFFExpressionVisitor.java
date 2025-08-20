@@ -49,7 +49,7 @@ public class WFFExpressionVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
-  public void visitDataSourceOrConfiguration(@NotNull WFFExpressionDataSourceOrConfiguration o) {
+  public void visitDataSource(@NotNull WFFExpressionDataSource o) {
     visitPsiElement(o);
   }
 

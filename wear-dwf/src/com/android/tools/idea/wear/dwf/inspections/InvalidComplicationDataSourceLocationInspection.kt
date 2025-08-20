@@ -21,7 +21,7 @@ import com.android.tools.idea.wear.dwf.WFFConstants
 import com.android.tools.idea.wear.dwf.WFFConstants.DataSources
 import com.android.tools.idea.wear.dwf.WearDwfBundle.message
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.StaticDataSource
-import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionDataSourceOrConfiguration
+import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionDataSource
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionLanguage
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionVisitor
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.getParentComplicationTag
@@ -59,7 +59,7 @@ class InvalidComplicationDataSourceLocationInspection : LocalInspectionTool() {
 
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
     return object : WFFExpressionVisitor() {
-      override fun visitDataSourceOrConfiguration(element: WFFExpressionDataSourceOrConfiguration) {
+      override fun visitDataSource(element: WFFExpressionDataSource) {
         val complicationDataSource =
           DataSources.COMPLICATION_ALL.find { it.id == element.id.text } ?: return
         val parentComplicationTag = getParentComplicationTag(element)

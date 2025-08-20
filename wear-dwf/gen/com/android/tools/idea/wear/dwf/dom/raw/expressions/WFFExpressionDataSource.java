@@ -23,7 +23,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface WFFExpressionDataSourceOrConfiguration extends PsiElement {
+public interface WFFExpressionDataSource extends PsiElement {
 
   @NotNull
   PsiElement getId();
