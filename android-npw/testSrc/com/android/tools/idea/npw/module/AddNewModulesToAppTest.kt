@@ -66,13 +66,22 @@ abstract class AddNewModulesToAppTest(
     }
 
   private fun loadInitialProject() {
+    // todo b/440101998
+    val disableAndroidX: (File) -> Unit = {
+      File(it, "gradle.properties").appendText("\n\nandroid.useAndroidX=false")
+    }
     if (useVersionCatalog) {
       projectRule.load(
         TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG,
         agpVersion = getAgpVersion(),
+        preLoad = disableAndroidX,
       )
     } else {
-      projectRule.load(TestProjectPaths.SIMPLE_APPLICATION, agpVersion = getAgpVersion())
+      projectRule.load(
+        TestProjectPaths.SIMPLE_APPLICATION,
+        agpVersion = getAgpVersion(),
+        preLoad = disableAndroidX,
+      )
     }
   }
 

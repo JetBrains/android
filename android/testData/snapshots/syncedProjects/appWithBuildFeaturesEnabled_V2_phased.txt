@@ -169,13 +169,21 @@ PROJECT                       : project
             Scope                         : Test
         LIBRARY                       : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: com.android.databinding:adapters:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: androidx.annotation:annotation:1.1.0 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: com.android.databinding:baseLibrary:<VERSION> [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-common:2.2.0 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: com.android.databinding:library:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: androidx.databinding:databinding-adapters:<AGP_VERSION>@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: com.android.databinding:viewbinding:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: androidx.databinding:databinding-common:<AGP_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.databinding:databinding-runtime:<AGP_VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.databinding:viewbinding:<AGP_VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.6.1 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.6.1@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION> [=]
             Scope                         : Test
@@ -252,6 +260,16 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-integration:1.3 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : project.app.main
             Scope                         : Test
@@ -353,10 +371,14 @@ PROJECT                       : project
         LIBRARY                       : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
         LIBRARY                       : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
         LIBRARY                       : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
-        LIBRARY                       : Gradle: com.android.databinding:adapters:<VERSION>@aar [=]
-        LIBRARY                       : Gradle: com.android.databinding:baseLibrary:<VERSION> [=]
-        LIBRARY                       : Gradle: com.android.databinding:library:<VERSION>@aar [=]
-        LIBRARY                       : Gradle: com.android.databinding:viewbinding:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: androidx.annotation:annotation:1.1.0 [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-common:2.2.0 [=]
+        LIBRARY                       : Gradle: androidx.databinding:databinding-adapters:<AGP_VERSION>@aar [=]
+        LIBRARY                       : Gradle: androidx.databinding:databinding-common:<AGP_VERSION> [=]
+        LIBRARY                       : Gradle: androidx.databinding:databinding-runtime:<AGP_VERSION>@aar [=]
+        LIBRARY                       : Gradle: androidx.databinding:viewbinding:<AGP_VERSION>@aar [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.6.1 [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.6.1@aar [=]
         LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION> [=]
         LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
@@ -383,6 +405,11 @@ PROJECT                       : project
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.google.guava:guava:19.0 [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4 [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4 [=]
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
@@ -478,13 +505,21 @@ PROJECT                       : project
             Scope                         : Test
         LIBRARY                       : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: com.android.databinding:adapters:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: androidx.annotation:annotation:1.1.0 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: com.android.databinding:baseLibrary:<VERSION> [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-common:2.2.0 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: com.android.databinding:library:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: androidx.databinding:databinding-adapters:<AGP_VERSION>@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: com.android.databinding:viewbinding:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: androidx.databinding:databinding-common:<AGP_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.databinding:databinding-runtime:<AGP_VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.databinding:viewbinding:<AGP_VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.6.1 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.6.1@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION> [=]
             Scope                         : Test
@@ -542,6 +577,16 @@ PROJECT                       : project
             Scope                         : Test
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : project.app.main
             Scope                         : Test
         Classes
@@ -581,19 +626,29 @@ PROJECT                       : project
         LIBRARY                       : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar
             *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-<VERSION>/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-<VERSION>/jars/classes.jar!/
-        LIBRARY                       : Gradle: com.android.databinding:adapters:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-<AGP_VERSION>/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-<AGP_VERSION>/res
-            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-<AGP_VERSION>/jars/classes.jar!/
-        LIBRARY                       : Gradle: com.android.databinding:baseLibrary:<VERSION>
-            *CLASSES                      : jar://<M2>/com/android/databinding/baseLibrary/<AGP_VERSION>/baseLibrary-<AGP_VERSION>.jar!/
-        LIBRARY                       : Gradle: com.android.databinding:library:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-<AGP_VERSION>/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-<AGP_VERSION>/res
-            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-<AGP_VERSION>/jars/classes.jar!/
-        LIBRARY                       : Gradle: com.android.databinding:viewbinding:<VERSION>@aar
+        LIBRARY                       : Gradle: androidx.annotation:annotation:1.1.0
+            *CLASSES                      : jar://<M2>/androidx/annotation/annotation/1.1.0/annotation-1.1.0.jar!/
+        LIBRARY                       : Gradle: androidx.arch.core:core-common:2.2.0
+            *CLASSES                      : jar://<M2>/androidx/arch/core/core-common/2.2.0/core-common-2.2.0.jar!/
+        LIBRARY                       : Gradle: androidx.databinding:databinding-adapters:<AGP_VERSION>@aar
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-adapters-<AGP_VERSION>/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-adapters-<AGP_VERSION>/res
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-adapters-<AGP_VERSION>/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.databinding:databinding-common:<AGP_VERSION>
+            *CLASSES                      : jar://<M2>/androidx/databinding/databinding-common/<AGP_VERSION>/databinding-common-<AGP_VERSION>.jar!/
+        LIBRARY                       : Gradle: androidx.databinding:databinding-runtime:<AGP_VERSION>@aar
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-runtime-<AGP_VERSION>/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-runtime-<AGP_VERSION>/res
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-runtime-<AGP_VERSION>/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.databinding:viewbinding:<AGP_VERSION>@aar
             *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-<AGP_VERSION>/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-<AGP_VERSION>/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.6.1
+            *CLASSES                      : jar://<M2>/androidx/lifecycle/lifecycle-common/2.6.1/lifecycle-common-2.6.1.jar!/
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.6.1@aar
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.6.1/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.6.1/res
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.6.1/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION>
             *CLASSES                      : jar://<M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar!/
         LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar
@@ -707,6 +762,16 @@ PROJECT                       : project
             *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar!/
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3
             *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
+            *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+            *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4
+            *CLASSES                      : jar://<M2>/org/jetbrains/kotlinx/kotlinx-coroutines-android/1.6.4/kotlinx-coroutines-android-1.6.4.jar!/
+        LIBRARY                       : Gradle: org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4
+            *CLASSES                      : jar://<M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.4/kotlinx-coroutines-core-jvm-1.6.4.jar!/
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
+            *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
     BUILD_TASKS
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
             ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest

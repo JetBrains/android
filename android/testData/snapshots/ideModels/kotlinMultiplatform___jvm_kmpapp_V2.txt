@@ -1396,7 +1396,7 @@ MODULE                        : kotlinMultiPlatform.app
         ApplicationRClassConstantIds  : false
         AestRClassConstantIds         : false
         TransitiveRClasses            : false
-        UseAndroidX                   : false
+        UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
@@ -2865,7 +2865,7 @@ MODULE                        : kotlinMultiPlatform.module2
         ApplicationRClassConstantIds  : false
         AestRClassConstantIds         : false
         TransitiveRClasses            : false
-        UseAndroidX                   : false
+        UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true

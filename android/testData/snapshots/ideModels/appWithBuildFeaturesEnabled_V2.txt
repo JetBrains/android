@@ -109,49 +109,67 @@ LIBRARY_TABLE
         resStaticLibrary              : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/res.apk [-]
         - runtimeJarFiles             : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/jars/classes.jar
         symbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/R.txt
-    - library                     : com.android.databinding:adapters:<AGP_VERSION>@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-<AGP_VERSION>/aidl [-]
-        artifact                      : <M2>/com/android/databinding/adapters/<AGP_VERSION>/adapters-<AGP_VERSION>.aar
-        artifactAddress               : com.android.databinding:adapters:<AGP_VERSION>@aar
-        assetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-<AGP_VERSION>/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-<AGP_VERSION>/jars/classes.jar
-        component                     : com.android.databinding:adapters:<AGP_VERSION>
-        externalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-<AGP_VERSION>/annotations.zip [-]
-        folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-<AGP_VERSION>
-        jniFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-<AGP_VERSION>/jni [-]
-        manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-<AGP_VERSION>/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-<AGP_VERSION>/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-<AGP_VERSION>/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-<AGP_VERSION>/rs [-]
-        resFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-<AGP_VERSION>/res
-        resStaticLibrary              : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-<AGP_VERSION>/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-<AGP_VERSION>/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/adapters-<AGP_VERSION>/R.txt
-    - library                     : com.android.databinding:library:<AGP_VERSION>@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-<AGP_VERSION>/aidl [-]
-        artifact                      : <M2>/com/android/databinding/library/<AGP_VERSION>/library-<AGP_VERSION>.aar
-        artifactAddress               : com.android.databinding:library:<AGP_VERSION>@aar
-        assetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-<AGP_VERSION>/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-<AGP_VERSION>/jars/classes.jar
-        component                     : com.android.databinding:library:<AGP_VERSION>
-        externalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-<AGP_VERSION>/annotations.zip [-]
-        folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-<AGP_VERSION>
-        jniFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-<AGP_VERSION>/jni [-]
-        manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-<AGP_VERSION>/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-<AGP_VERSION>/proguard.txt
-        publicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-<AGP_VERSION>/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-<AGP_VERSION>/rs [-]
-        resFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-<AGP_VERSION>/res
-        resStaticLibrary              : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-<AGP_VERSION>/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-<AGP_VERSION>/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-<AGP_VERSION>/R.txt
-    - library                     : com.android.databinding:viewbinding:<AGP_VERSION>@aar (IdeAndroidLibraryImpl)
+    - library                     : androidx.arch.core:core-runtime:2.2.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.2.0/aidl [-]
+        artifact                      : <M2>/androidx/arch/core/core-runtime/2.2.0/core-runtime-2.2.0.aar
+        artifactAddress               : androidx.arch.core:core-runtime:2.2.0@aar
+        assetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.2.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.2.0/jars/classes.jar
+        component                     : androidx.arch.core:core-runtime:2.2.0
+        externalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.2.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.2.0
+        jniFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.2.0/jni [-]
+        manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.2.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.2.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.2.0/public.txt
+        renderscriptFolder            : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.2.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.2.0/res
+        resStaticLibrary              : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.2.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.2.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.2.0/R.txt
+    - library                     : androidx.databinding:databinding-adapters:<AGP_VERSION>@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-adapters-<AGP_VERSION>/aidl [-]
+        artifact                      : <M2>/androidx/databinding/databinding-adapters/<AGP_VERSION>/databinding-adapters-<AGP_VERSION>.aar
+        artifactAddress               : androidx.databinding:databinding-adapters:<AGP_VERSION>@aar
+        assetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-adapters-<AGP_VERSION>/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-adapters-<AGP_VERSION>/jars/classes.jar
+        component                     : androidx.databinding:databinding-adapters:<AGP_VERSION>
+        externalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-adapters-<AGP_VERSION>/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-adapters-<AGP_VERSION>
+        jniFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-adapters-<AGP_VERSION>/jni [-]
+        manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-adapters-<AGP_VERSION>/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-adapters-<AGP_VERSION>/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-adapters-<AGP_VERSION>/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-adapters-<AGP_VERSION>/rs [-]
+        resFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-adapters-<AGP_VERSION>/res
+        resStaticLibrary              : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-adapters-<AGP_VERSION>/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-adapters-<AGP_VERSION>/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-adapters-<AGP_VERSION>/R.txt
+    - library                     : androidx.databinding:databinding-runtime:<AGP_VERSION>@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-runtime-<AGP_VERSION>/aidl [-]
+        artifact                      : <M2>/androidx/databinding/databinding-runtime/<AGP_VERSION>/databinding-runtime-<AGP_VERSION>.aar
+        artifactAddress               : androidx.databinding:databinding-runtime:<AGP_VERSION>@aar
+        assetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-runtime-<AGP_VERSION>/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-runtime-<AGP_VERSION>/jars/classes.jar
+        component                     : androidx.databinding:databinding-runtime:<AGP_VERSION>
+        externalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-runtime-<AGP_VERSION>/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-runtime-<AGP_VERSION>
+        jniFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-runtime-<AGP_VERSION>/jni [-]
+        manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-runtime-<AGP_VERSION>/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-runtime-<AGP_VERSION>/proguard.txt
+        publicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-runtime-<AGP_VERSION>/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-runtime-<AGP_VERSION>/rs [-]
+        resFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-runtime-<AGP_VERSION>/res
+        resStaticLibrary              : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-runtime-<AGP_VERSION>/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-runtime-<AGP_VERSION>/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/databinding-runtime-<AGP_VERSION>/R.txt
+    - library                     : androidx.databinding:viewbinding:<AGP_VERSION>@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-<AGP_VERSION>/aidl [-]
-        artifact                      : <M2>/com/android/databinding/viewbinding/<AGP_VERSION>/viewbinding-<AGP_VERSION>.aar
-        artifactAddress               : com.android.databinding:viewbinding:<AGP_VERSION>@aar
+        artifact                      : <M2>/androidx/databinding/viewbinding/<AGP_VERSION>/viewbinding-<AGP_VERSION>.aar
+        artifactAddress               : androidx.databinding:viewbinding:<AGP_VERSION>@aar
         assetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-<AGP_VERSION>/assets [-]
         - compileJarFiles             : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-<AGP_VERSION>/jars/classes.jar
-        component                     : com.android.databinding:viewbinding:<AGP_VERSION>
+        component                     : androidx.databinding:viewbinding:<AGP_VERSION>
         externalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-<AGP_VERSION>/annotations.zip [-]
         folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-<AGP_VERSION>
         jniFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-<AGP_VERSION>/jni [-]
@@ -163,6 +181,79 @@ LIBRARY_TABLE
         resStaticLibrary              : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-<AGP_VERSION>/res.apk [-]
         - runtimeJarFiles             : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-<AGP_VERSION>/jars/classes.jar
         symbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-<AGP_VERSION>/R.txt
+    - library                     : androidx.lifecycle:lifecycle-runtime:2.6.1@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.6.1/aidl [-]
+        artifact                      : <M2>/androidx/lifecycle/lifecycle-runtime/2.6.1/lifecycle-runtime-2.6.1.aar
+        artifactAddress               : androidx.lifecycle:lifecycle-runtime:2.6.1@aar
+        assetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.6.1/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.6.1/jars/classes.jar
+        component                     : androidx.lifecycle:lifecycle-runtime:2.6.1
+        externalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.6.1/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.6.1
+        jniFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.6.1/jni [-]
+        manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.6.1/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.6.1/proguard.txt
+        publicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.6.1/public.txt
+        renderscriptFolder            : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.6.1/rs [-]
+        resFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.6.1/res
+        resStaticLibrary              : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.6.1/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.6.1/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.6.1/R.txt
+    - library                     : androidx.profileinstaller:profileinstaller:1.3.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/profileinstaller-1.3.0/aidl [-]
+        artifact                      : <M2>/androidx/profileinstaller/profileinstaller/1.3.0/profileinstaller-1.3.0.aar
+        artifactAddress               : androidx.profileinstaller:profileinstaller:1.3.0@aar
+        assetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/profileinstaller-1.3.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/profileinstaller-1.3.0/jars/classes.jar
+        component                     : androidx.profileinstaller:profileinstaller:1.3.0
+        externalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/profileinstaller-1.3.0/annotations.zip
+        folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/profileinstaller-1.3.0
+        jniFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/profileinstaller-1.3.0/jni [-]
+        manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/profileinstaller-1.3.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/profileinstaller-1.3.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/profileinstaller-1.3.0/public.txt
+        renderscriptFolder            : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/profileinstaller-1.3.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/profileinstaller-1.3.0/res
+        resStaticLibrary              : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/profileinstaller-1.3.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/profileinstaller-1.3.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/profileinstaller-1.3.0/R.txt
+    - library                     : androidx.startup:startup-runtime:1.1.1@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.1.1/aidl [-]
+        artifact                      : <M2>/androidx/startup/startup-runtime/1.1.1/startup-runtime-1.1.1.aar
+        artifactAddress               : androidx.startup:startup-runtime:1.1.1@aar
+        assetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.1.1/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.1.1/jars/classes.jar
+        component                     : androidx.startup:startup-runtime:1.1.1
+        externalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.1.1/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.1.1
+        jniFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.1.1/jni [-]
+        lintJar                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.1.1/jars/lint.jar
+        manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.1.1/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.1.1/proguard.txt
+        publicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.1.1/public.txt
+        renderscriptFolder            : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.1.1/rs [-]
+        resFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.1.1/res
+        resStaticLibrary              : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.1.1/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.1.1/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.1.1/R.txt
+    - library                     : androidx.tracing:tracing:1.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/aidl [-]
+        artifact                      : <M2>/androidx/tracing/tracing/1.0.0/tracing-1.0.0.aar
+        artifactAddress               : androidx.tracing:tracing:1.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
+        component                     : androidx.tracing:tracing:1.0.0
+        externalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0
+        jniFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/R.txt
     - library                     : com.android.support.constraint:constraint-layout:1.0.2@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2/aidl [-]
         artifact                      : <M2>/com/android/support/constraint/constraint-layout/1.0.2/constraint-layout-1.0.2.aar
@@ -642,11 +733,36 @@ LIBRARY_TABLE
         artifact                      : <M2>/android/arch/lifecycle/common/1.1.1/common-1.1.1.jar
         artifactAddress               : android.arch.lifecycle:common:1.1.1@jar
         component                     : android.arch.lifecycle:common:1.1.1
-    - library                     : com.android.databinding:baseLibrary:<AGP_VERSION> (IdeJavaLibraryImpl)
-        artifact                      : <M2>/com/android/databinding/baseLibrary/<AGP_VERSION>/baseLibrary-<AGP_VERSION>.jar
-        artifactAddress               : com.android.databinding:baseLibrary:<AGP_VERSION>@jar
-        component                     : com.android.databinding:baseLibrary:<AGP_VERSION>
-        - srcJars                     : <M2>/com/android/databinding/baseLibrary/<AGP_VERSION>/baseLibrary-<AGP_VERSION>-sources.jar
+    - library                     : androidx.annotation:annotation:1.1.0 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/androidx/annotation/annotation/1.1.0/annotation-1.1.0.jar
+        artifactAddress               : androidx.annotation:annotation:1.1.0@jar
+        component                     : androidx.annotation:annotation:1.1.0
+    - library                     : androidx.annotation:annotation:1.2.0 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/androidx/annotation/annotation/1.2.0/annotation-1.2.0.jar
+        artifactAddress               : androidx.annotation:annotation:1.2.0@jar
+        component                     : androidx.annotation:annotation:1.2.0
+    - library                     : androidx.arch.core:core-common:2.2.0 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/androidx/arch/core/core-common/2.2.0/core-common-2.2.0.jar
+        artifactAddress               : androidx.arch.core:core-common:2.2.0@jar
+        component                     : androidx.arch.core:core-common:2.2.0
+        - srcJars                     : <M2>/androidx/arch/core/core-common/2.2.0/core-common-2.2.0-sources.jar
+    - library                     : androidx.collection:collection:1.0.0 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
+        artifactAddress               : androidx.collection:collection:1.0.0@jar
+        component                     : androidx.collection:collection:1.0.0
+    - library                     : androidx.concurrent:concurrent-futures:1.1.0 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/androidx/concurrent/concurrent-futures/1.1.0/concurrent-futures-1.1.0.jar
+        artifactAddress               : androidx.concurrent:concurrent-futures:1.1.0@jar
+        component                     : androidx.concurrent:concurrent-futures:1.1.0
+    - library                     : androidx.databinding:databinding-common:<AGP_VERSION> (IdeJavaLibraryImpl)
+        artifact                      : <M2>/androidx/databinding/databinding-common/<AGP_VERSION>/databinding-common-<AGP_VERSION>.jar
+        artifactAddress               : androidx.databinding:databinding-common:<AGP_VERSION>@jar
+        component                     : androidx.databinding:databinding-common:<AGP_VERSION>
+        - srcJars                     : <M2>/androidx/databinding/databinding-common/<AGP_VERSION>/databinding-common-<AGP_VERSION>-sources.jar
+    - library                     : androidx.lifecycle:lifecycle-common:2.6.1 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/androidx/lifecycle/lifecycle-common/2.6.1/lifecycle-common-2.6.1.jar
+        artifactAddress               : androidx.lifecycle:lifecycle-common:2.6.1@jar
+        component                     : androidx.lifecycle:lifecycle-common:2.6.1
     - library                     : com.android.support.constraint:constraint-layout-solver:1.0.2 (IdeJavaLibraryImpl)
         artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
         artifactAddress               : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
@@ -669,6 +785,10 @@ LIBRARY_TABLE
         component                     : com.google.guava:guava:19.0
         docJar                        : <M2>/com/google/guava/guava/19.0/guava-19.0-javadoc.jar
         - srcJars                     : <M2>/com/google/guava/guava/19.0/guava-19.0-sources.jar
+    - library                     : com.google.guava:listenablefuture:1.0 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/com/google/guava/listenablefuture/1.0/listenablefuture-1.0.jar
+        artifactAddress               : com.google.guava:listenablefuture:1.0@jar
+        component                     : com.google.guava:listenablefuture:1.0
     - library                     : com.squareup:javawriter:2.1.1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar
         artifactAddress               : com.squareup:javawriter:2.1.1@jar
@@ -705,10 +825,26 @@ LIBRARY_TABLE
         artifactAddress               : org.hamcrest:hamcrest-library:1.3@jar
         component                     : org.hamcrest:hamcrest-library:1.3
         - srcJars                     : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3-sources.jar
+    - library                     : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+        component                     : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
     - library                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
         artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
         component                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+    - library                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+        component                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+    - library                     : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-android/1.6.4/kotlinx-coroutines-android-1.6.4.jar
+        artifactAddress               : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4@jar
+        component                     : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4
+    - library                     : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.4/kotlinx-coroutines-core-jvm-1.6.4.jar
+        artifactAddress               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4@jar
+        component                     : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4
     - library                     : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
         artifactAddress               : org.jetbrains:annotations:13.0@jar
@@ -720,6 +856,12 @@ LIBRARY_TABLE
         projectPath                   : :app
         sourceSet                     : MAIN
         variant                       : debug
+    - library                     : IdeUnknownLibraryImpl
+        key                           : org.jetbrains.kotlinx|kotlinx-coroutines-bom|1.6.4|org.gradle.category>platform, org.gradle.status>release, org.gradle.usage>java-api|org.jetbrains.kotlinx:kotlinx-coroutines-bom-derived-platform:1.6.4
+    - library                     : IdeUnknownLibraryImpl
+        key                           : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.6.4|org.gradle.category>library, org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4
+    - library                     : IdeUnknownLibraryImpl
+        key                           : org.jetbrains.kotlin|kotlin-stdlib-common|<KOTLIN_VERSION>|org.gradle.category>library, org.gradle.status>release|org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
 MODULE                        : project
     externalProject               : project (DefaultExternalProject)
         path                          : : [-]
@@ -917,7 +1059,7 @@ MODULE                        : project.app
         ApplicationRClassConstantIds  : false
         AestRClassConstantIds         : false
         TransitiveRClasses            : false
-        UseAndroidX                   : false
+        UseAndroidX                   : true
         UsesCompose                   : true
         MlModelBindingEnabled         : true
         AndroidResourcesEnabled       : true
@@ -1252,13 +1394,19 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        androidLibrary                : com.android.databinding:viewbinding:<AGP_VERSION>@aar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        androidLibrary                : com.android.databinding:library:<AGP_VERSION>@aar
-                            androidLibrary                : com.android.databinding:viewbinding:<AGP_VERSION>@aar
-                            androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
-                        androidLibrary                : com.android.databinding:adapters:<AGP_VERSION>@aar
-                            javaLibrary                   : com.android.databinding:baseLibrary:<AGP_VERSION>@jar
+                        androidLibrary                : androidx.databinding:viewbinding:<AGP_VERSION>@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
+                        androidLibrary                : androidx.databinding:databinding-runtime:<AGP_VERSION>@aar
+                            javaLibrary                   : androidx.databinding:databinding-common:<AGP_VERSION>@jar
+                            androidLibrary                : androidx.databinding:viewbinding:<AGP_VERSION>@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.6.1@aar
+                        androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.6.1@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.2.0@jar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.6.1@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        androidLibrary                : androidx.databinding:databinding-adapters:<AGP_VERSION>@aar
+                            javaLibrary                   : androidx.databinding:databinding-common:<AGP_VERSION>@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1268,8 +1416,29 @@ MODULE                        : project.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.google.guava:guava:19.0@jar
                         javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : com.android.databinding:baseLibrary:<AGP_VERSION>@jar
+                        javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
+                        javaLibrary                   : androidx.databinding:databinding-common:<AGP_VERSION>@jar
+                        javaLibrary                   : androidx.arch.core:core-common:2.2.0@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
+                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.6.1@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4@jar
+                            unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.6.4|org.gradle.category>library, org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4
+                            unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-bom|1.6.4|org.gradle.category>platform, org.gradle.status>release, org.gradle.usage>java-api|org.jetbrains.kotlinx:kotlinx-coroutines-bom-derived-platform:1.6.4
+                        javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4@jar
+                            unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-bom|1.6.4|org.gradle.category>platform, org.gradle.status>release, org.gradle.usage>java-api|org.jetbrains.kotlinx:kotlinx-coroutines-bom-derived-platform:1.6.4
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         javaLibrary                   : __local_jars__:<ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar:unspecified
+                        unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.6.4|org.gradle.category>library, org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4
+                            javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4@jar
+                        unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-bom|1.6.4|org.gradle.category>platform, org.gradle.status>release, org.gradle.usage>java-api|org.jetbrains.kotlinx:kotlinx-coroutines-bom-derived-platform:1.6.4
                     runtimeClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1381,19 +1550,39 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        androidLibrary                : com.android.databinding:viewbinding:<AGP_VERSION>@aar
+                        androidLibrary                : androidx.databinding:viewbinding:<AGP_VERSION>@aar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        androidLibrary                : com.android.databinding:library:<AGP_VERSION>@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                        androidLibrary                : androidx.databinding:databinding-runtime:<AGP_VERSION>@aar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
-                            javaLibrary                   : com.android.databinding:baseLibrary:<AGP_VERSION>@jar
-                            androidLibrary                : com.android.databinding:viewbinding:<AGP_VERSION>@aar
-                            androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
-                        androidLibrary                : com.android.databinding:adapters:<AGP_VERSION>@aar
+                            javaLibrary                   : androidx.collection:collection:1.0.0@jar
+                            javaLibrary                   : androidx.databinding:databinding-common:<AGP_VERSION>@jar
+                            androidLibrary                : androidx.databinding:viewbinding:<AGP_VERSION>@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.6.1@aar
+                        androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.6.1@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.2.0@jar
+                            androidLibrary                : androidx.arch.core:core-runtime:2.2.0@aar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.6.1@jar
+                            androidLibrary                : androidx.profileinstaller:profileinstaller:1.3.0@aar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            androidLibrary                : com.android.databinding:library:<AGP_VERSION>@aar
-                            javaLibrary                   : com.android.databinding:baseLibrary:<AGP_VERSION>@jar
+                        androidLibrary                : androidx.arch.core:core-runtime:2.2.0@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.2.0@jar
+                        androidLibrary                : androidx.profileinstaller:profileinstaller:1.3.0@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            javaLibrary                   : androidx.concurrent:concurrent-futures:1.1.0@jar
+                            androidLibrary                : androidx.startup:startup-runtime:1.1.1@aar
+                            javaLibrary                   : com.google.guava:listenablefuture:1.0@jar
+                        androidLibrary                : androidx.startup:startup-runtime:1.1.1@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            androidLibrary                : androidx.tracing:tracing:1.0.0@aar
+                        androidLibrary                : androidx.tracing:tracing:1.0.0@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                        androidLibrary                : androidx.databinding:databinding-adapters:<AGP_VERSION>@aar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            androidLibrary                : androidx.databinding:databinding-runtime:<AGP_VERSION>@aar
+                            javaLibrary                   : androidx.databinding:databinding-common:<AGP_VERSION>@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1406,10 +1595,45 @@ MODULE                        : project.app
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : com.android.databinding:baseLibrary:<AGP_VERSION>@jar
+                        javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                        javaLibrary                   : androidx.databinding:databinding-common:<AGP_VERSION>@jar
+                        javaLibrary                   : androidx.collection:collection:1.0.0@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                        javaLibrary                   : androidx.arch.core:core-common:2.2.0@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.6.1@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4@jar
+                        javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4@jar
+                            unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.6.4|org.gradle.category>library, org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4
+                            unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-bom|1.6.4|org.gradle.category>platform, org.gradle.status>release, org.gradle.usage>java-api|org.jetbrains.kotlinx:kotlinx-coroutines-bom-derived-platform:1.6.4
+                        javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4@jar
+                            unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-bom|1.6.4|org.gradle.category>platform, org.gradle.status>release, org.gradle.usage>java-api|org.jetbrains.kotlinx:kotlinx-coroutines-bom-derived-platform:1.6.4
+                            unknown                       : org.jetbrains.kotlin|kotlin-stdlib-common|<KOTLIN_VERSION>|org.gradle.category>library, org.gradle.status>release|org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
+                        javaLibrary                   : androidx.concurrent:concurrent-futures:1.1.0@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            javaLibrary                   : com.google.guava:listenablefuture:1.0@jar
+                        javaLibrary                   : com.google.guava:listenablefuture:1.0@jar
                         javaLibrary                   : __local_jars__:<ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar:unspecified
+                        unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.6.4|org.gradle.category>library, org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4
+                            javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4@jar
+                        unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-bom|1.6.4|org.gradle.category>platform, org.gradle.status>release, org.gradle.usage>java-api|org.jetbrains.kotlinx:kotlinx-coroutines-bom-derived-platform:1.6.4
+                        unknown                       : org.jetbrains.kotlin|kotlin-stdlib-common|<KOTLIN_VERSION>|org.gradle.category>library, org.gradle.status>release|org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                ProvidedDependencies
+                    - provided                    : androidx.annotation:annotation:1.1.0
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 RuntimeOnlyClasses
-                    - class                       : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.2.0/jars/classes.jar
+                    - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/profileinstaller-1.3.0/jars/classes.jar
+                    - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.1.1/jars/classes.jar
+                    - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
+                    - class                       : <M2>/androidx/annotation/annotation/1.2.0/annotation-1.2.0.jar
+                    - class                       : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
+                    - class                       : <M2>/androidx/concurrent/concurrent-futures/1.1.0/concurrent-futures-1.1.0.jar
+                    - class                       : <M2>/com/google/guava/listenablefuture/1.0/listenablefuture-1.0.jar
                     - class                       : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                 ApplicationId                 : google.simpleapplication
                 SigningConfigName             : debug
@@ -1566,13 +1790,19 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        androidLibrary                : com.android.databinding:viewbinding:<AGP_VERSION>@aar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        androidLibrary                : com.android.databinding:library:<AGP_VERSION>@aar
-                            androidLibrary                : com.android.databinding:viewbinding:<AGP_VERSION>@aar
-                            androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
-                        androidLibrary                : com.android.databinding:adapters:<AGP_VERSION>@aar
-                            javaLibrary                   : com.android.databinding:baseLibrary:<AGP_VERSION>@jar
+                        androidLibrary                : androidx.databinding:viewbinding:<AGP_VERSION>@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
+                        androidLibrary                : androidx.databinding:databinding-runtime:<AGP_VERSION>@aar
+                            javaLibrary                   : androidx.databinding:databinding-common:<AGP_VERSION>@jar
+                            androidLibrary                : androidx.databinding:viewbinding:<AGP_VERSION>@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.6.1@aar
+                        androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.6.1@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.2.0@jar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.6.1@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        androidLibrary                : androidx.databinding:databinding-adapters:<AGP_VERSION>@aar
+                            javaLibrary                   : androidx.databinding:databinding-common:<AGP_VERSION>@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : junit:junit:4.12@jar
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -1593,16 +1823,37 @@ MODULE                        : project.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.google.guava:guava:19.0@jar
                         javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : com.android.databinding:baseLibrary:<AGP_VERSION>@jar
+                        javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
+                        javaLibrary                   : androidx.databinding:databinding-common:<AGP_VERSION>@jar
+                        javaLibrary                   : androidx.arch.core:core-common:2.2.0@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
+                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.6.1@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4@jar
+                            unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.6.4|org.gradle.category>library, org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4
+                            unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-bom|1.6.4|org.gradle.category>platform, org.gradle.status>release, org.gradle.usage>java-api|org.jetbrains.kotlinx:kotlinx-coroutines-bom-derived-platform:1.6.4
+                        javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4@jar
+                            unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-bom|1.6.4|org.gradle.category>platform, org.gradle.status>release, org.gradle.usage>java-api|org.jetbrains.kotlinx:kotlinx-coroutines-bom-derived-platform:1.6.4
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         javaLibrary                   : __local_jars__:<ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar:unspecified
                         module                        : <ROOT>-:app-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.google.guava:guava:19.0@jar
                             androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
-                            androidLibrary                : com.android.databinding:viewbinding:<AGP_VERSION>@aar
-                            javaLibrary                   : com.android.databinding:baseLibrary:<AGP_VERSION>@jar
-                            androidLibrary                : com.android.databinding:library:<AGP_VERSION>@aar
-                            androidLibrary                : com.android.databinding:adapters:<AGP_VERSION>@aar
+                            androidLibrary                : androidx.databinding:viewbinding:<AGP_VERSION>@aar
+                            javaLibrary                   : androidx.databinding:databinding-common:<AGP_VERSION>@jar
+                            androidLibrary                : androidx.databinding:databinding-runtime:<AGP_VERSION>@aar
+                            androidLibrary                : androidx.databinding:databinding-adapters:<AGP_VERSION>@aar
+                        unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.6.4|org.gradle.category>library, org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4
+                            javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4@jar
+                        unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-bom|1.6.4|org.gradle.category>platform, org.gradle.status>release, org.gradle.usage>java-api|org.jetbrains.kotlinx:kotlinx-coroutines-bom-derived-platform:1.6.4
                     runtimeClasspath
                         androidLibrary                : com.android.support.test:runner:1.0.2@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1641,10 +1892,14 @@ MODULE                        : project.app
                     - provided                    : android.arch.lifecycle:livedata:1.1.1@aar
                     - provided                    : android.arch.lifecycle:runtime:1.1.1@aar
                     - provided                    : android.arch.lifecycle:viewmodel:1.1.1@aar
-                    - provided                    : com.android.databinding:adapters:<AGP_VERSION>@aar
-                    - provided                    : com.android.databinding:baseLibrary:<AGP_VERSION>
-                    - provided                    : com.android.databinding:library:<AGP_VERSION>@aar
-                    - provided                    : com.android.databinding:viewbinding:<AGP_VERSION>@aar
+                    - provided                    : androidx.annotation:annotation:1.1.0
+                    - provided                    : androidx.arch.core:core-common:2.2.0
+                    - provided                    : androidx.databinding:databinding-adapters:<AGP_VERSION>@aar
+                    - provided                    : androidx.databinding:databinding-common:<AGP_VERSION>
+                    - provided                    : androidx.databinding:databinding-runtime:<AGP_VERSION>@aar
+                    - provided                    : androidx.databinding:viewbinding:<AGP_VERSION>@aar
+                    - provided                    : androidx.lifecycle:lifecycle-common:2.6.1
+                    - provided                    : androidx.lifecycle:lifecycle-runtime:2.6.1@aar
                     - provided                    : com.android.support.constraint:constraint-layout-solver:1.0.2
                     - provided                    : com.android.support.constraint:constraint-layout:1.0.2@aar
                     - provided                    : com.android.support:animated-vector-drawable:28.0.0@aar
@@ -1670,6 +1925,11 @@ MODULE                        : project.app
                     - provided                    : com.android.support:versionedparcelable:28.0.0@aar
                     - provided                    : com.android.support:viewpager:28.0.0@aar
                     - provided                    : com.google.guava:guava:19.0
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4
+                    - provided                    : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4
+                    - provided                    : org.jetbrains:annotations:13.0
                 ApplicationId                 : google.simpleapplication.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1805,13 +2065,19 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        androidLibrary                : com.android.databinding:viewbinding:<AGP_VERSION>@aar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        androidLibrary                : com.android.databinding:library:<AGP_VERSION>@aar
-                            androidLibrary                : com.android.databinding:viewbinding:<AGP_VERSION>@aar
-                            androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
-                        androidLibrary                : com.android.databinding:adapters:<AGP_VERSION>@aar
-                            javaLibrary                   : com.android.databinding:baseLibrary:<AGP_VERSION>@jar
+                        androidLibrary                : androidx.databinding:viewbinding:<AGP_VERSION>@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
+                        androidLibrary                : androidx.databinding:databinding-runtime:<AGP_VERSION>@aar
+                            javaLibrary                   : androidx.databinding:databinding-common:<AGP_VERSION>@jar
+                            androidLibrary                : androidx.databinding:viewbinding:<AGP_VERSION>@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.6.1@aar
+                        androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.6.1@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.2.0@jar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.6.1@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        androidLibrary                : androidx.databinding:databinding-adapters:<AGP_VERSION>@aar
+                            javaLibrary                   : androidx.databinding:databinding-common:<AGP_VERSION>@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1821,7 +2087,25 @@ MODULE                        : project.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.google.guava:guava:19.0@jar
                         javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : com.android.databinding:baseLibrary:<AGP_VERSION>@jar
+                        javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
+                        javaLibrary                   : androidx.databinding:databinding-common:<AGP_VERSION>@jar
+                        javaLibrary                   : androidx.arch.core:core-common:2.2.0@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
+                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.6.1@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.1.0@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4@jar
+                            unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.6.4|org.gradle.category>library, org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4
+                            unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-bom|1.6.4|org.gradle.category>platform, org.gradle.status>release, org.gradle.usage>java-api|org.jetbrains.kotlinx:kotlinx-coroutines-bom-derived-platform:1.6.4
+                        javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4@jar
+                            unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-bom|1.6.4|org.gradle.category>platform, org.gradle.status>release, org.gradle.usage>java-api|org.jetbrains.kotlinx:kotlinx-coroutines-bom-derived-platform:1.6.4
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         javaLibrary                   : junit:junit:4.12@jar
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -1830,10 +2114,13 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.google.guava:guava:19.0@jar
                             androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
-                            androidLibrary                : com.android.databinding:viewbinding:<AGP_VERSION>@aar
-                            javaLibrary                   : com.android.databinding:baseLibrary:<AGP_VERSION>@jar
-                            androidLibrary                : com.android.databinding:library:<AGP_VERSION>@aar
-                            androidLibrary                : com.android.databinding:adapters:<AGP_VERSION>@aar
+                            androidLibrary                : androidx.databinding:viewbinding:<AGP_VERSION>@aar
+                            javaLibrary                   : androidx.databinding:databinding-common:<AGP_VERSION>@jar
+                            androidLibrary                : androidx.databinding:databinding-runtime:<AGP_VERSION>@aar
+                            androidLibrary                : androidx.databinding:databinding-adapters:<AGP_VERSION>@aar
+                        unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.6.4|org.gradle.category>library, org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4
+                            javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4@jar
+                        unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-bom|1.6.4|org.gradle.category>platform, org.gradle.status>release, org.gradle.usage>java-api|org.jetbrains.kotlinx:kotlinx-coroutines-bom-derived-platform:1.6.4
                     runtimeClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1945,19 +2232,39 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        androidLibrary                : com.android.databinding:viewbinding:<AGP_VERSION>@aar
+                        androidLibrary                : androidx.databinding:viewbinding:<AGP_VERSION>@aar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        androidLibrary                : com.android.databinding:library:<AGP_VERSION>@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                        androidLibrary                : androidx.databinding:databinding-runtime:<AGP_VERSION>@aar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
-                            javaLibrary                   : com.android.databinding:baseLibrary:<AGP_VERSION>@jar
-                            androidLibrary                : com.android.databinding:viewbinding:<AGP_VERSION>@aar
-                            androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
-                        androidLibrary                : com.android.databinding:adapters:<AGP_VERSION>@aar
+                            javaLibrary                   : androidx.collection:collection:1.0.0@jar
+                            javaLibrary                   : androidx.databinding:databinding-common:<AGP_VERSION>@jar
+                            androidLibrary                : androidx.databinding:viewbinding:<AGP_VERSION>@aar
+                            androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.6.1@aar
+                        androidLibrary                : androidx.lifecycle:lifecycle-runtime:2.6.1@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.2.0@jar
+                            androidLibrary                : androidx.arch.core:core-runtime:2.2.0@aar
+                            javaLibrary                   : androidx.lifecycle:lifecycle-common:2.6.1@jar
+                            androidLibrary                : androidx.profileinstaller:profileinstaller:1.3.0@aar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            androidLibrary                : com.android.databinding:library:<AGP_VERSION>@aar
-                            javaLibrary                   : com.android.databinding:baseLibrary:<AGP_VERSION>@jar
+                        androidLibrary                : androidx.arch.core:core-runtime:2.2.0@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            javaLibrary                   : androidx.arch.core:core-common:2.2.0@jar
+                        androidLibrary                : androidx.profileinstaller:profileinstaller:1.3.0@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            javaLibrary                   : androidx.concurrent:concurrent-futures:1.1.0@jar
+                            androidLibrary                : androidx.startup:startup-runtime:1.1.1@aar
+                            javaLibrary                   : com.google.guava:listenablefuture:1.0@jar
+                        androidLibrary                : androidx.startup:startup-runtime:1.1.1@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            androidLibrary                : androidx.tracing:tracing:1.0.0@aar
+                        androidLibrary                : androidx.tracing:tracing:1.0.0@aar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                        androidLibrary                : androidx.databinding:databinding-adapters:<AGP_VERSION>@aar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            androidLibrary                : androidx.databinding:databinding-runtime:<AGP_VERSION>@aar
+                            javaLibrary                   : androidx.databinding:databinding-common:<AGP_VERSION>@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1970,7 +2277,26 @@ MODULE                        : project.app
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : com.android.databinding:baseLibrary:<AGP_VERSION>@jar
+                        javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                        javaLibrary                   : androidx.databinding:databinding-common:<AGP_VERSION>@jar
+                        javaLibrary                   : androidx.collection:collection:1.0.0@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                        javaLibrary                   : androidx.arch.core:core-common:2.2.0@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.6.1@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4@jar
+                        javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4@jar
+                            unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.6.4|org.gradle.category>library, org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4
+                            unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-bom|1.6.4|org.gradle.category>platform, org.gradle.status>release, org.gradle.usage>java-api|org.jetbrains.kotlinx:kotlinx-coroutines-bom-derived-platform:1.6.4
+                        javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4@jar
+                            unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-bom|1.6.4|org.gradle.category>platform, org.gradle.status>release, org.gradle.usage>java-api|org.jetbrains.kotlinx:kotlinx-coroutines-bom-derived-platform:1.6.4
+                            unknown                       : org.jetbrains.kotlin|kotlin-stdlib-common|<KOTLIN_VERSION>|org.gradle.category>library, org.gradle.status>release|org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
+                        javaLibrary                   : androidx.concurrent:concurrent-futures:1.1.0@jar
+                            javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
+                            javaLibrary                   : com.google.guava:listenablefuture:1.0@jar
+                        javaLibrary                   : com.google.guava:listenablefuture:1.0@jar
                         javaLibrary                   : junit:junit:4.12@jar
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -1979,12 +2305,28 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.google.guava:guava:19.0@jar
                             androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
-                            androidLibrary                : com.android.databinding:viewbinding:<AGP_VERSION>@aar
-                            javaLibrary                   : com.android.databinding:baseLibrary:<AGP_VERSION>@jar
-                            androidLibrary                : com.android.databinding:library:<AGP_VERSION>@aar
-                            androidLibrary                : com.android.databinding:adapters:<AGP_VERSION>@aar
+                            androidLibrary                : androidx.databinding:viewbinding:<AGP_VERSION>@aar
+                            javaLibrary                   : androidx.databinding:databinding-common:<AGP_VERSION>@jar
+                            androidLibrary                : androidx.databinding:databinding-runtime:<AGP_VERSION>@aar
+                            androidLibrary                : androidx.databinding:databinding-adapters:<AGP_VERSION>@aar
+                        unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.6.4|org.gradle.category>library, org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4
+                            javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4@jar
+                        unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-bom|1.6.4|org.gradle.category>platform, org.gradle.status>release, org.gradle.usage>java-api|org.jetbrains.kotlinx:kotlinx-coroutines-bom-derived-platform:1.6.4
+                        unknown                       : org.jetbrains.kotlin|kotlin-stdlib-common|<KOTLIN_VERSION>|org.gradle.category>library, org.gradle.status>release|org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                ProvidedDependencies
+                    - provided                    : androidx.annotation:annotation:1.1.0
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 RuntimeOnlyClasses
-                    - class                       : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.2.0/jars/classes.jar
+                    - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/profileinstaller-1.3.0/jars/classes.jar
+                    - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.1.1/jars/classes.jar
+                    - class                       : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
+                    - class                       : <M2>/androidx/annotation/annotation/1.2.0/annotation-1.2.0.jar
+                    - class                       : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
+                    - class                       : <M2>/androidx/concurrent/concurrent-futures/1.1.0/concurrent-futures-1.1.0.jar
+                    - class                       : <M2>/com/google/guava/listenablefuture/1.0/listenablefuture-1.0.jar
                     - class                       : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                 MockablePlatformJar           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)

@@ -197,6 +197,7 @@ maven_repository(
     artifacts = [
         "@maven//:androidx.activity.activity-ktx_1.8.0",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
+        "@maven//:androidx.appcompat.appcompat_1.6.1",
         "@maven//:androidx.benchmark.benchmark-baseline-profile-gradle-plugin_1.2.4",
         "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.2.4",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.4",
@@ -222,6 +223,7 @@ maven_repository(
         "@maven//:com.android.support.test.espresso.espresso-core_3.0.2",
         "@maven//:com.android.tools.build.aapt2_8.1.0-10154469",
         "@maven//:com.android.tools.build.gradle_8.1.0",
+        "@maven//:com.google.android.material.material_1.10.0",
         "@maven//:com.google.android.material.material_1.4.0",
         "@maven//:com.google.guava.guava_19.0",
         "@maven//:org.gradle.toolchains.foojay-resolver-convention.org.gradle.toolchains.foojay-resolver-convention.gradle.plugin_0.8.0",

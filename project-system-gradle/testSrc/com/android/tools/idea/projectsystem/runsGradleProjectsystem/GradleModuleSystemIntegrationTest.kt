@@ -125,6 +125,10 @@ class GradleModuleSystemIntegrationTest {
   @Test
   fun `test use androidx in all modules of a non-androidx project`() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    preparedProject.root.resolve("gradle.properties").appendText("""
+      android.useAndroidX=false
+    """.trimIndent())
+
     preparedProject.open { project ->
       val modules = project.modules.toList()
       assertThat(modules).isNotEmpty()

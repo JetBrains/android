@@ -61,7 +61,7 @@ public class DataBindingScopeTest {
 
     GradleSyncState syncState = GradleSyncState.getInstance(project);
     assertFalse(syncState.isSyncNeeded().toBoolean());
-    assertSame(DataBindingMode.SUPPORT, LayoutBindingModuleCache.getInstance(facet).getDataBindingMode());
+    assertSame(DataBindingMode.ANDROIDX, LayoutBindingModuleCache.getInstance(facet).getDataBindingMode());
 
     // app depends on lib depends on lib2
     assertTrue(TestModuleUtil.hasModule(project, "app"));
