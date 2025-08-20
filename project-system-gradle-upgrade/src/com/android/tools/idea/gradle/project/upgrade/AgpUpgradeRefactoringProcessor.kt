@@ -305,7 +305,6 @@ class AgpUpgradeRefactoringProcessor(
     MIGRATE_TEST_COVERAGE_ENABLED_TO_UNIT_AND_ANDROID_COVERAGE.RefactoringProcessor(this),
     ShadersDefaultRefactoringProcessor(this),
     UseAndroidXDefaultRefactoringProcessor(this),
-    ExcludeLibraryDefaultRefactoringProcessor(this),
     ResValuesDefaultRefactoringProcessor(this),
     BlockAidlProcessor(this),
     BlockRenderScriptProcessor(this),
@@ -324,11 +323,12 @@ class AgpUpgradeRefactoringProcessor(
     BuildTypesUnitTestDefaultRefactoringProcessor(this),
     DisallowUsesSdkInManifestDefaultRefactoringProcessor(this),
     EnforceUniquePackageNameRefactoringProcessor(this),
+    // AGP 9.0.0-alpha02
+    DependencyConstraintsRefactoringProcessor(this),
     AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor(this),
     AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(this),
     RemoveImplementationPropertiesRefactoringProcessor(this),
     GradleDaemonJvmCriteriaRefactoringProcessor(this),
-
     // AGP 10.x
     BlockR8StrictFullModeForKeepRulesProcessor(this),
     BlockR8OptimizedResourceShrinkingProcessor(this),
