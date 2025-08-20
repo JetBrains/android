@@ -15,10 +15,10 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "@intellij//:intellij-sdk",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "@intellij//:com.intellij.java",
         "@intellij//:org.jetbrains.kotlin",
-        "@intellij//:intellij-sdk",
         "//tools/analytics-library/tracker:analytics-tracker",
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
@@ -292,8 +292,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "@intellij//:org.jetbrains.kotlin",
-        "@intellij//:intellij-sdk",
     ],
 )
