@@ -16,9 +16,12 @@
 package com.android.tools.idea.wear.dwf.dom.raw.expressions
 
 import com.android.SdkConstants.TAG_COMPLICATION
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.wear.dwf.WFFConstants.TAG_PARAMETER
 import com.android.tools.idea.wear.dwf.WFFConstants.TAG_TEMPLATE
+import com.android.tools.idea.wear.dwf.dom.raw.CurrentWFFVersionService
 import com.android.tools.idea.wear.dwf.dom.raw.configurations.UserConfigurationReference
+import com.android.tools.wear.wff.WFFVersion.WFFVersion4
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
@@ -30,13 +33,12 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 
 fun getReferences(literalExpr: WFFExpressionLiteralExpr): Array<PsiReference> {
-  val userConfigurationReference =
-    getWatchFaceFile(literalExpr)
-      ?.let { watchFaceFile ->
-        UserConfigurationReference(literalExpr, watchFaceFile, literalExpr.text)
-      }
-      ?.takeIf { literalExpr.id != null || literalExpr.dataSource != null }
-  return listOfNotNull(userConfigurationReference, templateParameterStringReference(literalExpr))
+  val watchFaceFile = getWatchFaceFile(literalExpr)
+  return listOfNotNull(
+      watchFaceFile?.let { userConfigurationReference(literalExpr, watchFaceFile) },
+      watchFaceFile?.let { referenceTagRefence(literalExpr, watchFaceFile) },
+      templateParameterStringReference(literalExpr),
+    )
     .toTypedArray()
 }
 
@@ -62,6 +64,40 @@ fun getParentComplicationTag(element: PsiElement): XmlTag? {
   return injectedHost.findParentInFile(withSelf = true) {
     (it as? XmlTag)?.name == TAG_COMPLICATION
   } as? XmlTag
+}
+
+/**
+ * Creates a [UserConfigurationReference] for a given [literalExpr] and [watchFaceFile]. The
+ * reference will only be created if the [literalExpr] is an ID or a data source.
+ *
+ * @see WFFExpressionLiteralExpr.isIdOrDataSource
+ */
+private fun userConfigurationReference(
+  literalExpr: WFFExpressionLiteralExpr,
+  watchFaceFile: XmlFile,
+): UserConfigurationReference? {
+  if (!literalExpr.isIdOrDataSource()) return null
+  return UserConfigurationReference(literalExpr, watchFaceFile, literalExpr.text)
+}
+
+/**
+ * Creates a [ReferenceTagReference] for a given [literalExpr] and [watchFaceFile]. The reference
+ * will only be created if the [literalExpr] is an ID or a data source, the current WFF version is 4
+ * or higher.`.
+ *
+ * @see WFFExpressionLiteralExpr.isIdOrDataSource
+ * @see <a
+ *   href="https://developer.android.com/reference/wear-os/wff/common/reference/reference">Reference</a>
+ */
+private fun referenceTagRefence(
+  literalExpr: WFFExpressionLiteralExpr,
+  watchFaceFile: XmlFile,
+): ReferenceTagReference? {
+  if (!literalExpr.isIdOrDataSource()) return null
+  val module = literalExpr.getModuleSystem()?.module ?: return null
+  val currentWFFVersion = CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module)
+  if (currentWFFVersion == null || currentWFFVersion.wffVersion < WFFVersion4) return null
+  return ReferenceTagReference(literalExpr, watchFaceFile)
 }
 
 /**
@@ -100,3 +136,9 @@ private fun isInjectedInTemplateParameterTag(element: WFFExpressionLiteralExpr):
   val xmlTag = injectedHost.parentOfType<XmlTag>() as? XmlTag ?: return false
   return xmlTag.name == TAG_PARAMETER && xmlTag.parentTag?.name == TAG_TEMPLATE
 }
+
+/**
+ * Returns whether the given [WFFExpressionLiteralExpr] is an ID (i.e. a string), or a
+ * [WFFExpressionDataSource].
+ */
+private fun WFFExpressionLiteralExpr.isIdOrDataSource() = id != null || dataSource != null

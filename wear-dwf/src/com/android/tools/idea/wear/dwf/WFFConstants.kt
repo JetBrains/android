@@ -27,6 +27,7 @@ import com.android.tools.wear.wff.WFFVersion.WFFVersion4
 object WFFConstants {
   const val CONFIGURATION_PREFIX = "CONFIGURATION."
   const val COMPLICATION_PREFIX = "COMPLICATION."
+  const val REFERENCE_PREFIX = "REFERENCE."
 
   const val ATTRIBUTE_ID = "id"
   const val ATTRIBUTE_COLORS = "colors"
@@ -42,6 +43,7 @@ object WFFConstants {
   const val TAG_PHOTOS = "Photos"
   const val TAG_PARAMETER = "Parameter"
   const val TAG_TEMPLATE = "Template"
+  const val TAG_REFERENCE = "Reference"
 
   /**
    * Attributes that can reference drawable resources.
