@@ -41,6 +41,7 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
 
     val compileSdkVersion = android.compileSdkVersion()
     assertThat(compileSdkVersion).isNotNull()
+    assertThat(compileSdkVersion.getRawValue(GradlePropertyModel.OBJECT_TYPE)).isEqualTo("android-33.1-ext18")
     val config = compileSdkVersion.toCompileSdkConfig()
     assertThat(config).isNotNull()
     val version = config!!.getVersion()
@@ -63,6 +64,7 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
 
     val compileSdkVersion = android.compileSdkVersion()
     assertThat(compileSdkVersion).isNotNull()
+    assertThat(compileSdkVersion.getRawValue(GradlePropertyModel.OBJECT_TYPE)).isEqualTo("android-33")
     val config = compileSdkVersion.toCompileSdkConfig()
     assertThat(config).isNotNull()
     val version = config!!.getVersion()
@@ -86,6 +88,7 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
 
     val compileSdkVersion = android.compileSdkVersion()
     assertThat(compileSdkVersion).isNotNull()
+    assertThat(compileSdkVersion.getRawValue(GradlePropertyModel.OBJECT_TYPE)).isEqualTo("Tiramisu")
     val config = compileSdkVersion.toCompileSdkConfig()
     assertThat(config).isNotNull()
     val version = config!!.getVersion()
@@ -106,6 +109,7 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
 
     val compileSdkVersion = android.compileSdkVersion()
     assertThat(compileSdkVersion).isNotNull()
+    assertThat(compileSdkVersion.getRawValue(GradlePropertyModel.OBJECT_TYPE)).isEqualTo("vendor:addon:1")
     val config = compileSdkVersion.toCompileSdkConfig()
     assertThat(config).isNotNull()
     val version = config!!.getVersion()

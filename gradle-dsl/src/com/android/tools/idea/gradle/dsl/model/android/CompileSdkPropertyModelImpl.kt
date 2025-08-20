@@ -153,6 +153,18 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
     return internalModel.getValue(typeReference)
   }
 
+  override fun <T: Any> getRawValue(typeReference: TypeReference<T>): T? {
+    (internalModel as? CompileSdkBlockPropertyModel)?.let {
+      when (typeReference) {
+        GradlePropertyModel.STRING_TYPE -> return it.sdkBlockModel.getVersion()?.toHash() as T?
+        GradlePropertyModel.OBJECT_TYPE -> return it.sdkBlockModel.getVersion()?.toHash() as T?
+        GradlePropertyModel.INTEGER_TYPE -> return it.sdkBlockModel.getVersion()?.toInt() as T?
+        else -> internalModel.getRawValue(typeReference)
+      }
+    }
+    return internalModel.getRawValue(typeReference)
+  }
+
 
   override fun toString(): String {
     return internalModel.toString()
