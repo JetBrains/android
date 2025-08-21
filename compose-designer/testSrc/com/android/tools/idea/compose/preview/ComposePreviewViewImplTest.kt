@@ -51,6 +51,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.util.androidFacet
@@ -565,7 +566,7 @@ class ComposePreviewViewImplTest {
   }
 
   @Test
-  fun `test reusing model resets Configuration`() {
+  fun `test reusing model resets Configuration but keeps image transform`() {
     val composePreviewManager = TestComposePreviewManager()
     val fakePreviewElement =
       SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
@@ -574,6 +575,7 @@ class ComposePreviewViewImplTest {
       )
     val testPreviewElementModelAdapter = createPreviewElementModelAdapter(composePreviewManager)
     val configurationManager = ConfigurationManager.getOrCreateInstance(projectRule.module)
+    previewView.mainSurface.colorBlindMode = ColorBlindMode.PROTANOMALY
 
     runBlocking {
       val modelToCreate =
@@ -604,6 +606,7 @@ class ComposePreviewViewImplTest {
         )
       assertEquals(modelToReuse, modelToCreate)
       assertNotEquals(configuration, modelToReuse.configuration)
+      assertNotNull(modelToReuse.configuration.imageTransformation)
     }
   }
 }

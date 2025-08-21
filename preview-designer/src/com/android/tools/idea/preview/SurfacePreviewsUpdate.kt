@@ -311,7 +311,11 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.createOrReuseModelForPreview
   )
   var newModel: NlModel
   val newConfiguration: Configuration =
-    Configuration.create(configurationManager, FolderConfiguration.createDefault())
+    Configuration.create(configurationManager, FolderConfiguration.createDefault()).also {
+      // Always use the imageTransformation from the surface, regardless of whether the model is
+      // reused or new.
+      it.imageTransformation = this@NlDesignSurface.getGlobalImageTransformation()
+    }
   if (modelToReuse != null) {
     var forceReinflate = true
     var invalidatePreviousRender = false
@@ -338,7 +342,6 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.createOrReuseModelForPreview
     debugLogger?.log("No models to reuse were found. New model $now.")
     val file =
       previewElementModelAdapter.createLightVirtualFile(fileContents, psiFile.virtualFile, now)
-    newConfiguration.imageTransformation = this.getGlobalImageTransformation()
     newModel =
       NlModel.Builder(
           parentDisposable,
