@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.wear.dwf.dom.raw.expressions
 
-import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.wear.dwf.WFFConstants.DataSources
 import com.android.tools.idea.wear.dwf.WearDwfBundle.message
-import com.android.tools.idea.wear.dwf.dom.raw.CurrentWFFVersionService
 import com.android.tools.idea.wear.dwf.dom.raw.configurations.UserConfigurationReference
 import com.android.tools.idea.wear.dwf.dom.raw.findDataSourceDefinition
 import com.android.tools.idea.wear.dwf.dom.raw.isUserConfiguration
-import com.android.tools.wear.wff.WFFVersion
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
@@ -36,29 +33,20 @@ import com.intellij.psi.util.parentOfType
  */
 class WFFExpressionAnnotator() : Annotator {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
-    val wffVersion =
-      element.getModuleSystem()?.module?.let { module ->
-        CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module)?.wffVersion
-      }
     when (element) {
-      is WFFExpressionFunctionId -> annotateFunctionId(wffVersion, element, holder)
-      is WFFExpressionDataSource -> annotateDataSource(wffVersion, element, holder)
+      is WFFExpressionFunctionId -> annotateFunctionId(element, holder)
+      is WFFExpressionDataSource -> annotateDataSource(element, holder)
     }
   }
 
-  private fun annotateDataSource(
-    wffVersion: WFFVersion?,
-    dataSource: WFFExpressionDataSource,
-    holder: AnnotationHolder,
-  ) {
+  private fun annotateDataSource(dataSource: WFFExpressionDataSource, holder: AnnotationHolder) {
     when {
       dataSource.isUserConfiguration() -> annotateConfiguration(dataSource, holder)
-      else -> annotatePredefinedDataSource(wffVersion, dataSource, holder)
+      else -> annotatePredefinedDataSource(dataSource, holder)
     }
   }
 
   private fun annotatePredefinedDataSource(
-    wffVersion: WFFVersion?,
     dataSource: WFFExpressionDataSource,
     holder: AnnotationHolder,
   ) {
@@ -77,23 +65,6 @@ class WFFExpressionAnnotator() : Annotator {
         .highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL)
         .range(dataSource.id)
         .create()
-    } else if (
-      dataSourceDefinition != null &&
-        wffVersion != null &&
-        wffVersion < dataSourceDefinition.requiredVersion
-    ) {
-      // TODO(b/436560081): move this to a local inspection, this annotator should only highlight
-      // unknown data sources
-      holder
-        .newAnnotation(
-          HighlightSeverity.ERROR,
-          message(
-            "wff.expression.annotator.unavailable.datasource",
-            dataSourceDefinition.requiredVersion.version,
-          ),
-        )
-        .range(dataSource.id)
-        .create()
     }
     holder
       .newSilentAnnotation(HighlightSeverity.INFORMATION)
@@ -102,27 +73,14 @@ class WFFExpressionAnnotator() : Annotator {
       .create()
   }
 
-  private fun annotateFunctionId(
-    wffVersion: WFFVersion?,
-    functionId: WFFExpressionFunctionId,
-    holder: AnnotationHolder,
-  ) {
-    val function = findFunction(functionId.text)
-    if (function == null) {
+  private fun annotateFunctionId(functionId: WFFExpressionFunctionId, holder: AnnotationHolder) {
+    if (findFunction(functionId.text) == null) {
       holder
         .newAnnotation(
           HighlightSeverity.ERROR,
           message("wff.expression.annotator.unknown.function"),
         )
         .highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL)
-        .range(functionId)
-        .create()
-    } else if (wffVersion != null && wffVersion < function.requiredVersion) {
-      holder
-        .newAnnotation(
-          HighlightSeverity.ERROR,
-          message("wff.expression.annotator.unavailable.function", function.requiredVersion.version),
-        )
         .range(functionId)
         .create()
     }
