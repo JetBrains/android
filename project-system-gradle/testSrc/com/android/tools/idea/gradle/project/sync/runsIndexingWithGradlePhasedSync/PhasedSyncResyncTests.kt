@@ -86,25 +86,6 @@ private fun getProjectSpecificIdeModelResyncIssues(testProject: TestProject) = w
   }
 }
 
-private fun getProjectSpecificIdeModelResyncIssues(testProject: TestProject) = when(testProject) {
-  TestProject.PRIVACY_SANDBOX_SDK,
-  TestProject.COMPATIBILITY_TESTS_AS_36,
-  TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML -> setOf(
-    // TODO(b/384022658): Manifest index affects these values so they fail to populate correctly in some cases
-    "/CurrentVariantReportedVersions"
-  )
-  // TODO(b/384022658): Info from KaptGradleModel is missing for phased sync entities for now
-  TestProject.KOTLIN_KAPT,
-  TestProject.NEW_SYNC_KOTLIN_TEST -> setOf(
-    "generated/source/kaptKotlin",
-  )
-  // TODO(b/428221750) BytecodeTransforms is missing for phased sync entities
-  TestProject.BASIC_WITH_EMPTY_SETTINGS_FILE -> setOf(
-      "/BytecodeTransforms",
-  )
-  else -> emptySet()
-}
-
 private val IDE_MODELS_WITH_KNOWN_RESYNC_CONSISTENCY_ISSUES = setOf(
   "/GradleModuleModel",
 )
@@ -139,9 +120,9 @@ class PhasedSyncResyncTests(val testProject: TestProject) : PhasedSyncSnapshotTe
 
     val preparedProject = projectRule.prepareTestProject(testProject)
     preparedProject.open({ it.copy(expectedSyncIssues = testProject.expectedSyncIssues) }) { project: Project ->
-      val firstFullSync = project.dumpModules(isAndroidByPath)
+      val firstFullSync = project.dumpModules(knownAndroidPaths)
       project.requestSyncAndWait(ignoreSyncIssues = testProject.expectedSyncIssues, waitForIndexes = false)
-      val secondFullSync = project.dumpModules(isAndroidByPath)
+      val secondFullSync = project.dumpModules(knownAndroidPaths)
       val secondIntermediateSync = intermediateDump.copy()
       aggregateAndThrowIfAny {
         runCatchingAndRecord {

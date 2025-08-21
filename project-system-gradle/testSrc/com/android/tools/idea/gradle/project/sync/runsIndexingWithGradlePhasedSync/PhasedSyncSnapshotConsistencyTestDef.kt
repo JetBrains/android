@@ -131,22 +131,6 @@ fun getProjectSpecificIssues(testProject: TestProject) = when(testProject.templa
   }
 }
 
-private fun getProjectSpecificIdeModelIssues(testProject: TestProject) = when(testProject) {
-  TestProject.PRIVACY_SANDBOX_SDK,
-  TestProject.COMPATIBILITY_TESTS_AS_36,
-  TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML -> setOf(
-    // TODO(b/384022658): Manifest index affects these values so they fail to populate correctly in some cases
-    "/CurrentVariantReportedVersions"
-  )
-  // TODO(b/384022658): Info from KaptGradleModel is missing for phased sync entities for now
-  TestProject.KOTLIN_KAPT,
-  TestProject.NEW_SYNC_KOTLIN_TEST -> setOf(
-    "generated/source/kaptKotlin",
-  )
-
-  else -> emptySet()
-}
-
 private fun getProjectSpecificIdeModelIssues(testProject: TestProject) = when(testProject.template) {
   TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
   TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES -> setOf(
@@ -210,10 +194,10 @@ data class PhasedSyncSnapshotConsistencyTestDef(
 
   override fun runTest(root: File, project: Project) {
     if (!StudioFlags.PHASED_SYNC_ENABLED.get()) return
-    Truth.assertThat(isAndroidByPath).isNotNull()
+    Truth.assertThat(knownAndroidPaths).isNotNull()
     Truth.assertThat(intermediateDump).isNotNull()
 
-    val fullDump = project.dumpModules(isAndroidByPath)
+    val fullDump = project.dumpModules(knownAndroidPaths)
     val filteredIntermediateDump = intermediateDump.filterOutExpectedInconsistencies().filterOutKnownConsistencyIssues(testProject).filterOutRootModule()
     val filteredFullDump = fullDump.filterOutExpectedInconsistencies().filterOutKnownConsistencyIssues(testProject).filterOutRootModule().filterToPhasedSyncModules()
 

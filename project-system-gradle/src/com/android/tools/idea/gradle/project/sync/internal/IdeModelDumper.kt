@@ -55,7 +55,6 @@ import com.android.tools.idea.gradle.model.IdeViewBindingOptions
 import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
-import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
