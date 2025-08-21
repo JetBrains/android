@@ -26,6 +26,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
+import com.android.tools.idea.layoutinspector.resource.data.Display
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ReadAction
@@ -37,7 +38,6 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.ClassUtil
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.ColorIcon
-import java.awt.Dimension
 import javax.swing.Icon
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -73,18 +73,8 @@ class ResourceLookup(private val project: Project) {
   var fontScale: Float? = null
     @VisibleForTesting set
 
-  /**
-   * The screen dimension in pixels `null` if unknown.
-   *
-   * This is unknown for the legacy client and older saved snapshots.
-   */
-  var screenDimension: Dimension? = null
-
-  var displayOrientation: Int? = null
-    @VisibleForTesting set
-
-  var isRunningInMainDisplay: Boolean? = null
-    @VisibleForTesting set
+  /** The list of on displays connected to the device */
+  var displays: List<Display> = emptyList()
 
   @VisibleForTesting
   val defaultTheme: StyleResourceValue?
@@ -97,28 +87,19 @@ class ResourceLookup(private val project: Project) {
     theme: ResourceReference?,
     process: ProcessDescriptor,
     fontScaleFromConfig: Float = 0f,
-    mainDisplayOrientation: Int = 0,
-    screenSize: Dimension? = null,
-    isRunningInMainDisplay: Boolean? = null,
+    displays: List<Display>,
   ) {
     dpi = folderConfig.densityQualifier?.value?.dpiValue?.takeIf { it > 0 }
     fontScale = fontScaleFromConfig.takeIf { it > 0f }
     resolver = createResolver(folderConfig, theme, process)
-    screenDimension = screenSize
-    displayOrientation = mainDisplayOrientation
-    this.isRunningInMainDisplay = isRunningInMainDisplay
+    this.displays = displays
   }
 
   /** Update the configuration after a legacy reload, or snapshot load. */
-  fun updateConfiguration(
-    deviceDpi: Int?,
-    deviceFontScale: Float? = null,
-    screenSize: Dimension? = null,
-  ) {
+  fun updateConfiguration(deviceDpi: Int?, deviceFontScale: Float? = null) {
     dpi = deviceDpi?.takeIf { it > 0 }
     fontScale = deviceFontScale?.takeIf { it > 0f }
     resolver = null
-    screenDimension = screenSize
   }
 
   @Slow

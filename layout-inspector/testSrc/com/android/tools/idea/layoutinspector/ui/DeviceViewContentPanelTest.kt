@@ -57,6 +57,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.Screenshot
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewAndroidWindow
+import com.android.tools.idea.layoutinspector.resource.data.Display
 import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.DropDownActionWithButton
@@ -724,7 +725,8 @@ class DeviceViewContentPanelTest {
           }
         }
       }
-    model.resourceLookup.screenDimension = Dimension(100, 200)
+    model.resourceLookup.displays =
+      listOf(Display(id = 0, size = Dimension(100, 200), orientation = 90))
 
     val renderSettings = FakeRenderSettings()
     renderSettings.drawLabel = false

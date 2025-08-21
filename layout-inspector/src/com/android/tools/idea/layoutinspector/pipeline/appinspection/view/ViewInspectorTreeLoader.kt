@@ -67,9 +67,7 @@ class ViewInspectorTreeLoader(
       theme,
       process,
       configuration.fontScale,
-      context.mainDisplayOrientation,
-      context.screenSize,
-      context.isRunningInMainDisplay,
+      displays = context.displays,
     )
     val rootView = viewNodeCreator.createRootViewNode { isInterrupted } ?: return null
     return ViewAndroidWindow(

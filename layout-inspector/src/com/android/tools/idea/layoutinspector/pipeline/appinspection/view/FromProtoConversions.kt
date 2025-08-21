@@ -105,6 +105,7 @@ import com.android.tools.idea.layoutinspector.resource.UI_MODE_TYPE_TELEVISION
 import com.android.tools.idea.layoutinspector.resource.UI_MODE_TYPE_VR_HEADSET
 import com.android.tools.idea.layoutinspector.resource.UI_MODE_TYPE_WATCH
 import com.android.tools.idea.layoutinspector.resource.data.AppContext
+import com.android.tools.idea.layoutinspector.resource.data.Display
 import com.android.tools.idea.layoutinspector.resource.data.Locale
 import com.android.tools.idea.layoutinspector.resource.data.Resource
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
@@ -139,15 +140,11 @@ fun LayoutInspectorViewProtocol.Locale.convert(): Locale {
 }
 
 fun LayoutInspectorViewProtocol.AppContext.convert(): AppContext {
-  val isRunningInMainDisplay =
-    displayType == LayoutInspectorViewProtocol.DisplayType.MAIN_DISPLAY ||
-      displayType == LayoutInspectorViewProtocol.DisplayType.UNDEFINED
-  return AppContext(
-    theme.convert(),
-    Dimension(mainDisplayWidth, mainDisplayHeight).takeIf { it.width > 0 && it.height > 0 },
-    mainDisplayOrientation,
-    isRunningInMainDisplay,
-  )
+  val displays =
+    displayInfoList.map {
+      Display(id = it.id, size = Dimension(it.width, it.height), orientation = it.orientation)
+    }
+  return AppContext(theme = theme.convert(), displays = displays)
 }
 
 fun LayoutInspectorViewProtocol.Property.Type.convert(): PropertyType {

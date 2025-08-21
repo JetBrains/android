@@ -884,8 +884,8 @@ class RenderLogicTest {
         translate(renderDimension.width / 2.0, renderDimension.height / 2.0)
         // make the center of the view correspond to the center of the buffered image
         translate(
-          -renderModel.model.screenDimension.width / 2.0,
-          -renderModel.model.screenDimension.height / 2.0,
+          -renderModel.model.getDisplayDimension(null).width / 2.0,
+          -renderModel.model.getDisplayDimension(null).height / 2.0,
         )
       }
 

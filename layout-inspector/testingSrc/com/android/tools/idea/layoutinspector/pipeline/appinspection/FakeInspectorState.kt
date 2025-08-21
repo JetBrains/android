@@ -894,8 +894,13 @@ class FakeInspectorState(
                           }
                           appContextBuilder.apply {
                             theme = ViewResource(208, 210, 223)
-                            mainDisplayWidth = 800
-                            mainDisplayHeight = 1600
+                            val display =
+                              LayoutInspectorViewProtocol.Display.newBuilder()
+                                .setId(0)
+                                .setWidth(800)
+                                .setHeight(1600)
+                                .setOrientation(90)
+                            addDisplayInfo(display)
                           }
                           propertiesBuilder.apply {
                             for (id in propertyGroups.keys) {
@@ -1132,8 +1137,13 @@ class FakeInspectorState(
           }
           appContextBuilder.apply {
             theme = ViewResource(208, 210, 223)
-            mainDisplayWidth = 800
-            mainDisplayHeight = 1600
+            val display =
+              LayoutInspectorViewProtocol.Display.newBuilder()
+                .setId(0)
+                .setWidth(800)
+                .setHeight(1600)
+                .setOrientation(90)
+            addDisplayInfo(display)
           }
         }
       }

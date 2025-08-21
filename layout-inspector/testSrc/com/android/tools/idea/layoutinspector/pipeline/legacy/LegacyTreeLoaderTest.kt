@@ -285,7 +285,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
     assertThat(lookup.hasResolver).isTrue()
     assertThat(lookup.defaultTheme?.resourceUrl?.toString()).isEqualTo("@style/Login.Dark.Theme")
     assertThat(lookup.dpi).isEqualTo(420)
-    assertThat(lookup.screenDimension).isNull()
+    assertThat(lookup.displays).isEmpty()
     verify(legacyClient.launchMonitor)
       .updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_HIERARCHY_RECEIVED)
     verify(legacyClient.launchMonitor)

@@ -149,8 +149,14 @@ class AppInspectionTreeLoaderTest {
               screenHeightDp = 800
               grammaticalGender = GRAMMATICAL_GENDER_FEMININE
             }
-            mainDisplayHeight = 800
-            mainDisplayWidth = 480
+            val display =
+              LayoutInspectorViewProtocol.Display.newBuilder()
+                .setWidth(480)
+                .setHeight(800)
+                .setOrientation(90)
+                .setId(1)
+                .build()
+            addDisplayInfo(display)
             themeBuilder.apply {
               type = 7
               namespace = 2
@@ -526,7 +532,8 @@ class AppInspectionTreeLoaderTest {
       assertThat(lookup.hasResolver).isTrue()
       assertThat(lookup.defaultTheme?.resourceUrl?.toString()).isEqualTo("@style/Theme.BasicViews")
       assertThat(lookup.dpi).isEqualTo(560)
-      assertThat(lookup.screenDimension).isEqualTo(Dimension(480, 800))
+      assertThat(lookup.displays).hasSize(1)
+      assertThat(lookup.displays.first().size).isEqualTo(Dimension(480, 800))
     }
   }
 

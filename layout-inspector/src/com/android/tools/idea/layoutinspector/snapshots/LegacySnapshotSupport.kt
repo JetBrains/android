@@ -130,6 +130,7 @@ class LegacySnapshotLoader : SnapshotLoader {
         theme,
         processDescriptor,
         fontScaleFromConfig = 1f,
+        displays = emptyList(),
       )
     } else {
       model.resourceLookup.updateConfiguration(metadata.dpi)

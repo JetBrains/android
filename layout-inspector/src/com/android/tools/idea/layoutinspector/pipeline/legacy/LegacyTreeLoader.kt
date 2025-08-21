@@ -123,6 +123,7 @@ class LegacyTreeLoader(private val client: LegacyClient) : TreeLoader {
         theme,
         client.process,
         fontScaleFromConfig = 1f,
+        displays = emptyList(),
       )
     } else {
       client.model.resourceLookup.updateConfiguration(ddmClient.device.density)

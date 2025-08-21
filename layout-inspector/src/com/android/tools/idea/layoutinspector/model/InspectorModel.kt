@@ -194,23 +194,11 @@ class InspectorModel(
         }
       }
 
-  /** The dimension of the screen, if available. Otherwise, the dimension of the roo node. */
-  val screenDimension: Dimension
-    get() {
-      // This will make sure the screen size is correct even if there are windows we don't know
-      // about yet.
-      //
-      // Example: If the initial screen has a dialog open, we may receive the dialog first. We do
-      // not want to zoom to fit the dialog size since it is often smaller than the screen size.
-      resourceLookup.screenDimension?.let {
-        return it
-      }
-
-      // For the legacy inspector and for old snapshots loaded from file, we do not have the screen
-      // size,
-      // but we know that all windows are loaded. New snapshots have the screen size.
-      return Dimension(root.layoutBounds.width, root.layoutBounds.height)
-    }
+  /** The dimension of the screen, if available. Otherwise, the dimension of the root node. */
+  fun getDisplayDimension(displayId: Int?): Dimension {
+    return resourceLookup.displays.find { it.id == displayId }?.size
+      ?: Dimension(root.layoutBounds.width, root.layoutBounds.height)
+  }
 
   private val hiddenNodes = ConcurrentHashMap.newKeySet<ViewNode>()
 

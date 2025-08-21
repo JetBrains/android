@@ -28,6 +28,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
+import com.android.tools.idea.layoutinspector.resource.data.Display
 import com.android.tools.idea.layoutinspector.runningdevices.calculateRotationCorrection
 import com.android.tools.idea.layoutinspector.ui.FakeRenderSettings
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
@@ -100,7 +101,7 @@ class StudioRendererPanelTest {
   /** An inspector model with views arranged vertically */
   private val verticalInspectorModel: InspectorModel
     get() =
-      model(disposable, displayId = 1) {
+      model(disposable, displayId = 0) {
         view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
           view(VIEW1, 10, 15, 25, 25) { image() }
           compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 50, width = 80, height = 50)
@@ -110,7 +111,7 @@ class StudioRendererPanelTest {
   /** An inspector model with views arranged horizontally */
   private val horizontalInspectorModel: InspectorModel
     get() =
-      model(disposable, displayId = 1) {
+      model(disposable, displayId = 0) {
         view(ROOT, 0, 0, deviceScreenDimension.height, deviceScreenDimension.width) {
           view(VIEW1, 10, 15, 25, 25) { image() }
           compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 50, width = 80, height = 50)
@@ -134,7 +135,6 @@ class StudioRendererPanelTest {
           view(VIEW1, 10, 15, 25, 25) { image() }
         }
       }
-    inspectorModelOverflowRight.resourceLookup.screenDimension = deviceScreenDimension
 
     val (_, renderer) = createRenderer(inspectorModel = inspectorModelOverflowRight)
 
@@ -151,7 +151,6 @@ class StudioRendererPanelTest {
           view(VIEW1, 10, 15, 25, 25) { image() }
         }
       }
-    inspectorModelOverflowLeft.resourceLookup.screenDimension = deviceScreenDimension
 
     val (_, renderer) = createRenderer(inspectorModel = inspectorModelOverflowLeft)
 
@@ -168,7 +167,6 @@ class StudioRendererPanelTest {
           view(VIEW1, 10, 15, 25, 25) { image() }
         }
       }
-    inspectorModelOverflowBottom.resourceLookup.screenDimension = deviceScreenDimension
 
     val (_, renderer) = createRenderer(inspectorModel = inspectorModelOverflowBottom)
 
@@ -185,7 +183,6 @@ class StudioRendererPanelTest {
           view(VIEW1, 10, 15, 25, 25) { image() }
         }
       }
-    inspectorModelOverflowTop.resourceLookup.screenDimension = deviceScreenDimension
 
     val (_, renderer) = createRenderer(inspectorModel = inspectorModelOverflowTop)
 
@@ -198,27 +195,26 @@ class StudioRendererPanelTest {
   fun testRotation() {
     val combinations = generateAllPossibleRotations(listOf(0, 1, 2, 3), listOf(0, 90, 180, 270))
     combinations.forEach {
-      verticalInspectorModel.resourceLookup.displayOrientation = it.deviceRotation
-      val inspectorModel =
+      val display =
         when (it.deviceRotation) {
           0,
           180 -> {
             // App in portrait mode.
-            verticalInspectorModel.resourceLookup.screenDimension = Dimension(1080, 1920)
-            verticalInspectorModel
+            Display(id = 0, size = Dimension(1080, 1920), orientation = it.deviceRotation)
           }
           90,
           270 -> {
             // App is in landscape mode.
-            horizontalInspectorModel.resourceLookup.screenDimension = Dimension(1920, 1080)
-            horizontalInspectorModel
+            Display(id = 0, size = Dimension(1920, 1080), orientation = it.deviceRotation)
           }
           else -> throw IllegalArgumentException()
         }
 
-      val quadrant = calculateRotationCorrection(inspectorModel, { it.displayQuadrant }, { 0 })
+      val quadrant =
+        calculateRotationCorrection(displayProvider = { display }, { it.displayQuadrant }, { 0 })
 
-      val (_, renderer) = createRenderer(displayOrientation = quadrant)
+      val (_, renderer) =
+        createRenderer(inspectorModel = verticalInspectorModel, displayOrientation = quadrant)
 
       val renderImage = createRenderImage()
       paint(renderImage, renderer, displayQuadrant = it.displayQuadrant)
@@ -312,7 +308,7 @@ class StudioRendererPanelTest {
   @RunsInEdt
   fun testRecomposition() {
     val recompositionModel =
-      model(disposable, displayId = 1) {
+      model(disposable, displayId = 0) {
         view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
           view(VIEW1, 10, 15, 25, 25) { image() }
           compose(COMPOSE1, "name", x = 10, y = 50, width = 80, height = 50, composeCount = 15)
@@ -425,7 +421,7 @@ class StudioRendererPanelTest {
   @RunsInEdt
   fun testLabelLeftOffset() {
     val customModel =
-      model(disposable, displayId = 1) {
+      model(disposable, displayId = 0) {
         view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
           view(drawId = VIEW1, x = -10, y = 15, width = 25, height = 25) { image() }
           compose(COMPOSE1, "name", x = 10, y = 50, width = 80, height = 50, composeCount = 15)
@@ -598,24 +594,12 @@ class StudioRendererPanelTest {
 
   @Test
   fun testLayoutInspectorRenderingOutsideOfMainDisplayShowError() {
-    val inspectorModelWithLeftBorder =
-      model(disposable) {
-        view(ROOT, 10, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
-          view(VIEW1, 10, 15, 25, 25) { image() }
-        }
-      }
-    inspectorModelWithLeftBorder.resourceLookup.isRunningInMainDisplay = false
-
     val notificationModel = NotificationModel(projectRule.project)
     var seenNotificationIds = listOf<String>()
     notificationModel.notificationListeners.add {
       seenNotificationIds = notificationModel.notifications.map { it.id }
     }
-    val (_, renderer) =
-      createRenderer(
-        inspectorModel = inspectorModelWithLeftBorder,
-        notificationModel = notificationModel,
-      )
+    val (_, renderer) = createRenderer(notificationModel = notificationModel, displayId = 1)
 
     val renderImage = createRenderImage()
     paint(renderImage, renderer)
@@ -625,12 +609,6 @@ class StudioRendererPanelTest {
       .find { it.id == "rendering.in.secondary.display.not.supported" }!!
       .actions
       .isEmpty()
-
-    inspectorModelWithLeftBorder.resourceLookup.isRunningInMainDisplay = true
-
-    paint(renderImage, renderer)
-
-    assertThat(seenNotificationIds).isEmpty()
   }
 
   @Test
@@ -704,14 +682,14 @@ class StudioRendererPanelTest {
   @Test
   fun testViewsFromOtherDisplayAreNotRendered() {
     val customModel =
-      model(disposable, displayId = 2) {
+      model(disposable, displayId = 1) {
         view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
           view(drawId = VIEW1, x = -10, y = 15, width = 25, height = 25) { image() }
           compose(COMPOSE1, "name", x = 10, y = 50, width = 80, height = 50, composeCount = 15)
         }
       }
 
-    val (model, renderer) = createRenderer(inspectorModel = customModel, displayId = 1)
+    val (model, renderer) = createRenderer(inspectorModel = customModel, displayId = 0)
     model.selectNode(10.0, 20.0)
     model.hoverNode(15.0, 55.0)
 
@@ -760,7 +738,7 @@ class StudioRendererPanelTest {
     inspectorModel: InspectorModel = verticalInspectorModel,
     deviceDisplayRectangle: Rectangle = this.deviceDisplayRectangle,
     displayOrientation: Int = 0,
-    displayId: Int = 1,
+    displayId: Int = 0,
     notificationModel: NotificationModel = NotificationModel(projectRule.project),
     scope: CoroutineScope = disposable.createCoroutineScope(),
   ): Pair<EmbeddedRendererModel, StudioRendererPanel> {

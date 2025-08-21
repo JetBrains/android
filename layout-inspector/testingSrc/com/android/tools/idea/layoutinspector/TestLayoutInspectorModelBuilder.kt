@@ -515,8 +515,7 @@ class InspectorModelDescriptor(
         FolderConfiguration.createDefault(),
         theme,
         process,
-        screenSize = context.screenSize,
-        mainDisplayOrientation = context.mainDisplayOrientation,
+        displays = emptyList(),
       )
     }
     // This is usually added by DeviceViewPanel

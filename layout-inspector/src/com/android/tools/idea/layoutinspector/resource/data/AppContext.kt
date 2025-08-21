@@ -17,14 +17,12 @@ package com.android.tools.idea.layoutinspector.resource.data
 
 import java.awt.Dimension
 
-/**
- * Misc. context about the current running app.
- *
- * @param mainDisplayOrientation The orientation of the device main display in degrees.
- */
-class AppContext(
-  val theme: Resource = Resource(),
-  val screenSize: Dimension? = null,
-  val mainDisplayOrientation: Int,
-  val isRunningInMainDisplay: Boolean,
-)
+/** Misc. context about the current running app. */
+class AppContext(val theme: Resource = Resource(), val displays: List<Display>)
+
+/** A display connected to the device */
+data class Display(val id: Int, val size: Dimension, val orientation: Int) {
+  companion object {
+    const val MAIN_DISPLAY_ID = 0
+  }
+}

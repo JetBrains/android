@@ -122,7 +122,7 @@ class DeviceViewContentPanel(
     get() {
       return AffineTransform().apply {
         // The container of the app ui, either the app window or the screen
-        val maxBounds = renderModel.model.screenDimension
+        val maxBounds = renderModel.model.getDisplayDimension(null)
         // The bounds of the app, either the app window or the bounds of the root view
         val appBounds = renderModel.model.root.layoutBounds
 

@@ -29,6 +29,7 @@ import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.PropertyType
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
+import com.android.tools.idea.layoutinspector.resource.data.Display
 import com.android.tools.idea.layoutinspector.setApplicationIdForTest
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -58,11 +59,11 @@ class ResourceLookupTest {
       theme,
       process,
       fontScaleFromConfig = 1.0f,
-      mainDisplayOrientation = 90,
-      screenSize = Dimension(1440, 3120),
+      displays = listOf(Display(id = 1, size = Dimension(1440, 3120), orientation = 90)),
     )
     assertThat(resourceLookup.resolver).isNotNull()
-    assertThat(resourceLookup.displayOrientation).isEqualTo(90)
+    assertThat(resourceLookup.displays).hasSize(1)
+    assertThat(resourceLookup.displays.first().orientation).isEqualTo(90)
   }
 
   @Test
@@ -76,8 +77,7 @@ class ResourceLookupTest {
       theme,
       process,
       fontScaleFromConfig = 1.0f,
-      mainDisplayOrientation = 90,
-      screenSize = Dimension(1440, 3120),
+      displays = listOf(Display(id = 1, size = Dimension(1440, 3120), orientation = 90)),
     )
     assertThat(resourceLookup.resolver).isNotNull()
   }

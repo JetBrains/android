@@ -21,7 +21,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
-import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.resource.data.Display
 import com.android.tools.idea.layoutinspector.runningdevices.ui.SelectedTabState
 import com.android.tools.idea.layoutinspector.runningdevices.ui.TabComponents
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.EmbeddedRendererModel
@@ -396,7 +396,11 @@ fun createRendererPanel(
         screenScaleProvider = { tabComponents.displayView.screenScalingFactor },
         orientationQuadrantProvider = {
           calculateRotationCorrection(
-            layoutInspector.inspectorModel,
+            displayProvider = {
+              layoutInspector.inspectorModel.resourceLookup.displays.find {
+                it.id == tabComponents.displayView.displayId
+              }
+            },
             displayOrientationQuadrant = { tabComponents.displayView.displayOrientationQuadrants },
             displayOrientationQuadrantCorrection = {
               tabComponents.displayView.displayOrientationCorrectionQuadrants
@@ -447,7 +451,7 @@ private fun LayoutInspector.navigateToSelectedViewFromRendererDoubleClick() {
  */
 @VisibleForTesting
 fun calculateRotationCorrection(
-  layoutInspectorModel: InspectorModel,
+  displayProvider: () -> Display?,
   displayOrientationQuadrant: () -> Int,
   displayOrientationQuadrantCorrection: () -> Int,
 ): Int {
@@ -463,7 +467,7 @@ fun calculateRotationCorrection(
 
   // The rotation of the display coming from Layout Inspector.
   val layoutInspectorDisplayOrientationQuadrant =
-    when (layoutInspectorModel.resourceLookup.displayOrientation) {
+    when (displayProvider()?.orientation) {
       0 -> 0
       90 -> 1
       180 -> 2

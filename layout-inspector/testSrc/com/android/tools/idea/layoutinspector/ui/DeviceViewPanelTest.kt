@@ -72,6 +72,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
+import com.android.tools.idea.layoutinspector.resource.data.Display
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ICON_LEGACY_PHONE
@@ -473,8 +474,7 @@ class DeviceViewPanelWithFullInspectorTest {
       theme,
       process,
       fontScaleFromConfig = 1.0f,
-      mainDisplayOrientation = 90,
-      screenSize = Dimension(600, 800),
+      displays = listOf(Display(id = 0, size = Dimension(600, 800), orientation = 90)),
     )
     inspectorRule.inspector.treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(inspectorRule.inspector, projectRule.fixture.testRootDisposable)
@@ -743,11 +743,10 @@ class DeviceViewPanelTest {
 
     val scrollPane = panel.flatten(false).filterIsInstance<JBScrollPane>().first()
     scrollPane.setSize(200, 300)
-    model.resourceLookup.screenDimension = Dimension(200, 300)
 
     assertThat(inspector.renderLogic.renderSettings.scalePercent).isEqualTo(100)
 
-    val newWindow = window(ROOT, ROOT, 0, 0, 100, 200) { view(VIEW1, 25, 30, 50, 50) { image() } }
+    val newWindow = window(ROOT, ROOT, 0, 0, 200, 300) { view(VIEW1, 25, 30, 50, 50) { image() } }
 
     model.update(newWindow, listOf(ROOT), 0)
 
@@ -795,7 +794,8 @@ class DeviceViewPanelTest {
 
       val scrollPane = panel.flatten(false).filterIsInstance<JBScrollPane>().first()
       scrollPane.setSize(200, 300)
-      model.resourceLookup.screenDimension = Dimension(200, 300)
+      model.resourceLookup.displays =
+        listOf(Display(id = 0, size = Dimension(200, 300), orientation = 90))
 
       assertThat(inspector.renderLogic.renderSettings.scalePercent).isEqualTo(100)
 

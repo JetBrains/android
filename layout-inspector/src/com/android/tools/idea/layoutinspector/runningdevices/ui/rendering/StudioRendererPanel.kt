@@ -19,6 +19,7 @@ import com.android.adblib.utils.createChildScope
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.model.NotificationModel
+import com.android.tools.idea.layoutinspector.resource.data.Display
 import com.android.tools.idea.layoutinspector.ui.HQ_RENDERING_HINTS
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
@@ -146,7 +147,7 @@ class StudioRendererPanel(
     g2d.setRenderingHints(HQ_RENDERING_HINTS)
 
     // TODO(b/293584238) Remove once we support rendering on multiple displays.
-    if (renderModel.inspectorModel.resourceLookup.isRunningInMainDisplay == false) {
+    if (displayId != Display.MAIN_DISPLAY_ID) {
       showMultiDisplayNotSupportedNotification()
       // Do no render view bounds, because they would be on the wrong display.
       return
@@ -307,7 +308,7 @@ class StudioRendererPanel(
    *   rendered.
    */
   private fun getTransform(displayRectangle: Rectangle): AffineTransform {
-    val layoutInspectorScreenDimension = renderModel.inspectorModel.screenDimension
+    val layoutInspectorScreenDimension = renderModel.inspectorModel.getDisplayDimension(displayId)
     // The rectangle containing LI rendering, in device scale.
     val layoutInspectorDisplayRectangle =
       Rectangle(0, 0, layoutInspectorScreenDimension.width, layoutInspectorScreenDimension.height)
@@ -395,7 +396,7 @@ class StudioRendererPanel(
   /** Transform panel coordinates to model coordinates. */
   private fun toModelCoordinates(originalCoordinates: Point2D): Point2D? {
     // TODO(b/293584238) Remove once we support rendering on multiple displays.
-    if (renderModel.inspectorModel.resourceLookup.isRunningInMainDisplay == false) {
+    if (displayId != Display.MAIN_DISPLAY_ID) {
       // Do no render provide coordinates, because they would be on the wrong display.
       return null
     }

@@ -111,11 +111,7 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
       if (!model.resourceLookup.hasResolver) {
         // Older snapshots may not include device information in the layout events.
         // Save the dpi, fontScale such that we can convert dimensions.
-        model.resourceLookup.updateConfiguration(
-          metadata.dpi,
-          metadata.fontScale,
-          metadata.screenDimension,
-        )
+        model.resourceLookup.updateConfiguration(metadata.dpi, metadata.fontScale)
       }
       snapshot.foldInfo?.let { model.foldInfo = it.convert() }
     }

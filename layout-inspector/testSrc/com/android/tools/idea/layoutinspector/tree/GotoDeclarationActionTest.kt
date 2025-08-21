@@ -42,7 +42,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndGet
-import java.awt.Dimension
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import kotlin.time.Duration.Companion.seconds
@@ -264,7 +263,7 @@ class GotoDeclarationActionTest {
   fun testGoToDeclarationDisabledWhenNoResolver() {
     val model = runInEdtAndGet { createModel() }
     model.setSelection(model[-5], SelectionOrigin.INTERNAL)
-    model.resourceLookup.updateConfiguration(420, 1f, Dimension(1080, 2400))
+    model.resourceLookup.updateConfiguration(420, 1f)
     val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)
     val event = createEvent(model, stats)
     GotoDeclarationAction.update(event)

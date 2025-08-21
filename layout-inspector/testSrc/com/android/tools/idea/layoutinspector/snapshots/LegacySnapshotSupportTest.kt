@@ -134,7 +134,7 @@ DONE.
       .isEqualTo("@style/Login.Dark.Theme")
     assertThat(newModel.resourceLookup.dpi).isEqualTo(420)
     assertThat(newModel.resourceLookup.fontScale).isEqualTo(1f)
-    assertThat(newModel.resourceLookup.screenDimension).isNull()
+    assertThat(newModel.resourceLookup.displays).isEmpty()
   }
 
   @Suppress("SameParameterValue")

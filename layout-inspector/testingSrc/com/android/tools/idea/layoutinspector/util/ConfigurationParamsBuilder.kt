@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.resource.data.AppContext
+import com.android.tools.idea.layoutinspector.resource.data.Display
 import com.android.tools.idea.projectsystem.gradle.isMainModule
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -40,9 +41,7 @@ class ConfigurationParamsBuilder(private val strings: TestStringTable) {
         strings.add(
           ResourceReference.style(ResourceNamespace.fromPackageName(packageName), "AppTheme")
         )!!,
-      screenSize = Dimension(1080, 1920),
-      mainDisplayOrientation = 90,
-      isRunningInMainDisplay = true,
+      displays = listOf(Display(id = 0, size = Dimension(1080, 1920), orientation = 90)),
     )
   }
 

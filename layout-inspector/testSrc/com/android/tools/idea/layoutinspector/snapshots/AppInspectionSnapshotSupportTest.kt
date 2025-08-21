@@ -132,7 +132,7 @@ class AppInspectionSnapshotSupportTest {
     checkSnapshot(newModel, snapshotLoader)
     assertThat(newModel.resourceLookup.dpi).isEqualTo(640)
     assertThat(newModel.resourceLookup.fontScale).isEqualTo(1.2f)
-    assertThat(newModel.resourceLookup.screenDimension).isEqualTo(Dimension(800, 1600))
+    assertThat(newModel.resourceLookup.displays.first().size).isEqualTo(Dimension(800, 1600))
     assertThat(newModel.resourceLookup.hasResolver).isTrue()
   }
 
@@ -149,7 +149,7 @@ class AppInspectionSnapshotSupportTest {
     waitForCondition(20, TimeUnit.SECONDS) { inspectorRule.inspectorModel.windows.isNotEmpty() }
 
     inspectorRule.inspectorClient.saveSnapshot(savePath)
-    inspectorRule.inspectorModel.resourceLookup.updateConfiguration(null, null, null)
+    inspectorRule.inspectorModel.resourceLookup.updateConfiguration(null, null)
 
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
     val newModel =
@@ -169,7 +169,7 @@ class AppInspectionSnapshotSupportTest {
 
     assertThat(newModel.resourceLookup.dpi).isEqualTo(240)
     assertThat(newModel.resourceLookup.fontScale).isEqualTo(1.5f)
-    assertThat(newModel.resourceLookup.screenDimension).isEqualTo(Dimension(800, 1600))
+    assertThat(newModel.resourceLookup.displays.first().size).isEqualTo(Dimension(800, 1600))
   }
 
   @Test
@@ -207,7 +207,7 @@ class AppInspectionSnapshotSupportTest {
     checkSnapshot(newModel, snapshotLoader)
     assertThat(newModel.resourceLookup.dpi).isEqualTo(640)
     assertThat(newModel.resourceLookup.fontScale).isEqualTo(1.2f)
-    assertThat(newModel.resourceLookup.screenDimension).isEqualTo(Dimension(800, 1600))
+    assertThat(newModel.resourceLookup.displays.first().size).isEqualTo(Dimension(800, 1600))
     assertThat(newModel.resourceLookup.hasResolver).isTrue()
   }
 
@@ -428,8 +428,14 @@ class AppInspectionSnapshotSupportTest {
           screenHeightDp = 800
           grammaticalGender = GRAMMATICAL_GENDER_FEMININE
         }
-        mainDisplayWidth = 800
-        mainDisplayHeight = 1600
+        val display =
+          LayoutInspectorViewProtocol.Display.newBuilder()
+            .setId(0)
+            .setWidth(800)
+            .setHeight(1600)
+            .setOrientation(90)
+            .build()
+        addDisplayInfo(display)
         theme = ViewResource(13, 12, 11)
       }
     }
