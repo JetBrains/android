@@ -1205,8 +1205,8 @@
             SarifReport                   : false
         JavaCompileOptions
             Encoding                      : UTF-8
-            SourceCompatibility           : 1.8
-            TargetCompatibility           : 1.8
+            SourceCompatibility           : 11
+            TargetCompatibility           : 11
             IsCoreLibraryDesugaringEnabled          : false
         AgpFlags
             ApplicationRClassConstantIds  : false
@@ -2469,8 +2469,8 @@ Required by:
             SarifReport                   : false
         JavaCompileOptions
             Encoding                      : UTF-8
-            SourceCompatibility           : 1.8
-            TargetCompatibility           : 1.8
+            SourceCompatibility           : 11
+            TargetCompatibility           : 11
             IsCoreLibraryDesugaringEnabled          : false
         AgpFlags
             ApplicationRClassConstantIds  : false

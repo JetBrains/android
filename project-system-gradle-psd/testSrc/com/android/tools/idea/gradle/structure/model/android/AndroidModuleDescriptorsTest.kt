@@ -96,10 +96,10 @@ class AndroidModuleDescriptorsTest {
       )
       assertThat(compileSdkVersion.parsedValue.asTestValue(), equalTo(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.compileSdk))
 
-      assertThat(sourceCompatibility.resolved.asTestValue(), equalTo(LanguageLevel.JDK_1_8))
+      assertThat(sourceCompatibility.resolved.asTestValue(), equalTo(LanguageLevel.JDK_11))
       assertThat(sourceCompatibility.parsedValue.asTestValue(), nullValue())
 
-      assertThat(targetCompatibility.resolved.asTestValue(), equalTo(LanguageLevel.JDK_1_8))
+      assertThat(targetCompatibility.resolved.asTestValue(), equalTo(LanguageLevel.JDK_11))
       assertThat(targetCompatibility.parsedValue.asTestValue(), nullValue())
 
       assertThat(kotlinJvmTarget.resolved.asTestValue(), nullValue())
@@ -174,7 +174,7 @@ class AndroidModuleDescriptorsTest {
     appModule.viewBindingEnabled = true.asParsed()
     appModule.includeDependenciesInfoInApk = false.asParsed()
     appModule.buildToolsVersion = ParsedValue.Set.Parsed(dslText = DslText.Reference("varProGuardFiles[0]"), value = null)
-    appModule.sourceCompatibility = LanguageLevel.JDK_1_8.asParsed()
+    appModule.sourceCompatibility = LanguageLevel.JDK_11.asParsed()
     appModule.targetCompatibility = LanguageLevel.JDK_11.asParsed()
     appModule.kotlinJvmTarget = LanguageLevel.JDK_17.asParsed()
 
@@ -189,7 +189,7 @@ class AndroidModuleDescriptorsTest {
       assertThat(compileSdkVersion.parsedValue.asTestValue(), equalTo("25"))
       assertThat(viewBindingEnabled.parsedValue.asTestValue(), equalTo(true))
       assertThat(includeDependenciesInfoInApk.parsedValue.asTestValue(), equalTo(false))
-      assertThat(sourceCompatibility.parsedValue.asTestValue(), equalTo(LanguageLevel.JDK_1_8))
+      assertThat(sourceCompatibility.parsedValue.asTestValue(), equalTo(LanguageLevel.JDK_11))
       assertThat(targetCompatibility.parsedValue.asTestValue(), equalTo(LanguageLevel.JDK_11))
       assertThat(kotlinJvmTarget.parsedValue.asTestValue(), equalTo(LanguageLevel.JDK_17))
       assertThat(appModule.parsedModel?.android()?.compileSdkVersion()?.getValue(OBJECT_TYPE), equalTo<Any>(25))

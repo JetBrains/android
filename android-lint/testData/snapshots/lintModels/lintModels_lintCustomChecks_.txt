@@ -8,7 +8,7 @@ MODULE                        : project.app
     BuildFolder                   : <ROOT>/app/build
     - LintRuleJars                : <ROOT>/lint/build/libs/lint.jar [-]
     - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
-    JavaSourceLevel               : 1.8
+    JavaSourceLevel               : 11
     CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
@@ -111,7 +111,7 @@ MODULE                        : project.library
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/library/build
     - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
-    JavaSourceLevel               : 1.8
+    JavaSourceLevel               : 11
     CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
@@ -202,7 +202,7 @@ MODULE                        : project.library-remote
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/library-remote/build
     - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
-    JavaSourceLevel               : 1.8
+    JavaSourceLevel               : 11
     CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true

@@ -2278,8 +2278,8 @@ MODULE                        : project.app
         SarifReport                   : false
     JavaCompileOptions
         Encoding                      : UTF-8
-        SourceCompatibility           : 1.8
-        TargetCompatibility           : 1.8
+        SourceCompatibility           : 11
+        TargetCompatibility           : 11
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
         ApplicationRClassConstantIds  : false
@@ -3733,8 +3733,8 @@ MODULE                        : project.dyn_feature
         SarifReport                   : false
     JavaCompileOptions
         Encoding                      : UTF-8
-        SourceCompatibility           : 1.8
-        TargetCompatibility           : 1.8
+        SourceCompatibility           : 11
+        TargetCompatibility           : 11
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
         ApplicationRClassConstantIds  : false
@@ -4024,8 +4024,8 @@ MODULE                        : project.lib
         SarifReport                   : false
     JavaCompileOptions
         Encoding                      : UTF-8
-        SourceCompatibility           : 1.8
-        TargetCompatibility           : 1.8
+        SourceCompatibility           : 11
+        TargetCompatibility           : 11
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
         ApplicationRClassConstantIds  : false
@@ -5019,8 +5019,8 @@ MODULE                        : project.nested1
         SarifReport                   : false
     JavaCompileOptions
         Encoding                      : UTF-8
-        SourceCompatibility           : 1.8
-        TargetCompatibility           : 1.8
+        SourceCompatibility           : 11
+        TargetCompatibility           : 11
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
         ApplicationRClassConstantIds  : false
@@ -5294,8 +5294,8 @@ MODULE                        : project.nested1.deep
         SarifReport                   : false
     JavaCompileOptions
         Encoding                      : UTF-8
-        SourceCompatibility           : 1.8
-        TargetCompatibility           : 1.8
+        SourceCompatibility           : 11
+        TargetCompatibility           : 11
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
         ApplicationRClassConstantIds  : false
@@ -5579,8 +5579,8 @@ MODULE                        : project.nested2
         SarifReport                   : false
     JavaCompileOptions
         Encoding                      : UTF-8
-        SourceCompatibility           : 1.8
-        TargetCompatibility           : 1.8
+        SourceCompatibility           : 11
+        TargetCompatibility           : 11
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
         ApplicationRClassConstantIds  : false
@@ -5987,8 +5987,8 @@ MODULE                        : project.nested2.deep
         SarifReport                   : false
     JavaCompileOptions
         Encoding                      : UTF-8
-        SourceCompatibility           : 1.8
-        TargetCompatibility           : 1.8
+        SourceCompatibility           : 11
+        TargetCompatibility           : 11
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
         ApplicationRClassConstantIds  : false
@@ -6274,8 +6274,8 @@ MODULE                        : project.nested2.trans.deep2
         SarifReport                   : false
     JavaCompileOptions
         Encoding                      : UTF-8
-        SourceCompatibility           : 1.8
-        TargetCompatibility           : 1.8
+        SourceCompatibility           : 11
+        TargetCompatibility           : 11
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
         ApplicationRClassConstantIds  : false

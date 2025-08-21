@@ -1006,8 +1006,8 @@ MODULE                        : project.app
         SarifReport                   : false
     JavaCompileOptions
         Encoding                      : UTF-8
-        SourceCompatibility           : 1.8
-        TargetCompatibility           : 1.8
+        SourceCompatibility           : 11
+        TargetCompatibility           : 11
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
         ApplicationRClassConstantIds  : false
@@ -1351,8 +1351,8 @@ MODULE                        : project.benchmark
         SarifReport                   : false
     JavaCompileOptions
         Encoding                      : UTF-8
-        SourceCompatibility           : 1.8
-        TargetCompatibility           : 1.8
+        SourceCompatibility           : 11
+        TargetCompatibility           : 11
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
         ApplicationRClassConstantIds  : false
@@ -1818,8 +1818,8 @@ MODULE                        : project.test
         SarifReport                   : false
     JavaCompileOptions
         Encoding                      : UTF-8
-        SourceCompatibility           : 1.8
-        TargetCompatibility           : 1.8
+        SourceCompatibility           : 11
+        TargetCompatibility           : 11
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
         ApplicationRClassConstantIds  : false
@@ -2276,8 +2276,8 @@ MODULE                        : project.test2
         SarifReport                   : false
     JavaCompileOptions
         Encoding                      : UTF-8
-        SourceCompatibility           : 1.8
-        TargetCompatibility           : 1.8
+        SourceCompatibility           : 11
+        TargetCompatibility           : 11
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
         ApplicationRClassConstantIds  : false

@@ -1003,8 +1003,8 @@ MODULE                        : project.app
         SarifReport                   : false
     JavaCompileOptions
         Encoding                      : UTF-8
-        SourceCompatibility           : 1.8
-        TargetCompatibility           : 1.8
+        SourceCompatibility           : 11
+        TargetCompatibility           : 11
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
         ApplicationRClassConstantIds  : false
@@ -2562,7 +2562,7 @@ MODULE                        : project.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
-                    jvmTarget                     : 1.8
+                    jvmTarget                     : 11
                     moduleName                    : app_debug
                     noJdk                         : true
                     noReflect                     : true
@@ -2580,7 +2580,7 @@ MODULE                        : project.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmTarget                     : 1.8
+                    jvmTarget                     : 11
                     moduleName                    : app_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
@@ -2598,7 +2598,7 @@ MODULE                        : project.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
-                    jvmTarget                     : 1.8
+                    jvmTarget                     : 11
                     moduleName                    : app_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true

@@ -8,7 +8,7 @@ MODULE                        : project.app
     BuildFolder                   : <ROOT>/app/build
     - DynamicFeatures             : :dyn_feature
     - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
-    JavaSourceLevel               : 1.8
+    JavaSourceLevel               : 11
     CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
@@ -806,7 +806,7 @@ MODULE                        : project.dyn_feature
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/dyn_feature/build
     - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
-    JavaSourceLevel               : 1.8
+    JavaSourceLevel               : 11
     CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
@@ -901,7 +901,7 @@ MODULE                        : project.lib
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/lib/build
     - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
-    JavaSourceLevel               : 1.8
+    JavaSourceLevel               : 11
     CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
@@ -1511,7 +1511,7 @@ MODULE                        : project.nested1
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/nested1/build
     - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
-    JavaSourceLevel               : 1.8
+    JavaSourceLevel               : 11
     CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
@@ -1601,7 +1601,7 @@ MODULE                        : project.nested1.deep
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/nested1/deep/build
     - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
-    JavaSourceLevel               : 1.8
+    JavaSourceLevel               : 11
     CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
@@ -1697,7 +1697,7 @@ MODULE                        : project.nested2
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/nested2/build
     - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
-    JavaSourceLevel               : 1.8
+    JavaSourceLevel               : 11
     CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
@@ -1807,7 +1807,7 @@ MODULE                        : project.nested2.deep
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/nested2/deep/build
     - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
-    JavaSourceLevel               : 1.8
+    JavaSourceLevel               : 11
     CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
@@ -1901,7 +1901,7 @@ MODULE                        : project.nested2.trans.deep2
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/nested2/trans/deep2/build
     - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
-    JavaSourceLevel               : 1.8
+    JavaSourceLevel               : 11
     CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true

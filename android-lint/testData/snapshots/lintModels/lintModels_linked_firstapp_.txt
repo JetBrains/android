@@ -7,7 +7,7 @@ MODULE                        : My_First_App.app
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/firstapp/app/build
     - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
-    JavaSourceLevel               : 1.8
+    JavaSourceLevel               : 11
     CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
@@ -654,7 +654,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/shared/mysharedlibrary/build
     - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
-    JavaSourceLevel               : 1.8
+    JavaSourceLevel               : 11
     CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
