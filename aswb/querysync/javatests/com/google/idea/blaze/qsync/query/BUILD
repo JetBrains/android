@@ -1,11 +1,12 @@
 load("//tools/adt/idea/aswb:build-visibility.bzl", "DEFAULT_TEST_VISIBILITY")
+load("//tools/adt/idea/aswb/build_defs:build_defs.bzl", "aswb_library")
 
 package(default_visibility = DEFAULT_TEST_VISIBILITY)
 
-java_library(
+aswb_library(
     name = "QuerySummaryTestUtil",
     srcs = [
-        "QuerySummaryTestBuilder.java",
+        "QuerySummaryTestBuilder.kt",
         "QuerySummaryTestUtil.java",
     ],
     visibility = ["//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync:__subpackages__"],
@@ -13,6 +14,7 @@ java_library(
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/query",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/query:querysummary_java_proto",
         "//tools/adt/idea/aswb/shared",
+        "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "@maven//:com.google.guava.guava",
     ],
 )
