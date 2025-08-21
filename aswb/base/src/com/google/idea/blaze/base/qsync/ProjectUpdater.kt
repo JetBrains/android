@@ -12,6 +12,7 @@ import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot
 import com.google.idea.blaze.qsync.project.BlazeProjectDataStorage.WORKSPACE_MODULE_NAME
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
+import com.google.idea.common.experiments.BoolExperiment
 import com.google.idea.common.experiments.EnumExperiment
 import com.google.idea.common.experiments.IntExperiment
 import com.google.idea.common.util.Transactions
@@ -63,6 +64,7 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
   companion object {
     val projectStructureExperiment = EnumExperiment("query.sync.project.structure", ProjectStructure.SHARDED_LIBRARY)
     val libraryShardsExperiment = IntExperiment("query.sync.library.shards", 10)
+    val coexistWithJpsSourceEntitiesExperiment = BoolExperiment("query.sync.coexist.with.jps.source", true)
   }
 
   private var lastProjectProtoSnapshot: ProjectProto.Project = ProjectProto.Project.getDefaultInstance()
@@ -289,8 +291,11 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
     projectData: ProjectData,
   ) {
     val virtualFileUrlManager = WorkspaceModel.getInstance(project).getVirtualFileUrlManager()
+    val replaceJpsSourceEntities =
+      !coexistWithJpsSourceEntitiesExperiment.value ||
+      storage.entitiesBySource {it is BazelEntitySource}.none() // Conversion of an older project.
     storage.replaceBySource(
-      { it is BazelEntitySource || it is JpsProjectFileEntitySource },
+      { it is BazelEntitySource || replaceJpsSourceEntities && it is JpsProjectFileEntitySource },
       MutableEntityStorage.create().apply {
         val libraries = projectData.libraries.associate {
           it.name to addEntity(LibraryEntity(
