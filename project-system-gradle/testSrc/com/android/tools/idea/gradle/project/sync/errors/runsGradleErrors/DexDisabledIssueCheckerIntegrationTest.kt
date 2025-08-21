@@ -87,10 +87,11 @@ class DexDisabledIssueCheckerIntegrationTest {
   private fun addJarDependency(dependency: String) {
     val gradlePropertiesFile = project.baseDir.findChild("gradle.properties")!!
     runWriteAction {
-      gradlePropertiesFile.setBinaryContent("""
+      val existingContent = gradlePropertiesFile.contentsToByteArray().toString(Charsets.UTF_8)
+      gradlePropertiesFile.setBinaryContent((existingContent + "\n" + """
           org.gradle.java.installations.paths=${TestUtils.getJava17Jdk().toString().replace("\\", "/")}
           android.uniquePackageNames=false
-      """.trimIndent().toByteArray(Charsets.UTF_8))
+      """.trimIndent()).toByteArray(Charsets.UTF_8))
     }
 
     val appModule = project.findAppModule()
