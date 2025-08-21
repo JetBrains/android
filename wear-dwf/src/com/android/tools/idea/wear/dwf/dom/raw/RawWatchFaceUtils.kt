@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.wear.dwf.dom.raw
 
+import com.android.SdkConstants.ATTR_TYPE
 import com.android.SdkConstants.TAG_WATCH_FACE
+import com.android.tools.idea.wear.dwf.WFFConstants
 import com.android.tools.idea.wear.dwf.WFFConstants.ATTRIBUTE_COLORS
 import com.android.tools.idea.wear.dwf.WFFConstants.ATTRIBUTE_ID
+import com.android.tools.idea.wear.dwf.WFFConstants.CONFIGURATION_PREFIX
+import com.android.tools.idea.wear.dwf.WFFConstants.DataSources
 import com.android.tools.idea.wear.dwf.WFFConstants.TAG_BOOLEAN_CONFIGURATION
 import com.android.tools.idea.wear.dwf.WFFConstants.TAG_COLOR_CONFIGURATION
 import com.android.tools.idea.wear.dwf.WFFConstants.TAG_COLOR_OPTION
@@ -30,10 +34,15 @@ import com.android.tools.idea.wear.dwf.dom.raw.configurations.ListConfiguration
 import com.android.tools.idea.wear.dwf.dom.raw.configurations.PhotosConfiguration
 import com.android.tools.idea.wear.dwf.dom.raw.configurations.UnknownConfiguration
 import com.android.tools.idea.wear.dwf.dom.raw.configurations.UserConfiguration
+import com.android.tools.idea.wear.dwf.dom.raw.expressions.DataSource
+import com.android.tools.idea.wear.dwf.dom.raw.expressions.StaticDataSource
+import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionDataSource
+import com.android.tools.idea.wear.dwf.dom.raw.expressions.getParentComplicationTag
 import com.intellij.codeInsight.completion.InsertHandler
 import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.psi.PsiElement
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 
@@ -121,3 +130,31 @@ fun createDataSourceLookupElement(lookupString: String) =
     .withLookupStrings(listOf(lookupString, "[$lookupString]"))
     .withPresentableText("[$lookupString]")
     .insertBracketsAroundIfNeeded()
+
+/**
+ * Whether this data source is a user configuration.
+ *
+ * @see <a
+ *   href="https://developer.android.com/training/wearables/wff/personalization/user-configurations">
+ *   User configurations</a>
+ */
+fun WFFExpressionDataSource.isUserConfiguration() = id.text.startsWith(CONFIGURATION_PREFIX)
+
+/** Finds the [DataSource] that matches [WFFExpressionDataSource]'s ID, if any. */
+fun WFFExpressionDataSource.findDataSourceDefinition(): DataSource? {
+  return if (id.isComplicationDataSource()) id.findComplicationDataSource()
+  else id.findStaticDataSource() ?: id.findPatternDataSource()
+}
+
+private fun PsiElement.isComplicationDataSource() =
+  text.startsWith(WFFConstants.COMPLICATION_PREFIX)
+
+private fun PsiElement.findComplicationDataSource(): StaticDataSource? {
+  val complicationType = getParentComplicationTag(this)?.getAttribute(ATTR_TYPE)?.value
+  return DataSources.COMPLICATION_BY_TYPE[complicationType]?.find { it.id == text }
+}
+
+private fun PsiElement.findStaticDataSource() = DataSources.ALL_STATIC_BY_ID[text]
+
+private fun PsiElement.findPatternDataSource() =
+  DataSources.ALL_PATTERNS.find { it.pattern.matches(text) }

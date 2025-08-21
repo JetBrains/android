@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.wear.dwf.dom.raw.expressions
 
-import com.android.SdkConstants.ATTR_TYPE
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.wear.dwf.WFFConstants
 import com.android.tools.idea.wear.dwf.WFFConstants.DataSources
 import com.android.tools.idea.wear.dwf.WearDwfBundle.message
 import com.android.tools.idea.wear.dwf.dom.raw.CurrentWFFVersionService
 import com.android.tools.idea.wear.dwf.dom.raw.configurations.UserConfigurationReference
+import com.android.tools.idea.wear.dwf.dom.raw.findDataSourceDefinition
+import com.android.tools.idea.wear.dwf.dom.raw.isUserConfiguration
 import com.android.tools.wear.wff.WFFVersion
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.lang.annotation.AnnotationHolder
@@ -52,27 +52,22 @@ class WFFExpressionAnnotator() : Annotator {
     holder: AnnotationHolder,
   ) {
     when {
-      dataSource.id.text.startsWith(WFFConstants.CONFIGURATION_PREFIX) ->
-        annotateConfiguration(dataSource, holder)
-      else -> annotateDataSourceId(wffVersion, dataSource.id, holder)
+      dataSource.isUserConfiguration() -> annotateConfiguration(dataSource, holder)
+      else -> annotatePredefinedDataSource(wffVersion, dataSource, holder)
     }
   }
 
-  private fun annotateDataSourceId(
+  private fun annotatePredefinedDataSource(
     wffVersion: WFFVersion?,
-    dataSourceId: PsiElement,
+    dataSource: WFFExpressionDataSource,
     holder: AnnotationHolder,
   ) {
-    val dataSource =
-      if (dataSourceId.isComplicationDataSource()) {
-        dataSourceId.findComplicationDataSource()
-      } else {
-        dataSourceId.findStaticDataSource() ?: dataSourceId.findPatternDataSource()
-      }
+    val dataSourceDefinition = dataSource.findDataSourceDefinition()
     // The data source can be a complication data source used under the wrong type. This will
     // be reported as an error by InvalidComplicationDataSourceLocationInspection
     val isDataSourceUnknown =
-      dataSource == null && DataSources.COMPLICATION_ALL.none { it.id == dataSourceId.text }
+      dataSourceDefinition == null &&
+        DataSources.COMPLICATION_ALL.none { it.id == dataSource.id.text }
     if (isDataSourceUnknown) {
       holder
         .newAnnotation(
@@ -80,10 +75,12 @@ class WFFExpressionAnnotator() : Annotator {
           message("wff.expression.annotator.unknown.datasource"),
         )
         .highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL)
-        .range(dataSourceId)
+        .range(dataSource.id)
         .create()
     } else if (
-      dataSource != null && wffVersion != null && wffVersion < dataSource.requiredVersion
+      dataSourceDefinition != null &&
+        wffVersion != null &&
+        wffVersion < dataSourceDefinition.requiredVersion
     ) {
       // TODO(b/436560081): move this to a local inspection, this annotator should only highlight
       // unknown data sources
@@ -92,15 +89,15 @@ class WFFExpressionAnnotator() : Annotator {
           HighlightSeverity.ERROR,
           message(
             "wff.expression.annotator.unavailable.datasource",
-            dataSource.requiredVersion.version,
+            dataSourceDefinition.requiredVersion.version,
           ),
         )
-        .range(dataSourceId)
+        .range(dataSource.id)
         .create()
     }
     holder
       .newSilentAnnotation(HighlightSeverity.INFORMATION)
-      .range(dataSourceId)
+      .range(dataSource.id)
       .textAttributes(WFFExpressionTextAttributes.DATA_SOURCE.key)
       .create()
   }
@@ -162,17 +159,4 @@ class WFFExpressionAnnotator() : Annotator {
       .textAttributes(WFFExpressionTextAttributes.CONFIGURATION.key)
       .create()
   }
-
-  private fun PsiElement.isComplicationDataSource() =
-    text.startsWith(WFFConstants.COMPLICATION_PREFIX)
-
-  private fun PsiElement.findComplicationDataSource(): StaticDataSource? {
-    val complicationType = getParentComplicationTag(this)?.getAttribute(ATTR_TYPE)?.value
-    return DataSources.COMPLICATION_BY_TYPE[complicationType]?.find { it.id == text }
-  }
-
-  private fun PsiElement.findStaticDataSource() = DataSources.ALL_STATIC_BY_ID[text]
-
-  private fun PsiElement.findPatternDataSource() =
-    DataSources.ALL_PATTERNS.find { it.pattern.matches(text) }
 }
