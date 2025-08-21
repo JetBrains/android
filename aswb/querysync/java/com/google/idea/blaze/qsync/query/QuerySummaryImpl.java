@@ -529,17 +529,6 @@ public abstract class QuerySummaryImpl implements QuerySummary {
       .collect(toImmutableSet());
   }
 
-  /**
-   * Returns the parent package of a given build package.
-   *
-   * <p>The parent package is not necessarily the same as the parent path: it may be an indirect
-   * parent if there are paths that are not build packages (e.g. contain no BUILD file).
-   */
-  @Override
-  public Optional<Path> getParentPackage(Path buildPackage) {
-    return getPackages().getParentPackage(buildPackage);
-  }
-
   @Override
   public int getPackagesWithErrorsCount() {
     return proto().getPackagesWithErrorsCount();

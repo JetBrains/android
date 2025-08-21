@@ -112,31 +112,6 @@ public class QuerySummaryTest {
   }
 
   @Test
-  public void testGetParentPackage_noparent() {
-    QuerySummary summary = QuerySummaryImpl.create(createProtoForPackages("//my/build/package:rule"));
-    Truth8.assertThat(summary.getParentPackage(Path.of("my/build/package"))).isEmpty();
-  }
-
-  @Test
-  public void testGetParentPackage_directParent() {
-    QuerySummary summary =
-        QuerySummaryImpl.create(
-            createProtoForPackages(
-                "//my/build/package:rule", "//my/build/package/subpackage:rule"));
-    Truth8.assertThat(summary.getParentPackage(Path.of("my/build/package/subpackage")))
-        .hasValue(Path.of("my/build/package"));
-  }
-
-  @Test
-  public void testGetParentPackage_indirectParent() {
-    QuerySummary summary =
-        QuerySummaryImpl.create(
-            createProtoForPackages("//my/build/package:rule", "//my/build/package/sub1/sub2:rule"));
-    Truth8.assertThat(summary.getParentPackage(Path.of("my/build/package/sub1/sub2")))
-        .hasValue(Path.of("my/build/package"));
-  }
-
-  @Test
   public void testBuildIncludes() throws IOException {
     QuerySummary qs =
         QuerySummaryImpl.create(QuerySpec.QueryStrategy.PLAIN, TestData.BUILDINCLUDES_QUERY.getQueryOutputPath().toFile());

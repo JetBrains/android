@@ -64,14 +64,6 @@ public interface QuerySummary {
   ImmutableSet<Label> getAllBuildIncludedFiles();
 
   /**
-   * Returns the parent package of a given build package.
-   *
-   * <p>The parent package is not necessarily the same as the parent path: it may be an indirect
-   * parent if there are paths that are not build packages (e.g. contain no BUILD file).
-   */
-  Optional<Path> getParentPackage(Path buildPackage);
-
-  /**
    * Returns the list of packages that the query sync was unable to fetch or fetched with errors.
    */
   ImmutableSet<Path> getPackagesWithErrors();
@@ -118,11 +110,6 @@ public interface QuerySummary {
     @Override
     public ImmutableSet<Label> getAllBuildIncludedFiles() {
       return ImmutableSet.of();
-    }
-
-    @Override
-    public Optional<Path> getParentPackage(Path buildPackage) {
-      return Optional.empty();
     }
 
     @Override
