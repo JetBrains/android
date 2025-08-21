@@ -25,10 +25,12 @@ import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
@@ -505,7 +507,7 @@ public abstract class QuerySummaryImpl implements QuerySummary {
    */
   @Memoized
   @Override
-  public ImmutableMultimap<Path, Path> getReverseSubincludeMap() {
+  public Map<Path, ? extends Collection<? extends Path>> getReverseSubincludeMap() {
     SetMultimap<Path, Path> includes =
         getSourceFilesMap().entrySet().stream()
             .collect(
@@ -515,7 +517,7 @@ public abstract class QuerySummaryImpl implements QuerySummary {
                         e.getValue().subincliudes().stream()
                             .map(Label::toFilePath),
                     HashMultimap::create));
-    return ImmutableMultimap.copyOf(Multimaps.invertFrom(includes, HashMultimap.create()));
+    return ImmutableSetMultimap.copyOf(Multimaps.invertFrom(includes, HashMultimap.create())).asMap();
   }
 
   /**
@@ -578,7 +580,7 @@ public abstract class QuerySummaryImpl implements QuerySummary {
       return this;
     }
 
-    public Builder putAllPackagesWithErrors(Set<Path> packagesWithErrors) {
+    public Builder putAllPackagesWithErrors(Set<? extends Path> packagesWithErrors) {
       packagesWithErrors.stream()
           // TODO: b/334110669 - Consider multi workspace-builds.
           .map(p -> Label.fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, p, "BUILD"))

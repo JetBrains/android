@@ -99,8 +99,7 @@ class PartialProjectRefresh implements RefreshOperation {
   QuerySummary applyDelta(QuerySummary partialQuery) {
     // copy all unaffected rules / source files to result:
     Map<Label, QueryData.SourceFile> newSourceFiles = Maps.newHashMap();
-    for (Map.Entry<Label, QueryData.SourceFile> sfEntry :
-        previousState.querySummary().getSourceFilesMap().entrySet()) {
+    for (var sfEntry : previousState.querySummary().getSourceFilesMap().entrySet()) {
       Path buildPackage = sfEntry.getKey().getBuildPackagePath();
       if (!(deletedPackages.contains(buildPackage)
           || partialQuery.getPackages().contains(buildPackage))) {
@@ -108,8 +107,7 @@ class PartialProjectRefresh implements RefreshOperation {
       }
     }
     Map<Label, QueryData.Rule> newRules = Maps.newHashMap();
-    for (Map.Entry<Label, QueryData.Rule> ruleEntry :
-        previousState.querySummary().getRulesMap().entrySet()) {
+    for (var ruleEntry : previousState.querySummary().getRulesMap().entrySet()) {
       Path buildPackage = ruleEntry.getKey().getBuildPackagePath();
       if (!(deletedPackages.contains(buildPackage)
           || partialQuery.getPackages().contains(buildPackage))) {

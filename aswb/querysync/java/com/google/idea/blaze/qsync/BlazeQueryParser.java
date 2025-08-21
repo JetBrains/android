@@ -138,8 +138,7 @@ public class BlazeQueryParser {
 
     long now = System.nanoTime();
     final var visitors = new RuleVisitors();
-    for (Map.Entry<Label, QueryData.SourceFile> sourceFileEntry :
-        query.getSourceFilesMap().entrySet()) {
+    for (var sourceFileEntry : query.getSourceFilesMap().entrySet()) {
       if (sourceFileEntry.getKey().getWorkspace().isEmpty()) {
         graphBuilder.addSourceFileLabel(sourceFileEntry.getKey());
       } else {
@@ -148,7 +147,7 @@ public class BlazeQueryParser {
                 "Skipping unsupported non-root workspace source: " + sourceFileEntry.getValue()));
       }
     }
-    for (Map.Entry<Label, QueryData.Rule> ruleEntry : query.getRulesMap().entrySet()) {
+    for (var ruleEntry : query.getRulesMap().entrySet()) {
       ProjectTarget.Builder targetBuilder = ProjectTarget.builder();
 
       QueryData.Rule rule = ruleEntry.getValue();

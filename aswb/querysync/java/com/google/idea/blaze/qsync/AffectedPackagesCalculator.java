@@ -17,6 +17,7 @@ package com.google.idea.blaze.qsync;
 
 import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 
 import com.google.auto.value.AutoValue;
@@ -31,10 +32,13 @@ import com.google.idea.blaze.common.vcs.WorkspaceFileChange.Operation;
 import com.google.idea.blaze.qsync.query.PackageSet;
 import com.google.idea.blaze.qsync.query.QuerySummary;
 import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Calculates the set of affected packages based on the project imports & excludes, output from a
@@ -133,7 +137,10 @@ public abstract class AffectedPackagesCalculator {
     ImmutableList<Path> affectedBySubinclude =
         changedFiles().stream()
             .map(c -> c.workspaceRelativePath)
-            .flatMap(path -> lastQuery().getReverseSubincludeMap().get(path).stream())
+            .flatMap(path -> {
+              final var paths = lastQuery().getReverseSubincludeMap().get(path);
+              return (paths == null) ? Stream.<Path>empty() : paths.stream();
+            })
             .filter(Objects::nonNull)
             .filter(path -> path.endsWith("BUILD"))
             .collect(toImmutableList());

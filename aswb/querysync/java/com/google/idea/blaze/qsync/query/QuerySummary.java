@@ -16,11 +16,13 @@
 package com.google.idea.blaze.qsync.query;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.common.Label;
 import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Summaries the output from a {@code query} invocation into just the data needed by the rest of
@@ -35,14 +37,14 @@ public interface QuerySummary {
    *
    * <p>This is a map of source target label to the {@link QueryData.SourceFile} proto representing it.
    */
-  ImmutableMap<Label, QueryData.SourceFile> getSourceFilesMap();
+  Map<Label, ? extends QueryData.SourceFile> getSourceFilesMap();
 
   /**
    * Returns the map of rules included in the query output.
    *
    * <p>This is a map of rule label to the {@link QueryData.Rule} proto representing it.
    */
-  ImmutableMap<Label, QueryData.Rule> getRulesMap();
+  Map<Label, ? extends QueryData.Rule> getRulesMap();
 
   /**
    * Returns the set of build packages in the query output.
@@ -56,17 +58,17 @@ public interface QuerySummary {
    *
    * <p>This is used to determine, for example, which build files include a given .bzl file.
    */
-  ImmutableMultimap<Path, Path> getReverseSubincludeMap();
+  Map<Path, ? extends Collection<? extends Path>> getReverseSubincludeMap();
 
   /**
    * Returns the set of labels of all files includes from BUILD files.
    */
-  ImmutableSet<Label> getAllBuildIncludedFiles();
+  Set<? extends Label> getAllBuildIncludedFiles();
 
   /**
    * Returns the list of packages that the query sync was unable to fetch or fetched with errors.
    */
-  ImmutableSet<Path> getPackagesWithErrors();
+  Set<? extends Path> getPackagesWithErrors();
 
   /**
    * Returns the number of packages that the query sync was unable to fetch or fetched with errors.
@@ -84,62 +86,64 @@ public interface QuerySummary {
   QuerySpec.QueryStrategy getQueryStrategy();
 
   boolean isCompatibleWithCurrentPluginVersion();
+
   Query.Summary protoForSerializationOnly();
 
-  QuerySummary EMPTY = new QuerySummary() {
-    @Override
-    public ImmutableMap<Label, QueryData.SourceFile> getSourceFilesMap() {
-      return ImmutableMap.of();
-    }
+  QuerySummary EMPTY =
+      new QuerySummary() {
+        @Override
+        public Map<Label, ? extends QueryData.SourceFile> getSourceFilesMap() {
+          return ImmutableMap.of();
+        }
 
-    @Override
-    public ImmutableMap<Label, QueryData.Rule> getRulesMap() {
-      return ImmutableMap.of();
-    }
+        @Override
+        public Map<Label, ? extends QueryData.Rule> getRulesMap() {
+          return ImmutableMap.of();
+        }
 
-    @Override
-    public PackageSet getPackages() {
-      return PackageSet.EMPTY;
-    }
+        @Override
+        public PackageSet getPackages() {
+          return PackageSet.EMPTY;
+        }
 
-    @Override
-    public ImmutableMultimap<Path, Path> getReverseSubincludeMap() {
-      return ImmutableMultimap.of();
-    }
+        @Override
+        public Map<Path, ? extends Collection<? extends Path>> getReverseSubincludeMap() {
+          return ImmutableMap.of();
+        }
 
-    @Override
-    public ImmutableSet<Label> getAllBuildIncludedFiles() {
-      return ImmutableSet.of();
-    }
+        @Override
+        public Set<? extends Label> getAllBuildIncludedFiles() {
+          return ImmutableSet.of();
+        }
 
-    @Override
-    public ImmutableSet<Path> getPackagesWithErrors() {
-      return ImmutableSet.of();
-    }
+        @Override
+        public Set<? extends Path> getPackagesWithErrors() {
+          return ImmutableSet.of();
+        }
 
-    @Override
-    public int getPackagesWithErrorsCount() {
-      return 0;
-    }
+        @Override
+        public int getPackagesWithErrorsCount() {
+          return 0;
+        }
 
-    @Override
-    public int getRulesCount() {
-      return 0;
-    }
+        @Override
+        public int getRulesCount() {
+          return 0;
+        }
 
-    @Override
-    public QuerySpec.QueryStrategy getQueryStrategy() {
-      return QuerySpec.QueryStrategy.PLAIN;
-    }
+        @Override
+        public QuerySpec.QueryStrategy getQueryStrategy() {
+          return QuerySpec.QueryStrategy.PLAIN;
+        }
 
-    @Override
-    public boolean isCompatibleWithCurrentPluginVersion() {
-      return true;
-    }
+        @Override
+        public boolean isCompatibleWithCurrentPluginVersion() {
+          return true;
+        }
 
-    @Override
-    public Query.Summary protoForSerializationOnly() {
-      return Query.Summary.getDefaultInstance();
-    }
-  };
+        @Override
+        public Query.Summary protoForSerializationOnly() {
+          return Query.Summary.getDefaultInstance();
+        }
+      };
 }

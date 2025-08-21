@@ -19,11 +19,15 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.idea.blaze.qsync.query.QuerySummaryTestUtil.createProtoForPackages;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimaps;
 import com.google.common.truth.Truth8;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.testdata.TestData;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -125,14 +129,14 @@ public class QuerySummaryTest {
         );
     assertThat(qs.getReverseSubincludeMap())
         .containsExactly(
-            TestData.ROOT.resolve("buildincludes/sub/includes/includes.bzl"),
-            TestData.ROOT.resolve("buildincludes/sub/includes/BUILD"),
-            TestData.ROOT.resolve("buildincludes/sub/includes/includes.bzl"),
-            TestData.ROOT.resolve("buildincludes/sub/BUILD"),
-            TestData.ROOT.resolve("buildincludes/sub/includes/includes.bzl"),
-            TestData.ROOT.resolve("buildincludes/BUILD"),
-            TestData.ROOT.resolve("buildincludes/sub/includes/includes2.bzl"),
+          TestData.ROOT.resolve("buildincludes/sub/includes/includes.bzl"),
+          ImmutableSet.of(TestData.ROOT.resolve("buildincludes/sub/includes/BUILD"),
+                          TestData.ROOT.resolve("buildincludes/sub/BUILD"),
+                          TestData.ROOT.resolve("buildincludes/BUILD")),
+          TestData.ROOT.resolve("buildincludes/sub/includes/includes2.bzl"),
+          ImmutableSet.of(
             TestData.ROOT.resolve("buildincludes/BUILD")
+          )
         );
   }
 
