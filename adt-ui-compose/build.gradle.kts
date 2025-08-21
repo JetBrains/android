@@ -56,6 +56,7 @@ dependencies {
   testApi(compose.desktop.uiTestJUnit4)
   testApi("org.jetbrains.jewel:jewel-int-ui-standalone:0.28.0-251.26137")
   testApi("org.jetbrains.jewel:jewel-markdown-int-ui-standalone-styling:0.28.0-251.26137")
+  testImplementation("com.google.truth:truth:0.42")
 }
 
 sourceSets {
