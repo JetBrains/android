@@ -17,12 +17,14 @@ package com.android.tools.idea.flags;
 
 import static com.android.tools.idea.observable.expressions.bool.BooleanExpressions.not;
 
+import com.android.flags.DEFAULT_BOOLEAN_FLAG_VALUE;
 import com.android.flags.Flag;
 import com.android.flags.FlagGroup;
 import com.android.flags.FlagValueContainer;
 import com.android.flags.FlagValueProvider;
 import com.android.flags.overrides.InMemoryFlagValueContainer;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.overrides.FeatureConfigurationProvider;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.core.BoolProperty;
@@ -203,6 +205,7 @@ public final class StudioFlagsDialog extends DialogWrapper {
         titledBorder.setTitleFont(titledBorder.getTitleFont().deriveFont(Font.BOLD, titledBorder.getTitleFont().getSize() + 2));
         groupPanel.setBorder(titledBorder);
 
+        FeatureConfigurationProvider featureConfigurationProvider = FeatureConfigurationProvider.Companion.getCurrentFlags();
         boolean firstFlag = true;
         for (Flag<?> flag : flagMatches) {
           JPanel flagPanel = new JPanel(new VerticalFlowLayout(5, 0));
@@ -244,7 +247,15 @@ public final class StudioFlagsDialog extends DialogWrapper {
           namePanel.add(id);
           flagPanel.add(namePanel);
           flagPanel.add(description);
-          if (!flag.getDefault().getExplanation().isEmpty()) {
+          if (flag.getDefault() == DEFAULT_BOOLEAN_FLAG_VALUE.INSTANCE) {
+            String explanation = featureConfigurationProvider.getConfigurationExplanation(flag);
+            if (explanation != null) {
+              JBLabel defaultValueDescription = new JBLabel(explanation);
+              defaultValueDescription.setIcon(AllIcons.General.BalloonInformation);
+              defaultValueDescription.setOpaque(true);
+              flagPanel.add(defaultValueDescription);
+            }
+          } else if (!flag.getDefault().getExplanation().isEmpty()) {
             JBLabel defaultValueDescription = new JBLabel(flag.getDefault().getExplanation());
             defaultValueDescription.setIcon(AllIcons.General.BalloonInformation);
             defaultValueDescription.setOpaque(true);

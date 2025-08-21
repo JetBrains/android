@@ -36,10 +36,22 @@ import java.io.InputStream
  * since it's not actually an override.
  */
 class FeatureConfigurationProvider private constructor(
-  private val values: Map<String, String>
+  private val currentConfig: FeatureConfiguration,
+  private val values: Map<String, FeatureConfiguration>
 ): FlagValueProvider {
 
-  override fun get(flag: Flag<*>): String? = values[flag.id]
+  override fun get(flag: Flag<*>): String? = getValueById(flag.id)
+
+  /** For display in the studio flags dialog */
+  fun getConfigurationExplanation(flag: Flag<*>): String? = values[flag.id]?.let { flagConfiguration ->
+    val prefix = if (currentConfig.stabilityLevel > flagConfiguration.stabilityLevel) "Disabled by default. Enabled only in" else "Enabled only in"
+    when(flagConfiguration) {
+      FeatureConfiguration.INTERNAL -> "$prefix internal builds"
+      FeatureConfiguration.NIGHTLY ->  "$prefix internal and nightly builds"
+      FeatureConfiguration.PREVIEW -> "$prefix internal, nightly and canary builds"
+      FeatureConfiguration.COMPLETE -> null // Only tag flags that vary between channels.
+    }
+  }
 
   @VisibleForTesting
   fun getEntries(): Set<String> {
@@ -47,7 +59,7 @@ class FeatureConfigurationProvider private constructor(
   }
 
   @VisibleForTesting
-  fun getValueById(flagId: String): String? = values[flagId]
+  fun getValueById(flagId: String): String? = values[flagId]?.let { currentConfig.stabilityLevel <= it.stabilityLevel }?.toString()
 
   companion object {
     /** Returns the current IDE feature flags configuration as a stream. */
@@ -73,12 +85,12 @@ class FeatureConfigurationProvider private constructor(
           reader.readLines().filter { !it.startsWith("#") }.associateNotNull {
             val tokens = parseLine(it) ?: return@associateNotNull null
             val flagConfig = configsByName[tokens.second] ?: return@associateNotNull null
-            tokens.first to (currentConfig.stabilityLevel <= flagConfig.stabilityLevel).toString()
+            tokens.first to flagConfig
           }
         }
       }
 
-      return FeatureConfigurationProvider(map)
+      return FeatureConfigurationProvider(currentConfig, map)
     }
 
     @VisibleForTesting
