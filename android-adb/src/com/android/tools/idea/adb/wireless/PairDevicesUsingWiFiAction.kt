@@ -22,16 +22,16 @@ import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.EDT
+import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /** The action to show the [WiFiPairingDialog] window. */
-class PairDevicesUsingWiFiAction : AnAction(StudioIcons.Avd.PAIR_OVER_WIFI) {
+class PairDevicesUsingWiFiAction : DumbAwareAction(StudioIcons.Avd.PAIR_OVER_WIFI) {
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabledAndVisible = e.project != null
   }
