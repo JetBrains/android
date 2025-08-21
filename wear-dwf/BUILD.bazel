@@ -11,7 +11,7 @@ jvm_library(
   name = "wear-dwf",
   module_name = "intellij.android.wear-dwf",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "gen/**/*.kt", "gen/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form", "gen/**/*.kt", "gen/**/*.java"], allow_empty = True),
   deps = [
     "//android/android-common:common",
     "//android/android:core",
