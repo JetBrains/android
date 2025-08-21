@@ -25,7 +25,9 @@ import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionPsiFile
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionVisitor
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.findFunction
 import com.android.tools.idea.wear.dwf.dom.raw.findDataSourceDefinition
+import com.android.tools.idea.wear.dwf.dom.raw.isReference
 import com.android.tools.wear.wff.WFFVersion
+import com.android.tools.wear.wff.WFFVersion.WFFVersion4
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
@@ -60,11 +62,17 @@ class FeatureRequiresHigherWFFVersionInspection : LocalInspectionTool() {
       }
 
       override fun visitDataSource(dataSource: WFFExpressionDataSource) {
-        val requiredWFFVersion = dataSource.findDataSourceDefinition()?.requiredVersion ?: return
+        val isReference = dataSource.isReference()
+        val requiredVersion =
+          if (isReference) WFFVersion4
+          else dataSource.findDataSourceDefinition()?.requiredVersion ?: return
+        val errorMessageKey =
+          if (isReference) "wff.feature.requires.higher.wff.version.reference"
+          else "wff.feature.requires.higher.wff.version.datasource"
         reportHigherVersionRequiredIfNeeded(
           dataSource.id,
-          requiredWFFVersion,
-          message("wff.feature.requires.higher.wff.version.datasource", requiredWFFVersion.version),
+          requiredWFFVersion = requiredVersion,
+          errorMessage = message(errorMessageKey, requiredVersion.version),
         )
       }
 

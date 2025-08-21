@@ -21,6 +21,8 @@ import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionFileType
 import com.android.tools.idea.wear.dwf.dom.raw.overrideCurrentWFFVersion
 import com.android.tools.wear.wff.WFFVersion.WFFVersion1
 import com.android.tools.wear.wff.WFFVersion.WFFVersion2
+import com.android.tools.wear.wff.WFFVersion.WFFVersion3
+import com.android.tools.wear.wff.WFFVersion.WFFVersion4
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity
 import org.junit.Before
@@ -178,5 +180,85 @@ class FeatureRequiresHigherWFFVersionInspectionTest {
 
     errors = fixture.doHighlighting().filter { it.severity == HighlightSeverity.ERROR }
     assertThat(errors).isEmpty()
+  }
+
+  @Test
+  fun `references are reported as requiring WFF version 4 when using a lower version`() {
+    overrideCurrentWFFVersion(WFFVersion3, projectRule.testRootDisposable)
+    // wrap in a watch face file for the references to resolve
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <Scene>
+            <PartDraw>
+              <Transform target="x" value="[REFERENCE.someReference]" />
+            </PartDraw>
+          </Scene>
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    val error = fixture.doHighlighting(HighlightSeverity.ERROR).single()
+    assertThat(error.text).isEqualTo("REFERENCE.someReference")
+    assertThat(error.description).isEqualTo("References require WFF version 4")
+  }
+
+  @Test
+  fun `references are not reported as requiring WFF version 4 when using version 4`() {
+    overrideCurrentWFFVersion(WFFVersion4, projectRule.testRootDisposable)
+    // wrap in a watch face file for the references to resolve
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <Scene>
+            <PartText>
+              <Reference name="someReference" />
+            </PartText>
+            <PartDraw>
+              <Transform target="x" value="[REFERENCE.someReference]" />
+            </PartDraw>
+          </Scene>
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    assertThat(fixture.doHighlighting(HighlightSeverity.ERROR)).isEmpty()
+  }
+
+  @Test
+  fun `references are not reported as requiring WFF version 4 when the current version is null`() {
+    overrideCurrentWFFVersion(null, projectRule.testRootDisposable)
+    // wrap in a watch face file for the references to resolve
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <Scene>
+            <PartDraw>
+              <Transform target="x" value="[REFERENCE.someReference]" />
+            </PartDraw>
+          </Scene>
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    assertThat(fixture.doHighlighting(HighlightSeverity.ERROR)).isEmpty()
   }
 }
