@@ -26,11 +26,13 @@ import com.android.tools.testlib.TestLogger;
 import com.google.common.collect.Sets;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -96,6 +98,35 @@ public abstract class IdeInstallation<T extends Ide> {
     InstallerUtil.unzip(zipFile, outDir, Files.size(zipFile), new FakeProgressIndicator());
     long elapsedTime = System.currentTimeMillis() - startTime;
     TestLogger.log("Unzipping took %d ms", elapsedTime);
+  }
+
+  public void bundlePlugin(Path pluginZipPath) throws IOException {
+    if (!Files.exists(pluginZipPath)) {
+      throw new IllegalStateException("Plugin zip file wasn't found. Path: " + pluginZipPath);
+    }
+
+    Path pluginsDir = studioDir.resolve("plugins");
+    Files.createDirectories(pluginsDir);
+
+    unzip(pluginZipPath, pluginsDir);
+  }
+
+  /** Removes the plugin under the provided folder name, under `android-studio/plugins/` */
+  public void removePlugin(String folderName) {
+    deleteDirectoryRecursively(workDir.resolve("android-studio/plugins/" + folderName));
+  }
+
+  /** Deletes the target directory and all of of its items */
+  private void deleteDirectoryRecursively(Path directoryPath) {
+    try {
+      Files.walk(directoryPath)
+        .sorted(Comparator.reverseOrder())
+        .map(Path::toFile)
+        .forEach(File::delete);
+      TestLogger.log("Successfully deleted directory: %s", directoryPath);
+    } catch (IOException e) {
+      System.err.println("Error deleting directory: " + directoryPath + " - " + e.getMessage());
+    }
   }
 
   public LogFile getIdeaLog() {
