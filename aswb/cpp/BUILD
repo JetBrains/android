@@ -44,7 +44,7 @@ java_library(
 
 optional_plugin_xml(
     name = "optional_cidr",
-    module = "com.intellij.modules.cidr.lang",
+    module = "com.intellij.cidr.lang",
     plugin_xml = "src/META-INF/blaze-cpp.xml",
 )
 

@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-  <depends>com.intellij.modules.cidr.lang</depends>
+  <depends>com.intellij.cidr.lang</depends>
   <depends>com.intellij.modules.cidr.debugger</depends>
 
   <project-components>
