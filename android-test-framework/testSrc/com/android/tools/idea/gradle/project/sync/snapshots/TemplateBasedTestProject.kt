@@ -158,6 +158,9 @@ interface TemplateBasedTestProject : TestProjectDefinition {
     if (autoMigratePackageAttribute && agpVersion >= AgpVersionSoftwareEnvironmentDescriptor.AGP_80) {
       migratePackageAttribute(root)
     }
+    if (agpVersion <= AgpVersionSoftwareEnvironmentDescriptor.AGP_81) {
+      patchLegacyLibraryTargetSdk(root)
+    }
     patch?.let {
       it.invoke(agpVersion, root)
       VfsUtil.markDirtyAndRefresh(false, true, true, root)
@@ -345,6 +348,32 @@ fun migratePackageAttribute(root: File) {
       }
     }
   }
+}
+
+/**
+ * Patches library modules for compatibility with AGP 8.1 and older by moving `targetSdk` into the `defaultConfig` block.
+ */
+fun patchLegacyLibraryTargetSdk(root: File) {
+  Files.walk(root.toPath()).asSequence()
+    .filter { it.fileName.toString().let { name -> name == "build.gradle" || name == "build.gradle.kts" } }
+    .forEach { buildFile ->
+      var content = buildFile.toFile().readText()
+      if (!content.contains("com.android.library")) return@forEach
+
+      val targetSdkPattern = Regex("(?:targetSdkVersion|targetSdk)\\s*=?\\s*[(=]? *([0-9]+)[)]?")
+
+      val matchResult = targetSdkPattern.find(content) ?: return@forEach;
+
+      val targetSdkValue = matchResult.groupValues[1]
+
+      content = content.replace(targetSdkPattern, "")
+
+      val defaultConfigPattern = Regex("defaultConfig\\s*\\{")
+      val newDefaultConfigBlock = "defaultConfig {\n        targetSdkVersion($targetSdkValue)"
+      content = content.replaceFirst(defaultConfigPattern, newDefaultConfigBlock)
+
+      buildFile.toFile().writeText(content)
+    }
 }
 
 fun String.placeNamespaceProperty(namespace: String): String {

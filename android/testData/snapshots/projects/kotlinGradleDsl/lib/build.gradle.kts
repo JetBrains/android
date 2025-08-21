@@ -8,7 +8,14 @@ android {
 
     defaultConfig {
         minSdkVersion(15)
-        targetSdkVersion(27)
+    }
+
+    lint {
+      targetSdk = 27
+    }
+
+    testOptions {
+      targetSdk = 27
     }
 
     buildTypes {

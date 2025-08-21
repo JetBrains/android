@@ -1752,8 +1752,8 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             ApiLevel                      : 21
             ApiString                     : 21
         targetSdk
-            ApiLevel                      : 34
-            ApiString                     : 34
+            ApiLevel                      : 1
+            ApiString                     : 1
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :androidLib
@@ -1834,9 +1834,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             MinSdkVersion
                 ApiLevel                      : 21
                 ApiString                     : 21
-            TargetSdkVersion
-                ApiLevel                      : 34
-                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2163,9 +2160,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             MinSdkVersion
                 ApiLevel                      : 21
                 ApiString                     : 21
-            TargetSdkVersion
-                ApiLevel                      : 34
-                ApiString                     : 34
             VersionNameSuffix             :
             ProductFlavors                : typeone
             ProductFlavors                : modetwo

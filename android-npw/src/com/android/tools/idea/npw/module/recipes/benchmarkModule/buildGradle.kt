@@ -32,6 +32,9 @@ fun buildGradle(
   useGradleKts: Boolean,
 ): String {
   val isNewAGP = agpVersion.compareIgnoringQualifiers("3.6.0") >= 0
+  // In AGP 8.1, `targetSdk` for benchmark modules was deprecated in `defaultConfig` and moved to
+  // `lint` and `testOptions`.
+  val isAgpPre81 = agpVersion.compareIgnoringQualifiers("8.1.0") <= 0
 
   val testBuildTypeBlock = renderIf(isNewAGP) { """testBuildType = "release"""" }
 
@@ -53,11 +56,18 @@ android {
 
     defaultConfig {
         ${minSdk(minApi, agpVersion)}
-        ${targetSdk(targetApi, agpVersion)}
+        ${renderIf(isAgpPre81) { targetSdk(targetApi, agpVersion) }}
 
         testInstrumentationRunner 'androidx.benchmark.junit4.AndroidBenchmarkRunner'
     }
-
+${renderIf(!isAgpPre81) { """
+    lint {
+        ${targetSdk(targetApi, agpVersion)}
+    }
+    testOptions {
+        ${targetSdk(targetApi, agpVersion)}
+    }
+"""}}
     $testBuildTypeBlock
     buildTypes {
         debug {
