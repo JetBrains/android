@@ -500,6 +500,8 @@ public abstract class QuerySummaryImpl implements QuerySummary {
             .collect(toImmutableSet()));
   }
 
+
+
   /**
    * Returns a map of .bzl file labels to BUILD file labels that include them.
    *
@@ -507,7 +509,7 @@ public abstract class QuerySummaryImpl implements QuerySummary {
    */
   @Memoized
   @Override
-  public Map<Path, ? extends Collection<? extends Path>> getReverseSubincludeMap() {
+  public ImmutableMap<Path, Collection<Path>> getReverseSubincludeMap() {
     SetMultimap<Path, Path> includes =
         getSourceFilesMap().entrySet().stream()
             .collect(

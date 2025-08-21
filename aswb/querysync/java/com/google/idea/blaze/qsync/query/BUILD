@@ -15,13 +15,17 @@ java_proto_library(
 
 aswb_library(
     name = "query",
-    srcs = glob(["*.java"]),
+    srcs = glob([
+        "*.java",
+        "*.kt",
+    ]),
     deps = [
         ":querysummary_java_proto",
         "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/shared:proto",
         "//tools/adt/idea/aswb/third_party/java/auto_value",
+        "//tools/vendor/google/aswb/plugin_api",
         "@maven//:com.google.guava.guava",
     ],
 )
