@@ -17,9 +17,9 @@ package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.Result
 import com.android.tools.configurations.Configuration
-import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.virtualFile
 import com.android.tools.rendering.RenderResult
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
@@ -27,14 +27,13 @@ import org.junit.Before
 import org.junit.Test
 
 fun checkComplexLayoutInflateResult(result: RenderResult) {
-  AndroidGradleTestCase.assertEquals(Result.Status.SUCCESS, result.renderResult.status)
+  assertThat(result.renderResult.status).isEqualTo(Result.Status.SUCCESS)
 }
 
 /** Asserts that the given result matches the [.SIMPLE_LAYOUT] structure */
 fun checkComplexLayoutRenderResult(result: RenderResult) {
-  AndroidGradleTestCase.assertEquals(Result.Status.SUCCESS, result.renderResult.status)
-
-  AndroidGradleTestCase.assertNotNull(result.renderedImage)
+  assertThat(result.renderResult.status).isEqualTo(Result.Status.SUCCESS)
+  assertThat(result.renderedImage).isNotNull()
 }
 
 class PerfgateComplexRenderTest : ComposeRenderTestBase(PERFGATE_COMPLEX_LAYOUT) {
