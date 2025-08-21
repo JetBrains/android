@@ -50,71 +50,67 @@ class WFFExpressionAnnotator() : Annotator {
     dataSource: WFFExpressionDataSource,
     holder: AnnotationHolder,
   ) {
-    val dataSourceDefinition = dataSource.findDataSourceDefinition()
-    // The data source can be a complication data source used under the wrong type. This will
-    // be reported as an error by InvalidComplicationDataSourceLocationInspection
-    val isDataSourceUnknown =
-      dataSourceDefinition == null &&
-        DataSources.COMPLICATION_ALL.none { it.id == dataSource.id.text }
-    if (isDataSourceUnknown) {
-      holder
-        .newAnnotation(
-          HighlightSeverity.ERROR,
-          message("wff.expression.annotator.unknown.datasource"),
-        )
-        .highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL)
-        .range(dataSource.id)
-        .create()
-    }
-    holder
-      .newSilentAnnotation(HighlightSeverity.INFORMATION)
-      .range(dataSource.id)
-      .textAttributes(WFFExpressionTextAttributes.DATA_SOURCE.key)
-      .create()
+    annotateSymbol(
+      holder,
+      element = dataSource.id,
+      textAttributes = WFFExpressionTextAttributes.DATA_SOURCE,
+      // The data source can be a complication data source used under the wrong type. This will
+      // be reported as an error by InvalidComplicationDataSourceLocationInspection
+      isUnknown =
+        dataSource.findDataSourceDefinition() == null &&
+          DataSources.COMPLICATION_ALL.none { it.id == dataSource.id.text },
+      unknownMessage = message("wff.expression.annotator.unknown.datasource"),
+    )
   }
 
   private fun annotateFunctionId(functionId: WFFExpressionFunctionId, holder: AnnotationHolder) {
-    if (findFunction(functionId.text) == null) {
-      holder
-        .newAnnotation(
-          HighlightSeverity.ERROR,
-          message("wff.expression.annotator.unknown.function"),
-        )
-        .highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL)
-        .range(functionId)
-        .create()
-    }
-    holder
-      .newSilentAnnotation(HighlightSeverity.INFORMATION)
-      .range(functionId)
-      .textAttributes(WFFExpressionTextAttributes.FUNCTION_ID.key)
-      .create()
+    annotateSymbol(
+      holder,
+      element = functionId,
+      textAttributes = WFFExpressionTextAttributes.FUNCTION_ID,
+      isUnknown = findFunction(functionId.text) == null,
+      unknownMessage = message("wff.expression.annotator.unknown.function"),
+    )
   }
 
   private fun annotateConfiguration(
     configuration: WFFExpressionDataSource,
     holder: AnnotationHolder,
   ) {
-    val reference =
-      configuration
-        .parentOfType<WFFExpressionLiteralExpr>(withSelf = true)
-        ?.references
-        ?.filterIsInstance<UserConfigurationReference>()
-        ?.firstOrNull()
-    if (reference?.resolve() == null) {
+    annotateSymbol(
+      holder,
+      configuration.id,
+      WFFExpressionTextAttributes.CONFIGURATION,
+      isUnknown = configuration.userConfigurationReference?.resolve() == null,
+      message("wff.expression.annotator.unknown.configuration"),
+    )
+  }
+
+  private fun annotateSymbol(
+    holder: AnnotationHolder,
+    element: PsiElement,
+    textAttributes: WFFExpressionTextAttributes,
+    isUnknown: Boolean,
+    unknownMessage: String,
+  ) {
+    if (isUnknown) {
       holder
-        .newAnnotation(
-          HighlightSeverity.ERROR,
-          message("wff.expression.annotator.unknown.configuration"),
-        )
+        .newAnnotation(HighlightSeverity.ERROR, unknownMessage)
         .highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL)
-        .range(configuration.id)
+        .range(element)
         .create()
     }
     holder
       .newSilentAnnotation(HighlightSeverity.INFORMATION)
-      .range(configuration.id)
-      .textAttributes(WFFExpressionTextAttributes.CONFIGURATION.key)
+      .range(element)
+      .textAttributes(textAttributes.key)
       .create()
   }
+
+  private val WFFExpressionDataSource.userConfigurationReference
+    get() =
+      parentOfType<WFFExpressionLiteralExpr>(withSelf = true)
+        ?.references
+        ?.filterIsInstance<UserConfigurationReference>()
+        ?.firstOrNull()
 }
