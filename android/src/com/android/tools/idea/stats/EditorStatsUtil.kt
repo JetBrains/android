@@ -51,6 +51,8 @@ import com.google.wireless.android.sdk.stats.EditorFileType.PROTO_WITHOUT_PLUGIN
 import com.google.wireless.android.sdk.stats.EditorFileType.TOML
 import com.google.wireless.android.sdk.stats.EditorFileType.UNKNOWN
 import com.google.wireless.android.sdk.stats.EditorFileType.PYTHON
+import com.google.wireless.android.sdk.stats.EditorFileType.TYPESCRIPT
+import com.google.wireless.android.sdk.stats.EditorFileType.JAVASCRIPT
 import com.google.wireless.android.sdk.stats.EditorFileType.RUST
 import com.google.wireless.android.sdk.stats.EditorFileType.GO
 import com.google.wireless.android.sdk.stats.EditorFileType.XML
@@ -144,6 +146,11 @@ suspend fun getEditorFileTypeForAnalytics(file: VirtualFile, project: Project?):
         "py" -> PYTHON
         "rs" -> RUST
         "go" -> GO
+        "ts" -> TYPESCRIPT
+        "js" -> JAVASCRIPT
+        // Capture C/C++ even when the Cidr plugin is disabled, as it sometimes is in ASwB
+        // and also when lsp4ij used.
+        "cpp", "cc", "c", "h" -> NATIVE
         else -> UNKNOWN
       }
   }
