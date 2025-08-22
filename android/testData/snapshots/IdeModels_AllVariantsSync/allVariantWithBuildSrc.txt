@@ -164,7 +164,7 @@ BuildTypes
                 BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
     BuildType
         Name                          : release
-        ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
+        ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
         ProguardFiles                 : <ROOT>/app/proguard-rules.pro
         IsDebuggable                  : false
         IsJniDebuggable               : false
@@ -1639,7 +1639,7 @@ IdeVariants
             ApiString                     : 34
         VersionCode                   : 1
         VersionNameWithSuffix         : 1.0
-        ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
+        ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
         ProguardFiles                 : <ROOT>/app/proguard-rules.pro
         MainArtifact
             Name                          : MAIN

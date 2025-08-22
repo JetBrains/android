@@ -339,8 +339,8 @@ class PsBuildTypeTest {
       assertThat(proGuardFiles[0].resolved.asTestValue(), nullValue())
       // TODO(b/142454204): DslText is not language-agnostic
       val myDefaultProguardFilesText = when (appModule.parsedModel?.psiFile?.language) {
-        is GroovyLanguage -> "getDefaultProguardFile('proguard-android.txt')"
-        is KotlinLanguage -> "getDefaultProguardFile(\"proguard-android.txt\")"
+        is GroovyLanguage -> "getDefaultProguardFile('proguard-android-optimize.txt')"
+        is KotlinLanguage -> "getDefaultProguardFile(\"proguard-android-optimize.txt\")"
         else -> "***unknown language for defaultProguardFile Dsl text***"
       }
       assertThat(proGuardFiles[0].parsedValue.asUnparsedValue(), equalTo(myDefaultProguardFilesText))
@@ -579,8 +579,8 @@ class PsBuildTypeTest {
       assertThat(proGuardFiles[1].resolved.asTestValue(), nullValue())
       // TODO(b/142454204): DslText is not language-agnostic
       val myDefaultProguardFilesText = when (appModule.parsedModel?.psiFile?.language) {
-        is GroovyLanguage -> "getDefaultProguardFile('proguard-android.txt')"
-        is KotlinLanguage -> "getDefaultProguardFile(\"proguard-android.txt\")"
+        is GroovyLanguage -> "getDefaultProguardFile('proguard-android-optimize.txt')"
+        is KotlinLanguage -> "getDefaultProguardFile(\"proguard-android-optimize.txt\")"
         else -> "***unknown language for defaultProguardFile Dsl text***"
       }
       assertThat(proGuardFiles[1].parsedValue.asUnparsedValue(), equalTo(myDefaultProguardFilesText))

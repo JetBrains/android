@@ -210,7 +210,7 @@ BuildTypes
         Name                          : release
         ApplicationIdSuffix           : suffix
         VersionNameSuffix             : vsuffix
-        ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
+        ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
         ProguardFiles                 : <ROOT>/app/proguard-rules.txt
         ProguardFiles                 : <ROOT>/app/proguard-rules2.txt [-]
         IsDebuggable                  : false
@@ -4965,7 +4965,7 @@ IdeVariants
         VersionCode                   : 1
         VersionNameSuffix             : vnsvsuffix
         VersionNameWithSuffix         : 1.0vnsvsuffix
-        ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
+        ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
         ProguardFiles                 : <ROOT>/app/proguard-rules.txt
         ProguardFiles                 : <ROOT>/app/proguard-rules2.txt [-]
         ProductFlavors                : basic
@@ -5326,7 +5326,7 @@ IdeVariants
         VersionCode                   : 1
         VersionNameSuffix             : vnsvsuffix
         VersionNameWithSuffix         : 1.0vnsvsuffix
-        ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
+        ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
         ProguardFiles                 : <ROOT>/app/proguard-rules.txt
         ProguardFiles                 : <ROOT>/app/proguard-rules2.txt [-]
         ResourceConfigurations        : en
@@ -5690,7 +5690,7 @@ IdeVariants
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoovsuffix
         VersionNameWithSuffix         : 2.0vnsvnsFoovsuffix
-        ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
+        ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
         ProguardFiles                 : <ROOT>/app/proguard-rules.txt
         ProguardFiles                 : <ROOT>/app/proguard-rules2.txt [-]
         ProductFlavors                : paid
@@ -6055,7 +6055,7 @@ IdeVariants
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoovsuffix
         VersionNameWithSuffix         : 2.0vnsvnsFoovsuffix
-        ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
+        ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
         ProguardFiles                 : <ROOT>/app/proguard-rules.txt
         ProguardFiles                 : <ROOT>/app/proguard-rules2.txt [-]
         ResourceConfigurations        : en
