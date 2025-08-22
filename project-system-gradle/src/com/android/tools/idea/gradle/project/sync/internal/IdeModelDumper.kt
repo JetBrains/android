@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.model.IdeBaseConfig
 import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
+import com.android.tools.idea.gradle.model.IdeClassField
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeDependenciesInfo
@@ -374,12 +375,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
           }
         }
         if (ideVariant.resValues.isNotEmpty()) {
-          head("ResValues")
-          nest {
-            ideVariant.resValues.forEach { (key, value) ->
-              prop(key) { "(${value.type}, ${value.name}, ${value.value})" }
-            }
-          }
+          dump(ideVariant.resValues)
         }
         if (ideVariant.testInstrumentationRunnerArguments.isNotEmpty()) {
           head("TestInstrumentationRunnerArguments")
@@ -454,6 +450,15 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
 
     fun dump(compositeBuildMap: IdeCompositeBuildMap) {
       modelDumper.dumpModel(projectDumper, "CompositeBuildMap", compositeBuildMap)
+    }
+
+    fun dump(resValues:  Map<String, IdeClassField>) {
+      head("ResValues")
+      nest {
+        resValues.entries.sortIfComparingSnapshots { (key, value) -> key + value.name }.forEach { (key, value) ->
+          prop(key) { "(${value.type}, ${value.name}, ${value.value})" }
+        }
+      }
     }
 
     private fun dump(ideAndroidArtifact: IdeAndroidArtifactCore) {
@@ -601,12 +606,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       prop("VersionNameSuffix") { ideBaseConfig.versionNameSuffix }
       prop("IsMultiDexEnabled") { ideBaseConfig.multiDexEnabled?.toString() }
       if (ideBaseConfig.resValues.isNotEmpty()) {
-        head("ResValues")
-        nest {
-          ideBaseConfig.resValues.forEach { (key, value) ->
-            prop(key) { "(${value.type}, ${value.name}, ${value.value})" }
-          }
-        }
+        dump(resValues = ideBaseConfig.resValues)
       }
 
       ideBaseConfig.proguardFiles.forEach { prop("ProguardFiles") { it.path.toPrintablePath() } }
@@ -773,11 +773,11 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         prop("SarifOutput") { lintOptions.sarifOutput?.path?.toPrintablePath() }
         lintOptions.disable.forEach { prop("- Disable") { it } }
         lintOptions.enable.forEach { prop("- Enable") { it } }
-        lintOptions.check?.forEach { prop("- Check") { it } }
+        lintOptions.check?.sortIfComparingSnapshots()?.forEach { prop("- Check") { it } }
         if (lintOptions.severityOverrides.orEmpty().isNotEmpty()) {
           head("SeverityOverrides")
           nest {
-            lintOptions.severityOverrides?.forEach { key, value ->
+            lintOptions.severityOverrides?.entries?.sortIfComparingSnapshots { it.key }?.forEach { (key, value) ->
               prop(key) { value.toString() }
             }
           }
@@ -919,6 +919,21 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       is IdeModuleLibrary -> "module"
       is IdeUnknownLibrary -> "unknown"
     }
+
+    /**
+     * Some fields happen to lose their ordering when re-opening projects (i.e. loading from disk).
+     *
+     * Use this method wherever ordering is not deemed important. Otherwise, make sure the order is correctly preserved for the field by
+     * altering implementation.
+     */
+    private fun <T : Comparable<T>> Iterable<T>.sortIfComparingSnapshots(): List<T> = sortIfComparingSnapshots { it }
+
+    private inline fun <T, R : Comparable<R>> Iterable<T>.sortIfComparingSnapshots(crossinline selector: (T) -> R?): List<T> =
+      if (projectDumper.forSnapshotComparison) {
+        this.sortedBy(selector)
+      } else {
+        this.toList()
+      }
   }
 }
 
