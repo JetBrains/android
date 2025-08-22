@@ -368,7 +368,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
     if ((!ideInfo.isAndroidStudio()) && (!ideInfo.isGameTools())) {
       return super.isDefaultPane(project);
     }
-    return settings != null && !settings.getDefaultToProjectView();
+    return settings != null && !settings.isProjectViewDefault();
   }
 
   private boolean isTopModuleDirectoryOrParent(@NotNull VirtualFile directory) {
