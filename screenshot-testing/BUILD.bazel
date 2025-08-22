@@ -4,7 +4,7 @@ load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 create_kotlinc_options(
   name = "custom_screenshot-test",
-  x_context_receivers = True,
+  x_context_parameters = True,
   x_sam_conversions = "class"
 )
 
@@ -52,7 +52,7 @@ jvm_library(
 ### auto-generated section `build intellij.android.screenshot-test.tests` start
 create_kotlinc_options(
   name = "custom_screenshot-test-tests",
-  x_context_receivers = True,
+  x_context_parameters = True,
   x_sam_conversions = "class"
 )
 

@@ -4,7 +4,7 @@ load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 create_kotlinc_options(
   name = "custom_testartifacts",
-  x_context_receivers = True,
+  x_context_parameters = True,
   x_sam_conversions = "class"
 )
 
@@ -56,7 +56,7 @@ jvm_library(
 ### auto-generated section `build intellij.android.testartifacts.tests` start
 create_kotlinc_options(
   name = "custom_testartifacts-tests",
-  x_context_receivers = True,
+  x_context_parameters = True,
   x_sam_conversions = "class"
 )
 
