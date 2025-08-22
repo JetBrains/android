@@ -85,7 +85,7 @@ public class QuerySummaryTest {
     assertThat(qs.getRulesMap().keySet()).contains(android);
     QueryData.Rule rule = qs.getRulesMap().get(android);
     assertThat(rule.manifest())
-        .isEqualTo(Optional.of(android.siblingWithName("AndroidManifest.xml")));
+        .isEqualTo(android.siblingWithName("AndroidManifest.xml"));
   }
 
   @Test
@@ -131,8 +131,8 @@ public class QuerySummaryTest {
         .containsExactly(
           TestData.ROOT.resolve("buildincludes/sub/includes/includes.bzl"),
           ImmutableSet.of(TestData.ROOT.resolve("buildincludes/sub/includes/BUILD"),
-                          TestData.ROOT.resolve("buildincludes/sub/BUILD"),
-                          TestData.ROOT.resolve("buildincludes/BUILD")),
+                           TestData.ROOT.resolve("buildincludes/sub/BUILD"),
+                           TestData.ROOT.resolve("buildincludes/BUILD")),
           TestData.ROOT.resolve("buildincludes/sub/includes/includes2.bzl"),
           ImmutableSet.of(
             TestData.ROOT.resolve("buildincludes/BUILD")

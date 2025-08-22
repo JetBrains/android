@@ -164,8 +164,8 @@ public class BlazeQueryParser {
       if (!rule.mainClass().isEmpty()) {
         targetBuilder.mainClass(rule.mainClass());
       }
-      if (rule.testRule().isPresent()) {
-        targetBuilder.testRule(rule.testRule().get());
+      if (rule.testRule() != null) {
+        targetBuilder.testRule(rule.testRule());
       }
 
       visitors.visit(this, ruleEntry.getKey(), rule, targetBuilder);
@@ -213,10 +213,10 @@ public class BlazeQueryParser {
     javaDeps.addAll(thisDeps);
 
     if (RuleKinds.isAndroid(rule.ruleClass())) {
-      if (rule.manifest().isPresent()) {
+      if (rule.manifest() != null) {
         targetBuilder
             .sourceLabelsBuilder()
-            .put(SourceType.ANDROID_MANIFEST, rule.manifest().get());
+            .put(SourceType.ANDROID_MANIFEST, rule.manifest());
       }
     }
   }

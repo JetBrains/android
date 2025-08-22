@@ -63,10 +63,9 @@ class QuerySummaryTestBuilder {
       packagesBuilder
         .filter { !buildFilesWithErrorsBuilder.contains(it.siblingWithName("BUILD")) }
         .map {
-          QueryData.Rule.builderForTests()
-            .label(it)
-            .ruleClass("java_library")
-            .build()
+          QueryData.Rule.createForTests(label = it).copy(
+            ruleClass = "java_library",
+          )
         }
     )
 
