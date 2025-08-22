@@ -45,6 +45,7 @@ public enum TestData {
   CC_LIBRARY_QUERY("cc"),
   CC_EXTERNAL_DEP_QUERY("cc_externaldep"),
   CC_MULTISRC_QUERY("cc_multisrc"),
+  CUSTOMRULE_QUERY("customrule"),
   PROTO_ONLY_QUERY("protoonly"),
   NESTED_PROTO_QUERY("nestedproto"),
   TAGS_QUERY("tags"),

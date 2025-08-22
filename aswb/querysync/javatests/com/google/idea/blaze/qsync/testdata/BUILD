@@ -174,6 +174,16 @@ genquery(
 )
 
 genquery(
+    name = "customrule_query",
+    expression = "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/customrule:*",
+    opts = ["--output=streamed_proto"],
+    scope = [
+        "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/customrule",
+        "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/customrule:BUILD",
+    ],
+)
+
+genquery(
     name = "tags_query",
     expression = "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/tags:*",
     opts = ["--output=streamed_proto"],
@@ -197,6 +207,7 @@ java_library(
         ":cc_external_dep_query",
         ":cc_library_query",
         ":cc_multisrc_query",
+        ":customrule_query",
         ":does_dependency_path_contain_rules",
         ":empty_query",
         ":filegroup_query",

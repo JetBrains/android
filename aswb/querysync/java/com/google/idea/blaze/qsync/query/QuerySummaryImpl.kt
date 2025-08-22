@@ -71,12 +71,6 @@ data class QuerySummaryImpl(
       list.add("")
     }
 
-    fun rulesToStoredRules(
-      rulesMap: Map<String, QueryData.Rule>
-    ): Map<Int, Query.StoredRule> {
-      return rulesMap.entries.associate { index(it.key) to ruleToStoredRule(it.value) }
-    }
-
     fun ruleToStoredRule(r: QueryData.Rule): Query.StoredRule {
       val builder = Query.StoredRule.newBuilder()
         .setLabel(indexLabel(r.label))
@@ -118,10 +112,6 @@ data class QuerySummaryImpl(
 
     fun indexLabels(labels: Collection<Label>): List<Query.StoredLabel> {
       return labels.map { this.indexLabel(it) }
-    }
-
-    fun indexStringsAsLabels(labels: Collection<String>): List<Query.StoredLabel> {
-      return labels.map { this.indexLabel(Label.of(it)) }
     }
 
     fun index(ss: Collection<String>): List<Int> {
@@ -411,7 +401,7 @@ data class QuerySummaryImpl(
             val sourceFile =
               Query.StoredSourceFile.newBuilder()
                 .setLabel(indexer.indexLabel(sourceFileLabel))
-                .addAllSubinclude(indexer.indexStringsAsLabels(target.sourceFile.subincludeList))
+                .addAllSubinclude(indexer.indexLabels(target.sourceFile.subincludeList.map { Label.of(it) }))
                 .build()
             sourceFileMap.put(sourceFileLabel, sourceFile)
             if (target.sourceFile.packageContainsErrors) {
@@ -432,39 +422,26 @@ data class QuerySummaryImpl(
               val attributeName = intern(a.getName())
               when {
                 SRCS_ATTRIBUTES.contains(attributeName) -> {
-                  rule.addAllSources(indexer.indexStringsAsLabels(a.stringListValueList))
+                  rule.addAllSources(indexer.indexLabels(a.asLabelListSafe()))
                 }
                 attributeName == "hdrs" -> {
-                  rule.addAllHdrs(indexer.indexStringsAsLabels(a.stringListValueList))
+                  rule.addAllHdrs(indexer.indexLabels(a.asLabelListSafe()))
                 }
                 attributeIsTrackedDependency(attributeName, target) -> {
-                  if (a.hasStringValue()) {
-                    if (!a.getStringValue().isEmpty()) {
-                      rule.addDeps(indexer.indexLabel(Label.of(a.getStringValue())))
-                    }
-                  } else {
-                    rule.addAllDeps(indexer.indexStringsAsLabels(a.stringListValueList))
-                  }
+                  rule.addAllDeps(indexer.indexLabels(a.asLabelListSafe()))
                 }
                 RUNTIME_DEP_ATTRIBUTES.contains(attributeName) -> {
-                  if (a.hasStringValue()) {
-                    if (!a.getStringValue().isEmpty()) {
-                      rule.addRuntimeDeps(indexer.indexLabel(Label.of(a.getStringValue())))
-                    }
-                  } else {
-                    rule.addAllRuntimeDeps(indexer.indexStringsAsLabels(a.stringListValueList))
-                  }
+                  rule.addAllRuntimeDeps(indexer.indexLabels(a.asLabelListSafe()))
                 }
                 attributeName == "idl_srcs" -> {
-                  rule.addAllIdlSources(indexer.indexStringsAsLabels(a.stringListValueList))
+                  rule.addAllIdlSources(indexer.indexLabels(a.asLabelListSafe()))
                 }
                 attributeName == "resource_files" -> {
-                  rule.addAllResourceFiles(indexer.indexStringsAsLabels(a.stringListValueList))
+                  rule.addAllResourceFiles(indexer.indexLabels(a.asLabelListSafe()))
                 }
                 attributeName == "manifest" -> {
-                  if (!a.getStringValue().isEmpty()) {
-                    rule.setManifest(indexer.indexLabel(Label.of(a.getStringValue())))
-                  }
+                  a.asLabelSafe()
+                    ?.let { rule.setManifest(indexer.indexLabel(it)) }
                 }
                 attributeName == "custom_package" -> {
                   rule.setCustomPackage(indexer.index((a.getStringValue())))
@@ -485,7 +462,8 @@ data class QuerySummaryImpl(
                   rule.setInstruments(indexer.index(a.getStringValue()))
                 }
                 attributeName == "test_rule" -> {
-                  rule.setTestRule(indexer.indexLabel(Label.of(a.getStringValue())))
+                  a.asLabelSafe()
+                    ?.let { rule.setTestRule(indexer.indexLabel(it)) }
                 }
               }
             }
@@ -542,3 +520,22 @@ data class QuerySummaryImpl(
   }
 }
 
+private fun Build.Attribute.asLabelListSafe(): List<Label> {
+  return when (this.type) {
+    Build.Attribute.Discriminator.LABEL ->
+      listOfNotNull(this.stringValue.takeUnless { it.isNullOrEmpty() }?.let { Label.of(it) })
+    Build.Attribute.Discriminator.LABEL_LIST ->
+      this.stringListValueList.map { Label.of(it) }
+    else ->
+      emptyList()
+  }
+}
+
+private fun Build.Attribute.asLabelSafe(): Label? {
+  return when (this.type) {
+    Build.Attribute.Discriminator.LABEL ->
+      this.stringValue.takeUnless { it.isNullOrEmpty() }?.let { Label.of(it) }
+    else ->
+      null
+  }
+}

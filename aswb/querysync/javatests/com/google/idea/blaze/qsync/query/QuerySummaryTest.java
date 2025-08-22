@@ -21,13 +21,10 @@ import static com.google.idea.blaze.qsync.query.QuerySummaryTestUtil.createProto
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Multimaps;
-import com.google.common.truth.Truth8;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.testdata.TestData;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -173,6 +170,14 @@ public class QuerySummaryTest {
   public void testCreate_proto() throws IOException {
     QuerySummary qs =
       QuerySummaryImpl.create(QuerySpec.QueryStrategy.PLAIN, TestData.JAVA_LIBRARY_NO_DEPS_QUERY.getQueryOutputPath().toFile());
+
+    assertThat(qs.protoForSerializationOnly().getQueryStrategy()).isEqualTo(Query.Summary.QueryStrategy.QUERY_STRATEGY_PLAIN);
+  }
+
+  @Test
+  public void testDifferentAttributeTypes() throws IOException {
+    QuerySummary qs =
+      QuerySummaryImpl.create(QuerySpec.QueryStrategy.PLAIN, TestData.CUSTOMRULE_QUERY.getQueryOutputPath().toFile());
 
     assertThat(qs.protoForSerializationOnly().getQueryStrategy()).isEqualTo(Query.Summary.QueryStrategy.QUERY_STRATEGY_PLAIN);
   }
