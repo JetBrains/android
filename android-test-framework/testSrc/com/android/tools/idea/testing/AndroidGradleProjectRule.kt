@@ -51,6 +51,8 @@ class AndroidGradleProjectRule(
   internal val agpVersionSoftwareEnvironment: AgpVersionSoftwareEnvironment =
     AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
 ) : NamedExternalResource() {
+  constructor(agpVersion : AgpVersionSoftwareEnvironment): this(agpVersionSoftwareEnvironment = agpVersion)
+
   /**
    * This rule is a thin wrapper around [AndroidGradleTestCase], which we delegate to to handle any
    * heavy lifting.

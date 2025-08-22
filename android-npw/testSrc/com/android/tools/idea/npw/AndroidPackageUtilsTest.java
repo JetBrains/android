@@ -44,8 +44,7 @@ import static com.google.common.truth.Truth.assertThat;
  */
 @RunsInEdt
 public final class AndroidPackageUtilsTest {
-  public AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule(
-    "tools/adt/idea/android/testData", getAgpVersion());
+  public AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule(getAgpVersion());
   @Rule
   public RuleChain rule = RuleChain.outerRule(projectRule).around(new EdtRule());
 
