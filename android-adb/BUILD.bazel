@@ -103,6 +103,12 @@ jps_test(
 ### auto-generated section `test intellij.android.adb.testUtil` end
 
 ### auto-generated section `build intellij.android.adb.tests` start
+create_kotlinc_options(
+  name = "custom_adb-tests",
+  x_context_receivers = True,
+  x_sam_conversions = "class"
+)
+
 jvm_library(
   name = "adb-tests",
   visibility = ["//visibility:public"],
@@ -113,6 +119,7 @@ jvm_library(
   name = "adb-tests_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  kotlinc_opts = ":custom_adb-tests",
   associates = ["//android/android-adb:adb"],
   deps = [
     "@lib//:studio-platform-provided",
@@ -156,7 +163,8 @@ jvm_library(
     "//platform/util",
     "//platform/util/jdom",
     "//platform/util:util-ui",
-  ]
+  ],
+  plugins = ["@lib//:compose-plugin"]
 )
 ### auto-generated section `build intellij.android.adb.tests` end
 
