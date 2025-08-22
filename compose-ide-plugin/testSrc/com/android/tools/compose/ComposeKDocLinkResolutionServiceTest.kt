@@ -15,47 +15,54 @@
  */
 package com.android.tools.compose
 
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.getLibraryAdditionalArtifactPaths
 import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.TruthJUnit.assume
 import com.intellij.openapi.externalSystem.model.project.LibraryPathType
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.util.PathUtil
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.util.PathUtil.toSystemDependentName
 import java.io.File
 import java.nio.file.Paths
-import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocName
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.junit.Rule
+import org.junit.Test
 
 /** Tests for [ComposeKDocLinkResolutionService] */
-class ComposeKDocLinkResolutionServiceTest : AndroidGradleTestCase() {
-  override fun setUp() {
-    super.setUp()
-    myFixture.testDataPath = getComposePluginTestDataPath()
-  }
-
-  override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String =
-    "tools/adt/idea/compose-ide-plugin/testData"
-
-  override fun getAdditionalRepos() =
-    listOf(
-      File(
-        getComposePluginTestDataPath(),
-        PathUtil.toSystemDependentName(TestProjectPaths.REPO_FOR_SAMPLES_ARTIFACT_TEST),
+@RunsInEdt
+class ComposeKDocLinkResolutionServiceTest {
+  @get:Rule
+  val projectRule =
+    AndroidGradleProjectRule(
+        workspaceRelativeTestDataPath = "tools/adt/idea/compose-ide-plugin/testData",
+        additionalRepositories =
+          listOf(
+            File(
+              getComposePluginTestDataPath(),
+              toSystemDependentName("projects/repoForSamplesArtifactTest"),
+            )
+          ),
       )
-    )
+      .onEdt()
+  val project by lazy { projectRule.project }
+  val fixture by lazy {
+    projectRule.fixture.also { it.testDataPath = getComposePluginTestDataPath() }
+  }
 
   /**
    * core:haptics was chosen arbitrarily. Non-samples dependencies were removed. Library is not KMP.
    */
+  @Test
   fun testDownloadingAndAttachingSamples() {
-    loadProject(TestProjectPaths.APP_WITH_LIB_WITH_SAMPLES)
+    projectRule.loadProject(TestProjectPaths.APP_WITH_LIB_WITH_SAMPLES)
 
     val result = getLibraryAdditionalArtifactPaths(project, LibraryPathType.SOURCE)
 
@@ -66,8 +73,9 @@ class ComposeKDocLinkResolutionServiceTest : AndroidGradleTestCase() {
       )
   }
 
+  @Test
   fun testResolveSampleReference() {
-    loadProject(TestProjectPaths.APP_WITH_LIB_WITH_SAMPLES)
+    projectRule.loadProject(TestProjectPaths.APP_WITH_LIB_WITH_SAMPLES)
 
     val file =
       VfsUtil.findFile(
@@ -75,10 +83,10 @@ class ComposeKDocLinkResolutionServiceTest : AndroidGradleTestCase() {
         false,
       )
     assume().that(file).isNotNull()
-    myFixture.openFileInEditor(file!!)
+    fixture.openFileInEditor(file!!)
 
-    myFixture.moveCaret("of|f").navigationElement
-    val librarySourceFunction = myFixture.elementAtCaret.navigationElement as KtNamedFunction
+    fixture.moveCaret("of|f").navigationElement
+    val librarySourceFunction = fixture.elementAtCaret.navigationElement as KtNamedFunction
     assume().that(librarySourceFunction).isNotNull()
 
     val sampleTag = librarySourceFunction.docComment!!.getDefaultSection().findTagByName("sample")!!

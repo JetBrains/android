@@ -78,7 +78,6 @@ public final class TestProjectPaths {
   public static final String PSD_SAMPLE_REPO = "projects/psdSampleRepo";
   public static final String PSD_UPGRADE = "projects/psdUpgrade";
   public static final String PSD_VARIANT_COLLISIONS = "projects/psdVariantCollisions";
-  public static final String REPO_FOR_SAMPLES_ARTIFACT_TEST = "projects/repoForSamplesArtifactTest";
   public static final String PURE_JAVA_PROJECT = "projects/pureJavaProject";
   public static final String RUN_APP_36 = "projects/RunApp36";
   public static final String RUN_CONFIG_ACTIVITY = "projects/runConfig/activity";

@@ -26,12 +26,13 @@ import com.android.buildanalyzer.common.CheckJetifierResult
 import com.android.buildanalyzer.common.DependencyPath
 import com.android.buildanalyzer.common.FullDependencyPath
 import com.android.builder.model.PROPERTY_CHECK_JETIFIER_RESULT_FILE
+import com.android.flags.junit.FlagRule
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.Projects
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.Request.Companion.builder
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.TestProjectPaths.BUILD_ANALYZER_CHECK_JETIFIER
@@ -39,34 +40,26 @@ import com.android.utils.FileUtils
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.PathUtil.toSystemDependentName
-import org.jetbrains.android.AndroidTestBase
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.mock
 import java.io.File
+import org.jetbrains.android.AndroidTestBase.getTestDataPath
 
-class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
-
-
-  override fun getAdditionalRepos(): Collection<File> {
-    return listOf(File(AndroidTestBase.getTestDataPath(), toSystemDependentName("$BUILD_ANALYZER_CHECK_JETIFIER/mavenRepo")))
-  }
-
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.override(true)
-  }
-
-  override fun tearDown() {
-    super.tearDown()
-    StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.clearOverride()
-  }
+class JetifierUsageAnalyzerTest {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule(
+    additionalRepositories = listOf(File(getTestDataPath(), toSystemDependentName("$BUILD_ANALYZER_CHECK_JETIFIER/mavenRepo")))
+  )
+  val project by lazy { projectRule.project }
+  @get:Rule
+  val flagRule = FlagRule(StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED, true)
 
   @Test
   fun testNoAndroidX() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION)
-    val result = invokeGradleTasks(project, "assembleDebug")
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION)
+    val result = projectRule.invokeTasks("assembleDebug")
 
     Truth.assertThat(result.isBuildSuccessful).isTrue()
 
@@ -79,8 +72,8 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
   @Test
   fun testResultWhenFlagIsOff() {
     StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.override(false)
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION)
-    val result = invokeGradleTasks(project, "assembleDebug")
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION)
+    val result = projectRule.invokeTasks("assembleDebug")
 
     Truth.assertThat(result.isBuildSuccessful).isTrue()
 
@@ -91,14 +84,10 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
   }
 
   private fun doTestInitialBuildResult(propertiesContent: String, expectedResult: JetifierUsageAnalyzerResult) {
-    val rootFile = prepareProjectForImport(BUILD_ANALYZER_CHECK_JETIFIER)
-
-    FileUtil.writeToFile(FileUtils.join(rootFile, SdkConstants.FN_GRADLE_PROPERTIES), propertiesContent)
-    importProject()
-    prepareProjectForTest(project, null)
-
-
-    val result = invokeGradleTasks(project, "assembleDebug")
+    projectRule.loadProject(BUILD_ANALYZER_CHECK_JETIFIER) { rootFile ->
+      FileUtil.writeToFile(FileUtils.join(rootFile, SdkConstants.FN_GRADLE_PROPERTIES), propertiesContent)
+    }
+    val result = projectRule.invokeTasks("assembleDebug")
 
     Truth.assertThat(result.isBuildSuccessful).isTrue()
 
@@ -134,22 +123,21 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
     libBuildAdditionalDependencies: String,
     expectedProjectStatus: JetifierUsageProjectStatus
   ) {
-    prepareProjectForImport(BUILD_ANALYZER_CHECK_JETIFIER)
+    projectRule.loadProject(BUILD_ANALYZER_CHECK_JETIFIER) { rootFile ->
 
-    FileUtils.join(projectFolderPath, "app", SdkConstants.FN_BUILD_GRADLE).let { file ->
-      val newContent = file.readText()
-        .replace(oldValue = "// This will be replaced by JetifierUsageAnalyzerTest", newValue = appBuildAdditionalDependencies)
-      FileUtil.writeToFile(file, newContent)
+      FileUtils.join(rootFile, "app", SdkConstants.FN_BUILD_GRADLE).let { file ->
+        val newContent = file.readText()
+          .replace(oldValue = "// This will be replaced by JetifierUsageAnalyzerTest", newValue = appBuildAdditionalDependencies)
+        FileUtil.writeToFile(file, newContent)
+      }
+      FileUtils.join(rootFile, "lib", SdkConstants.FN_BUILD_GRADLE).let { file ->
+        val newContent = file.readText()
+          .replace(oldValue = "// This will be replaced by JetifierUsageAnalyzerTest", newValue = libBuildAdditionalDependencies)
+        FileUtil.writeToFile(file, newContent)
+      }
     }
-    FileUtils.join(projectFolderPath, "lib", SdkConstants.FN_BUILD_GRADLE).let { file ->
-      val newContent = file.readText()
-        .replace(oldValue = "// This will be replaced by JetifierUsageAnalyzerTest", newValue = libBuildAdditionalDependencies)
-      FileUtil.writeToFile(file, newContent)
-    }
-    importProject()
-    prepareProjectForTest(project, null)
 
-    val originalBuildRequest = builder(project, projectFolderPath, "assembleDebug").build()
+    val originalBuildRequest = builder(project, File(project.basePath!!), "assembleDebug").build()
     val checkJetifierRequest = createCheckJetifierTaskRequest(project, originalBuildRequest.data)
     val checkJetifierResultProperty = checkJetifierRequest.commandLineArguments.first {
       it.contains(PROPERTY_CHECK_JETIFIER_RESULT_FILE)
@@ -157,7 +145,7 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
     val expectedResultFile = checkJetifierResultFile(checkJetifierRequest.data)
     Truth.assertThat(checkJetifierResultProperty.substringAfter("=")).isEqualTo(expectedResultFile.absolutePath)
 
-    val result = invokeGradle(project) { gradleInvoker: GradleBuildInvoker ->
+    val result = projectRule.invokeGradle { gradleInvoker: GradleBuildInvoker ->
       gradleInvoker.executeTasks(checkJetifierRequest)
     }
     Truth.assertThat(result.isBuildSuccessful).isTrue()
@@ -171,7 +159,7 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
     Truth.assertThat(expectedResultFile.exists()).isFalse()
 
     // Verify running normal build after preserves the result.
-    val result2 = invokeGradleTasks(project, "assembleDebug")
+    val result2 = projectRule.invokeTasks("assembleDebug")
     Truth.assertThat(result2.isBuildSuccessful).isTrue()
 
     val results2 = buildAnalyzerStorageManager.getSuccessfulResult()

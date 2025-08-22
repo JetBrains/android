@@ -48,6 +48,7 @@ import org.junit.runner.Description
  */
 class AndroidGradleProjectRule(
   val workspaceRelativeTestDataPath: @SystemIndependent String = "tools/adt/idea/android/testData",
+  val additionalRepositories: Collection<File> = listOf(),
   internal val agpVersionSoftwareEnvironment: AgpVersionSoftwareEnvironment =
     AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
 ) : NamedExternalResource() {
@@ -67,6 +68,8 @@ class AndroidGradleProjectRule(
 
     override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String =
       workspaceRelativeTestDataPath
+
+    override fun getAdditionalRepos(): Collection<File> = additionalRepositories
 
     fun invokeTasks(
       project: Project,
