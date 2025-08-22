@@ -20,21 +20,20 @@ import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
-import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.SnapshotContext
-import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.dumpSourceProviders
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.util.PathUtil
-import org.jetbrains.android.AndroidTestBase
-import org.jetbrains.annotations.SystemIndependent
 import java.io.File
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TestName
 
 /**
  * Snapshot test definitions for 'Source Providers'. (To run tests see
@@ -95,23 +94,27 @@ data class SourceProvidersTestDef(
   }
 }
 
-class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotComparisonTest {
+class SourceProvidersSnapshotComparisonTest : SnapshotComparisonTest {
   override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/sourceProviders"
-  override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData/snapshots"
-  override fun getAdditionalRepos() =
-    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)))
+  val testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData/snapshots").toString()
+  @get:Rule
+  val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule
+  val nameRule = TestName()
+  override fun getName(): String = nameRule.methodName
 
+  @Test
   fun testJpsWithQualifiedNames() {
-    val srcPath = File(myFixture.testDataPath, toSystemDependentName(TestProjectToSnapshotPaths.JPS_WITH_QUALIFIED_NAMES))
+    val srcPath = File(testDataPath, toSystemDependentName(TestProjectToSnapshotPaths.JPS_WITH_QUALIFIED_NAMES))
     // Prepare project in a different directory (_jps) to avoid closing the currently opened project.
-    val projectPath = File(toSystemDependentName(project.basePath + "_jps"))
+    val projectPath = File(toSystemDependentName(projectRule.project.basePath + "_jps"))
 
     AndroidGradleTests.prepareProjectForImportCore(srcPath, projectPath) { projectRoot ->
       // Override settings just for tests (e.g. sdk.dir)
       AndroidGradleTests.updateLocalProperties(projectRoot, TestUtils.getSdk().toFile())
     }
 
-    val project = PlatformTestUtil.loadAndOpenProject(projectPath.toPath(), testRootDisposable)
+    val project = PlatformTestUtil.loadAndOpenProject(projectPath.toPath(), projectRule.fixture.testRootDisposable)
     val text = project.dumpSourceProviders()
     PlatformTestUtil.forceCloseProjectWithoutSaving(project)
 
