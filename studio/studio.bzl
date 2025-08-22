@@ -77,10 +77,6 @@ type_channel_mappings = {
     "Stable": "Stable",
 }
 
-# Types considered to be EAP. This should be a subset of
-# type_channel_mappings.keys().
-eap_types = ["Canary", "Beta", "Nightly"]
-
 def _zipper(ctx, desc, map, out, deps = []):
     files = [f for (p, f) in map if f]
     zipper_files = [r + "=" + (f.path if f else "") + "\n" for r, f in map]
@@ -535,16 +531,12 @@ def _get_channel_info(version_type):
     """Maps a version type to information about a channel."""
     if version_type not in type_channel_mappings:
         fail('Invalid type "%s"; must be one of %s' % (version_type, str(type_channel_mappings.keys())))
-
-    channel = type_channel_mappings[version_type]
-    is_eap = version_type in eap_types
-
-    return channel, is_eap
+    return type_channel_mappings[version_type]
 
 def _form_version_full(ctx):
     """Forms version_full based on code name, version type, and release number"""
     config = ctx.attr.configuration[_ConfigurationInfo]
-    (channel, _) = _get_channel_info(config.version_type)
+    channel = _get_channel_info(config.version_type)
 
     code_name_and_patch_components = (ctx.attr.version_code_name +
                                       " | " +
@@ -631,7 +623,7 @@ def _produce_manifest(ctx, platform, platform_files):
     build_txt = platform_files[platform.resource_path + "build.txt"]
     resources_jar = platform_files[platform.base_path + "lib/resources.jar"]
 
-    (channel, _) = _get_channel_info(config.version_type)
+    channel = _get_channel_info(config.version_type)
     args = ["--out", out.path]
     args += ["--build_txt", build_txt.path]
     args += ["--resources_jar", resources_jar.path]
@@ -653,7 +645,7 @@ def _produce_update_message_html(ctx):
         ctx.actions.write(output = ctx.outputs.update_message, content = "")
         return
 
-    channel, _ = _get_channel_info(config.version_type)
+    channel = _get_channel_info(config.version_type)
 
     args = ctx.actions.args()
     args.add("--version_file", ctx.version_file)
@@ -681,12 +673,10 @@ def _stamp_platform(ctx, platform, platform_files, added_plugins):
     _stamp(ctx, args, [ctx.info_file], build_txt, stamped_build_txt)
 
     resources_jar, stamped_resources_jar = _declare_stamped_file(ctx, ret, platform, platform.base_path + "lib/resources.jar")
-    (_, is_eap) = _get_channel_info(config.version_type)
     args = ctx.actions.args()
     args.add("--entry", "idea/AndroidStudioApplicationInfo.xml")
     args.add("--version_file", ctx.version_file)
     args.add("--version_full", _form_version_full(ctx))
-    args.add("--eap", "true" if is_eap else "false")
     args.add("--version_micro", micro)
     args.add("--version_patch", patch)
     args.add("--replace_build_day")

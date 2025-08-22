@@ -30,7 +30,7 @@ def _format_build_date(build_version):
   return time.strftime("%Y%m%d%H%M")
 
 
-def _stamp_app_info(version_file, build_txt, micro, patch, full, eap, content):
+def _stamp_app_info(version_file, build_txt, micro, patch, full, content):
   build_version = _read_status_file(version_file)
   build = utils.read_file(build_txt)
   build_date = _format_build_date(build_version)
@@ -44,13 +44,6 @@ def _stamp_app_info(version_file, build_txt, micro, patch, full, eap, content):
   content = re.sub(version_prop % "micro", '\\g<1>%s\\g<3>' % micro, content)
   content = re.sub(version_prop % "patch", '\\g<1>%s\\g<3>' % patch, content)
   content = re.sub(version_prop % "full", '\\g<1>%s\\g<3>' % full, content)
-
-  # Changing the EAP bit requires rebuilding IntelliJ prebuilts (see b/338090219),
-  # so here we just assert that the existing value is what we expect.
-  platform_is_eap = re.search(version_prop % "eap", content).group(2)
-  if eap != platform_is_eap:
-    sys.exit(f"ERROR: IntelliJ Platform was built with EAP={platform_is_eap}, but the Bazel build "
-             f"expects EAP={eap} based on the Studio release version (see b/338090219 for details)")
 
   return content
 
@@ -252,12 +245,6 @@ def main(argv):
       required = "--replace_build_number" in sys.argv,
       help="The 4th component of the full 5-component build number, identifying a specific Studio release")
   parser.add_argument(
-      "--eap",
-      default="",
-      dest="eap",
-      required = "--stamp_app_info" in sys.argv,
-      help="Whether this build is a canary/eap build")
-  parser.add_argument(
       "--info_file",
       default="",
       dest="info_file",
@@ -289,7 +276,7 @@ def main(argv):
       content= _replace_selector(content, args.replace_selector)
 
     if args.stamp_app_info:
-      content = _stamp_app_info(args.version_file, args.build_txt, args.version_micro, args.version_patch, args.version_full, args.eap, content)
+      content = _stamp_app_info(args.version_file, args.build_txt, args.version_micro, args.version_patch, args.version_full, content)
 
     if args.essential_plugins:
       content = _add_essential_plugins(content, args.essential_plugins)
