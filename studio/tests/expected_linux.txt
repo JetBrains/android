@@ -886,6 +886,7 @@ android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/plugins/operat
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/plugins/parsed_cmd.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/plugins/scripted_platform.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/plugins/scripted_process.py
+android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/plugins/scripted_thread_plan.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/utils/__init__.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/utils/in_call_stack.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/utils/symbolication.py

@@ -2215,6 +2215,7 @@ Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/pyt
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/plugins/parsed_cmd.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/plugins/scripted_platform.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/plugins/scripted_process.py
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/plugins/scripted_thread_plan.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/utils/__init__.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/utils/in_call_stack.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/utils/symbolication.py
