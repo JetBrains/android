@@ -28,6 +28,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.UnindexedFilesScannerExecutor
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
@@ -35,6 +36,8 @@ import com.intellij.util.application
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.annotations.CheckReturnValue
 import org.junit.Assert.fail
+import org.junit.Assume
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.doReturn
@@ -45,6 +48,12 @@ import org.mockito.kotlin.mock
 class AndroidMavenImportIntentionActionTest {
 
   @get:Rule val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
+
+  @Before
+  fun setUp() {
+    // TODO(b/441088763): Resolve flakiness on Windows and reenable.
+    Assume.assumeFalse(SystemInfo.isWindows)
+  }
 
   @Test
   fun unresolvedSymbolInAndroidX() {
