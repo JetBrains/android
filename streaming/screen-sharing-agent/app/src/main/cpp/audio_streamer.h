@@ -16,22 +16,21 @@
 
 #pragma once
 
-#include <aaudio/AAudio.h>
 #include <media/NdkMediaCodec.h>
 
 #include <atomic>
-#include <cstddef>
-#include <mutex>
 #include <thread>
 
+#include "accessors/audio_record.h"
+#include "audio_reader.h"
 #include "common.h"
-#include "geom.h"
 #include "jvm.h"
+#include "codec_handle.h"
 #include "socket_writer.h"
 
 namespace screensharing {
 
-// Processes control socket commands.
+// Streams audio to a socket.
 class AudioStreamer {
 public:
   explicit AudioStreamer(SocketWriter* writer);
@@ -48,26 +47,15 @@ private:
   bool StartAudioCapture();
   void StopAudioCapture();
   void StopCodec();
-  aaudio_data_callback_result_t ConsumeAudioData(AAudioStream* stream, uint8_t* audio_data, int32_t num_frames);
-
-  void DeleteAudioStreamAndBuilder();
-  static aaudio_data_callback_result_t AudioDataCallback(AAudioStream* stream, void* user_data, void* audio_data, int32_t num_frames);
 
   std::thread thread_;
   SocketWriter* writer_;
   std::atomic_bool streamer_stopped_ = true;
-  AAudioStreamBuilder* stream_builder_ = nullptr;
-  AAudioStream* stream_ = nullptr;
-  int32_t consequent_queue_error_count_ = 0;
+  AudioReader* audio_reader_ = nullptr;
   int32_t consequent_deque_error_count_ = 0;
-  int64_t last_presentation_timestamp_us_ = 0;
-  int32_t num_frames_in_last_sample_ = 0;
 
-  std::recursive_mutex mutex_;
-  AMediaCodec* codec_ = nullptr;  // GUARDED_BY(mutex_)
-  AMediaCodec* running_codec_ = nullptr;  // GUARDED_BY(mutex_)
-  bool codec_stop_pending_ = false;  // GUARDED_BY(mutex_)
-  AMediaFormat* media_format_ = nullptr;  // GUARDED_BY(mutex_)
+  AMediaFormat* media_format_ = nullptr;
+  CodecHandle* codec_handle_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(AudioStreamer);
 };

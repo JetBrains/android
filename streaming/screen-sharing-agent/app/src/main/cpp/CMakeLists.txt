@@ -14,7 +14,7 @@ add_library(
 
         SHARED
 
-        accessors/audio_manager.cc
+        accessors/audio_record.cc
         accessors/clipboard_manager.cc
         accessors/device_state_manager.cc
         accessors/display_control.cc
@@ -33,9 +33,13 @@ add_library(
         accessors/xr_simulated_input_event_manager.cc
         accessors/xr_simulated_input_manager.cc
         agent.cc
+        audio_reader.cc
+        audio_record_reader.cc
+        remote_submix_reader.cc
         audio_streamer.cc
         base128_input_stream.cc
         base128_output_stream.cc
+        codec_input_buffer.cc
         codec_output_buffer.cc
         concurrent_list.cc
         control_messages.cc
@@ -46,6 +50,7 @@ add_library(
         jvm.cc
         log.cc
         main.cc
+        codec_handle.cc
         scoped_setting.cc
         shell_command.cc
         shell_command_executor.cc

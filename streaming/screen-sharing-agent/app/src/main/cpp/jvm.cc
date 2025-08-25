@@ -168,6 +168,10 @@ void JObject::SetIntField(JNIEnv* jni_env, jfieldID field, int32_t value) const 
   jni_env->SetIntField(ref_, field, value);
 }
 
+int64_t JObject::GetLongField(JNIEnv* jni_env, jfieldID field) const {
+  return jni_env->GetLongField(ref_, field);
+}
+
 bool JObject::GetBooleanField(JNIEnv* jni_env, jfieldID field) const {
   return jni_env->GetBooleanField(ref_, field);
 }
@@ -357,6 +361,23 @@ JObject JClass::CallStaticObjectMethod(JNIEnv* jni_env, jmethodID method, ...) c
   return result;
 }
 
+int32_t JClass::CallStaticIntMethod(jmethodID method, ...) const {
+  JNIEnv* jni_env = GetJni();
+  va_list args;
+  va_start(args, method);
+  int32_t result = jni_env->CallStaticIntMethodV(ref(), method, args);
+  va_end(args);
+  return result;
+}
+
+int32_t JClass::CallStaticIntMethod(JNIEnv* jni_env, jmethodID method, ...) const {
+  va_list args;
+  va_start(args, method);
+  int32_t result = jni_env->CallStaticIntMethodV(ref(), method, args);
+  va_end(args);
+  return result;
+}
+
 void JClass::CallStaticVoidMethod(jmethodID method, ...) const {
   va_list args;
   va_start(args, method);
@@ -418,6 +439,15 @@ void JString::InitializeStatics(Jni jni) {
 
 JClass JString::string_class_;
 jmethodID JString::value_of_method_ = nullptr;
+
+JShortArray::JShortArray(JNIEnv* jni_env, int32_t length)
+    : JRef(jni_env, jni_env->NewShortArray(length)),
+      length_(length) {
+}
+
+void JShortArray::GetRegion(JNIEnv* jni_env, int32_t start, int32_t len, int16_t* buf) const {
+  jni_env->GetShortArrayRegion(ref(), start, len, buf);
+}
 
 JObject JObjectArray::GetElement(JNIEnv* jni_env, int32_t index) const {
   return JObject(jni_env, jni_env->GetObjectArrayElement(ref(), index));

@@ -122,6 +122,10 @@ public:
     SetIntField(GetJni(), field, value);
   }
   void SetIntField(JNIEnv* jni_env, jfieldID field, int32_t value) const;
+  [[nodiscard]] int64_t GetLongField(jfieldID field) const {
+    return GetLongField(GetJni(), field);
+  }
+  [[nodiscard]] int64_t GetLongField(JNIEnv* jni_env, jfieldID field) const;
   [[nodiscard]] bool GetBooleanField(jfieldID field) const {
     return GetBooleanField(GetJni(), field);
   }
@@ -199,6 +203,27 @@ public:
   }
 };
 
+class JShortArray : public JRef<JShortArray, jshortArray> {
+public:
+  using JRef::JRef;
+  JShortArray(JNIEnv* jni_env, int32_t length);
+
+  void GetRegion(int32_t start, int32_t len, int16_t* buf) const {
+    GetRegion(GetJni(), start, len, buf);
+  }
+  void GetRegion(JNIEnv* jni_env, int32_t start, int32_t len, int16_t* buf) const;
+
+  int32_t GetLength() {
+    if (length_ < 0) {
+      length_ = JRef::GetLength();
+    }
+    return length_;
+  }
+
+private:
+  int32_t length_ = -1;
+};
+
 class JObjectArray : public JRef<JObjectArray, jobjectArray> {
 public:
   using JRef::JRef;
@@ -235,10 +260,12 @@ public:
     return GetMethod(GetJni(), name, signature);
   }
   [[nodiscard]] jmethodID GetMethod(JNIEnv* jni_env, const char* name, const char* signature) const;
-  [[nodiscard]] jmethodID GetConstructor(const char* signature) const {
+  // Returns the default constructor if the signature is not provided.
+  [[nodiscard]] jmethodID GetConstructor(const char* signature = "()V") const {
     return GetConstructor(GetJni(), signature);
   }
-  [[nodiscard]] jmethodID GetConstructor(JNIEnv* jni_env, const char* signature) const;
+  // Returns the default constructor if the signature is not provided.
+  [[nodiscard]] jmethodID GetConstructor(JNIEnv* jni_env, const char* signature = "()V") const;
   [[nodiscard]] jmethodID GetDeclaredOrInheritedMethod(const char* name, const char* signature) const {
     return GetDeclaredOrInheritedMethod(GetJni(), name, signature);
   }
@@ -263,6 +290,8 @@ public:
   [[nodiscard]] JObjectArray NewObjectArray(JNIEnv* jni_env, int32_t length, jobject initialElement) const;
   JObject CallStaticObjectMethod(jmethodID method, ...) const;
   JObject CallStaticObjectMethod(JNIEnv* jni_env, jmethodID method, ...) const;
+  int32_t CallStaticIntMethod(jmethodID method, ...) const;
+  int32_t CallStaticIntMethod(JNIEnv* jni_env, jmethodID method, ...) const;
   void CallStaticVoidMethod(jmethodID method, ...) const;
   void CallStaticVoidMethod(JNIEnv* jni_env, jmethodID method, ...) const;
 

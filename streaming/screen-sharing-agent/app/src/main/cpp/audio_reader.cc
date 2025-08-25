@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-#pragma once
-
-#include "jvm.h"
+#include "audio_reader.h"
 
 namespace screensharing {
 
-// Provides access to the android.media.AudioManager methods.
-class AudioManager {
-public:
-  // Returns the id of the audio device of the given type, or -1 if not found.
-  static int32_t GetInputAudioDeviceId(Jni jni, int32_t device_type);
-
-  AudioManager() = delete;
-};
+AudioReader::AudioReader(int32_t num_channels, int32_t sample_rate)
+    : num_channels_(num_channels),
+      sample_rate_(sample_rate) {
+}
 
 }  // namespace screensharing

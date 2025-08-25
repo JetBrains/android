@@ -1,0 +1,50 @@
+/*
+ * Copyright (C) 2025 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+#include <atomic>
+
+#include "common.h"
+#include "codec_handle.h"
+
+namespace screensharing {
+
+// Pumps audio data to AMediaCodec.
+class AudioReader {
+public:
+  // Creates a new AudioReader.
+  AudioReader(int32_t num_channels, int32_t sample_rate);
+  virtual ~AudioReader() = default;
+
+  // Starts the reader.
+  virtual void Start(CodecHandle* codec_handle) = 0;
+  // Stops the reader.
+  virtual void Stop() = 0;
+
+protected:
+  std::atomic_bool reader_stopped_ = true;
+  CodecHandle* codec_handle_ = nullptr;
+  int32_t num_channels_;
+  int32_t sample_rate_;
+  int64_t last_presentation_timestamp_us_ = 0;
+  int32_t num_frames_in_last_sample_ = 0;
+  int32_t consequent_queue_error_count_ = 0;
+
+  DISALLOW_COPY_AND_ASSIGN(AudioReader);
+};
+
+}  // namespace screensharing
