@@ -17,12 +17,11 @@ package com.android.tools.idea.rendering.tokens;
 
 import com.android.tools.idea.projectsystem.ClassFileFinder;
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.RenderingServices;
-import java.util.List;
 
 final class BazelRenderingServices implements RenderingServices {
   @Override
   public ClassFileFinder getClassFileFinder() {
     // TODO: b/438210219 - Inject the output JARs
-    return new BazelClassFileFinder(List.of());
+    return null;
   }
 }
