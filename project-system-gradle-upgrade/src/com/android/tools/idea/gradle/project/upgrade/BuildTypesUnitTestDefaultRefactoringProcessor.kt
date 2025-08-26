@@ -57,7 +57,7 @@ class BuildTypesUnitTestDefaultRefactoringProcessor : AbstractBooleanPropertyDef
 
       androidModel.variants.any { variant ->
         val basicVariant = androidModel.findBasicVariantByName(variant.name)
-        if (basicVariant == null) {
+        if (basicVariant == null || basicVariant.buildType == null) {
           return@any false
         }
 
