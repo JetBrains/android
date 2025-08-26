@@ -184,8 +184,8 @@ fun IdeVariantCoreImpl.patchFromMppModel(
       )
 
     return thisOrNewProvider.appendDirectories(
-      javaDirectories = missingSourceDirs,
-      resourcesDirectories = missingResourceDirs
+      javaDirectories = missingSourceDirs.toList(),
+      resourcesDirectories = missingResourceDirs.toList()
     )
   }
 

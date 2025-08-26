@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
 import com.android.tools.idea.gradle.model.IdeArtifactName
-import com.android.tools.idea.gradle.model.IdeBytecodeTransformation
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import java.io.File
@@ -28,11 +27,11 @@ data class IdeAndroidArtifactCoreImpl(
   override val name: IdeArtifactName,
   override val compileTaskName: String?,
   override val assembleTaskName: String?,
-  override val classesFolder: Collection<File>,
+  override val classesFolder: List<FileImpl>,
   override val variantSourceProvider: IdeSourceProviderImpl?,
   override val multiFlavorSourceProvider: IdeSourceProviderImpl?,
   override val ideSetupTaskNames: List<String>,
-  override val generatedSourceFolders: Collection<File>,
+  override val generatedSourceFolders: List<FileImpl>,
   override val isTestArtifact: Boolean,
   override val compileClasspathCore: IdeDependenciesCoreImpl,
   override val runtimeClasspathCore: IdeDependenciesCoreImpl,
@@ -40,22 +39,79 @@ data class IdeAndroidArtifactCoreImpl(
   override val applicationId: String?,
   override val signingConfigName: String?,
   override val isSigned: Boolean,
-  override val generatedResourceFolders: Collection<File>,
-  override val additionalRuntimeApks: List<File>,
+  override val generatedResourceFolders: List<FileImpl>,
+  override val additionalRuntimeApks: List<FileImpl>,
   override val testOptions: IdeTestOptionsImpl?,
   override val abiFilters: Set<String>,
   override val buildInformation: IdeBuildTasksAndOutputInformationImpl,
   override val codeShrinker: CodeShrinker?,
   override val privacySandboxSdkInfo: IdePrivacySandboxSdkInfoImpl?,
-  override val desugaredMethodsFiles: Collection<File>,
-  override val generatedClassPaths: Map<String, File>,
-  override val bytecodeTransforms: Collection<IdeBytecodeTransformation>?,
-  override val generatedAssetFolders: Collection<File>,
-) : IdeAndroidArtifactCore
+  override val desugaredMethodsFiles: List<FileImpl>,
+  override val generatedClassPaths: Map<String, FileImpl>,
+  override val bytecodeTransforms: List<IdeBytecodeTransformationImpl>?,
+  override val generatedAssetFolders: List<FileImpl>,
+) : IdeAndroidArtifactCore {
+  constructor(
+    name: IdeArtifactName,
+    compileTaskName: String?,
+    assembleTaskName: String?,
+    classesFolder: List<File>,
+    variantSourceProvider: IdeSourceProviderImpl?,
+    multiFlavorSourceProvider: IdeSourceProviderImpl?,
+    ideSetupTaskNames: List<String>,
+    generatedSourceFolders: List<File>,
+    isTestArtifact: Boolean,
+    compileClasspathCore: IdeDependenciesCoreImpl,
+    runtimeClasspathCore: IdeDependenciesCoreImpl,
+    unresolvedDependencies: List<IdeUnresolvedDependencyImpl>,
+    applicationId: String?,
+    signingConfigName: String?,
+    isSigned: Boolean,
+    generatedResourceFolders: List<File>,
+    additionalRuntimeApks: List<File>,
+    testOptions: IdeTestOptionsImpl?,
+    abiFilters: Set<String>,
+    buildInformation: IdeBuildTasksAndOutputInformationImpl,
+    codeShrinker: CodeShrinker?,
+    privacySandboxSdkInfo: IdePrivacySandboxSdkInfoImpl?,
+    desugaredMethodsFiles: List<File>,
+    generatedClassPaths: Map<String, File>,
+    bytecodeTransforms: List<IdeBytecodeTransformationImpl>?,
+    generatedAssetFolders: List<File>,
+    unused: String = "" // to prevent clash
+  ) : this(
+    name,
+    compileTaskName,
+    assembleTaskName,
+    classesFolder.toImpl(),
+    variantSourceProvider,
+    multiFlavorSourceProvider,
+    ideSetupTaskNames,
+    generatedSourceFolders.toImpl(),
+    isTestArtifact,
+    compileClasspathCore,
+    runtimeClasspathCore,
+    unresolvedDependencies,
+    applicationId,
+    signingConfigName,
+    isSigned,
+    generatedResourceFolders.toImpl(),
+    additionalRuntimeApks.toImpl(),
+    testOptions,
+    abiFilters,
+    buildInformation,
+    codeShrinker,
+    privacySandboxSdkInfo,
+    desugaredMethodsFiles.toImpl(),
+    generatedClassPaths.toImpl(),
+    bytecodeTransforms,
+    generatedAssetFolders.toImpl()
+  )
+}
 
 data class IdeAndroidArtifactImpl(
-  private val core: IdeAndroidArtifactCore,
-  private val resolver: IdeLibraryModelResolver
+  private val core: IdeAndroidArtifactCoreImpl,
+  private val resolver: IdeLibraryModelResolverImpl
 ) : IdeAndroidArtifact, IdeAndroidArtifactCore by core {
   override val compileClasspath: IdeDependencies = IdeDependenciesImpl(core.compileClasspathCore, resolver)
   override val runtimeClasspath: IdeDependencies = IdeDependenciesImpl(core.runtimeClasspathCore, resolver)

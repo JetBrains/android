@@ -17,13 +17,24 @@ package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeCustomSourceDirectory
 import java.io.File
+
 import java.io.Serializable
 
 data class IdeCustomSourceDirectoryImpl(
   override val sourceTypeName: String,
-  private val myFolder: File?,
+  private val myFolder: FileImpl?,
   private val path: String
 ) : IdeCustomSourceDirectory, Serializable {
-  override val directory: File
-    get() = (myFolder?.resolve(path) ?: File(path)).normalize()
+  constructor(
+    sourceTypeName: String,
+    myFolder: File?,
+    path: String
+  ) : this(
+    sourceTypeName,
+    myFolder?.toImpl(),
+    path
+  )
+
+  override val directory: FileImpl
+    get() = (myFolder?.resolve(path) ?: FileImpl(path)).normalize().toImpl()
 }

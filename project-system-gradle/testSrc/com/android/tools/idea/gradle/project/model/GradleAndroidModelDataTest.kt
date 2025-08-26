@@ -39,18 +39,12 @@ class GradleAndroidModelDataTest {
 
   @Test
   fun `ensure pure data class`() {
-    // GradleAndroidModelDataImpl is supposed to be a pure data class (i.e. no other fields than supporting data class properties).
-    validate(GradleAndroidModelDataImpl::class, asInterface = false)
-  }
-
-  @Test
-  fun `ensure pure interface`() {
-    // GradleAndroidModelData is supposed to be a pure interface (i.e. primitive types, enums and interfaces as result types only).
-    validate(GradleAndroidModelData::class, asInterface = true)
+    // GradleAndroidModelData is supposed to be a pure data class (i.e. no other fields than supporting data class properties).
+    validate(GradleAndroidModelData::class)
   }
 }
 
-private fun validate(klass: KClass<*>, asInterface: Boolean = false) {
+private fun validate(klass: KClass<*>) {
   when (klass) {
     File::class -> return
     else -> Unit
@@ -69,33 +63,19 @@ private fun validate(klass: KClass<*>, asInterface: Boolean = false) {
   )
 
   val itemsToValidate =
-    when (asInterface) {
-      true -> klass.members
-        .map { prop ->
-          val propertyKType = prop.returnType
-          Item(
-            source = prop,
-            propertyKType = propertyKType,
-            propertyRawType = propertyKType.javaType.maybeRawType(),
-            propertyType = propertyKType.javaType,
-            fieldType = propertyKType.javaType.maybeRawType(), // Pretend to be backed by a field of the same type.
-            isFinal = null
-          )
-        }
-      false -> klass.memberProperties
-        .mapNotNull { prop -> prop.javaField?.let { prop to it } }
-        .map { (prop, field) ->
-          val propertyKType = prop.returnType
-          Item(
-            source = prop,
-            propertyKType = propertyKType,
-            propertyRawType = propertyKType.javaType.maybeRawType(),
-            propertyType = propertyKType.javaType,
-            fieldType = field.type,
-            isFinal = prop !is KMutableProperty<*>
-          )
-        }
-    }
+    klass.memberProperties
+      .mapNotNull { prop -> prop.javaField?.let { prop to it } }
+      .map { (prop, field) ->
+        val propertyKType = prop.returnType
+        Item(
+          source = prop,
+          propertyKType = propertyKType,
+          propertyRawType = propertyKType.javaType.maybeRawType(),
+          propertyType = propertyKType.javaType,
+          fieldType = field.type,
+          isFinal = prop !is KMutableProperty<*>
+        )
+      }
 
 
   itemsToValidate.forEach { item ->
@@ -111,7 +91,7 @@ private fun validate(klass: KClass<*>, asInterface: Boolean = false) {
       }
       when {
         fieldType != propertyRawType -> unexpected("Does not match backing field type: ${fieldType} and $propertyRawType")
-        !asInterface && isFinal != true -> unexpected("Property must be final")
+        isFinal != true -> unexpected("Property must be final")
       }
 
       fun KTypeProjection.validateTypeArgument() {
@@ -138,7 +118,6 @@ private fun validate(klass: KClass<*>, asInterface: Boolean = false) {
             kl == File::class -> Unit
             kl == Int::class -> Unit
             kl == Boolean::class -> Unit
-            kl == AgpVersion::class && asInterface -> Unit
             propertyType.isEnum -> Unit
             !propertyType.isKotlinClass() -> unexpected("Non-kotlin class is not allowed: $propertyKType")
             kl.isOpen -> unexpected("Open class is not allowed: $propertyKType")
@@ -149,13 +128,8 @@ private fun validate(klass: KClass<*>, asInterface: Boolean = false) {
             propertyType.isArray -> unexpected("Array type is not allowed: $propertyKType")
             propertyType.isLocalClass -> unexpected("Local class is not allowed: $propertyKType")
             propertyType.isSynthetic -> unexpected("Synthetic class is not allowed: $propertyKType")
-            // Conditions if we are validating the set of model interfaces
-            asInterface -> when {
-              !propertyType.isInterface -> unexpected("Must be primitive, enum or interface type: $propertyKType")
-              propertyType.isInterface -> validate(kl)
-            }
             // Conditions if we are validated the set of concrete model classes
-            !asInterface -> when {
+            else -> when {
               !kl.isSealed && propertyType.isInterface -> unexpected("Final class or sealed interface is required: $propertyKType")
               // We allow sealed interfaces where all subclasses also pass validation.
               propertyType.isInterface && kl.isSealed -> validate(kl).also { kl.sealedSubclasses.map { validate(it) } }

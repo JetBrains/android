@@ -364,7 +364,10 @@ private fun attachCachedModelsOrTriggerSyncBody(project: Project, gradleProjectI
     projectDataNodes.flatMap { projectData ->
       val libraries = ExternalSystemApiUtil.find(projectData, IDE_LIBRARY_TABLE)?.data
       val kmpLibraries = ExternalSystemApiUtil.find(projectData, KMP_ANDROID_LIBRARY_TABLE)?.data
-      val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTables(libraries, kmpLibraries)
+      val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTables(
+        libraries,
+        kmpLibraries
+      )
       val modelFactory = GradleAndroidDependencyModel.createFactory(project, libraryResolver)
       projectData
         .modules()

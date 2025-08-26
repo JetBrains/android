@@ -145,7 +145,7 @@ class ModelSerializationTest {
       AndroidProjectKeys.ANDROID_MODEL == node.key
     }
 
-    androidModelNode!!.data as GradleAndroidModelDataImpl
+    androidModelNode!!.data as GradleAndroidModelData
   }
 
   @Test

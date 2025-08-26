@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.model.impl
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeDependenciesCore
 import com.android.tools.idea.gradle.model.IdeDependencyCore
-import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
+import com.android.tools.idea.gradle.model.IdeLibrary
 import java.io.Serializable
 
 /**
@@ -28,35 +28,34 @@ import java.io.Serializable
 sealed interface IdeDependenciesCoreImpl: IdeDependenciesCore, Serializable
 
 data object ThrowingIdeDependencies : IdeDependenciesCoreImpl {
-  override fun lookup(ref: Int): IdeDependencyCore  =  unexpected()
-  override val dependencies: List<IdeDependencyCore> get() = unexpected()
+  override fun lookup(ref: Int): IdeDependencyCore { error("Should not be called") }
+  override val dependencies: List<IdeDependencyCoreImpl> get() { error("Should not be called") }
 
   // Make sure the serialization always returns this singleton
   private fun readResolve(): Any = ThrowingIdeDependencies
-  private fun unexpected(): Nothing = error("Should not be called")
 }
 
 
 data class IdeDependenciesCoreDirect(
-  override val dependencies: List<IdeDependencyCore>,
+  override val dependencies: List<IdeDependencyCoreImpl>,
 ) : IdeDependenciesCoreImpl, Serializable {
   override fun lookup(ref: Int): IdeDependencyCore = dependencies[ref]
 }
 
-fun IdeDependenciesCore.lookupAll(indexes: List<Int>?): List<IdeDependencyCore>? {
-  return indexes?.map { this.lookup(it) }
+fun IdeDependenciesCore.lookupAll(indexes: List<Int>?): List<IdeDependencyCoreImpl>? {
+  return indexes?.map { this.lookup(it) as IdeDependencyCoreImpl}
 }
 
 data class IdeDependenciesCoreRef(
   val referee: IdeDependenciesCoreDirect,
   val index: Int,
-  override val dependencies: List<IdeDependencyCore> = transitiveClosure(referee.lookup(index), referee),
+  override val dependencies: List<IdeDependencyCoreImpl> = transitiveClosure(referee.lookup(index), referee),
 ) : IdeDependenciesCoreImpl, Serializable {
   override fun lookup(ref: Int): IdeDependencyCore = referee.lookup(ref)
 }
 
-fun transitiveClosure(rootDependency: IdeDependencyCore, classpath: IdeDependenciesCoreDirect): List<IdeDependencyCore> {
-  val result = LinkedHashSet<IdeDependencyCore>()
+fun transitiveClosure(rootDependency: IdeDependencyCore, classpath: IdeDependenciesCoreDirect): List<IdeDependencyCoreImpl> {
+  val result = LinkedHashSet<IdeDependencyCoreImpl>()
   val queue = ArrayDeque(classpath.lookupAll(rootDependency.dependencies).orEmpty())
   while (queue.isNotEmpty()) {
     val value = queue.removeFirst()
@@ -69,10 +68,10 @@ fun transitiveClosure(rootDependency: IdeDependencyCore, classpath: IdeDependenc
 }
 
 data class IdeDependenciesImpl(
-  private val classpath: IdeDependenciesCore,
-  override val resolver: IdeLibraryModelResolver
+  private val classpath: IdeDependenciesCoreImpl,
+  override val resolver: IdeLibraryModelResolverImpl
 ) : IdeDependencies {
-  override val libraries by lazy { classpath.dependencies.flatMap { resolver.resolve(it) } }
+  override val libraries: List<IdeLibrary> by lazy { classpath.dependencies.flatMap { resolver.resolve(it) } }
   override val unresolvedDependencies = classpath.dependencies
   override val lookup: (Int) -> IdeDependencyCore = { classpath.lookup(it) }
 }

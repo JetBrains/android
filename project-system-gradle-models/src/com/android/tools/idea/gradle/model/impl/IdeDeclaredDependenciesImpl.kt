@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.model.IdeDeclaredDependencies
 import org.jetbrains.annotations.VisibleForTesting
 
 data class IdeDeclaredDependenciesImpl(
-  override val configurationsToCoordinates: Map<String, List<IdeDeclaredDependencies.IdeCoordinates>>
+  override val configurationsToCoordinates: Map<String, List<IdeCoordinatesImpl>>
 ): IdeDeclaredDependencies {
   @VisibleForTesting
   constructor(list: List<String>): this(mapOf("implementation" to list.map { it.toIdeCoordinates() }))

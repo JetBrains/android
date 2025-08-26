@@ -15,25 +15,57 @@
  */
 package com.android.tools.idea.gradle.model.impl.ndk.v1
 
+import com.android.tools.idea.gradle.model.impl.FileImpl
+import com.android.tools.idea.gradle.model.impl.toImpl
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeArtifact
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeSettings
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeToolchain
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantInfo
 import java.io.File
+
 import java.io.Serializable
 
 data class IdeNativeAndroidProjectImpl(
   override val modelVersion: String,
   override val name: String,
-  override val buildFiles: Collection<File>,
+  override val buildFiles: List<FileImpl>,
   override val variantInfos: Map<String, IdeNativeVariantInfo>,
-  override val artifacts: Collection<IdeNativeArtifact>,
-  override val toolChains: Collection<IdeNativeToolchain>,
-  override val settings: Collection<IdeNativeSettings>,
+  override val artifacts: List<IdeNativeArtifact>,
+  override val toolChains: List<IdeNativeToolchain>,
+  override val settings: List<IdeNativeSettings>,
   override val fileExtensions: Map<String, String>,
-  override val buildSystems: Collection<String>,
+  override val buildSystems: List<String>,
   override val defaultNdkVersion: String,
   override val ndkVersion: String,
   override val apiVersion: Int
-) : IdeNativeAndroidProject, Serializable
+) : IdeNativeAndroidProject, Serializable {
+  constructor(
+    modelVersion: String,
+    name: String,
+    buildFiles: List<File>,
+    variantInfos: Map<String, IdeNativeVariantInfo>,
+    artifacts: List<IdeNativeArtifact>,
+    toolChains: List<IdeNativeToolchain>,
+    settings: List<IdeNativeSettings>,
+    fileExtensions: Map<String, String>,
+    buildSystems: List<String>,
+    defaultNdkVersion: String,
+    ndkVersion: String,
+    apiVersion: Int,
+    unused: String = "" // to prevent clash
+  ) : this(
+    modelVersion,
+    name,
+    buildFiles.toImpl(),
+    variantInfos,
+    artifacts,
+    toolChains,
+    settings,
+    fileExtensions,
+    buildSystems,
+    defaultNdkVersion,
+    ndkVersion,
+    apiVersion
+  )
+}

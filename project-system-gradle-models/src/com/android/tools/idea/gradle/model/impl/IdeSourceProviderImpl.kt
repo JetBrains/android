@@ -15,45 +15,78 @@
  */
 package com.android.tools.idea.gradle.model.impl
 
-import com.android.tools.idea.gradle.model.IdeCustomSourceDirectory
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import java.io.File
 import java.io.Serializable
 
 data class IdeSourceProviderImpl private constructor(
   private val nameField: String,
-  private val folderField: File?,
-  private val manifestFileField: File?,
-  private val javaDirectoriesField: Collection<File>,
-  private val kotlinDirectoriesField: Collection<File>,
-  private val resourcesDirectoriesField: Collection<File>,
-  private val aidlDirectoriesField: Collection<File>,
-  private val renderscriptDirectoriesField: Collection<File>,
-  private val resDirectoriesField: Collection<File>,
-  private val assetsDirectoriesField: Collection<File>,
-  private val jniLibsDirectoriesField: Collection<File>,
-  private val shadersDirectoriesField: Collection<File>,
-  private val mlModelsDirectoriesField: Collection<File>,
-  private val customSourceDirectoriesField: Collection<IdeCustomSourceDirectory>,
-  private val baselineProfileDirectoriesField: Collection<File>,
+  private val folderField: FileImpl?,
+  private val manifestFileField: FileImpl?,
+  private val javaDirectoriesField: List<FileImpl>,
+  private val kotlinDirectoriesField: List<FileImpl>,
+  private val resourcesDirectoriesField: List<FileImpl>,
+  private val aidlDirectoriesField: List<FileImpl>,
+  private val renderscriptDirectoriesField: List<FileImpl>,
+  private val resDirectoriesField: List<FileImpl>,
+  private val assetsDirectoriesField: List<FileImpl>,
+  private val jniLibsDirectoriesField: List<FileImpl>,
+  private val shadersDirectoriesField: List<FileImpl>,
+  private val mlModelsDirectoriesField: List<FileImpl>,
+  private val customSourceDirectoriesField: List<IdeCustomSourceDirectoryImpl>,
+  private val baselineProfileDirectoriesField: List<FileImpl>,
 ) : Serializable, IdeSourceProvider {
 
   constructor(
     name: String,
     folder: File?,
+    manifestFile: File?,
+    javaDirectories: List<File>,
+    kotlinDirectories: List<File>,
+    resourcesDirectories: List<File>,
+    aidlDirectories: List<File>,
+    renderscriptDirectories: List<File>,
+    resDirectories: List<File>,
+    assetsDirectories: List<File>,
+    jniLibsDirectories: List<File>,
+    shadersDirectories: List<File>,
+    mlModelsDirectories: List<File>,
+    customSourceDirectories: List<IdeCustomSourceDirectoryImpl>,
+    baselineProfileDirectories: List<File>
+  ) : this(
+    nameField = name,
+    folderField = folder?.toImpl(),
+    manifestFileField = manifestFile?.toImpl(),
+    javaDirectoriesField = javaDirectories.toImpl(),
+    kotlinDirectoriesField = kotlinDirectories.toImpl(),
+    resourcesDirectoriesField = resourcesDirectories.toImpl(),
+    aidlDirectoriesField = aidlDirectories.toImpl(),
+    renderscriptDirectoriesField = renderscriptDirectories.toImpl(),
+    resDirectoriesField = resDirectories.toImpl(),
+    assetsDirectoriesField = assetsDirectories.toImpl(),
+    jniLibsDirectoriesField = jniLibsDirectories.toImpl(),
+    shadersDirectoriesField = shadersDirectories.toImpl(),
+    mlModelsDirectoriesField = mlModelsDirectories.toImpl(),
+    customSourceDirectoriesField = customSourceDirectories,
+    baselineProfileDirectoriesField = baselineProfileDirectories.toImpl(),
+  )
+
+  constructor(
+    name: String,
+    folder: File?,
     manifestFile: String?,
-    javaDirectories: Collection<String>,
-    kotlinDirectories: Collection<String>,
-    resourcesDirectories: Collection<String>,
-    aidlDirectories: Collection<String>,
-    renderscriptDirectories: Collection<String>,
-    resDirectories: Collection<String>,
-    assetsDirectories: Collection<String>,
-    jniLibsDirectories: Collection<String>,
-    shadersDirectories: Collection<String>,
-    mlModelsDirectories: Collection<String>,
-    customSourceDirectories: Collection<IdeCustomSourceDirectory>,
-    baselineProfileDirectories: Collection<String>,
+    javaDirectories: List<String>,
+    kotlinDirectories: List<String>,
+    resourcesDirectories: List<String>,
+    aidlDirectories: List<String>,
+    renderscriptDirectories: List<String>,
+    resDirectories: List<String>,
+    assetsDirectories: List<String>,
+    jniLibsDirectories: List<String>,
+    shadersDirectories: List<String>,
+    mlModelsDirectories: List<String>,
+    customSourceDirectories: List<IdeCustomSourceDirectoryImpl>,
+    baselineProfileDirectories: List<String>
   ) : this(
     name,
     folder,
@@ -75,7 +108,7 @@ data class IdeSourceProviderImpl private constructor(
   // Used for serialization by the IDE.
   constructor() : this(
     nameField = "",
-    folderField = File(""),
+    folderField = FileImpl(""),
     manifestFileField = null,
     javaDirectoriesField = mutableListOf(),
     kotlinDirectoriesField = mutableListOf(),
@@ -92,17 +125,17 @@ data class IdeSourceProviderImpl private constructor(
   )
 
   fun appendDirectories(
-    javaDirectories: Collection<File> = emptyList(),
-    kotlinDirectories: Collection<File> = emptyList(),
-    resourcesDirectories: Collection<File> = emptyList(),
-    aidlDirectories: Collection<File> = emptyList(),
-    renderscriptDirectories: Collection<File> = emptyList(),
-    resDirectories: Collection<File> = emptyList(),
-    assetsDirectories: Collection<File> = emptyList(),
-    jniLibsDirectories: Collection<File> = emptyList(),
-    shadersDirectories: Collection<File> = emptyList(),
-    mlModelsDirectories: Collection<File> = emptyList(),
-    baselineProfileDirectories: Collection<File> = emptyList(),
+    javaDirectories: List<File> = emptyList(),
+    kotlinDirectories: List<File> = emptyList(),
+    resourcesDirectories: List<File> = emptyList(),
+    aidlDirectories: List<File> = emptyList(),
+    renderscriptDirectories: List<File> = emptyList(),
+    resDirectories: List<File> = emptyList(),
+    assetsDirectories: List<File> = emptyList(),
+    jniLibsDirectories: List<File> = emptyList(),
+    shadersDirectories: List<File> = emptyList(),
+    mlModelsDirectories: List<File> = emptyList(),
+    baselineProfileDirectories: List<File> = emptyList(),
   ): IdeSourceProviderImpl = copy(
     javaDirectoriesField = javaDirectoriesField + javaDirectories.map { normalize(folderField, it) },
     kotlinDirectoriesField = kotlinDirectoriesField + kotlinDirectories.map { normalize(folderField, it) },
@@ -119,25 +152,25 @@ data class IdeSourceProviderImpl private constructor(
 
 
   override val name: String get() = nameField
-  override val manifestFile: File? get() = manifestFileField
-  override val javaDirectories: Collection<File> get() = javaDirectoriesField
-  override val kotlinDirectories: Collection<File> get() = kotlinDirectoriesField
-  override val resourcesDirectories: Collection<File> get() = resourcesDirectoriesField
-  override val aidlDirectories: Collection<File> get() = aidlDirectoriesField
-  override val renderscriptDirectories: Collection<File> get() = renderscriptDirectoriesField
-  override val resDirectories: Collection<File> get() = resDirectoriesField
-  override val assetsDirectories: Collection<File> get() = assetsDirectoriesField
-  override val jniLibsDirectories: Collection<File> get() = jniLibsDirectoriesField
-  override val shadersDirectories: Collection<File> get() = shadersDirectoriesField
-  override val mlModelsDirectories: Collection<File> get() = mlModelsDirectoriesField
-  override val customSourceDirectories: Collection<IdeCustomSourceDirectory>
+  override val manifestFile: FileImpl? get() = manifestFileField
+  override val javaDirectories: List<FileImpl> get() = javaDirectoriesField
+  override val kotlinDirectories: List<FileImpl> get() = kotlinDirectoriesField
+  override val resourcesDirectories: List<FileImpl> get() = resourcesDirectoriesField
+  override val aidlDirectories: List<FileImpl> get() = aidlDirectoriesField
+  override val renderscriptDirectories: List<FileImpl> get() = renderscriptDirectoriesField
+  override val resDirectories: List<FileImpl> get() = resDirectoriesField
+  override val assetsDirectories: List<FileImpl> get() = assetsDirectoriesField
+  override val jniLibsDirectories: List<FileImpl> get() = jniLibsDirectoriesField
+  override val shadersDirectories: List<FileImpl> get() = shadersDirectoriesField
+  override val mlModelsDirectories: List<FileImpl> get() = mlModelsDirectoriesField
+  override val customSourceDirectories: List<IdeCustomSourceDirectoryImpl>
     get() = customSourceDirectoriesField
-  override val baselineProfileDirectories: Collection<File>
+  override val baselineProfileDirectories: List<FileImpl>
     get() = baselineProfileDirectoriesField
 }
 
-private fun normalize(folder: File?, file: File): File = (if (folder != null) file.relativeToOrSelf(folder).path else file.path).translate(folder)
+private fun normalize(folder: File?, file: File): FileImpl = (if (folder != null) file.relativeToOrSelf(folder).path else file.path).translate(folder)
 
-private fun String.translate(folder: File?): File = (folder?.resolve(this) ?: File(this)).normalize()
+private fun String.translate(folder: File?): FileImpl = (folder?.resolve(this) ?: FileImpl(this)).normalize().toImpl()
 
-private fun Collection<String>.translate(folder: File?): Collection<File> = map { it.translate(folder) }
+private fun List<String>.translate(folder: File?): List<FileImpl> = map { it.translate(folder) }

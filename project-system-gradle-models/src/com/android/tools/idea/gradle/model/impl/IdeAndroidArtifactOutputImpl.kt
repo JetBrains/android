@@ -21,7 +21,17 @@ import java.io.File
 import java.io.Serializable
 
 data class IdeAndroidArtifactOutputImpl(
-  override val filters: Collection<IdeFilterData>,
+  override val filters: List<IdeFilterData>,
   override val versionCode: Int,
-  override val outputFile: File
-) : IdeAndroidArtifactOutput, Serializable
+  override val outputFile: FileImpl
+) : IdeAndroidArtifactOutput, Serializable {
+  constructor(
+    filters: List<IdeFilterData>,
+    versionCode: Int,
+    outputFile: File
+  ) : this(
+    filters,
+    versionCode,
+    outputFile.toImpl()
+  )
+}

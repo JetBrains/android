@@ -36,7 +36,6 @@ import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
-import com.android.tools.idea.gradle.model.impl.IdeDeclaredDependenciesImpl
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.LibraryReference
@@ -51,6 +50,7 @@ import com.android.tools.idea.gradle.model.impl.IdeBasicVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTasksAndOutputInformationImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeImpl
+import com.android.tools.idea.gradle.model.impl.IdeDeclaredDependenciesImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreDirect
 import com.android.tools.idea.gradle.model.impl.IdeDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeExtraSourceProviderImpl
@@ -70,14 +70,16 @@ import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
+import com.android.tools.idea.gradle.model.impl.toImpl
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
-import com.android.tools.idea.gradle.project.model.GradleAndroidModelDataImpl
 import com.android.tools.idea.gradle.project.model.ourAndroidSyncVersion
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import java.io.File
+import java.nio.charset.Charset
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinBinaryDependency
@@ -90,8 +92,6 @@ import org.jetbrains.kotlin.gradle.idea.tcs.extras.sourcesClasspath
 import org.jetbrains.kotlin.idea.projectModel.KotlinCompilation
 import org.jetbrains.kotlin.idea.projectModel.KotlinSourceSet
 import org.jetbrains.kotlin.tooling.core.WeakInterner
-import java.io.File
-import java.nio.charset.Charset
 
 /**
  * Used to convert models coming from the build side in the kotlin model extras to the IDE models representation.
@@ -155,7 +155,7 @@ class KotlinModelConverter {
     val folder = File(manifestFile.absolutePath).parentFile
     fun File.makeRelativeAndDeduplicate(): String = (if (folder != null) relativeToOrSelf(folder) else this).path.deduplicate()
     fun String.makeRelativeAndDeduplicate(): String = File(this).makeRelativeAndDeduplicate()
-    fun Collection<File>.makeRelativeAndDeduplicate(): Collection<String> = map { it.makeRelativeAndDeduplicate() }
+    fun Collection<File>.makeRelativeAndDeduplicate(): List<String> = map { it.makeRelativeAndDeduplicate() }
     return IdeSourceProviderImpl(
       name = sourceSet.name,
       folder = folder,
@@ -468,7 +468,7 @@ class KotlinModelConverter {
       name = IdeArtifactName.MAIN,
       compileTaskName = mainAndroidCompilation.kotlinCompileTaskName,
       assembleTaskName = mainAndroidCompilation.assembleTaskName,
-      classesFolder = mainKotlinCompilation.output.classesDirs,
+      classesFolder = mainKotlinCompilation.output.classesDirs.toList(),
       variantSourceProvider = null,
       multiFlavorSourceProvider = null,
       ideSetupTaskNames = emptyList(), // For now, there is no source generation tasks
@@ -502,7 +502,7 @@ class KotlinModelConverter {
         name = IdeArtifactName.UNIT_TEST,
         compileTaskName = unitTestAndroidCompilation.kotlinCompileTaskName,
         assembleTaskName = unitTestAndroidCompilation.assembleTaskName,
-        classesFolder = unitTestKotlinCompilation?.output?.classesDirs ?: emptyList(),
+        classesFolder = unitTestKotlinCompilation?.output?.classesDirs?.toList() ?: emptyList(),
         variantSourceProvider = null,
         multiFlavorSourceProvider = null,
         ideSetupTaskNames = emptyList(), // For now, there is no source generation tasks
@@ -526,7 +526,7 @@ class KotlinModelConverter {
         name = IdeArtifactName.ANDROID_TEST,
         compileTaskName = androidTestAndroidCompilation.kotlinCompileTaskName,
         assembleTaskName = androidTestAndroidCompilation.assembleTaskName,
-        classesFolder = androidTestKotlinCompilation?.output?.classesDirs ?: emptyList(),
+        classesFolder = androidTestKotlinCompilation?.output?.classesDirs?.toList() ?: emptyList(),
         variantSourceProvider = null,
         multiFlavorSourceProvider = null,
         ideSetupTaskNames = emptyList(), // For now, there is no source generation tasks
@@ -687,10 +687,10 @@ class KotlinModelConverter {
       testSuites = emptyList()
     )
 
-    return GradleAndroidModelDataImpl(
+    return GradleAndroidModelData(
       androidSyncVersion = ourAndroidSyncVersion,
-      moduleName = moduleName,
-      rootDirPath = rootModulePath!!,
+      moduleNameField = moduleName,
+      rootDirPath = rootModulePath!!.toImpl(),
       androidProject = androidProject,
       selectedVariantName = kotlinMultiplatformAndroidVariantName,
       declaredDependencies = IdeDeclaredDependenciesImpl(mapOf()),

@@ -17,13 +17,30 @@ package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdePrivacySandboxSdkInfo
 import java.io.File
+
 import java.io.Serializable
 
 data class IdePrivacySandboxSdkInfoImpl(
   override val task: String,
-  override val outputListingFile: File,
+  override val outputListingFile: FileImpl,
   override val additionalApkSplitTask: String,
-  override val additionalApkSplitFile: File,
+  override val additionalApkSplitFile: FileImpl,
   override val taskLegacy: String,
-  override val outputListingLegacyFile: File,
-) : IdePrivacySandboxSdkInfo, Serializable
+  override val outputListingLegacyFile: FileImpl,
+) : IdePrivacySandboxSdkInfo, Serializable {
+  constructor(
+    task: String,
+    outputListingFile: File,
+    additionalApkSplitTask: String,
+    additionalApkSplitFile: File,
+    taskLegacy: String,
+    outputListingLegacyFile: File
+  ) : this(
+    task,
+    outputListingFile.toImpl(),
+    additionalApkSplitTask,
+    additionalApkSplitFile.toImpl(),
+    taskLegacy,
+    outputListingLegacyFile.toImpl()
+  )
+}

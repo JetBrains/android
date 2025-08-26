@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeVariantCore
+import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
@@ -351,10 +352,10 @@ private fun buildIdeLibraryModelResolver(
     resolveKmpAndroidMainSourceSet = { null }
   ).buildResolvedLibraryTable(libraryTable)
 
-  val resolver: IdeLibraryModelResolver = object : IdeLibraryModelResolver {
-    override fun resolve(unresolved: IdeDependencyCore) = resolvedTable.libraries[unresolved.target.libraryIndex].asSequence()
-  }
-  return resolver
+  return IdeLibraryModelResolverImpl.fromLibraryTables(
+    globalLibraryTable = resolvedTable,
+    kmpLibraryTable = null
+  )
 }
 
 /**

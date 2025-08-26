@@ -20,6 +20,6 @@ import java.io.Serializable
 
 data class IdeMultiVariantDataImpl(
   override val defaultConfig: IdeProductFlavorImpl,
-  override val buildTypes: Collection<IdeBuildTypeContainerImpl>,
-  override val productFlavors: Collection<IdeProductFlavorContainerImpl>
+  override val buildTypes: List<IdeBuildTypeContainerImpl>,
+  override val productFlavors: List<IdeProductFlavorContainerImpl>
 ): IdeMultiVariantData, Serializable

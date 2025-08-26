@@ -31,7 +31,7 @@ import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.gradle.project.model.GradleAndroidModelDataImpl
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.sync.ModelFeature
 import com.android.tools.idea.gradle.project.sync.ModelVersions
@@ -203,17 +203,17 @@ internal class SyncContributorAndroidProjectContext(
      "Holder module is not populated via Android Gradle source sets for ${projectModel.path}"
    }
 
-  internal val gradleAndroidModelFactory: (String) -> GradleAndroidModelDataImpl
+  internal val gradleAndroidModelFactory: (String) -> GradleAndroidModelData
     get() = { moduleName ->
       val ideAndroidProject = ideAndroidProject.copy(baseFeature = baseFeature)
-      GradleAndroidModelDataImpl.create(
+      GradleAndroidModelData.create(
         moduleName = moduleName,
         rootDirPath = File(externalProject.projectDir.path),
         ideAndroidProject,
         ideDeclaredDependencies,
         ideAndroidProject.coreVariants.map { it as IdeVariantCoreImpl },
         variantName
-      ) as GradleAndroidModelDataImpl
+      )
     }
   internal val gradleModuleModelFactory: (String) -> GradleModuleModel
     get() = { moduleName ->

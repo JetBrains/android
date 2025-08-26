@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable
+import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.KotlinMultiplatformIdeLibraryTable
 
 class GradleProjectModels(
   val modules: List<GradleModuleModels>,
-  val libraries: IdeResolvedLibraryTable?,
+  val libraries: IdeResolvedLibraryTableImpl?,
   val kmpLibraries: KotlinMultiplatformIdeLibraryTable?
 )

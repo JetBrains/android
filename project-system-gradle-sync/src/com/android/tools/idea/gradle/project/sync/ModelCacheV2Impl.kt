@@ -68,7 +68,6 @@ import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toPrintableName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeBytecodeTransformation
-import com.android.tools.idea.gradle.model.IdeCustomSourceDirectory
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_DEFAULT_ENABLED
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_ERROR
@@ -131,9 +130,6 @@ import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
 import com.android.tools.idea.gradle.model.impl.throwingIdeDependencies
-import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableMap
-import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Lists
 import java.io.File
 
@@ -162,7 +158,7 @@ fun modelCacheV2Impl(
   fun sourceProviderFrom(provider: SourceProvider): IdeSourceProviderImpl {
     val folder: File? = provider.manifestFile?.let { it.parentFile?.deduplicateFile() }
     fun File.makeRelativeAndDeduplicate(): String = (if (folder != null) relativeToOrSelf(folder) else this).path.deduplicate()
-    fun Collection<File>.makeRelativeAndDeduplicate(): Collection<String> = map { it.makeRelativeAndDeduplicate() }
+    fun Collection<File>.makeRelativeAndDeduplicate(): List<String> = map { it.makeRelativeAndDeduplicate() }
     return IdeSourceProviderImpl(
       name = provider.name.deduplicate(),
       folder = folder,
@@ -196,16 +192,16 @@ fun modelCacheV2Impl(
       manifestFile = null,
       javaDirectories = providers.map { it.makeRelativeAndDeduplicate() },
       kotlinDirectories = providers.map { it.makeRelativeAndDeduplicate() },
-      resourcesDirectories = emptyList<String>(),
-      aidlDirectories = emptyList<String>(),
-      renderscriptDirectories = emptyList<String>(),
-      resDirectories = emptyList<String>(),
-      assetsDirectories = emptyList<String>(),
-      jniLibsDirectories = emptyList<String>(),
-      shadersDirectories = emptyList<String>(),
-      mlModelsDirectories = emptyList<String>(),
-      customSourceDirectories = emptyList<IdeCustomSourceDirectory>(),
-      baselineProfileDirectories = emptyList<String>()
+      resourcesDirectories = emptyList(),
+      aidlDirectories = emptyList(),
+      renderscriptDirectories = emptyList(),
+      resDirectories = emptyList(),
+      assetsDirectories = emptyList(),
+      jniLibsDirectories = emptyList(),
+      shadersDirectories = emptyList(),
+      mlModelsDirectories = emptyList(),
+      customSourceDirectories = emptyList(),
+      baselineProfileDirectories = emptyList()
     )
   }
 
@@ -253,8 +249,8 @@ fun modelCacheV2Impl(
     return IdeProductFlavorImpl(
       name = flavor.name.deduplicate(),
       resValues = flavor.resValues?.mapValues { classFieldFrom(it.value) } ?: mapOf(),
-      proguardFiles = ImmutableList.copyOf(flavor.proguardFiles.deduplicateFiles()),
-      consumerProguardFiles = ImmutableList.copyOf(flavor.consumerProguardFiles.deduplicateFiles()),
+      proguardFiles = flavor.proguardFiles.deduplicateFiles().toList(),
+      consumerProguardFiles = flavor.consumerProguardFiles.deduplicateFiles().toList(),
       // AGP may return internal Groovy GString implementation as a value in
       // manifestPlaceholders
       // map. It cannot be serialized
@@ -262,12 +258,12 @@ fun modelCacheV2Impl(
       // make them
       // usable as they are converted to String by
       // the manifest merger anyway.
-      manifestPlaceholders = ImmutableMap.copyOf(flavor.manifestPlaceholders.entries.associate { it.key to it.value.toString() }),
+      manifestPlaceholders = flavor.manifestPlaceholders.entries.associate { it.key to it.value.toString() },
       applicationIdSuffix = flavor.applicationIdSuffix?.deduplicate(),
       versionNameSuffix = flavor.versionNameSuffix?.deduplicate(),
       multiDexEnabled = flavor.multiDexEnabled,
-      testInstrumentationRunnerArguments = ImmutableMap.copyOf(flavor.testInstrumentationRunnerArguments.deduplicateStrings()),
-      resourceConfigurations = ImmutableList.copyOf(flavor.resourceConfigurations.deduplicateStrings()),
+      testInstrumentationRunnerArguments = flavor.testInstrumentationRunnerArguments.deduplicateStrings(),
+      resourceConfigurations = flavor.resourceConfigurations.deduplicateStrings().toList(),
       vectorDrawables = vectorDrawablesOptionsFrom(flavor.vectorDrawables),
       dimension = flavor.dimension?.deduplicate(),
       applicationId = flavor.applicationId?.deduplicate(),
@@ -348,8 +344,8 @@ fun modelCacheV2Impl(
       applicationIdSuffix = applicationIdSuffix,
       versionNameSuffix = versionNameSuffix,
       multiDexEnabled = multiDexEnabled,
-      testInstrumentationRunnerArguments = ImmutableMap.copyOf(testInstrumentationRunnerArguments),
-      resourceConfigurations = ImmutableList.copyOf(resourceConfigurations),
+      testInstrumentationRunnerArguments = testInstrumentationRunnerArguments.toMap(),
+      resourceConfigurations = resourceConfigurations.toList(),
       vectorDrawables = vectorDrawables,
       dimension = "",
       applicationId =
@@ -428,8 +424,8 @@ fun modelCacheV2Impl(
     return IdeBuildTypeImpl(
       name = buildType.name.deduplicate(),
       resValues = buildType.resValues?.mapValues { classFieldFrom(it.value) } ?: mapOf(),
-      proguardFiles = ImmutableList.copyOf(buildType.proguardFiles.deduplicateFiles()),
-      consumerProguardFiles = ImmutableList.copyOf(buildType.consumerProguardFiles.deduplicateFiles()),
+      proguardFiles = buildType.proguardFiles.deduplicateFiles().toList(),
+      consumerProguardFiles = buildType.consumerProguardFiles.deduplicateFiles().toList(),
       // AGP may return internal Groovy GString implementation as a value in
       // manifestPlaceholders
       // map. It cannot be serialized
@@ -437,8 +433,8 @@ fun modelCacheV2Impl(
       // make them
       // usable as they are converted to String by
       // the manifest merger anyway.
-      manifestPlaceholders = ImmutableMap.copyOf(buildType.manifestPlaceholders.entries.associate { it.key to it.value.toString() }
-                                                   .deduplicateStrings()),
+      manifestPlaceholders = buildType.manifestPlaceholders.entries.associate { it.key to it.value.toString() }
+                                                   .deduplicateStrings(),
       applicationIdSuffix = buildType.applicationIdSuffix?.deduplicate(),
       versionNameSuffix = buildType.versionNameSuffix?.deduplicate(),
       multiDexEnabled = buildType.multiDexEnabled,
@@ -818,7 +814,7 @@ fun modelCacheV2Impl(
       name = name,
       compileTaskName = artifact.compileTaskName,
       assembleTaskName = artifact.assembleTaskName,
-      classesFolder = artifact.classesFolders,
+      classesFolder = artifact.classesFolders.toList(),
       ideSetupTaskNames = artifact.ideSetupTaskNames.toList(),
       generatedSourceFolders = artifact.generatedSourceFolders.deduplicateFiles().distinct(),
       variantSourceProvider = basicArtifact.variantSourceProvider?.let { sourceProviderFrom(it) },
@@ -829,7 +825,7 @@ fun modelCacheV2Impl(
       applicationId = applicationId,
       generatedResourceFolders = artifact.generatedResourceFolders.deduplicateFiles().distinct(),
       signingConfigName = artifact.signingConfigName?.deduplicate(),
-      abiFilters = ImmutableSet.copyOf(artifact.abiFilters.orEmpty()),
+      abiFilters = artifact.abiFilters.orEmpty().toSet(),
       isSigned = artifact.isSigned,
       additionalRuntimeApks = testInfo?.additionalRuntimeApks?.deduplicateFiles() ?: emptyList(),
       testOptions = artifact.testInfo?.let { testOptionsFrom(it) },
@@ -843,9 +839,9 @@ fun modelCacheV2Impl(
         }
       else
         null,
-      desugaredMethodsFiles = getDesugaredMethodsList(artifact, fallbackDesugaredMethodsFiles),
+      desugaredMethodsFiles = getDesugaredMethodsList(artifact, fallbackDesugaredMethodsFiles).toList(),
       generatedClassPaths = if (modelVersions[ModelFeature.HAS_GENERATED_CLASSPATHS]) artifact.generatedClassPaths else emptyMap(),
-      bytecodeTransforms = if (modelVersions[ModelFeature.HAS_BYTECODE_TRANSFORMS]) artifact.bytecodeTransformations.toIdeModels() else null,
+      bytecodeTransforms = if (modelVersions[ModelFeature.HAS_BYTECODE_TRANSFORMS]) artifact.bytecodeTransformations.toIdeModels().toList() else null,
       generatedAssetFolders = if (modelVersions[ModelFeature.HAS_GENERATED_ASSETS]) artifact.generatedAssetsFolders.deduplicateFiles().distinct() else listOf()
     )
   }
@@ -909,7 +905,7 @@ fun modelCacheV2Impl(
       name = name,
       compileTaskName = artifact.compileTaskName,
       assembleTaskName = artifact.assembleTaskName,
-      classesFolder = artifact.classesFolders,
+      classesFolder = artifact.classesFolders.toList(),
       ideSetupTaskNames = artifact.ideSetupTaskNames.deduplicateStrings().toList(),
       generatedSourceFolders = artifact.generatedSourceFolders.deduplicateFiles().distinct(),
       variantSourceProvider = basicArtifact.variantSourceProvider?.let { sourceProviderFrom(it) },
@@ -922,7 +918,7 @@ fun modelCacheV2Impl(
       generatedClassPaths = if (modelVersions[ModelFeature.HAS_GENERATED_CLASSPATHS])
         artifact.generatedClassPaths
       else emptyMap(),
-      bytecodeTransforms = if (modelVersions[ModelFeature.HAS_BYTECODE_TRANSFORMS]) artifact.bytecodeTransformations.toIdeModels() else null,
+      bytecodeTransforms = if (modelVersions[ModelFeature.HAS_BYTECODE_TRANSFORMS]) artifact.bytecodeTransformations.toIdeModels().toList() else null,
     )
   }
 
@@ -1031,7 +1027,7 @@ fun modelCacheV2Impl(
                 IdeTestSuiteTargetImpl(
                   target.name,
                   target.testTaskName,
-                  target.targetedDevices
+                  target.targetedDevices.toList()
                 )
               }
             )
@@ -1086,7 +1082,7 @@ fun modelCacheV2Impl(
     }
 
     fun <T> combineMaps(u: Map<String, T>?, v: Map<String, T>?): Map<String, T> = u.orEmpty() + v.orEmpty()
-    fun <T> combineSets(u: Collection<T>?, v: Collection<T>?): Collection<T> = (u?.toSet().orEmpty() + v.orEmpty()).toList()
+    fun <T> combineSets(u: Collection<T>?, v: Collection<T>?): List<T> = (u?.toSet().orEmpty() + v.orEmpty()).toList()
 
     val versionNameSuffix =
       if (mergedFlavor.versionNameSuffix == null && buildType?.versionNameSuffix == null) null
@@ -1110,7 +1106,7 @@ fun modelCacheV2Impl(
         fallbackDesugaredMethodsFiles,
         legacyAndroidGradlePluginProperties
       ),
-      testSuiteArtifacts = testSuiteArtifactsFrom(variant, testSuites),
+      testSuiteArtifacts = testSuiteArtifactsFrom(variant, testSuites).toList(),
       testFixturesArtifact = variant.testFixturesArtifact?.let { it: AndroidArtifact ->
         androidArtifactFrom(
           IdeArtifactName.TEST_FIXTURES, basicVariant.testFixturesArtifact!!, variantName, legacyAndroidGradlePluginProperties,
@@ -1118,7 +1114,7 @@ fun modelCacheV2Impl(
         )
       },
       buildType = basicVariant.buildType?.deduplicate() ?: "",
-      productFlavors = ImmutableList.copyOf(basicVariant.productFlavors.deduplicateStrings()),
+      productFlavors = basicVariant.productFlavors.deduplicateStrings().toList(),
       minSdkVersion = apiVersionFrom(variant.mainArtifact.minSdkVersion),
       targetSdkVersion = variant.mainArtifact.targetSdkVersionOverride?.let { it: ApiVersion -> apiVersionFrom(it) },
       maxSdkVersion = variant.mainArtifact.maxSdkVersion,
@@ -1306,9 +1302,11 @@ fun modelCacheV2Impl(
     textOutput = options.textOutput,
     htmlReport = options.htmlReport,
     htmlOutput = options.htmlOutput,
+    sarifReport = false,
+    sarifOutput = null,
     xmlReport = options.xmlReport,
     xmlOutput = options.xmlOutput,
-    isCheckReleaseBuilds = options.checkReleaseBuilds
+    isCheckReleaseBuilds = options.checkReleaseBuilds,
   )
 
   fun javaCompileOptionsFrom(options: JavaCompileOptions?): IdeJavaCompileOptionsImpl? {
@@ -1432,8 +1430,8 @@ fun modelCacheV2Impl(
     val projectTypeCopy = copyProjectType(basicProject.projectType)
     val multiVariantData = IdeMultiVariantDataImpl(
       defaultConfig = defaultConfigCopy,
-      buildTypes = buildTypesCopy,
-      productFlavors = productFlavorCopy,
+      buildTypes = buildTypesCopy.toList(),
+      productFlavors = productFlavorCopy.toList(),
     )
 
     val testSuites = if (modelVersions[ModelFeature.HAS_TEST_SUITES]) {
@@ -1456,7 +1454,7 @@ fun modelCacheV2Impl(
       variantCoreFrom(projectTypeCopy, multiVariantData, basicVariant, variantModel, legacyAndroidGradlePluginProperties, basicTestSuites)
     }
     val flavorDimensionCopy: Collection<String> = androidDsl.flavorDimensions.deduplicateStrings()
-    val bootClasspathCopy: Collection<String> = ImmutableList.copyOf(basicProject.bootClasspath.map { it.absolutePath })
+    val bootClasspathCopy: Collection<String> = basicProject.bootClasspath.map { it.absolutePath }.toList()
     val signingConfigsCopy: Collection<IdeSigningConfigImpl> = androidDsl.signingConfigs.map { signingConfigFrom(it) }
     val lintOptionsCopy: IdeLintOptionsImpl? = androidDsl?.lintOptions?.let { lintOptionsFrom(it) }
     val javaCompileOptionsCopy = javaCompileOptionsFrom(project.javaCompileOptions)
@@ -1485,20 +1483,20 @@ fun modelCacheV2Impl(
         ),
         defaultSourceProvider = defaultConfigSourcesCopy,
         multiVariantData = multiVariantData,
-        basicVariants = basicVariantsCopy,
+        basicVariants = basicVariantsCopy.toList(),
         coreVariants = coreVariantsCopy,
-        flavorDimensions = flavorDimensionCopy,
+        flavorDimensions = flavorDimensionCopy.toList(),
         compileTarget = androidDsl.compileTarget,
-        bootClasspath = bootClasspathCopy,
-        signingConfigs = signingConfigsCopy,
+        bootClasspath = bootClasspathCopy.toList(),
+        signingConfigs = signingConfigsCopy.toList(),
         lintOptions = lintOptionsCopy,
         lintChecksJars = lintChecksJarsCopy,
         javaCompileOptions = javaCompileOptionsCopy,
         aaptOptions = aaptOptionsCopy,
         buildFolder = basicProject.buildFolder,
-        dynamicFeatures = dynamicFeaturesCopy,
+        dynamicFeatures = dynamicFeaturesCopy.toList(),
         baseFeature = null,
-        variantsBuildInformation = variantBuildInformation,
+        variantsBuildInformation = variantBuildInformation.toList(),
         viewBindingOptions = viewBindingOptionsCopy,
         dependenciesInfo = dependenciesInfoCopy,
         buildToolsVersion = buildToolsVersionCopy,
@@ -1634,7 +1632,7 @@ val ProjectInfo.buildTreePath
 val ProjectInfo.displayName
   get() = "$projectPath ($buildTreePath)"
 
-private fun Collection<BytecodeTransformation>.toIdeModels(): Collection<IdeBytecodeTransformation> {
+private fun Collection<BytecodeTransformation>.toIdeModels(): Collection<IdeBytecodeTransformationImpl> {
   return this.map { transform ->
     when (transform) {
       BytecodeTransformation.ASM_API_ALL -> IdeBytecodeTransformationImpl(IdeBytecodeTransformation.Type.ASM_API_ALL, transform.description)

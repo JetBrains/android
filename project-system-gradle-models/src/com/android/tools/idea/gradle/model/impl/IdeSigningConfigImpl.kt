@@ -21,7 +21,19 @@ import java.io.Serializable
 
 data class IdeSigningConfigImpl(
   override val name: String,
-  override val storeFile: File?,
+  override val storeFile: FileImpl?,
   override val storePassword: String?,
   override val keyAlias: String?
-) : IdeSigningConfig, Serializable
+) : IdeSigningConfig, Serializable {
+  constructor(
+    name: String,
+    storeFile: File?,
+    storePassword: String?,
+    keyAlias: String?
+  ) : this(
+    name,
+    storeFile?.toImpl(),
+    storePassword,
+    keyAlias
+  )
+}

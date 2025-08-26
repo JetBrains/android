@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.model.impl.ndk.v1
 
+import com.android.tools.idea.gradle.model.impl.FileImpl
+import com.android.tools.idea.gradle.model.impl.toImpl
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeArtifact
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeFile
 import java.io.File
@@ -24,10 +26,30 @@ data class IdeNativeArtifactImpl(
   override val name: String,
   override val toolChain: String,
   override val groupName: String,
-  override val sourceFiles: Collection<IdeNativeFile>,
-  override val exportedHeaders: Collection<File>,
-  override val outputFile: File?,
+  override val sourceFiles: List<IdeNativeFile>,
+  override val exportedHeaders: List<FileImpl>,
+  override val outputFile: FileImpl?,
   override val abi: String,
   override val targetName: String
 
-) : IdeNativeArtifact, Serializable
+) : IdeNativeArtifact, Serializable {
+  constructor(
+    name: String,
+    toolChain: String,
+    groupName: String,
+    sourceFiles: List<IdeNativeFile>,
+    exportedHeaders: List<File>,
+    outputFile: File?,
+    abi: String,
+    targetName: String
+  ) : this(
+    name,
+    toolChain,
+    groupName,
+    sourceFiles,
+    exportedHeaders.toImpl(),
+    outputFile?.toImpl(),
+    abi,
+    targetName
+  )
+}

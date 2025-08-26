@@ -28,9 +28,11 @@ import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
 import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
+import com.android.tools.idea.gradle.model.impl.FileImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
+import com.android.tools.idea.gradle.model.impl.toImpl
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
@@ -294,8 +296,8 @@ private fun List<IdeVariantCoreImpl>.patchForKapt(kaptModel: KaptGradleModel?): 
       return code(kaptSourceSet)
     }
 
-    fun IdeBaseArtifactCore.generatedSourceFoldersPatchedForKapt(kaptSourceSet: KaptSourceSetModel): List<File> {
-      return (generatedSourceFolders.toSet() + listOfNotNull(kaptSourceSet.generatedKotlinSourcesDirFile)).toList()
+    fun IdeBaseArtifactCore.generatedSourceFoldersPatchedForKapt(kaptSourceSet: KaptSourceSetModel): List<FileImpl> {
+      return (generatedSourceFolders.toSet() + listOfNotNull(kaptSourceSet.generatedKotlinSourcesDirFile)).toList().toImpl()
     }
 
     variant.copy(

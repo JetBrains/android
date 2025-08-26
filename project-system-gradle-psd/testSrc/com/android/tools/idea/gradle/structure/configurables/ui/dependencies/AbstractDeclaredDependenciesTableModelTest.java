@@ -20,7 +20,7 @@ import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
-import com.android.tools.idea.gradle.model.IdeLibraryModelResolver;
+import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl;
 import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData;
 import com.android.tools.idea.gradle.project.sync.InternedModels;
@@ -68,7 +68,8 @@ public class AbstractDeclaredDependenciesTableModelTest extends HeavyPlatformTes
     when(gradleAndroidModel.getSelectedVariantName()).thenReturn("name");
     PsAndroidModule module = new PsAndroidModule(project, ":name");
 
-    module.init("name", null, GradleAndroidDependencyModel.createFactory(getProject(), mock(IdeLibraryModelResolver.class)).invoke(gradleAndroidModel), null, null,
+    module.init("name", null, GradleAndroidDependencyModel.createFactory(getProject(), mock(
+                  IdeLibraryModelResolverImpl.class)).invoke(gradleAndroidModel), null, null,
                 parsedModel);
     PsContext context = mock(PsContext.class);
     when(context.getUiSettings()).thenReturn(myUISettings);

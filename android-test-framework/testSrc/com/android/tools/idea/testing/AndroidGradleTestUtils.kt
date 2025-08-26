@@ -91,7 +91,6 @@ import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.project.importing.withAfterCreate
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
-import com.android.tools.idea.gradle.project.model.GradleAndroidModelDataImpl
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
@@ -1715,7 +1714,10 @@ private fun setupTestProjectFromAndroidModelCore(
     resolveArtifact = { null },
     resolveKmpAndroidMainSourceSet = { null }
   ).buildResolvedLibraryTable(unresolvedTable)
-  val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTables(resolvedTable, null)
+  val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTables(
+    resolvedTable,
+    null
+  )
   projectDataNode.createChild(
     AndroidProjectKeys.IDE_COMPOSITE_BUILD_MAP,
     IdeCompositeBuildMapImpl(
@@ -1806,7 +1808,7 @@ private fun createAndroidModuleDataNode(
     )
   )
 
-  val gradleAndroidModel = GradleAndroidModelDataImpl.create(
+  val gradleAndroidModel = GradleAndroidModelData.create(
     qualifiedModuleName,
     moduleBasePath,
     androidProject,

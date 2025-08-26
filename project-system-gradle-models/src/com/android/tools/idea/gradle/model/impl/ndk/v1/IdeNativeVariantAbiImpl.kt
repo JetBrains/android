@@ -15,19 +15,41 @@
  */
 package com.android.tools.idea.gradle.model.impl.ndk.v1
 
+import com.android.tools.idea.gradle.model.impl.FileImpl
+import com.android.tools.idea.gradle.model.impl.toImpl
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeArtifact
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeSettings
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeToolchain
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import java.io.File
+
 import java.io.Serializable
 
 data class IdeNativeVariantAbiImpl(
-  override val buildFiles: Collection<File>,
-  override val artifacts: Collection<IdeNativeArtifact>,
-  override val toolChains: Collection<IdeNativeToolchain>,
-  override val settings: Collection<IdeNativeSettings>,
+  override val buildFiles: List<FileImpl>,
+  override val artifacts: List<IdeNativeArtifact>,
+  override val toolChains: List<IdeNativeToolchain>,
+  override val settings: List<IdeNativeSettings>,
   override val fileExtensions: Map<String, String>,
   override val variantName: String,
   override val abi: String
-) : IdeNativeVariantAbi, Serializable
+) : IdeNativeVariantAbi, Serializable {
+  constructor(
+    buildFiles: List<File>,
+    artifacts: List<IdeNativeArtifact>,
+    toolChains: List<IdeNativeToolchain>,
+    settings: List<IdeNativeSettings>,
+    fileExtensions: Map<String, String>,
+    variantName: String,
+    abi: String,
+    unused: String = "" // to prevent clash
+  ) : this(
+    buildFiles.toImpl(),
+    artifacts,
+    toolChains,
+    settings,
+    fileExtensions,
+    variantName,
+    abi
+  )
+}

@@ -15,12 +15,25 @@
  */
 package com.android.tools.idea.gradle.model.impl.ndk.v1
 
+import com.android.tools.idea.gradle.model.impl.FileImpl
+import com.android.tools.idea.gradle.model.impl.toImpl
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeToolchain
 import java.io.File
+
 import java.io.Serializable
 
 data class IdeNativeToolchainImpl(
   override val name: String,
-  override val cCompilerExecutable: File?,
-  override val cppCompilerExecutable: File?
-) : IdeNativeToolchain, Serializable
+  override val cCompilerExecutable: FileImpl?,
+  override val cppCompilerExecutable: FileImpl?
+) : IdeNativeToolchain, Serializable {
+  constructor(
+    name: String,
+    cCompilerExecutable: File?,
+    cppCompilerExecutable: File?
+  ) : this(
+    name,
+    cCompilerExecutable?.toImpl(),
+    cppCompilerExecutable?.toImpl()
+  )
+}

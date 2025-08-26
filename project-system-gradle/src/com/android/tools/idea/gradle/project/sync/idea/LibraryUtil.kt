@@ -53,7 +53,7 @@ class ResolvedLibraryTableBuilder(
 ) {
   fun buildResolvedLibraryTable(
     ideLibraryTable: IdeUnresolvedLibraryTable,
-  ): IdeResolvedLibraryTable {
+  ): IdeResolvedLibraryTableImpl {
     return ideLibraryTable.resolve(
       artifactResolver = { resolveArtifact(it) },
       moduleDependencyExpander = ::resolveAdditionalKmpSourceSets,
@@ -94,7 +94,7 @@ private fun IdeUnresolvedLibraryTable.resolve(
   moduleDependencyExpander: (GradleSourceSetProjectPath) -> List<GradleSourceSetProjectPath>,
   kmpAndroidMainSourceSetResolver: (GradleProjectPath) -> String?,
   logger: Logger
-): IdeResolvedLibraryTable {
+): IdeResolvedLibraryTableImpl {
 
   fun resolve(preResolved: IdePreResolvedModuleLibrary): List<IdeModuleLibrary> {
     val expandedSourceSets = moduleDependencyExpander(

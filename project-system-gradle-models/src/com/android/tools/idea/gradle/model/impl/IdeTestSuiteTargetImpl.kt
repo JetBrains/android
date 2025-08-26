@@ -21,5 +21,5 @@ import java.io.Serializable
 data class IdeTestSuiteTargetImpl(
   override val targetName: String,
   override val testTaskName: String,
-  override val targetedDevices: Collection<String>
+  override val targetedDevices: List<String>
 ): IdeTestSuiteTarget, Serializable

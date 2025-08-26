@@ -16,34 +16,68 @@
 package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeArtifactName
-import com.android.tools.idea.gradle.model.IdeBytecodeTransformation
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeJavaArtifactCore
-import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import java.io.File
+
 
 data class IdeJavaArtifactCoreImpl(
   override val name: IdeArtifactName,
   override val compileTaskName: String?,
   override val assembleTaskName: String?,
-  override val classesFolder: Collection<File>,
+  override val classesFolder: List<FileImpl>,
   override val variantSourceProvider: IdeSourceProviderImpl?,
   override val multiFlavorSourceProvider: IdeSourceProviderImpl?,
   override val ideSetupTaskNames: List<String>,
-  override val generatedSourceFolders: Collection<File>,
+  override val generatedSourceFolders: List<FileImpl>,
   override val isTestArtifact: Boolean,
   override val compileClasspathCore: IdeDependenciesCoreImpl,
   override val runtimeClasspathCore: IdeDependenciesCoreImpl,
   override val unresolvedDependencies: List<IdeUnresolvedDependencyImpl>,
-  override val mockablePlatformJar: File?,
-  override val generatedClassPaths: Map<String, File>,
-  override val bytecodeTransforms: Collection<IdeBytecodeTransformation>?,
-  ) : IdeJavaArtifactCore
+  override val mockablePlatformJar: FileImpl?,
+  override val generatedClassPaths: Map<String, FileImpl>,
+  override val bytecodeTransforms: List<IdeBytecodeTransformationImpl>?,
+  ) : IdeJavaArtifactCore {
+  constructor(
+    name: IdeArtifactName,
+    compileTaskName: String?,
+    assembleTaskName: String?,
+    classesFolder: List<File>,
+    variantSourceProvider: IdeSourceProviderImpl?,
+    multiFlavorSourceProvider: IdeSourceProviderImpl?,
+    ideSetupTaskNames: List<String>,
+    generatedSourceFolders: List<File>,
+    isTestArtifact: Boolean,
+    compileClasspathCore: IdeDependenciesCoreImpl,
+    runtimeClasspathCore: IdeDependenciesCoreImpl,
+    unresolvedDependencies: List<IdeUnresolvedDependencyImpl>,
+    mockablePlatformJar: File?,
+    generatedClassPaths: Map<String, File>,
+    bytecodeTransforms: List<IdeBytecodeTransformationImpl>?,
+    unused: String = "" // to prevent clash
+  ) : this(
+    name,
+    compileTaskName,
+    assembleTaskName,
+    classesFolder.toImpl(),
+    variantSourceProvider,
+    multiFlavorSourceProvider,
+    ideSetupTaskNames,
+    generatedSourceFolders.toImpl(),
+    isTestArtifact,
+    compileClasspathCore,
+    runtimeClasspathCore,
+    unresolvedDependencies,
+    mockablePlatformJar?.toImpl(),
+    generatedClassPaths.toImpl(),
+    bytecodeTransforms
+  )
+}
 
 data class IdeJavaArtifactImpl(
-  private val core: IdeJavaArtifactCore,
-  private val resolver: IdeLibraryModelResolver
+  private val core: IdeJavaArtifactCoreImpl,
+  private val resolver: IdeLibraryModelResolverImpl
 ) : IdeJavaArtifact, IdeJavaArtifactCore by core {
   override val compileClasspath: IdeDependencies = IdeDependenciesImpl(core.compileClasspathCore, resolver)
   override val runtimeClasspath: IdeDependencies = IdeDependenciesImpl(core.runtimeClasspathCore, resolver)

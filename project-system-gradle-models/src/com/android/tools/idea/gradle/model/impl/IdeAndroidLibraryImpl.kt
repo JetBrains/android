@@ -20,6 +20,7 @@ import com.android.ide.common.gradle.Version
 import com.android.tools.idea.gradle.model.IdeUnresolvedAndroidLibrary
 import com.google.common.annotations.VisibleForTesting
 import java.io.File
+
 import java.io.Serializable
 
 /**
@@ -29,7 +30,7 @@ data class IdeAndroidLibraryImpl(
   override val artifactAddress: String,
   override val component: Component?,
   override val name: String,
-  override val folder: File,
+  override val folder: FileImpl,
   private val _manifest: String,
   private val _compileJarFiles: List<String>,
   private val _runtimeJarFiles: List<String>,
@@ -48,6 +49,51 @@ data class IdeAndroidLibraryImpl(
   private val _artifact: String?,
   private val _symbolFile: String
 ) : IdeUnresolvedAndroidLibrary, Serializable {
+  constructor(
+    artifactAddress: String,
+    component: Component?,
+    name: String,
+    folder: File,
+    manifest: File,
+    compileJarFiles: List<File>,
+    runtimeJarFiles: List<File>,
+    resFolder: File,
+    resStaticLibrary: File?,
+    assetsFolder: File,
+    jniFolder: File,
+    aidlFolder: File,
+    renderscriptFolder: File,
+    proguardRules: File,
+    lintJar: File?,
+    srcJars: List<File>,
+    docJar: File?,
+    externalAnnotations: File,
+    publicResources: File,
+    artifact: File?,
+    symbolFile: File
+  ) : this(
+    artifactAddress,
+    component,
+    name,
+    folder.toImpl(),
+    manifest.path,
+    compileJarFiles.map { it.path },
+    runtimeJarFiles.map { it.path },
+    resFolder.path,
+    resStaticLibrary?.path,
+    assetsFolder.path,
+    jniFolder.path,
+    aidlFolder.path,
+    renderscriptFolder.path,
+    proguardRules.path,
+    lintJar?.path,
+    srcJars.map { it.path },
+    docJar?.path,
+    externalAnnotations.path,
+    publicResources.path,
+    artifact?.path,
+    symbolFile.path
+  )
 
   // Used for serialization by the IDE.
   @VisibleForTesting
@@ -55,7 +101,7 @@ data class IdeAndroidLibraryImpl(
     artifactAddress = "",
     component = null,
     name = "",
-    folder = File(""),
+    folder = FileImpl(""),
     _manifest = "",
     _compileJarFiles = mutableListOf(),
     _runtimeJarFiles = mutableListOf(),
@@ -75,25 +121,25 @@ data class IdeAndroidLibraryImpl(
     _symbolFile = ""
   )
 
-  private fun String.translate(): File = folder.resolve(this).normalize().path.let(::File)
+  private fun String.translate(): FileImpl = folder.resolve(this).normalize().path.let(::FileImpl)
 
-  override val manifest: File get() = _manifest.translate()
-  override val compileJarFiles: List<File> get() = _compileJarFiles.map { it.translate() }
-  override val runtimeJarFiles: List<File> get() = _runtimeJarFiles.map { it.translate() }
-  override val resFolder: File get() = _resFolder.translate()
-  override val resStaticLibrary: File? get() = _resStaticLibrary?.translate()
-  override val assetsFolder: File get() = _assetsFolder.translate()
-  override val jniFolder: File get() = _jniFolder.translate()
-  override val aidlFolder: File get() = _aidlFolder.translate()
-  override val renderscriptFolder: File get() = _renderscriptFolder.translate()
-  override val proguardRules: File get() = _proguardRules.translate()
-  override val lintJar: File? get() = _lintJar?.translate()
-  override val srcJars: List<File> get() = _srcJars.map { it.translate() }
-  override val docJar: File? get() = _docJar?.translate()
-  override val externalAnnotations: File get() = _externalAnnotations.translate()
-  override val publicResources: File get() = _publicResources.translate()
-  override val artifact: File? get() = _artifact?.translate()
-  override val symbolFile: File get() = _symbolFile.translate()
+  override val manifest: FileImpl get() = _manifest.translate()
+  override val compileJarFiles: List<FileImpl> get() = _compileJarFiles.map { it.translate() }
+  override val runtimeJarFiles: List<FileImpl> get() = _runtimeJarFiles.map { it.translate() }
+  override val resFolder: FileImpl get() = _resFolder.translate()
+  override val resStaticLibrary: FileImpl? get() = _resStaticLibrary?.translate()
+  override val assetsFolder: FileImpl get() = _assetsFolder.translate()
+  override val jniFolder: FileImpl get() = _jniFolder.translate()
+  override val aidlFolder: FileImpl get() = _aidlFolder.translate()
+  override val renderscriptFolder: FileImpl get() = _renderscriptFolder.translate()
+  override val proguardRules: FileImpl get() = _proguardRules.translate()
+  override val lintJar: FileImpl? get() = _lintJar?.translate()
+  override val srcJars: List<FileImpl> get() = _srcJars.map { it.translate() }
+  override val docJar: FileImpl? get() = _docJar?.translate()
+  override val externalAnnotations: FileImpl get() = _externalAnnotations.translate()
+  override val publicResources: FileImpl get() = _publicResources.translate()
+  override val artifact: FileImpl? get() = _artifact?.translate()
+  override val symbolFile: FileImpl get() = _symbolFile.translate()
 
   companion object {
     fun create(
@@ -127,7 +173,7 @@ data class IdeAndroidLibraryImpl(
         artifactAddress = artifactAddress,
         component = component,
         name = name,
-        folder = folder,
+        folder = folder.toImpl(),
         _manifest = manifest.makeRelative(),
         _compileJarFiles = compileJarFiles.map { it.makeRelative() },
         _runtimeJarFiles = runtimeJarFiles.map { it.makeRelative() },

@@ -16,11 +16,11 @@
 package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeUnresolvedUnknownLibrary
-import java.io.File
+
 import java.io.Serializable
 
 data class IdeUnknownLibraryImpl constructor(
   override val key: String
 ): IdeUnresolvedUnknownLibrary, Serializable {
-  override val lintJar: File? get() = null
+  override val lintJar: FileImpl? get() = null
 }

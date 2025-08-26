@@ -15,12 +15,24 @@
  */
 package com.android.tools.idea.gradle.model.impl.ndk.v1
 
+import com.android.tools.idea.gradle.model.impl.FileImpl
+import com.android.tools.idea.gradle.model.impl.toImpl
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeFile
 import java.io.File
 import java.io.Serializable
 
 data class IdeNativeFileImpl(
-  override val filePath: File,
+  override val filePath: FileImpl,
   override val settingsName: String,
-  override val workingDirectory: File?
-) : IdeNativeFile, Serializable
+  override val workingDirectory: FileImpl?
+) : IdeNativeFile, Serializable {
+  constructor(
+    filePath: File,
+    settingsName: String,
+    workingDirectory: File?
+  ) : this(
+    filePath.toImpl(),
+    settingsName,
+    workingDirectory?.toImpl()
+  )
+}

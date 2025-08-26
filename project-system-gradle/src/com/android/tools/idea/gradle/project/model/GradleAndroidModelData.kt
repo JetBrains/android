@@ -16,18 +16,18 @@
 package com.android.tools.idea.gradle.project.model
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
-import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeArtifactName
-import com.android.tools.idea.gradle.model.IdeDeclaredDependencies
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeSourceProvider
-import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantCore
+import com.android.tools.idea.gradle.model.impl.FileImpl
+import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeDeclaredDependenciesImpl
+import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
+import com.android.tools.idea.gradle.model.impl.toImpl
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.projectsystem.CommonTestType
 import com.intellij.openapi.application.ApplicationInfo
@@ -50,72 +50,55 @@ private const val ourAndroidSyncVersionSuffix = "2024-01-16/1"
  */
 internal val ourAndroidSyncVersion: String = "${ApplicationInfo.getInstance()!!.build} $ourAndroidSyncVersionSuffix"
 
-interface GradleAndroidModelData : ModuleModel {
-  val androidSyncVersion: String
-  val rootDirPath: File
-  val androidProject: IdeAndroidProject
-  val declaredDependencies: IdeDeclaredDependencies
-  val variants: Collection<IdeVariantCore>
+data class GradleAndroidModelData(
+  val androidSyncVersion: String,
+  private val moduleNameField: String,
+  val rootDirPath: FileImpl,
+  val androidProject: IdeAndroidProjectImpl,
+  val declaredDependencies: IdeDeclaredDependenciesImpl,
+  val variants: List<IdeVariantCoreImpl>,
   val selectedVariantName: String
-  val agpVersion: AgpVersion
-  val selectedVariantCore: IdeVariantCore
-  val mainArtifactCore: IdeAndroidArtifactCore
-  fun getJavaSourceLanguageLevel(): LanguageLevel?
-  fun getJavaTargetLanguageLevel(): LanguageLevel?
-  fun selectedVariant(resolver: IdeLibraryModelResolver): IdeVariant
-  fun getTestSourceProviders(artifactName: IdeArtifactName): List<IdeSourceProvider>
-  fun findVariantCoreByName(variantName: String): IdeVariantCore?
-}
-
-data class GradleAndroidModelDataImpl(
-  override val androidSyncVersion: String,
-  private val moduleName: String,
-  override val rootDirPath: File,
-  override val androidProject: IdeAndroidProjectImpl,
-  override val declaredDependencies: IdeDeclaredDependenciesImpl,
-  override val variants: Collection<IdeVariantCoreImpl>,
-  override val selectedVariantName: String
-) : GradleAndroidModelData {
+): ModuleModel {
   init {
     require(androidSyncVersion == ourAndroidSyncVersion) {
       "Attempting to deserialize a model of incompatible version '$androidSyncVersion'. Current IDE model version is '$ourAndroidSyncVersion'"
     }
   }
 
-  override fun getModuleName(): String = moduleName
+  override fun getModuleName(): String = moduleNameField
 
-  override val agpVersion: AgpVersion get() = AgpVersion.parse(androidProject.agpVersion)
+  val agpVersion: AgpVersion get() = AgpVersion.parse(androidProject.agpVersion)
 
-  override fun findVariantCoreByName(variantName: String): IdeVariantCore? {
+  fun findVariantCoreByName(variantName: String): IdeVariantCore? {
     // Note, when setting up projects models contain just one variant.
     return variants.find { it.name == variantName }
   }
 
-  override val selectedVariantCore: IdeVariantCoreImpl
+  val selectedVariantCore: IdeVariantCoreImpl
     get() {
       // Note, when setting up projects models contain just one variant.
       return variants.single { it.name == selectedVariantName }
     }
 
-  override fun selectedVariant(resolver: IdeLibraryModelResolver): IdeVariantImpl {
-    return IdeVariantImpl(selectedVariantCore, resolver)
+  fun selectedVariant(resolver: IdeLibraryModelResolver): IdeVariantImpl {
+    return IdeVariantImpl(selectedVariantCore, resolver as IdeLibraryModelResolverImpl)
   }
 
-  override val mainArtifactCore: IdeAndroidArtifactCore get() = selectedVariantCore.mainArtifact
+  val mainArtifactCore: IdeAndroidArtifactCoreImpl get() = selectedVariantCore.mainArtifact
 
-  override fun getJavaSourceLanguageLevel(): LanguageLevel? {
+  fun getJavaSourceLanguageLevel(): LanguageLevel? {
     val compileOptions = androidProject.javaCompileOptions ?: return null
     val sourceCompatibility = compileOptions.sourceCompatibility
     return LanguageLevel.parse(sourceCompatibility)
   }
 
-  override fun getJavaTargetLanguageLevel(): LanguageLevel? {
+  fun getJavaTargetLanguageLevel(): LanguageLevel? {
     val compileOptions = androidProject.javaCompileOptions ?: return null
     val targetCompatibility = compileOptions.targetCompatibility
     return LanguageLevel.parse(targetCompatibility)
   }
 
-  override fun getTestSourceProviders(artifactName: IdeArtifactName): List<IdeSourceProvider> {
+  fun getTestSourceProviders(artifactName: IdeArtifactName): List<IdeSourceProvider> {
     return when (artifactName) {
       IdeArtifactName.ANDROID_TEST -> deviceTestSourceProviders[CommonTestType.ANDROID_TEST] ?: emptyList()
       IdeArtifactName.UNIT_TEST -> hostTestSourceProviders[CommonTestType.UNIT_TEST] ?: emptyList()
@@ -143,13 +126,13 @@ data class GradleAndroidModelDataImpl(
       cachedVariants: Collection<IdeVariantCoreImpl>,
       variantName: String
     ): GradleAndroidModelData {
-      return GradleAndroidModelDataImpl(
+      return GradleAndroidModelData(
         ourAndroidSyncVersion,
         moduleName,
-        rootDirPath,
+        rootDirPath.toImpl(),
         androidProject,
         declaredDependencies,
-        cachedVariants,
+        cachedVariants.toList(),
         variantName
       )
     }

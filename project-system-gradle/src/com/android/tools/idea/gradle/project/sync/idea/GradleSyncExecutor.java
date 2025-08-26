@@ -36,7 +36,7 @@ import com.android.annotations.concurrency.UiThread;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
-import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable;
+import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTableImpl;
 import com.android.tools.idea.gradle.model.impl.KotlinMultiplatformIdeLibraryTable;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData;
@@ -201,12 +201,12 @@ public class GradleSyncExecutor {
     GradleProjectResolver projectResolver = new GradleProjectResolver();
     projectDataNode = projectResolver.resolveProjectInfo(id, projectPath, false, settings, NULL_OBJECT);
     ImmutableList.Builder<GradleModuleModels> builder = ImmutableList.builder();
-    @Nullable IdeResolvedLibraryTable libraryTable = null;
+    @Nullable IdeResolvedLibraryTableImpl libraryTable = null;
     @Nullable KotlinMultiplatformIdeLibraryTable kmpLibraryTable = null;
 
     if (projectDataNode != null) {
       @SuppressWarnings("UnstableApiUsage") DataNode<ExternalProject> rootProjectNode = find(projectDataNode, ExternalProjectDataCache.KEY);
-      DataNode<IdeResolvedLibraryTable> libraryTableNode = find(projectDataNode, AndroidProjectKeys.IDE_LIBRARY_TABLE);
+      DataNode<IdeResolvedLibraryTableImpl> libraryTableNode = find(projectDataNode, AndroidProjectKeys.IDE_LIBRARY_TABLE);
       if (libraryTableNode != null) {
         libraryTable = libraryTableNode.getData();
       }

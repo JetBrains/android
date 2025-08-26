@@ -21,5 +21,5 @@ import java.io.Serializable
 data class IdeTestSuiteVariantTargetImpl(
   override val suiteName: String,
   override val targetedVariantName: String,
-  override val targets: Collection<IdeTestSuiteTargetImpl>
+  override val targets: List<IdeTestSuiteTargetImpl>
 ): IdeTestSuiteVariantTarget, Serializable

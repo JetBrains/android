@@ -19,6 +19,7 @@ import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.Version
 import com.android.tools.idea.gradle.model.IdeUnresolvedJavaLibrary
 import java.io.File
+
 import java.io.Serializable
 
 /**
@@ -28,9 +29,9 @@ data class IdeJavaLibraryImpl(
   override val artifactAddress: String,
   override val component: Component?,
   override val name: String,
-  override val artifact: File,
-  override val srcJars: List<File>,
-  override val docJar: File?,
+  override val artifact: FileImpl,
+  override val srcJars: List<FileImpl>,
+  override val docJar: FileImpl?,
 ) : IdeUnresolvedJavaLibrary, Serializable {
 
   // Used for serialization by the IDE.
@@ -38,11 +39,27 @@ data class IdeJavaLibraryImpl(
     artifactAddress = "",
     component = null,
     name = "",
-    artifact = File(""),
+    artifact = FileImpl(""),
     srcJars = listOf(),
     docJar = null,
   )
 
-  override val lintJar: File?
+  constructor(
+    artifactAddress: String,
+    component: Component?,
+    name: String,
+    artifact: File,
+    srcJars: List<File>,
+    docJar: File?
+  ) : this(
+    artifactAddress,
+    component,
+    name,
+    artifact.toImpl(),
+    srcJars.toImpl(),
+    docJar?.toImpl()
+  )
+
+  override val lintJar: FileImpl?
     get() = null
 }

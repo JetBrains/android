@@ -19,7 +19,7 @@ import static com.intellij.openapi.externalSystem.model.ProjectKeys.LIBRARY_DEPE
 
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
-import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable;
+import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTableImpl;
 import com.android.tools.idea.gradle.model.impl.KotlinMultiplatformIdeLibraryTable;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
@@ -71,8 +71,8 @@ public final class AndroidProjectKeys {
   public static final Key<GradleAndroidModelData> ANDROID_MODEL = Key.create(GradleAndroidModelData.class, NDK_MODEL.getProcessingWeight() + 10);
 
   @NotNull
-  public static final Key<IdeResolvedLibraryTable> IDE_LIBRARY_TABLE =
-    Key.create(IdeResolvedLibraryTable.class, ANDROID_MODEL.getProcessingWeight() + 10);
+  public static final Key<IdeResolvedLibraryTableImpl> IDE_LIBRARY_TABLE =
+    Key.create(IdeResolvedLibraryTableImpl.class, ANDROID_MODEL.getProcessingWeight() + 10);
 
   @NotNull
   public static final Key<KotlinMultiplatformIdeLibraryTable> KMP_ANDROID_LIBRARY_TABLE =

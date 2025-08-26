@@ -29,9 +29,23 @@ data class IdePreResolvedModuleLibraryImpl constructor(
   override val buildId: String,
   override val projectPath: String,
   override val variant: String?,
-  override val lintJar: File?,
+  override val lintJar: FileImpl?,
   override val sourceSet: IdeModuleSourceSet
 ) : IdePreResolvedModuleLibrary, Serializable {
+
+  constructor(
+    buildId: String,
+    projectPath: String,
+    variant: String?,
+    lintJar: File?,
+    sourceSet: IdeModuleSourceSet
+  ) : this(
+    buildId = buildId,
+    projectPath = projectPath,
+    variant = variant,
+    lintJar = lintJar?.toImpl(),
+    sourceSet = sourceSet
+  )
 
   // Used for serialization by the IDE.
   @Suppress("unused")
@@ -50,8 +64,18 @@ data class IdePreResolvedModuleLibraryImpl constructor(
 data class IdeUnresolvedKmpAndroidModuleLibraryImpl(
   override val buildId: String,
   override val projectPath: String,
-  override val lintJar: File?,
+  override val lintJar: FileImpl?,
 ): IdeUnresolvedKmpAndroidModuleLibrary, Serializable {
+
+  constructor(
+    buildId: String,
+    projectPath: String,
+    lintJar: File?
+  ) : this(
+    buildId = buildId,
+    projectPath = projectPath,
+    lintJar = lintJar?.toImpl()
+  )
 
   // Used for serialization by the IDE.
   @Suppress("unused")
@@ -66,9 +90,23 @@ data class IdeUnresolvedModuleLibraryImpl constructor(
   override val buildId: String,
   override val projectPath: String,
   override val variant: String?,
-  override val lintJar: File?,
-  override val artifact: File
+  override val lintJar: FileImpl?,
+  override val artifact: FileImpl
 ) : IdeUnresolvedModuleLibrary, Serializable {
+
+  constructor(
+    buildId: String,
+    projectPath: String,
+    variant: String?,
+    lintJar: File?,
+    artifact: File
+  ) : this(
+    buildId = buildId,
+    projectPath = projectPath,
+    variant = variant,
+    lintJar = lintJar?.toImpl(),
+    artifact = artifact.toImpl()
+  )
 
   // Used for serialization by the IDE.
   @Suppress("unused")
@@ -77,7 +115,7 @@ data class IdeUnresolvedModuleLibraryImpl constructor(
     projectPath = "",
     variant = null,
     lintJar = null,
-    artifact = File("")
+    artifact = FileImpl("")
   )
 
   @get:TestOnly
@@ -88,9 +126,23 @@ data class IdeModuleLibraryImpl constructor(
   override val buildId: String,
   override val projectPath: String,
   override val variant: String?,
-  override val lintJar: File?,
+  override val lintJar: FileImpl?,
   override val sourceSet: IdeModuleSourceSet
 ) : IdeModuleLibrary, Serializable {
+
+  constructor(
+    buildId: String,
+    projectPath: String,
+    variant: String?,
+    lintJar: File?,
+    sourceSet: IdeModuleSourceSet
+  ) : this(
+    buildId = buildId,
+    projectPath = projectPath,
+    variant = variant,
+    lintJar = lintJar?.toImpl(),
+    sourceSet = sourceSet
+  )
 
   @get:TestOnly
   val displayName: String get() = moduleLibraryDisplayName(buildId, projectPath, variant, sourceSet)

@@ -35,13 +35,13 @@ import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.model.impl.IdeDeclaredDependenciesImpl
 import com.android.tools.idea.gradle.model.impl.IdeDeclaredDependenciesImpl.IdeCoordinatesImpl
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl.Companion.fromLibraryTables
-import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable
+import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTable
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
-import com.android.tools.idea.gradle.project.model.GradleAndroidModelDataImpl.Companion.create
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelData.Companion.create
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.V2NdkModel
@@ -163,7 +163,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
   private val gradlePathByModuleId: MutableMap<String?, GradleProjectPath> = mutableMapOf()
   // It's fine to use an identity hash map because the instances are looked up from the library table
   private val libraryDataCache = IdentityHashMap<IdeArtifactLibrary, LibraryData>()
-  private var resolvedLibraryTable: IdeResolvedLibraryTable? = null
+  private var resolvedLibraryTable: IdeResolvedLibraryTableImpl? = null
 
   constructor() : this(CommandLineArgs())
 
@@ -527,7 +527,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         resolvedLibraryTable!!
       )
     }
-    val libraryResolver = fromLibraryTables(resolvedLibraryTable!!, null)
+    val libraryResolver = fromLibraryTables(resolvedLibraryTable, null)
 
     // Call all the other resolvers to ensure that any dependencies that they need to provide are added.
     nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject)
@@ -577,7 +577,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
   private fun buildResolvedLibraryTable(
     ideProject: DataNode<ProjectData>,
     ideLibraryTable: IdeUnresolvedLibraryTable
-  ): IdeResolvedLibraryTable {
+  ): IdeResolvedLibraryTableImpl {
     val artifactModuleIdMap = buildArtifactsModuleIdMap()
     val kotlinMultiplatformAndroidSourceSetData = ExternalSystemApiUtil.find(
       ideProject,

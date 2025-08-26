@@ -17,11 +17,12 @@ package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeLintOptions
 import java.io.File
+
 import java.io.Serializable
 
 data class IdeLintOptionsImpl(
-  override val baselineFile: File? = null,
-  override val lintConfig: File? = null,
+  override val baselineFile: FileImpl? = null,
+  override val lintConfig: FileImpl? = null,
   override val severityOverrides: Map<String, Int>? = null,
   override val isCheckTestSources: Boolean = false,
   override val isCheckDependencies: Boolean = false,
@@ -42,11 +43,73 @@ data class IdeLintOptionsImpl(
   override val isExplainIssues: Boolean = true,
   override val isShowAll: Boolean = false,
   override val textReport: Boolean = false,
-  override val textOutput: File? = null,
+  override val textOutput: FileImpl? = null,
   override val htmlReport: Boolean = true,
-  override val htmlOutput: File? = null,
+  override val htmlOutput: FileImpl? = null,
   override val xmlReport: Boolean = true,
-  override val xmlOutput: File? = null,
+  override val xmlOutput: FileImpl? = null,
   override val sarifReport: Boolean = false,
-  override val sarifOutput: File? = null
-) : Serializable, IdeLintOptions
+  override val sarifOutput: FileImpl? = null
+) : Serializable, IdeLintOptions {
+  constructor(
+    baselineFile: File?,
+    lintConfig: File?,
+    severityOverrides: Map<String, Int>?,
+    isCheckTestSources: Boolean,
+    isCheckDependencies: Boolean,
+    disable: Set<String>,
+    enable: Set<String>,
+    check: Set<String>?,
+    isAbortOnError: Boolean,
+    isAbsolutePaths: Boolean,
+    isNoLines: Boolean,
+    isQuiet: Boolean,
+    isCheckAllWarnings: Boolean,
+    isIgnoreWarnings: Boolean,
+    isWarningsAsErrors: Boolean,
+    isIgnoreTestSources: Boolean,
+    isIgnoreTestFixturesSources: Boolean,
+    isCheckGeneratedSources: Boolean,
+    isCheckReleaseBuilds: Boolean,
+    isExplainIssues: Boolean,
+    isShowAll: Boolean,
+    textReport: Boolean,
+    textOutput: File?,
+    htmlReport: Boolean,
+    htmlOutput: File?,
+    xmlReport: Boolean,
+    xmlOutput: File?,
+    sarifReport: Boolean,
+    sarifOutput: File?,
+  ) : this(
+    baselineFile?.toImpl(),
+    lintConfig?.toImpl(),
+    severityOverrides,
+    isCheckTestSources,
+    isCheckDependencies,
+    disable,
+    enable,
+    check,
+    isAbortOnError,
+    isAbsolutePaths,
+    isNoLines,
+    isQuiet,
+    isCheckAllWarnings,
+    isIgnoreWarnings,
+    isWarningsAsErrors,
+    isIgnoreTestSources,
+    isIgnoreTestFixturesSources,
+    isCheckGeneratedSources,
+    isCheckReleaseBuilds,
+    isExplainIssues,
+    isShowAll,
+    textReport,
+    textOutput?.toImpl(),
+    htmlReport,
+    htmlOutput?.toImpl(),
+    xmlReport,
+    xmlOutput?.toImpl(),
+    sarifReport,
+    sarifOutput?.toImpl()
+  )
+}

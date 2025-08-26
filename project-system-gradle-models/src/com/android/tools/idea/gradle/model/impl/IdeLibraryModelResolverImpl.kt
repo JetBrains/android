@@ -35,9 +35,9 @@ class IdeLibraryModelResolverImpl @VisibleForTesting constructor(
   companion object {
     @JvmStatic
     fun fromLibraryTables(
-      globalLibraryTable: IdeResolvedLibraryTable?,
-      kmpLibraryTable: IdeResolvedLibraryTable?,
-    ): IdeLibraryModelResolver {
+      globalLibraryTable: IdeResolvedLibraryTableImpl?,
+      kmpLibraryTable: KotlinMultiplatformIdeLibraryTable?,
+    ): IdeLibraryModelResolverImpl {
       return IdeLibraryModelResolverImpl {
         if (it.resolverType == ResolverType.KMP_ANDROID) {
           kmpLibraryTable!!.libraries[it.libraryIndex].asSequence()
@@ -58,7 +58,7 @@ interface IdeResolvedLibraryTable {
   val libraries: List<List<IdeLibrary>>
 }
 
-interface KotlinMultiplatformIdeLibraryTable: IdeResolvedLibraryTable
+sealed interface KotlinMultiplatformIdeLibraryTable: IdeResolvedLibraryTable
 
 data class IdeUnresolvedLibraryTableImpl(
   override val libraries: List<IdeUnresolvedLibrary>

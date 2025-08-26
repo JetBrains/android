@@ -31,6 +31,7 @@ package com.android.tools.idea.rendering
  * limitations under the License.
  */
 import com.android.ide.common.util.PathString
+import com.android.tools.idea.gradle.model.impl.toImpl
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.gradle.GradleClassFileFinder
@@ -167,7 +168,7 @@ class PerfgateGradleClassFileFinderTest {
   val projectRule =
     AndroidProjectRule.withAndroidModel(
       AndroidProjectBuilder().withMainArtifactStub {
-        buildMainArtifactStub("debug").copy(classesFolder = content.outputRoots)
+        buildMainArtifactStub("debug").copy(classesFolder = content.outputRoots.toImpl())
       }
     )
 

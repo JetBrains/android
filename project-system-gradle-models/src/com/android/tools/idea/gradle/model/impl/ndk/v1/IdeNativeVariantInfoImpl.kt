@@ -16,11 +16,23 @@
 
 package com.android.tools.idea.gradle.model.impl.ndk.v1
 
+import com.android.tools.idea.gradle.model.impl.FileImpl
+import com.android.tools.idea.gradle.model.impl.toImpl
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantInfo
 import java.io.File
+
 import java.io.Serializable
 
 data class IdeNativeVariantInfoImpl(
   override val abiNames: List<String>,
-  override val buildRootFolderMap: Map<String, File>
-) : IdeNativeVariantInfo, Serializable
+  override val buildRootFolderMap: Map<String, FileImpl>
+) : IdeNativeVariantInfo, Serializable {
+  constructor(
+    abiNames: List<String>,
+    buildRootFolderMap: Map<String, File>,
+    unused: String = "" // to prevent clash
+  ) : this(
+    abiNames,
+    buildRootFolderMap.toImpl()
+  )
+}

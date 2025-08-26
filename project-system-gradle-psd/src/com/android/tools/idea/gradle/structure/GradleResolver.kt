@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.structure
 
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
@@ -46,7 +45,7 @@ class GradleResolver {
         .fetchGradleModels(project)
         .let { gradleProjectModels ->
           val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTables(
-            gradleProjectModels.libraries ?: return@let emptyList(),
+            (gradleProjectModels.libraries ?: return@let emptyList()),
             gradleProjectModels.kmpLibraries
           )
           val modelFactory = GradleAndroidDependencyModel.createFactory(project, libraryResolver)

@@ -39,6 +39,8 @@ import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.model.filteredVariantNames
+import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
+import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.util.BaselineProfileUtil.getGenerateBaselineProfileTaskName
 import com.android.tools.idea.model.AndroidModel
@@ -50,7 +52,6 @@ import com.android.tools.lint.client.api.LintClient.Companion.getGradleDesugarin
 import com.android.tools.lint.detector.api.Desugaring
 import com.android.utils.usLocaleCapitalize
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.pom.java.LanguageLevel
@@ -63,10 +64,11 @@ import java.util.Locale
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
-private class GradleAndroidModelImpl(
-  private val data: GradleAndroidModelData,
+private open class GradleAndroidModelImpl(
+  val data: GradleAndroidModelData,
   override val project: Project,
 ) : GradleAndroidModel {
+  constructor(other: GradleAndroidModelImpl) : this(other.data, other.project)
   // Need to be initialized here
   private val myBuildTypesByName: Map<String, IdeBuildTypeContainer> =
     androidProject.multiVariantData?.buildTypes.orEmpty().associateBy { it.buildType.name }
@@ -74,7 +76,7 @@ private class GradleAndroidModelImpl(
     androidProject.multiVariantData?.productFlavors.orEmpty().associateBy { it.productFlavor.name }
   private val myCachedBasicVariantsByName: Map<String, IdeBasicVariant> =
     data.androidProject.basicVariants.associateBy { it.name }
-  private val myCachedVariantsByName: Map<String, IdeVariantCore> = data.variants.associateBy { it.name }
+  private val myCachedVariantsByName: Map<String, IdeVariantCoreImpl> = data.variants.associateBy { it.name }
 
   override val agpVersion: AgpVersion = AgpVersion.parse(androidProject.agpVersion) // Fail sync if the reported version cannot be parsed.
   override val features: AndroidModelFeatures = AndroidModelFeatures(agpVersion)
@@ -98,7 +100,7 @@ private class GradleAndroidModelImpl(
       .sortedBy { androidProject.flavorDimensions.indexOf(it.first) }
       .groupBy({ it.first }, { it.second })
   override val filteredVariantNames: Collection<String> get() = androidProject.filteredVariantNames
-  override val variants: List<IdeVariantCore> get() = myCachedVariantsByName.values.toList()
+  override val variants: List<IdeVariantCoreImpl> get() = myCachedVariantsByName.values.toList()
   override val filteredDebuggableVariants: Set<String> get() =
     androidProject.basicVariants.mapNotNull {
       if (myBuildTypesByName[it.buildType]?.buildType?.isDebuggable == true && !it.hideInStudio ) it.name else null
@@ -309,9 +311,9 @@ private class GradleAndroidModelImpl(
 
 private class GradleAndroidDependencyModelImpl(
   val gradleAndroidModel: GradleAndroidModelImpl,
-  private val ideLibraryModelResolver: IdeLibraryModelResolver
-): GradleAndroidDependencyModel, GradleAndroidModel by gradleAndroidModel {
-  private val myCachedResolvedVariantsByName: Map<String, IdeVariant> =
+  private val ideLibraryModelResolver: IdeLibraryModelResolverImpl
+): GradleAndroidDependencyModel, GradleAndroidModelImpl(gradleAndroidModel) {
+  private val myCachedResolvedVariantsByName: Map<String, IdeVariantImpl> =
     variants.associate { it.name to IdeVariantImpl(it, ideLibraryModelResolver) }
   override val selectedVariantWithDependencies: IdeVariant get () = myCachedResolvedVariantsByName[selectedVariantName] ?: unknownSelectedVariant()
   override val variantsWithDependencies: List<IdeVariant>
@@ -397,7 +399,7 @@ fun classFieldsToDynamicResourceValues(classFields: Map<String, IdeClassField>):
       result[field.name] = DynamicResourceValue(resourceType, field.value)
     }
   }
-  return ImmutableMap.copyOf(result)
+  return result
 }
 
 
@@ -415,7 +417,8 @@ interface GradleAndroidDependencyModel: GradleAndroidModel {
     fun createFactory(project: Project, libraryResolver: IdeLibraryModelResolver): (GradleAndroidModelData) -> GradleAndroidDependencyModel {
       val models = mutableMapOf<GradleAndroidModelData, GradleAndroidDependencyModel>()
       return fun(data: GradleAndroidModelData): GradleAndroidDependencyModel {
-        return models.getOrCreate(data) { GradleAndroidDependencyModelImpl(GradleAndroidModel.create(project, data) as GradleAndroidModelImpl, libraryResolver) }
+        return models.getOrCreate(data) { GradleAndroidDependencyModelImpl(GradleAndroidModel.create(project, data) as GradleAndroidModelImpl,
+                                                                           libraryResolver as IdeLibraryModelResolverImpl) }
       }
     }
   }

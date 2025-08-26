@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedModuleLibraryImpl
+import com.android.tools.idea.gradle.model.impl.toImpl
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -111,13 +112,13 @@ class InternedModelsTest {
   fun `libraries - same keys with same artifact, but different folders are collapsed into one, and is picked deterministically`() {
     val libRoot = "/tmp/libs/lib"
     val artifact = "$libRoot/artifactFile"
-    val unnamed = ideAndroidLibrary(libRoot, "com.example:lib:1.0", artifact).copy(folder = File("extractFolder1"))
+    val unnamed = ideAndroidLibrary(libRoot, "com.example:lib:1.0", artifact).copy(folder = File("extractFolder1").toImpl())
     val androidLibraryData1 = FakeLibrary.FakeAndroidLibraryData(File("extractFolder1").resolve("res"))
     val androidLibraryData2 = FakeLibrary.FakeAndroidLibraryData(File("extractFolder2").resolve("res"))
     val libraryInfo = FakeLibrary.FakeLibraryInfo("com.example", "lib", "1.0")
 
 
-    val unnamedCopy = unnamed.copy(folder = File("extractFolder2"))
+    val unnamedCopy = unnamed.copy(folder = File("extractFolder2").toImpl())
     val library1 = FakeLibrary(File(artifact), androidLibraryData1, libraryInfo)
     val library2 = FakeLibrary(File(artifact), androidLibraryData2, libraryInfo)
 

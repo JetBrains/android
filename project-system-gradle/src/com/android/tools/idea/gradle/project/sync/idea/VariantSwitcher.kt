@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
-import com.android.tools.idea.gradle.project.model.GradleAndroidModelDataImpl
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.SwitchVariantRequest
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
@@ -166,7 +165,7 @@ private fun DataNode<ProjectData>.repopulateProjectDataWith(
 }
 
 private fun variantAndAbi(moduleDataNode: DataNode<out ModuleData>): VariantAndAbi? {
-  val gradleAndroidModel = GradleAndroidModelDataImpl.findFromModuleDataNode(moduleDataNode) ?: return null
+  val gradleAndroidModel = GradleAndroidModelData.findFromModuleDataNode(moduleDataNode) ?: return null
   val ndkModuleModel = ExternalSystemApiUtil.find(moduleDataNode, AndroidProjectKeys.NDK_MODEL)?.data
   return VariantAndAbi(gradleAndroidModel.selectedVariantName, ndkModuleModel?.selectedAbi)
 }
@@ -190,7 +189,7 @@ private fun DataNode<ProjectData>.getAndroidModules(): AndroidModules {
 
   return AndroidModules(
     holderModuleNodes.mapNotNull { node ->
-      val androidModel = GradleAndroidModelDataImpl.findFromModuleDataNode(node) ?: return@mapNotNull null
+      val androidModel = GradleAndroidModelData.findFromModuleDataNode(node) ?: return@mapNotNull null
 
       val projectPath = node.data.gradlePathOrNull ?: return@mapNotNull null
       val rootProjectName = node.data.gradleIdentityPathOrNull?.removeSuffix(projectPath)?.ifEmpty { ":" } ?: return@mapNotNull null

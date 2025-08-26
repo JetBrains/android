@@ -21,14 +21,13 @@ import com.android.tools.idea.facet.AndroidArtifactFacet
 import com.android.tools.idea.flags.StudioFlags.ANDROID_SDK_AND_IDE_COMPATIBILITY_RULES
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
-import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.project.GradleProjectInfo
-import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.AndroidSdkCompatibilityChecker
+import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
+import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.SupportedModuleChecker
 import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
@@ -75,10 +74,10 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.io.FileUtil.getRelativePath
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import com.intellij.pom.java.LanguageLevel
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID
 import java.io.File
 import java.util.concurrent.TimeUnit
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID
 
 /**
  * Service that sets an Android SDK and facets to the modules of a project that has been imported from an Android-Gradle project.
@@ -354,5 +353,8 @@ internal fun createLibraryResolverFor(projectNode: DataNode<ProjectData>): IdeLi
   if (libraryTable == null && kmpLibraries == null) {
     error("IDE library table node not found")
   }
-  return IdeLibraryModelResolverImpl.fromLibraryTables(libraryTable, kmpLibraries)
+  return IdeLibraryModelResolverImpl.fromLibraryTables(
+    libraryTable,
+    kmpLibraries
+  )
 }
