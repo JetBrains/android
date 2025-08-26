@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.apk.debugging;
 
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject;
+import com.android.tools.idea.testing.AndroidProjectRule;
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
 import com.android.tools.idea.testing.ProjectFiles;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.JavaModuleType;
@@ -24,14 +26,19 @@ import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.ProjectRule;
+import com.intellij.testFramework.RunsInEdt;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject.SIMPLE_APPLICATION;
+import static com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.prepareTestProject;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -39,27 +46,24 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 /**
  * Tests for {@link ExternalSourceFolders}.
  */
-public class ExternalSourceFoldersTest extends AndroidGradleTestCase {
+@RunsInEdt
+public class ExternalSourceFoldersTest {
   private ModifiableRootModel myModuleModel;
 
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      if (myModuleModel != null) {
-        ApplicationManager.getApplication().runWriteAction(myModuleModel::dispose);
-      }
-    }
-    finally {
-      super.tearDown();
-    }
-  }
+  @Rule
+  public IntegrationTestEnvironmentRule rule = AndroidProjectRule.withIntegrationTestEnvironment();
+  @Rule
+  public ProjectRule projectRule = new ProjectRule();
+  @Rule
+  public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-  public void testAddSourceFolders() throws IOException {
+  @Test
+  public void testAddSourceFolders() {
     // Just copy the project without syncing with Gradle, we don't want any content entries in the project.
-    prepareProjectForImport(SIMPLE_APPLICATION);
+    PreparedTestProject p = prepareTestProject(rule, SIMPLE_APPLICATION);
 
-    File appModulePath = new File(getBaseDirPath(getProject()), "app");
-    Module appModule = ProjectFiles.createModule(getProject(), appModulePath, JavaModuleType.getModuleType());
+    File appModulePath = new File(p.getRoot(), "app");
+    Module appModule = ProjectFiles.createModule(projectRule.getProject(), appModulePath, JavaModuleType.getModuleType());
 
     ModuleRootManager rootManager = ModuleRootManager.getInstance(appModule);
     VirtualFile[] contentRoots = rootManager.getContentRoots();
@@ -85,7 +89,7 @@ public class ExternalSourceFoldersTest extends AndroidGradleTestCase {
     assertThat(sourceFolderFiles).hasLength(1);
 
     VirtualFile sourceFolderFile = sourceFolderFiles[0];
-    assertEquals(javaSourceFolder.getPath(), sourceFolderFile.getPath());
+    assertThat(sourceFolderFile.getPath()).isEqualTo(javaSourceFolder.getPath());
   }
 
   @NotNull
