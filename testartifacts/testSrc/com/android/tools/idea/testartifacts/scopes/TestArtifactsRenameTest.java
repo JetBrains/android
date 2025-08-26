@@ -15,48 +15,50 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
-import com.intellij.openapi.util.SystemInfo;
-import com.intellij.psi.PsiClass;
+import static com.google.common.truth.Truth.assertThat;
 
-public class TestArtifactsRenameTest extends TestArtifactsTestCase {
+import com.intellij.psi.PsiClass;
+import com.intellij.testFramework.RunsInEdt;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
+@RunsInEdt
+public class TestArtifactsRenameTest {
   private static final String MY_CLASS_TEXT = "class My<caret>Class {}";
 
-  @Override
-  protected boolean shouldRunTest() {
-    // Do not run tests on Windows (see http://b.android.com/222904)
-    return !SystemInfo.isWindows && super.shouldRunTest();
-  }
+  @Rule
+  public TestArtifactsProjectRule rule = new TestArtifactsProjectRule();
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
     // Do not use single import, renaming will followed by import reorganizing which will remove all unused import statement
-    setUnitTestFileContent("Test.java", "class Test extends MyClass {}");
-    setAndroidTestFileContent("AndroidTest.java", "class AndroidTest extends MyClass {}");
+    rule.setUnitTestFileContent("Test.java", "class Test extends MyClass {}");
+    rule.setAndroidTestFileContent("AndroidTest.java", "class AndroidTest extends MyClass {}");
   }
 
+  @Test
   public void testRenameInBothTests() throws Exception {
-    setCommonFileContent("MyClass.java", MY_CLASS_TEXT);
+    rule.setCommonFileContent("MyClass.java", MY_CLASS_TEXT);
     renameAndCheckResults(2);
   }
 
+  @Test
   public void testRenameInOnlyUnitTests() throws Exception {
-    setUnitTestFileContent("MyClass.java", MY_CLASS_TEXT);
-
+    rule.setUnitTestFileContent("MyClass.java", MY_CLASS_TEXT);
     renameAndCheckResults(1);
   }
 
+  @Test
   public void testRenameInOnlyAndroidTests() throws Exception {
-    setUnitTestFileContent("MyClass.java", MY_CLASS_TEXT);
+    rule.setUnitTestFileContent("MyClass.java", MY_CLASS_TEXT);
     renameAndCheckResults(1);
   }
 
   private void renameAndCheckResults(int expectedUsages) {
-    myFixture.renameElementAtCaret("MyNewClass");
-
-    PsiClass newClass = myFixture.findElementByText("MyNewClass", PsiClass.class);
-    assertNotNull(newClass);
-
-    assertSize(expectedUsages, myFixture.findUsages(newClass));
+    rule.getFixture().renameElementAtCaret("MyNewClass");
+    PsiClass newClass = rule.getFixture().findElementByText("MyNewClass", PsiClass.class);
+    assertThat(newClass).isNotNull();
+    assertThat(rule.getFixture().findUsages(newClass)).hasSize(expectedUsages);
   }
 }

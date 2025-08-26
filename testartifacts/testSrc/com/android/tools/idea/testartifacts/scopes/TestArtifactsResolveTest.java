@@ -15,112 +15,120 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
-import com.intellij.openapi.util.SystemInfo;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.intellij.psi.PsiElement;
+import com.intellij.testFramework.RunsInEdt;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Rule;
+import org.junit.Test;
 
-public class TestArtifactsResolveTest extends TestArtifactsTestCase {
+@RunsInEdt
+public class TestArtifactsResolveTest {
+  @Rule
+  public TestArtifactsProjectRule rule = new TestArtifactsProjectRule();
 
-  @Override
-  protected boolean shouldRunTest() {
-    // Do not run tests on Windows (see http://b.android.com/222904)
-    return !SystemInfo.isWindows && super.shouldRunTest();
-  }
-
+  @Test
   public void testDependencyResolvableOnlyInUnitTest() throws Exception {
     // Junit is a dependency for android test, defined in project's build.gradle.
     String importString = "import org.junit.Ass<caret>ert;";
 
-    setUnitTestFileContent("Test.java", importString);
-    assertNotNull(resolveReferenceAtCaret());
+    rule.setUnitTestFileContent("Test.java", importString);
+    assertThat(resolveReferenceAtCaret()).isNotNull();
 
-    setAndroidTestFileContent("AndroidTest.java", importString);
-    assertNull(resolveReferenceAtCaret());
+    rule.setAndroidTestFileContent("AndroidTest.java", importString);
+    assertThat(resolveReferenceAtCaret()).isNull();
   }
 
+  @Test
   public void testDependencyResolvableOnlyInAndroidTest() throws Exception {
     // Gson is a dependency for android test, defined in project's build.gradle.
     String importString = "import com.google.gson.Gs<caret>on;";
 
-    setUnitTestFileContent("Test.java", importString);
-    assertNull(resolveReferenceAtCaret());
+    rule.setUnitTestFileContent("Test.java", importString);
+    assertThat(resolveReferenceAtCaret()).isNull();
 
-    setAndroidTestFileContent("AndroidTest.java", importString);
-    assertNotNull(resolveReferenceAtCaret());
+    rule.setAndroidTestFileContent("AndroidTest.java", importString);
+    assertThat(resolveReferenceAtCaret()).isNotNull();
   }
 
+  @Test
   public void testSourceResolvableInBothTests() throws Exception {
     // Create class located in main source
-    setCommonFileContent("MyClass.java", "class MyClass {}");
+    rule.setCommonFileContent("MyClass.java", "class MyClass {}");
 
     String importString = "import MyC<caret>lass;";
-    setUnitTestFileContent("Test.java", importString);
-    assertNotNull(resolveReferenceAtCaret());
+    rule.setUnitTestFileContent("Test.java", importString);
+    assertThat(resolveReferenceAtCaret()).isNotNull();
 
-    setAndroidTestFileContent("AndroidTest.java", importString);
-    assertNotNull(resolveReferenceAtCaret());
+    rule.setAndroidTestFileContent("AndroidTest.java", importString);
+    assertThat(resolveReferenceAtCaret()).isNotNull();
   }
 
+  @Test
   public void testSourceResolvableOnlyInUnitTest() throws Exception {
     // Create class located in unit test source
-    setUnitTestFileContent("MyClass.java", "class MyClass {}");
+    rule.setUnitTestFileContent("MyClass.java", "class MyClass {}");
 
     String importString = "import MyC<caret>lass;";
-    setUnitTestFileContent("Test.java", importString);;
-    assertNotNull(resolveReferenceAtCaret());
+    rule.setUnitTestFileContent("Test.java", importString);;
+    assertThat(resolveReferenceAtCaret()).isNotNull();
 
-    setAndroidTestFileContent("AndroidTest.java", importString);
-    assertNull(resolveReferenceAtCaret());
+    rule.setAndroidTestFileContent("AndroidTest.java", importString);
+    assertThat(resolveReferenceAtCaret()).isNull();
   }
 
+  @Test
   public void testSourceResolvableOnlyInAndroidTest() throws Exception {
     // Create class located in android test source
-    setAndroidTestFileContent("MyClass.java", "class MyClass {}");
+    rule.setAndroidTestFileContent("MyClass.java", "class MyClass {}");
 
     String importString = "import MyC<caret>lass;";
-    setUnitTestFileContent("Test.java", importString);;
-    assertNull(resolveReferenceAtCaret());
+    rule.setUnitTestFileContent("Test.java", importString);;
+    assertThat(resolveReferenceAtCaret()).isNull();
 
-    setAndroidTestFileContent("AndroidTest.java", importString);
-    assertNotNull(resolveReferenceAtCaret());
+    rule.setAndroidTestFileContent("AndroidTest.java", importString);
+    assertThat(resolveReferenceAtCaret()).isNotNull();
   }
 
+  @Test
   public void testMultiModuleSourceResolvableInBothTests() throws Exception {
-    setFileContent("module2/src/main/java/MyClass.java", "class MyClass {}");
+    rule.setFileContent("module2/src/main/java/MyClass.java", "class MyClass {}");
 
     String importString = "import MyC<caret>lass;";
-    setFileContent("module3/src/test/java/Test.java", importString);
-    assertNotNull(resolveReferenceAtCaret());
+    rule.setFileContent("module3/src/test/java/Test.java", importString);
+    assertThat(resolveReferenceAtCaret()).isNotNull();
 
-    setFileContent("module3/src/androidTest/java/AndroidTest.java", importString);
-    assertNotNull(resolveReferenceAtCaret());
+    rule.setFileContent("module3/src/androidTest/java/AndroidTest.java", importString);
+    assertThat(resolveReferenceAtCaret()).isNotNull();
   }
 
+  @Test
   public void testMultiModuleAndroidSourceNotResolvableInTests() throws Exception {
-    setFileContent("module2/src/androidTest/java/MyClass.java", "class MyClass {}");
+    rule.setFileContent("module2/src/androidTest/java/MyClass.java", "class MyClass {}");
 
     String importString = "import MyC<caret>lass;";
-    setFileContent("module3/src/test/java/Test.java", importString);
-    assertNull(resolveReferenceAtCaret());
+    rule.setFileContent("module3/src/test/java/Test.java", importString);
+    assertThat(resolveReferenceAtCaret()).isNull();
 
-    setFileContent("module3/src/androidTest/java/AndroidTest.java", importString);
-    assertNull(resolveReferenceAtCaret());
+    rule.setFileContent("module3/src/androidTest/java/AndroidTest.java", importString);
+    assertThat(resolveReferenceAtCaret()).isNull();
   }
 
+  @Test
   public void testMultiModuleUnitSourceNotResolvableInTests() throws Exception {
-    setFileContent("module2/src/test/java/MyClass.java", "class MyClass {}");
+    rule.setFileContent("module2/src/test/java/MyClass.java", "class MyClass {}");
 
     String importString = "import MyC<caret>lass;";
-    setFileContent("module3/src/androidTest/java/Test.java", importString);
-    assertNull(resolveReferenceAtCaret());
+    rule.setFileContent("module3/src/androidTest/java/Test.java", importString);
+    assertThat(resolveReferenceAtCaret()).isNull();
 
-    setFileContent("module3/src/androidTest/java/AndroidTest.java", importString);
-    assertNull(resolveReferenceAtCaret());
+    rule.setFileContent("module3/src/androidTest/java/AndroidTest.java", importString);
+    assertThat(resolveReferenceAtCaret()).isNull();
   }
-
 
   @Nullable
   private PsiElement resolveReferenceAtCaret() {
-    return myFixture.getReferenceAtCaretPositionWithAssertion().resolve();
+    return rule.getFixture().getReferenceAtCaretPositionWithAssertion().resolve();
   }
 }
