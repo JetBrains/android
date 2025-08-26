@@ -1108,9 +1108,13 @@ def _android_studio_configuration_impl(ctx):
 def android_studio_configuration(
         name,
         flag_level,
+        enable_debug_flags = False,
         vm_options = [],
         **kwargs):
-    _vm_options = vm_options + ["-Dflags.configuration.level=" + flag_level]
+    _vm_options = vm_options + [
+        "-Dflags.configuration.level=" + flag_level,
+        "-Dflags.debug.enabled=" + ("true" if enable_debug_flags else "false"),
+    ]
     _android_studio_configuration(
         name = name,
         vm_options = _vm_options,
