@@ -1,1 +1,2 @@
 skip: */*/*/*/*20x20.svg
+skip: device-art-resources/*
