@@ -35,6 +35,7 @@ import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
@@ -51,19 +52,15 @@ class ResourceFolderRepositoryBackgroundActions : Disposable.Default {
   init {
     coroutineScope
       .launch(Dispatchers.Default) {
-        supervisorScope {
-          updateChannel.consumeEach { (repositorySimpleId, action) ->
-            launch { doRunInUpdateQueue(repositorySimpleId, action) }.join()
-          }
+        updateChannel.consumeEach { (repositorySimpleId, action) ->
+          runButBlowExceptionsIntoCoroutineExceptionHandler { doRunInUpdateQueue(repositorySimpleId, action) }
         }
       }
       .cancelOnDispose(this)
 
     coroutineScope
       .launch(Dispatchers.Default) {
-        supervisorScope {
-          wolfChannel.consumeEach { launch { blockingContext { it.run() } }.join() }
-        }
+        wolfChannel.consumeEach { runButBlowExceptionsIntoCoroutineExceptionHandler { blockingContext { it.run() } } }
       }
       .cancelOnDispose(this)
   }
@@ -115,13 +112,19 @@ class ResourceFolderRepositoryBackgroundActions : Disposable.Default {
     @TestOnly // Please don't ever take inspiration from this class and/or change. This is just a minimum-change solution to fix AS merge
     var testOverriddenBackgroundTaskContext: CoroutineContext? = null
 
+    suspend fun runButBlowExceptionsIntoCoroutineExceptionHandler(action: suspend CoroutineScope.() -> Unit) {
+      withContext((testOverriddenBackgroundTaskContext ?: EmptyCoroutineContext) + Dispatchers.Default) {
+        supervisorScope { launch { action() } }
+      }
+    }
+
     @JvmStatic
     fun getInstance(module: Module) = module.service<ResourceFolderRepositoryBackgroundActions>()
 
     @JvmStatic
     fun runInBackground(action: Runnable) {
-      coroutineScope.launch((testOverriddenBackgroundTaskContext ?: EmptyCoroutineContext) + Dispatchers.Default) {
-        supervisorScope { launch { action.run() } }
+      coroutineScope.launch(Dispatchers.Default) {
+        runButBlowExceptionsIntoCoroutineExceptionHandler { action.run() }
       }
     }
   }
