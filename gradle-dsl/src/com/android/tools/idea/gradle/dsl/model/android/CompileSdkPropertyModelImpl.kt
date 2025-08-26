@@ -24,6 +24,8 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.COMPILE_SDK_VERSION
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.COMPILE_SDK_MINOR
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.COMPILE_SDK_EXTENSION
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil
@@ -34,7 +36,9 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 
-class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyModel) : CompileSdkPropertyModel,
+class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyModel,
+                                  private val internalMinorModel: ResolvedPropertyModel? = null,
+                                  private val internalExtensionModel: ResolvedPropertyModel? = null) : CompileSdkPropertyModel,
                                                                                       ResolvedPropertyModel by internalModel {
   companion object {
 
@@ -55,9 +59,11 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
         CompileSdkBlockDslElement.COMPILE_SDK
       )
 
-      // DSL element already exists
+      // Old DSL element already exists
       parent.getPropertyElement(COMPILE_SDK_VERSION)?.let{
-        return CompileSdkPropertyModelImpl(createOldResolvedPropertyModel(parent, createInPosition))
+        val compileSdkMinorModel = GradlePropertyModelBuilder.create(parent, COMPILE_SDK_MINOR).buildResolved()
+        val compileSdkExtensionModel = GradlePropertyModelBuilder.create(parent, COMPILE_SDK_EXTENSION).buildResolved()
+        return CompileSdkPropertyModelImpl(createOldResolvedPropertyModel(parent, createInPosition), compileSdkMinorModel, compileSdkExtensionModel)
       }
 
       if (compileSdkBlock != null) {
@@ -74,10 +80,11 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
           parent.ensurePropertyElementAt(CompileSdkBlockDslElement.COMPILE_SDK, createInPosition)
         }
         return CompileSdkPropertyModelImpl(CompileSdkBlockPropertyModel(newCompileSdkBlock))
-      }
-      else {
+      } else {
         // AGP is old need to stick to old DSL
-        return CompileSdkPropertyModelImpl(createOldResolvedPropertyModel(parent, createInPosition))
+        val compileSdkMinorModel = GradlePropertyModelBuilder.create(parent, COMPILE_SDK_MINOR).buildResolved()
+        val compileSdkExtensionModel = GradlePropertyModelBuilder.create(parent, COMPILE_SDK_EXTENSION).buildResolved()
+        return CompileSdkPropertyModelImpl(createOldResolvedPropertyModel(parent, createInPosition), compileSdkMinorModel, compileSdkExtensionModel)
       }
     }
 
@@ -99,7 +106,7 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
     fun ResolvedPropertyModel.asCompileSdkString(): String? {
       return when (valueType) {
           ValueType.STRING -> getValue(GradlePropertyModel.STRING_TYPE)
-          ValueType.INTEGER -> getValue(GradlePropertyModel.INTEGER_TYPE)?.toString()
+          ValueType.INTEGER -> getValue(GradlePropertyModel.INTEGER_TYPE)?.toString() ?: getValue(GradlePropertyModel.STRING_TYPE)
           ValueType.CUSTOM -> getValue(GradlePropertyModel.INTEGER_TYPE)?.toString() ?: getValue(GradlePropertyModel.STRING_TYPE)
           else -> null
         }
@@ -163,18 +170,47 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
         }
       }
     }
-    else internalModel.setValue(value)
+    else {
+      val apiMatchResult = API_PATTERN.matchEntire(value.toString())
+      if (apiMatchResult != null) {
+        val releaseVersion = apiMatchResult.groupValues[1].toInt()
+        val minorApi = apiMatchResult.groups["minor"]?.value?.toInt()
+        val extension = apiMatchResult.groups["ext"]?.value?.toInt()
+        internalMinorModel?.delete()
+        internalExtensionModel?.delete()
+        internalModel.setValue(releaseVersion)
+        if (minorApi != null) internalMinorModel?.setValue(minorApi)
+        if (extension != null) internalExtensionModel?.setValue(extension)
+      } else {
+        internalModel.setValue(value)
+      }
+    }
   }
 
   override fun <T : Any?> getValue(typeReference: TypeReference<T>): T? {
     (internalModel as? CompileSdkBlockPropertyModel)?.let {
-      when (typeReference) {
-        GradlePropertyModel.STRING_TYPE -> return it.sdkBlockModel.getVersion()?.toHash() as T?
-        GradlePropertyModel.INTEGER_TYPE -> return it.sdkBlockModel.getVersion()?.toInt() as T?
+      return when (typeReference) {
+        GradlePropertyModel.STRING_TYPE -> it.sdkBlockModel.getVersion()?.toHash() as T?
+        GradlePropertyModel.INTEGER_TYPE -> it.sdkBlockModel.getVersion()?.toInt() as T?
         else -> internalModel.getValue(typeReference)
       }
     }
-    return internalModel.getValue(typeReference)
+
+
+    val minor = internalMinorModel?.getValue(typeReference)
+    val extension = internalExtensionModel?.getValue(typeReference)
+    return when (typeReference) {
+      GradlePropertyModel.INTEGER_TYPE -> {
+        if (minor == null && extension == null) internalModel.getValue(typeReference) else null
+      }
+      GradlePropertyModel.STRING_TYPE -> {
+        if (minor != null || extension != null) {
+          val minorSuffix = if (minor != null) ".$minor" else ""
+          val extensionSuffix = if (extension != null) "-ext$extension" else ""
+          return "android-${internalModel.getValue(typeReference)}$minorSuffix$extensionSuffix" as T?
+        } else internalModel.getValue(typeReference)
+      } else -> internalModel.getValue(typeReference)
+    }
   }
 
   override fun <T: Any> getRawValue(typeReference: TypeReference<T>): T? {
@@ -193,5 +229,4 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
   override fun toString(): String {
     return internalModel.toString()
   }
-
 }

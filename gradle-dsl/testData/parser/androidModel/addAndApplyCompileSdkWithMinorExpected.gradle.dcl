@@ -1,3 +1,4 @@
 androidApp {
-  compileSdkVersion = "android-36.1"
+  compileSdk = 36
+  compileSdkMinor = 1
 }

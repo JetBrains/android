@@ -1,3 +1,4 @@
 androidApp {
-  compileSdkVersion = "android-34-ext14"
+  compileSdk = 34
+  compileSdkExtension = 14
 }
