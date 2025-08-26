@@ -31,6 +31,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.Nullable;
 
@@ -66,7 +67,7 @@ public class QuerySyncActionStatsScope implements BlazeScope {
     return createForPaths(
         actionClass,
         event,
-        requestFiles.stream().map(VirtualFile::toNioPath).collect(toImmutableSet()),
+        requestFiles.stream().map(it -> it.getFileSystem().getNioPath(it)).filter(Objects::nonNull).collect(toImmutableSet()),
         timeSource);
   }
 
