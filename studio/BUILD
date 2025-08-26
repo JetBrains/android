@@ -13,6 +13,24 @@ package(
 )
 
 app_icon(
+    name = "stable-icon",
+    icns = "stable/studio.icns",
+    ico = "stable/studio.ico",
+    png = "stable/studio.png",
+    svg = "stable/studio.svg",
+    svg_small = "stable/studio-small.svg",
+)
+
+app_icon(
+    name = "preview-icon",
+    icns = "preview/studio.icns",
+    ico = "preview/studio.ico",
+    png = "preview/studio.png",
+    svg = "preview/studio.svg",
+    svg_small = "preview/studio-small.svg",
+)
+
+app_icon(
     name = "nightly-icon",
     icns = "nightly/studio.icns",
     ico = "nightly/studio.ico",
@@ -815,7 +833,7 @@ android_studio_configuration(
 
 android_studio_configuration(
     name = "canary",
-    application_icon = None,
+    application_icon = ":preview-icon",
     mac_app_name = "Android Studio Preview",
     version_suffix = None,
     version_type = STUDIO_VERSION,

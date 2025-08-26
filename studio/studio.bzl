@@ -810,8 +810,7 @@ def _android_studio_os(ctx, platform, added_plugins, out):
     platform_prefix = config.mac_app_name + ".app/" if platform in [MAC, MAC_ARM] else "android-studio/"
 
     platform_files = platform.get(ctx.attr.platform[IntellijInfo].base)
-    if config.application_icon:
-        platform_files = replace_app_icon(ctx, platform.name, platform_files, config.application_icon[AppIconInfo])
+    platform_files = replace_app_icon(ctx, platform.name, platform_files, config.application_icon[AppIconInfo])
     plugin_files = platform.get(ctx.attr.platform[IntellijInfo].plugins)
 
     if ctx.attr.jre:
@@ -1106,7 +1105,7 @@ def _android_studio_configuration_impl(ctx):
 
 android_studio_configuration = rule(
     attrs = {
-        "application_icon": attr.label(providers = [AppIconInfo]),
+        "application_icon": attr.label(providers = [AppIconInfo], mandatory = True),
         "version_type": attr.string(),
         "version_suffix": attr.string(),
         "mac_app_name": attr.string(mandatory = True),
