@@ -33,6 +33,7 @@ import org.bytedeco.ffmpeg.avcodec.AVCodecContext
 import org.bytedeco.ffmpeg.avcodec.AVCodecParserContext
 import org.bytedeco.ffmpeg.avcodec.AVCodecParserContext.PARSER_FLAG_COMPLETE_FRAMES
 import org.bytedeco.ffmpeg.avcodec.AVPacket
+import org.bytedeco.ffmpeg.avutil.AVChannelLayout
 import org.bytedeco.ffmpeg.avutil.AVDictionary
 import org.bytedeco.ffmpeg.avutil.AVFrame
 import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_OPUS
@@ -52,9 +53,7 @@ import org.bytedeco.ffmpeg.global.avcodec.avcodec_free_context
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_open2
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_receive_frame
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_send_packet
-import org.bytedeco.ffmpeg.global.avutil.AV_CH_LAYOUT_STEREO
 import org.bytedeco.ffmpeg.global.avutil.AV_NOPTS_VALUE
-import org.bytedeco.ffmpeg.global.avutil.AV_SAMPLE_FMT_FLTP
 import org.bytedeco.ffmpeg.global.avutil.AV_SAMPLE_FMT_S16
 import org.bytedeco.ffmpeg.global.avutil.av_frame_alloc
 import org.bytedeco.ffmpeg.global.avutil.av_frame_free
@@ -64,6 +63,7 @@ import org.bytedeco.ffmpeg.global.swresample.swr_alloc
 import org.bytedeco.ffmpeg.global.swresample.swr_close
 import org.bytedeco.ffmpeg.global.swresample.swr_convert_frame
 import org.bytedeco.ffmpeg.global.swresample.swr_init
+import org.bytedeco.ffmpeg.swresample.SwrContext
 import org.bytedeco.javacpp.BytePointer
 import org.bytedeco.javacpp.IntPointer
 import org.bytedeco.javacpp.Pointer
@@ -169,7 +169,7 @@ internal class AudioDecoder(
     @GuardedBy("this")
     private var hasPendingPacket = false
     @GuardedBy("this")
-    private val swrContext = swr_alloc()
+    private var swrContext = SwrContext()
     @GuardedBy("this")
     private var player: AudioPlayer? = null
 
@@ -197,18 +197,6 @@ internal class AudioDecoder(
 
       this.codecContext = codecContext
       this.parserContext = parserContext
-
-      initializeSwrContext(AV_SAMPLE_FMT_FLTP, 48000)
-    }
-
-    private fun initializeSwrContext(inputFormat: Int, sampleRate: Long) {
-      av_opt_set_int(swrContext, "in_channel_layout", AV_CH_LAYOUT_STEREO, 0)
-      av_opt_set_int(swrContext, "out_channel_layout", AV_CH_LAYOUT_STEREO, 0)
-      av_opt_set_int(swrContext, "in_sample_rate", sampleRate, 0)
-      av_opt_set_int(swrContext, "out_sample_rate", sampleRate, 0)
-      av_opt_set_sample_fmt(swrContext, "in_sample_fmt", inputFormat, 0)
-      av_opt_set_sample_fmt(swrContext, "out_sample_fmt", AV_SAMPLE_FMT_S16, 0)
-      swr_init(swrContext)
     }
 
     fun closeAsynchronously() {
@@ -220,7 +208,9 @@ internal class AudioDecoder(
     @Synchronized
     override fun close() {
       player?.stop()
-      swr_close(swrContext)
+      if (!swrContext.isNull) {
+        swr_close(swrContext)
+      }
       av_parser_close(parserContext)
       avcodec_close(codecContext)
       avcodec_free_context(codecContext)
@@ -306,16 +296,21 @@ internal class AudioDecoder(
         throw AudioDecoderException("Could not receive audio frame")
       }
 
-      outFrame.ch_layout(decodingFrame.ch_layout())
-      outFrame.sample_rate(decodingFrame.sample_rate())
+      val channelLayout = decodingFrame.ch_layout()
+      val sampleFormat = decodingFrame.format()
+      val sampleRate = decodingFrame.sample_rate()
+      outFrame.ch_layout(channelLayout)
+      outFrame.sample_rate(sampleRate)
       outFrame.format(AV_SAMPLE_FMT_S16)
+      if (swrContext.isNull) {
+        swrContext = createSwrContext(channelLayout, sampleFormat, sampleRate)
+      }
       val r = swr_convert_frame(swrContext, outFrame, decodingFrame)
       if (r < 0) {
         throw AudioDecoderException("Could not convert audio frame to 16-bit format")
       }
 
-      val numChannels = outFrame.ch_layout().nb_channels()
-      val sampleRate = outFrame.sample_rate()
+      val numChannels = channelLayout.nb_channels()
       val bufferSize = outFrame.nb_samples() * BYTES_PER_SAMPLE_FMT_S16 * numChannels
       var player = player
       if (player == null || numChannels != player.numChannels || sampleRate != player.sampleRate || bufferSize != player.bufferSize) {
@@ -327,6 +322,20 @@ internal class AudioDecoder(
       val buffer = player.getBuffer()
       outFrame.extended_data(0).get(buffer)
       player.play(buffer)
+    }
+
+    private fun createSwrContext(channelLayout: AVChannelLayout, sampleFormat: Int, sampleRate: Int): SwrContext {
+      val context = swr_alloc()
+      val channelLayoutMask = channelLayout.u_mask()
+      av_opt_set_int(context, "in_channel_layout", channelLayoutMask, 0)
+      av_opt_set_int(context, "out_channel_layout", channelLayoutMask, 0)
+      val longSampleRate = sampleRate.toLong()
+      av_opt_set_int(context, "in_sample_rate", longSampleRate, 0)
+      av_opt_set_int(context, "out_sample_rate", longSampleRate, 0)
+      av_opt_set_sample_fmt(context, "in_sample_fmt", sampleFormat, 0)
+      av_opt_set_sample_fmt(context, "out_sample_fmt", AV_SAMPLE_FMT_S16, 0)
+      swr_init(context)
+      return context
     }
   }
 
