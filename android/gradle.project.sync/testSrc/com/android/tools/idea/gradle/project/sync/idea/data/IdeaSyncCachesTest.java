@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data;
 
-import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.openPreparedProject;
-import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
+import static com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.prepareTestProject;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.application.ActionsKt.runWriteAction;
 
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
+import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.TestProjectPaths;
+import com.android.tools.idea.testing.AndroidProjectRule;
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
 import com.android.utils.FileUtils;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
@@ -34,60 +36,70 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServicesKt;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
-public class IdeaSyncCachesTest extends AndroidGradleTestCase {
+public class IdeaSyncCachesTest {
   private IdeaSyncCachesInvalidator myInvalidator;
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @Rule
+  public IntegrationTestEnvironmentRule rule = AndroidProjectRule.withIntegrationTestEnvironment();
+
+  @Before
+  public void setup() throws Exception {
     myInvalidator = new IdeaSyncCachesInvalidator();
   }
 
+  @Test
   public void testCacheIsInvalidated() {
-    prepareGradleProject(this, TestProjectPaths.SIMPLE_APPLICATION, "project");
-    openPreparedProject(this, "project", project -> {
-      assertEquals(ProjectSystemSyncManager.SyncResult.SUCCESS,
-                   ProjectSystemService.getInstance(project).getProjectSystem().getSyncManager().getLastSyncResult());
+    PreparedTestProject p = prepareTestProject(rule, AndroidCoreTestProject.SIMPLE_APPLICATION, "project");
+    p.open((it) -> it, project -> {
+      assertThat(ProjectSystemService.getInstance(project).getProjectSystem().getSyncManager().getLastSyncResult())
+        .isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS);
       return null;
     });
-    openPreparedProject(this, "project", project -> {
-      assertEquals(ProjectSystemSyncManager.SyncResult.SKIPPED,
-                   ProjectSystemService.getInstance(project).getProjectSystem().getSyncManager().getLastSyncResult());
+    p.open((it) -> it, project -> {
+      assertThat(ProjectSystemService.getInstance(project).getProjectSystem().getSyncManager().getLastSyncResult())
+        .isEqualTo(ProjectSystemSyncManager.SyncResult.SKIPPED);
       myInvalidator.invalidateCaches();
       return null;
     });
-    openPreparedProject(this, "project", project -> {
-      assertEquals(ProjectSystemSyncManager.SyncResult.SUCCESS,
-                   ProjectSystemService.getInstance(project).getProjectSystem().getSyncManager().getLastSyncResult());
+    p.open((it) -> it, project -> {
+      assertThat(ProjectSystemService.getInstance(project).getProjectSystem().getSyncManager().getLastSyncResult())
+        .isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS);
       return null;
     });
   }
 
+  @Test
   public void testMissingJarTriggersSync() throws IOException {
-    prepareGradleProject(this, TestProjectPaths.SIMPLE_APPLICATION, "project");
-    openPreparedProject(this, "project", project -> {
-      assertEquals(ProjectSystemSyncManager.SyncResult.SUCCESS,
-                   ProjectSystemService.getInstance(project).getProjectSystem().getSyncManager().getLastSyncResult());
+    PreparedTestProject p = prepareTestProject(rule, AndroidCoreTestProject.SIMPLE_APPLICATION, "project");
+    p.open((it) -> it, project -> {
+      assertThat(ProjectSystemService.getInstance(project).getProjectSystem().getSyncManager().getLastSyncResult())
+        .isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS);
       return null;
     });
-    List<VirtualFile> lifecycleLiveDataLibraryPaths = openPreparedProject(this, "project", project -> {
-      assertEquals(ProjectSystemSyncManager.SyncResult.SKIPPED,
-                   ProjectSystemService.getInstance(project).getProjectSystem().getSyncManager().getLastSyncResult());
-      return
-        ContainerUtil
-          .map(
-            Arrays.stream(LibraryTablesRegistrar.getInstance().getLibraryTable(project).getLibraries())
-              .filter(it -> it.getName().startsWith("Gradle: android.arch.lifecycle:livedata:"))
-              .findAny()
-              .get()
-              .getFiles(OrderRootType.CLASSES),
-            it -> {
-              VirtualFile file = VfsUtilCore.getVirtualFileForJar(it);
-              if (file == null) file = it;
-              return file;
-            });
-    });
+    List<VirtualFile> lifecycleLiveDataLibraryPaths =
+      p.open((it) -> it,
+             project -> {
+               assertThat(ProjectSystemService.getInstance(project).getProjectSystem().getSyncManager().getLastSyncResult())
+                 .isEqualTo(ProjectSystemSyncManager.SyncResult.SKIPPED);
+               return
+                 ContainerUtil
+                   .map(
+                     Arrays.stream(LibraryTablesRegistrar.getInstance().getLibraryTable(project).getLibraries())
+                       .filter(it -> it.getName().startsWith("Gradle: android.arch.lifecycle:livedata:"))
+                       .findAny()
+                       .get()
+                       .getFiles(OrderRootType.CLASSES),
+                     it -> {
+                       VirtualFile file = VfsUtilCore.getVirtualFileForJar(it);
+                       if (file == null) file = it;
+                       return file;
+                     });
+             });
     // In order to ensure that future tests don't fail due to Gradle maintaining state we stop the daemons before deleting the
     // library files.
     //noinspection UnstableApiUsage
@@ -102,15 +114,15 @@ public class IdeaSyncCachesTest extends AndroidGradleTestCase {
       // workspace of immutable transforms to be corrupted. However, it is okay the workspace is missing and Gradle would create a new one.
       FileUtils.deleteRecursivelyIfExists(new File(file.getParent().getCanonicalPath()));
     }
-    openPreparedProject(this, "project", project -> {
-      assertEquals(ProjectSystemSyncManager.SyncResult.SUCCESS,
-                   ProjectSystemService.getInstance(project).getProjectSystem().getSyncManager().getLastSyncResult());
+    p.open((it) -> it, project -> {
+      assertThat(ProjectSystemService.getInstance(project).getProjectSystem().getSyncManager().getLastSyncResult())
+        .isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS);
       return null;
     });
   }
 
   private void deleteLibraryFilesFromGradleCache(List<VirtualFile> lifecycleLiveDataLibraryPaths) {
-    assertFalse(lifecycleLiveDataLibraryPaths.isEmpty());
+    assertThat(lifecycleLiveDataLibraryPaths).isNotEmpty();
     // Delete all CLASSES files from the Gradle cache. When a library expires in the Gradle cache all files are deleted.
     runWriteAction(() ->{
       lifecycleLiveDataLibraryPaths.forEach(file -> {
@@ -118,7 +130,7 @@ public class IdeaSyncCachesTest extends AndroidGradleTestCase {
           file.delete(this);
         }
         catch (IOException e) {
-          fail(e.getMessage());
+          Assert.fail(e.getMessage());
         }
       });
       return null;
