@@ -382,7 +382,7 @@ internal class DeviceView(
 
   private fun logConnectionError(exception: Throwable?) {
     when ((exception as? AgentTerminatedException)?.exitCode) {
-      AGENT_WEAK_VIDEO_ENCODER, AGENT_REPEATED_VIDEO_ENCODER_ERRORS, XR_DEVICE_IS_NOT_CONFIGURED_FOR_MIRRORING ->
+      AGENT_WEAK_VIDEO_ENCODER, AGENT_REPEATED_VIDEO_ENCODER_ERRORS, AGENT_XR_DEVICE_IS_NOT_CONFIGURED_FOR_MIRRORING ->
           thisLogger().warn("Failed to initialize the screen sharing agent")
 
       else -> thisLogger().warn("Failed to initialize the screen sharing agent", exception)
@@ -397,7 +397,7 @@ internal class DeviceView(
       AGENT_REPEATED_VIDEO_ENCODER_ERRORS ->
           "Repeated video encoder errors during initialization of the device agent. See ${getShowLogHyperlink()} for details."
 
-      XR_DEVICE_IS_NOT_CONFIGURED_FOR_MIRRORING ->
+      AGENT_XR_DEVICE_IS_NOT_CONFIGURED_FOR_MIRRORING ->
           "The XR device is not configured for mirroring. See ${getShowLogHyperlink()} for details."
 
       else ->
@@ -416,7 +416,7 @@ internal class DeviceView(
 
       AGENT_REPEATED_VIDEO_ENCODER_ERRORS -> "Repeated video encoder errors. See ${getShowLogHyperlink()} for details."
 
-      XR_DEVICE_IS_NOT_CONFIGURED_FOR_MIRRORING ->
+      AGENT_XR_DEVICE_IS_NOT_CONFIGURED_FOR_MIRRORING ->
           "The XR device is not configured for mirroring. See ${getShowLogHyperlink()} for details."
 
       else -> "Lost connection to the device. See ${getShowLogHyperlink()} for details."
