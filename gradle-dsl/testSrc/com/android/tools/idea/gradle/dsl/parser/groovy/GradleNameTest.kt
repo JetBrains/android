@@ -17,16 +17,22 @@ package com.android.tools.idea.gradle.dsl.parser.groovy
 
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.gradleNameFor
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.HeavyPlatformTestCase
+import com.intellij.openapi.application.runReadAction
+import com.intellij.testFramework.ProjectRule
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory
+import org.junit.Rule
+import org.junit.Test
 
-class GradleNameTest : HeavyPlatformTestCase() {
+class GradleNameTest {
+  @get:Rule
+  val projectRule = ProjectRule()
+
   fun gradleNameFromString(string : String) : String? {
-    val psiFactory = GroovyPsiElementFactory.getInstance(myProject)
-    val expression = psiFactory.createExpressionFromText(string)
-    return gradleNameFor(expression)
+    val psiFactory = GroovyPsiElementFactory.getInstance(projectRule.project)
+    return runReadAction { gradleNameFor(psiFactory.createExpressionFromText(string)) }
   }
 
+  @Test
   fun testGradleName() {
     assertThat(gradleNameFromString("abc")).isEqualTo("abc")
     assertThat(gradleNameFromString("abc.def")).isEqualTo("abc.def")
@@ -65,6 +71,7 @@ class GradleNameTest : HeavyPlatformTestCase() {
     assertThat(gradleNameFromString("abc.def.create(\"foo\").ext.bar")).isEqualTo("abc.def.foo.ext.bar")
   }
 
+  @Test
   fun testNullGradleName() {
     assertThat(gradleNameFromString("\"foo\"")).isNull()
     assertThat(gradleNameFromString("1")).isNull()

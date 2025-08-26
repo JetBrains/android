@@ -17,16 +17,22 @@ package com.android.tools.idea.gradle.dsl.parser.kotlin
 
 import com.android.tools.idea.gradle.dsl.kotlin.gradleNameFor
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.HeavyPlatformTestCase
+import com.intellij.openapi.application.runReadAction
+import com.intellij.testFramework.ProjectRule
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.junit.Rule
+import org.junit.Test
 
-class GradleNameTest : HeavyPlatformTestCase() {
+class GradleNameTest {
+  @get:Rule
+  val projectRule = ProjectRule()
+
   fun gradleNameFromString(string : String) : String? {
-    val psiFactory = KtPsiFactory(myProject, false)
-    val expression = psiFactory.createExpression(string)
-    return gradleNameFor(expression)
+    val psiFactory = KtPsiFactory(projectRule.project, false)
+    return runReadAction { gradleNameFor(psiFactory.createExpression(string)) }
   }
 
+  @Test
   fun testGradleName() {
     assertThat(gradleNameFromString("abc")).isEqualTo("abc")
     assertThat(gradleNameFromString("abc.def")).isEqualTo("abc.def")
@@ -57,6 +63,7 @@ class GradleNameTest : HeavyPlatformTestCase() {
     assertThat(gradleNameFromString("abc.def.create(\"\\u0066o\\u006f\")")).isEqualTo("abc.def.foo")
   }
 
+  @Test
   fun testNullGradleName() {
     assertThat(gradleNameFromString("\"foo\"")).isNull()
     assertThat(gradleNameFromString("1")).isNull()
