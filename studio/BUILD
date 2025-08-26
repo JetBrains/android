@@ -953,6 +953,32 @@ py_test(
 )
 
 filegroup(
+    name = "update_sherlock_sdk_files",
+    srcs = [
+        "intellij.py",
+        "mkspec.py",
+        "update_sdk.py",
+        "update_sherlock_sdk.py",
+    ],
+)
+
+py_test(
+    name = "test_update_sherlock_sdk",
+    srcs = [
+        "tests/test_update_sherlock_sdk.py",
+        "tests/test_utils.py",
+    ],
+    data = [":update_sherlock_sdk_files"],
+    env = {
+        "update_sherlock_sdk_files": "$(locations :update_sherlock_sdk_files)",
+    },
+    tags = [
+        "noci:studio-win",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
     name = "mkspec_files",
     srcs = [
         "intellij.py",
