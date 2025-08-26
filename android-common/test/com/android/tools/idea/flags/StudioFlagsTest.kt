@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.flags
 
+import org.junit.Assert
 import org.junit.Test
 
 class StudioFlagsTest {
@@ -22,5 +23,10 @@ class StudioFlagsTest {
   fun testFlags() {
     // Performs miscellaneous validation, making sure that default values can be serialized, etc.
     StudioFlags.validate()
+  }
+
+  @Test
+  fun testChannelDefault() {
+    Assert.assertEquals(FeatureConfiguration.INTERNAL, StudioFlags.FLAG_CHANNEL.get())
   }
 }

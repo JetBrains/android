@@ -97,24 +97,14 @@ public final class StudioFlags {
     FLAGS.validate();
   }
 
-  /**
-   * Overrides the current boolean feature flags with the values coming from a different configuration.
-   * @param config the feature configuration to use
-   */
-  @TestOnly
-  public static void overrideFeatureFlagsForTesting(@NotNull FeatureConfiguration config) {
-    @NotNull FeatureConfigurationProvider values = FeatureConfigurationProvider.Companion.loadValuesForTesting(config);
+  private static final FlagGroup META_FLAGS = new FlagGroup(FLAGS, "flags", "Studio Flags");
 
-    for (String entry : values.getEntries()) {
-      Flag<?> flag = FLAGS.getFlag(entry);
-      if (flag != null) {
-        String value = values.get(flag);
-        if (value != null) {
-          FLAGS.getUserOverrides().put(flag, value);
-        }
-      }
-    }
-  }
+  public static final EnumFlag<FeatureConfiguration> FLAG_CHANNEL = new EnumFlag<>(
+    META_FLAGS,
+    "channel.override",
+    "Override the channel controlling flag defaults",
+    "Override the channel controlling flag defaults. Changing the value of this flag requires restarting Android Studio",
+    FeatureConfiguration.Companion.getCurrent());
 
   //region New Project Wizard
   private static final FlagGroup NPW = new FlagGroup(FLAGS, "npw", "New Project Wizard");

@@ -18,6 +18,7 @@ package com.android.tools.idea.flags.overrides
 import com.android.flags.Flag
 import com.android.flags.FlagValueProvider
 import com.android.tools.idea.flags.FeatureConfiguration
+import com.android.tools.idea.flags.StudioFlags
 import com.android.utils.associateNotNull
 import com.google.common.annotations.VisibleForTesting
 import java.io.InputStream
@@ -36,9 +37,11 @@ import java.io.InputStream
  * since it's not actually an override.
  */
 class FeatureConfigurationProvider private constructor(
-  private val currentConfig: FeatureConfiguration,
   private val values: Map<String, FeatureConfiguration>
 ): FlagValueProvider {
+
+  private val currentConfig: FeatureConfiguration get() =
+      StudioFlags.FLAG_CHANNEL.get()
 
   override fun get(flag: Flag<*>): String? = getValueById(flag.id)
 
@@ -76,7 +79,6 @@ class FeatureConfigurationProvider private constructor(
     @VisibleForTesting
     fun loadValues(
       inputStream: InputStream = featureFlagsResourceStream(),
-      currentConfig: FeatureConfiguration = FeatureConfiguration.current,
     ): FeatureConfigurationProvider {
       val configsByName = FeatureConfiguration.entries.associateBy { it.name }
 
@@ -90,12 +92,7 @@ class FeatureConfigurationProvider private constructor(
         }
       }
 
-      return FeatureConfigurationProvider(currentConfig, map)
-    }
-
-    @VisibleForTesting
-    fun loadValuesForTesting(currentConfig: FeatureConfiguration): FeatureConfigurationProvider {
-      return loadValues(currentConfig = currentConfig)
+      return FeatureConfigurationProvider(map)
     }
 
     @VisibleForTesting
