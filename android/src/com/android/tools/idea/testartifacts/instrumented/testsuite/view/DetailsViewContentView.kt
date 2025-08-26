@@ -75,6 +75,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
   val myScreenshotResultView: ScreenshotResultView
   val myScreenshotTab: TabInfo
   @VisibleForTesting var myScreenshotAttributesTab: TabInfo
+  private val myScreenshotAttributesView: ScreenshotAttributesView
   val myJourneysResultsPanel: JourneysResultsPanel
 
   @VisibleForTesting
@@ -109,7 +110,8 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     tabs.addTab(myScreenshotTab)
 
     // Screenshot attributes tab
-    myScreenshotAttributesTab = TabInfo(ScreenshotAttributesView().getComponent())
+    myScreenshotAttributesView = ScreenshotAttributesView()
+    myScreenshotAttributesTab = TabInfo(myScreenshotAttributesView.getComponent())
     myScreenshotAttributesTab.setText("Attributes")
     myScreenshotAttributesTab.setTooltipText("Show preview attributes")
     myScreenshotAttributesTab.isHidden = true
@@ -226,7 +228,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     updateSelectedTab()
   }
 
-  private fun setAdditionalTestArtifacts(additionalTestArtifacts: Map<String, String>) {
+  private fun setAdditionalTestArtifacts(additionalTestArtifacts: Map<String, String>, testResults: AndroidTestResults?) {
     val newImage = additionalTestArtifacts["PreviewScreenshot.newImagePath"]
     val refImage = additionalTestArtifacts["PreviewScreenshot.refImagePath"]
     val diffImage = additionalTestArtifacts["PreviewScreenshot.diffImagePath"]
@@ -239,6 +241,14 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
       myScreenshotResultView.diffImagePath = diffImage ?: ""
       myScreenshotResultView.testFailed = (myAndroidTestCaseResult == AndroidTestCaseResult.FAILED)
       myScreenshotResultView.updateView()
+      myScreenshotAttributesView.updateData(
+        refImage,
+        newImage,
+        testResults?.methodName,
+        testResults?.className,
+        myAndroidTestCaseResult,
+        myErrorStackTrace
+      )
     } else {
       myScreenshotTab.isHidden = true
       myScreenshotAttributesTab.isHidden = true
@@ -257,7 +267,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     setLogcat(testResults.getLogcat(androidDevice))
     setErrorStackTrace(testResults.getErrorStackTrace(androidDevice))
     setBenchmarkText(testResults.getBenchmark(androidDevice))
-    setAdditionalTestArtifacts(testResults.getAdditionalTestArtifacts(androidDevice))
+    setAdditionalTestArtifacts(testResults.getAdditionalTestArtifacts(androidDevice), testResults)
   }
 
   private fun refreshTestResultLabel() {
