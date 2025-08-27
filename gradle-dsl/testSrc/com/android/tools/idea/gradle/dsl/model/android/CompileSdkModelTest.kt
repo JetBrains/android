@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.android
 
 import com.android.tools.idea.gradle.dsl.TestFileName
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.android.CompileSdkPropertyModel
 import com.android.tools.idea.gradle.dsl.api.android.CompileSdkReleaseModel
 import com.android.tools.idea.gradle.dsl.api.android.CompileSdkPreviewModel
@@ -33,9 +34,7 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
 
   @Test
   fun testReadCompileSdkVersionBlock() {
-    writeToBuildFile(TestFile.READ_RELEASE_BLOCK)
-    val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+    val buildModel = initTest(TestFile.READ_RELEASE_BLOCK)
 
     val android = buildModel.android()
     assertNotNull(android)
@@ -56,9 +55,7 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
 
   @Test
   fun testReadCompileSdkVersionReleaseMethod() {
-    writeToBuildFile(TestFile.READ_RELEASE_METHOD)
-    val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+    val buildModel = initTest(TestFile.READ_RELEASE_METHOD)
 
     val android = buildModel.android()
     assertNotNull(android)
@@ -79,9 +76,7 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
 
   @Test
   fun testReadVariableInCompileSdkVersionReleaseMethod() {
-    writeToBuildFile(TestFile.READ_RELEASE_METHOD_WITH_REFERENCE)
-    val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+    val buildModel = initTest(TestFile.READ_RELEASE_METHOD_WITH_REFERENCE)
 
     val android = buildModel.android()
     assertNotNull(android)
@@ -101,9 +96,7 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
 
   @Test
   fun testSetReferenceInCompileSdkVersionReleaseMethod() {
-    writeToBuildFile(TestFile.SET_RELEASE_METHOD_TO_REFERENCE)
-    val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+    val buildModel = initTest(TestFile.SET_RELEASE_METHOD_TO_REFERENCE)
 
     val android = buildModel.android()
     assertNotNull(android)
@@ -115,9 +108,7 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
 
   @Test
   fun testReadVariableInCompileSdkVersionPreviewMethod() {
-    writeToBuildFile(TestFile.READ_PREVIEW_METHOD_WITH_REFERENCE)
-    val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+    val buildModel = initTest(TestFile.READ_PREVIEW_METHOD_WITH_REFERENCE)
 
     val android = buildModel.android()
     assertNotNull(android)
@@ -136,9 +127,7 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
 
   @Test
   fun testSetReferenceInCompileSdkVersionPreviewMethod() {
-    writeToBuildFile(TestFile.SET_PREVIEW_METHOD_TO_REFERENCE)
-    val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+    val buildModel = initTest(TestFile.SET_PREVIEW_METHOD_TO_REFERENCE)
 
     val android = buildModel.android()
     assertNotNull(android)
@@ -150,9 +139,7 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
 
   @Test
   fun testReadCompileSdkVersionPreviewMethod() {
-    writeToBuildFile(TestFile.READ_PREVIEW_METHOD)
-    val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+    val buildModel = initTest(TestFile.READ_PREVIEW_METHOD)
 
     val android = buildModel.android()
     assertNotNull(android)
@@ -171,9 +158,7 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
 
   @Test
   fun testReadCompileSdkVersionAddonMethod() {
-    writeToBuildFile(TestFile.READ_ADDON_METHOD)
-    val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+    val buildModel = initTest(TestFile.READ_ADDON_METHOD)
 
     val android = buildModel.android()
     assertNotNull(android)
@@ -194,9 +179,7 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
 
   @Test
   fun testUpdateCompileSdkVersionWithOldApi() {
-    writeToBuildFile(TestFile.EMPTY_ANDROID_BLOCK)
-    val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+    val buildModel = initTest(TestFile.EMPTY_ANDROID_BLOCK)
 
     val android = buildModel.android()
     assertNotNull(android)
@@ -210,9 +193,7 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
 
   @Test
   fun testUpdateCompileSdkAllValuesVersionWithOldApi() {
-    writeToBuildFile(TestFile.EMPTY_ANDROID_BLOCK)
-    val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+    val buildModel = initTest(TestFile.EMPTY_ANDROID_BLOCK)
 
     val android = buildModel.android()
     assertNotNull(android)
@@ -226,9 +207,7 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
 
   @Test
   fun testUpdateCompileSdkWithMinorVersionWithOldApi() {
-    writeToBuildFile(TestFile.EMPTY_ANDROID_BLOCK)
-    val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+    val buildModel = initTest(TestFile.EMPTY_ANDROID_BLOCK)
 
     val android = buildModel.android()
     assertNotNull(android)
@@ -242,9 +221,7 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
 
   @Test
   fun testUpdateCompileSdkWithExtensionVersionWithOldApi() {
-    writeToBuildFile(TestFile.EMPTY_ANDROID_BLOCK)
-    val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+    val buildModel = initTest(TestFile.EMPTY_ANDROID_BLOCK)
 
     val android = buildModel.android()
     assertNotNull(android)
@@ -258,9 +235,7 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
 
   @Test
   fun testUpdateCompileSdkWithPreviewWithOldApi() {
-    writeToBuildFile(TestFile.EMPTY_ANDROID_BLOCK)
-    val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+    val buildModel = initTest(TestFile.EMPTY_ANDROID_BLOCK)
 
     val android = buildModel.android()
     assertNotNull(android)
@@ -274,9 +249,7 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
 
   @Test
   fun testUpdateCompileSdkWithAddonWithOldApi() {
-    writeToBuildFile(TestFile.EMPTY_ANDROID_BLOCK)
-    val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+    val buildModel = initTest(TestFile.EMPTY_ANDROID_BLOCK)
 
     val android = buildModel.android()
     assertNotNull(android)
@@ -290,9 +263,7 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
 
   @Test
   fun testCreateCompileSdkWithZeroMinorRelease() {
-    writeToBuildFile(TestFile.EMPTY_ANDROID_BLOCK)
-    val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+    val buildModel = initTest(TestFile.EMPTY_ANDROID_BLOCK)
 
     val android = buildModel.android()
     assertNotNull(android)
@@ -307,9 +278,7 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
 
   @Test
   fun testReadUpdateCompileSdkValuesWithOldApi() {
-    writeToBuildFile(TestFile.EMPTY_ANDROID_BLOCK)
-    val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+    val buildModel = initTest(TestFile.EMPTY_ANDROID_BLOCK)
 
     val android = buildModel.android()
     assertNotNull(android)
@@ -339,9 +308,7 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
 
   @Test
   fun testWriteCompileSdkAfterElement() {
-    writeToBuildFile(TestFile.WRITE_RELEASE_BLOCK_AFTER_ELEMENT)
-    val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+    val buildModel = initTest(TestFile.WRITE_RELEASE_BLOCK_AFTER_ELEMENT)
 
     val android = buildModel.android()
     assertNotNull(android)
@@ -383,6 +350,13 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
     compileSdkVersion.setValue(33)
 
     assertThat(android.compileSdkVersion().getValue(GradlePropertyModel.INTEGER_TYPE)).isEqualTo(33)
+  }
+
+  private fun initTest(testFileName: TestFileName): GradleBuildModel {
+    writeToBuildFile(testFileName)
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse(CompileSdkPropertyModel.COMPILE_SDK_BLOCK_VERSION)
+    return buildModel
   }
 
   enum class TestFile(val path: @SystemDependent String) : TestFileName {
