@@ -96,12 +96,9 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
   private File loadSimpleDeclarativeApplication() throws Exception {
     assertTrue(DeclarativeStudioSupport.isEnabled());
     assertTrue(DeclarativeIdeSupport.isEnabled());
-    File file = prepareProjectForImport(TestProjectPaths.SIMPLE_APPLICATION_DECLARATIVE);
-    VfsUtil.markDirtyAndRefresh(false, true, true, findFileByIoFile(getProjectFolderPath(), true));
-    importProject();
-    prepareProjectForTest(myFixture.getProject(), null);
+    File projectRoot = loadProject(TestProjectPaths.SIMPLE_APPLICATION_DECLARATIVE);
     simulateSyncForGradleFilesUpdate();
-    return file;
+    return projectRoot;
   }
 
   private void runWithDeclarativeSupport(ThrowableRunnable<Exception> runnable) throws Exception {
