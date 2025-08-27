@@ -84,8 +84,6 @@ class GradleConnectedAndroidTestInvoker(
 ) {
 
   companion object {
-    const val RETENTION_ENABLE_PROPERTY = "android.experimental.testOptions.emulatorSnapshots.maxSnapshotsForTestFailures"
-    const val RETENTION_COMPRESS_SNAPSHOT_PROPERTY = "android.experimental.testOptions.emulatorSnapshots.compressSnapshots"
     const val UNINSTALL_INCOMPATIBLE_APKS_PROPERTY = "android.experimental.testOptions.uninstallIncompatibleApks"
   }
 
@@ -103,7 +101,6 @@ class GradleConnectedAndroidTestInvoker(
     testClassName: String,
     testMethodName: String,
     testRegex: String,
-    retentionConfiguration: RetentionConfiguration,
     extraInstrumentationOptions: String
   ) {
     androidTestSuiteView.println("Running tests")
@@ -192,7 +189,6 @@ class GradleConnectedAndroidTestInvoker(
             testClassName,
             testMethodName,
             testRegex,
-            retentionConfiguration,
             extraInstrumentationOptions
           )
         }
@@ -244,7 +240,7 @@ class GradleConnectedAndroidTestInvoker(
 
     val gradleExecutionSettings = getGradleExecutionSettings(
       project, devices, waitForDebugger, testPackageName, testClassName, testMethodName, testRegex,
-      retentionConfiguration, extraInstrumentationOptions)
+      extraInstrumentationOptions)
 
     gradleExecutionSettings.tasks = taskNames
 
@@ -276,7 +272,6 @@ class GradleConnectedAndroidTestInvoker(
     testClassName: String,
     testMethodName: String,
     testRegex: String,
-    retentionConfiguration: RetentionConfiguration,
     extraInstrumentationOptions: String
   ): GradleExecutionSettings {
     return GradleProjectSystemUtil.getOrCreateGradleExecutionSettings(project).apply {
@@ -290,14 +285,6 @@ class GradleConnectedAndroidTestInvoker(
 
       // Enable UTP test results reporting by embedded XML tag in stdout.
       withArgument("-P${UtpAndroidGradleTaskManagerExtension.ENABLE_UTP_TEST_REPORT_PROPERTY}=true")
-
-      if (retentionConfiguration.enabled == EnableRetention.YES) {
-        withArgument("-P$RETENTION_ENABLE_PROPERTY=${retentionConfiguration.maxSnapshots}")
-        withArgument("-P$RETENTION_COMPRESS_SNAPSHOT_PROPERTY=${retentionConfiguration.compressSnapshots}")
-      }
-      else if (retentionConfiguration.enabled == EnableRetention.NO) {
-        withArgument("-P$RETENTION_ENABLE_PROPERTY=0")
-      }
 
       // Add a test filter.
       if (testRegex.isNotBlank()) {

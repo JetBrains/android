@@ -141,21 +141,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
    */
   @NotNull public String EXTRA_OPTIONS = "";
 
-  /*
-   * Configurations for Emulator Snapshot for Test Failures (a.k.a Android Test Retention, Icebox).
-   *
-   * Can be set to yes, no or use gradle settings.
-   */
-  public EnableRetention RETENTION_ENABLED = EnableRetention.NO;
-  /*
-   * Maximum number of snapshots for Emulator Snapshot for Test Failures.
-   */
-  public int RETENTION_MAX_SNAPSHOTS = 2;
-  /*
-   * Compress snapshots or not for Emulator Snapshot for Test Failures.
-   */
-  public boolean RETENTION_COMPRESS_SNAPSHOTS = false;
-
   public AndroidTestRunConfiguration(final Project project, final ConfigurationFactory factory) {
     super(project, factory, true);
   }

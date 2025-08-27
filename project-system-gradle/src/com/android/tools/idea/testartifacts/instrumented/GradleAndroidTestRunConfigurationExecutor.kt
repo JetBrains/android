@@ -163,11 +163,6 @@ open class GradleAndroidTestRunConfigurationExecutor(
 
   fun doRunGradleTask(devices: List<IDevice>, androidTestSuiteView: AndroidTestSuiteView, isDebug: Boolean) {
     val gradleAndroidModel = requireNotNull(GradleAndroidDependencyModel.get(facet))
-    val retentionConfiguration = RetentionConfiguration(
-      configuration.RETENTION_ENABLED,
-      configuration.RETENTION_MAX_SNAPSHOTS,
-      configuration.RETENTION_COMPRESS_SNAPSHOTS
-    )
     val extraInstrumentationOptions = configuration.getExtraInstrumentationOptions(facet)
 
     val gradleConnectedAndroidTestInvoker = gradleConnectedAndroidTestInvoker()
@@ -176,7 +171,7 @@ open class GradleAndroidTestRunConfigurationExecutor(
       AndroidTestRunConfiguration.TEST_ALL_IN_MODULE -> {
         gradleConnectedAndroidTestInvoker.runGradleTask(
           project, devices, packageName, androidTestSuiteView, gradleAndroidModel, isDebug,
-          "", "", "", configuration.TEST_NAME_REGEX, retentionConfiguration,
+          "", "", "", configuration.TEST_NAME_REGEX,
           extraInstrumentationOptions
         )
       }
@@ -184,7 +179,7 @@ open class GradleAndroidTestRunConfigurationExecutor(
       AndroidTestRunConfiguration.TEST_ALL_IN_PACKAGE -> {
         gradleConnectedAndroidTestInvoker.runGradleTask(
           project, devices, packageName, androidTestSuiteView, gradleAndroidModel, isDebug,
-          configuration.PACKAGE_NAME, "", "", "", retentionConfiguration,
+          configuration.PACKAGE_NAME, "", "", "",
           extraInstrumentationOptions
         )
       }
@@ -192,7 +187,7 @@ open class GradleAndroidTestRunConfigurationExecutor(
       AndroidTestRunConfiguration.TEST_CLASS -> {
         gradleConnectedAndroidTestInvoker.runGradleTask(
           project, devices, packageName, androidTestSuiteView, gradleAndroidModel, isDebug,
-          "", configuration.CLASS_NAME, "", "", retentionConfiguration,
+          "", configuration.CLASS_NAME, "", "",
           extraInstrumentationOptions
         )
       }
@@ -200,7 +195,7 @@ open class GradleAndroidTestRunConfigurationExecutor(
       AndroidTestRunConfiguration.TEST_METHOD -> {
         gradleConnectedAndroidTestInvoker.runGradleTask(
           project, devices, packageName, androidTestSuiteView, gradleAndroidModel, isDebug,
-          "", configuration.CLASS_NAME, configuration.METHOD_NAME, "", retentionConfiguration,
+          "", configuration.CLASS_NAME, configuration.METHOD_NAME, "",
           extraInstrumentationOptions
         )
       }

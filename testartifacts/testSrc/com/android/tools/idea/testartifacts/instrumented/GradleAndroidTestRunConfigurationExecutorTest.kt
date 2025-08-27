@@ -105,7 +105,7 @@ class GradleAndroidTestRunConfigurationExecutorTest {
 
     verify(mockGradleConnectedAndroidTestInvoker).runGradleTask(eq(projectRule.project), eq(listOf(device)), eq("applicationId"), any(),
                                                                 any(),/*waitForDebugger*/ eq(false), eq(""), eq(""), eq(""),
-                                                                eq("testRegex"), any(), any())
+                                                                eq("testRegex"), any())
   }
 
   @Test
@@ -121,7 +121,7 @@ class GradleAndroidTestRunConfigurationExecutorTest {
 
     verify(mockGradleConnectedAndroidTestInvoker).runGradleTask(eq(projectRule.project), eq(listOf(device)), eq("applicationId"), any(),
                                                                 any(),/*waitForDebugger*/ eq(false), eq("com.example.test"), eq(""), eq(""),
-                                                                eq(""), any(), any())
+                                                                eq(""), any())
   }
 
   @Test
@@ -137,7 +137,7 @@ class GradleAndroidTestRunConfigurationExecutorTest {
 
     verify(mockGradleConnectedAndroidTestInvoker).runGradleTask(eq(projectRule.project), eq(listOf(device)), eq("applicationId"), any(),
                                                                 any(),/*waitForDebugger*/ eq(false), eq(""),
-                                                                eq("com.example.test.TestClass"), eq(""), eq(""), any(), any())
+                                                                eq("com.example.test.TestClass"), eq(""), eq(""), any())
   }
 
   @Test
@@ -153,64 +153,6 @@ class GradleAndroidTestRunConfigurationExecutorTest {
 
     verify(mockGradleConnectedAndroidTestInvoker).runGradleTask(eq(projectRule.project), eq(listOf(device)), eq("applicationId"), any(),
                                                                 any(),/*waitForDebugger*/ eq(false), eq(""),
-                                                                eq("com.example.test.TestClass"), eq("testMethod"), eq(""), any(), any())
-  }
-
-  @Test
-  fun testTaskReturnsSuccessForAllInModuleTestWithRetention() {
-    val retentionConfiguration = RetentionConfiguration(enabled = EnableRetention.YES, maxSnapshots = 5, compressSnapshots = true)
-    val env = getEnv(DefaultRunExecutor.getRunExecutorInstance())
-    val androidTestRunConfiguration = env.runProfile as AndroidTestRunConfiguration
-    androidTestRunConfiguration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_ALL_IN_MODULE
-    androidTestRunConfiguration.RETENTION_ENABLED = EnableRetention.YES
-    androidTestRunConfiguration.RETENTION_MAX_SNAPSHOTS = 5
-    androidTestRunConfiguration.RETENTION_COMPRESS_SNAPSHOTS = true
-    val executor = object : GradleAndroidTestRunConfigurationExecutor(env, FakeAndroidDevice.forDevices(listOf(device))) {
-      override fun gradleConnectedAndroidTestInvoker() = mockGradleConnectedAndroidTestInvoker
-    }
-    ProgressManager.getInstance()
-        .runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator())
-
-    verify(mockGradleConnectedAndroidTestInvoker).runGradleTask(eq(projectRule.project), eq(listOf(device)), eq("applicationId"), any(),
-                                                                any(),/*waitForDebugger*/ eq(false), eq(""), eq(""), eq(""),
-                                                                eq("testRegex"), eq(retentionConfiguration), any())
-  }
-
-  private fun testTaskReturnsSuccessForAllInPackageTestWithRetention(retentionConfiguration: RetentionConfiguration) {
-    val env = getEnv(DefaultRunExecutor.getRunExecutorInstance())
-    val androidTestRunConfiguration = env.runProfile as AndroidTestRunConfiguration
-    androidTestRunConfiguration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_ALL_IN_PACKAGE
-
-    androidTestRunConfiguration.RETENTION_ENABLED = retentionConfiguration.enabled
-    androidTestRunConfiguration.RETENTION_MAX_SNAPSHOTS = retentionConfiguration.maxSnapshots
-    androidTestRunConfiguration.RETENTION_COMPRESS_SNAPSHOTS = retentionConfiguration.compressSnapshots
-
-    val executor = object : GradleAndroidTestRunConfigurationExecutor(env, FakeAndroidDevice.forDevices(listOf(device))) {
-      override fun gradleConnectedAndroidTestInvoker() = mockGradleConnectedAndroidTestInvoker
-    }
-    ProgressManager.getInstance()
-        .runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator())
-
-    verify(mockGradleConnectedAndroidTestInvoker).runGradleTask(eq(projectRule.project), eq(listOf(device)), eq("applicationId"), any(),
-                                                                any(),/*waitForDebugger*/ eq(false), eq("com.example.test"), eq(""), eq(""),
-                                                                eq(""), eq(retentionConfiguration), any())
-  }
-
-  @Test
-  fun testTaskReturnsSuccessForAllInPackageTestWithRetentionEnabled() {
-    val retentionConfiguration = RetentionConfiguration(enabled = EnableRetention.YES, maxSnapshots = 5, compressSnapshots = true)
-    testTaskReturnsSuccessForAllInPackageTestWithRetention(retentionConfiguration)
-  }
-
-  @Test
-  fun testTaskReturnsSuccessForAllInPackageTestWithRetentionDisabled() {
-    val retentionConfiguration = RetentionConfiguration(enabled = EnableRetention.NO, maxSnapshots = 5, compressSnapshots = true)
-    testTaskReturnsSuccessForAllInPackageTestWithRetention(retentionConfiguration)
-  }
-
-  @Test
-  fun testTaskReturnsSuccessForAllInPackageTestWithRetentionUseGradle() {
-    val retentionConfiguration = RetentionConfiguration(enabled = EnableRetention.USE_GRADLE, maxSnapshots = 5, compressSnapshots = true)
-    testTaskReturnsSuccessForAllInPackageTestWithRetention(retentionConfiguration)
+                                                                eq("com.example.test.TestClass"), eq("testMethod"), eq(""), any())
   }
 }
