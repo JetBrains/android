@@ -84,17 +84,6 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.util.ui.JBUI
-import org.junit.Before
-import org.junit.ClassRule
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.MockedStatic
-import org.mockito.Mockito.atLeast
-import org.mockito.Mockito.verify
-import org.mockito.kotlin.any
-import org.mockito.kotlin.eq
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 import java.awt.Component
 import java.awt.DefaultKeyboardFocusManager
 import java.awt.Dimension
@@ -139,6 +128,17 @@ import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeoutException
 import kotlin.math.absoluteValue
 import kotlin.time.Duration.Companion.seconds
+import org.junit.Before
+import org.junit.ClassRule
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.MockedStatic
+import org.mockito.Mockito.atLeast
+import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /** Tests for [EmulatorView], [EmulatorDisplayPanel] and some emulator toolbar actions. */
 @RunsInEdt
@@ -178,7 +178,7 @@ class EmulatorViewTest {
   @Test
   fun testResizingRotationAndMouseInput() {
     fakeUi = FakeUi(createEmulatorDisplayPanel(), 2.0)
-    val inputEvents: MutableList<AndroidInputEvent> = mutableListOf()
+    val inputEvents = ArrayDeque<AndroidInputEvent>()
     val inputListener = object: DeviceInputListener {
       override fun eventSent(event: AndroidInputEvent) {
         inputEvents.add(event)
@@ -266,32 +266,24 @@ class EmulatorViewTest {
     val inputEventCall = fakeEmulator.getNextGrpcCall(2.seconds)
     assertThat(inputEventCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
     assertThat(shortDebugString(inputEventCall.getNextRequest(1.seconds))).isEqualTo("mouse_event { x: 35 y: 61 buttons: 1 }")
-    inputEvents.last()
-      .let { it as AndroidInputEvent.TouchEvent }
-      .let {
-        assertThat(it.deviceSerialNumber).isEqualTo(fakeEmulator.serialNumber)
-        assertThat(it.touches).hasSize(1)
-        assertThat(it.touches[0]).isEqualTo(AndroidInputEvent.TouchEvent.Touch(35, 61, 0))
-      }
+    (inputEvents.removeLast() as AndroidInputEvent.TouchEvent).apply {
+      assertThat(deviceSerialNumber).isEqualTo(fakeEmulator.serialNumber)
+      assertThat(touches).containsExactly(AndroidInputEvent.TouchEvent.Touch(35, 61, 0))
+    }
 
     fakeUi.mouse.dragTo(215, 48)
     assertThat(shortDebugString(inputEventCall.getNextRequest(1.seconds))).isEqualTo("mouse_event { x: 1404 y: 2723 buttons: 1 }")
-    inputEvents.last()
-      .let { it as AndroidInputEvent.TouchEvent }
-      .let {
-        assertThat(it.deviceSerialNumber).isEqualTo(fakeEmulator.serialNumber)
-        assertThat(it.touches).hasSize(1)
-        assertThat(it.touches[0]).isEqualTo(AndroidInputEvent.TouchEvent.Touch(1404, 2723, 0))
-      }
+    (inputEvents.removeLast() as AndroidInputEvent.TouchEvent).apply {
+      assertThat(deviceSerialNumber).isEqualTo(fakeEmulator.serialNumber)
+      assertThat(touches).containsExactly(AndroidInputEvent.TouchEvent.Touch(1404, 2723, 0))
+    }
 
     fakeUi.mouse.release()
     assertThat(shortDebugString(inputEventCall.getNextRequest(1.seconds))).isEqualTo("mouse_event { x: 1404 y: 2723 }")
-    inputEvents.last()
-      .let { it as AndroidInputEvent.TouchEvent }
-      .let {
-        assertThat(it.deviceSerialNumber).isEqualTo(fakeEmulator.serialNumber)
-        assertThat(it.touches).isEmpty()
-      }
+    (inputEvents.removeLast() as AndroidInputEvent.TouchEvent).apply {
+      assertThat(deviceSerialNumber).isEqualTo(fakeEmulator.serialNumber)
+      assertThat(touches).isEmpty()
+    }
 
     // Mouse events outside the display image shouldn't trigger listeners.
     inputEvents.clear()
