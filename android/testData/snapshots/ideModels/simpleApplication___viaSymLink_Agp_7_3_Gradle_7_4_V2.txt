@@ -357,7 +357,7 @@ MODULE                        : project_sm_src.app
                     ShadersDirectories            : <ROOT>_sm_src/app/src/testDebug/shaders [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>_sm_src/app/build/intermediates/default_proguard_files/global/proguard-android.txt-7.3.0 [-]
+            ProguardFiles                 : <ROOT>_sm_src/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-7.3.0 [-]
             ProguardFiles                 : <ROOT>_sm_src/app/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false

@@ -1,5 +1,5 @@
 android {
   defaultConfig {
-    setProguardFiles([getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'])
+    setProguardFiles([getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'])
   }
 }

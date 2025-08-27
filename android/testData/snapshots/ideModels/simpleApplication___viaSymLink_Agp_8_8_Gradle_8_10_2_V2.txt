@@ -366,7 +366,7 @@ MODULE                        : project_sm_src.app
                     BaselineProfileDirectories    : <ROOT>_sm_src/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>_sm_src/app/build/intermediates/default_proguard_files/global/proguard-android.txt-8.8.0 [-]
+            ProguardFiles                 : <ROOT>_sm_src/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.8.0 [-]
             ProguardFiles                 : <ROOT>_sm_src/app/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false

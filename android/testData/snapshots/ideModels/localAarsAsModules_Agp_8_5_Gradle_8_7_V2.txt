@@ -543,7 +543,7 @@ MODULE                        : project.app
                     BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-8.5.0 [-]
+            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.5.0 [-]
             ProguardFiles                 : <ROOT>/app/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -883,7 +883,7 @@ MODULE                        : project.library
                     BaselineProfileDirectories    : <ROOT>/library/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/library/build/intermediates/default_proguard_files/global/proguard-android.txt-8.5.0 [-]
+            ProguardFiles                 : <ROOT>/library/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.5.0 [-]
             ProguardFiles                 : <ROOT>/library/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false

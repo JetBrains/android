@@ -1,4 +1,4 @@
-ext.list = [getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro']
+ext.list = [getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro']
 android {
   defaultConfig {
     setProguardFiles(list)

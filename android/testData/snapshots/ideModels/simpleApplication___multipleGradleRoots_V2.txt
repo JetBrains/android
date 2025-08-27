@@ -317,7 +317,7 @@ MODULE                        : gradle_project_1.app
                     BaselineProfileDirectories    : <ROOT>/gradle_project_1/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/gradle_project_1/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
+            ProguardFiles                 : <ROOT>/gradle_project_1/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
             ProguardFiles                 : <ROOT>/gradle_project_1/app/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -1463,7 +1463,7 @@ MODULE                        : gradle_project_name.app
                     BaselineProfileDirectories    : <ROOT>/gradle_project_2/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/gradle_project_2/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
+            ProguardFiles                 : <ROOT>/gradle_project_2/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
             ProguardFiles                 : <ROOT>/gradle_project_2/app/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false

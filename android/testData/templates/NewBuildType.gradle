@@ -2,7 +2,7 @@ android {
   buildTypes {
     debug {
       minifyEnabled false
-      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules-debug.txt'
+      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules-debug.txt'
     }
   }
 }

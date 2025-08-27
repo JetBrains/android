@@ -2683,9 +2683,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     val defaultConfig = buildModel.android().defaultConfig()
     val proguardFiles = defaultConfig.proguardFiles()
-    verifyListProperty(proguardFiles, listOf("getDefaultProguardFile(${quote}proguard-android.txt${quote})", "proguard-rules.pro"))
+    verifyListProperty(proguardFiles, listOf("getDefaultProguardFile(${quote}proguard-android-optimize.txt${quote})", "proguard-rules.pro"))
     proguardFiles.addListValue()!!.setValue("value")
-    verifyListProperty(proguardFiles, listOf("getDefaultProguardFile(${quote}proguard-android.txt${quote})", "proguard-rules.pro", "value"))
+    verifyListProperty(proguardFiles, listOf("getDefaultProguardFile(${quote}proguard-android-optimize.txt${quote})", "proguard-rules.pro", "value"))
     proguardFiles.toList()!![0].delete()
     verifyListProperty(proguardFiles, listOf("proguard-rules.pro", "value"))
 
@@ -2706,10 +2706,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     val defaultConfig = buildModel.android().defaultConfig()
     val proguardFiles = defaultConfig.proguardFiles()
-    verifyListProperty(proguardFiles, listOf("getDefaultProguardFile(${quote}proguard-android.txt${quote})", "proguard-rules.pro"))
+    verifyListProperty(proguardFiles, listOf("getDefaultProguardFile(${quote}proguard-android-optimize.txt${quote})", "proguard-rules.pro"))
     val varModel = buildModel.ext().findProperty("list")
     varModel.addListValue()!!.setValue("value")
-    verifyListProperty(proguardFiles, listOf("getDefaultProguardFile(${quote}proguard-android.txt${quote})", "proguard-rules.pro", "value"))
+    verifyListProperty(proguardFiles, listOf("getDefaultProguardFile(${quote}proguard-android-optimize.txt${quote})", "proguard-rules.pro", "value"))
     varModel.toList()!![0].delete()
     verifyListProperty(proguardFiles, listOf("proguard-rules.pro", "value"))
 

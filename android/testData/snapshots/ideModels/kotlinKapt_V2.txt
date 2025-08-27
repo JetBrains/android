@@ -2708,7 +2708,7 @@ MODULE                        : MainActivity.lib
                     BaselineProfileDirectories    : <ROOT>/lib/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
+            ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
             ProguardFiles                 : <ROOT>/lib/proguard-rules.txt [-]
             ConsumerProguardFiles         : <ROOT>/lib/other.pro [-]
             IsDebuggable                  : false

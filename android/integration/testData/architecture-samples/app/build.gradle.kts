@@ -45,15 +45,15 @@ android {
         getByName("debug") {
             isMinifyEnabled = false
             isTestCoverageEnabled = true
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
-            testProguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguardTest-rules.pro")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            testProguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguardTest-rules.pro")
         }
 
         getByName("release") {
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
-            testProguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguardTest-rules.pro")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            testProguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguardTest-rules.pro")
         }
     }
 

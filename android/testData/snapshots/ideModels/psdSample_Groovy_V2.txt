@@ -2454,7 +2454,7 @@ MODULE                        : project.app
             Name                          : release
             ApplicationIdSuffix           : suffix
             VersionNameSuffix             : vsuffix
-            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
+            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
             ProguardFiles                 : <ROOT>/app/proguard-rules.txt
             ProguardFiles                 : <ROOT>/app/proguard-rules2.txt [-]
             IsDebuggable                  : false
@@ -4147,7 +4147,7 @@ MODULE                        : project.lib
                     BaselineProfileDirectories    : <ROOT>/lib/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
+            ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
             ProguardFiles                 : <ROOT>/lib/proguard-rules.txt
             ConsumerProguardFiles         : <ROOT>/lib/other.pro
             IsDebuggable                  : false

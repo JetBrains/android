@@ -1277,7 +1277,7 @@ MODULE                        : TestCompositeLib1.app
                     ShadersDirectories            : <ROOT>/TestCompositeLib1/app/src/testDebug/shaders [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/TestCompositeLib1/app/build/intermediates/default_proguard_files/global/proguard-android.txt-7.4.1 [-]
+            ProguardFiles                 : <ROOT>/TestCompositeLib1/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-7.4.1 [-]
             ProguardFiles                 : <ROOT>/TestCompositeLib1/app/proguard-rules.pro [-]
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -2409,7 +2409,7 @@ MODULE                        : TestCompositeLib1.lib
                     ShadersDirectories            : <ROOT>/TestCompositeLib1/lib/src/testDebug/shaders [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/TestCompositeLib1/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-7.4.1 [-]
+            ProguardFiles                 : <ROOT>/TestCompositeLib1/lib/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-7.4.1 [-]
             ProguardFiles                 : <ROOT>/TestCompositeLib1/lib/proguard-rules.pro [-]
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -3961,7 +3961,7 @@ MODULE                        : TestCompositeLib3.app
                     ShadersDirectories            : <ROOT>/TestCompositeLib3/app/src/testDebug/shaders [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/TestCompositeLib3/app/build/intermediates/default_proguard_files/global/proguard-android.txt-7.4.1 [-]
+            ProguardFiles                 : <ROOT>/TestCompositeLib3/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-7.4.1 [-]
             ProguardFiles                 : <ROOT>/TestCompositeLib3/app/proguard-rules.pro [-]
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -5071,7 +5071,7 @@ MODULE                        : TestCompositeLib3.lib
                     ShadersDirectories            : <ROOT>/TestCompositeLib3/lib/src/testDebug/shaders [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/TestCompositeLib3/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-7.4.1 [-]
+            ProguardFiles                 : <ROOT>/TestCompositeLib3/lib/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-7.4.1 [-]
             ProguardFiles                 : <ROOT>/TestCompositeLib3/lib/proguard-rules.pro [-]
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -6964,7 +6964,7 @@ MODULE                        : project.app
                     ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-7.4.1 [-]
+            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-7.4.1 [-]
             ProguardFiles                 : <ROOT>/app/proguard-rules.pro [-]
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -8100,7 +8100,7 @@ MODULE                        : project.lib
                     ShadersDirectories            : <ROOT>/lib/src/testDebug/shaders [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-7.4.1 [-]
+            ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-7.4.1 [-]
             ProguardFiles                 : <ROOT>/lib/proguard-rules.pro [-]
             IsDebuggable                  : false
             IsJniDebuggable               : false

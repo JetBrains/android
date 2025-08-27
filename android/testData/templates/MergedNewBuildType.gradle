@@ -13,11 +13,11 @@ android {
   buildTypes {
     release {
       minifyEnabled false
-      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.txt'
     }
     debug {
       minifyEnabled false
-      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules-debug.txt'
+      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules-debug.txt'
     }
   }
   productFlavors {

@@ -53,7 +53,7 @@ android {
             isMinifyEnabled = false
             renderscriptOptimLevel = 2
             signingConfig = signingConfigs.getByName("myConfig")
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.txt", "proguard-rules2.txt")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.txt", "proguard-rules2.txt")
         }
         create("specialRelease") {
             matchingFallbacks = mutableListOf("release", "debug")
