@@ -124,6 +124,7 @@ import java.awt.event.KeyEvent.VK_SPACE
 import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.KeyEvent.VK_UP
 import java.nio.file.Path
+import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeoutException
 import kotlin.math.absoluteValue
@@ -178,7 +179,7 @@ class EmulatorViewTest {
   @Test
   fun testResizingRotationAndMouseInput() {
     fakeUi = FakeUi(createEmulatorDisplayPanel(), 2.0)
-    val inputEvents = ArrayDeque<AndroidInputEvent>()
+    val inputEvents = LinkedBlockingDeque<AndroidInputEvent>()
     val inputListener = object: DeviceInputListener {
       override fun eventSent(event: AndroidInputEvent) {
         inputEvents.add(event)
@@ -266,21 +267,21 @@ class EmulatorViewTest {
     val inputEventCall = fakeEmulator.getNextGrpcCall(2.seconds)
     assertThat(inputEventCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
     assertThat(shortDebugString(inputEventCall.getNextRequest(1.seconds))).isEqualTo("mouse_event { x: 35 y: 61 buttons: 1 }")
-    (inputEvents.removeLast() as AndroidInputEvent.TouchEvent).apply {
+    (inputEvents.take() as AndroidInputEvent.TouchEvent).apply {
       assertThat(deviceSerialNumber).isEqualTo(fakeEmulator.serialNumber)
       assertThat(touches).containsExactly(AndroidInputEvent.TouchEvent.Touch(35, 61, 0))
     }
 
     fakeUi.mouse.dragTo(215, 48)
     assertThat(shortDebugString(inputEventCall.getNextRequest(1.seconds))).isEqualTo("mouse_event { x: 1404 y: 2723 buttons: 1 }")
-    (inputEvents.removeLast() as AndroidInputEvent.TouchEvent).apply {
+    (inputEvents.take() as AndroidInputEvent.TouchEvent).apply {
       assertThat(deviceSerialNumber).isEqualTo(fakeEmulator.serialNumber)
       assertThat(touches).containsExactly(AndroidInputEvent.TouchEvent.Touch(1404, 2723, 0))
     }
 
     fakeUi.mouse.release()
     assertThat(shortDebugString(inputEventCall.getNextRequest(1.seconds))).isEqualTo("mouse_event { x: 1404 y: 2723 }")
-    (inputEvents.removeLast() as AndroidInputEvent.TouchEvent).apply {
+    (inputEvents.take() as AndroidInputEvent.TouchEvent).apply {
       assertThat(deviceSerialNumber).isEqualTo(fakeEmulator.serialNumber)
       assertThat(touches).isEmpty()
     }
