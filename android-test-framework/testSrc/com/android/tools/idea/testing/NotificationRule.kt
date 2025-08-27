@@ -20,23 +20,25 @@ import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.containers.ContainerUtil
-import org.junit.rules.ExternalResource
 import javax.swing.Icon
+import org.junit.rules.ExternalResource
 
 /**
  * A rule that allows verification of [Notification]s posted during a test.
  *
  * The rule subscribes to the [com.intellij.util.messages.MessageBus] and collects posted notifications in a list of data objects that
- * encapsulate the fields of a [Notification] that a test might care about.
+ * encapsulate the fields of a [Notification] that a test might care about. The project message bus if used when [projectProvider] is
+ * provided. Otherwise, the  application message bus is used.
  *
  * Note that the [Notification] class itself is not good for us because it doesn't have an equals() method, and it contains fields we
  * definitely do not want to assert on for example, [Notification.id].
  */
-class NotificationRule(private val project: () -> Project) : ExternalResource() {
+class NotificationRule(private val projectProvider: (() -> Project)? = null) : ExternalResource() {
 
   private val disposable: Disposable = Disposer.newDisposable("NotificationRule")
 
@@ -50,24 +52,18 @@ class NotificationRule(private val project: () -> Project) : ExternalResource() 
   val notifications: List<NotificationInfo> = _notifications
 
   override fun before() {
-    project().messageBus.connect(disposable).subscribe(Notifications.TOPIC, object : Notifications {
+    val project = projectProvider?.invoke()
+    val componentManager = project ?: ApplicationManager.getApplication()
+    componentManager.messageBus.connect(disposable).subscribe(Notifications.TOPIC, object : Notifications {
       override fun notify(notification: Notification) {
-        _notifications.add(NotificationInfo(
-          notification.groupId,
-          notification.icon,
-          notification.title,
-          notification.subtitle,
-          notification.content,
-          notification.type,
-          notification.isImportant,
-          notification.actions
-        ))
+        _notifications.add(NotificationInfo(notification, project))
       }
     })
   }
 
   override fun after() {
     Disposer.dispose(disposable)
+    _notifications.clear()
   }
 
   /**
@@ -82,5 +78,19 @@ class NotificationRule(private val project: () -> Project) : ExternalResource() 
     val type: NotificationType,
     val important: Boolean? = false,
     val actions: MutableList<AnAction>,
-  )
+    val project: Project?,
+  ) {
+    constructor(notification: Notification, project: Project?) :
+      this(
+        notification.groupId,
+        notification.icon,
+        notification.title,
+        notification.subtitle,
+        notification.content,
+        notification.type,
+        notification.isImportant,
+        notification.actions,
+        project,
+      )
+  }
 }

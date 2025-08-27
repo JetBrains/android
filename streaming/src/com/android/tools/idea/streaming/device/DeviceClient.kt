@@ -34,10 +34,12 @@ import com.android.tools.idea.diagnostics.report.GenericReport
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
+import com.android.tools.idea.streaming.core.RUNNING_DEVICES_NOTIFICATION_GROUP
 import com.android.tools.idea.util.StudioPathManager
 import com.android.utils.TraceUtils.simpleId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceMirroringAbnormalAgentTermination
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PluginPathManager
@@ -130,6 +132,12 @@ private const val REPORT_FIELD_EXIT_CODE = "exitCode"
 private const val REPORT_FIELD_RUN_DURATION_MILLIS = "runDurationMillis"
 private const val REPORT_FIELD_AGENT_MESSAGES = "agentMessages"
 private const val REPORT_FIELD_DEVICE = "device"
+
+private const val NOTIFICATION_PREFIX = "NOTIFICATION "
+
+private val logger = Logger.getInstance(DeviceClient::class.java)
+
+private val pushSerializer = ExecutionSerializer()
 
 class DeviceClient(
   val deviceSerialNumber: String,
@@ -451,52 +459,7 @@ class DeviceClient(
     val command = "${preloadClause}CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process $DEVICE_PATH_BASE" +
                   " com.android.tools.screensharing.Main --socket=$socketName" +
                   "$maxSizeArg$orientationArg$flagsArg$maxBitRateArg$logLevelArg$codecArg"
-    clientScope.launch {
-      val log = Logger.getInstance("ScreenSharingAgent $deviceName")
-      val agentStartTime = System.currentTimeMillis()
-      val errors = OutputAccumulator(MAX_TOTAL_AGENT_MESSAGE_LENGTH, MAX_ERROR_MESSAGE_AGE_MILLIS)
-      try {
-        logger.info("Executing adb shell $command")
-        adbSession.deviceServices.shellAsLines(deviceSelector, command).collect {
-          when (it) {
-            is ShellCommandOutputElement.StdoutLine -> if (it.contents.isNotBlank()) log.info(it.contents)
-            is ShellCommandOutputElement.StderrLine -> {
-              if (it.contents.isNotBlank()) {
-                log.warn(it.contents)
-                errors.addMessage(it.contents.trimEnd())
-              }
-            }
-            is ShellCommandOutputElement.ExitCode -> {
-              onDisconnection(connection)
-              if (it.exitCode == 0) {
-                log.info("terminated")
-              } else {
-                log.warn("terminated with code ${it.exitCode}")
-                recordAbnormalAgentTermination(it.exitCode, System.currentTimeMillis() - agentStartTime, errors)
-                AgentLogSaver.saveLog(adbSession, deviceSelector)
-              }
-              for (listener in agentTerminationListeners) {
-                listener.agentTerminated(it.exitCode)
-              }
-              cancel()
-            }
-          }
-        }
-      }
-      catch (_: EOFException) {
-        // Device disconnected. This is not an error.
-        log.info("device disconnected")
-        onDisconnection(connection)
-        for (listener in agentTerminationListeners) {
-          listener.deviceDisconnected()
-        }
-      }
-      catch (e: Throwable) {
-        onDisconnection(connection)
-        adbSession.throwIfCancellationOrDeviceDisconnected(e)
-        throw RuntimeException("Command \"$command\" failed", e)
-      }
-    }
+    AgentHandler().startAgent(command, connection, deviceSelector, adbSession)
   }
 
   private fun updateAudioStreaming() {
@@ -617,6 +580,80 @@ class DeviceClient(
     fun agentTerminated(exitCode: Int)
     fun deviceDisconnected()
   }
+
+  private inner class AgentHandler() {
+    private val log = Logger.getInstance("ScreenSharingAgent $deviceName")
+    private val errors = OutputAccumulator(MAX_TOTAL_AGENT_MESSAGE_LENGTH, MAX_ERROR_MESSAGE_AGE_MILLIS)
+
+    fun startAgent(command: String, connection: Connection, deviceSelector: DeviceSelector, adbSession: AdbSession) {
+      clientScope.launch {
+        try {
+          logger.info("Executing adb shell $command")
+          val agentStartTime = System.currentTimeMillis()
+          adbSession.deviceServices.shellAsLines(deviceSelector, command).collect {
+            when (it) {
+              is ShellCommandOutputElement.StdoutLine -> processAgentOutput(OutputType.STDOUT, it.contents.trimEnd())
+              is ShellCommandOutputElement.StderrLine -> processAgentOutput(OutputType.STDERR, it.contents.trimEnd())
+              is ShellCommandOutputElement.ExitCode -> {
+                onDisconnection(connection)
+                if (it.exitCode == 0) {
+                  log.info("terminated")
+                }
+                else {
+                  log.warn("terminated with code ${it.exitCode}")
+                  recordAbnormalAgentTermination(it.exitCode, System.currentTimeMillis() - agentStartTime, errors)
+                  AgentLogSaver.saveLog(adbSession, deviceSelector)
+                }
+                for (listener in agentTerminationListeners) {
+                  listener.agentTerminated(it.exitCode)
+                }
+                cancel()
+              }
+            }
+          }
+        }
+        catch (_: EOFException) {
+          // Device disconnected. This is not an error.
+          log.info("device disconnected")
+          onDisconnection(connection)
+          for (listener in agentTerminationListeners) {
+            listener.deviceDisconnected()
+          }
+        }
+        catch (e: Throwable) {
+          onDisconnection(connection)
+          adbSession.throwIfCancellationOrDeviceDisconnected(e)
+          throw RuntimeException("Command \"$command\" failed", e)
+        }
+      }
+    }
+
+    private fun processAgentOutput(outputType: OutputType, text: String) {
+      if (text.isNotBlank()) {
+        val notification = text.startsWith(NOTIFICATION_PREFIX)
+        val message = (if (notification) text.substring(NOTIFICATION_PREFIX.length) else text).trimEnd()
+        var notificationType: NotificationType
+        when (outputType) {
+          OutputType.STDOUT -> {
+            log.info(message)
+            notificationType = NotificationType.INFORMATION
+          }
+          OutputType.STDERR -> {
+            log.warn(message)
+            if (!notification) {
+              errors.addMessage(message)
+            }
+            notificationType = NotificationType.WARNING
+          }
+        }
+        if (notification) {
+          RUNNING_DEVICES_NOTIFICATION_GROUP.createNotification(deviceName, message, notificationType).notify(null)
+        }
+      }
+    }
+  }
+
+  enum class OutputType { STDOUT, STDERR }
 
   private class DisposableCloser(private val channel: SuspendingSocketChannel) : Disposable {
 
@@ -773,8 +810,6 @@ class DeviceClient(
   }
 }
 
-private val logger = Logger.getInstance(DeviceClient::class.java)
-
 private class ExecutionSerializer {
 
   private val semaphores = mutableListOf<Entry>()
@@ -802,7 +837,5 @@ private class ExecutionSerializer {
     var refCount = 1
   }
 }
-
-private val pushSerializer = ExecutionSerializer()
 
 internal class AgentTerminatedException(val exitCode: Int) : RuntimeException("Exit code $exitCode")

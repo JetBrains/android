@@ -80,7 +80,8 @@ void AudioRecordReader::ReadUntilStopped() {
   while (!reader_stopped_) {
     int32_t num_samples = audio_record_.Read(&audio_data, BUF_SIZE);
     if (num_samples <= 0) {
-      Log::W("Audio: error reading audio mix: %d", num_samples);
+      Log::E("Audio: error reading audio mix: %d", num_samples);
+      fprintf(stderr, "NOTIFICATION Audio streaming stopped due an error while capturing audio\n");
       break;
     }
     int32_t num_frames = num_samples / num_channels_;
@@ -112,6 +113,7 @@ void AudioRecordReader::ReadUntilStopped() {
       if (!queued_ok && ++consequent_queue_error_count_ >= MAX_SUBSEQUENT_ERRORS) {
         if (!reader_stopped_) {
           Log::E("Audio: streaming stopped due to repeated errors while queuing data");
+          fprintf(stderr, "NOTIFICATION Audio streaming stopped due to repeated errors while queuing data\n");
         }
         return;
       }

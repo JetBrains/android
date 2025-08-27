@@ -44,6 +44,7 @@ import com.android.tools.idea.streaming.extractText
 import com.android.tools.idea.streaming.xr.TRANSLATION_STEP_SIZE
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.CrashReporterRule
+import com.android.tools.idea.testing.NotificationRule
 import com.android.tools.idea.testing.executeCapturingLoggedWarnings
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.testing.mockStatic
@@ -55,6 +56,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEVICE
 import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
@@ -92,20 +94,6 @@ import com.intellij.testFramework.TestDataProvider
 import com.intellij.testFramework.assertInstanceOf
 import com.intellij.util.ConcurrencyUtil
 import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap
-import kotlinx.coroutines.runBlocking
-import org.apache.http.entity.mime.MultipartEntityBuilder
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.ArgumentCaptor
-import org.mockito.Mockito.atLeast
-import org.mockito.Mockito.spy
-import org.mockito.Mockito.verify
-import org.mockito.kotlin.any
-import org.mockito.kotlin.eq
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 import java.awt.Dimension
 import java.awt.MouseInfo
 import java.awt.Point
@@ -149,6 +137,20 @@ import javax.swing.JEditorPane
 import kotlin.io.path.exists
 import kotlin.io.path.fileSize
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.runBlocking
+import org.apache.http.entity.mime.MultipartEntityBuilder
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito.atLeast
+import org.mockito.Mockito.spy
+import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /** Tests for [DeviceView], [DeviceDisplayPanel] and [DeviceClient]. */
 @RunsInEdt
@@ -157,8 +159,10 @@ internal class DeviceViewTest {
   private val agentRule = FakeScreenSharingAgentRule()
   private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = Executors.newCachedThreadPool())
   private val crashReporterRule = CrashReporterRule()
+  private val notificationRule = NotificationRule()
   @get:Rule
-  val ruleChain = RuleChain(agentRule, crashReporterRule, androidExecutorsRule, ClipboardSynchronizationDisablementRule(), EdtRule())
+  val ruleChain = RuleChain(agentRule, crashReporterRule, androidExecutorsRule, notificationRule,
+                            ClipboardSynchronizationDisablementRule(), EdtRule())
   @get:Rule
   val usageTrackerRule = UsageTrackerRule()
   private lateinit var device: FakeScreenSharingAgentRule.FakeDevice
@@ -1149,6 +1153,18 @@ internal class DeviceViewTest {
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(XrTranslationMessage(0F, 0F, -TRANSLATION_STEP_SIZE))
     view.zoom(ZoomType.OUT)
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(XrTranslationMessage(0F, 0F, TRANSLATION_STEP_SIZE))
+  }
+
+  @Test
+  fun testErrorNotification() {
+    createDeviceView(200, 300, 2.0)
+    waitForFrame()
+    runBlocking { agent.writeToStderr("NOTIFICATION Notification to be shown to the user\n") }
+    waitForCondition(2.seconds)  { notificationRule.notifications.isNotEmpty() }
+    val notification = notificationRule.notifications[0]
+    assertThat(notification.content).isEqualTo("Notification to be shown to the user")
+    assertThat(notification.title).isEqualTo("Pixel 5 API 32")
+    assertThat(notification.type).isEqualTo(NotificationType.WARNING)
   }
 
   private fun createDeviceView(width: Int, height: Int, screenScale: Double = 2.0) {

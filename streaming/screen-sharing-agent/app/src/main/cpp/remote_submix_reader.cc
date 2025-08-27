@@ -79,6 +79,7 @@ void RemoteSubmixReader::Start(CodecHandle* codec_handle) {
     codec_handle_ = codec_handle;
     if (!StartAudioStream()) {
       codec_handle_->Stop();
+      fprintf(stderr, "NOTIFICATION Unable start the audio stream\n");
     }
   }
 }
@@ -87,7 +88,7 @@ bool RemoteSubmixReader::StartAudioStream() {
   Log::D("Starting audio stream");
   aaudio_result_t result = AAudio_createStreamBuilder(&stream_builder_);
   if (result != AAUDIO_OK) {
-    Log::W("Unable to create an audio stream builder: %d", result);
+    Log::E("Unable to create an audio stream builder: %d", result);
     return false;
   }
   Jni jni = Jvm::GetJni();
@@ -101,7 +102,7 @@ bool RemoteSubmixReader::StartAudioStream() {
 
   result = AAudioStreamBuilder_openStream(stream_builder_, &stream_);
   if (result != AAUDIO_OK) {
-    Log::W("Unable to open the audio stream: %d", result);
+    Log::E("Unable to open the audio stream: %d", result);
     DeleteAudioStreamAndBuilder();
     return false;
   }
@@ -113,7 +114,7 @@ bool RemoteSubmixReader::StartAudioStream() {
 
   result = AAudioStream_requestStart(stream_);
   if (result != AAUDIO_OK) {
-    Log::W("Unable to start the audio stream: %d", result);
+    Log::E("Unable to start the audio stream: %d", result);
     return false;
   }
 
@@ -182,6 +183,7 @@ aaudio_data_callback_result_t RemoteSubmixReader::ConsumeAudioData(AAudioStream*
     }
     if (!queued_ok && ++consequent_queue_error_count_ >= MAX_SUBSEQUENT_ERRORS) {
       Log::E("Audio streaming stopped due to repeated errors while queuing data");
+      fprintf(stderr, "NOTIFICATION Audio streaming stopped due to repeated errors while queuing data\n");
       Stop();
       return AAUDIO_CALLBACK_RESULT_STOP;
     }

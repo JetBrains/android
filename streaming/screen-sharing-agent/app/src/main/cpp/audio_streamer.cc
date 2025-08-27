@@ -125,6 +125,7 @@ void AudioStreamer::Run() {
     if (!codec_buffer.Deque(-1)) {
       if (++consequent_deque_error_count_ >= MAX_SUBSEQUENT_ERRORS) {
         Log::E("Audio: streaming stopped due to repeated encoder errors");
+        fprintf(stderr, "NOTIFICATION Audio streaming stopped due to repeated encoder errors\n");
         break;
       }
       continue;
