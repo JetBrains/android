@@ -49,7 +49,7 @@ def generate_searchable_options(work_dir, out_dir, ide_path, plugins):
 
   studio_bin = {
     "Windows": "/android-studio/bin/studio.cmd",
-    "Linux": "/android-studio/bin/studio.sh",
+    "Linux": "/android-studio/bin/studio",
     "Darwin": "/Android Studio*.app/Contents/MacOS/studio",
   }
   [bin_path] = glob.glob(work_dir + studio_bin[platform.system()])

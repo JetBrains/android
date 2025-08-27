@@ -493,7 +493,7 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
         studioExecutable = "android-studio/bin/studio_safe.bat";
       }
     } else {
-      studioExecutable = "android-studio/bin/studio.sh";
+      studioExecutable = "android-studio/bin/studio";
       if (SystemInfo.isMac) {
         boolean isPreview = isMacPreview(workDir);
         studioExecutable = isPreview ? "Android Studio Preview.app/Contents/MacOS/studio" : "Android Studio.app/Contents/MacOS/studio";

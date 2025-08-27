@@ -117,7 +117,7 @@ def main(argv):
     run_command_list = [launcher]
   else:
     app_dir = os.path.join(script_dir, "android-studio")
-    run_command_list = [os.path.join(script_dir, "android-studio/bin/studio.sh")]
+    run_command_list = [os.path.join(script_dir, "android-studio/bin/studio")]
 
   for root, _, files in os.walk(app_dir):
     for file in files:
