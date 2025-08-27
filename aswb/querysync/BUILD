@@ -11,6 +11,7 @@ package(default_visibility = [
     "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/blaze/plugin/base:__subpackages__",
     "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/blaze/plugin/cpp:__subpackages__",
     "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/blaze/plugin/querysync:__subpackages__",
+    "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/g3plugins/citc:__subpackages__",
     "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/g3plugins/services:__subpackages__",
     "//tools/vendor/google3/aswb/java/com/google/devtools/intellij/protobuf:__subpackages__",
     "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/protobuf:__subpackages__",
