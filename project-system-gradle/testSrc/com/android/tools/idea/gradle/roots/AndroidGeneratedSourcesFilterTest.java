@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.gradle.roots;
 
-import com.android.tools.idea.gradle.model.IdeAndroidProject;
+import com.android.tools.idea.gradle.model.impl.FileImplKt;
+import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.intellij.openapi.application.ApplicationManager;
@@ -119,10 +121,10 @@ public class AndroidGeneratedSourcesFilterTest extends HeavyPlatformTestCase {
 
   @NotNull
   private static GradleAndroidModel createAndroidModel(@NotNull VirtualFile buildFolder) {
-    IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
-    when(androidProject.getBuildFolder()).thenReturn(virtualToIoFile(buildFolder));
+    IdeAndroidProjectImpl androidProject = mock(IdeAndroidProjectImpl.class);
+    when(androidProject.getBuildFolder()).thenReturn(FileImplKt.toImpl(virtualToIoFile(buildFolder)));
 
-    GradleAndroidModel androidModel = mock(GradleAndroidModel.class);
+    GradleAndroidModelImpl androidModel = mock(GradleAndroidModelImpl.class);
     when(androidModel.getAndroidProject()).thenReturn(androidProject);
     return androidModel;
   }

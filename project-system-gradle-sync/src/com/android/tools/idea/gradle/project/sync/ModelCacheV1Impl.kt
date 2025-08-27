@@ -102,12 +102,12 @@ import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeMavenCoordinatesImpl
 import com.android.tools.idea.gradle.model.impl.IdeMultiVariantDataImpl
 import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibraryImpl
+import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
 import com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
-import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestedTargetVariantImpl
@@ -142,13 +142,13 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
   fun String.deduplicate() = internedModels.intern(this)
   fun deduplicateFile(f: File): File = File(f.path.deduplicate())
 
-  fun sourceProviderFrom(provider: SourceProvider, mlModelBindingEnabled: Boolean): IdeSourceProviderImpl {
+  fun sourceProviderFrom(provider: SourceProvider, mlModelBindingEnabled: Boolean): IdeSourceProvider {
     val folder: File? = provider.manifestFile.parentFile
 
     fun File.makeRelativeAndDeduplicate(): String = (if (folder != null) relativeToOrSelf(folder) else this).path.deduplicate()
     fun Collection<File>.makeRelativeAndDeduplicate(): List<String> = map { it.makeRelativeAndDeduplicate() }
 
-    return IdeSourceProviderImpl(
+    return IdeSourceProvider(
       name = provider.name,
       folder = folder,
       manifestFile = provider.manifestFile.makeRelativeAndDeduplicate(),

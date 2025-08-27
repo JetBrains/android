@@ -65,11 +65,11 @@ import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
 import com.android.tools.idea.gradle.model.impl.IdeMultiVariantDataImpl
 import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibraryImpl
+import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
-import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestSuiteTargetImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestSuiteVariantTargetImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
@@ -406,13 +406,13 @@ interface AndroidProjectStubBuilder {
   val targetSdk: Int
   val mlModelBindingEnabled: Boolean
   val agpProjectFlags: IdeAndroidGradlePluginProjectFlagsImpl
-  val mainSourceProvider: IdeSourceProviderImpl
+  val mainSourceProvider: IdeSourceProvider
   val androidTestSourceProviderContainer: IdeExtraSourceProviderImpl?
   val unitTestSourceProviderContainer: IdeExtraSourceProviderImpl?
-  val debugSourceProvider: IdeSourceProviderImpl?
-  val androidTestDebugSourceProvider: IdeSourceProviderImpl?
-  val testDebugSourceProvider: IdeSourceProviderImpl?
-  val releaseSourceProvider: IdeSourceProviderImpl?
+  val debugSourceProvider: IdeSourceProvider?
+  val androidTestDebugSourceProvider: IdeSourceProvider?
+  val testDebugSourceProvider: IdeSourceProvider?
+  val releaseSourceProvider: IdeSourceProvider?
   val defaultConfig: IdeProductFlavorContainerImpl
   val debugBuildType: IdeBuildTypeContainerImpl?
   val releaseBuildType: IdeBuildTypeContainerImpl?
@@ -423,7 +423,7 @@ interface AndroidProjectStubBuilder {
   val declaredDependencies: IdeDeclaredDependenciesImpl
   val supportsBundleTask: Boolean
   fun productFlavors(dimension: String): List<IdeProductFlavorImpl>
-  fun productFlavorSourceProvider(flavor: String): IdeSourceProviderImpl
+  fun productFlavorSourceProvider(flavor: String): IdeSourceProvider
   fun productFlavorContainers(dimension: String): List<IdeProductFlavorContainerImpl>
 
   fun androidModuleDependencies(variant: String): List<AndroidModuleDependency>?
@@ -468,7 +468,7 @@ data class AndroidProjectBuilder(
   val mlModelBindingEnabled: AndroidProjectStubBuilder.() -> Boolean = { false },
   val agpProjectFlags: AndroidProjectStubBuilder.() -> IdeAndroidGradlePluginProjectFlagsImpl = { buildAgpProjectFlagsStub() },
   val defaultConfig: AndroidProjectStubBuilder.() -> IdeProductFlavorContainerImpl = { buildDefaultConfigStub() },
-  val mainSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderImpl = { buildMainSourceProviderStub() },
+  val mainSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProvider = { buildMainSourceProviderStub() },
   val androidTestSourceProvider: AndroidProjectStubBuilder.() -> IdeExtraSourceProviderImpl? =
     { buildAndroidTestSourceProviderContainerStub() },
   val unitTestSourceProvider: AndroidProjectStubBuilder.() -> IdeExtraSourceProviderImpl? =
@@ -477,10 +477,10 @@ data class AndroidProjectBuilder(
     { buildScreenshotTestSourceProviderContainerStub() },
   val testFixturesSourceProvider: AndroidProjectStubBuilder.() -> IdeExtraSourceProviderImpl? =
     { buildTestFixturesSourceProviderContainerStub() },
-  val debugSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderImpl? = { buildDebugSourceProviderStub() },
-  val androidTestDebugSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderImpl? = { buildAndroidTestDebugSourceProviderStub() },
-  val testDebugSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderImpl? = { buildTestDebugSourceProviderStub() },
-  val releaseSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderImpl? = { buildReleaseSourceProviderStub() },
+  val debugSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProvider? = { buildDebugSourceProviderStub() },
+  val androidTestDebugSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProvider? = { buildAndroidTestDebugSourceProviderStub() },
+  val testDebugSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProvider? = { buildTestDebugSourceProviderStub() },
+  val releaseSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProvider? = { buildReleaseSourceProviderStub() },
   val debugBuildType: AndroidProjectStubBuilder.() -> IdeBuildTypeContainerImpl? = { buildDebugBuildTypeStub() },
   val releaseBuildType: AndroidProjectStubBuilder.() -> IdeBuildTypeContainerImpl? = { buildReleaseBuildTypeStub() },
   val flavorDimensions: AndroidProjectStubBuilder.() -> List<String>? = { null },
@@ -492,7 +492,7 @@ data class AndroidProjectBuilder(
   val applicationIdFor: AndroidProjectStubBuilder.(variant: String) -> String = { "applicationId" },
   val testApplicationId: AndroidProjectStubBuilder.() -> String = { "testApplicationId" },
   val productFlavorsStub: AndroidProjectStubBuilder.(dimension: String) -> List<IdeProductFlavorImpl> = { dimension -> emptyList() },
-  val productFlavorSourceProviderStub: AndroidProjectStubBuilder.(flavor: String) -> IdeSourceProviderImpl =
+  val productFlavorSourceProviderStub: AndroidProjectStubBuilder.(flavor: String) -> IdeSourceProvider =
     { flavor -> sourceProvider(flavor) },
   val productFlavorContainersStub: AndroidProjectStubBuilder.(dimension: String) -> List<IdeProductFlavorContainerImpl> =
     { dimension -> buildProductFlavorContainersStub(dimension) },
@@ -540,7 +540,7 @@ data class AndroidProjectBuilder(
   fun withDefaultConfig(defaultConfig: AndroidProjectStubBuilder.() -> IdeProductFlavorContainerImpl) =
     copy(defaultConfig = defaultConfig)
 
-  fun withMainSourceProvider(mainSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderImpl) =
+  fun withMainSourceProvider(mainSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProvider) =
     copy(mainSourceProvider = mainSourceProvider)
 
   fun withAndroidTestSourceProvider(androidTestSourceProvider: AndroidProjectStubBuilder.() -> IdeExtraSourceProviderImpl?) =
@@ -552,10 +552,10 @@ data class AndroidProjectBuilder(
   fun withScreenshotTestSourceProvider(screenshotTestSourceProvider: AndroidProjectStubBuilder.() -> IdeExtraSourceProviderImpl?) =
     copy(screenshotTestSourceProvider = screenshotTestSourceProvider)
 
-  fun withDebugSourceProvider(debugSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderImpl?) =
+  fun withDebugSourceProvider(debugSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProvider?) =
     copy(debugSourceProvider = debugSourceProvider)
 
-  fun withReleaseSourceProvider(releaseSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderImpl?) =
+  fun withReleaseSourceProvider(releaseSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProvider?) =
     copy(releaseSourceProvider = releaseSourceProvider)
 
   fun withDebugBuildType(debugBuildType: AndroidProjectStubBuilder.() -> IdeBuildTypeContainerImpl?) =
@@ -579,7 +579,7 @@ data class AndroidProjectBuilder(
   fun withProductFlavors(productFlavors: AndroidProjectStubBuilder.(dimension: String) -> List<IdeProductFlavorImpl>) =
     copy(productFlavorsStub = productFlavors)
 
-  fun withProductFlavorSourceProvider(productFlavorSourceProvider: AndroidProjectStubBuilder.(flavor: String) -> IdeSourceProviderImpl) =
+  fun withProductFlavorSourceProvider(productFlavorSourceProvider: AndroidProjectStubBuilder.(flavor: String) -> IdeSourceProvider) =
     copy(productFlavorSourceProviderStub = productFlavorSourceProvider)
 
   fun withProductFlavorContainers(productFlavorContainers: AndroidProjectStubBuilder.(dimension: String) -> List<IdeProductFlavorContainerImpl>) =
@@ -640,13 +640,13 @@ data class AndroidProjectBuilder(
         override val targetSdk: Int get() = targetSdk()
         override val mlModelBindingEnabled: Boolean get() = mlModelBindingEnabled()
         override val agpProjectFlags: IdeAndroidGradlePluginProjectFlagsImpl get() = agpProjectFlags()
-        override val mainSourceProvider: IdeSourceProviderImpl get() = mainSourceProvider()
+        override val mainSourceProvider: IdeSourceProvider get() = mainSourceProvider()
         override val androidTestSourceProviderContainer: IdeExtraSourceProviderImpl? get() = androidTestSourceProvider()
         override val unitTestSourceProviderContainer: IdeExtraSourceProviderImpl? get() = unitTestSourceProvider()
-        override val debugSourceProvider: IdeSourceProviderImpl? get() = debugSourceProvider()
-        override val androidTestDebugSourceProvider: IdeSourceProviderImpl? get() = androidTestDebugSourceProvider()
-        override val testDebugSourceProvider: IdeSourceProviderImpl? get() = testDebugSourceProvider()
-        override val releaseSourceProvider: IdeSourceProviderImpl? get() = releaseSourceProvider()
+        override val debugSourceProvider: IdeSourceProvider? get() = debugSourceProvider()
+        override val androidTestDebugSourceProvider: IdeSourceProvider? get() = androidTestDebugSourceProvider()
+        override val testDebugSourceProvider: IdeSourceProvider? get() = testDebugSourceProvider()
+        override val releaseSourceProvider: IdeSourceProvider? get() = releaseSourceProvider()
         override val defaultConfig: IdeProductFlavorContainerImpl = defaultConfig()
         override val debugBuildType: IdeBuildTypeContainerImpl? = debugBuildType()
         override val releaseBuildType: IdeBuildTypeContainerImpl? = releaseBuildType()
@@ -659,7 +659,7 @@ data class AndroidProjectBuilder(
         override fun applicationId(variant: String): String = applicationIdFor(variant)
         override val testApplicationId: String get() = testApplicationId()
         override fun productFlavors(dimension: String): List<IdeProductFlavorImpl> = productFlavorsStub(dimension)
-        override fun productFlavorSourceProvider(flavor: String): IdeSourceProviderImpl = productFlavorSourceProviderStub(flavor)
+        override fun productFlavorSourceProvider(flavor: String): IdeSourceProvider = productFlavorSourceProviderStub(flavor)
         override fun productFlavorContainers(dimension: String): List<IdeProductFlavorContainerImpl> = productFlavorContainersStub(
           dimension)
 
@@ -713,8 +713,8 @@ fun createAndroidProjectBuilderForDefaultTestProjectStructure(
     releaseSourceProvider = { null }
   )
 
-fun AndroidProjectStubBuilder.createMainSourceProviderForDefaultTestProjectStructure(): IdeSourceProviderImpl {
-  return IdeSourceProviderImpl(
+fun AndroidProjectStubBuilder.createMainSourceProviderForDefaultTestProjectStructure(): IdeSourceProvider {
+  return IdeSourceProvider(
     name = ARTIFACT_NAME_MAIN,
     folder = moduleBasePath,
     manifestFile = "AndroidManifest.xml",
@@ -733,7 +733,7 @@ fun AndroidProjectStubBuilder.createMainSourceProviderForDefaultTestProjectStruc
   )
 }
 
-fun AndroidProjectStubBuilder.buildMainSourceProviderStub(): IdeSourceProviderImpl =
+fun AndroidProjectStubBuilder.buildMainSourceProviderStub(): IdeSourceProvider =
   sourceProvider(ARTIFACT_NAME_MAIN, moduleBasePath.resolve("src/main"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
 
 fun AndroidProjectStubBuilder.extraSourceProvider(name: String, relative: String): IdeExtraSourceProviderImpl =
@@ -755,19 +755,19 @@ fun AndroidProjectStubBuilder.buildUnitTestSourceProviderContainerStub(): IdeExt
 fun AndroidProjectStubBuilder.buildScreenshotTestSourceProviderContainerStub(): IdeExtraSourceProviderImpl =
   extraSourceProvider(ARTIFACT_NAME_SCREENSHOT_TEST, "src/screenshotTest")
 
-fun AndroidProjectStubBuilder.buildDebugSourceProviderStub(): IdeSourceProviderImpl =
+fun AndroidProjectStubBuilder.buildDebugSourceProviderStub(): IdeSourceProvider =
   sourceProvider("debug", moduleBasePath.resolve("src/debug"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
 
-fun AndroidProjectStubBuilder.buildAndroidTestDebugSourceProviderStub(): IdeSourceProviderImpl =
+fun AndroidProjectStubBuilder.buildAndroidTestDebugSourceProviderStub(): IdeSourceProvider =
   sourceProvider("androidTestDebug", moduleBasePath.resolve("src/androidTestDebug"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
 
-fun AndroidProjectStubBuilder.buildTestDebugSourceProviderStub(): IdeSourceProviderImpl =
+fun AndroidProjectStubBuilder.buildTestDebugSourceProviderStub(): IdeSourceProvider =
   sourceProvider("testDebug", moduleBasePath.resolve("src/testDebug"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
 
-fun AndroidProjectStubBuilder.buildReleaseSourceProviderStub(): IdeSourceProviderImpl =
+fun AndroidProjectStubBuilder.buildReleaseSourceProviderStub(): IdeSourceProvider =
   sourceProvider("release", moduleBasePath.resolve("src/release"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
 
-fun AndroidProjectStubBuilder.sourceProvider(name: String): IdeSourceProviderImpl =
+fun AndroidProjectStubBuilder.sourceProvider(name: String): IdeSourceProvider =
   sourceProvider(name, moduleBasePath.resolve("src/$name"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
 
 private fun sourceProvider(
@@ -776,8 +776,8 @@ private fun sourceProvider(
   includeRenderScriptSources: Boolean = false,
   includeAidlSources: Boolean = false,
   includeShadersSources: Boolean = false,
-): IdeSourceProviderImpl {
-  return IdeSourceProviderImpl(
+): IdeSourceProvider {
+  return IdeSourceProvider(
     name = name,
     folder = rootDir,
     manifestFile = "AndroidManifest.xml",

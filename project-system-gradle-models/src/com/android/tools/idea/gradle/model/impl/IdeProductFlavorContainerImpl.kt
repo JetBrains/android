@@ -16,10 +16,11 @@
 package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
+import com.android.tools.idea.gradle.model.IdeSourceProvider
 import java.io.Serializable
 
 data class IdeProductFlavorContainerImpl(
   override val productFlavor: IdeProductFlavorImpl,
-  override val sourceProvider: IdeSourceProviderImpl?,
+  override val sourceProvider: IdeSourceProvider?,
   override val extraSourceProviders: List<IdeExtraSourceProviderImpl>
 ) : IdeProductFlavorContainer, Serializable

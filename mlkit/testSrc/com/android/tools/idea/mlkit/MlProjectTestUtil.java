@@ -20,7 +20,7 @@ import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.makeAutoIn
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static java.util.Collections.emptyList;
 
-import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl;
+import com.android.tools.idea.gradle.model.IdeSourceProvider;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.android.tools.idea.testing.JavaLibraryDependency;
@@ -63,7 +63,7 @@ public class MlProjectTestUtil {
           .withMlModelBindingEnabled(it -> true)
           .withNamespace("p1.p2")
           .withJavaLibraryDependencyList((it, variant) -> javaLibraryDependencies)
-          .withMainSourceProvider(it -> new IdeSourceProviderImpl(
+          .withMainSourceProvider(it -> new IdeSourceProvider(
             ARTIFACT_NAME_MAIN,
             it.getModuleBasePath(),
             "AndroidManifest.xml",

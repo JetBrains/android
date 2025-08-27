@@ -25,10 +25,12 @@ import java.io.Serializable
  * We need a sealed interface so that the model classes pass validation, we can't use the [IdeDependenciesCore] interface
  * as this is in a different package. We still need other references to this interface within com.android.tools.idea.gradle.model
  */
-sealed interface IdeDependenciesCoreImpl: IdeDependenciesCore, Serializable
+sealed interface IdeDependenciesCoreImpl: IdeDependenciesCore, Serializable {
+  override val dependencies: List<IdeDependencyCoreImpl>
+}
 
 data object ThrowingIdeDependencies : IdeDependenciesCoreImpl {
-  override fun lookup(ref: Int): IdeDependencyCore { error("Should not be called") }
+  override fun lookup(ref: Int): IdeDependencyCoreImpl { error("Should not be called") }
   override val dependencies: List<IdeDependencyCoreImpl> get() { error("Should not be called") }
 
   // Make sure the serialization always returns this singleton
@@ -39,7 +41,7 @@ data object ThrowingIdeDependencies : IdeDependenciesCoreImpl {
 data class IdeDependenciesCoreDirect(
   override val dependencies: List<IdeDependencyCoreImpl>,
 ) : IdeDependenciesCoreImpl, Serializable {
-  override fun lookup(ref: Int): IdeDependencyCore = dependencies[ref]
+  override fun lookup(ref: Int): IdeDependencyCoreImpl = dependencies[ref]
 }
 
 fun IdeDependenciesCore.lookupAll(indexes: List<Int>?): List<IdeDependencyCoreImpl>? {
@@ -51,7 +53,7 @@ data class IdeDependenciesCoreRef(
   val index: Int,
   override val dependencies: List<IdeDependencyCoreImpl> = transitiveClosure(referee.lookup(index), referee),
 ) : IdeDependenciesCoreImpl, Serializable {
-  override fun lookup(ref: Int): IdeDependencyCore = referee.lookup(ref)
+  override fun lookup(ref: Int): IdeDependencyCoreImpl = referee.lookup(ref)
 }
 
 fun transitiveClosure(rootDependency: IdeDependencyCore, classpath: IdeDependenciesCoreDirect): List<IdeDependencyCoreImpl> {

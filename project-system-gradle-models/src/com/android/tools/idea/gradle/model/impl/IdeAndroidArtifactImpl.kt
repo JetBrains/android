@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeDependencies
-import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
+import com.android.tools.idea.gradle.model.IdeSourceProvider
 import java.io.File
 
 data class IdeAndroidArtifactCoreImpl(
@@ -28,8 +28,8 @@ data class IdeAndroidArtifactCoreImpl(
   override val compileTaskName: String?,
   override val assembleTaskName: String?,
   override val classesFolder: List<FileImpl>,
-  override val variantSourceProvider: IdeSourceProviderImpl?,
-  override val multiFlavorSourceProvider: IdeSourceProviderImpl?,
+  override val variantSourceProvider: IdeSourceProvider?,
+  override val multiFlavorSourceProvider: IdeSourceProvider?,
   override val ideSetupTaskNames: List<String>,
   override val generatedSourceFolders: List<FileImpl>,
   override val isTestArtifact: Boolean,
@@ -56,8 +56,8 @@ data class IdeAndroidArtifactCoreImpl(
     compileTaskName: String?,
     assembleTaskName: String?,
     classesFolder: List<File>,
-    variantSourceProvider: IdeSourceProviderImpl?,
-    multiFlavorSourceProvider: IdeSourceProviderImpl?,
+    variantSourceProvider: IdeSourceProvider?,
+    multiFlavorSourceProvider: IdeSourceProvider?,
     ideSetupTaskNames: List<String>,
     generatedSourceFolders: List<File>,
     isTestArtifact: Boolean,
@@ -112,7 +112,36 @@ data class IdeAndroidArtifactCoreImpl(
 data class IdeAndroidArtifactImpl(
   private val core: IdeAndroidArtifactCoreImpl,
   private val resolver: IdeLibraryModelResolverImpl
-) : IdeAndroidArtifact, IdeAndroidArtifactCore by core {
+) : IdeAndroidArtifact, IdeAndroidArtifactCore  {
+
+  override val name: IdeArtifactName = core.name
+  override val compileTaskName: String? = core.compileTaskName
+  override val assembleTaskName: String? = core.assembleTaskName
+  override val classesFolder: List<FileImpl> = core.classesFolder
+  override val variantSourceProvider: IdeSourceProvider? = core.variantSourceProvider
+  override val multiFlavorSourceProvider: IdeSourceProvider? = core.multiFlavorSourceProvider
+  override val ideSetupTaskNames: List<String> = core.ideSetupTaskNames
+  override val generatedSourceFolders: List<FileImpl> = core.generatedSourceFolders
+  override val isTestArtifact: Boolean = core.isTestArtifact
+  override val unresolvedDependencies: List<IdeUnresolvedDependencyImpl> = core.unresolvedDependencies
+  override val generatedClassPaths: Map<String, FileImpl> = core.generatedClassPaths
+  override val bytecodeTransforms: List<IdeBytecodeTransformationImpl>? = core.bytecodeTransforms
+
+  override val applicationId: String? = core.applicationId
+  override val signingConfigName: String? = core.signingConfigName
+  override val isSigned: Boolean = core.isSigned
+  override val generatedResourceFolders: List<FileImpl> = core.generatedResourceFolders
+  override val additionalRuntimeApks: List<FileImpl> = core.additionalRuntimeApks
+  override val testOptions: IdeTestOptionsImpl? = core.testOptions
+  override val abiFilters: Set<String> = core.abiFilters
+  override val buildInformation: IdeBuildTasksAndOutputInformationImpl = core.buildInformation
+  override val codeShrinker: CodeShrinker? = core.codeShrinker
+  override val privacySandboxSdkInfo: IdePrivacySandboxSdkInfoImpl? = core.privacySandboxSdkInfo
+  override val compileClasspathCore: IdeDependenciesCoreImpl = core.compileClasspathCore
+  override val runtimeClasspathCore: IdeDependenciesCoreImpl = core.runtimeClasspathCore
+  override val desugaredMethodsFiles: List<FileImpl> = core.desugaredMethodsFiles
+  override val generatedAssetFolders: List<FileImpl> = core.generatedAssetFolders
+
   override val compileClasspath: IdeDependencies = IdeDependencies(core.compileClasspathCore, resolver)
   override val runtimeClasspath: IdeDependencies = IdeDependencies(core.runtimeClasspathCore, resolver)
 }

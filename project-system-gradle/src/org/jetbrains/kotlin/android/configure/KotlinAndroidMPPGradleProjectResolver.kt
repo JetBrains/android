@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet.UNIT
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
-import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.project.sync.IdeAndroidModels
 import com.android.utils.appendCapitalized
@@ -142,7 +141,7 @@ fun IdeVariantCoreImpl.patchFromMppModel(
       .mapNotNull { artifact.getRootKotlinSourceSet(it) }
   }
 
-  fun IdeSourceProviderImpl?.patch(artifact: IdeModuleWellKnownSourceSet): IdeSourceProviderImpl? {
+  fun IdeSourceProvider?.patch(artifact: IdeModuleWellKnownSourceSet): IdeSourceProvider? {
     val root = androidProject.defaultSourceProvider.sourceProvider(artifact)?.manifestFile?.parentFile
 
     val sourceSets = sourceSetsFor(artifact)
@@ -157,7 +156,7 @@ fun IdeVariantCoreImpl.patchFromMppModel(
     if (missingSourceDirs.isEmpty() && missingResourceDirs.isEmpty()) return this
 
     val thisOrNewProvider = this
-      ?: IdeSourceProviderImpl(
+      ?: IdeSourceProvider(
         // We cannot use [variantName] directly because it is likely to clash with its build type if the variant specific source provider
         // is null
         name = "${variantName}_KotlinMPP",

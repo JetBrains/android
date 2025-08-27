@@ -33,13 +33,20 @@ import com.android.tools.idea.gradle.model.IdeDeclaredDependencies
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
-import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.model.filteredVariantNames
+import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
+import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactImpl
+import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
+import com.android.tools.idea.gradle.model.impl.IdeBasicVariantImpl
+import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
+import com.android.tools.idea.gradle.model.impl.IdeDeclaredDependenciesImpl
+import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactImpl
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
+import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.util.BaselineProfileUtil.getGenerateBaselineProfileTaskName
@@ -51,7 +58,6 @@ import com.android.tools.idea.projectsystem.TestComponentType
 import com.android.tools.lint.client.api.LintClient.Companion.getGradleDesugaring
 import com.android.tools.lint.detector.api.Desugaring
 import com.android.utils.usLocaleCapitalize
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.pom.java.LanguageLevel
@@ -60,21 +66,22 @@ import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 import java.util.EnumSet
 import java.util.Locale
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
-private open class GradleAndroidModelImpl(
+@VisibleForTesting
+open class GradleAndroidModelImpl(
   val data: GradleAndroidModelData,
-  override val project: Project,
 ) : GradleAndroidModel {
-  constructor(other: GradleAndroidModelImpl) : this(other.data, other.project)
+  constructor(other: GradleAndroidModelImpl) : this(other.data)
   // Need to be initialized here
-  private val myBuildTypesByName: Map<String, IdeBuildTypeContainer> =
+  private val myBuildTypesByName: Map<String, IdeBuildTypeContainerImpl> =
     androidProject.multiVariantData?.buildTypes.orEmpty().associateBy { it.buildType.name }
-  private val myProductFlavorsByName: Map<String, IdeProductFlavorContainer> =
+  private val myProductFlavorsByName: Map<String, IdeProductFlavorContainerImpl> =
     androidProject.multiVariantData?.productFlavors.orEmpty().associateBy { it.productFlavor.name }
-  private val myCachedBasicVariantsByName: Map<String, IdeBasicVariant> =
+  private val myCachedBasicVariantsByName: Map<String, IdeBasicVariantImpl> =
     data.androidProject.basicVariants.associateBy { it.name }
   private val myCachedVariantsByName: Map<String, IdeVariantCoreImpl> = data.variants.associateBy { it.name }
 
@@ -82,11 +89,11 @@ private open class GradleAndroidModelImpl(
   override val features: AndroidModelFeatures = AndroidModelFeatures(agpVersion)
   override val moduleName: String get() = data.moduleName
   override val rootDirPath: File get() = data.rootDirPath
-  override val androidProject: IdeAndroidProject get() = data.androidProject
-  override val declaredDependencies: IdeDeclaredDependencies get() = data.declaredDependencies
+  override val androidProject: IdeAndroidProjectImpl get() = data.androidProject
+  override val declaredDependencies: IdeDeclaredDependenciesImpl get() = data.declaredDependencies
   override val selectedVariantName: String get() = data.selectedVariantName
-  override val selectedBasicVariant: IdeBasicVariant get() = myCachedBasicVariantsByName[selectedVariantName] ?: unknownSelectedVariant()
-  override val selectedVariant: IdeVariantCore get() = myCachedVariantsByName[selectedVariantName] ?: unknownSelectedVariant()
+  override val selectedBasicVariant: IdeBasicVariantImpl get() = myCachedBasicVariantsByName[selectedVariantName] ?: unknownSelectedVariant()
+  override val selectedVariant: IdeVariantCoreImpl get() = myCachedVariantsByName[selectedVariantName] ?: unknownSelectedVariant()
 
   /**
    * @return the version code associated with the merged flavor of the selected variant, or `null` if none have been set.
@@ -99,18 +106,18 @@ private open class GradleAndroidModelImpl(
       .mapNotNull { it.value.productFlavor.dimension?.let { dimension -> dimension to it.key } }
       .sortedBy { androidProject.flavorDimensions.indexOf(it.first) }
       .groupBy({ it.first }, { it.second })
-  override val filteredVariantNames: Collection<String> get() = androidProject.filteredVariantNames
+  override val filteredVariantNames: List<String> get() = androidProject.filteredVariantNames.toList()
   override val variants: List<IdeVariantCoreImpl> get() = myCachedVariantsByName.values.toList()
   override val filteredDebuggableVariants: Set<String> get() =
     androidProject.basicVariants.mapNotNull {
       if (myBuildTypesByName[it.buildType]?.buildType?.isDebuggable == true && !it.hideInStudio ) it.name else null
     }.toSet()
   override fun findBasicVariantByName(variantName: String): IdeBasicVariant? = myCachedBasicVariantsByName[variantName]
-  override fun findVariantByName(variantName: String): IdeVariantCore? = myCachedVariantsByName[variantName]
+  override fun findVariantByName(variantName: String): IdeVariantCoreImpl? = myCachedVariantsByName[variantName]
 
 
 
-  override fun getArtifactCoreForAndroidTest(): IdeAndroidArtifactCore? {
+  override fun getArtifactCoreForAndroidTest(): IdeAndroidArtifactCoreImpl? {
     return when (androidProject.projectType) {
       IdeAndroidProjectType.PROJECT_TYPE_TEST -> selectedVariant.mainArtifact
       else -> selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }
@@ -151,7 +158,7 @@ private open class GradleAndroidModelImpl(
   override val allHostTestSourceProviders: Map<TestComponentType.HostTest, List<IdeSourceProvider>> get() = data.allHostTestSourceProviders
   override val allDeviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<IdeSourceProvider>> get() = data.allDeviceSourceProviders
   override val allTestFixturesSourceProviders: List<IdeSourceProvider> get() = data.allTestFixturesSourceProviders
-  override val mainArtifact: IdeAndroidArtifactCore get() = selectedVariant.mainArtifact
+  override val mainArtifact: IdeAndroidArtifactCoreImpl get() = selectedVariant.mainArtifact
 
   /**
    * Returns the current application ID.
@@ -186,25 +193,9 @@ private open class GradleAndroidModelImpl(
     return variant.buildType?.let { myBuildTypesByName[it] }
   }
 
-  private val myMinSdkVersion: AndroidVersion by lazy(LazyThreadSafetyMode.PUBLICATION) {
-    var minSdkVersion = selectedVariant.minSdkVersion
-    if (minSdkVersion.codename != null) {
-      val defaultConfigVersion = androidProject.multiVariantData?.defaultConfig?.minSdkVersion
-      if (defaultConfigVersion != null) {
-        minSdkVersion = defaultConfigVersion
-      }
-      val flavors = selectedVariant.productFlavors
-      for (flavor in flavors) {
-        val productFlavor = myProductFlavorsByName[flavor]!!
-        val flavorVersion = productFlavor.productFlavor.minSdkVersion
-        if (flavorVersion != null) {
-          minSdkVersion = flavorVersion
-          break
-        }
-      }
-    }
-    convertVersion(minSdkVersion, null)
-  }
+  @Transient
+  private var minSdkVersionField: AndroidVersion? = null
+
 
   /**
    * Returns the JVM `targetCompatibility` for the module.
@@ -221,7 +212,29 @@ private open class GradleAndroidModelImpl(
    * @return the [AndroidVersion] to use for this Gradle project, or `null` if not specified.
    */
   override val minSdkVersion: AndroidVersion
-    get() = myMinSdkVersion
+    get() = synchronized(this) {
+      minSdkVersionField ?: run {
+        var minSdkVersion = selectedVariant.minSdkVersion
+        if (minSdkVersion.codename != null) {
+          val defaultConfigVersion = androidProject.multiVariantData?.defaultConfig?.minSdkVersion
+          if (defaultConfigVersion != null) {
+            minSdkVersion = defaultConfigVersion
+          }
+          val flavors = selectedVariant.productFlavors
+          for (flavor in flavors) {
+            val productFlavor = myProductFlavorsByName[flavor]!!
+            val flavorVersion = productFlavor.productFlavor.minSdkVersion
+            if (flavorVersion != null) {
+              minSdkVersion = flavorVersion
+              break
+            }
+          }
+        }
+        convertVersion(minSdkVersion, null)
+      }.also {
+        minSdkVersionField = it
+      }
+    }
 
   override val runtimeMinSdkVersion: AndroidVersion
     get() {
@@ -239,27 +252,32 @@ private open class GradleAndroidModelImpl(
     get() = selectedVariant.mainArtifact.abiFilters
       .mapNotNullTo(EnumSet.noneOf(Abi::class.java)) { Abi.getEnum(it) }
 
-  private val myOverridesManifestPackage: Boolean by lazy(LazyThreadSafetyMode.PUBLICATION) {
-    var result = androidProject.multiVariantData?.defaultConfig?.applicationId != null
-    if (!result) {
-      val variant = selectedVariant
-      val flavors = variant.productFlavors
-      for (flavor in flavors) {
-        val productFlavor = myProductFlavorsByName[flavor]!!
-        if (productFlavor.productFlavor.applicationId != null) {
-          result = true
-          break
-        }
-      }
-    }
-    result
-  }
+  @Transient
+  private var overridesManifestPackageField: Boolean? = null
 
   /**
    * Returns whether this project fully overrides the manifest package (with applicationId in the
    * default config or one of the product flavors) in the current variant.
    */
-  override fun overridesManifestPackage(): Boolean = myOverridesManifestPackage
+  override fun overridesManifestPackage(): Boolean = synchronized(this) {
+    overridesManifestPackageField ?: run {
+      var result = androidProject.multiVariantData?.defaultConfig?.applicationId != null
+      if (!result) {
+        val variant = selectedVariant
+        val flavors = variant.productFlavors
+        for (flavor in flavors) {
+          val productFlavor = myProductFlavorsByName[flavor]!!
+          if (productFlavor.productFlavor.applicationId != null) {
+            result = true
+            break
+          }
+        }
+      }
+      result
+    }.also {
+      overridesManifestPackageField = it
+    }
+  }
 
 
   override val namespacing: Namespacing
@@ -309,30 +327,31 @@ private open class GradleAndroidModelImpl(
   fun containsTheSameDataAs(that: GradleAndroidModel) = data == (that as? GradleAndroidModelImpl)?.data
 }
 
-private class GradleAndroidDependencyModelImpl(
+@VisibleForTesting
+class GradleAndroidDependencyModelImpl(
   val gradleAndroidModel: GradleAndroidModelImpl,
   private val ideLibraryModelResolver: IdeLibraryModelResolverImpl
 ): GradleAndroidDependencyModel, GradleAndroidModelImpl(gradleAndroidModel) {
   private val myCachedResolvedVariantsByName: Map<String, IdeVariantImpl> =
     variants.associate { it.name to IdeVariantImpl(it, ideLibraryModelResolver) }
-  override val selectedVariantWithDependencies: IdeVariant get () = myCachedResolvedVariantsByName[selectedVariantName] ?: unknownSelectedVariant()
-  override val variantsWithDependencies: List<IdeVariant>
+  override val selectedVariantWithDependencies: IdeVariantImpl get () = myCachedResolvedVariantsByName[selectedVariantName] ?: unknownSelectedVariant()
+  override val variantsWithDependencies: List<IdeVariantImpl>
     get() = myCachedResolvedVariantsByName.values.toList()
   /** Returns the artifact used for instrumented testing. For test-only modules this is the main artifact. */
-  override fun getArtifactForAndroidTest(): IdeAndroidArtifact? {
+  override fun getArtifactForAndroidTest(): IdeAndroidArtifactImpl? {
     return when (androidProject.projectType) {
       IdeAndroidProjectType.PROJECT_TYPE_TEST -> selectedVariantWithDependencies.mainArtifact
       else -> selectedVariantWithDependencies.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }
     }
   }
   /** Returns the artifact used for screenshot testing. For screenshot test-only modules this is the main artifact. */
-  override fun getArtifactForScreenshotTest(): IdeJavaArtifact? {
+  override fun getArtifactForScreenshotTest(): IdeJavaArtifactImpl? {
     return selectedVariantWithDependencies.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }
   }
 
   override val selectedAndroidTestCompileDependencies: IdeDependencies? get() = getArtifactForAndroidTest()?.compileClasspath
 
-  override val mainArtifactWithDependencies: IdeAndroidArtifact get() = selectedVariantWithDependencies.mainArtifact
+  override val mainArtifactWithDependencies: IdeAndroidArtifactImpl get() = selectedVariantWithDependencies.mainArtifact
 
   @VisibleForTesting
   override fun containsTheSameDataAs(that: GradleAndroidDependencyModel) = gradleAndroidModel.containsTheSameDataAs((that as GradleAndroidDependencyModelImpl).gradleAndroidModel)
@@ -340,8 +359,7 @@ private class GradleAndroidDependencyModelImpl(
 
 private fun GradleAndroidModel.unknownSelectedVariant(): Nothing = error("Unknown selected variant: $selectedVariantName")
 
-interface GradleAndroidModel: AndroidModel {
-  val project: Project
+sealed interface GradleAndroidModel: AndroidModel {
   companion object {
     @JvmStatic
     fun get(module: Module): GradleAndroidModel? = AndroidModel.get(module) as? GradleAndroidModel
@@ -351,7 +369,7 @@ interface GradleAndroidModel: AndroidModel {
 
     @JvmStatic
     fun create(project: Project, data: GradleAndroidModelData): GradleAndroidModel =
-      GradleAndroidModelImpl(data, project)
+      GradleAndroidModelImpl(data)
   }
 
   val androidProject: IdeAndroidProject
@@ -403,7 +421,7 @@ fun classFieldsToDynamicResourceValues(classFields: Map<String, IdeClassField>):
 }
 
 
-interface GradleAndroidDependencyModel: GradleAndroidModel {
+sealed interface GradleAndroidDependencyModel: GradleAndroidModel {
   companion object {
     @JvmStatic
     fun get(module: Module): GradleAndroidDependencyModel? = AndroidModel.get(

@@ -105,13 +105,13 @@ import com.android.tools.idea.gradle.model.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeMultiVariantDataImpl
 import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibraryImpl
+import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.impl.IdePrivacySandboxSdkInfoImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
 import com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
-import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestSuiteImpl
@@ -154,11 +154,11 @@ fun modelCacheV2Impl(
 
   /** If AGP has absolute Gradle build path used in [ProjectInfo.buildId], or it uses the Gradle build name that we need to patch. */
 
-  fun sourceProviderFrom(provider: SourceProvider): IdeSourceProviderImpl {
+  fun sourceProviderFrom(provider: SourceProvider): IdeSourceProvider {
     val folder: File? = provider.manifestFile?.let { it.parentFile?.deduplicateFile() }
     fun File.makeRelativeAndDeduplicate(): String = (if (folder != null) relativeToOrSelf(folder) else this).path.deduplicate()
     fun Collection<File>.makeRelativeAndDeduplicate(): List<String> = map { it.makeRelativeAndDeduplicate() }
-    return IdeSourceProviderImpl(
+    return IdeSourceProvider(
       name = provider.name.deduplicate(),
       folder = folder,
       manifestFile = provider.manifestFile?.makeRelativeAndDeduplicate(),
@@ -182,9 +182,9 @@ fun modelCacheV2Impl(
     )
   }
 
-  fun sourceProviderFrom(name: String, providers: Collection<File>): IdeSourceProviderImpl {
+  fun sourceProviderFrom(name: String, providers: Collection<File>): IdeSourceProvider {
     fun File.makeRelativeAndDeduplicate(): String = relativeToOrSelf(providers.first()).path.deduplicate()
-    return IdeSourceProviderImpl(
+    return IdeSourceProvider(
       name = name.deduplicate(),
       // so far, we only support a single source in test APK, but this will need to be revisited.
       folder = providers.first(),
@@ -204,7 +204,7 @@ fun modelCacheV2Impl(
     )
   }
 
-  fun sourceProviderFrom(source: TestSuiteSource): IdeSourceProviderImpl {
+  fun sourceProviderFrom(source: TestSuiteSource): IdeSourceProvider {
     return if (source.folders?.isNotEmpty() ?: false) {
       sourceProviderFrom(source.name, source.folders!!)
     } else {

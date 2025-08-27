@@ -104,6 +104,7 @@ class AllVariantsSyncWithGradleSyncExecutorTest : SnapshotComparisonTest {
       project, fromLibraryTables(gradleModules.libraries!!, null)
     )
     dumper.dumpAllVariantsSyncAndroidModuleModel(
+      project,
       modelFactory(allVariantsSyncAndroidModel),
       project.basePath!!
     )

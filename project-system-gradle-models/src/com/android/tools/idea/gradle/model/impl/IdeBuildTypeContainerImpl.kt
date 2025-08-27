@@ -16,10 +16,11 @@
 package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
+import com.android.tools.idea.gradle.model.IdeSourceProvider
 import java.io.Serializable
 
 data class IdeBuildTypeContainerImpl(
   override val buildType: IdeBuildTypeImpl,
-  override val sourceProvider: IdeSourceProviderImpl?,
+  override val sourceProvider: IdeSourceProvider?,
   override val extraSourceProviders: List<IdeExtraSourceProviderImpl>
 ) : IdeBuildTypeContainer, Serializable

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator.AndroidModuleValidatorImpl;
 import com.intellij.openapi.module.Module;
 import org.junit.Before;
@@ -43,7 +43,7 @@ public class AndroidModuleValidatorImplTest {
   @Test
   public void validate() {
     Module module = mock(Module.class);
-    GradleAndroidModel androidModel = mock(GradleAndroidModel.class);
+    GradleAndroidModelImpl androidModel = mock(GradleAndroidModelImpl.class);
 
     myValidator.validate(module, androidModel);
 

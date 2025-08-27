@@ -121,10 +121,10 @@ private fun buildVariantTableModelRows(project: Project) =
       val abiItems = getAbiItems(androidFacet, variantAndAbi.variant)
       if (buildVariantItems.isNotEmpty())
         listOf(BuildVariantTableRow(androidFacet.module, variantAndAbi.variant, variantAndAbi.abi, buildVariantItems, abiItems)) +
-        (model?.project?.getProjectSystem()?.getModuleSystem(androidFacet.module)?.getDynamicFeatureModules()?.map {
+        androidFacet.module.project.getProjectSystem().getModuleSystem(androidFacet.module).getDynamicFeatureModules().map {
           // Using app's values for everything except the module
           BuildVariantTableRow(it, variantAndAbi.variant, variantAndAbi.abi, buildVariantItems, abiItems)
-        } ?: emptyList())
+        }
 
       else emptyList()
     }

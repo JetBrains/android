@@ -20,10 +20,10 @@ import com.android.resources.Density
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.gradle.model.IdeVariantCore
-import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
+import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
+import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
+import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModelImpl
 import com.android.tools.idea.gradle.task.ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
@@ -39,6 +39,7 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.runInEdtAndWait
+import java.util.concurrent.ExecutorService
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.jetbrains.plugins.gradle.util.gradleIdentityPath
@@ -59,7 +60,6 @@ import org.mockito.kotlin.argThat
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.util.concurrent.ExecutorService
 
 /**
  * Unit tests for [GradleConnectedAndroidTestInvoker].
@@ -75,7 +75,7 @@ class GradleConnectedAndroidTestInvokerTest {
   @Mock
   lateinit var mockAndroidTestSuiteView: AndroidTestSuiteView
 
-  @Mock lateinit var mockAndroidModuleModel: GradleAndroidDependencyModel
+  @Mock lateinit var mockAndroidModuleModel: GradleAndroidDependencyModelImpl
   @Mock lateinit var mockGradleTaskManager: GradleTaskManager
   @Mock lateinit var mockModuleData: ModuleData
   @Mock lateinit var mockBuildToolWindow: ToolWindow
@@ -86,12 +86,12 @@ class GradleConnectedAndroidTestInvokerTest {
 
   @Before
   fun setup() {
-    val mockAndroidProject = Mockito.mock(IdeAndroidProject::class.java).also {
+    val mockAndroidProject = Mockito.mock(IdeAndroidProjectImpl::class.java).also {
       whenever(it.projectType).thenReturn(IdeAndroidProjectType.PROJECT_TYPE_APP)
     }
     whenever(mockAndroidModuleModel.selectedVariantName).thenReturn("debug")
     whenever(mockAndroidModuleModel.androidProject).thenReturn(mockAndroidProject)
-    whenever(mockAndroidModuleModel.selectedVariant).thenReturn(Mockito.mock(IdeVariantCore::class.java))
+    whenever(mockAndroidModuleModel.selectedVariant).thenReturn(Mockito.mock(IdeVariantCoreImpl::class.java))
     whenever(mockAndroidModuleModel.getGradleConnectedTestTaskNameForSelectedVariant()).thenReturn("connectedDebugAndroidTest")
     whenever(mockModuleData.id).thenReturn(":app")
     whenever(mockModuleData.getProperty(eq("gradleIdentityPath"))).thenReturn(":app")

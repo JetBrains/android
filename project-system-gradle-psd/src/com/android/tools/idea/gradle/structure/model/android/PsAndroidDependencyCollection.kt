@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeUnknownLibrary
+import com.android.tools.idea.gradle.model.lookup
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependencyCollection
 import com.android.tools.idea.gradle.structure.model.PsDependencyCollection

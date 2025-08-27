@@ -36,12 +36,12 @@ import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
 import com.android.tools.idea.gradle.model.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
 import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibraryImpl
+import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl
 import com.android.tools.idea.gradle.model.impl.IdeExtraSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
-import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestedTargetVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
@@ -287,7 +287,7 @@ class ModelSerializationTest {
   fun testSigningConfig() = Truth.assertThat(IdeSigningConfigImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
-  fun testSourceProviderContainer() = Truth.assertThat(IdeSourceProviderImpl::class.java).isAssignableTo(Serializable::class.java)
+  fun testSourceProviderContainer() = Truth.assertThat(IdeSourceProvider::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
   fun testTestedTargetVariant() = Truth.assertThat(IdeTestedTargetVariantImpl::class.java).isAssignableTo(Serializable::class.java)

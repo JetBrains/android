@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.gradle.model.impl
 
+import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeTestSuiteSource
 import java.io.Serializable
 
 data class IdeTestSuiteSourceImpl(
   override val name: String,
   override val type: IdeTestSuiteSource.SourceType,
-  override val sourceProvider: IdeSourceProviderImpl
+  override val sourceProvider: IdeSourceProvider
 ): IdeTestSuiteSource, Serializable

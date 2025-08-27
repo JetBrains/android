@@ -120,7 +120,7 @@ class PsAndroidModuleAnalyzer(
   }
 
   private fun analyzeSdkIndexLibraries(model: PsAndroidModule): Sequence<PsIssue> {
-    val updateStorage = model.resolvedModel?.project?.let { AvailableLibraryUpdateStorage.getInstance(it)}
+    val updateStorage = AvailableLibraryUpdateStorage.getInstance(model.parent.ideProject)
     return model
       .resolvedVariants
       .asSequence()

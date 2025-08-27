@@ -59,6 +59,7 @@ import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
 import com.android.tools.idea.gradle.model.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
 import com.android.tools.idea.gradle.model.IdeModuleLibraryImpl
+import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl.Companion.wellKnownOrCreate
 import com.android.tools.idea.gradle.model.impl.IdeMultiVariantDataImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
@@ -66,7 +67,6 @@ import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
 import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
-import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
@@ -151,12 +151,12 @@ class KotlinModelConverter {
   private fun SourceProvider.convert(
     sourceSet: KotlinSourceSet,
     withJava: Boolean
-  ): IdeSourceProviderImpl {
+  ): IdeSourceProvider {
     val folder = File(manifestFile.absolutePath).parentFile
     fun File.makeRelativeAndDeduplicate(): String = (if (folder != null) relativeToOrSelf(folder) else this).path.deduplicate()
     fun String.makeRelativeAndDeduplicate(): String = File(this).makeRelativeAndDeduplicate()
     fun Collection<File>.makeRelativeAndDeduplicate(): List<String> = map { it.makeRelativeAndDeduplicate() }
-    return IdeSourceProviderImpl(
+    return IdeSourceProvider(
       name = sourceSet.name,
       folder = folder,
       manifestFile = manifestFile.absolutePath.makeRelativeAndDeduplicate(),

@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.exportSignedPackage
 
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl
 import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
@@ -95,7 +95,7 @@ class GradleSignStepTest : LightPlatformTestCase() {
     val properties = PropertiesComponent.getInstance(project)
     val destinationPath = "${this.homePath}${File.separator}$targetType "
     whenever(myWizard.targetType).thenReturn(targetType)
-    val testAndroidModel = Mockito.mock(GradleAndroidModel::class.java)
+    val testAndroidModel = Mockito.mock(GradleAndroidModelImpl::class.java)
     whenever(testAndroidModel.moduleName).thenReturn(name)
     whenever(testAndroidModel.filteredVariantNames).thenReturn(listOf("debug", "release"))
     properties.setValue(gradleSignStep.getApkPathPropertyName(name, targetType), destinationPath)

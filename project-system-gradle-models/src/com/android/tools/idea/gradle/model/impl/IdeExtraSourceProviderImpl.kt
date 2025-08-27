@@ -16,9 +16,10 @@
 package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeExtraSourceProvider
+import com.android.tools.idea.gradle.model.IdeSourceProvider
 import java.io.Serializable
 
 data class IdeExtraSourceProviderImpl(
   override val artifactName: String,
-  override val sourceProvider: IdeSourceProviderImpl?
+  override val sourceProvider: IdeSourceProvider?
 ) : IdeExtraSourceProvider, Serializable

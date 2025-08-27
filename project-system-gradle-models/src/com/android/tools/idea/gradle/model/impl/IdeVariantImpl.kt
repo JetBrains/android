@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.model.impl
 
-import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeBasicVariant
-import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantCore
 import java.io.File
@@ -172,10 +170,35 @@ data class IdeVariantCoreImpl(
 data class IdeVariantImpl(
   private val core: IdeVariantCoreImpl,
   private val resolver: IdeLibraryModelResolverImpl
-) : IdeVariant, IdeVariantCore by core {
-  override val mainArtifact: IdeAndroidArtifact = IdeAndroidArtifactImpl(core.mainArtifact, resolver)
-  override val deviceTestArtifacts: List<IdeAndroidArtifact> = core.deviceTestArtifacts.map { IdeAndroidArtifactImpl(it, resolver) }
-  override val testFixturesArtifact: IdeAndroidArtifact? = core.testFixturesArtifact?.let { IdeAndroidArtifactImpl(it, resolver) }
-  override val hostTestArtifacts: List<IdeJavaArtifact> = core.hostTestArtifacts.map { IdeJavaArtifactImpl(it, resolver) }
-  override val testSuiteArtifacts: List<IdeTestSuiteVariantTargetImpl> = core.testSuiteArtifacts.map { it as IdeTestSuiteVariantTargetImpl }
+) : IdeVariant, IdeVariantCore {
+  override val minSdkVersion: IdeApiVersionImpl = core.minSdkVersion
+  override val targetSdkVersion: IdeApiVersionImpl? = core.targetSdkVersion
+  override val maxSdkVersion: Int? = core.maxSdkVersion
+  override val versionCode: Int? = core.versionCode
+  override val versionNameSuffix: String? = core.versionNameSuffix
+  override val versionNameWithSuffix: String? = core.versionNameWithSuffix
+  override val instantAppCompatible: Boolean = core.instantAppCompatible
+  override val vectorDrawablesUseSupportLibrary: Boolean = core.vectorDrawablesUseSupportLibrary
+  override val resourceConfigurations: List<String> = core.resourceConfigurations
+  override val resValues: Map<String, IdeClassFieldImpl> = core.resValues
+  override val proguardFiles: List<FileImpl> = core.proguardFiles
+  override val consumerProguardFiles: List<FileImpl> = core.consumerProguardFiles
+  override val manifestPlaceholders: Map<String, String> = core.manifestPlaceholders
+  override val testInstrumentationRunner: String? = core.testInstrumentationRunner
+  override val testInstrumentationRunnerArguments: Map<String, String> = core.testInstrumentationRunnerArguments
+  override val testedTargetVariants: List<IdeTestedTargetVariantImpl> = core.testedTargetVariants
+  override val runTestInSeparateProcess: Boolean = core.runTestInSeparateProcess
+  override val deprecatedPreMergedApplicationId: String? = core.deprecatedPreMergedApplicationId
+  override val deprecatedPreMergedTestApplicationId: String? = core.deprecatedPreMergedTestApplicationId
+  override val desugaredMethodsFiles: List<FileImpl> = core.desugaredMethodsFiles
+  override val experimentalProperties: Map<String, String> = core.experimentalProperties
+  override val name: String = core.name
+  override val buildType: String = core.buildType
+  override val productFlavors: List<String> = core.productFlavors
+  override val displayName: String = core.displayName
+  override val mainArtifact: IdeAndroidArtifactImpl = IdeAndroidArtifactImpl(core.mainArtifact, resolver)
+  override val deviceTestArtifacts: List<IdeAndroidArtifactImpl> = core.deviceTestArtifacts.map { IdeAndroidArtifactImpl(it, resolver) }
+  override val testFixturesArtifact: IdeAndroidArtifactImpl? = core.testFixturesArtifact?.let { IdeAndroidArtifactImpl(it, resolver) }
+  override val hostTestArtifacts: List<IdeJavaArtifactImpl> = core.hostTestArtifacts.map { IdeJavaArtifactImpl(it, resolver) }
+  override val testSuiteArtifacts: List<IdeTestSuiteVariantTargetImpl> = core.testSuiteArtifacts
 }

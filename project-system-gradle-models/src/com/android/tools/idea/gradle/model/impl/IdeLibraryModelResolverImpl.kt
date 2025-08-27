@@ -19,34 +19,29 @@ import com.android.tools.idea.gradle.model.IdeDependencyCore
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
-import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.ResolverType
 import org.jetbrains.annotations.VisibleForTesting
 import java.io.Serializable
+import kotlin.collections.asSequence
 
 class IdeLibraryModelResolverImpl @VisibleForTesting constructor(
-  private val libraryTable: (LibraryReference) -> Sequence<IdeLibrary>
+  private val globalLibraryTable: IdeResolvedLibraryTableImpl?,
+  private val kmpLibraryTable: KotlinMultiplatformIdeLibraryTable?,
 ) : IdeLibraryModelResolver {
 
-  override fun resolve(unresolved: IdeDependencyCore): Sequence<IdeLibrary> {
-    return libraryTable(unresolved.target)
-  }
+  override fun resolve(unresolved: IdeDependencyCore): Sequence<IdeLibrary> =
+    if (unresolved.target.resolverType == ResolverType.KMP_ANDROID) {
+      kmpLibraryTable!!.libraries[unresolved.target.libraryIndex]
+    } else {
+      globalLibraryTable!!.libraries[unresolved.target.libraryIndex]
+    }.asSequence()
 
   companion object {
     @JvmStatic
     fun fromLibraryTables(
       globalLibraryTable: IdeResolvedLibraryTableImpl?,
       kmpLibraryTable: KotlinMultiplatformIdeLibraryTable?,
-    ): IdeLibraryModelResolverImpl {
-      return IdeLibraryModelResolverImpl {
-        if (it.resolverType == ResolverType.KMP_ANDROID) {
-          kmpLibraryTable!!.libraries[it.libraryIndex].asSequence()
-        }
-        else {
-          globalLibraryTable!!.libraries[it.libraryIndex].asSequence()
-        }
-      }
-    }
+    ) = IdeLibraryModelResolverImpl(globalLibraryTable, kmpLibraryTable)
   }
 }
 

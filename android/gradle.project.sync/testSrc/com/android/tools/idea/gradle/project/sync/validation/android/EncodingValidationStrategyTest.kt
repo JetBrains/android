@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.validation.android
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl
 import com.android.tools.idea.gradle.project.sync.InternedModels
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.testing.AndroidProjectBuilder
@@ -62,7 +62,7 @@ class EncodingValidationStrategyTest {
   @Test
   fun testValidate() {
     val modelEncoding = "UTF-8"
-    val androidModel = mock(GradleAndroidModel::class.java)
+    val androidModel = mock(GradleAndroidModelImpl::class.java)
     whenever(androidModel.agpVersion).thenReturn(AgpVersion.parse("1.2.0"))
     val ideAndroidProject = AndroidProjectBuilder()
       .build()

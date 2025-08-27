@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.model
 
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreImpl
+import com.android.tools.idea.gradle.model.impl.IdeDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 
 /** Historically, the interfaces and implementations were separated, but we don't need that distinction anymore as the interfaces are not
@@ -25,20 +26,28 @@ import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
  * Ideally in the future we want everything to be data classes here and remove the interfaces, but doing that incrementally is also fine.
  */
 data class IdeDependencies(
-  private val classpath: IdeDependenciesCoreImpl,
+  internal val classpath: IdeDependenciesCoreImpl,
   /** Utility method to provide easy access to a resolver without having to re-create one from the library table. */
   val resolver: IdeLibraryModelResolverImpl
 ) {
+  @Transient
+  private var librariesField: List<IdeLibrary>? = null
+
   /** Returns the libraries of all types, both direct and transitive */
-  val libraries: List<IdeLibrary> by lazy { classpath.dependencies.flatMap { resolver.resolve(it) } }
+  val libraries: List<IdeLibrary> get() = synchronized(this) {
+    librariesField ?: classpath.dependencies.flatMap { resolver.resolve(it) }.also {
+      librariesField = it
+    }
+  }
 
   /**
    * Returns the list of all dependencies, both direct and transitive as [IdeDependencyCore]s.
    * These contain an unresolved library reference [IdeDependencyCore.target] which should be resolved with a [IdeLibraryModelResolver].
    * They also contain a list of indexes of their dependencies, these are indices back into this list of dependencies.
    */
-  val unresolvedDependencies: List<IdeDependencyCore> = classpath.dependencies
-
-  /** Method to resolve transitive dependencies from [IdeDependencyCore.dependencies] back to their [IdeDependencyCore] */
-  val lookup: (Int) -> IdeDependencyCore  = { classpath.lookup(it) }
+  val unresolvedDependencies: List<IdeDependencyCoreImpl> = classpath.dependencies
 }
+
+/** Method to resolve transitive dependencies from [IdeDependencyCore.dependencies] back to their [IdeDependencyCore] */
+val IdeDependencies.lookup: (Int) -> IdeDependencyCore
+  get() = { classpath.lookup(it) }
