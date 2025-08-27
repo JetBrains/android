@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeDependenciesCore
-import com.android.tools.idea.gradle.model.IdeDependencyCore
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
@@ -33,6 +32,8 @@ import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
+import com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity
+import com.android.tools.idea.gradle.project.entities.gradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.sync.AndroidProjectPathResolver
 import com.android.tools.idea.gradle.project.sync.AndroidVariantResolver
@@ -47,12 +48,9 @@ import com.android.tools.idea.gradle.project.sync.VariantDependenciesCompat
 import com.android.tools.idea.gradle.project.sync.buildVariantNameResolver
 import com.android.tools.idea.gradle.project.sync.idea.entities.AndroidGradleSourceSetEntitySource
 import com.android.tools.idea.gradle.project.sync.modelCacheV2Impl
-import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.intellij.openapi.diagnostic.currentClassLogger
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.modules
 import com.intellij.openapi.roots.AnnotationOrderRootType
 import com.intellij.openapi.roots.JavadocOrderRootType
 import com.intellij.openapi.vfs.VfsUtil
@@ -74,7 +72,6 @@ import com.intellij.platform.workspace.storage.ImmutableEntityStorage
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.util.PathUtil
 import org.gradle.tooling.model.gradle.BasicGradleProject
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.plugins.gradle.model.GradleSourceSetModel
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
@@ -109,11 +106,10 @@ private class SyncContributorAndroidProjectDependenciesContext(
   val ideLibraryModelResolver: IdeLibraryModelResolver,
   val sourceSetModuleIdToEntityMap: Map<SourceSetModuleId, ModuleEntity>,
   val moduleNameToEntityMap: Map<String, ModuleEntity>,
-  val moduleNameToInstanceMap: Map<String, Module>,
   // Library id map is mutable to track newly created entities
   val libraryIdToEntityMap: MutableMap<LibraryId, LibraryEntity>,
 ) {
-  val knownEntitySources = mutableSetOf<EntitySource>()
+  val knownEntitySources = mutableSetOf<EntitySource>(androidProjectContext.holderModuleEntity.entitySource)
   val knownModuleNames = mutableSetOf<String>()
 
 
@@ -259,8 +255,6 @@ internal suspend fun setupAndroidDependenciesForAllProjects(
     updatedEntities.entities(LibraryEntity::class.java).associateBy { it.symbolicId }.toMutableMap()
   val moduleNameToEntityMap: Map<String, ModuleEntity> =
     updatedEntities.entities(ModuleEntity::class.java).associateBy { it.name }
-  val moduleNameToInstanceMap: Map<String, Module> =
-    project.modules.associateBy { it.name }
 
   val allKnownEntitySources = allContextWithDependencies.flatMap { (context, variantWithDependencies) ->
     SyncContributorAndroidProjectDependenciesContext(
@@ -269,7 +263,6 @@ internal suspend fun setupAndroidDependenciesForAllProjects(
       ideLibraryModelResolver,
       sourceSetModuleIdToModuleEntityMap,
       moduleNameToEntityMap,
-      moduleNameToInstanceMap,
       libraryIdToEntityMap,
     ).populateDependenciesForAndroidProject(variantWithDependencies)
   }
@@ -322,15 +315,20 @@ private fun SyncContributorAndroidProjectDependenciesContext.populateDependencie
     it.compileClasspathCore.populateDependenciesForModule(DependencyScope.TEST, it.name)
   }
 
-  val allKnownModuleInstances = listOfNotNull(moduleNameToInstanceMap[androidProjectContext.resolveModuleName()]) + knownModuleNames.mapNotNull { moduleNameToInstanceMap[it] }
+  val allKnownModuleEntities = listOfNotNull(moduleNameToEntityMap[androidProjectContext.resolveModuleName()]) +
+                               knownModuleNames.mapNotNull { moduleNameToEntityMap[it] }
   val dependencyModelFactory = GradleAndroidDependencyModel.createFactory(androidProjectContext.project, libraryResolver = ideLibraryModelResolver)
-  allKnownModuleInstances.forEach { module ->
-    val facet = AndroidFacet.getInstance(module) ?: return@forEach.also {
-      LOG.debug("No Android facet found for ${module.name}")
-    }
-    AndroidModel.set(facet, dependencyModelFactory(androidProjectContext.gradleAndroidModelFactory(module.name).copy(
+
+  allKnownModuleEntities.forEach { entity ->
+    val gradleAndroidModelData = androidProjectContext.gradleAndroidModelDataFactory(entity.name).copy(
       variants = listOf(ideVariant) // Just pass the resolved variant and discard the rest.
-    )))
+    )
+    updatedEntities.modifyModuleEntity(entity) {
+      gradleAndroidModel = GradleAndroidModelEntity(
+        entitySource = this@modifyModuleEntity.entitySource,
+        gradleAndroidModel = dependencyModelFactory(gradleAndroidModelData)
+      )
+    }
   }
 
   return knownEntitySources

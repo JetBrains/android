@@ -29,6 +29,8 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.SupportedModuleChecker
+import com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity
+import com.android.tools.idea.gradle.project.entities.gradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
@@ -46,7 +48,6 @@ import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetup
 import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
-import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.gradle.getAllLinkedModules
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
@@ -64,6 +65,7 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.service.project.IdeModelsProvider
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -73,6 +75,8 @@ import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.io.FileUtil.getRelativePath
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
+import com.intellij.platform.workspace.jps.entities.ModuleId
+import com.intellij.platform.workspace.jps.entities.modifyModuleEntity
 import com.intellij.pom.java.LanguageLevel
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -111,7 +115,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
       val mainModuleData = mainModuleDataNode.data
       val mainIdeModule = modelsProvider.findIdeModule(mainModuleData) ?: return
 
-      val androidModel = nodeToImport.data
+      val gradleAndroidModelData = nodeToImport.data
 
       mainModuleDataNode.linkAndroidModuleGroup(project, modelsProvider)
 
@@ -122,8 +126,16 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
         val androidFacet = modelsProvider.getModifiableFacetModel(module).getFacetByType(AndroidFacet.ID)
           ?: createAndroidFacet(module, facetModel)
         // Configure that Android facet from the information in the GradleAndroidModel.
-        val gradleAndroidModel = modelFactory(androidModel)
+        val gradleAndroidModel = modelFactory(gradleAndroidModelData)
         configureFacet(androidFacet, module, gradleAndroidModel)
+        val storage = (modelsProvider as IdeModifiableModelsProviderImpl).actualStorageBuilder
+
+        storage.modifyModuleEntity(storage.resolve(ModuleId(module.name))!!) {
+          this.gradleAndroidModel = GradleAndroidModelEntity(
+            entitySource = this@modifyModuleEntity.entitySource,
+            gradleAndroidModel = gradleAndroidModel
+          )
+        }
 
         moduleValidator.validate(module, gradleAndroidModel)
       }
@@ -327,7 +339,6 @@ private fun configureFacet(androidFacet: AndroidFacet, module: Module, gradleAnd
   androidFacet.properties.MANIFEST_FILE_RELATIVE_PATH = relativePath(modulePath, sourceProvider?.manifestFile)
   androidFacet.properties.RES_FOLDER_RELATIVE_PATH = relativePath(modulePath, sourceProvider?.resDirectories?.firstOrNull())
   androidFacet.properties.ASSETS_FOLDER_RELATIVE_PATH = relativePath(modulePath, sourceProvider?.assetsDirectories?.firstOrNull())
-  AndroidModel.set(androidFacet, gradleAndroidModel)
   syncSelectedVariant(androidFacet, gradleAndroidModel.selectedVariant)
 }
 
