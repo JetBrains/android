@@ -1,0 +1,8 @@
+ext {
+  sdkVersion = 30
+}
+android {
+  compileSdk {
+    version = release(5)
+  }
+}

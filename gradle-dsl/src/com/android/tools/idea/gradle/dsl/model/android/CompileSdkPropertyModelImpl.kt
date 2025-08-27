@@ -31,6 +31,8 @@ import com.android.tools.idea.gradle.dsl.model.ext.transforms.SdkOrPreviewTransf
 import com.android.tools.idea.gradle.dsl.parser.android.CompileSdkBlockDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 
 class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyModel) : CompileSdkPropertyModel,
                                                                                       ResolvedPropertyModel by internalModel {
@@ -123,6 +125,18 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
     if (internalModel is CompileSdkBlockPropertyModel) {
       val compileSdkBlock = toCompileSdkConfig()!!
       when (value) {
+        is ReferenceTo -> {
+          // handle only integer as for release and preview for string
+          val referredElement = value.referredElement
+          if(referredElement is GradleDslSimpleExpression) {
+            when (referredElement.value) {
+              is Integer -> compileSdkBlock.setReleaseVersion(value)
+              else -> compileSdkBlock.setPreviewVersion(value)
+            }
+          } else {
+            compileSdkBlock.setPreviewVersion(value)
+          }
+        }
         is Int -> compileSdkBlock.setReleaseVersion(value, null, null)
         else -> {
           val stringValue = value.toString()

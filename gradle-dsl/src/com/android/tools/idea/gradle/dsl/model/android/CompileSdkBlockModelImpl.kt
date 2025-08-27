@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.android.CompileSdkBlockModel
 import com.android.tools.idea.gradle.dsl.api.android.CompileSdkPreviewModel
 import com.android.tools.idea.gradle.dsl.api.android.CompileSdkVersionModel
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder
@@ -65,10 +66,7 @@ class CompileSdkBlockModelImpl(dslElement: GradlePropertiesDslElement) : GradleD
   }
 
   override fun setReleaseVersion(version: Int, minorApi: Int?, extension: Int?) {
-    myDslElement.removeProperty(VERSION)
-    val name = GradleNameElement.create(VERSION)
-    val methodCall = GradleDslMethodCall(myDslElement, name, RELEASE_NAME)
-    myDslElement.setNewElement(methodCall)
+    val methodCall = createReleaseDslElement()
     val versionLiteral = GradleDslLiteral(methodCall.argumentsElement, GradleNameElement.empty())
     versionLiteral.setValue(version)
     methodCall.addNewArgument(versionLiteral)
@@ -86,6 +84,21 @@ class CompileSdkBlockModelImpl(dslElement: GradlePropertiesDslElement) : GradleD
     }
   }
 
+  override fun setReleaseVersion(reference: ReferenceTo) {
+    val methodCall = createReleaseDslElement()
+    val versionLiteral = GradleDslLiteral(methodCall.argumentsElement, GradleNameElement.empty())
+    versionLiteral.setValue(reference)
+    methodCall.addNewArgument(versionLiteral)
+  }
+
+  private fun createReleaseDslElement(): GradleDslMethodCall {
+    myDslElement.removeProperty(VERSION)
+    val name = GradleNameElement.create(VERSION)
+    val methodCall = GradleDslMethodCall(myDslElement, name, RELEASE_NAME)
+    myDslElement.setNewElement(methodCall)
+    return methodCall
+  }
+
   private fun checkMinorApiMeaningful(minorApi: Int?) = minorApi != null && minorApi != 0
 
   private fun createAssignment(parent: GradleDslElement, value: Int, name: String): GradleDslSimpleExpression {
@@ -96,7 +109,9 @@ class CompileSdkBlockModelImpl(dslElement: GradlePropertiesDslElement) : GradleD
     return newElement
   }
 
-  override fun setPreviewVersion(version: String) {
+  override fun setPreviewVersion(version: String) = setPreviewVersionInternal(version)
+
+  private fun setPreviewVersionInternal(version: Any) {
     myDslElement.removeProperty(VERSION)
     val methodCall = GradleDslMethodCall(myDslElement, GradleNameElement.create(VERSION), PREVIEW_NAME)
     myDslElement.setNewElement(methodCall)
@@ -104,6 +119,8 @@ class CompileSdkBlockModelImpl(dslElement: GradlePropertiesDslElement) : GradleD
     versionLiteral.setValue(version)
     methodCall.addNewArgument(versionLiteral)
   }
+
+  override fun setPreviewVersion(reference: ReferenceTo) = setPreviewVersionInternal(reference)
 
   override fun setAddon(vendorName: String, addonName: String, apiLevel: Int) {
     myDslElement.removeProperty(VERSION)

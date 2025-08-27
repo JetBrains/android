@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android
 
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel
 
 interface CompileSdkBlockModel : GradleBlockModel {
   fun getVersion(): CompileSdkVersionModel?
   fun setReleaseVersion(version: Int, minorApi: Int?, extension: Int?)
+  fun setReleaseVersion(reference: ReferenceTo)
   fun setPreviewVersion(version: String)
+  fun setPreviewVersion(reference: ReferenceTo)
   fun setAddon(vendorName: String, addonName: String, apiLevel: Int)
 }
 
