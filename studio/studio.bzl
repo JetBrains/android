@@ -579,8 +579,8 @@ def _append(ctx, platform, files, path, lines):
         return
     file = files[path]
     text = "\n".join(lines)
-    template = ctx.actions.declare_file(file.basename + ".%s.template" % platform.name)
-    out = ctx.actions.declare_file(file.basename + ".%s.append.%s" % (platform.name, file.extension))
+    template = ctx.actions.declare_file(ctx.attr.name + "." + file.basename + ".%s.template" % platform.name)
+    out = ctx.actions.declare_file(ctx.attr.name + "." + file.basename + ".%s.append.%s" % (platform.name, file.extension))
     files[path] = out
     ctx.actions.write(output = template, content = "{CONTENT}")
     expand_template_ex(
