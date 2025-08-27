@@ -123,4 +123,8 @@ def replace_app_icon(ctx, platform_name, file_map, icon_info):
     )
     new_file_map[resources_jar] = new_res_jar
 
+    if len(new_file_map) > len(file_map):
+        extra = list(set(new_file_map) - set(file_map))
+        fail("Some icon files were missing from the platform. Did the icon locations change? " + str(extra))
+
     return new_file_map

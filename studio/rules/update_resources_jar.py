@@ -18,16 +18,19 @@ def main(argv):
   args = parser.parse_args(argv)
 
   with zipfile.ZipFile(args.out, 'w') as out:
-    new_entries = []
-    new_entries.append(write_entry(out, args.svg, 'artwork/androidstudio.svg'))
-    new_entries.append(write_entry(out, args.svg_small, 'artwork/androidstudio-small.svg'))
-    new_entries.append(write_entry(out, args.svg, 'artwork/preview/androidstudio.svg'))
-    new_entries.append(write_entry(out, args.svg_small, 'artwork/preview/androidstudio-small.svg'))
+    replaced = []
+    replaced.append(write_entry(out, args.svg, 'artwork/androidstudio.svg'))
+    replaced.append(write_entry(out, args.svg_small, 'artwork/androidstudio-small.svg'))
+    replaced.append(write_entry(out, args.svg, 'artwork/preview/androidstudio.svg'))
+    replaced.append(write_entry(out, args.svg_small, 'artwork/preview/androidstudio-small.svg'))
 
     with zipfile.ZipFile(args.resources_jar) as res_jar:
-      entries = filter(lambda info: not info.filename in new_entries, res_jar.infolist())
-      for e in entries:
-        out.writestr(e.filename, res_jar.read(e.filename))
+      for f in replaced:
+        if f not in res_jar.namelist():
+          sys.exit(f"ERROR: file '{f}' not found in the original resource jar. Did the icon locations change?")
+      for e in res_jar.infolist():
+        if e.filename not in replaced:
+          out.writestr(e.filename, res_jar.read(e.filename))
 
 if __name__ == "__main__":
   main(sys.argv[1:])
