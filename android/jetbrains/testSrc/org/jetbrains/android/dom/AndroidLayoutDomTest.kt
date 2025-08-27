@@ -576,6 +576,34 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   }
 
   /**
+   * Regression test for b/438355917.
+   *
+   * View attributes should also be added to ComposeView.
+   */
+  fun testComposableNameIdAttributeCompletion() {
+    myFixture.addClass(composeView)
+    @Suppress("RequiredAttributes")
+    val composeLayout = myFixture.addFileToProject(
+      "res/layout/layout.xml",
+      //language=XML
+      """
+        <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          xmlns:android="http://schemas.android.com/apk/res/android">
+
+          <androidx.compose.ui.platform.ComposeView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            andro${caret}=""/>
+        </LinearLayout>
+      """.trimIndent()).virtualFile
+    myFixture.configureFromExistingVirtualFile(composeLayout)
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).contains("android:id")
+  }
+
+  /**
    * Regression test for http://b/136596952
    * This test checks that an attribute eg. <attr name="defaultValue" format="color|string|boolean"\>, which has Boolean in the formats, but
    * also has other [ResourceType] options, accepts literals which are not "true" or "false". See [testResourceLiteralWithBooleanFormat]

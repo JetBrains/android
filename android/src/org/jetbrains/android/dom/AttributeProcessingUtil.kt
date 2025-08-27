@@ -571,6 +571,10 @@ object AttributeProcessingUtil {
           registerToolsAttribute(ATTR_ITEM_COUNT, callback)
           registerToolsAttribute(ATTR_LISTITEM, callback)
         }
+
+        if (InheritanceUtil.isInheritor(viewClass, CLASS_COMPOSE_VIEW)) {
+          registerToolsAttribute(ATTR_COMPOSABLE_NAME, callback)
+        }
       }
     }
 
@@ -581,7 +585,6 @@ object AttributeProcessingUtil {
 
     val tagName = tag.name
     when (tagName) {
-      CLASS_COMPOSE_VIEW -> registerToolsAttribute(ATTR_COMPOSABLE_NAME, callback)
       VIEW_FRAGMENT -> registerToolsAttribute(ATTR_LAYOUT, callback)
       VIEW_TAG -> {
         // In Android layout XMLs, one can write, e.g.
