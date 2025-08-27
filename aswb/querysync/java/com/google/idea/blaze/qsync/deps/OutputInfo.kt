@@ -48,7 +48,7 @@ interface OutputInfo {
    * Get the dependencies of the given target as seen by the aspect.
    */
   fun getDependencies(target: Label): List<Label>
-  fun getJdeps(target: Label): Jdeps
+  fun getCompileDeps(target: Label): CompileJavaDeps
 
   @VisibleForTesting
   data class Data(
@@ -81,14 +81,17 @@ interface OutputInfo {
         .orEmpty()
     }
 
-    override fun getJdeps(target: Label): Jdeps {
+    override fun getCompileDeps(target: Label): CompileJavaDeps {
       return compileJdeps[target]?.let {
-        val jdeps = it.dependencyList.map { jar -> jarToTarget[jar.path]?.let {label -> label} ?: run{
-          logger.severe( "Unknown jar: ${jar.path}" )
-          return@getJdeps JdepsUnavailable
-        }}
-        return JdepsAvailable(jdeps)
-      } ?: JdepsUnavailable
+        val dependencyJars = (it.dependencyList.map { it.path } + javaArtifactInfo[target]?.jarsList?.map { it.file }.orEmpty()).toSet()
+        val jdeps = dependencyJars.map { jar ->
+          jarToTarget[jar]?.let { label -> label } ?: run {
+            logger.severe("Unknown jar: ${jar}")
+            return@getCompileDeps DepsUnavailable
+          }
+        }
+        return DepsAvailable(jdeps)
+      } ?: DepsUnavailable
     }
   }
 
@@ -148,7 +151,7 @@ interface OutputInfo {
         exitCode = exitCode,
         buildContext = buildContext,
         targetsWithErrors = targetWithErrors,
-        jarToTarget = outputJarToTarget+uniqueCompileJarToTarget
+        jarToTarget = outputJarToTarget + uniqueCompileJarToTarget
       )
     }
 
@@ -158,9 +161,9 @@ interface OutputInfo {
   }
 }
 
-sealed interface Jdeps
-data class JdepsAvailable(val jdeps: List<Label>): Jdeps
-object JdepsUnavailable: Jdeps
+sealed interface CompileJavaDeps
+data class DepsAvailable(val deps: List<Label>) : CompileJavaDeps
+object DepsUnavailable : CompileJavaDeps
 
 @TestOnly
 class TestOutputInfoBuilder() {

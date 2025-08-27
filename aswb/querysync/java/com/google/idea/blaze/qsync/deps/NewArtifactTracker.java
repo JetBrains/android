@@ -17,7 +17,6 @@ package com.google.idea.blaze.qsync.deps;
 
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
@@ -53,8 +52,6 @@ import com.google.idea.blaze.qsync.java.JavaTargetInfo.JavaArtifacts;
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass;
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcTargetInfo;
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcToolchainInfo;
-import com.google.idea.blaze.qsync.project.ProjectDefinition;
-import com.google.idea.common.experiments.BoolExperiment;
 import com.google.idea.common.experiments.FeatureRolloutExperiment;
 import com.google.protobuf.ExtensionRegistry;
 import java.io.IOException;
@@ -191,7 +188,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
   private ImmutableSet<TargetBuildInfo> getJavaTargetBuildInfoViaJdeps(Set<Label> targets, OutputInfo outputInfo, DigestMap digestMap) {
     ImmutableSet.Builder<TargetBuildInfo> targetBuildInfoSet = ImmutableSet.builder();
     Queue<Label> toVisitTargets = new LinkedList<>(targets);
-    Set<Label> visitedTargets = new HashSet<>(targets);
+    Set<Label> visitedTargets = new HashSet<>();
     while (!toVisitTargets.isEmpty()) {
       Label target = toVisitTargets.poll();
       visitedTargets.add(target);
@@ -202,9 +199,9 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
           TargetBuildInfo.forJavaTarget(artifactInfo, outputInfo.getBuildContext());
         targetBuildInfoSet.add(targetInfo);
       }
-      Jdeps jdeps = outputInfo.getJdeps(target);
-      if (jdeps instanceof JdepsAvailable availableJdeps) {
-        for (Label label : availableJdeps.getJdeps()) {
+      CompileJavaDeps deps = outputInfo.getCompileDeps(target);
+      if (deps instanceof DepsAvailable availableDeps) {
+        for (Label label : availableDeps.getDeps()) {
           if (visitedTargets.add(label)) {
             toVisitTargets.add(label);
           }

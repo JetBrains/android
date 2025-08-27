@@ -66,3 +66,12 @@ java_library(
         "//java_and_deps/deps/interface_and_implementation/java/com/example/interface_and_implementation:libuser",
     ],
 )
+
+kt_jvm_library(
+    name = "dep_on_transitive_exports",
+    srcs = ["java/com/example/dep_on_transitive_exports/Class1.kt"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//java_and_deps/deps/transitive_exports_deps/java/com/example:lib",
+    ],
+)
