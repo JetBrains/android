@@ -21,7 +21,6 @@ import com.intellij.build.issue.BuildIssueQuickFix;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class AndroidSyncIssueFileEvent extends AndroidSyncIssueEvent implements FileMessageEvent {
   @NotNull private final AndroidSyncIssueFileEventResult myResult;
@@ -38,9 +37,8 @@ public class AndroidSyncIssueFileEvent extends AndroidSyncIssueEvent implements 
     return myResult;
   }
 
-  @Nullable
   @Override
-  public FilePosition getFilePosition() {
+  public @NotNull FilePosition getFilePosition() {
     return myResult.getFilePosition();
   }
 }
