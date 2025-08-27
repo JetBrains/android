@@ -761,23 +761,19 @@ MODULE                        : Kotlin_Multiplatform
                         androidTestDebugCompileOnly   : <empty>
                         androidTestDebugImplementation          : <empty>
                         androidTestDebugRuntimeOnly   : <empty>
-                        androidTestDebugWearApp       : <empty>
                         androidTestImplementation     : <empty>
                         androidTestModeoneAnnotationProcessor   : <empty>
                         androidTestModeoneCompileOnly : <empty>
                         androidTestModeoneImplementation        : <empty>
                         androidTestModeoneRuntimeOnly : <empty>
-                        androidTestModeoneWearApp     : <empty>
                         androidTestModetwoAnnotationProcessor   : <empty>
                         androidTestModetwoCompileOnly : <empty>
                         androidTestModetwoImplementation        : <empty>
                         androidTestModetwoRuntimeOnly : <empty>
-                        androidTestModetwoWearApp     : <empty>
                         androidTestReleaseAnnotationProcessor   : <empty>
                         androidTestReleaseCompileOnly : <empty>
                         androidTestReleaseImplementation        : <empty>
                         androidTestReleaseRuntimeOnly : <empty>
-                        androidTestReleaseWearApp     : <empty>
                         androidTestRuntimeOnly        : <empty>
                         androidTestTypeoneAnnotationProcessor   : <empty>
                         androidTestTypeoneCompileOnly : <empty>
@@ -788,22 +784,17 @@ MODULE                        : Kotlin_Multiplatform
                         androidTestTypeoneModeoneDebugCompileOnly         : <empty>
                         androidTestTypeoneModeoneDebugImplementation      : <empty>
                         androidTestTypeoneModeoneDebugRuntimeOnly         : <empty>
-                        androidTestTypeoneModeoneDebugWearApp   : <empty>
                         androidTestTypeoneModeoneImplementation : <empty>
                         androidTestTypeoneModeoneRuntimeOnly    : <empty>
-                        androidTestTypeoneModeoneWearApp        : <empty>
                         androidTestTypeoneModetwoAnnotationProcessor      : <empty>
                         androidTestTypeoneModetwoCompileOnly    : <empty>
                         androidTestTypeoneModetwoDebugAnnotationProcessor : <empty>
                         androidTestTypeoneModetwoDebugCompileOnly         : <empty>
                         androidTestTypeoneModetwoDebugImplementation      : <empty>
                         androidTestTypeoneModetwoDebugRuntimeOnly         : <empty>
-                        androidTestTypeoneModetwoDebugWearApp   : <empty>
                         androidTestTypeoneModetwoImplementation : <empty>
                         androidTestTypeoneModetwoRuntimeOnly    : <empty>
-                        androidTestTypeoneModetwoWearApp        : <empty>
                         androidTestTypeoneRuntimeOnly : <empty>
-                        androidTestTypeoneWearApp     : <empty>
                         androidTestTypetwoAnnotationProcessor   : <empty>
                         androidTestTypetwoCompileOnly : <empty>
                         androidTestTypetwoImplementation        : <empty>
@@ -813,24 +804,18 @@ MODULE                        : Kotlin_Multiplatform
                         androidTestTypetwoModeoneDebugCompileOnly         : <empty>
                         androidTestTypetwoModeoneDebugImplementation      : <empty>
                         androidTestTypetwoModeoneDebugRuntimeOnly         : <empty>
-                        androidTestTypetwoModeoneDebugWearApp   : <empty>
                         androidTestTypetwoModeoneImplementation : <empty>
                         androidTestTypetwoModeoneRuntimeOnly    : <empty>
-                        androidTestTypetwoModeoneWearApp        : <empty>
                         androidTestTypetwoModetwoAnnotationProcessor      : <empty>
                         androidTestTypetwoModetwoCompileOnly    : <empty>
                         androidTestTypetwoModetwoDebugAnnotationProcessor : <empty>
                         androidTestTypetwoModetwoDebugCompileOnly         : <empty>
                         androidTestTypetwoModetwoDebugImplementation      : <empty>
                         androidTestTypetwoModetwoDebugRuntimeOnly         : <empty>
-                        androidTestTypetwoModetwoDebugWearApp   : <empty>
                         androidTestTypetwoModetwoImplementation : <empty>
                         androidTestTypetwoModetwoRuntimeOnly    : <empty>
-                        androidTestTypetwoModetwoWearApp        : <empty>
                         androidTestTypetwoRuntimeOnly : <empty>
-                        androidTestTypetwoWearApp     : <empty>
                         androidTestUtil               : <empty>
-                        androidTestWearApp            : <empty>
                         annotationProcessor           : <empty>
                         api                           : <empty>
                         archives                      : <empty>
@@ -843,7 +828,6 @@ MODULE                        : Kotlin_Multiplatform
                         debugCompileOnlyApi           : <empty>
                         debugImplementation           : <empty>
                         debugRuntimeOnly              : <empty>
-                        debugWearApp                  : <empty>
                         default                       : <empty>
                         implementation                : <empty>
                         lintChecks                    : <empty>
@@ -854,21 +838,18 @@ MODULE                        : Kotlin_Multiplatform
                         modeoneCompileOnlyApi         : <empty>
                         modeoneImplementation         : <empty>
                         modeoneRuntimeOnly            : <empty>
-                        modeoneWearApp                : <empty>
                         modetwoAnnotationProcessor    : <empty>
                         modetwoApi                    : <empty>
                         modetwoCompileOnly            : <empty>
                         modetwoCompileOnlyApi         : <empty>
                         modetwoImplementation         : <empty>
                         modetwoRuntimeOnly            : <empty>
-                        modetwoWearApp                : <empty>
                         releaseAnnotationProcessor    : <empty>
                         releaseApi                    : <empty>
                         releaseCompileOnly            : <empty>
                         releaseCompileOnlyApi         : <empty>
                         releaseImplementation         : <empty>
                         releaseRuntimeOnly            : <empty>
-                        releaseWearApp                : <empty>
                         runtimeOnly                   : <empty>
                         testAnnotationProcessor       : <empty>
                         testCompileOnly               : <empty>
@@ -876,7 +857,6 @@ MODULE                        : Kotlin_Multiplatform
                         testDebugCompileOnly          : <empty>
                         testDebugImplementation       : <empty>
                         testDebugRuntimeOnly          : <empty>
-                        testDebugWearApp              : <empty>
                         testFixturesAnnotationProcessor         : <empty>
                         testFixturesApi               : <empty>
                         testFixturesCompileOnly       : <empty>
@@ -887,7 +867,6 @@ MODULE                        : Kotlin_Multiplatform
                         testFixturesDebugCompileOnlyApi         : <empty>
                         testFixturesDebugImplementation         : <empty>
                         testFixturesDebugRuntimeOnly  : <empty>
-                        testFixturesDebugWearApp      : <empty>
                         testFixturesImplementation    : <empty>
                         testFixturesModeoneAnnotationProcessor  : <empty>
                         testFixturesModeoneApi        : <empty>
@@ -895,21 +874,18 @@ MODULE                        : Kotlin_Multiplatform
                         testFixturesModeoneCompileOnlyApi       : <empty>
                         testFixturesModeoneImplementation       : <empty>
                         testFixturesModeoneRuntimeOnly          : <empty>
-                        testFixturesModeoneWearApp    : <empty>
                         testFixturesModetwoAnnotationProcessor  : <empty>
                         testFixturesModetwoApi        : <empty>
                         testFixturesModetwoCompileOnly          : <empty>
                         testFixturesModetwoCompileOnlyApi       : <empty>
                         testFixturesModetwoImplementation       : <empty>
                         testFixturesModetwoRuntimeOnly          : <empty>
-                        testFixturesModetwoWearApp    : <empty>
                         testFixturesReleaseAnnotationProcessor  : <empty>
                         testFixturesReleaseApi        : <empty>
                         testFixturesReleaseCompileOnly          : <empty>
                         testFixturesReleaseCompileOnlyApi       : <empty>
                         testFixturesReleaseImplementation       : <empty>
                         testFixturesReleaseRuntimeOnly          : <empty>
-                        testFixturesReleaseWearApp    : <empty>
                         testFixturesRuntimeOnly       : <empty>
                         testFixturesTypeoneAnnotationProcessor  : <empty>
                         testFixturesTypeoneApi        : <empty>
@@ -917,31 +893,25 @@ MODULE                        : Kotlin_Multiplatform
                         testFixturesTypeoneCompileOnlyApi       : <empty>
                         testFixturesTypeoneImplementation       : <empty>
                         testFixturesTypeoneRuntimeOnly          : <empty>
-                        testFixturesTypeoneWearApp    : <empty>
                         testFixturesTypetwoAnnotationProcessor  : <empty>
                         testFixturesTypetwoApi        : <empty>
                         testFixturesTypetwoCompileOnly          : <empty>
                         testFixturesTypetwoCompileOnlyApi       : <empty>
                         testFixturesTypetwoImplementation       : <empty>
                         testFixturesTypetwoRuntimeOnly          : <empty>
-                        testFixturesTypetwoWearApp    : <empty>
-                        testFixturesWearApp           : <empty>
                         testImplementation            : <empty>
                         testModeoneAnnotationProcessor          : <empty>
                         testModeoneCompileOnly        : <empty>
                         testModeoneImplementation     : <empty>
                         testModeoneRuntimeOnly        : <empty>
-                        testModeoneWearApp            : <empty>
                         testModetwoAnnotationProcessor          : <empty>
                         testModetwoCompileOnly        : <empty>
                         testModetwoImplementation     : <empty>
                         testModetwoRuntimeOnly        : <empty>
-                        testModetwoWearApp            : <empty>
                         testReleaseAnnotationProcessor          : <empty>
                         testReleaseCompileOnly        : <empty>
                         testReleaseImplementation     : <empty>
                         testReleaseRuntimeOnly        : <empty>
-                        testReleaseWearApp            : <empty>
                         testRuntimeOnly               : <empty>
                         testTypeoneAnnotationProcessor          : <empty>
                         testTypeoneCompileOnly        : <empty>
@@ -952,32 +922,25 @@ MODULE                        : Kotlin_Multiplatform
                         testTypeoneModeoneDebugCompileOnly      : <empty>
                         testTypeoneModeoneDebugImplementation   : <empty>
                         testTypeoneModeoneDebugRuntimeOnly      : <empty>
-                        testTypeoneModeoneDebugWearApp          : <empty>
                         testTypeoneModeoneImplementation        : <empty>
                         testTypeoneModeoneReleaseAnnotationProcessor      : <empty>
                         testTypeoneModeoneReleaseCompileOnly    : <empty>
                         testTypeoneModeoneReleaseImplementation : <empty>
                         testTypeoneModeoneReleaseRuntimeOnly    : <empty>
-                        testTypeoneModeoneReleaseWearApp        : <empty>
                         testTypeoneModeoneRuntimeOnly : <empty>
-                        testTypeoneModeoneWearApp     : <empty>
                         testTypeoneModetwoAnnotationProcessor   : <empty>
                         testTypeoneModetwoCompileOnly : <empty>
                         testTypeoneModetwoDebugAnnotationProcessor        : <empty>
                         testTypeoneModetwoDebugCompileOnly      : <empty>
                         testTypeoneModetwoDebugImplementation   : <empty>
                         testTypeoneModetwoDebugRuntimeOnly      : <empty>
-                        testTypeoneModetwoDebugWearApp          : <empty>
                         testTypeoneModetwoImplementation        : <empty>
                         testTypeoneModetwoReleaseAnnotationProcessor      : <empty>
                         testTypeoneModetwoReleaseCompileOnly    : <empty>
                         testTypeoneModetwoReleaseImplementation : <empty>
                         testTypeoneModetwoReleaseRuntimeOnly    : <empty>
-                        testTypeoneModetwoReleaseWearApp        : <empty>
                         testTypeoneModetwoRuntimeOnly : <empty>
-                        testTypeoneModetwoWearApp     : <empty>
                         testTypeoneRuntimeOnly        : <empty>
-                        testTypeoneWearApp            : <empty>
                         testTypetwoAnnotationProcessor          : <empty>
                         testTypetwoCompileOnly        : <empty>
                         testTypetwoImplementation     : <empty>
@@ -987,33 +950,25 @@ MODULE                        : Kotlin_Multiplatform
                         testTypetwoModeoneDebugCompileOnly      : <empty>
                         testTypetwoModeoneDebugImplementation   : <empty>
                         testTypetwoModeoneDebugRuntimeOnly      : <empty>
-                        testTypetwoModeoneDebugWearApp          : <empty>
                         testTypetwoModeoneImplementation        : <empty>
                         testTypetwoModeoneReleaseAnnotationProcessor      : <empty>
                         testTypetwoModeoneReleaseCompileOnly    : <empty>
                         testTypetwoModeoneReleaseImplementation : <empty>
                         testTypetwoModeoneReleaseRuntimeOnly    : <empty>
-                        testTypetwoModeoneReleaseWearApp        : <empty>
                         testTypetwoModeoneRuntimeOnly : <empty>
-                        testTypetwoModeoneWearApp     : <empty>
                         testTypetwoModetwoAnnotationProcessor   : <empty>
                         testTypetwoModetwoCompileOnly : <empty>
                         testTypetwoModetwoDebugAnnotationProcessor        : <empty>
                         testTypetwoModetwoDebugCompileOnly      : <empty>
                         testTypetwoModetwoDebugImplementation   : <empty>
                         testTypetwoModetwoDebugRuntimeOnly      : <empty>
-                        testTypetwoModetwoDebugWearApp          : <empty>
                         testTypetwoModetwoImplementation        : <empty>
                         testTypetwoModetwoReleaseAnnotationProcessor      : <empty>
                         testTypetwoModetwoReleaseCompileOnly    : <empty>
                         testTypetwoModetwoReleaseImplementation : <empty>
                         testTypetwoModetwoReleaseRuntimeOnly    : <empty>
-                        testTypetwoModetwoReleaseWearApp        : <empty>
                         testTypetwoModetwoRuntimeOnly : <empty>
-                        testTypetwoModetwoWearApp     : <empty>
                         testTypetwoRuntimeOnly        : <empty>
-                        testTypetwoWearApp            : <empty>
-                        testWearApp                   : <empty>
                         typeoneAnnotationProcessor    : <empty>
                         typeoneApi                    : <empty>
                         typeoneCompileOnly            : <empty>
@@ -1040,7 +995,6 @@ MODULE                        : Kotlin_Multiplatform
                         typeoneModeoneDebugUnitTestAnnotationProcessorClasspath     : <empty>
                         typeoneModeoneDebugUnitTestCompileClasspath       : <empty>
                         typeoneModeoneDebugUnitTestRuntimeClasspath       : <empty>
-                        typeoneModeoneDebugWearApp    : <empty>
                         typeoneModeoneImplementation  : <empty>
                         typeoneModeoneReleaseAnnotationProcessor          : <empty>
                         typeoneModeoneReleaseAnnotationProcessorClasspath : <empty>
@@ -1056,9 +1010,7 @@ MODULE                        : Kotlin_Multiplatform
                         typeoneModeoneReleaseUnitTestAnnotationProcessorClasspath   : <empty>
                         typeoneModeoneReleaseUnitTestCompileClasspath     : <empty>
                         typeoneModeoneReleaseUnitTestRuntimeClasspath     : <empty>
-                        typeoneModeoneReleaseWearApp  : <empty>
                         typeoneModeoneRuntimeOnly     : <empty>
-                        typeoneModeoneWearApp         : <empty>
                         typeoneModetwoAnnotationProcessor       : <empty>
                         typeoneModetwoApi             : <empty>
                         typeoneModetwoCompileOnly     : <empty>
@@ -1080,7 +1032,6 @@ MODULE                        : Kotlin_Multiplatform
                         typeoneModetwoDebugUnitTestAnnotationProcessorClasspath     : <empty>
                         typeoneModetwoDebugUnitTestCompileClasspath       : <empty>
                         typeoneModetwoDebugUnitTestRuntimeClasspath       : <empty>
-                        typeoneModetwoDebugWearApp    : <empty>
                         typeoneModetwoImplementation  : <empty>
                         typeoneModetwoReleaseAnnotationProcessor          : <empty>
                         typeoneModetwoReleaseAnnotationProcessorClasspath : <empty>
@@ -1096,11 +1047,8 @@ MODULE                        : Kotlin_Multiplatform
                         typeoneModetwoReleaseUnitTestAnnotationProcessorClasspath   : <empty>
                         typeoneModetwoReleaseUnitTestCompileClasspath     : <empty>
                         typeoneModetwoReleaseUnitTestRuntimeClasspath     : <empty>
-                        typeoneModetwoReleaseWearApp  : <empty>
                         typeoneModetwoRuntimeOnly     : <empty>
-                        typeoneModetwoWearApp         : <empty>
                         typeoneRuntimeOnly            : <empty>
-                        typeoneWearApp                : <empty>
                         typetwoAnnotationProcessor    : <empty>
                         typetwoApi                    : <empty>
                         typetwoCompileOnly            : <empty>
@@ -1127,7 +1075,6 @@ MODULE                        : Kotlin_Multiplatform
                         typetwoModeoneDebugUnitTestAnnotationProcessorClasspath     : <empty>
                         typetwoModeoneDebugUnitTestCompileClasspath       : <empty>
                         typetwoModeoneDebugUnitTestRuntimeClasspath       : <empty>
-                        typetwoModeoneDebugWearApp    : <empty>
                         typetwoModeoneImplementation  : <empty>
                         typetwoModeoneReleaseAnnotationProcessor          : <empty>
                         typetwoModeoneReleaseAnnotationProcessorClasspath : <empty>
@@ -1143,9 +1090,7 @@ MODULE                        : Kotlin_Multiplatform
                         typetwoModeoneReleaseUnitTestAnnotationProcessorClasspath   : <empty>
                         typetwoModeoneReleaseUnitTestCompileClasspath     : <empty>
                         typetwoModeoneReleaseUnitTestRuntimeClasspath     : <empty>
-                        typetwoModeoneReleaseWearApp  : <empty>
                         typetwoModeoneRuntimeOnly     : <empty>
-                        typetwoModeoneWearApp         : <empty>
                         typetwoModetwoAnnotationProcessor       : <empty>
                         typetwoModetwoApi             : <empty>
                         typetwoModetwoCompileOnly     : <empty>
@@ -1167,7 +1112,6 @@ MODULE                        : Kotlin_Multiplatform
                         typetwoModetwoDebugUnitTestAnnotationProcessorClasspath     : <empty>
                         typetwoModetwoDebugUnitTestCompileClasspath       : <empty>
                         typetwoModetwoDebugUnitTestRuntimeClasspath       : <empty>
-                        typetwoModetwoDebugWearApp    : <empty>
                         typetwoModetwoImplementation  : <empty>
                         typetwoModetwoReleaseAnnotationProcessor          : <empty>
                         typetwoModetwoReleaseAnnotationProcessorClasspath : <empty>
@@ -1183,12 +1127,8 @@ MODULE                        : Kotlin_Multiplatform
                         typetwoModetwoReleaseUnitTestAnnotationProcessorClasspath   : <empty>
                         typetwoModetwoReleaseUnitTestCompileClasspath     : <empty>
                         typetwoModetwoReleaseUnitTestRuntimeClasspath     : <empty>
-                        typetwoModetwoReleaseWearApp  : <empty>
                         typetwoModetwoRuntimeOnly     : <empty>
-                        typetwoModetwoWearApp         : <empty>
                         typetwoRuntimeOnly            : <empty>
-                        typetwoWearApp                : <empty>
-                        wearApp                       : <empty>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testTypeoneModeoneDebugUnitTest         : testTypeoneModeoneDebugUnitTest (DefaultExternalTask)
@@ -1242,16 +1182,13 @@ MODULE                        : Kotlin_Multiplatform
                         androidTestDebugCompileOnly   : <empty>
                         androidTestDebugImplementation          : <empty>
                         androidTestDebugRuntimeOnly   : <empty>
-                        androidTestDebugWearApp       : <empty>
                         androidTestImplementation     : <empty>
                         androidTestReleaseAnnotationProcessor   : <empty>
                         androidTestReleaseCompileOnly : <empty>
                         androidTestReleaseImplementation        : <empty>
                         androidTestReleaseRuntimeOnly : <empty>
-                        androidTestReleaseWearApp     : <empty>
                         androidTestRuntimeOnly        : <empty>
                         androidTestUtil               : <empty>
-                        androidTestWearApp            : <empty>
                         annotationProcessor           : <empty>
                         api                           : <empty>
                         archives                      : <empty>
@@ -1276,8 +1213,6 @@ MODULE                        : Kotlin_Multiplatform
                         debugUnitTestAnnotationProcessorClasspath         : <empty>
                         debugUnitTestCompileClasspath : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
-                        debugWearApp                  : <empty>
-                        debugWearBundling             : <empty>
                         default                       : <empty>
                         implementation                : <empty>
                         lintChecks                    : <empty>
@@ -1297,8 +1232,6 @@ MODULE                        : Kotlin_Multiplatform
                         releaseUnitTestAnnotationProcessorClasspath       : <empty>
                         releaseUnitTestCompileClasspath         : <empty>
                         releaseUnitTestRuntimeClasspath         : <empty>
-                        releaseWearApp                : <empty>
-                        releaseWearBundling           : <empty>
                         runtimeOnly                   : <empty>
                         testAnnotationProcessor       : <empty>
                         testCompileOnly               : <empty>
@@ -1306,7 +1239,6 @@ MODULE                        : Kotlin_Multiplatform
                         testDebugCompileOnly          : <empty>
                         testDebugImplementation       : <empty>
                         testDebugRuntimeOnly          : <empty>
-                        testDebugWearApp              : <empty>
                         testFixturesAnnotationProcessor         : <empty>
                         testFixturesApi               : <empty>
                         testFixturesCompileOnly       : <empty>
@@ -1317,7 +1249,6 @@ MODULE                        : Kotlin_Multiplatform
                         testFixturesDebugCompileOnlyApi         : <empty>
                         testFixturesDebugImplementation         : <empty>
                         testFixturesDebugRuntimeOnly  : <empty>
-                        testFixturesDebugWearApp      : <empty>
                         testFixturesImplementation    : <empty>
                         testFixturesReleaseAnnotationProcessor  : <empty>
                         testFixturesReleaseApi        : <empty>
@@ -1325,18 +1256,13 @@ MODULE                        : Kotlin_Multiplatform
                         testFixturesReleaseCompileOnlyApi       : <empty>
                         testFixturesReleaseImplementation       : <empty>
                         testFixturesReleaseRuntimeOnly          : <empty>
-                        testFixturesReleaseWearApp    : <empty>
                         testFixturesRuntimeOnly       : <empty>
-                        testFixturesWearApp           : <empty>
                         testImplementation            : <empty>
                         testReleaseAnnotationProcessor          : <empty>
                         testReleaseCompileOnly        : <empty>
                         testReleaseImplementation     : <empty>
                         testReleaseRuntimeOnly        : <empty>
-                        testReleaseWearApp            : <empty>
                         testRuntimeOnly               : <empty>
-                        testWearApp                   : <empty>
-                        wearApp                       : <empty>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -1974,7 +1900,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             ResDirectories                : <ROOT>/androidLib/src/main/res [-]
             AssetsDirectories             : <ROOT>/androidLib/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/androidLib/src/main/jniLibs [-]
-            ShadersDirectories            : <ROOT>/androidLib/src/main/shaders [-]
             BaselineProfileDirectories    : <ROOT>/androidLib/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -1989,7 +1914,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/androidTest/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/androidTest/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2003,7 +1927,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/test/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/test/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/test/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
@@ -2025,7 +1948,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             ResDirectories                : <ROOT>/androidLib/src/debug/res [-]
             AssetsDirectories             : <ROOT>/androidLib/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/androidLib/src/debug/jniLibs [-]
-            ShadersDirectories            : <ROOT>/androidLib/src/debug/shaders [-]
             BaselineProfileDirectories    : <ROOT>/androidLib/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2040,7 +1962,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/androidTestDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/androidTestDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2055,7 +1976,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/testDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/testDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
@@ -2076,7 +1996,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             ResDirectories                : <ROOT>/androidLib/src/release/res [-]
             AssetsDirectories             : <ROOT>/androidLib/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/androidLib/src/release/jniLibs [-]
-            ShadersDirectories            : <ROOT>/androidLib/src/release/shaders [-]
             BaselineProfileDirectories    : <ROOT>/androidLib/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2091,7 +2010,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/testRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/testRelease/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/testRelease/baselineProfiles [-]
     ProductFlavors
         ProductFlavor
@@ -2108,7 +2026,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             ResDirectories                : <ROOT>/androidLib/src/typeone/res [-]
             AssetsDirectories             : <ROOT>/androidLib/src/typeone/assets [-]
             JniLibsDirectories            : <ROOT>/androidLib/src/typeone/jniLibs [-]
-            ShadersDirectories            : <ROOT>/androidLib/src/typeone/shaders [-]
             BaselineProfileDirectories    : <ROOT>/androidLib/src/typeone/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2123,7 +2040,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/androidTestTypeone/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/androidTestTypeone/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/androidTestTypeone/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/androidTestTypeone/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTestTypeone/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2137,7 +2053,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/testTypeone/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/testTypeone/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/testTypeone/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/testTypeone/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/testTypeone/baselineProfiles [-]
         ProductFlavor
             Name                          : typetwo
@@ -2153,7 +2068,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             ResDirectories                : <ROOT>/androidLib/src/typetwo/res [-]
             AssetsDirectories             : <ROOT>/androidLib/src/typetwo/assets [-]
             JniLibsDirectories            : <ROOT>/androidLib/src/typetwo/jniLibs [-]
-            ShadersDirectories            : <ROOT>/androidLib/src/typetwo/shaders [-]
             BaselineProfileDirectories    : <ROOT>/androidLib/src/typetwo/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2168,7 +2082,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/androidTestTypetwo/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/androidTestTypetwo/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/androidTestTypetwo/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/androidTestTypetwo/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTestTypetwo/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2182,7 +2095,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/testTypetwo/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/testTypetwo/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/testTypetwo/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/testTypetwo/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/testTypetwo/baselineProfiles [-]
         ProductFlavor
             Name                          : modeone
@@ -2198,7 +2110,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             ResDirectories                : <ROOT>/androidLib/src/modeone/res [-]
             AssetsDirectories             : <ROOT>/androidLib/src/modeone/assets [-]
             JniLibsDirectories            : <ROOT>/androidLib/src/modeone/jniLibs [-]
-            ShadersDirectories            : <ROOT>/androidLib/src/modeone/shaders [-]
             BaselineProfileDirectories    : <ROOT>/androidLib/src/modeone/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2213,7 +2124,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/androidTestModeone/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/androidTestModeone/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/androidTestModeone/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/androidTestModeone/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTestModeone/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2227,7 +2137,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/testModeone/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/testModeone/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/testModeone/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/testModeone/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/testModeone/baselineProfiles [-]
         ProductFlavor
             Name                          : modetwo
@@ -2243,7 +2152,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             ResDirectories                : <ROOT>/androidLib/src/modetwo/res [-]
             AssetsDirectories             : <ROOT>/androidLib/src/modetwo/assets [-]
             JniLibsDirectories            : <ROOT>/androidLib/src/modetwo/jniLibs [-]
-            ShadersDirectories            : <ROOT>/androidLib/src/modetwo/shaders [-]
             BaselineProfileDirectories    : <ROOT>/androidLib/src/modetwo/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2258,7 +2166,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/androidTestModetwo/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/androidTestModetwo/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/androidTestModetwo/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/androidTestModetwo/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTestModetwo/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2272,7 +2179,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/testModetwo/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/testModetwo/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/testModetwo/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/testModetwo/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/testModetwo/baselineProfiles [-]
     SigningConfigs
         SigningConfig
@@ -2347,7 +2253,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/typeoneModetwoDebug/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/typeoneModetwoDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/typeoneModetwoDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/typeoneModetwoDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/typeoneModetwoDebug/baselineProfiles [-]
                 MultiFlavorSourceProvider
                     Name                          : typeoneModetwo
@@ -2359,7 +2264,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/typeoneModetwo/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/typeoneModetwo/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/typeoneModetwo/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/typeoneModetwo/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/typeoneModetwo/baselineProfiles [-]
                 Dependencies
                     compileClasspath
@@ -2389,7 +2293,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/androidTestTypeoneModetwoDebug/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/androidTestTypeoneModetwoDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/androidTestTypeoneModetwoDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/androidTestTypeoneModetwoDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTestTypeoneModetwoDebug/baselineProfiles [-]
                 MultiFlavorSourceProvider
                     Name                          : androidTestTypeoneModetwo
@@ -2401,7 +2304,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/androidTestTypeoneModetwo/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/androidTestTypeoneModetwo/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/androidTestTypeoneModetwo/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/androidTestTypeoneModetwo/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTestTypeoneModetwo/baselineProfiles [-]
                 Dependencies
                     compileClasspath
@@ -2439,7 +2341,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResourcesDirectories          : <ROOT>/androidLib/src/testTypeoneModetwoDebug/resources [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/testTypeoneModetwoDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/testTypeoneModetwoDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/testTypeoneModetwoDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/testTypeoneModetwoDebug/baselineProfiles [-]
                 MultiFlavorSourceProvider
                     Name                          : testTypeoneModetwo
@@ -2451,7 +2352,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     ResDirectories                : <ROOT>/androidLib/src/testTypeoneModetwo/res [-]
                     AssetsDirectories             : <ROOT>/androidLib/src/testTypeoneModetwo/assets [-]
                     JniLibsDirectories            : <ROOT>/androidLib/src/testTypeoneModetwo/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/testTypeoneModetwo/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/androidLib/src/testTypeoneModetwo/baselineProfiles [-]
                 Dependencies
                     compileClasspath
@@ -2566,7 +2466,6 @@ MODULE                        : Kotlin_Multiplatform.app
             ResDirectories                : <ROOT>/app/src/main/res [-]
             AssetsDirectories             : <ROOT>/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
-            ShadersDirectories            : <ROOT>/app/src/main/shaders [-]
             BaselineProfileDirectories    : <ROOT>/app/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2581,7 +2480,6 @@ MODULE                        : Kotlin_Multiplatform.app
                     ResDirectories                : <ROOT>/app/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/androidTest/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2595,7 +2493,6 @@ MODULE                        : Kotlin_Multiplatform.app
                     ResDirectories                : <ROOT>/app/src/test/res [-]
                     AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
@@ -2617,7 +2514,6 @@ MODULE                        : Kotlin_Multiplatform.app
             ResDirectories                : <ROOT>/app/src/debug/res [-]
             AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
-            ShadersDirectories            : <ROOT>/app/src/debug/shaders [-]
             BaselineProfileDirectories    : <ROOT>/app/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2632,7 +2528,6 @@ MODULE                        : Kotlin_Multiplatform.app
                     ResDirectories                : <ROOT>/app/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/androidTestDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2647,7 +2542,6 @@ MODULE                        : Kotlin_Multiplatform.app
                     ResDirectories                : <ROOT>/app/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
@@ -2668,7 +2562,6 @@ MODULE                        : Kotlin_Multiplatform.app
             ResDirectories                : <ROOT>/app/src/release/res [-]
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
-            ShadersDirectories            : <ROOT>/app/src/release/shaders [-]
             BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
@@ -2683,7 +2576,6 @@ MODULE                        : Kotlin_Multiplatform.app
                     ResDirectories                : <ROOT>/app/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testRelease/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
