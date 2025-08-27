@@ -16,16 +16,39 @@
 package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.IntegrationTestEnvironment
 import com.android.tools.idea.testing.SnapshotComparisonTest
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
+import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.saveAndDump
+import com.android.utils.FileUtils
+import com.intellij.testFramework.RunsInEdt
+import org.jetbrains.android.AndroidTestBase.refreshProjectFiles
+import org.jetbrains.annotations.SystemDependent
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TestName
 
-class GradleProjectImporterTest : AndroidGradleTestCase(), SnapshotComparisonTest {
+@RunsInEdt
+class GradleProjectImporterTest : SnapshotComparisonTest {
+  @get:Rule
+  val nameRule = TestName()
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule().onEdt()
+
+  val integrationTestEnvironment = object : IntegrationTestEnvironment {
+    override fun getBaseTestPath(): @SystemDependent String = FileUtils.toSystemIndependentPath(projectRule.fixture.tempDirPath)
+  }
+
+  override fun getName(): String = nameRule.methodName
+  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/syncedProjects"
+
+  @Test
   fun testImportNoSync() {
-    prepareProjectForImportNoSync(TestProjectToSnapshotPaths.SIMPLE_APPLICATION)
-    val project = super.getProject()
+    integrationTestEnvironment.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION, syncReady = false)
+    val project = projectRule.project
     val request = GradleProjectImporter.Request(project)
     GradleProjectImporter.configureNewProject(project)
     GradleProjectImporter.getInstance().importProjectNoSync(request)
@@ -33,6 +56,4 @@ class GradleProjectImporterTest : AndroidGradleTestCase(), SnapshotComparisonTes
     val text = project.saveAndDump()
     assertIsEqualToSnapshot(text)
   }
-
-  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/syncedProjects"
 }

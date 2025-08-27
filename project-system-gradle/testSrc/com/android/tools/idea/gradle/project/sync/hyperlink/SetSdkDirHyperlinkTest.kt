@@ -16,35 +16,64 @@
 package com.android.tools.idea.gradle.project.sync.hyperlink
 
 import com.android.SdkConstants.FN_LOCAL_PROPERTIES
+import com.android.tools.idea.testing.FileSubject.file
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.IdeComponents
-import com.android.tools.idea.testing.TestProjectPaths.COMPOSITE_BUILD
+import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.IntegrationTestEnvironment
+import com.android.tools.idea.testing.onEdt
+import com.android.utils.FileUtils
 import com.android.utils.SdkUtils.escapePropertyValue
+import com.google.common.truth.Truth.assertAbout
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.io.FileUtil.loadFile
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.replaceService
 import java.io.File
 import javax.swing.event.HyperlinkEvent
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
-class SetSdkDirHyperlinkTest : AndroidGradleTestCase() {
+@RunsInEdt
+class SetSdkDirHyperlinkTest {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule().onEdt()
+  val project by lazy { projectRule.project }
+  val fixture by lazy { projectRule.fixture }
+  val projectFolderPath by lazy { File(project.basePath!!) }
+
+  val integrationTestEnvironment = object : IntegrationTestEnvironment {
+    override fun getBaseTestPath() = FileUtils.toSystemIndependentPath(fixture.tempDirPath)
+  }
+
+  @Before
+  fun setup() {
+    val application = ApplicationManager.getApplication()
+    application.replaceService(GradleSyncInvoker::class.java, GradleSyncInvoker.FakeInvoker(), fixture.testRootDisposable)
+  }
+
+  @Test
   fun testSdkDirHyperlinkUpdatesOnePropertiesFile() {
-    IdeComponents(myFixture).replaceApplicationService(GradleSyncInvoker::class.java, GradleSyncInvoker.FakeInvoker())
-    prepareProjectForImportNoSync(COMPOSITE_BUILD)
+    integrationTestEnvironment.prepareTestProject(AndroidCoreTestProject.COMPOSITE_BUILD, syncReady = false)
 
     // Delete the main local.properties file
     val localPropertiesPath = File(projectFolderPath, FN_LOCAL_PROPERTIES)
     deletePropertiesFile(localPropertiesPath)
 
     val hyperlink = SetSdkDirHyperlink(project, listOf(localPropertiesPath.absolutePath))
-    assertTrue(hyperlink.executeIfClicked(project, HyperlinkEvent(this, null, null, hyperlink.url)))
-    assertTrue(localPropertiesPath.exists())
-    assertTrue("Local properties must contain sdk.dir", loadFile(localPropertiesPath)
-      .contains("sdk.dir=${escapePropertyValue(AndroidSdks.getInstance().tryToChooseAndroidSdk()!!.location.toString())}"))
+    assertThat(hyperlink.executeIfClicked(project, HyperlinkEvent(this, null, null, hyperlink.url))).isTrue()
+    assertAbout(file()).that(localPropertiesPath).isFile()
+    assertThat(loadFile(localPropertiesPath)).named("Local properties must contain sdk.dir")
+      .contains("sdk.dir=${escapePropertyValue(AndroidSdks.getInstance().tryToChooseAndroidSdk()!!.location.toString())}")
   }
 
+  @Test
   fun testSdkDirHyperlinkUpdatesMultiplePropertiesFiles() {
-    IdeComponents(myFixture).replaceApplicationService(GradleSyncInvoker::class.java, GradleSyncInvoker.FakeInvoker())
-    prepareProjectForImportNoSync(COMPOSITE_BUILD)
+    integrationTestEnvironment.prepareTestProject(AndroidCoreTestProject.COMPOSITE_BUILD, syncReady = false)
 
     // Delete all the properties files we want to re-create
     val localPropertiesPath = File(projectFolderPath, FN_LOCAL_PROPERTIES)
@@ -56,23 +85,23 @@ class SetSdkDirHyperlinkTest : AndroidGradleTestCase() {
 
     val hyperlink = SetSdkDirHyperlink(project,
       listOf(localPropertiesPath.absolutePath, localPropertiesPathTwo.absolutePath, localPropertiesPathThree.absolutePath))
-    assertTrue(hyperlink.executeIfClicked(project, HyperlinkEvent(this, null, null, hyperlink.url)))
+    assertThat(hyperlink.executeIfClicked(project, HyperlinkEvent(this, null, null, hyperlink.url))).isTrue()
 
     val sdkLocation = escapePropertyValue(AndroidSdks.getInstance().tryToChooseAndroidSdk()!!.location.toString())
-    assertTrue(localPropertiesPath.exists())
-    assertTrue("Local properties must contain sdk.dir", loadFile(localPropertiesPath)
-      .contains("sdk.dir=${sdkLocation}"))
-    assertTrue(localPropertiesPathTwo.exists())
-    assertTrue("Local properties must contain sdk.dir", loadFile(localPropertiesPathTwo)
-      .contains("sdk.dir=${sdkLocation}"))
-    assertTrue(localPropertiesPathThree.exists())
-    assertTrue("Local properties must contain sdk.dir", loadFile(localPropertiesPathThree)
-      .contains("sdk.dir=${sdkLocation}"))
+    assertAbout(file()).that(localPropertiesPath).isFile()
+    assertThat(loadFile(localPropertiesPath)).named("Local properties must contain sdk.dir")
+      .contains("sdk.dir=${sdkLocation}")
+    assertAbout(file()).that(localPropertiesPathTwo).isFile()
+    assertThat(loadFile(localPropertiesPathTwo)).named("Local properties must contain sdk.dir")
+      .contains("sdk.dir=${sdkLocation}")
+    assertAbout(file()).that(localPropertiesPathThree).isFile()
+    assertThat(loadFile(localPropertiesPathThree)).named("Local properties must contain sdk.dir")
+      .contains("sdk.dir=${sdkLocation}")
   }
 
   private fun deletePropertiesFile(localPropertiesPath: File) {
     if (localPropertiesPath.exists()) {
-      assertTrue(localPropertiesPath.delete())
+      assertThat(localPropertiesPath.delete()).isTrue()
     }
   }
 }

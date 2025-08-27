@@ -18,119 +18,119 @@ package com.android.tools.idea.gradle.project.sync.hyperlink
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel
 import com.android.tools.idea.gradle.dsl.api.repositories.UrlBasedRepositoryModel
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.util.GradleVersions
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths
-import com.google.common.collect.ImmutableList
-import com.google.common.truth.Truth
-import com.intellij.openapi.application.ApplicationManager
+import com.android.tools.idea.gradle.util.GradleVersions.getInstance
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.AndroidGradleTests
+import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.testing.resolve
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager.getApplication
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.IndexingTestUtil
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
-import java.io.IOException
-import org.gradle.util.GradleVersion
-import org.junit.Assume
+import java.io.File
+import org.gradle.util.GradleVersion.version
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.mockito.Mockito
 
 /**
  * Tests for [AddGoogleMavenRepositoryHyperlink].
  */
-class AddGoogleMavenRepositoryHyperlinkTest : AndroidGradleTestCase() {
-  @Throws(Exception::class)
+@RunsInEdt
+class AddGoogleMavenRepositoryHyperlinkTest {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule().onEdt()
+  val project by lazy { projectRule.project }
+  val fixture by lazy { projectRule.fixture }
+  val projectFolderPath by lazy { File(project.basePath!!) }
+
+  @Before
+  fun setup() {
+    // Prepare project
+    AndroidGradleTests.prepareProjectForImportCore(AndroidCoreTestProject.SIMPLE_APPLICATION.templateAbsolutePath, projectFolderPath) { root ->
+      AndroidGradleTests.defaultPatchPreparedProject(root, AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.resolve(), null, false)
+    }
+  }
+
+  // Check that quickfix adds google maven repository using method name when gradle version is 4.0 or higher
+  @Test
   fun testExecuteWithGradle4dot0() {
-    // Check that quickfix adds google maven repository using method name when gradle version is 4.0 or higher
-    verifyExecute("4.0")
+    // Mock version
+    val spyVersions = Mockito.spy(getInstance())
+    getApplication().replaceService(GradleVersions::class.java, spyVersions, fixture.testRootDisposable)
+    Mockito.`when`(spyVersions.getGradleVersion(project)).thenReturn(version("4.0"))
+
+    val buildModel = GradleBuildModel.get(project)
+    assertThat(buildModel).isNotNull()
+    // Make sure no repositories are listed
+    removeRepositories(buildModel!!)
+    // Generate hyperlink and execute quick fix
+    val hyperlink = AddGoogleMavenRepositoryHyperlink(listOf(buildModel.getVirtualFile()), false)
+    hyperlink.execute(project)
+    IndexingTestUtil.waitUntilIndexesAreReady(project)
+    buildModel.reparse()
+
+    // Verify it added the repository
+    buildModel.repositories().repositories().let { repositories ->
+      assertThat(repositories).hasSize(1)
+      verifyRepositoryForm(repositories[0], true)
+    }
+    // Verify it was added in buildscript
+    buildModel.buildscript().repositories().repositories().let { repositories ->
+      assertThat(repositories).hasSize(1)
+      verifyRepositoryForm(repositories[0], true)
+    }
   }
 
   // Check that quickfix adds google maven correctly when no build file is passed
-  @Throws(Exception::class)
+  @Test
   fun testExecuteNullBuildFile() {
-    // Prepare project and mock version
-    prepareProjectForImportNoSync(TestProjectPaths.SIMPLE_APPLICATION)
-    val project = getProject()
-
     // Make sure no repositories are listed
-    removeRepositories(project)
-    var buildModel = GradleBuildModel.get(project)
-    Truth.assertThat(buildModel).isNotNull()
+    val buildModel = GradleBuildModel.get(project)
+    assertThat(buildModel).isNotNull()
+    removeRepositories(buildModel!!)
 
     // Generate hyperlink and execute quick fix
-    val hyperlink =
-      AddGoogleMavenRepositoryHyperlink(ImmutableList.of<VirtualFile?>(buildModel!!.getVirtualFile()),  /* no sync */false)
+    val hyperlink = AddGoogleMavenRepositoryHyperlink(listOf(buildModel.getVirtualFile()), false)
     hyperlink.execute(project)
-
-    // Verify it added the repository
-    buildModel = GradleBuildModel.get(project)
-    Truth.assertThat(buildModel).isNotNull()
-    var repositories = buildModel!!.repositories().repositories()
-    Truth.assertThat(repositories).hasSize(1)
-
-    // Verify it was added in buildscript
-    repositories = buildModel.buildscript().repositories().repositories()
-    Truth.assertThat(repositories).hasSize(1)
-  }
-
-  @Throws(IOException::class)
-  private fun verifyExecute(version: String) {
-    Assume.assumeTrue(version == "4.0")
-    // Prepare project and mock version
-    prepareProjectForImportNoSync(TestProjectPaths.SIMPLE_APPLICATION)
-    val project = getProject()
-    val spyVersions = Mockito.spy<GradleVersions>(GradleVersions.getInstance())
-    ApplicationManager.getApplication().replaceService(
-      GradleVersions::class.java,
-      spyVersions,
-      getTestRootDisposable()
-    )
-    Mockito.`when`<GradleVersion?>(spyVersions.getGradleVersion(project)).thenReturn(GradleVersion.version(version))
-
-    // Make sure no repositories are listed
-    removeRepositories(project)
-    var buildModel = GradleBuildModel.get(project)
-    Truth.assertThat(buildModel).isNotNull()
-
-    // Generate hyperlink and execute quick fix
-    val hyperlink =
-      AddGoogleMavenRepositoryHyperlink(ImmutableList.of<VirtualFile?>(buildModel!!.getVirtualFile()),  /* no sync */false)
-    hyperlink.execute(project)
-
-    // Verify it added the repository
-    buildModel = GradleBuildModel.get(project)
-    Truth.assertThat(buildModel).isNotNull()
-    var repositories = buildModel!!.repositories().repositories()
-    Truth.assertThat(repositories).hasSize(1)
-    verifyRepositoryForm(repositories.get(0), true)
-
-    // Verify it was added in buildscript
-    repositories = buildModel.buildscript().repositories().repositories()
-    Truth.assertThat(repositories).hasSize(1)
-    verifyRepositoryForm(repositories.get(0), true)
-  }
-
-  private fun removeRepositories(project: Project) {
-    var buildModel = GradleBuildModel.get(project)
-    Truth.assertThat(buildModel).isNotNull()
-    buildModel!!.removeRepositoriesBlocks()
-    buildModel.buildscript().removeRepositoriesBlocks()
-    assertTrue(buildModel.isModified())
-    WriteCommandAction.runWriteCommandAction(getProject(), Runnable { buildModel!!.applyChanges() })
+    IndexingTestUtil.waitUntilIndexesAreReady(project)
     buildModel.reparse()
-    assertFalse(buildModel.isModified())
-    buildModel = GradleBuildModel.get(project)
-    Truth.assertThat(buildModel).isNotNull()
-    Truth.assertThat(buildModel!!.repositories().repositories()).hasSize(0)
-    Truth.assertThat(buildModel.buildscript().repositories().repositories()).hasSize(0)
+
+    // Verify it added the repository
+    assertThat(buildModel.repositories().repositories()).hasSize(1)
+    // Verify it was added in buildscript
+    assertThat(buildModel.buildscript().repositories().repositories()).hasSize(1)
+  }
+
+  private fun removeRepositories(buildModel: GradleBuildModel) {
+    assertThat(buildModel.repositories().repositories()).isNotEmpty()
+    assertThat(buildModel.buildscript().repositories().repositories()).isNotEmpty()
+    buildModel.removeRepositoriesBlocks()
+    buildModel.buildscript().removeRepositoriesBlocks()
+    assertThat(buildModel.isModified()).isTrue()
+    WriteCommandAction.runWriteCommandAction(project) { buildModel.applyChanges() }
+    IndexingTestUtil.waitUntilIndexesAreReady(project)
+    buildModel.reparse()
+    assertThat(buildModel.isModified()).isFalse()
+    assertThat(buildModel.repositories().repositories()).hasSize(0)
+    assertThat(buildModel.buildscript().repositories().repositories()).hasSize(0)
+
   }
 
   companion object {
     private fun verifyRepositoryForm(repository: RepositoryModel?, byMethod: Boolean) {
-      assertInstanceOf<UrlBasedRepositoryModel?>(repository, UrlBasedRepositoryModel::class.java)
+      assertThat(repository).isInstanceOf(UrlBasedRepositoryModel::class.java)
       val urlRepository = repository as UrlBasedRepositoryModel
       if (byMethod) {
-        assertNull("url", urlRepository.url().getPsiElement())
+        assertThat(urlRepository.url().getPsiElement()).named("url").isNull()
       } else {
-        assertNotNull("url", urlRepository.url().getPsiElement())
+        assertThat(urlRepository.url().getPsiElement()).named("url").isNotNull()
       }
     }
   }

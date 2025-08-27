@@ -15,73 +15,98 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.BuildFileProcessor.getCompositeBuildFolderPaths;
-import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentUtil.resolveAgpVersionSoftwareEnvironment;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor;
+import com.android.tools.idea.testing.AndroidGradleProjectRule;
+import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.utils.FileUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.ThrowableComputable;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import org.jetbrains.plugins.gradle.model.data.BuildParticipant;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
-public class BuildFileProcessorTest extends AndroidGradleTestCase {
+public class BuildFileProcessorTest {
   private GradleProjectSettings myProjectSettings;
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    initMocks(this);
+  @Rule
+  public AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
 
+  @Before
+  public void setup() {
     myProjectSettings = new GradleProjectSettings();
-    Project project = getProject();
+    Project project = projectRule.getProject();
     String projectRootPath = ExternalSystemApiUtil.toCanonicalPath(getBaseDirPath(project).getPath());
     myProjectSettings.setExternalProjectPath(projectRootPath);
     GradleSettings.getInstance(project).setLinkedProjectsSettings(Collections.singletonList(myProjectSettings));
   }
 
+  @Test
   public void testGetCompositeBuildFolders() {
+    Project project = projectRule.getProject();
     // Set current project as included build.
     BuildParticipant participant = new BuildParticipant();
-    participant.setRootPath(getProject().getBasePath());
+    participant.setRootPath(project.getBasePath());
 
     GradleProjectSettings.CompositeBuild compositeBuild = new GradleProjectSettings.CompositeBuild();
     compositeBuild.setCompositeParticipants(Collections.singletonList(participant));
     myProjectSettings.setCompositeBuild(compositeBuild);
 
-    List<File> folders = getCompositeBuildFolderPaths(getProject());
+    List<File> folders = getCompositeBuildFolderPaths(project);
     assertThat(folders).hasSize(1);
-    assertThat(folders.get(0).getPath()).isEqualTo(FileUtils.toSystemDependentPath(getProject().getBasePath()));
+    assertThat(folders.get(0).getPath()).isEqualTo(FileUtils.toSystemDependentPath(project.getBasePath()));
   }
 
   /**
    *   This test ensures that any calls to BuildFileProcessor#processRecursively don't pass any null build models to the supplied
    *   function.
    */
-  public void testNonExistentModuleDoesNotFailToParse() throws Exception {
-    prepareProjectForImportNoSync(SIMPLE_APPLICATION);
+  @Test
+  public void testNonExistentModuleDoesNotFailToParse() {
+    try {
+      AndroidGradleTests.prepareProjectForImportCore(
+        AndroidCoreTestProject.SIMPLE_APPLICATION.getTemplateAbsolutePath(),
+        new File(projectRule.getProject().getBasePath()),
+        (root) -> AndroidGradleTests.defaultPatchPreparedProject(root, resolveAgpVersionSoftwareEnvironment(
+          AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST), null, false)
+      );
+    } catch (IOException e) {
+      Assert.fail(e.getMessage());
+    }
 
-    File settingsFile = getSettingsFilePath();
+    File settingsFile = new File(projectRule.getProject().getBasePath(), FN_SETTINGS_GRADLE);
     VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(settingsFile);
-    ApplicationManager.getApplication().runWriteAction((ThrowableComputable<Void, Exception>)() -> {
-      VfsUtil.saveText(virtualFile, VfsUtilCore.loadText(virtualFile) + "\ninclude 'notamodule'");
+    ApplicationManager.getApplication().runWriteAction((Computable<Void>)() -> {
+      try {
+        VfsUtil.saveText(virtualFile, VfsUtilCore.loadText(virtualFile) + "\ninclude 'notamodule'");
+      }
+      catch (IOException e) {
+        Assert.fail(e.getMessage());
+      }
       return null;
     });
     BuildFileProcessor.processRecursively(
-      getProject(),
+      projectRule.getProject(),
       (settingsModel) -> {
         assertThat(settingsModel).isNotNull();
         return true;
