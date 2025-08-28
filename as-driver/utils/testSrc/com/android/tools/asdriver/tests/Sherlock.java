@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,15 +30,15 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
-public class AndroidStudio extends Ide {
+public class Sherlock extends Ide {
 
-  private final AndroidStudioInstallation install;
+  private final SherlockInstallation install;
 
-  private final String PAST_DEADLINE = "Studio quitting thread is still alive at deadline in quit().";
+  private final String PAST_DEADLINE = "Sherlock quitting thread is still alive at deadline in quit().";
 
   private Benchmark benchmark = null;
 
-  public AndroidStudio(AndroidStudioInstallation install, ProcessHandle process, int port) {
+  public Sherlock(SherlockInstallation install, ProcessHandle process, int port) {
     super(process, port);
     this.install = install;
   }
@@ -65,7 +65,6 @@ public class AndroidStudio extends Ide {
    */
   public void quit(boolean force) {
     ASDriver.QuitRequest rq = ASDriver.QuitRequest.newBuilder().setForce(force).build();
-
     // gRPC may not return from the call when Studio shuts down. So we need to place a timer on the shutdown and check the state
     // of shutdown using alternative methods in case the gRPC call doesn't return by the deadline.
     Ref<Throwable> throwableRef = new Ref<>(null);
@@ -81,7 +80,6 @@ public class AndroidStudio extends Ide {
       }
     }, "gRPC Studio Shutdown");
     thread.start();
-
     try {
       thread.join(TimeUnit.SECONDS.toMillis(30));
       if (thread.isAlive()) {
@@ -89,15 +87,15 @@ public class AndroidStudio extends Ide {
       }
       Throwable t = throwableRef.get();
       if (t != null) {
-        TestLogger.log("Studio quitting has thrown an error: %s", t.getMessage());
+        TestLogger.log("Sherlock quitting has thrown an error: %s", t.getMessage());
         throw new RuntimeException(t);
       }
     }
     catch (InterruptedException e) {
       thread.interrupt();
       Thread.currentThread().interrupt();
-      TestLogger.log("Quitting Studio was interrupted.");
-      throw new RuntimeException("Quitting Studio was interrupted.", e);
+      TestLogger.log("Quitting Sherlock was interrupted.");
+      throw new RuntimeException("Quitting Sherlock was interrupted.", e);
     }
   }
 
@@ -118,12 +116,11 @@ public class AndroidStudio extends Ide {
     if (!SystemInfo.isWindows) {
       return;
     }
-
     Duration elapsedTime = Duration.between(creationTime, Instant.now());
     Duration minimumTimeToStayOpen = Duration.ofSeconds(10);
     if (elapsedTime.compareTo(minimumTimeToStayOpen) < 0) {
       long msToWait = Math.max(Duration.ofSeconds(1).toMillis(), minimumTimeToStayOpen.toMillis() - elapsedTime.toMillis());
-      System.out.printf("This AndroidStudio instance was only created %dms ago, so waiting for %dms until quitting.%n", elapsedTime.toMillis(), msToWait);
+      System.out.printf("This Sherlock instance was only created %dms ago, so waiting for %dms until quitting.%n", elapsedTime.toMillis(), msToWait);
       Thread.sleep(msToWait);
       System.out.println("Done waiting");
     }
@@ -133,7 +130,7 @@ public class AndroidStudio extends Ide {
    * Quit Studio such that Gradle and other Studio-owned processes are properly disposed of.
    */
   private void quitAndWaitForShutdown() throws IOException, InterruptedException {
-    TestLogger.log("Quitting Studio...");
+    TestLogger.log("Quitting Sherlock...");
     waitToWorkAroundWindowsIssue();
     try {
       quit(false);
@@ -154,24 +151,23 @@ public class AndroidStudio extends Ide {
   }
 
   public void executeAction(String action) {
-    executeAction(action, DataContextSource.DEFAULT, false);
+    executeAction(action, Sherlock.DataContextSource.DEFAULT, false);
   }
 
-  public void executeAction(String action, DataContextSource dataContextSource) {
+  public void executeAction(String action, Sherlock.DataContextSource dataContextSource) {
     executeAction(action, dataContextSource, false);
   }
 
   public void executeActionWhenSmart(String action) {
-    executeAction(action, DataContextSource.DEFAULT, true);
+    executeAction(action, Sherlock.DataContextSource.DEFAULT, true);
   }
 
-  public void executeAction(String action, DataContextSource dataContextSource, Boolean whenSmart) {
+  public void executeAction(String action, Sherlock.DataContextSource dataContextSource, Boolean whenSmart) {
     ASDriver.ExecuteActionRequest rq =
       ASDriver.ExecuteActionRequest.newBuilder().setActionId(action).setDataContextSource(dataContextSource.dataContextSource)
         .setRunWhenSmart(whenSmart).build();
     ASDriver.ExecuteActionResponse response;
     response = ide.executeAction(rq);
-
     switch (response.getResult()) {
       case OK -> {
       }
@@ -281,10 +277,8 @@ public class AndroidStudio extends Ide {
     DEFAULT(ASDriver.ExecuteActionRequest.DataContextSource.DEFAULT),
     SELECTED_TEXT_EDITOR(ASDriver.ExecuteActionRequest.DataContextSource.SELECTED_TEXT_EDITOR),
     ACTIVE_TOOL_WINDOW(ASDriver.ExecuteActionRequest.DataContextSource.ACTIVE_TOOL_WINDOW);
-
     // This is the underlying proto enum that we do not want to expose as part of the API.
     private final ASDriver.ExecuteActionRequest.DataContextSource dataContextSource;
-
     DataContextSource(ASDriver.ExecuteActionRequest.DataContextSource dataContextSource) {
       this.dataContextSource = dataContextSource;
     }

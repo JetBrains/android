@@ -1427,7 +1427,10 @@ def intellij_platform(
             ":" + name + "_prebuilt_metadata",
         ],
         studio_data = name + ".data",
-        visibility = ["@intellij//:__subpackages__"],
+        visibility = [
+            "@intellij//:__subpackages__",
+            "//tools/adt/idea/as-driver:__pkg__",
+        ],
         # Local linux sandbox does not support spaces in names, so we exclude some files
         # Otherwise we get: "link or target filename contains space"
         data = select({

@@ -35,6 +35,7 @@ intellij_plugin(
     },
     platforms = [
         "studio-sdk",
+        "sherlock-sdk",
     ],
     plugin_id = "com.android.tools.asdriver",
     deps = [
@@ -52,6 +53,19 @@ alias(
     }),
 )
 
+# TODO: Switch to use full Sherlock (i.e., Sherlock Platform + Sherlock Plugin).
+# This is currently using the Sherlock Platform. It doesn't have Sherlock Plugin,
+# and it also doesn't have bundled plugins (performanceTesting is not included either).
+alias(
+    name = "sherlock_zips",
+    actual = select({
+        "@platforms//os:linux": "//prebuilts/studio/intellij-sdk:sherlock-sdk.linux.zip",
+        "//tools/base/bazel/platforms:macos-x86_64": "//prebuilts/studio/intellij-sdk:sherlock-sdk.mac.zip",
+        "//tools/base/bazel/platforms:macos-arm64": "//prebuilts/studio/intellij-sdk:sherlock-sdk.mac_arm.zip",
+        "@platforms//os:windows": "//prebuilts/studio/intellij-sdk:sherlock-sdk.win.zip",
+    }),
+)
+
 # managed by go/iml_to_build
 iml_module(
     name = "as-driver.utils",
@@ -61,6 +75,13 @@ iml_module(
         "//tools/base/threading-agent:threading_agent.jar",
     ] + select({
         "@intellij//:studio-sdk": [":studio_zips"],
+        "@intellij//:sherlock-sdk": [
+            ":sherlock_zips",
+            # TODO: remove performanceTesting zip from here. When we switch sherlock_zip from pure
+            # sherlock-platform to full Sherlock distributables, then the performanceTesting plugin
+            # will already be included in the zip.
+            "//prebuilts/studio/intellij-sdk:sherlock_performanceTesting.zip",
+        ],
         "//conditions:default": ["@intellij//:distribution-zip"],
     }),
     iml_files = ["utils/as-driver.utils.iml"],

@@ -252,6 +252,78 @@ public abstract class IdeInstallation<T extends Ide> {
     return createAndAttach();
   }
 
+  /**
+   * Emits the agent's logs to the console. When running a test locally, this can be helpful for
+   * viewing the logs without having to suspend any processes; without this, you would have to
+   * manually locate the randomly created temporary directories holding the logs.
+   */
+  public void debugEmitLogs() {
+    try {
+      stdout.printContents();
+      stderr.printContents();
+      ideaLog.printContents();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public void enableBleak() throws IOException {
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(vmOptionsPath.toFile(), true))) {
+      try {
+        Path jvmtiAgent = TestUtils.resolveWorkspacePath(
+          "tools/adt/idea/bleak/native/libjnibleakhelper.so").toRealPath();
+        writer.append(String.format("-agentpath:%s%n", jvmtiAgent));
+        writer.append(String.format("-Denable.bleak=true%n"));
+        writer.append(String.format("-Dbleak.jvmti.enabled=true%n"));
+        writer.append(String.format("-Didea.disposer.debug=on%n"));
+        // BLeak requires more memory since it's keeping track of various live objects
+        writer.append(String.format("-Xmx4G%n"));
+      }
+      catch (IOException ignored) {
+        throw new IllegalStateException("BLeak JVMTI agent not found");
+      }
+    }
+  }
+
+  public void trustPath(Path path) throws IOException {
+    Path trustedPaths = configDir.resolve("options").resolve("trusted-paths.xml");
+    Files.createDirectories(trustedPaths.getParent());
+    Files.writeString(trustedPaths, "<application>\n" +
+                                    "  <component name=\"Trusted.Paths\">\n" +
+                                    "    <option name=\"TRUSTED_PROJECT_PATHS\">\n" +
+                                    "      <map>\n" +
+                                    "        <entry key=\"" + path + "\" value=\"true\" />\n" +
+                                    "      </map>\n" +
+                                    "    </option>\n" +
+                                    "  </component>\n" +
+                                    "  <component name=\"Trusted.Paths.Settings\">\n" +
+                                    "    <option name=\"TRUSTED_PATHS\">\n" +
+                                    "      <list>\n" +
+                                    "        <option value=\"" + path.getParent() + "\" />\n" +
+                                    "      </list>\n" +
+                                    "    </option>\n" +
+                                    "  </component>\n" +
+                                    "</application>");
+  }
+
+  public void verify() throws IOException {
+    checkLogsForThreadingViolations();
+  }
+
+  private void checkLogsForThreadingViolations() throws IOException {
+    boolean hasThreadingViolations =
+      ideaLog.hasMatchingLine(".*Threading violation.+(@UiThread|@WorkerThread).*");
+    if (hasThreadingViolations) {
+      throw new RuntimeException("One or more methods called on a wrong thread. " +
+                                 "See go/android-studio-threading-checks for more info.");
+    }
+  }
+
+  public Path getConfigDir() {
+    return configDir;
+  }
+
   abstract protected T createAndAttach() throws IOException, InterruptedException;
 
   abstract protected String vmOptionEnvName();
