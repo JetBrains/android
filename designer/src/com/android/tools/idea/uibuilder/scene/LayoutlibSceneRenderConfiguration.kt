@@ -33,10 +33,10 @@ import com.android.tools.rendering.RenderTask
 import com.android.tools.rendering.api.RenderModelModule
 import com.android.tools.rendering.imagepool.ImagePool
 import com.intellij.openapi.util.Disposer
-import com.intellij.util.io.await
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
-import kotlin.coroutines.coroutineContext
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.job
 import org.jetbrains.kotlin.utils.identity
 
@@ -255,7 +255,7 @@ class LayoutlibSceneRenderConfiguration(
     val disposable = Disposer.newCheckedDisposable("RenderTaskBuilderDisposable")
     // Register a disposal callback that will be executed when the coroutine scope completes
     // (normally or due to cancellation)
-    coroutineContext.job.invokeOnCompletion { Disposer.dispose(disposable) }
+    currentCoroutineContext().job.invokeOnCompletion { Disposer.dispose(disposable) }
     return wrapRenderTaskBuilder(taskBuilder).build(disposable).await()
   }
 }
