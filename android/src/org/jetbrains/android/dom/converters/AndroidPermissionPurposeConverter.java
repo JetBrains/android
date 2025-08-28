@@ -20,34 +20,32 @@ import static com.android.SdkConstants.TAG_PERMISSION;
 import static com.android.SdkConstants.TAG_VALID_PURPOSE;
 
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.sdk.AndroidPlatform;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.ResolvingConverter;
+import java.io.File;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import org.jetbrains.android.dom.manifest.UsesPermission;
 import org.jetbrains.android.dom.manifest.UsesPermissionSdk23;
-import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
-import java.io.File;
-import java.lang.RuntimeException;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 /**
  * Provides completion for <purpose> tags in the manifest.
@@ -64,9 +62,6 @@ public class AndroidPermissionPurposeConverter extends ResolvingConverter<String
   @Override
   public Collection<String> getVariants(@NotNull ConvertContext context) {
     DomElement invocationElement = context.getInvocationElement();
-    if (invocationElement == null) {
-      return Collections.emptyList();
-    }
 
     String permissionName = null;
     UsesPermission usesPermission = invocationElement.getParentOfType(UsesPermission.class, true);
@@ -113,7 +108,6 @@ public class AndroidPermissionPurposeConverter extends ResolvingConverter<String
     if (platform == null) return Collections.emptyMap();
 
     IAndroidTarget target = platform.getTarget();
-    if (target == null) return Collections.emptyMap();
 
     String sdkHash = target.hashString();
     try {
@@ -121,7 +115,7 @@ public class AndroidPermissionPurposeConverter extends ResolvingConverter<String
       // parsed without issues.
       return purposeMapCache.computeIfAbsent(sdkHash, key -> {
         try {
-          return parsePermissionsFile(sdkHash, target);
+          return parsePermissionsFile(target);
         }
         catch (Exception e) {
           throw new RuntimeException(e);
@@ -134,13 +128,8 @@ public class AndroidPermissionPurposeConverter extends ResolvingConverter<String
     }
   }
 
-  private static Map<String, List<String>> parsePermissionsFile(
-    String sdkHash, IAndroidTarget target
-  ) throws Exception {
+  private static Map<String, List<String>> parsePermissionsFile(IAndroidTarget target) throws Exception {
     Path platformDataPath = target.getPath(IAndroidTarget.PERMISSION_VERSIONS);
-    if (platformDataPath == null) {
-      return Collections.emptyMap();
-    }
     File dataFile = new File(platformDataPath.toString());
     if (!dataFile.exists()) {
       return Collections.emptyMap();
@@ -155,7 +144,7 @@ public class AndroidPermissionPurposeConverter extends ResolvingConverter<String
     for (int i = 0; i < permissionNodes.getLength(); i++) {
       Element permissionElement = (Element)permissionNodes.item(i);
       String permissionName = permissionElement.getAttribute(ATTR_NAME);
-      if (permissionName == null || permissionName.isEmpty()) {
+      if (permissionName.isEmpty()) {
         continue;
       }
       List<String> purposes = new ArrayList<>();
@@ -163,7 +152,7 @@ public class AndroidPermissionPurposeConverter extends ResolvingConverter<String
       for (int j = 0; j < purposeNodes.getLength(); j++) {
         Element purposeElement = (Element)purposeNodes.item(j);
         String purposeName = purposeElement.getAttribute(ATTR_NAME);
-        if (purposeName != null && !purposeName.isEmpty()) {
+        if (!purposeName.isEmpty()) {
           purposes.add(purposeName);
         }
       }
