@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_DIRECTOR
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_ENTRIES_REMOVE_AND_APPLY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_ENTRIES_REPLACE_AND_APPLY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_TEXT;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -48,7 +49,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceDirectoryEntries(buildModel, 1, 2);
 
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     SourceSetModel sourceSet = android.sourceSets().get(0);
 
@@ -75,7 +76,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceDirectoryEntries(buildModel, 1, 2);
 
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     SourceSetModel sourceSet = android.sourceSets().get(0);
 
@@ -104,7 +105,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceDirectoryEntries(buildModel, 1, 2);
 
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     SourceSetModel sourceSet = android.sourceSets().get(0);
 
@@ -131,7 +132,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceDirectoryEntries(buildModel, 1, 2);
 
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     SourceSetModel sourceSet = android.sourceSets().get(0);
 
@@ -160,7 +161,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceDirectoryEntries(buildModel, 1, 2);
 
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     SourceSetModel sourceSet = android.sourceSets().get(0);
 
@@ -187,7 +188,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceDirectoryEntries(buildModel, 1, 2);
 
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     SourceSetModel sourceSet = android.sourceSets().get(0);
 
@@ -206,7 +207,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, "");
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
     checkForInvalidPsiElement(android, AndroidModelImpl.class); // Whole android block gets removed as it would become empty.
     assertEmpty(android.sourceSets());
@@ -219,7 +220,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceDirectoryEntries(buildModel, 1, 2);
 
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     SourceSetModel sourceSet = android.sourceSets().get(0);
 
@@ -246,7 +247,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceDirectoryEntries(buildModel, 1, 2);
 
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     SourceSetModel sourceSet = android.sourceSets().get(0);
 
@@ -269,7 +270,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
   }
 
   private static void verifySourceDirectoryEntries(@NotNull GradleBuildModel buildModel, int... entrySuffixes) {
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     List<SourceSetModel> sourceSets = android.sourceSets();

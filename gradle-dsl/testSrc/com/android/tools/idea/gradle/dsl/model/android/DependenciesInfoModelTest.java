@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
+
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
@@ -32,7 +34,7 @@ public class DependenciesInfoModelTest extends GradleFileModelTestCase {
   public void testParse() throws IOException {
     writeToBuildFile(TestFile.PARSE);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     DependenciesInfoModel dependenciesInfo = android.dependenciesInfo();
@@ -45,14 +47,14 @@ public class DependenciesInfoModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.ADD_AND_APPLY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    DependenciesInfoModel dependenciesInfo = buildModel.android().dependenciesInfo();
+    DependenciesInfoModel dependenciesInfo = android(buildModel).dependenciesInfo();
     dependenciesInfo.includeInApk().setValue(true);
     dependenciesInfo.includeInBundle().setValue(false);
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_EXPECTED);
 
-    dependenciesInfo = buildModel.android().dependenciesInfo();
+    dependenciesInfo = android(buildModel).dependenciesInfo();
     assertEquals("includeInApk", Boolean.TRUE, dependenciesInfo.includeInApk());
     assertEquals("includeInBundle", Boolean.FALSE, dependenciesInfo.includeInBundle());
   }
@@ -62,14 +64,14 @@ public class DependenciesInfoModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.EDIT_AND_APPLY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    DependenciesInfoModel dependenciesInfo = buildModel.android().dependenciesInfo();
+    DependenciesInfoModel dependenciesInfo = android(buildModel).dependenciesInfo();
     dependenciesInfo.includeInApk().setValue(true);
     dependenciesInfo.includeInBundle().setValue(false);
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.EDIT_AND_APPLY_EXPECTED);
 
-    dependenciesInfo = buildModel.android().dependenciesInfo();
+    dependenciesInfo = android(buildModel).dependenciesInfo();
     assertEquals("includeInApk", Boolean.TRUE, dependenciesInfo.includeInApk());
     assertEquals("includeInBundle", Boolean.FALSE, dependenciesInfo.includeInBundle());
   }
@@ -79,7 +81,7 @@ public class DependenciesInfoModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.REMOVE_AND_APPLY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    DependenciesInfoModel dependenciesInfo = buildModel.android().dependenciesInfo();
+    DependenciesInfoModel dependenciesInfo = android(buildModel).dependenciesInfo();
     assertEquals("includeInApk", Boolean.TRUE, dependenciesInfo.includeInApk());
     assertEquals("includeInBundle", Boolean.FALSE, dependenciesInfo.includeInBundle());
     dependenciesInfo.includeInApk().delete();

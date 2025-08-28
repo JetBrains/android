@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
 import static com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt.getMainModule;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_SDK_REMOVED_FROM_MANIFEST;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -153,7 +154,7 @@ public class RemoveSdkFromManifestProcessor extends BaseRefactoringProcessor {
 
   @NotNull
   private ResolvedPropertyModel getSdkPropertyInBuildModel(@NotNull GradleBuildModel buildModel) {
-    return myProperty.getBuildFileFunction().apply(buildModel.android().defaultConfig());
+    return myProperty.getBuildFileFunction().apply(android(buildModel).defaultConfig());
   }
 
   private void runOverSdkManifestElements(@NotNull BiConsumer<Module, UsesSdk> func) {

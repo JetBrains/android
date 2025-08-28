@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
+import com.android.tools.idea.gradle.dsl.model.android.android
+
 class PsBuildTypeCollection internal constructor(parent: PsAndroidModule)
   : PsMutableCollectionBase<PsBuildType, String, PsAndroidModule>(parent) {
   init {

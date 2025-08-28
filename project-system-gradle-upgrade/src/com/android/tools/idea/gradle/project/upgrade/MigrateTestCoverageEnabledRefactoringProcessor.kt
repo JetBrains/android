@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
+import com.android.tools.idea.gradle.dsl.model.android.android
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.usageView.UsageInfo
 import com.intellij.usages.impl.rules.UsageType

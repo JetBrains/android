@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import com.android.tools.idea.gradle.dsl.model.android.android
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import org.hamcrest.CoreMatchers.equalTo

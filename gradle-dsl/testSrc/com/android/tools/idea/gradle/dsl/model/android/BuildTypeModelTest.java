@@ -24,6 +24,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.CUSTOM;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
@@ -727,7 +728,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.REMOVE_AND_APPLY_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     assertThat(android, instanceOf(AndroidModelImpl.class));
     assertTrue(((AndroidModelImpl)android).hasValidPsiElement());
@@ -848,7 +849,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("enableAndroidTestCoverage", buildType.enableAndroidTestCoverage());
 
     buildModel.reparse();
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
     assertThat(android, instanceOf(AndroidModelImpl.class));
     assertTrue(((AndroidModelImpl)android).hasValidPsiElement());
@@ -883,7 +884,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     // Now remove the applicationIdSuffix and build type and see that the whole android block is removed as it would be an empty block.
 
     buildType.applicationIdSuffix().delete();
-    buildModel.android().removeBuildType("xyz");
+    android(buildModel).removeBuildType("xyz");
     assertThat(android, instanceOf(AndroidModelImpl.class));
     assertTrue(((AndroidModelImpl)android).hasValidPsiElement());
     assertThat(buildType, instanceOf(BuildTypeModelImpl.class));
@@ -899,7 +900,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertFalse(((BuildTypeModelImpl)buildType).hasValidPsiElement());
 
     buildModel.reparse();
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
     assertThat(android, instanceOf(AndroidModelImpl.class));
     assertFalse(((AndroidModelImpl)android).hasValidPsiElement());
@@ -1331,7 +1332,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertTrue(buildType.proguardFiles().getValue(LIST_TYPE).isEmpty());
 
     buildModel.reparse();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     assertThat(android, instanceOf(AndroidModelImpl.class));
   }
@@ -1441,7 +1442,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
   public void testReadInitWith() throws IOException {
     writeToBuildFile(TestFile.OVERRIDE_WITH_INIT_WITH);
 
-    List<BuildTypeModel> buildTypeModels = getGradleBuildModel().android().buildTypes();
+    List<BuildTypeModel> buildTypeModels = android(getGradleBuildModel()).buildTypes();
     assertThat(buildTypeModels.size(), equalTo(4)); // 2 default + 2 custom
 
     BuildTypeModel fooBuildType = buildTypeModels.get(2);
@@ -1472,7 +1473,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
   public void testReadInitWithDotted() throws IOException {
     writeToBuildFile(TestFile.OVERRIDE_WITH_INIT_WITH_DOTTED);
 
-    List<BuildTypeModel> buildTypeModels = getGradleBuildModel().android().buildTypes();
+    List<BuildTypeModel> buildTypeModels = android(getGradleBuildModel()).buildTypes();
     assertThat(buildTypeModels.size(), equalTo(4)); // 2 default + 2 custom
 
     BuildTypeModel fooBuildType = buildTypeModels.get(2);
@@ -1524,7 +1525,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     SigningConfigPropertyModel signingConfigModel = buildType.signingConfig();
     assertThat(signingConfigModel.toSigningConfig().name(), equalTo("myConfig"));
     // Set the value to be equal to a different config.
-    List<SigningConfigModel> signingConfigs = buildModel.android().signingConfigs();
+    List<SigningConfigModel> signingConfigs = android(buildModel).signingConfigs();
     assertThat(signingConfigs.size(), equalTo(3));
     assertThat(signingConfigs.get(1).name(), equalTo("myConfig"));
     assertThat(signingConfigs.get(2).name(), equalTo("myBetterConfig"));
@@ -1543,7 +1544,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.SET_SIGNING_CONFIG_EXPECTED);
 
-    signingConfigs = buildModel.android().signingConfigs();
+    signingConfigs = android(buildModel).signingConfigs();
     buildType = getXyzBuildType(buildModel);
     verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myBetterConfig", CUSTOM, REGULAR, 1);
     assertThat(buildType.signingConfig().getRawValue(STRING_TYPE),
@@ -1576,7 +1577,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.SET_SIGNING_CONFIG_FROM_EMPTY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     BuildTypeModel buildTypeModel = android.addBuildType("xyz");
 
     SigningConfigModel signingConfig = android.signingConfigs().get(1);
@@ -1592,7 +1593,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.SET_SIGNING_CONFIG_FROM_EMPTY_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     buildTypeModel = android.addBuildType("xyz");
 
     signingConfigPropertyModel = buildTypeModel.signingConfig();
@@ -1607,7 +1608,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.REMOVE_AND_APPLY_CREATE_BUILD_TYPE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertSize(3, android.buildTypes());
 
     BuildTypeModel xyzModel = android.buildTypes().stream().filter(type -> type.name().equals("xyz")).findFirst().orElse(null);
@@ -1628,7 +1629,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.REMOVE_AND_APPLY_GET_BY_NAME_BUILD_TYPE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertSize(2, android.buildTypes());
 
     BuildTypeModel debugModel = android.buildTypes().stream().filter(type -> type.name().equals("debug")).findFirst().orElse(null);
@@ -1649,7 +1650,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.ALL_BUILD_TYPES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertSize(2, android.buildTypes());
     BuildTypeModel releaseBuildTypeModel = android.buildTypes().stream().filter(type -> type.name().equals("release")).findFirst().orElse(null);
     BuildTypeModel debugBuildTypeModel = android.buildTypes().stream().filter(type -> type.name().equals("debug")).findFirst().orElse(null);
@@ -1666,7 +1667,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.RENAME_IMPLICIT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel androidModel = buildModel.android();
+    AndroidModel androidModel = android(buildModel);
     List<BuildTypeModel> buildTypes = androidModel.buildTypes();
     Truth.assertThat(buildTypes).hasSize(2);
     assertEquals("release", buildTypes.get(0).name());
@@ -1683,7 +1684,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.RENAME_EXPLICIT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel androidModel = buildModel.android();
+    AndroidModel androidModel = android(buildModel);
     List<BuildTypeModel> buildTypes = androidModel.buildTypes();
     Truth.assertThat(buildTypes).hasSize(2);
     assertEquals("release", buildTypes.get(0).name());
@@ -1700,7 +1701,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.RENAME_TO_IMPLICIT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel androidModel = buildModel.android();
+    AndroidModel androidModel = android(buildModel);
     List<BuildTypeModel> buildTypes = androidModel.buildTypes();
     Truth.assertThat(buildTypes).hasSize(4);
     assertEquals("notRelease", buildTypes.get(2).name());
@@ -1717,7 +1718,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.RENAME_EXPLICIT_TO_IMPLICIT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel androidModel = buildModel.android();
+    AndroidModel androidModel = android(buildModel);
     List<BuildTypeModel> buildTypes = androidModel.buildTypes();
     Truth.assertThat(buildTypes).hasSize(2);
     assertEquals("release", buildTypes.get(0).name());
@@ -1731,7 +1732,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @NotNull
   private static BuildTypeModel getXyzBuildType(GradleBuildModel buildModel) {
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     List<BuildTypeModel> buildTypeModels = android.buildTypes();
     assertThat(buildTypeModels.size(), equalTo(3));

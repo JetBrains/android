@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
 import com.android.tools.idea.gradle.dsl.model.android.CompileSdkPropertyModelImpl.Companion.asCompileSdkString
+import com.android.tools.idea.gradle.dsl.model.android.android
 import com.android.tools.idea.gradle.project.model.NdkModel
 import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.getHolderModuleByGradlePath
