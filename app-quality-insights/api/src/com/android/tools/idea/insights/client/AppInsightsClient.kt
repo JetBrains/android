@@ -23,6 +23,7 @@ import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.EventPage
 import com.android.tools.idea.insights.FailureType
+import com.android.tools.idea.insights.FetchSource
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.IssueVariant
@@ -35,7 +36,6 @@ import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.ai.AiInsight
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
 
 data class IssueRequest(val connection: Connection, val filters: QueryFilters)
 

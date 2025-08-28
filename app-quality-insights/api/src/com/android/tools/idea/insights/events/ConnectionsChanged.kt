@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.Connection
+import com.android.tools.idea.insights.FetchSource
 import com.android.tools.idea.insights.Filters
 import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
@@ -24,7 +25,6 @@ import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 
 /** Any change to the available connections is propagated here. */
 data class ConnectionsChanged(
@@ -51,11 +51,7 @@ data class ConnectionsChanged(
           currentNotes = LoadingState.Ready(null),
           filters = defaultFilters,
         ),
-        action =
-          Action.Fetch(
-            AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
-              .PROJECT_SELECTION
-          ),
+        action = Action.Fetch(FetchSource.PROJECT_SELECTION),
       )
     } else {
       StateTransition(

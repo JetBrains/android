@@ -23,6 +23,7 @@ import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.EventPage
 import com.android.tools.idea.insights.FailureType
+import com.android.tools.idea.insights.FetchSource
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.IssueVariant
@@ -56,7 +57,6 @@ import com.android.tools.idea.vitals.datamodel.DimensionsAndMetrics
 import com.android.tools.idea.vitals.datamodel.MetricType
 import com.android.tools.idea.vitals.datamodel.extractValue
 import com.android.tools.idea.vitals.datamodel.fromDimensions
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
 import io.grpc.Channel
 import io.grpc.ClientInterceptor
 import kotlinx.coroutines.async

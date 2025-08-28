@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.events.actions
 
+import com.android.tools.idea.insights.FetchSource
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.NOTE1
 import com.android.tools.idea.insights.NoteId
@@ -30,7 +31,6 @@ import com.android.tools.idea.insights.events.actions.Action.OpenIssue
 import com.android.tools.idea.insights.events.actions.Action.Refresh
 import com.android.tools.idea.insights.events.actions.Action.Single
 import com.google.common.truth.Truth.assertThat
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
 import org.junit.Test
 
 private class CancellationEntry(

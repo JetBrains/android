@@ -16,13 +16,13 @@
 package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.FetchSource
 import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 
 /** Time Interval changed. */
 data class IntervalChanged(val interval: TimeIntervalFilter) : ChangeEvent {
@@ -43,8 +43,7 @@ data class IntervalChanged(val interval: TimeIntervalFilter) : ChangeEvent {
         currentIssueDetails = LoadingState.Ready(null),
         currentNotes = LoadingState.Ready(null),
       ),
-      action =
-        Action.Fetch(AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.FILTER),
+      action = Action.Fetch(FetchSource.FILTER),
     )
   }
 }

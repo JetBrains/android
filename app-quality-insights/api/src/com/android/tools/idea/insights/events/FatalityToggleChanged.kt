@@ -17,12 +17,12 @@ package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.FailureType
+import com.android.tools.idea.insights.FetchSource
 import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 
 /** Fatality Toggle changed. */
 data class FatalityToggleChanged(val fatality: FailureType) : ChangeEvent {
@@ -44,8 +44,7 @@ data class FatalityToggleChanged(val fatality: FailureType) : ChangeEvent {
         currentIssueDetails = LoadingState.Ready(null),
         currentNotes = LoadingState.Ready(null),
       ),
-      action =
-        Action.Fetch(AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.FILTER),
+      action = Action.Fetch(FetchSource.FILTER),
     )
   }
 }

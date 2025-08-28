@@ -17,10 +17,10 @@ package com.android.tools.idea.insights.events.actions
 
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.FailureType
+import com.android.tools.idea.insights.FetchSource
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import kotlin.reflect.KClass
 
 /**
@@ -65,9 +65,7 @@ sealed class Action {
    * Notes: it's different from [Refresh] in that it does not indicate an explicit intent to make a
    * "remote" fetch, cache can be used instead.
    */
-  data class Fetch(
-    val reason: AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
-  ) : Single() {
+  data class Fetch(val reason: FetchSource) : Single() {
 
     override fun maybeDoCancel(reasons: List<Single>) = cancelIf(reasons, ::shouldCancelFetch)
   }

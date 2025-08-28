@@ -141,3 +141,15 @@ data class IssueVariant(
   // number of unique events that occur for this issue
   val eventsCount: Long,
 )
+
+/** Source of request for fetching new issues. */
+enum class FetchSource {
+  // Offline mode
+  BACKGROUND,
+  // Refresh button clicked
+  REFRESH,
+  // Changes in filter selection
+  FILTER,
+  // Selected connection changed
+  PROJECT_SELECTION,
+}
