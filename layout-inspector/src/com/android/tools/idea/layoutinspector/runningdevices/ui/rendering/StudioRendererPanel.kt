@@ -16,15 +16,11 @@
 package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 
 import com.android.adblib.utils.createChildScope
-import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
-import com.android.tools.idea.layoutinspector.model.NotificationModel
-import com.android.tools.idea.layoutinspector.resource.data.Display
 import com.android.tools.idea.layoutinspector.ui.HQ_RENDERING_HINTS
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.scale.JBUIScale
@@ -48,8 +44,6 @@ import kotlin.math.max
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-private const val RENDERING_NOT_SUPPORTED_ID = "rendering.in.secondary.display.not.supported"
-
 /**
  * Panel responsible for rendering the [EmbeddedRendererModel] into a [Graphics] object and reacting
  * to mouse and keyboard events.
@@ -69,7 +63,6 @@ class StudioRendererPanel(
   scope: CoroutineScope,
   private val displayId: Int,
   private val renderModel: EmbeddedRendererModel,
-  private val notificationModel: NotificationModel,
   private val displayRectangleProvider: () -> Rectangle?,
   private val screenScaleProvider: () -> Double,
   private val orientationQuadrantProvider: () -> Int,
@@ -145,17 +138,6 @@ class StudioRendererPanel(
 
     val g2d = g.create() as Graphics2D
     g2d.setRenderingHints(HQ_RENDERING_HINTS)
-
-    // TODO(b/293584238) Remove once we support rendering on multiple displays.
-    if (displayId != Display.MAIN_DISPLAY_ID) {
-      showMultiDisplayNotSupportedNotification()
-      // Do no render view bounds, because they would be on the wrong display.
-      return
-    } else {
-      if (notificationModel.hasNotification(RENDERING_NOT_SUPPORTED_ID)) {
-        notificationModel.removeNotification(RENDERING_NOT_SUPPORTED_ID)
-      }
-    }
 
     val displayRectangle = displayRectangleProvider() ?: return
 
@@ -395,12 +377,6 @@ class StudioRendererPanel(
 
   /** Transform panel coordinates to model coordinates. */
   private fun toModelCoordinates(originalCoordinates: Point2D): Point2D? {
-    // TODO(b/293584238) Remove once we support rendering on multiple displays.
-    if (displayId != Display.MAIN_DISPLAY_ID) {
-      // Do no render provide coordinates, because they would be on the wrong display.
-      return null
-    }
-
     val scaledCoordinates = originalCoordinates.scale(screenScaleProvider())
     val transformedPoint2D = Point2D.Double()
 
@@ -413,17 +389,6 @@ class StudioRendererPanel(
 
   private fun Float.scale(): Float {
     return JBUIScale.scale(this) / renderModel.renderSettings.scaleFraction.toFloat()
-  }
-
-  private fun showMultiDisplayNotSupportedNotification() {
-    if (!notificationModel.hasNotification(RENDERING_NOT_SUPPORTED_ID)) {
-      notificationModel.addNotification(
-        id = RENDERING_NOT_SUPPORTED_ID,
-        text = LayoutInspectorBundle.message(RENDERING_NOT_SUPPORTED_ID),
-        status = EditorNotificationPanel.Status.Warning,
-        actions = emptyList(),
-      )
-    }
   }
 }
 

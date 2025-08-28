@@ -139,7 +139,6 @@ class SelectedTabStateTest {
         displayId = emulatorView.displayId,
         scope = displayViewRule.disposable.createCoroutineScope(),
         renderModel = renderModel,
-        notificationModel = NotificationModel(displayViewRule.project),
         displayRectangleProvider = { Rectangle() },
         screenScaleProvider = { 1.0 },
         orientationQuadrantProvider = { 0 },

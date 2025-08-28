@@ -391,7 +391,6 @@ fun createRendererPanel(
         scope = layoutInspector.coroutineScope,
         displayId = tabComponents.displayView.displayId,
         renderModel = renderModel,
-        notificationModel = layoutInspector.notificationModel,
         displayRectangleProvider = { tabComponents.displayView.displayRectangle },
         screenScaleProvider = { tabComponents.displayView.screenScalingFactor },
         orientationQuadrantProvider = {

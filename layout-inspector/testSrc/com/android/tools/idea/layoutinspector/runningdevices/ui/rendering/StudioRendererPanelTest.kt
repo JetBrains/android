@@ -593,25 +593,6 @@ class StudioRendererPanelTest {
   }
 
   @Test
-  fun testLayoutInspectorRenderingOutsideOfMainDisplayShowError() {
-    val notificationModel = NotificationModel(projectRule.project)
-    var seenNotificationIds = listOf<String>()
-    notificationModel.notificationListeners.add {
-      seenNotificationIds = notificationModel.notifications.map { it.id }
-    }
-    val (_, renderer) = createRenderer(notificationModel = notificationModel, displayId = 1)
-
-    val renderImage = createRenderImage()
-    paint(renderImage, renderer)
-
-    assertThat(seenNotificationIds).containsExactly("rendering.in.secondary.display.not.supported")
-    notificationModel.notifications
-      .find { it.id == "rendering.in.secondary.display.not.supported" }!!
-      .actions
-      .isEmpty()
-  }
-
-  @Test
   @RunsInEdt
   fun testDisablingInterceptClicksClearsSelection() {
     val (model, renderer) = createRenderer()
@@ -757,7 +738,6 @@ class StudioRendererPanelTest {
         displayId = displayId,
         scope = scope,
         renderModel = renderModel,
-        notificationModel = notificationModel,
         displayRectangleProvider = { deviceDisplayRectangle },
         screenScaleProvider = { 1.0 },
         orientationQuadrantProvider = { displayOrientation },
