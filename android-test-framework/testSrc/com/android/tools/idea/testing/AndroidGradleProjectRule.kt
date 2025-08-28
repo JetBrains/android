@@ -142,7 +142,6 @@ class AndroidGradleProjectRule(
   ) =
     loadProject(
       projectPath = projectPath,
-      chosenModuleName = null,
       agpVersion = agpVersion,
       ndkVersion = ndkVersion,
       preLoad = preLoad,
@@ -153,16 +152,12 @@ class AndroidGradleProjectRule(
    * [CodeInsightTestFixture.setTestDataPath] method before calling this method.
    * Project may be synced for test purposes
    *
-   * @param chosenModuleName If specified, which module will be used.
-   * @param gradleVersion If specified, which Gradle version will be used.
-   * @param agpVersion If specified, which AGP version will be used.
-   * @param kotlinVersion If specified, which kotlin version will be used.
+   * @param agpVersion If specified, which AGP software environment version will be used.
    * @param ndkVersion If specified, which NDK version will be used.
    */
   @JvmOverloads
   fun loadProject(
     projectPath: String,
-    chosenModuleName: String? = null,
     agpVersion: AgpVersionSoftwareEnvironment? = null,
     ndkVersion: String? = null,
     preLoad: ((projectRoot: File) -> Unit)? = null,
@@ -183,9 +178,9 @@ class AndroidGradleProjectRule(
 
         preLoad(rootFile)
         delegateTestCase.importProject(resolvedAgpVersion.jdkVersion)
-        delegateTestCase.prepareProjectForTest(project, chosenModuleName)
+        delegateTestCase.prepareProjectForTest(project)
       } else {
-        delegateTestCase.loadProject(projectPath, chosenModuleName, resolvedAgpVersion, ndkVersion)
+        delegateTestCase.loadProject(projectPath, resolvedAgpVersion, ndkVersion)
       }
     }
   }
@@ -233,11 +228,10 @@ class EdtAndroidGradleProjectRule(private val projectRule: AndroidGradleProjectR
   @JvmOverloads
   fun loadProject(
     projectPath: String,
-    chosenModuleName: String? = null,
     agpVersion: AgpVersionSoftwareEnvironment = projectRule.agpVersionSoftwareEnvironment,
     ndkVersion: String? = null,
     preLoad: ((File) -> Unit)? = null
-  ) = projectRule.loadProject(projectPath, chosenModuleName, agpVersion, ndkVersion, preLoad)
+  ) = projectRule.loadProject(projectPath, agpVersion, ndkVersion, preLoad)
 }
 
 fun AndroidGradleProjectRule.onEdt(): EdtAndroidGradleProjectRule =

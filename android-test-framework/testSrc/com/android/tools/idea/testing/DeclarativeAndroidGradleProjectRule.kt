@@ -45,12 +45,11 @@ class DeclarativeAndroidGradleProjectRule(val projectRule: AndroidGradleProjectR
   @JvmOverloads
   fun loadProject(
     projectPath: String,
-    chosenModuleName: String? = null,
     agpVersion: AgpVersionSoftwareEnvironmentDescriptor =
       AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
     ndkVersion: String? = null,
     preLoad: ((projectRoot: File) -> Unit)? = null
-  ) = projectRule.loadProject(projectPath, chosenModuleName, agpVersion, ndkVersion) { projectRoot ->
+  ) = projectRule.loadProject(projectPath, agpVersion, ndkVersion) { projectRoot ->
     WriteCommandAction.runWriteCommandAction(project) {
       setupGradleSnapshotToWrapper(project)
     }

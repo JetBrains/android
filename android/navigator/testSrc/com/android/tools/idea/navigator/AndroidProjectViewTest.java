@@ -150,7 +150,7 @@ public class AndroidProjectViewTest {
       }
       return Unit.INSTANCE;
     };
-    projectRule.loadProject(SIMPLE_APPLICATION, null, null, null, patch);
+    projectRule.loadProject(SIMPLE_APPLICATION, null, null, patch);
 
     Module appModule = TestModuleUtil.findAppModule(projectRule.getProject());
     GradleAndroidModel androidModel = GradleAndroidModel.get(appModule);
@@ -206,7 +206,7 @@ public class AndroidProjectViewTest {
       }
       return Unit.INSTANCE;
     };
-    projectRule.loadProject(SIMPLE_APPLICATION, null, null, null, patch);
+    projectRule.loadProject(SIMPLE_APPLICATION, null, null, patch);
 
     Module appModule = TestModuleUtil.findAppModule(projectRule.getProject());
     GradleAndroidModel androidModel = GradleAndroidModel.get(appModule);

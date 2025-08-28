@@ -39,7 +39,6 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.startup.GradleSpecificInitializer;
 import com.android.tools.idea.testing.AndroidGradleTests.SyncIssuesPresentError;
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
@@ -204,32 +203,25 @@ abstract class AndroidGradleTestCase extends AndroidTestBase implements GradleIn
   }
 
   protected final File loadProject(@NotNull String relativePath) throws Exception {
-    return loadProject(relativePath, null, resolveAgpVersionSoftwareEnvironment(myAgpVersionSoftwareEnvironment), null);
+    return loadProject(relativePath, resolveAgpVersionSoftwareEnvironment(myAgpVersionSoftwareEnvironment), null);
   }
 
   protected final File loadProject(@NotNull String relativePath,
-                                   @Nullable String chosenModuleName) throws Exception {
-    return loadProject(relativePath, chosenModuleName, resolveAgpVersionSoftwareEnvironment(myAgpVersionSoftwareEnvironment), null);
-  }
-
-  protected final File loadProject(@NotNull String relativePath,
-                                   @Nullable String chosenModuleName,
                                    @NotNull AgpVersionSoftwareEnvironmentDescriptor agpVersion) throws Exception {
-    return loadProject(relativePath, chosenModuleName, resolveAgpVersionSoftwareEnvironment(agpVersion), null);
+    return loadProject(relativePath, resolveAgpVersionSoftwareEnvironment(agpVersion), null);
   }
 
   protected final File loadProject(@NotNull String relativePath,
-                                   @Nullable String chosenModuleName,
                                    @NotNull ResolvedAgpVersionSoftwareEnvironment agpVersion,
                                    @Nullable String ndkVersion) throws Exception {
     File projectRoot = prepareProjectForImport(relativePath, agpVersion, ndkVersion, true);
     importProject(agpVersion.getJdkVersion());
 
-    prepareProjectForTest(getProject(), chosenModuleName);
+    prepareProjectForTest(getProject());
     return projectRoot;
   }
 
-  protected void prepareProjectForTest(Project project, @Nullable String chosenModuleName) {
+  protected void prepareProjectForTest(Project project) {
     AndroidProjectInfo androidProjectInfo = AndroidProjectInfo.getInstance(project);
     assertFalse(androidProjectInfo.isLegacyIdeaAndroidProject());
     IndexingTestUtil.waitUntilIndexesAreReady(project);

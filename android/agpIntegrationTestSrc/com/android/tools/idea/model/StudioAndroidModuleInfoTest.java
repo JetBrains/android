@@ -34,7 +34,7 @@ public class StudioAndroidModuleInfoTest {
 
   @Test
   public void testGradleOnly() {
-    projectRule.loadProject(MODULE_INFO_GRADLE_ONLY, null, softwareEnvironment);
+    projectRule.loadProject(MODULE_INFO_GRADLE_ONLY, softwareEnvironment);
     AndroidFacet myAndroidFacet = projectRule.androidFacet(":");
     assertThat(myAndroidFacet).isNotNull();
     AndroidModuleInfo androidModuleInfo = StudioAndroidModuleInfo.getInstance(myAndroidFacet);
@@ -45,7 +45,7 @@ public class StudioAndroidModuleInfoTest {
 
   @Test
   public void testFlavors() {
-    projectRule.loadProject(MODULE_INFO_FLAVORS, null, softwareEnvironment);
+    projectRule.loadProject(MODULE_INFO_FLAVORS, softwareEnvironment);
     AndroidFacet myAndroidFacet = projectRule.androidFacet(":");
     assertThat(myAndroidFacet).isNotNull();
 

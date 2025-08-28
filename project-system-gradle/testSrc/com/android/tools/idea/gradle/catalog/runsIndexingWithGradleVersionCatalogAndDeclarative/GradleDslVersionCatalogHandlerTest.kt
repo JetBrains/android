@@ -63,7 +63,6 @@ class GradleDslVersionCatalogHandlerTest  {
   @Test
   fun testGetVersionCatalogFilesWithTomlExtension() {
     projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG,
-                            null,
                             AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
                             null) { Unit
       it.resolve("settings.gradle")

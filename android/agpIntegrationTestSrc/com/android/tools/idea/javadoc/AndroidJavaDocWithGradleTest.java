@@ -102,7 +102,7 @@ public class AndroidJavaDocWithGradleTest implements SnapshotComparisonTest {
       }
       return Unit.INSTANCE;
     };
-    projectRule.loadProject(MULTIPLE_MODULE_DEPEND_ON_AAR, null, null, null, patch);
+    projectRule.loadProject(MULTIPLE_MODULE_DEPEND_ON_AAR, null, null, patch);
     CodeInsightTestFixture fixture = projectRule.getFixture();
     fixture.configureFromExistingVirtualFile(findFile(activityPath));
     AndroidTestUtils.moveCaret(fixture, "androidx.appcompat.R.attr.actionBarDivider|");
