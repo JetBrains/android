@@ -25,6 +25,7 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Commands
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -95,7 +96,7 @@ class AppInspectionToolWindowManagerListenerTest {
         content: String,
         title: String,
         severity: AppInspectionIdeServices.Severity,
-        hyperlinkClicked: () -> Unit,
+        action: AnAction?,
       ) {
         notificationText = content
       }

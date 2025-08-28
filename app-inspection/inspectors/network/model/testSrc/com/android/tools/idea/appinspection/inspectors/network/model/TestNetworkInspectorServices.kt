@@ -21,6 +21,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServic
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.openapi.actionSystem.AnAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
 import studio.network.inspection.NetworkInspectorProtocol
@@ -52,7 +53,7 @@ class TestNetworkInspectorServices(
         content: String,
         title: String,
         severity: AppInspectionIdeServices.Severity,
-        hyperlinkClicked: () -> Unit,
+        action: AnAction?,
       ) {
         TODO("Not yet implemented")
       }

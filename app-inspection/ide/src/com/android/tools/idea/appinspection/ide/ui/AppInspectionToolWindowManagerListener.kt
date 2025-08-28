@@ -3,6 +3,8 @@ package com.android.tools.idea.appinspection.ide.ui
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
@@ -35,7 +37,12 @@ class AppInspectionToolWindowManagerListener(
         if (appInspectionView.isInspectionActive()) {
           ideServices.showNotification(
             AppInspectionBundle.message("inspection.is.running"),
-            hyperlinkClicked = { appInspectionView.stopInspectors() },
+            action =
+              object : AnAction(AppInspectionBundle.message("action.stop,inspector")) {
+                override fun actionPerformed(e: AnActionEvent) {
+                  appInspectionView.stopInspectors()
+                }
+              },
           )
         }
       }

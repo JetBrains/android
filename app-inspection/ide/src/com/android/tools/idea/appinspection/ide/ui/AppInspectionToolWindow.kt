@@ -25,7 +25,6 @@ import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
@@ -40,6 +39,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.ClassUtil
 import javax.swing.JComponent
 import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.VisibleForTesting
 
 class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Project) : Disposable {
   companion object {
@@ -48,7 +48,8 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
       ToolWindowManagerEx.getInstanceEx(project).getToolWindow(APP_INSPECTION_ID)?.show(callback)
   }
 
-  private val ideServices: AppInspectionIdeServices =
+  @VisibleForTesting
+  val ideServices: AppInspectionIdeServices =
     object : AppInspectionIdeServices {
       private val notificationGroup =
         NotificationGroupManager.getInstance().getNotificationGroup(APP_INSPECTION_NOTIFICATIONS_ID)
@@ -60,23 +61,17 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
         content: String,
         title: String,
         severity: AppInspectionIdeServices.Severity,
-        hyperlinkClicked: () -> Unit,
+        action: AnAction?,
       ) {
         val type =
           when (severity) {
             AppInspectionIdeServices.Severity.INFORMATION -> NotificationType.INFORMATION
             AppInspectionIdeServices.Severity.ERROR -> NotificationType.ERROR
           }
-        val notification =
-          notificationGroup
-            .createNotification(title, content, type)
-            .addAction(
-              object : AnAction() {
-                override fun actionPerformed(e: AnActionEvent) {
-                  hyperlinkClicked()
-                }
-              }
-            )
+        val notification = notificationGroup.createNotification(title, content, type)
+        if (action != null) {
+          notification.addAction(action)
+        }
         Notifications.Bus.notify(notification, project)
       }
 

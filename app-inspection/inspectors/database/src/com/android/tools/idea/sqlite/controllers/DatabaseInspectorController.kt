@@ -67,6 +67,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ide.actions.RevealFileAction
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
@@ -747,16 +748,17 @@ class DatabaseInspectorControllerImpl(
         notifyExportComplete = { request ->
           appInspectionIdeServices?.showNotification( // TODO(161081452):  replace with a Toast
             title = DatabaseInspectorBundle.message("export.notification.success.title"),
-            content =
+            content = "",
+            action =
               when (RevealFileAction.isSupported()) {
                 true ->
-                  DatabaseInspectorBundle.message(
-                    "export.notification.success.message.reveal",
-                    RevealFileAction.getActionName(),
-                  )
-                else -> ""
+                  object : RevealFileAction() {
+                    override fun actionPerformed(e: AnActionEvent) {
+                      openFile(request.dstPath)
+                    }
+                  }
+                false -> null
               },
-            hyperlinkClicked = { RevealFileAction.openFile(request.dstPath) },
           )
         },
         notifyExportError = { _, throwable ->

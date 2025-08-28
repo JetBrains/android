@@ -53,6 +53,8 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -197,12 +199,16 @@ constructor(
     ideServices.showNotification(
       AppInspectionBundle.message("notification.crash", inspectorName),
       severity = AppInspectionIdeServices.Severity.ERROR,
-    ) {
-      AppInspectionAnalyticsTrackerService.getInstance(project).trackInspectionRestarted()
-      if (currentProcess == process) {
-        tabsLaunchScope.launch { launchInspectorForTab(process, tabShell, true) }
-      }
-    }
+      action =
+        object : AnAction(AppInspectionBundle.message("notification.restart")) {
+          override fun actionPerformed(e: AnActionEvent) {
+            AppInspectionAnalyticsTrackerService.getInstance(project).trackInspectionRestarted()
+            if (currentProcess == process) {
+              tabsLaunchScope.launch { launchInspectorForTab(process, tabShell, true) }
+            }
+          }
+        },
+    )
   }
 
   init {
@@ -290,7 +296,9 @@ constructor(
   private fun hyperlinkClicked(
     process: ProcessDescriptor,
     tabShell: AppInspectorTabShell,
-  ): () -> Unit = {
+  ): () -> Unit = { restartInspector(process, tabShell) }
+
+  private fun restartInspector(process: ProcessDescriptor, tabShell: AppInspectorTabShell) {
     AppInspectionAnalyticsTrackerService.getInstance(project).trackInspectionRestarted()
     tabsLaunchScope.launch { launchInspectorForTab(process, tabShell, true) }
   }
@@ -385,9 +393,14 @@ constructor(
           )
         )
         ideServices.showNotification(
-          AppInspectionBundle.message("notification.failed.launch", e.message!!),
+          e.message!!,
           severity = AppInspectionIdeServices.Severity.ERROR,
-          hyperlinkClicked = hyperlinkClicked(process, tabShell),
+          action =
+            object : AnAction(AppInspectionBundle.message("notification.restart")) {
+              override fun actionPerformed(e: AnActionEvent) {
+                restartInspector(process, tabShell)
+              }
+            },
         )
       }
     } catch (e: AppInspectionAppProguardedException) {

@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.inspector.api
 
 import com.android.annotations.concurrency.UiThread
+import com.intellij.openapi.actionSystem.AnAction
 
 /**
  * A set of utility methods used for communicating requests to the IDE.
@@ -50,7 +51,7 @@ interface AppInspectionIdeServices {
     content: String,
     title: String = "",
     severity: Severity = Severity.INFORMATION,
-    @UiThread hyperlinkClicked: () -> Unit = {},
+    action: AnAction? = null,
   )
 
   class CodeLocation
@@ -87,7 +88,7 @@ open class AppInspectionIdeServicesAdapter : AppInspectionIdeServices {
     content: String,
     title: String,
     severity: AppInspectionIdeServices.Severity,
-    hyperlinkClicked: () -> Unit,
+    action: AnAction?,
   ) {}
 
   override suspend fun navigateTo(codeLocation: AppInspectionIdeServices.CodeLocation) {}
