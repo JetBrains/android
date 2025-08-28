@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.util
 
-import com.android.resources.TEST_DATA_DIR
 import com.android.testutils.TestUtils
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.idea.apk.viewer.ApkFileSystem
@@ -44,10 +43,9 @@ class FileExtensionsTest : AndroidTestCase() {
   }
 
   fun testApk() {
-    val apkFile = TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/design_aar/res.apk")
+    val apkFile = TestUtils.resolveWorkspacePath("${getTestDataPath()}/configurations/activity/apkWithDefaultActivity.apk")
     assertThat(apkFile).exists()
-    val entryPath = FileUtilRt.toSystemIndependentName(apkFile.toString()) + ApkFileSystem.APK_SEPARATOR +
-                    "res/drawable-mdpi-v4/design_ic_visibility.png"
+    val entryPath = FileUtilRt.toSystemIndependentName(apkFile.toString()) + ApkFileSystem.APK_SEPARATOR + "res/6E.png"
     val apkFsUrl = ApkFileSystem.PROTOCOL + "://" + entryPath
 
     val vfsFile = VirtualFileManager.getInstance().refreshAndFindFileByUrl(apkFsUrl)!!

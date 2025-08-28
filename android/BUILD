@@ -1,5 +1,4 @@
 load("@rules_java//java:defs.bzl", "java_binary")
-load("//tools/adt/idea/android-test-framework:check_tests.bzl", "check_tests")
 load("//tools/adt/idea/studio:studio.bzl", "studio_data")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
@@ -164,12 +163,6 @@ iml_module(
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/artwork:device-art-resources",
         "//tools/adt/idea/compose-ide-plugin/testData",
-        "//tools/base/build-system:android_gradle_plugin.zip",  # Please do not add old versions of AGP here. Use the old-agp-tests module instead.
-        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
-        "//tools/base/build-system:gradle-distrib",
-        "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
-        "//tools/base/resource-repository/test/resources",
-        "//tools/base/third_party/kotlin:kotlin-m2repository",
     ],
     # do not sort: must match IML order
     test_deps = [
@@ -543,14 +536,6 @@ maven_repository(
     ],
     # Do not change: this target is explicitly marked private to subpackages to avoid bloat.
     visibility = ["//tools/adt/idea/android:__subpackages__"],
-)
-
-# Validates no new gradle project tests are added to intellij.android.core.tests
-check_tests(
-    agp_test_module = ":intellij.android.core.agp-integration-tests",
-    disallow_gradle_project_tests = True,
-    gradle_project_tests_allowlist = ":intellij.android.core.tests.gradle-tests-allowlist.txt",
-    iml_module = ":intellij.android.core.tests",
 )
 
 studio_data(
