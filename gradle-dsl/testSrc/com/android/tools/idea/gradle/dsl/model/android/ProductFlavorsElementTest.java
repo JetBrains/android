@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.dsl.TestFileName;
@@ -45,7 +46,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
   public void testProductFlavorsWithApplicationStatements() throws Exception {
     writeToBuildFile(TestFile.PRODUCT_FLAVORS_WITH_APPLICATION_STATEMENTS);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     List<ProductFlavorModel> productFlavors = android.productFlavors();
@@ -67,7 +68,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
   public void testProductFlavorsWithAssignmentStatements() throws Exception {
     writeToBuildFile(TestFile.PRODUCT_FLAVORS_WITH_ASSIGNMENT_STATEMENTS);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     List<ProductFlavorModel> productFlavors = android.productFlavors();
@@ -90,7 +91,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
   public void testProductFlavorsWithOverrideStatements() throws Exception {
     writeToBuildFile(TestFile.PRODUCT_FLAVORS_WITH_OVERRIDE_STATEMENTS);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     List<ProductFlavorModel> productFlavors = android.productFlavors();
@@ -113,7 +114,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
   public void testProductFlavorsWithAppendStatements() throws Exception {
     writeToBuildFile(TestFile.PRODUCT_FLAVORS_WITH_APPEND_STATEMENTS);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     List<ProductFlavorModel> productFlavors = android.productFlavors();
@@ -138,13 +139,13 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.ADD_EMPTY_PRODUCT_FLAVOR);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     android.addProductFlavor("flavorA");
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.ADD_EMPTY_PRODUCT_FLAVOR_EXPECTED);
-    android = buildModel.android();
+    android = android(buildModel);
 
     List<ProductFlavorModel> productFlavors = android.productFlavors();
     assertThat(productFlavors).hasSize(1);
@@ -177,7 +178,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.ADD_PRODUCT_FLAVOR);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     android.addProductFlavor("flavorA");
     android.productFlavors().get(0).applicationId().setValue("appid");
 
@@ -185,7 +186,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.ADD_PRODUCT_FLAVOR_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
 
     List<ProductFlavorModel> productFlavors = android.productFlavors();
     assertThat(productFlavors).hasSize(1);
@@ -200,14 +201,14 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.PRODUCT_FLAVORS_NOT_REMOVED);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    ProductFlavorModel xModel = buildModel.android().productFlavors().get(0);
+    ProductFlavorModel xModel = android(buildModel).productFlavors().get(0);
     xModel.externalNativeBuild().removeCMake();
 
     checkForValidPsiElement(xModel, ProductFlavorModelImpl.class);
 
     applyChangesAndReparse(buildModel);
 
-    checkForValidPsiElement(buildModel.android().productFlavors().get(0), ProductFlavorModelImpl.class);
+    checkForValidPsiElement(android(buildModel).productFlavors().get(0), ProductFlavorModelImpl.class);
     verifyFileContents(myBuildFile, TestFile.PRODUCT_FLAVORS_NOT_REMOVED_EXPECTED);
   }
 
@@ -217,7 +218,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ProductFlavorModel> productFlavors = buildModel.android().productFlavors();
+    List<ProductFlavorModel> productFlavors = android(buildModel).productFlavors();
     assertThat(productFlavors).hasSize(2);
 
     ProductFlavorModel flavor1 = productFlavors.get(0);
@@ -226,8 +227,8 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.RENAME_PRODUCT_FLAVOR_EXPECTED);
 
-    assertEquals("newAndImproved", buildModel.android().productFlavors().get(0).name());
-    assertEquals("com.example.myFlavor1", buildModel.android().productFlavors().get(0).applicationId().toString());
+    assertEquals("newAndImproved", android(buildModel).productFlavors().get(0).name());
+    assertEquals("com.example.myFlavor1", android(buildModel).productFlavors().get(0).applicationId().toString());
   }
 
   @Test
@@ -235,7 +236,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.KNOWN_METHODS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    List<ProductFlavorModel> productFlavors = buildModel.android().productFlavors();
+    List<ProductFlavorModel> productFlavors = android(buildModel).productFlavors();
     assertThat(productFlavors).hasSize(0);
   }
 

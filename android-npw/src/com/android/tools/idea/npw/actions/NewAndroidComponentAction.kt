@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.actions
 
 import com.android.AndroidProjectTypes
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.model.android.android
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.StudioAndroidModuleInfo

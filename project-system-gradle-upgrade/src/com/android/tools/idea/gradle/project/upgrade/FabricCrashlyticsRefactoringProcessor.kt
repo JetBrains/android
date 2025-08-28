@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel
+import com.android.tools.idea.gradle.dsl.model.android.android
 import com.android.tools.idea.gradle.dsl.model.crashlytics.crashlytics
 import com.android.tools.idea.gradle.dsl.model.crashlytics.firebaseCrashlytics
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
+
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
@@ -43,7 +45,7 @@ public class LintModelTest extends GradleFileModelTestCase {
     verifyLintOptions();
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     LintModel lint = android.lint();
@@ -83,7 +85,7 @@ public class LintModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.EDIT_ELEMENTS_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     lint = android.lint();
@@ -127,7 +129,7 @@ public class LintModelTest extends GradleFileModelTestCase {
     verifyNullLintOptions();
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     LintModel lint = android.lint();
@@ -167,7 +169,7 @@ public class LintModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.ADD_ELEMENTS_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     lint = android.lint();
@@ -212,7 +214,7 @@ public class LintModelTest extends GradleFileModelTestCase {
     verifyLintOptions();
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     LintModel lint = android.lint();
@@ -253,7 +255,7 @@ public class LintModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, "");
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     lint = android.lint();
@@ -262,7 +264,7 @@ public class LintModelTest extends GradleFileModelTestCase {
   }
 
   private void verifyLintOptions() {
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     LintModel lint = android.lint();
@@ -301,7 +303,7 @@ public class LintModelTest extends GradleFileModelTestCase {
   }
 
   private void verifyNullLintOptions() {
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     LintModel lint = android.lint();
@@ -340,7 +342,7 @@ public class LintModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     LintModel lint = android.lint();
@@ -367,7 +369,7 @@ public class LintModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     lint = android.lint();
@@ -386,7 +388,7 @@ public class LintModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.REMOVE_ONLY_ELEMENTS_IN_THE_LIST);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     LintModel lint = android.lint();
@@ -412,7 +414,7 @@ public class LintModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, "");
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     lint = android.lint();

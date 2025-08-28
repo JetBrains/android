@@ -31,7 +31,6 @@ import com.android.tools.idea.gradle.dsl.api.GradleFileModel;
 import com.android.tools.idea.gradle.dsl.api.GradlePropertiesModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
-import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationsModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
@@ -262,18 +261,6 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
       return pluginsDslElement.getPsiElement();
     }
     return null;
-  }
-
-  /**
-   * Returns {@link AndroidModelImpl} to read and update android block contents in the build.gradle file.
-   *
-   * <p>Returns {@code null} when experimental plugin is used as reading and updating android section is not supported for the
-   * experimental dsl.</p>
-   */
-  @Override
-  @NotNull
-  public AndroidModel android() {
-    return getModel(AndroidModel.class);
   }
 
   @NotNull

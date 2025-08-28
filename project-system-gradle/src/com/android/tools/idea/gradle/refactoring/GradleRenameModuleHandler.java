@@ -21,6 +21,7 @@ import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.ge
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_REFACTOR_MODULE_RENAMED;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -194,7 +195,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
               path.setValue(getNewPath(oldModuleGradlePath, inputString));
             }
           }
-          List<GradlePropertyModel> dynamicFeatures = buildModel.android().dynamicFeatures().toList();
+          List<GradlePropertyModel> dynamicFeatures = android(buildModel).dynamicFeatures().toList();
           if (dynamicFeatures != null) {
             for (GradlePropertyModel feature : dynamicFeatures) {
               if (oldModuleGradlePath.equals(feature.forceString())) {

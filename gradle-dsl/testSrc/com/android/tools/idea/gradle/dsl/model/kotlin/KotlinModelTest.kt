@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.kotlin
 
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import com.android.tools.idea.gradle.dsl.model.android.android
 import com.google.common.truth.Truth
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.annotations.SystemDependent

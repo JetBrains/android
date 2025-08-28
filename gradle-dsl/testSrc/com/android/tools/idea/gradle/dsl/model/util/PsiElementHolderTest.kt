@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.util
 
 import com.android.tools.idea.gradle.dsl.TestFileName
+import com.android.tools.idea.gradle.dsl.model.android.android
 import com.android.tools.idea.gradle.dsl.api.util.PsiElementHolder
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import org.jetbrains.annotations.SystemDependent

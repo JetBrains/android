@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.util.DeletablePsiElementHolder
+import com.android.tools.idea.gradle.dsl.model.android.android
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
