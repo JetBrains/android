@@ -826,6 +826,7 @@ exports_files([
 android_studio_configuration(
     name = "nightly",
     application_icon = ":nightly-icon",
+    enable_debug_flags = True,
     flag_level = "NIGHTLY",
     mac_app_name = "Android Studio Nightly",
     version_suffix = "Nightly __BUILD_DAY__",
@@ -835,6 +836,7 @@ android_studio_configuration(
 android_studio_configuration(
     name = "canary",
     application_icon = ":preview-icon",
+    enable_debug_flags = True,
     flag_level = "PREVIEW",
     mac_app_name = "Android Studio Preview",
     version_suffix = None,
