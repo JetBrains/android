@@ -4,7 +4,7 @@ load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("//tools/adt/idea/studio:studio.bzl", "android_studio", "android_studio_configuration", "studio_plugin")
 load("//tools/adt/idea/studio/rules:app-icon.bzl", "app_icon")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
-load(":version.bzl", "STUDIO_CODENAME", "STUDIO_MICRO_PATCH", "STUDIO_RELEASE_NUMBER", "STUDIO_VERSION")
+load(":version.bzl", "STUDIO_CODENAME", "STUDIO_CONFIG", "STUDIO_MICRO_PATCH", "STUDIO_RELEASE_NUMBER", "STUDIO_VERSION")
 
 package(
     default_package_metadata = [
@@ -841,16 +841,26 @@ android_studio_configuration(
     version_type = STUDIO_VERSION,
 )
 
+android_studio_configuration(
+    name = "stable",
+    application_icon = ":stable-icon",
+    flag_level = "COMPLETE",
+    mac_app_name = "Android Studio",
+    version_suffix = None,
+    version_type = STUDIO_VERSION,
+)
+
 android_studio(
     name = "android-studio",
     codesign_entitlements = "codesign/entitlements.xml",
     configurations = [
         ":canary",
         ":nightly",
+        ":stable",
     ],
     generate_package_metadata = True,
     jre = "//prebuilts/studio/jdk:jdk-bundle",
-    legacy_default_configuration = "canary",
+    legacy_default_configuration = STUDIO_CONFIG,
     platform = "@intellij//:intellij-sdk",
     plugins = [
         ":org.jetbrains.android",
