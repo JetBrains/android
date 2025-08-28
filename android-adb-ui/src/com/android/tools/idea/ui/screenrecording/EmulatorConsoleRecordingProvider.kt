@@ -19,21 +19,22 @@ import com.android.adblib.AdbSession
 import com.android.adblib.tools.EmulatorConsole
 import com.android.adblib.tools.localConsoleAddress
 import com.android.adblib.tools.openEmulatorConsole
-import com.android.tools.idea.ui.AndroidAdbUiBundle
+import com.android.tools.idea.ui.AndroidAdbUiBundle.message
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.io.move
+import java.nio.channels.ClosedChannelException
+import java.nio.file.Files
+import java.nio.file.Path
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.io.path.exists
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.nio.file.Files
-import java.nio.file.Path
-import java.util.concurrent.atomic.AtomicReference
-import kotlin.io.path.exists
 
 private const val SERIAL_NUMBER_PREFIX = "emulator-"
 
@@ -60,10 +61,13 @@ internal class EmulatorConsoleRecordingProvider(
     val handle = CompletableDeferred<Unit>()
     Disposer.register(this) {
       CoroutineScope(Dispatchers.IO).launch {
-        emulatorConsole.stopScreenRecording()
+        try {
+          emulatorConsole.stopScreenRecording()
+        }
+        catch (_: ClosedChannelException) {
+        }
       }
-      recordingHandle.getAndSet(null)?.completeExceptionally(
-          RuntimeException(AndroidAdbUiBundle.message("screenrecord.error.disconnected")))
+      recordingHandle.getAndSet(null)?.completeExceptionally(RuntimeException(message("screenrecord.error.disconnected")))
     }
 
     emulatorConsole = adbSession.openEmulatorConsole(localConsoleAddress(serialNumber.getEmulatorPort()))
@@ -145,7 +149,7 @@ private fun String.getEmulatorPort(): Int {
   try {
     return substring(SERIAL_NUMBER_PREFIX.length).toInt()
   }
-  catch (e: NumberFormatException) {
+  catch (_: NumberFormatException) {
     throw IllegalArgumentException("Not an emulator serial number: $this")
   }
 }
