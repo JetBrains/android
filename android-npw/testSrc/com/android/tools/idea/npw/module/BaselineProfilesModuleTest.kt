@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.module
 
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.model.android.android
 import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion
 import com.android.tools.idea.npw.baselineprofiles.getBaselineProfilesMinSdk

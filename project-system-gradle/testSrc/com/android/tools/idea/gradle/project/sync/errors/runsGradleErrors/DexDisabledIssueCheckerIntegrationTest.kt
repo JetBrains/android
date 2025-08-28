@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.errors.runsGradleErrors
 
 import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.model.android.android
 import com.android.tools.idea.gradle.project.sync.errors.DexDisabledIssue
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule

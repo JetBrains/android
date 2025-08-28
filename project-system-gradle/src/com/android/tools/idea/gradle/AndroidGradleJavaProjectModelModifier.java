@@ -20,6 +20,7 @@ import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigura
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.SCREENSHOT_TEST_IMPLEMENTATION;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_IMPLEMENTATION;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleProjectPath;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE;
@@ -220,7 +221,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     javaPluginNames.retainAll(JAVA_PLUGIN_IDENTIFIERS);
 
     if (!androidPluginNames.isEmpty()) {
-      AndroidModel android = buildModel.android();
+      AndroidModel android = android(buildModel);
       CompileOptionsModel compileOptions = android.compileOptions();
       compileOptions.sourceCompatibility().setLanguageLevel(level);
       compileOptions.targetCompatibility().setLanguageLevel(level);

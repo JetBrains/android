@@ -27,6 +27,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPILE_OPTIONS
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY_LONG_IDENTIFIER_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_REMOVE_APPLICATION_STATEMENT;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_REMOVE_APPLICATION_STATEMENT_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
@@ -41,7 +42,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
   public void testCompileOptionsBlock() throws Exception {
     writeToBuildFile(COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_BLOCK);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     CompileOptionsModel compileOptions = android.compileOptions();
@@ -55,7 +56,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
   public void testCompileOptionsBlockUsingAssignment() throws Exception {
     writeToBuildFile(COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_BLOCK_USING_ASSIGNMENT);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     CompileOptionsModel compileOptions = android.compileOptions();
@@ -69,7 +70,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
   public void testCompileOptionsApplicationStatement() throws Exception {
     writeToBuildFile(COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_APPLICATION_STATEMENT);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     CompileOptionsModel compileOptions = android.compileOptions();
@@ -82,7 +83,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
   public void testCompileOptionsBlockWithOverrideStatement() throws Exception {
     writeToBuildFile(COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_BLOCK_WITH_OVERRIDE_STATEMENT);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     CompileOptionsModel compileOptions = android.compileOptions();
@@ -95,7 +96,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_REMOVE_APPLICATION_STATEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     CompileOptionsModel compileOptions = android.compileOptions();
@@ -107,7 +108,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_REMOVE_APPLICATION_STATEMENT_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     compileOptions = android.compileOptions();
@@ -123,7 +124,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     CompileOptionsModel compileOptions = android.compileOptions();
@@ -142,7 +143,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     compileOptions = android.compileOptions();
@@ -159,7 +160,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY_LONG_IDENTIFIER);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     CompileOptionsModel compileOptions = android.compileOptions();
@@ -174,7 +175,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY_LONG_IDENTIFIER_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     compileOptions = android.compileOptions();
@@ -189,7 +190,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_ADD);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     CompileOptionsModel compileOptions = android.compileOptions();
@@ -206,7 +207,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_ADD_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     compileOptions = android.compileOptions();

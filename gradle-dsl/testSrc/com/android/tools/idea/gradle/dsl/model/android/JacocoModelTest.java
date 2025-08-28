@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
+
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
@@ -32,7 +34,7 @@ public class JacocoModelTest extends GradleFileModelTestCase {
   @Test
   public void testParseElements() throws Exception {
     writeToBuildFile(TestFile.PARSE_ELEMENTS);
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     JacocoModel jacoco = android.jacoco();
     assertEquals("version", "0.8.7", jacoco.version());
   }
@@ -41,7 +43,7 @@ public class JacocoModelTest extends GradleFileModelTestCase {
   public void testEditElements() throws Exception {
     writeToBuildFile(TestFile.EDIT_ELEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     JacocoModel jacoco = android.jacoco();
     assertEquals("version", "0.8.5", jacoco.version());
 
@@ -55,7 +57,7 @@ public class JacocoModelTest extends GradleFileModelTestCase {
   public void testAddElements() throws Exception {
     writeToBuildFile(TestFile.ADD_ELEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     JacocoModel jacoco = android.jacoco();
     assertMissingProperty(jacoco.version());
 
@@ -69,7 +71,7 @@ public class JacocoModelTest extends GradleFileModelTestCase {
   public void testRemoveElements() throws Exception {
     writeToBuildFile(TestFile.REMOVE_ELEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     JacocoModel jacoco = android.jacoco();
     assertEquals("version", "0.8.7", jacoco.version());
 

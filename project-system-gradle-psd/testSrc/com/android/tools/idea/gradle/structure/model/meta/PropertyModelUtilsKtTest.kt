@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model.meta
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
+import com.android.tools.idea.gradle.dsl.model.android.android
 import com.android.tools.idea.gradle.structure.PROPERTY_MODEL_UTILS_TEST_AS_FILE
 import com.android.tools.idea.gradle.structure.PROPERTY_MODEL_UTILS_TEST_AS_LANGUAGE_LEVEL
 import com.android.tools.idea.gradle.structure.PROPERTY_MODEL_UTILS_TEST_DSL_TEXT

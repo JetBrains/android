@@ -30,6 +30,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SPLITS_MODEL_RE
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SPLITS_MODEL_RESET_STATEMENT;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SPLITS_MODEL_SPLITS_EDIT_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SPLITS_MODEL_SPLITS_TEXT;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
@@ -57,7 +58,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     verifySplitsValues();
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     SplitsModel splits = android.splits();
 
@@ -81,7 +82,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, SPLITS_MODEL_SPLITS_EDIT_ELEMENTS_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
     splits = android.splits();
 
@@ -109,7 +110,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     verifyNullSplitsValues();
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     SplitsModel splits = android.splits();
 
@@ -135,7 +136,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, SPLITS_MODEL_ADD_ELEMENTS_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
     splits = android.splits();
 
@@ -163,7 +164,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     verifySplitsValues();
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     SplitsModel splits = android.splits();
     assertTrue(hasPsiElement(splits));
@@ -192,14 +193,14 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     verifyFileContents(myBuildFile, "");
 
     verifyNullSplitsValues();
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
     splits = android.splits();
     assertFalse(hasPsiElement(splits));
   }
 
   private void verifySplitsValues() {
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
     SplitsModel splits = android.splits();
 
@@ -222,7 +223,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
   }
 
   public void verifyNullSplitsValues() {
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
     SplitsModel splits = android.splits();
 
@@ -252,7 +253,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(SPLITS_MODEL_REMOVE_BLOCK_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     SplitsModel splits = android.splits();
     assertTrue(hasPsiElement(splits));
@@ -267,7 +268,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, "");
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
     splits = android.splits();
     assertFalse(hasPsiElement(splits));
@@ -281,7 +282,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(SPLITS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     SplitsModel splits = android.splits();
 
@@ -307,7 +308,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, SPLITS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
     splits = android.splits();
 
@@ -329,7 +330,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(SPLITS_MODEL_REMOVE_ONLY_ELEMENTS_IN_THE_LIST);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     SplitsModel splits = android.splits();
     assertTrue(hasPsiElement(splits));
@@ -359,7 +360,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, "");
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
     splits = android.splits();
 
@@ -384,7 +385,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
   public void testResetStatement() throws Exception {
     writeToBuildFile(SPLITS_MODEL_RESET_STATEMENT);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
     SplitsModel splits = android.splits();
     assertTrue(splits.abi().reset());
@@ -397,7 +398,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
   public void testResetNoneExisting() throws Exception {
     writeToBuildFile(SPLITS_MODEL_RESET_NONE_EXISTING);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
     SplitsModel splits = android.splits();
     assertTrue(splits.abi().reset());
@@ -410,7 +411,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
   public void testResetAndInitialize() throws Exception {
     writeToBuildFile(SPLITS_MODEL_RESET_AND_INITIALIZE);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
     SplitsModel splits = android.splits();
     assertTrue(splits.abi().reset());
@@ -424,7 +425,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(SPLITS_MODEL_ADD_RESET_STATEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     SplitsModel splits = android.splits();
     assertEquals("abi-include", ImmutableList.of("abi-include-1", "abi-include-2"), splits.abi().include());
@@ -435,7 +436,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, SPLITS_MODEL_ADD_RESET_STATEMENT_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
     splits = android.splits();
     assertTrue(splits.abi().reset());
@@ -449,7 +450,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(SPLITS_MODEL_REMOVE_RESET_STATEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     SplitsModel splits = android.splits();
     assertMissingProperty("abi-include", splits.abi().include());
@@ -460,7 +461,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, SPLITS_MODEL_REMOVE_RESET_STATEMENT_EXPECTED);
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
     splits = android.splits();
     assertFalse(splits.abi().reset());

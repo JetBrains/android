@@ -24,6 +24,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.VIEW_BINDING_MO
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.VIEW_BINDING_MODEL_EDIT_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.VIEW_BINDING_MODEL_PARSE_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.VIEW_BINDING_MODEL_REMOVE_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
@@ -40,7 +41,7 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
   public void testParseElements() throws Exception {
     writeToBuildFile(VIEW_BINDING_MODEL_PARSE_ELEMENTS);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     ViewBindingModel viewBinding = android.viewBinding();
@@ -53,7 +54,7 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     buildModel.getContext().setAgpVersion(AndroidGradlePluginVersion.Companion.parse("8.0.0"));
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     ViewBindingModel viewBinding = android.viewBinding();
@@ -65,7 +66,7 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
     writeToBuildFile(VIEW_BINDING_MODEL_EDIT_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     ViewBindingModel viewBinding = android.viewBinding();
@@ -76,7 +77,7 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, VIEW_BINDING_MODEL_EDIT_ELEMENTS_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     viewBinding = android.viewBinding();
@@ -88,7 +89,7 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
     writeToBuildFile(VIEW_BINDING_MODEL_ADD_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     ViewBindingModel viewBinding = android.viewBinding();
@@ -99,7 +100,7 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, VIEW_BINDING_MODEL_ADD_ELEMENTS_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     viewBinding = android.viewBinding();
@@ -112,7 +113,7 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     buildModel.getContext().setAgpVersion(AndroidGradlePluginVersion.Companion.parse("8.0.0"));
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     ViewBindingModel viewBinding = android.viewBinding();
@@ -123,7 +124,7 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, VIEW_BINDING_MODEL_ADD_ELEMENTS_800_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     viewBinding = android.viewBinding();
@@ -135,7 +136,7 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
     writeToBuildFile(VIEW_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     ViewBindingModel viewBinding = android.viewBinding();
@@ -146,7 +147,7 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, VIEW_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     viewBinding = android.viewBinding();
@@ -158,7 +159,7 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
     writeToBuildFile(VIEW_BINDING_MODEL_REMOVE_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     ViewBindingModel viewBinding = android.viewBinding();
@@ -170,7 +171,7 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, "");
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     viewBinding = android.viewBinding();

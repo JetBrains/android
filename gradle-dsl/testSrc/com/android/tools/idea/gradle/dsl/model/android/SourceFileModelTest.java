@@ -24,6 +24,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_FILE_MOD
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_FILE_MODEL_SOURCE_FILE_EDIT_AND_RESET;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_FILE_MODEL_SOURCE_FILE_REMOVE_AND_APPLY;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_FILE_MODEL_SOURCE_FILE_REMOVE_AND_RESET;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -52,7 +53,7 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceFile(buildModel, "mainSource.xml");
 
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     android.sourceSets().get(0).manifest().srcFile().setValue("otherSource.xml");
     verifySourceFile(buildModel, "otherSource.xml");
@@ -67,7 +68,7 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceFile(buildModel, "mainSource.xml");
 
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     android.sourceSets().get(0).manifest().srcFile().setValue("otherSource.xml");
     verifySourceFile(buildModel, "otherSource.xml");
@@ -83,7 +84,7 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceFile(buildModel, null);
 
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     android.sourceSets().get(0).manifest().srcFile().setValue("mainSource.xml");
     verifySourceFile(buildModel, "mainSource.xml");
@@ -98,7 +99,7 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceFile(buildModel, null);
 
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     android.sourceSets().get(0).manifest().srcFile().setValue("mainSource.xml");
     verifySourceFile(buildModel, "mainSource.xml");
@@ -115,7 +116,7 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceFile(buildModel, "mainSource.xml");
 
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     android.sourceSets().get(0).manifest().srcFile().delete();
     verifySourceFile(buildModel, null);
@@ -130,7 +131,7 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceFile(buildModel, "mainSource.xml");
 
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     android.sourceSets().get(0).manifest().srcFile().delete();
     verifySourceFile(buildModel, null);
@@ -138,14 +139,14 @@ public class SourceFileModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, "");
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
     checkForInvalidPsiElement(android, AndroidModelImpl.class); // Whole android block gets removed as it would become empty.
     assertThat(android.sourceSets()).isEmpty();
   }
 
   private static void verifySourceFile(@NotNull GradleBuildModel buildModel, @Nullable String srcFile) {
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     checkForValidPsiElement(android, AndroidModelImpl.class);
 

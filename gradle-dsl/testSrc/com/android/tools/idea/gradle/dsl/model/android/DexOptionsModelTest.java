@@ -25,6 +25,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEX_OPTIONS_MOD
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEX_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEX_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEX_OPTIONS_MODEL_REMOVE_ONLY_ELEMENT_IN_THE_LIST;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
@@ -41,7 +42,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
   public void testParseElementsInApplicationStatements() throws Exception {
     writeToBuildFile(DEX_OPTIONS_MODEL_PARSE_ELEMENTS_IN_APPLICATION_STATEMENTS);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     DexOptionsModel dexOptions = android.dexOptions();
@@ -59,7 +60,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
   public void testParseElementsInAssignmentStatements() throws Exception {
     writeToBuildFile(DEX_OPTIONS_MODEL_PARSE_ELEMENTS_IN_ASSIGNMENT_STATEMENTS);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     DexOptionsModel dexOptions = android.dexOptions();
@@ -78,7 +79,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(DEX_OPTIONS_MODEL_EDIT_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     DexOptionsModel dexOptions = android.dexOptions();
@@ -103,7 +104,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, DEX_OPTIONS_MODEL_EDIT_ELEMENTS_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     dexOptions = android.dexOptions();
@@ -122,7 +123,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(DEX_OPTIONS_MODEL_ADD_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     DexOptionsModel dexOptions = android.dexOptions();
@@ -147,7 +148,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, DEX_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     dexOptions = android.dexOptions();
@@ -166,7 +167,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(DEX_OPTIONS_MODEL_REMOVE_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     DexOptionsModel dexOptions = android.dexOptions();
@@ -192,7 +193,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, "");
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     dexOptions = android.dexOptions();
@@ -212,7 +213,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(DEX_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     DexOptionsModel dexOptions = android.dexOptions();
@@ -223,7 +224,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, DEX_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     dexOptions = android.dexOptions();
@@ -235,7 +236,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(DEX_OPTIONS_MODEL_REMOVE_ONLY_ELEMENT_IN_THE_LIST);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     DexOptionsModel dexOptions = android.dexOptions();
@@ -247,7 +248,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, "");
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     dexOptions = android.dexOptions();

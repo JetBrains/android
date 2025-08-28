@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.issues.processor
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
+import com.android.tools.idea.gradle.dsl.model.android.android
 import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.projectsystem.toReason
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_NDK_INSTALLED

@@ -20,6 +20,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_OPTIONS_MO
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_OPTIONS_MODEL_ADD_EXISTING_TEST_SUITE_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_OPTIONS_MODEL_EDIT_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_OPTIONS_MODEL_TEST_OPTIONS_TEXT;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 
 import com.android.tools.idea.gradle.dsl.api.android.testOptions.testSuites.TestSuiteModel;
 import com.android.tools.idea.gradle.model.IdeTestOptions;
@@ -47,7 +48,7 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     verifyTestOptionsValues();
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     TestOptionsModel testOptions = android.testOptions();
@@ -64,7 +65,7 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TEST_OPTIONS_MODEL_EDIT_ELEMENTS_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     testOptions = android.testOptions();
@@ -86,7 +87,7 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     verifyNullTestOptionsValues();
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     TestOptionsModel testOptions = android.testOptions();
@@ -114,7 +115,7 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     verifyTestOptionsValues();
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     TestOptionsModel testOptions = android.testOptions();
@@ -133,7 +134,7 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, "");
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     testOptions = android.testOptions();
@@ -147,13 +148,13 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     verifyTestOptionsValues();
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     TestOptionsModel testOptions = android.testOptions();
     testOptions.suites().get(0).addTargetVariant("debug");
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     testOptions = android.testOptions();
@@ -166,7 +167,7 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
   }
 
   private void verifyTestOptionsValues() {
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     TestOptionsModel testOptions = android.testOptions();
@@ -185,7 +186,7 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
   }
 
   private void verifyNullTestOptionsValues() {
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     TestOptionsModel testOptions = android.testOptions();

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
+
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
@@ -36,7 +38,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
   public void testParseElementsInApplicationStatements() throws Exception {
     writeToBuildFile(TestFile.PARSE_ELEMENTS_IN_APPLICATION_STATEMENTS);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     PackagingOptionsModel packagingOptions = android.packagingOptions();
@@ -50,7 +52,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
   public void testParseElementsInAssignmentStatements() throws Exception {
     writeToBuildFile(TestFile.PARSE_ELEMENTS_IN_ASSIGNMENT_STATEMENTS);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     PackagingOptionsModel packagingOptions = android.packagingOptions();
@@ -65,7 +67,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.REPLACE_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     PackagingOptionsModel packagingOptions = android.packagingOptions();
@@ -82,7 +84,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.REPLACE_ELEMENTS_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     packagingOptions = android.packagingOptions();
@@ -97,7 +99,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.ADD_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     PackagingOptionsModel packagingOptions = android.packagingOptions();
@@ -117,7 +119,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     if(!isGroovy()) {
       verifyFileContents(myBuildFile, TestFile.ADD_ELEMENTS_EXPECTED);
     }
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     packagingOptions = android.packagingOptions();
@@ -131,7 +133,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.APPEND_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     PackagingOptionsModel packagingOptions = android.packagingOptions();
@@ -147,7 +149,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     // TODO(b/144280051): we emit Dsl with syntax errors here
     // verifyFileContents(myBuildFile, TestFile.APPEND_ELEMENTS_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     packagingOptions = android.packagingOptions();
@@ -161,7 +163,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.REMOVE_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     PackagingOptionsModel packagingOptions = android.packagingOptions();
@@ -177,7 +179,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, "");
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     packagingOptions = android.packagingOptions();
@@ -191,7 +193,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.REMOVE_ONE_OF_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     PackagingOptionsModel packagingOptions = android.packagingOptions();
@@ -207,7 +209,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     // TODO(b/144280051): we emit Dsl with syntax errors here
     // verifyFileContents(myBuildFile, TestFile.REMOVE_ONE_OF_ELEMENTS_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     packagingOptions = android.packagingOptions();
@@ -221,7 +223,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.REMOVE_ONLY_ELEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     PackagingOptionsModel packagingOptions = android.packagingOptions();
@@ -238,7 +240,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     // TODO(b/144280051): we emit Dsl with syntax errors here
     // verifyFileContents(myBuildFile, TestFile.REMOVE_ONLY_ELEMENT_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     packagingOptions = android.packagingOptions();
@@ -253,7 +255,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     buildModel.getContext().setAgpVersion(AndroidGradlePluginVersion.Companion.parse("8.0.0-beta01"));
-    buildModel.android().packaging().dex().useLegacyPackaging().setValue(true);
+    android(buildModel).packaging().dex().useLegacyPackaging().setValue(true);
     applyChanges(buildModel);
     verifyFileContents(myBuildFile, TestFile.ADD_PACKAGING_FROM_EMPTY_800_BETA_01);
   }
@@ -264,7 +266,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     buildModel.getContext().setAgpVersion(AndroidGradlePluginVersion.Companion.parse("8.0.0-beta02"));
-    buildModel.android().packaging().dex().useLegacyPackaging().setValue(true);
+    android(buildModel).packaging().dex().useLegacyPackaging().setValue(true);
     applyChanges(buildModel);
     verifyFileContents(myBuildFile, TestFile.ADD_PACKAGING_FROM_EMPTY_800_BETA_02);
   }

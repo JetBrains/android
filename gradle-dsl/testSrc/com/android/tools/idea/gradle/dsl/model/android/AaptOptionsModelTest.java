@@ -27,6 +27,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.AAPT_OPTIONS_RE
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.AAPT_OPTIONS_REMOVE_LAST_ELEMENT;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.AAPT_OPTIONS_REMOVE_ONE_ELEMENT;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.AAPT_OPTIONS_REMOVE_ONE_ELEMENT_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AaptOptionsModel;
@@ -43,7 +44,7 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
   public void testParseElementsOne() throws Exception {
     writeToBuildFile(AAPT_OPTIONS_PARSE_ELEMENTS_ONE);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     AaptOptionsModel aaptOptions = android.aaptOptions();
@@ -59,7 +60,7 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
   public void testParseElementsTwo() throws Exception {
     writeToBuildFile(AAPT_OPTIONS_PARSE_ELEMENTS_TWO);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     AaptOptionsModel aaptOptions = android.aaptOptions();
@@ -76,7 +77,7 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(AAPT_OPTIONS_EDIT_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     AaptOptionsModel aaptOptions = android.aaptOptions();
@@ -97,7 +98,7 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, AAPT_OPTIONS_EDIT_ELEMENTS_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     aaptOptions = android.aaptOptions();
@@ -114,7 +115,7 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(AAPT_OPTIONS_EDIT_IGNORE_ASSET_PATTERN);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     AaptOptionsModel aaptOptions = android.aaptOptions();
@@ -126,7 +127,7 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, AAPT_OPTIONS_EDIT_IGNORE_ASSET_PATTERN_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     aaptOptions = android.aaptOptions();
@@ -138,7 +139,7 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(AAPT_OPTIONS_ADD_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     AaptOptionsModel aaptOptions = android.aaptOptions();
@@ -159,7 +160,7 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, AAPT_OPTIONS_ADD_ELEMENTS_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     aaptOptions = android.aaptOptions();
@@ -176,7 +177,7 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(AAPT_OPTIONS_REMOVE_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     AaptOptionsModel aaptOptions = android.aaptOptions();
@@ -198,7 +199,7 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, "");
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     aaptOptions = android.aaptOptions();
@@ -216,7 +217,7 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(AAPT_OPTIONS_REMOVE_ONE_ELEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     AaptOptionsModel aaptOptions = android.aaptOptions();
@@ -229,7 +230,7 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, AAPT_OPTIONS_REMOVE_ONE_ELEMENT_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     aaptOptions = android.aaptOptions();
@@ -242,7 +243,7 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(AAPT_OPTIONS_REMOVE_LAST_ELEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     AaptOptionsModel aaptOptions = android.aaptOptions();
@@ -256,7 +257,7 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, "");
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     aaptOptions = android.aaptOptions();

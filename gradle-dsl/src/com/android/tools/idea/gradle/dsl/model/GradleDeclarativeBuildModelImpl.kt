@@ -20,9 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeBuildModel
 import com.android.tools.idea.gradle.dsl.api.android.AndroidDeclarativeModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.model.android.AndroidDeclarativeModelImpl
-import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl
-import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement
-import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID
+import com.android.tools.idea.gradle.dsl.model.android.android
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_APP
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_LIBRARY
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
@@ -47,11 +45,7 @@ class GradleDeclarativeBuildModelImpl(val gradleBuildFile: GradleBuildFile): Gra
       AndroidDeclarativeType.LIBRARY -> AndroidDeclarativeModelImpl(gradleBuildFile.ensurePropertyElement(ANDROID_LIBRARY))
     }
 
-  override fun android(): AndroidDeclarativeModel {
-    return getModel(AndroidDeclarativeModel::class.java)
-  }
-
   override fun dependencies(): DependenciesModel {
-    return android().dependencies()
+    return getModel(AndroidDeclarativeModel::class.java).dependencies()
   }
 }

@@ -21,6 +21,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.Pa
 import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType.ENVIRONMENT_VARIABLE;
 import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType.PLAIN_TEXT;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.dsl.TestFileName;
@@ -46,7 +47,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
   public void testSigningConfigBlockWithApplicationStatements() throws Exception {
     writeToBuildFile(TestFile.SIGNING_CONFIG_BLOCK_WITH_APPLICATION_STATEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
@@ -64,7 +65,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
   public void testSigningConfigBlockWithAssignmentStatements() throws Exception {
     writeToBuildFile(TestFile.SIGNING_CONFIG_BLOCK_WITH_ASSIGNMENT_STATEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
@@ -82,7 +83,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
   public void testSigningConfigApplicationStatements() throws Exception {
     writeToBuildFile(TestFile.SIGNING_CONFIG_APPLICATION_STATEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
@@ -100,7 +101,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
   public void testSigningConfigAssignmentStatements() throws Exception {
     writeToBuildFile(TestFile.SIGNING_CONFIG_ASSIGNMENT_STATEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
@@ -117,7 +118,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
   @Test
   public void testMultipleSigningConfigs() throws Exception {
     writeToBuildFile(TestFile.MULTIPLE_SIGNING_CONFIGS);
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
@@ -144,7 +145,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
   public void testSetAndApplySigningConfig() throws Exception {
     writeToBuildFile(TestFile.SET_AND_APPLY_SIGNING_CONFIG);
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
@@ -165,7 +166,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
 
     applyChanges(buildModel);
     verifyFileContents(myBuildFile, TestFile.SET_AND_APPLY_SIGNING_CONFIG_EXPECTED);
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
     signingConfigs = android.signingConfigs();
     assertThat(signingConfigs).hasSize(2);
@@ -178,7 +179,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     verifyPasswordModel(signingConfig.keyPassword(), "debugKeyPassword", PLAIN_TEXT);
 
     buildModel.reparse();
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     signingConfigs = android.signingConfigs();
@@ -196,7 +197,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
   public void testRemoveStoreFileAndApplySigningConfig() throws Exception {
     writeToBuildFile(TestFile.REMOVE_STORE_FILE_AND_APPLY_SIGNING_CONFIG);
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
 
@@ -219,7 +220,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
   public void testRemoveAndApplySigningConfig() throws Exception {
     writeToBuildFile(TestFile.REMOVE_AND_APPLY_SIGNING_CONFIG);
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
 
@@ -241,7 +242,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     applyChanges(buildModel);
     verifyFileContents(myBuildFile, TestFile.REMOVE_AND_APPLY_SIGNING_CONFIG_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
     signingConfigs = android.signingConfigs();
     assertThat(signingConfigs).hasSize(2);
@@ -254,7 +255,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertMissingProperty(signingConfig.keyPassword());
 
     buildModel.reparse();
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
     signingConfigs = android.signingConfigs();
     assertThat(signingConfigs).hasSize(2);
@@ -271,7 +272,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
   public void testAddAndApplySigningConfig() throws Exception {
     writeToBuildFile(TestFile.ADD_AND_APPLY_SIGNING_CONFIG);
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
@@ -292,7 +293,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     applyChanges(buildModel);
     verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_SIGNING_CONFIG_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
     signingConfigs = android.signingConfigs();
     assertThat(signingConfigs).hasSize(2);
@@ -305,7 +306,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     verifyPasswordModel(signingConfig.keyPassword(), "releaseKeyPassword", PLAIN_TEXT);
 
     buildModel.reparse();
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
     signingConfigs = android.signingConfigs();
     assertThat(signingConfigs).hasSize(2);
@@ -322,7 +323,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
   public void testParseEnvironmentVariablePasswordElements() throws Exception {
     writeToBuildFile(TestFile.PARSE_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
@@ -337,7 +338,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
   public void testParseConsoleReadPasswordElements() throws Exception {
     writeToBuildFile(TestFile.PARSE_CONSOLE_READ_PASSWORD_ELEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
@@ -353,7 +354,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
   public void testEditEnvironmentVariablePasswordElements() throws Exception {
     writeToBuildFile(TestFile.EDIT_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
@@ -368,7 +369,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.EDIT_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     signingConfigs = android.signingConfigs();
@@ -383,7 +384,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
   public void testEditConsoleReadPasswordElements() throws Exception {
     writeToBuildFile(TestFile.EDIT_CONSOLE_READ_PASSWORD_ELEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
@@ -399,7 +400,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.EDIT_CONSOLE_READ_PASSWORD_ELEMENTS_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     signingConfigs = android.signingConfigs();
@@ -414,7 +415,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
   public void testAddEnvironmentVariablePasswordElements() throws Exception {
     writeToBuildFile(TestFile.ADD_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
@@ -429,7 +430,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.ADD_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     signingConfigs = android.signingConfigs();
@@ -444,7 +445,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
   public void testAddConsoleReadPasswordElements() throws Exception {
     writeToBuildFile(TestFile.ADD_CONSOLE_READ_PASSWORD_ELEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
@@ -460,7 +461,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.ADD_CONSOLE_READ_PASSWORD_ELEMENTS_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     signingConfigs = android.signingConfigs();
@@ -475,7 +476,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
   public void testChangeEnvironmentVariablePasswordToConsoleReadPassword() throws Exception {
     writeToBuildFile(TestFile.CHANGE_ENVIRONMENT_VARIABLE_PASSWORD_TO_CONSOLE_READ_PASSWORD);
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
@@ -491,7 +492,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.CHANGE_ENVIRONMENT_VARIABLE_PASSWORD_TO_CONSOLE_READ_PASSWORD_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     signingConfigs = android.signingConfigs();
@@ -506,7 +507,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
   public void testChangeConsoleReadPasswordElementsToPlainTextPasswordElements() throws Exception {
     writeToBuildFile(TestFile.CHANGE_CONSOLE_READ_PASSWORD_ELEMENTS_TO_PLAIN_TEXT_PASSWORD_ELEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
@@ -522,7 +523,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.CHANGE_CONSOLE_READ_PASSWORD_ELEMENTS_TO_PLAIN_TEXT_PASSWORD_ELEMENTS_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     signingConfigs = android.signingConfigs();
@@ -538,7 +539,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.SIGNING_CONFIG_BLOCK_WITH_APPLICATION_STATEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel androidModel = buildModel.android();
+    AndroidModel androidModel = android(buildModel);
 
     List<SigningConfigModel> signingConfigs = androidModel.signingConfigs();
     assertThat(signingConfigs).hasSize(2);
@@ -551,7 +552,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.RENAME_EXPECTED);
 
-    androidModel = buildModel.android();
+    androidModel = android(buildModel);
     assertNotNull(androidModel);
 
     signingConfigs = androidModel.signingConfigs();
@@ -565,7 +566,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.RENAME_IMPLICIT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel androidModel = buildModel.android();
+    AndroidModel androidModel = android(buildModel);
     List<SigningConfigModel> signingConfigs = androidModel.signingConfigs();
     assertThat(signingConfigs).hasSize(1);
     assertEquals("debug", signingConfigs.get(0).name());
@@ -580,7 +581,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.RENAME_EXPLICIT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel androidModel = buildModel.android();
+    AndroidModel androidModel = android(buildModel);
     List<SigningConfigModel> signingConfigs = androidModel.signingConfigs();
     assertThat(signingConfigs).hasSize(1);
     assertEquals("debug", signingConfigs.get(0).name());
@@ -595,7 +596,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.RENAME_TO_IMPLICIT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel androidModel = buildModel.android();
+    AndroidModel androidModel = android(buildModel);
     List<SigningConfigModel> signingConfigs = androidModel.signingConfigs();
     assertThat(signingConfigs).hasSize(2);
     assertEquals("debug", signingConfigs.get(0).name());
@@ -611,7 +612,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.RENAME_WITH_REFERENCES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel androidModel = buildModel.android();
+    AndroidModel androidModel = android(buildModel);
 
     List<SigningConfigModel> signingConfigs = androidModel.signingConfigs();
     assertThat(signingConfigs).hasSize(2);
@@ -641,7 +642,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.RENAME_WITH_REFERENCES_EXPECTED);
 
-    androidModel = buildModel.android();
+    androidModel = android(buildModel);
     signingConfigs = androidModel.signingConfigs();
     assertThat(signingConfigs).hasSize(2);
     SigningConfigModel newRelease = signingConfigs.get(1);
@@ -668,7 +669,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.RENAME_TRICKY_WITH_REFERENCES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel androidModel = buildModel.android();
+    AndroidModel androidModel = android(buildModel);
 
     List<SigningConfigModel> signingConfigs = androidModel.signingConfigs();
     assertThat(signingConfigs).hasSize(2);
@@ -700,7 +701,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.ADDED_TO_TOP_OF_ANDROID_BLOCK);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel androidModel = buildModel.android();
+    AndroidModel androidModel = android(buildModel);
 
     SigningConfigModel signingConfig = androidModel.addSigningConfig("release");
     signingConfig.storeFile().setValue(new RawText("keystorefile", "keystorefile"));

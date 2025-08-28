@@ -68,6 +68,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.PROPERTIES_FILE;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -124,7 +125,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     GradlePropertyModel model = extModel.findProperty("COMPILE_SDK_VERSION");
     verifyPropertyModel(model, INTEGER_TYPE, 21, INTEGER, REGULAR, 0, "COMPILE_SDK_VERSION");
 
-    AndroidModel androidModel = getGradleBuildModel().android();
+    AndroidModel androidModel = android(getGradleBuildModel());
     assertNotNull(androidModel);
     verifyPropertyModel(androidModel.compileSdkVersion(), INTEGER_TYPE, 21, INTEGER, REGULAR, 1);
   }
@@ -137,7 +138,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     GradlePropertyModel model = extModel.findProperty("constants").toMap().get("COMPILE_SDK_VERSION");
     verifyPropertyModel(model, INTEGER_TYPE, 21, INTEGER, DERIVED, 0, "COMPILE_SDK_VERSION");
 
-    AndroidModel androidModel = getGradleBuildModel().android();
+    AndroidModel androidModel = android(getGradleBuildModel());
     assertNotNull(androidModel);
     verifyPropertyModel(androidModel.compileSdkVersion(), INTEGER_TYPE, 21, INTEGER, REGULAR, 1);
   }
@@ -152,7 +153,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     verifyPropertyModel(extModel.findProperty("COMPILE_SDK_VERSION"), STRING_TYPE, extraName("SDK_VERSION"), REFERENCE, REGULAR, 1);
     verifyPropertyModel(extModel.findProperty("COMPILE_SDK_VERSION").resolve(), INTEGER_TYPE, 21, INTEGER, REGULAR, 1);
 
-    AndroidModel androidModel = buildModel.android();
+    AndroidModel androidModel = android(buildModel);
     assertNotNull(androidModel);
     assertEquals("compileSdkVersion", "21", androidModel.compileSdkVersion());
 
@@ -175,7 +176,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     ExtModel subModuleExtModel = getSubModuleGradleBuildModel().ext();
     assertMissingProperty(subModuleExtModel.findProperty("SDK_VERSION"));
 
-    AndroidModel androidModel = subModuleBuildModel.android();
+    AndroidModel androidModel = android(subModuleBuildModel);
     assertNotNull(androidModel);
     assertEquals("compileSdkVersion", "21", androidModel.compileSdkVersion()); // SDK_VERSION resolved from the main module.
   }
@@ -190,7 +191,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     verifyPropertyModel(extModel.findProperty("SDK_VERSION"), INTEGER_TYPE, 23, INTEGER, REGULAR, 0);
 
 
-    AndroidModel androidModel = buildModel.android();
+    AndroidModel androidModel = android(buildModel);
     assertNotNull(androidModel);
     assertEquals("compileSdkVersion", "android-23", androidModel.compileSdkVersion());
 
@@ -204,7 +205,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    AndroidModel androidModel = buildModel.android();
+    AndroidModel androidModel = android(buildModel);
     assertNotNull(androidModel);
     assertEquals("compileSdkVersion", "23", androidModel.compileSdkVersion());
 
@@ -220,7 +221,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     ExtModel extModel = getGradleBuildModel().ext();
     verifyPropertyModel(extModel.findProperty("TEST_STRING"), STRING_TYPE, "test", STRING, REGULAR, 0);
 
-    AndroidModel androidModel = buildModel.android();
+    AndroidModel androidModel = android(buildModel);
     assertNotNull(androidModel);
     ProductFlavorModel defaultConfig = androidModel.defaultConfig();
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "test"), defaultConfig.proguardFiles());
@@ -235,7 +236,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     verifyListProperty(extModel.findProperty("TEST_STRINGS"), ImmutableList.of("test1", "test2"));
 
-    AndroidModel androidModel = buildModel.android();
+    AndroidModel androidModel = android(buildModel);
     assertNotNull(androidModel);
     ProductFlavorModel defaultConfig = androidModel.defaultConfig();
     assertEquals("proguardFiles", ImmutableList.of("test1", "test2"), defaultConfig.proguardFiles());
@@ -249,7 +250,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     ExtModel extModel = getGradleBuildModel().ext();
     verifyPropertyModel(extModel.findProperty("TEST_STRING"), STRING_TYPE, "test", STRING, REGULAR, 0);
 
-    AndroidModel androidModel = buildModel.android();
+    AndroidModel androidModel = android(buildModel);
     assertNotNull(androidModel);
     ProductFlavorModel defaultConfig = androidModel.defaultConfig();
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "test"), defaultConfig.proguardFiles());
@@ -263,7 +264,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     ExtModel extModel = getGradleBuildModel().ext();
     verifyPropertyModel(extModel.findProperty("TEST_STRING"), STRING_TYPE, "test", STRING, REGULAR, 0);
 
-    AndroidModel androidModel = buildModel.android();
+    AndroidModel androidModel = android(buildModel);
     assertNotNull(androidModel);
     ProductFlavorModel defaultConfig = androidModel.defaultConfig();
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "medium", "foo", "test"),
@@ -282,7 +283,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertNotNull(expressionMap);
     assertEquals("TEST_MAP", ImmutableMap.of("test1", "value1", "test2", "value2"), expressionMap);
 
-    AndroidModel androidModel = buildModel.android();
+    AndroidModel androidModel = android(buildModel);
     assertNotNull(androidModel);
     ProductFlavorModel defaultConfig = androidModel.defaultConfig();
     assertNotNull(defaultConfig);
@@ -298,7 +299,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     ExtModel extModel = getGradleBuildModel().ext();
     verifyPropertyModel(extModel.findProperty("TEST_STRING"), STRING_TYPE, "test", STRING, REGULAR, 0);
 
-    AndroidModel androidModel = buildModel.android();
+    AndroidModel androidModel = android(buildModel);
     assertNotNull(androidModel);
     ProductFlavorModel defaultConfig = androidModel.defaultConfig();
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "medium", "foo", "test"),

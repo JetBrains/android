@@ -32,6 +32,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRI
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_DEFAULT_REPO_NAME;
 import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_DEFAULT_REPO_URL;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.dsl.api.BuildScriptModel;
@@ -192,7 +193,7 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getSubModuleGradleBuildModel();
 
-    verifyPropertyModel(buildModel.android().defaultConfig().applicationId(), STRING_TYPE, "boo", STRING, PropertyType.REGULAR, 1);
+    verifyPropertyModel(android(buildModel).defaultConfig().applicationId(), STRING_TYPE, "boo", STRING, PropertyType.REGULAR, 1);
   }
 
   @Test
@@ -233,7 +234,7 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
     // Add the missing variable to the buildscript block.
     buildModel.buildscript().ext().findProperty("VERSION").setValue("2.1.2");
     // Add a new normal dependency that uses the VERSION property to ensure we don't resolve to the buildscript one.
-    ResolvedPropertyModel applicationIdModel = buildModel.android().defaultConfig().applicationId();
+    ResolvedPropertyModel applicationIdModel = android(buildModel).defaultConfig().applicationId();
     applicationIdModel.setValue(ReferenceTo.createReferenceFromText("VERSION", applicationIdModel));
 
     applyChangesAndReparse(buildModel);
@@ -247,7 +248,7 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
     assertSize(1, artifacts);
     verifyPropertyModel(artifacts.get(0).completeModel(), "buildscript.dependencies.classpath", "com.android.tools.build:gradle:2.1.2");
 
-    ResolvedPropertyModel applicationId = buildModel.android().defaultConfig().applicationId();
+    ResolvedPropertyModel applicationId = android(buildModel).defaultConfig().applicationId();
     assertEquals("applicationId", "3.2.0", applicationId);
   }
 }

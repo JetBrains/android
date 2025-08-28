@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues.processor;
 
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_BUILD_TOOLS_VERISON_REMOVED;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_BUILD_TOOLS_VERSION_CHANGED;
 
@@ -86,7 +87,7 @@ public class FixBuildToolsProcessor extends BaseRefactoringProcessor {
       if (!file.isValid() || !file.isWritable()) {
         continue;
       }
-      AndroidModel android = projectBuildModel.getModuleBuildModel(file).android();
+      AndroidModel android = android(projectBuildModel.getModuleBuildModel(file));
       ResolvedPropertyModel buildToolsVersion = android.buildToolsVersion();
       if (myVersion.equals(buildToolsVersion.toString())) {
         continue;
@@ -106,7 +107,7 @@ public class FixBuildToolsProcessor extends BaseRefactoringProcessor {
 
     List<PsiElement> elements = Arrays.stream(usages).map(usage -> usage.getElement()).collect(Collectors.toList());
     for (VirtualFile file : myBuildFiles) {
-      AndroidModel android = projectBuildModel.getModuleBuildModel(file).android();
+      AndroidModel android = android(projectBuildModel.getModuleBuildModel(file));
       ResolvedPropertyModel buildToolsVersion = android.buildToolsVersion();
       PsiElement element = buildToolsVersion.getFullExpressionPsiElement();
       if (element != null && elements.contains(element)) {

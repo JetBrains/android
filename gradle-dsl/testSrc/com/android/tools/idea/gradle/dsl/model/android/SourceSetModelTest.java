@@ -29,6 +29,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_SET_MODE
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_SET_MODEL_SET_ROOT_REMOVE_AND_APPLY;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_SET_MODEL_SET_ROOT_REMOVE_AND_RESET;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_SET_MODEL_SET_ROOT_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -71,7 +72,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceSetRoot(buildModel, "source");
 
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     List<SourceSetModel> sourceSets = android.sourceSets();
@@ -92,7 +93,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceSetRoot(buildModel, "source");
 
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     List<SourceSetModel> sourceSets = android.sourceSets();
@@ -115,7 +116,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     writeToBuildFile(SOURCE_SET_MODEL_SET_ROOT_ADD_AND_RESET);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     List<SourceSetModel> sourceSets = android.sourceSets();
@@ -137,7 +138,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     writeToBuildFile(SOURCE_SET_MODEL_SET_ROOT_ADD_AND_APPLY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     List<SourceSetModel> sourceSets = android.sourceSets();
@@ -156,7 +157,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     assertEquals("root", "source", sourceSet.root());
 
     buildModel.reparse();
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     sourceSets = android.sourceSets();
@@ -174,7 +175,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceSetRoot(buildModel, "source");
 
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     for (SourceSetModel sourceSet : android.sourceSets()) {
@@ -196,7 +197,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     verifySourceSetRoot(buildModel, "source");
 
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     checkForValidPsiElement(android, AndroidModelImpl.class);
 
@@ -211,7 +212,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, "");
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
     checkForInvalidPsiElement(android, AndroidModelImpl.class); // the whole android block is deleted from the file.
     assertThat(android.sourceSets()).isEmpty();
@@ -222,7 +223,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
   }
 
   private static void verifySourceSetRoot(@NotNull GradleBuildModel buildModel, @NotNull String rootPrefix) {
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     List<SourceSetModel> sourceSets = android.sourceSets();
@@ -243,7 +244,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     writeToBuildFile(SOURCE_SET_MODEL_ADD_AND_APPLY_BLOCK_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     List<SourceSetModel> sourceSets = android.sourceSets();
@@ -267,7 +268,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, SOURCE_SET_MODEL_ADD_AND_APPLY_BLOCK_ELEMENTS_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
     sourceSets = android.sourceSets();
     assertThat(sourceSets).hasSize(1);
@@ -338,7 +339,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     writeToBuildFile(SOURCE_SET_MODEL_REMOVE_AND_APPLY_BLOCK_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     checkForValidPsiElement(android, AndroidModelImpl.class);
 
@@ -363,7 +364,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, "");
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
     checkForInvalidPsiElement(android, AndroidModelImpl.class); // Whole android block gets removed as it would become empty.
     assertEmpty(android.sourceSets());
@@ -374,7 +375,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     writeToBuildFile(SOURCE_SET_MODEL_REMOVE_AND_APPLY_BLOCK_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
     checkForValidPsiElement(android, AndroidModelImpl.class);
 
@@ -399,7 +400,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, "");
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
     checkForInvalidPsiElement(android, AndroidModelImpl.class); // Whole android block gets removed as it would become empty.
     assertEmpty(android.sourceSets());
@@ -411,7 +412,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<SourceSetModel> sourceSets = buildModel.android().sourceSets();
+    List<SourceSetModel> sourceSets = android(buildModel).sourceSets();
     assertSize(4, sourceSets);
 
     SourceSetModel sourceSet = sourceSets.get(0);
@@ -422,7 +423,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
 
     applyChangesAndReparse(buildModel);
 
-    sourceSet = buildModel.android().sourceSets().get(0);
+    sourceSet = android(buildModel).sourceSets().get(0);
     assertEquals("awesomeNewSourceSet", sourceSet.name());
   }
 }

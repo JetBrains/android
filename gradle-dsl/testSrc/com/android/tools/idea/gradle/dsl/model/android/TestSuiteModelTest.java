@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_SUITE_MODE
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_SUITE_MODEL_ADD_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_SUITE_MODEL_EDIT_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_SUITE_MODEL_PARSE_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
@@ -37,7 +38,7 @@ public class TestSuiteModelTest extends GradleFileModelTestCase {
   public void testParseElements() throws Exception {
     writeToBuildFile(TEST_SUITE_MODEL_PARSE_ELEMENTS);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     TestSuiteModel testSuiteModel = android.testOptions().suites().get(0);
@@ -59,7 +60,7 @@ public class TestSuiteModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TEST_SUITE_MODEL_ADD_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     TestSuiteModel testSuite = android.testOptions().suites().get(0);
@@ -94,7 +95,7 @@ public class TestSuiteModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TEST_SUITE_MODEL_PARSE_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     TestSuiteModel testSuiteModel = android.testOptions().suites().get(0);
@@ -130,7 +131,7 @@ public class TestSuiteModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TEST_SUITE_MODEL_PARSE_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     TestSuiteModel testSuiteModel = android.testOptions().suites().get(0);
@@ -142,7 +143,7 @@ public class TestSuiteModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TEST_SUITE_MODEL_ADD_ELEMENTS);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     testSuiteModel = android.testOptions().suites().get(0);
@@ -156,7 +157,7 @@ public class TestSuiteModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TEST_SUITE_MODEL_PARSE_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     TestSuiteModel testSuiteModel = android.testOptions().suites().get(0);
@@ -166,7 +167,7 @@ public class TestSuiteModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TEST_SUITE_MODEL_EDIT_ELEMENTS_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     testSuiteModel = android.testOptions().suites().get(0);

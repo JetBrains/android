@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
+
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
@@ -35,7 +37,7 @@ public class ComposeOptionsModelTest extends GradleFileModelTestCase {
   public void testParse() throws IOException {
     writeToBuildFile(TestFile.PARSE);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     ComposeOptionsModel composeOptions = android.composeOptions();
@@ -48,14 +50,14 @@ public class ComposeOptionsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.ADD_AND_APPLY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    ComposeOptionsModel composeOptions = buildModel.android().composeOptions();
+    ComposeOptionsModel composeOptions = android(buildModel).composeOptions();
     composeOptions.kotlinCompilerExtensionVersion().setValue(VERSION2);
     composeOptions.kotlinCompilerVersion().setValue(VERSION1);
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_EXPECTED);
 
-    composeOptions = buildModel.android().composeOptions();
+    composeOptions = android(buildModel).composeOptions();
     assertEquals("kotlinCompilerExtensionVersion", VERSION2, composeOptions.kotlinCompilerExtensionVersion());
     assertEquals("kotlinCompilerVersion", VERSION1, composeOptions.kotlinCompilerVersion());
   }
@@ -65,14 +67,14 @@ public class ComposeOptionsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.EDIT_AND_APPLY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    ComposeOptionsModel composeOptions = buildModel.android().composeOptions();
+    ComposeOptionsModel composeOptions = android(buildModel).composeOptions();
     composeOptions.kotlinCompilerExtensionVersion().setValue(VERSION2);
     composeOptions.kotlinCompilerVersion().setValue(VERSION1);
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.EDIT_AND_APPLY_EXPECTED);
 
-    composeOptions = buildModel.android().composeOptions();
+    composeOptions = android(buildModel).composeOptions();
     assertEquals("kotlinCompilerExtensionVersion", VERSION2, composeOptions.kotlinCompilerExtensionVersion());
     assertEquals("kotlinCompilerVersion", VERSION1, composeOptions.kotlinCompilerVersion());
   }
@@ -82,7 +84,7 @@ public class ComposeOptionsModelTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.REMOVE_AND_APPLY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    ComposeOptionsModel composeOptions = buildModel.android().composeOptions();
+    ComposeOptionsModel composeOptions = android(buildModel).composeOptions();
     assertEquals("kotlinCompilerExtensionVersion", VERSION2, composeOptions.kotlinCompilerExtensionVersion());
     assertEquals("kotlinCompilerVersion", VERSION1, composeOptions.kotlinCompilerVersion());
     composeOptions.kotlinCompilerExtensionVersion().delete();

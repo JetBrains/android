@@ -23,6 +23,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DATA_BINDING_MO
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DATA_BINDING_MODEL_EDIT_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DATA_BINDING_MODEL_PARSE_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DATA_BINDING_MODEL_REMOVE_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
@@ -38,7 +39,7 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
   public void testParseElements() throws Exception {
     writeToBuildFile(DATA_BINDING_MODEL_PARSE_ELEMENTS);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     DataBindingModel dataBinding = android.dataBinding();
@@ -52,7 +53,7 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
     writeToBuildFile(DATA_BINDING_MODEL_EDIT_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     DataBindingModel dataBinding = android.dataBinding();
@@ -67,7 +68,7 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, DATA_BINDING_MODEL_EDIT_ELEMENTS_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     dataBinding = android.dataBinding();
@@ -81,7 +82,7 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
     writeToBuildFile(DATA_BINDING_MODEL_ADD_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     DataBindingModel dataBinding = android.dataBinding();
@@ -96,7 +97,7 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, DATA_BINDING_MODEL_ADD_ELEMENTS_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     dataBinding = android.dataBinding();
@@ -109,7 +110,7 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
   public void testAddElementsFromExisting() throws Exception {
     writeToBuildFile(DATA_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING);
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     DataBindingModel dataBinding = android.dataBinding();
@@ -124,7 +125,7 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, DATA_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     dataBinding = android.dataBinding();
@@ -137,7 +138,7 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
     writeToBuildFile(DATA_BINDING_MODEL_REMOVE_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     assertNotNull(android);
 
     DataBindingModel dataBinding = android.dataBinding();
@@ -153,7 +154,7 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, "");
 
-    android = buildModel.android();
+    android = android(buildModel);
     assertNotNull(android);
 
     dataBinding = android.dataBinding();

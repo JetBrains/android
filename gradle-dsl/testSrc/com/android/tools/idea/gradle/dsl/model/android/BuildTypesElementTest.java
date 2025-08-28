@@ -13,6 +13,7 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.dsl.TestFileName;
@@ -40,7 +41,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
   public void testBuildTypesWithApplicationStatements() throws Exception {
     writeToBuildFile(TestFile.BUILD_TYPES_WITH_APPLICATION_STATEMENTS);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     List<BuildTypeModel> buildTypes = android.buildTypes();
@@ -58,7 +59,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
   public void testBuildTypesWithAssignmentStatements() throws Exception {
     writeToBuildFile(TestFile.BUILD_TYPES_WITH_ASSIGNMENT_STATEMENTS);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     List<BuildTypeModel> buildTypes = android.buildTypes();
@@ -77,7 +78,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
   public void testBuildTypesWithOverrideStatements() throws Exception {
     writeToBuildFile(TestFile.BUILD_TYPES_WITH_OVERRIDE_STATEMENTS);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     List<BuildTypeModel> buildTypes = android.buildTypes();
@@ -103,7 +104,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
   public void testBuildTypesWithAppendStatements() throws Exception {
     writeToBuildFile(TestFile.BUILD_TYPES_WITH_APPEND_STATEMENTS);
 
-    AndroidModel android = getGradleBuildModel().android();
+    AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
 
     List<BuildTypeModel> buildTypes = android.buildTypes();
@@ -124,7 +125,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.ADD_EMPTY_BUILD_TYPE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     android.addBuildType("typeA");
 
     assertTrue(buildModel.isModified());
@@ -132,7 +133,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.ADD_EMPTY_BUILD_TYPE_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
 
     List<BuildTypeModel> buildTypes = android.buildTypes();
     assertThat(buildTypes).hasSize(3);
@@ -166,7 +167,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.ADD_BUILD_TYPE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     android.addBuildType("typeA");
     android.buildTypes().get(2).applicationIdSuffix().setValue("suffixA");
 
@@ -174,7 +175,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.ADD_BUILD_TYPE_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
 
     List<BuildTypeModel> buildTypes = android.buildTypes();
     assertThat(buildTypes).hasSize(3);
@@ -189,7 +190,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.ADD_PROPERTY_TO_IMPLICIT_BUILD_TYPES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
+    AndroidModel android = android(buildModel);
     BuildTypeModel debug = android.addBuildType("debug");
     debug.applicationIdSuffix().setValue("-debug");
     BuildTypeModel release = android.addBuildType("release");
@@ -199,7 +200,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.ADD_PROPERTY_TO_IMPLICIT_BUILD_TYPES_EXPECTED);
 
-    android = buildModel.android();
+    android = android(buildModel);
     List<BuildTypeModel> buildTypes = android.buildTypes();
     assertThat(buildTypes).hasSize(2);
     assertEquals("release.name", "release", buildTypes.get(0).name());
@@ -213,7 +214,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.KNOWN_METHODS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    List<BuildTypeModel> buildTypes = buildModel.android().buildTypes();
+    List<BuildTypeModel> buildTypes = android(buildModel).buildTypes();
     assertThat(buildTypes).hasSize(2);
     assertEquals("release", buildTypes.get(0).name());
     assertEquals("debug", buildTypes.get(1).name());
