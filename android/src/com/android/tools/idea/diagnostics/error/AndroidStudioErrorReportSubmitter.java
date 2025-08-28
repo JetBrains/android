@@ -130,7 +130,8 @@ public class AndroidStudioErrorReportSubmitter extends ErrorReportSubmitter {
     };
 
     Consumer<Exception> errorCallback = e -> {
-      String message = AndroidBundle.message("error.report.at.b.android", e.getMessage());
+      LOG.warn("Exception occurred during report submission", e);
+      String message = AndroidBundle.message("error.report.at.b.android", e.toString());
 
       ReportMessages.GROUP
         .createNotification(message, NotificationType.ERROR)
