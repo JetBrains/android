@@ -1,12 +1,12 @@
 [versions]
 agp = "8.11.0-dev"
-kotlin = "2.0.21"
 coreKtx = "1.10.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
 lifecycleRuntimeKtx = "2.6.1"
 activityCompose = "1.8.0"
+kotlin = "2.0.21"
 composeBom = "2024.09.00"
 
 [libraries]
@@ -27,6 +27,5 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 

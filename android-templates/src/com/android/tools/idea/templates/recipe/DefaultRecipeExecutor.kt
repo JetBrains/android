@@ -78,6 +78,7 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.XmlElementFactory
 import java.io.File
 import com.android.tools.idea.templates.mergeXml as mergeXmlUtil
+import com.android.tools.idea.wizard.template.common.AGP_VERSION_WITH_BUILT_IN_KOTLIN
 
 /**
  * Executor support for recipe instructions.
@@ -665,7 +666,8 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     // activity template
     val currentJavaVersion = buildModel.getTargetJavaVersion()
     if (currentJavaVersion == null || currentJavaVersion.isLessThan(languageLevel)) {
-      buildModel.setJavaKotlinCompileOptions(languageLevel, agpApplied, isKotlin)
+      val kgpApplied = if (agpApplied) isKotlin && projectTemplateData.agpVersion < AGP_VERSION_WITH_BUILT_IN_KOTLIN else isKotlin
+      buildModel.setJavaKotlinCompileOptions(languageLevel, agpApplied, kgpApplied)
     }
   }
 

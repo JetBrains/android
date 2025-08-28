@@ -1,6 +1,5 @@
 [versions]
 agp = "8.11.0-dev"
-kotlin = "2.0.21"
 coreKtx = "1.10.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
@@ -18,5 +17,4 @@ androidx-media = { group = "androidx.media", name = "media", version.ref = "medi
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 

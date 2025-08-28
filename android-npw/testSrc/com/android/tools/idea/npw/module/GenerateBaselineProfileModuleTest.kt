@@ -29,6 +29,7 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.resolve
 import com.android.tools.idea.testing.withCompileSdk
 import com.android.tools.idea.wizard.template.ApiTemplateData
 import com.android.tools.idea.wizard.template.Category
@@ -64,13 +65,14 @@ class GenerateBaselineProfileModuleTest {
   @Test
   fun withKotlinCodeAndBuildGradleKtsAndAgpCurrent() {
 
+    val projectRuleAgpVersion = getAgpVersion()
     val (rootDir, srcDir) =
       runTemplateGeneration(
-        agpVersion = AgpVersion(8, 3, 0),
+        agpVersion = AgpVersion.parse(projectRuleAgpVersion.resolve().agpVersion),
         sourceCodeLanguage = Language.Kotlin,
         useGradleKts = true,
         useGmd = true,
-        projectRuleAgpVersion = getAgpVersion(),
+        projectRuleAgpVersion = projectRuleAgpVersion,
       )
 
     val buildGradleContent = rootDir.resolve("build.gradle.kts").readText()
@@ -323,10 +325,6 @@ android {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
   }
-
-  kotlinOptions {
-        jvmTarget = "11"
-    }
 
   defaultConfig {
         minSdk = 34
@@ -749,8 +747,8 @@ android {
   }
 
   kotlinOptions {
-        jvmTarget = "11"
-    }
+    jvmTarget = "11"
+  }
 
   defaultConfig {
         minSdk = 34

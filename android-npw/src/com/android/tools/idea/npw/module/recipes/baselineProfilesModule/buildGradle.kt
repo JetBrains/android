@@ -25,6 +25,7 @@ import com.android.tools.idea.npw.module.recipes.targetSdk
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
+import com.android.tools.idea.wizard.template.common.AGP_VERSION_WITH_BUILT_IN_KOTLIN
 import com.android.tools.idea.wizard.template.renderIf
 import com.intellij.openapi.module.Module
 
@@ -66,12 +67,13 @@ fun baselineProfilesBuildGradle(
     } else ""
 
   val kotlinOptionsBlock =
-    renderIf(language == Language.Kotlin) {
+    renderIf(language == Language.Kotlin && agpVersion < AGP_VERSION_WITH_BUILT_IN_KOTLIN) {
       """
-    kotlinOptions {
-        jvmTarget = "11"
-    }
-    """
+      kotlinOptions {
+          jvmTarget = "11"
+        }
+      """
+        .trimIndent()
     }
 
   val gmdDefinition =
