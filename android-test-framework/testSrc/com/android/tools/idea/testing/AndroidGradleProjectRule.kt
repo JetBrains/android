@@ -62,12 +62,9 @@ class AndroidGradleProjectRule(
   @Ignore(
     "TestCase used here for its internal logic, not to run tests. Tests will be run by the class that uses this rule."
   )
-  private inner class DelegateGradleTestCase : AndroidGradleTestCase(agpVersionSoftwareEnvironment) {
+  private inner class DelegateGradleTestCase : AndroidGradleTestCase(agpVersionSoftwareEnvironment, workspaceRelativeTestDataPath) {
     val fixture: CodeInsightTestFixture
       get() = myFixture
-
-    override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String =
-      workspaceRelativeTestDataPath
 
     override fun getAdditionalRepos(): Collection<File> = additionalRepositories
 
@@ -84,10 +81,6 @@ class AndroidGradleProjectRule(
       gradleInvocationTask: Function<GradleBuildInvoker, ListenableFuture<T>?>
     ): T {
       return invokeGradle(project, gradleInvocationTask)
-    }
-
-    public override fun generateSources() { // Changes visibility only.
-      super.generateSources()
     }
   }
 

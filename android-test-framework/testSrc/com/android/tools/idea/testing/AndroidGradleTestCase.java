@@ -19,7 +19,6 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivityKt.addJUnitProducersToIgnoredList;
 import static com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProjectKt.migratePackageAttribute;
 import static com.android.tools.idea.gradle.util.LastBuildOrSyncServiceKt.emulateStartupActivityForTest;
-import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentUtil.resolveAgpVersionSoftwareEnvironment;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
 import static com.android.tools.idea.testing.AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates;
 import static com.google.common.truth.Truth.assertThat;
@@ -91,36 +90,35 @@ import org.jetbrains.annotations.SystemIndependent;
 abstract class AndroidGradleTestCase extends AndroidTestBase implements GradleIntegrationTest {
   private static final Logger LOG = Logger.getInstance(AndroidGradleTestCase.class);
 
-  private final @NotNull AgpVersionSoftwareEnvironment myAgpVersionSoftwareEnvironment;
+  private final @NotNull AgpVersionSoftwareEnvironment agpVersionSoftwareEnvironment;
+  private final @NotNull @SystemIndependent String workspaceRelativeTestDataPath;
 
-  AndroidGradleTestCase(@NotNull AgpVersionSoftwareEnvironment agpVersionSoftwareEnvironment) {
-    myAgpVersionSoftwareEnvironment = agpVersionSoftwareEnvironment;
-  }
-
-  protected boolean createDefaultProject() {
-    return true;
+  AndroidGradleTestCase(
+    @NotNull AgpVersionSoftwareEnvironment agpVersionSoftwareEnvironment,
+    @NotNull @SystemIndependent String workspaceRelativeTestDataPath
+  ) {
+    this.agpVersionSoftwareEnvironment = agpVersionSoftwareEnvironment;
+    this.workspaceRelativeTestDataPath = workspaceRelativeTestDataPath;
   }
 
   @Override
-  public void setUp() throws Exception {
+  public final void setUp() throws Exception {
     super.setUp();
 
     TestApplicationManager.getInstance();
 
-    ensureSdkManagerAvailable(AndroidVersion.fromString(myAgpVersionSoftwareEnvironment.getCompileSdk()));
+    ensureSdkManagerAvailable(AndroidVersion.fromString(agpVersionSoftwareEnvironment.getCompileSdk()));
     AndroidTestCase.registerLongRunningThreads();
-    if (createDefaultProject()) {
-      setUpFixture();
+    setUpFixture();
 
-      // This is normally done from AndroidGradleProjectStartupActivity, but that is guarded by `isBuiltWithGradle`, and that
-      // gives the wrong answer (or rather, the right answer that will later turn out to have been wrong) for the default project.
-      addJUnitProducersToIgnoredList(getProject());
+    // This is normally done from AndroidGradleProjectStartupActivity, but that is guarded by `isBuiltWithGradle`, and that
+    // gives the wrong answer (or rather, the right answer that will later turn out to have been wrong) for the default project.
+    addJUnitProducersToIgnoredList(getProject());
 
-      // To ensure that application IDs are loaded from the listing file as needed, we must register the required listeners.
-      // This is normally done within an AndroidStartupActivity but these are not run in tests.
-      // TODO(b/159600848)
-      emulateStartupActivityForTest(getProject());
-    }
+    // To ensure that application IDs are loaded from the listing file as needed, we must register the required listeners.
+    // This is normally done within an AndroidStartupActivity but these are not run in tests.
+    // TODO(b/159600848)
+    emulateStartupActivityForTest(getProject());
 
     // TODO(b/418973297): Consolidate all init logic in the different test frameworks
     WorkspaceModelCacheImpl.forceEnableCaching(getTestRootDisposable());
@@ -138,7 +136,7 @@ abstract class AndroidGradleTestCase extends AndroidTestBase implements GradleIn
     });
   }
 
-  public void setUpFixture() throws Exception {
+  public final void setUpFixture() throws Exception {
     AndroidTempDirTestFixture tempDirFixture = new AndroidTempDirTestFixture(getName());
     TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
       IdeaTestFixtureFactory.getFixtureFactory()
@@ -147,11 +145,11 @@ abstract class AndroidGradleTestCase extends AndroidTestBase implements GradleIn
     setUpFixture(projectFixture);
   }
 
-  public void setUpFixture(IdeaProjectTestFixture projectFixture) throws Exception {
+  public final void setUpFixture(IdeaProjectTestFixture projectFixture) throws Exception {
     JavaCodeInsightTestFixture fixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectFixture);
     fixture.setUp();
     fixture.setTestDataPath(TestUtils.getWorkspaceRoot().toRealPath().resolve(getTestDataDirectoryWorkspaceRelativePath()).toString());
-    ensureSdkManagerAvailable(AndroidVersion.fromString(myAgpVersionSoftwareEnvironment.getCompileSdk()));
+    ensureSdkManagerAvailable(AndroidVersion.fromString(agpVersionSoftwareEnvironment.getCompileSdk()));
 
     Project project = fixture.getProject();
     FileUtil.ensureExists(new File(toSystemDependentName(project.getBasePath())));
@@ -160,7 +158,7 @@ abstract class AndroidGradleTestCase extends AndroidTestBase implements GradleIn
     myFixture = fixture;
   }
 
-  public void tearDownFixture() {
+  public final void tearDownFixture() {
     if (myFixture != null) {
       try {
         myFixture.tearDown();
@@ -173,7 +171,7 @@ abstract class AndroidGradleTestCase extends AndroidTestBase implements GradleIn
   }
 
   @Override
-  protected void tearDown() throws Exception {
+  protected final void tearDown() throws Exception {
     try {
       TestDialogManager.setTestDialog(TestDialog.DEFAULT);
       tearDownFixture();
@@ -202,15 +200,6 @@ abstract class AndroidGradleTestCase extends AndroidTestBase implements GradleIn
     }
   }
 
-  protected final File loadProject(@NotNull String relativePath) throws Exception {
-    return loadProject(relativePath, resolveAgpVersionSoftwareEnvironment(myAgpVersionSoftwareEnvironment), null);
-  }
-
-  protected final File loadProject(@NotNull String relativePath,
-                                   @NotNull AgpVersionSoftwareEnvironmentDescriptor agpVersion) throws Exception {
-    return loadProject(relativePath, resolveAgpVersionSoftwareEnvironment(agpVersion), null);
-  }
-
   protected final File loadProject(@NotNull String relativePath,
                                    @NotNull ResolvedAgpVersionSoftwareEnvironment agpVersion,
                                    @Nullable String ndkVersion) throws Exception {
@@ -221,17 +210,17 @@ abstract class AndroidGradleTestCase extends AndroidTestBase implements GradleIn
     return projectRoot;
   }
 
-  protected void prepareProjectForTest(Project project) {
+  protected final void prepareProjectForTest(Project project) {
     AndroidProjectInfo androidProjectInfo = AndroidProjectInfo.getInstance(project);
     assertFalse(androidProjectInfo.isLegacyIdeaAndroidProject());
     IndexingTestUtil.waitUntilIndexesAreReady(project);
   }
 
-  protected void patchPreparedProject(@NotNull File projectRoot,
-                                      @NotNull ResolvedAgpVersionSoftwareEnvironment agpVersion,
-                                      @Nullable String ndkVersion,
-                                      boolean syncReady,
-                                      File... localRepos) throws IOException {
+  protected final void patchPreparedProject(@NotNull File projectRoot,
+                                            @NotNull ResolvedAgpVersionSoftwareEnvironment agpVersion,
+                                            @Nullable String ndkVersion,
+                                            boolean syncReady,
+                                            File... localRepos) throws IOException {
     AndroidGradleTests.defaultPatchPreparedProject(projectRoot, agpVersion, ndkVersion, syncReady, localRepos);
     AgpVersion agpVersionParsed = AgpVersion.tryParse(agpVersion.getAgpVersion());
     if (agpVersionParsed != null && agpVersionParsed.isAtLeastIncludingPreviews(8, 0, 0)) {
@@ -270,18 +259,18 @@ abstract class AndroidGradleTestCase extends AndroidTestBase implements GradleIn
   @NotNull
   @Override
   @SystemIndependent
-  public String getTestDataDirectoryWorkspaceRelativePath() {
-    return "tools/adt/idea/android/testData";
+  public final String getTestDataDirectoryWorkspaceRelativePath() {
+    return workspaceRelativeTestDataPath;
   }
 
   @NotNull
   @Override
-  public File resolveTestDataPath(@NotNull @SystemIndependent String relativePath) {
+  public final File resolveTestDataPath(@NotNull @SystemIndependent String relativePath) {
     return new File(myFixture.getTestDataPath(), toSystemDependentName(relativePath));
   }
 
 
-  protected void generateSources() throws InterruptedException {
+  public final void generateSources() throws InterruptedException {
     GradleBuildResult result =
       invokeGradle(getProject(), invoker -> invoker.generateSources(ModuleManager.getInstance(getProject()).getModules()));
     assertTrue("Generating sources failed.", result.isBuildSuccessful());
@@ -343,19 +332,19 @@ abstract class AndroidGradleTestCase extends AndroidTestBase implements GradleIn
   }
 
   @NotNull
-  protected Module getModule(@NotNull String moduleName) {
+  protected final Module getModule(@NotNull String moduleName) {
     return TestModuleUtil.findModule(getProject(), moduleName);
   }
 
-  protected boolean hasModule(@NotNull String moduleName) {
+  protected final boolean hasModule(@NotNull String moduleName) {
     return TestModuleUtil.hasModule(getProject(), moduleName);
   }
 
-  protected void requestSyncAndWait() throws SyncIssuesPresentError, Exception {
+  protected final void requestSyncAndWait() throws SyncIssuesPresentError, Exception {
     requestSyncAndWait(GradleSyncInvoker.Request.testRequest());
   }
 
-  protected void requestSyncAndWait(@NotNull GradleSyncInvoker.Request request) throws Exception {
+  protected final void requestSyncAndWait(@NotNull GradleSyncInvoker.Request request) throws Exception {
     refreshProjectFiles();
     AndroidGradleTests.syncProject(getProject(), request, it -> AndroidGradleTests.checkSyncStatus(getProject(), it));
     IndexingTestUtil.waitUntilIndexesAreReady(getProject());
@@ -364,7 +353,7 @@ abstract class AndroidGradleTestCase extends AndroidTestBase implements GradleIn
   @Override
   @SystemDependent
   @NotNull
-  public String getBaseTestPath() {
+  public final String getBaseTestPath() {
     return myFixture.getTempDirPath();
   }
 }
