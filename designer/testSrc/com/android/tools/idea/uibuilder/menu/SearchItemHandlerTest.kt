@@ -21,12 +21,9 @@ import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlComponentBackend
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.projectsystem.DependencyType
-import com.android.tools.idea.projectsystem.ProjectSystemService
-import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.testing.AndroidLibraryDependency
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
@@ -52,7 +49,9 @@ class SearchItemHandlerTest(
   @Rule
   @JvmField
   val rule =
-    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder().withMinSdk { projectMinSdk })
+    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder(
+      androidLibraryDependencyList = { dependencies.map { AndroidLibraryDependency.fromAddress(it.getDependency("1.0").toIdentifier()!!) } }
+    ).withMinSdk { projectMinSdk })
 
   companion object {
     @Parameterized.Parameters(
@@ -120,18 +119,6 @@ class SearchItemHandlerTest(
     whenever(model.project).thenReturn(rule.project)
     whenever(newChild.model).thenReturn(model)
     whenever(newChild.backend).thenReturn(backend)
-
-    val projectSystem = TestProjectSystem(rule.project)
-    if (dependencies.isNotEmpty()) {
-      val moduleSystem = projectSystem.getModuleSystem(rule.module)
-      for (dependency in dependencies) {
-        moduleSystem.registerDependency(dependency, DependencyType.IMPLEMENTATION)
-      }
-      runInEdtAndWait {
-        ProjectSystemService.getInstance(rule.project).replaceProjectSystemForTests(projectSystem)
-        projectSystem.useInTests()
-      }
-    }
   }
 
   @Test

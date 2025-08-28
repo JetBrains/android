@@ -59,23 +59,25 @@ import org.mockito.kotlin.whenever
 private const val RES_RAW_FOLDER = "${FD_RES}/${FD_RES_RAW}"
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class RawWatchfaceXmlSchemaProviderTest {
+abstract class RawWatchfaceXmlSchemaProviderTest {
+  abstract val minSdk: Int
 
-  private val projectRule =
+  protected val projectRule =
     AndroidProjectRule.withAndroidModel(
-      createAndroidProjectBuilderForDefaultTestProjectStructure().withMinSdk({ 33 })
+      createAndroidProjectBuilderForDefaultTestProjectStructure().withMinSdk({ this@RawWatchfaceXmlSchemaProviderTest.minSdk })
     )
 
-  private val domRule = AndroidDomRule(RES_RAW_FOLDER) { projectRule.fixture }
+  protected val domRule = AndroidDomRule(RES_RAW_FOLDER) { projectRule.fixture }
 
-  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(domRule)
+  @get:Rule
+  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(domRule)
 
-  private val mainModule
+  protected val mainModule
     get() =
       projectRule.module.getModuleSystem().getProductionAndroidModule()
-        ?: error("expected main module to exist")
+      ?: error("expected main module to exist")
 
-  private val fixture
+  protected val fixture
     get() = projectRule.fixture
 
   @Before
@@ -83,6 +85,16 @@ class RawWatchfaceXmlSchemaProviderTest {
     projectRule.fixture.testDataPath =
       resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/${RES_RAW_FOLDER}").toString()
   }
+
+  protected fun addManifestWithWFFVersion(version: String) {
+    projectRule.fixture.addFileToProject(FN_ANDROID_MANIFEST_XML, manifestWithWFFVersion(version))
+    // create the manifest snapshot
+    MergedManifestManager.getMergedManifest(mainModule).get()
+  }
+}
+
+class RawWatchfaceXmlSchemaProviderSdk33Test: RawWatchfaceXmlSchemaProviderTest() {
+  override val minSdk = 33
 
   @Test
   fun `test the provider is available for watch face files when the flag is on`() {
@@ -250,19 +262,6 @@ class RawWatchfaceXmlSchemaProviderTest {
   }
 
   @Test
-  fun `test the provider falls back to WFF version 2 when the version is invalid with minSdk 34`() {
-    val facet = mainModule.androidFacet ?: error("expected AndroidFacet")
-    AndroidModel.set(facet, TestAndroidModel(minSdkVersion = AndroidVersion.fromString("34")))
-    addManifestWithWFFVersion("invalid")
-
-    // The tag should be autocompleted as it's part of the version 2 features
-    domRule.testCompletion(
-      "watch_face_completion_flavor_tag.xml",
-      "watch_face_completion_flavor_tag_after_version_2.xml",
-    )
-  }
-
-  @Test
   fun `test the provider tracks usage of the XML schema`() {
     val mockTracker = mock<DeclarativeWatchFaceUsageTracker>()
     ApplicationManager.getApplication()
@@ -355,10 +354,20 @@ class RawWatchfaceXmlSchemaProviderTest {
     // the highlighting should now be ok
     assertThat(fixture.doHighlighting(HighlightSeverity.ERROR)).isEmpty()
   }
+}
 
-  private fun addManifestWithWFFVersion(version: String) {
-    projectRule.fixture.addFileToProject(FN_ANDROID_MANIFEST_XML, manifestWithWFFVersion(version))
-    // create the manifest snapshot
-    MergedManifestManager.getMergedManifest(mainModule).get()
+
+class RawWatchfaceXmlSchemaProviderSdk34Test: RawWatchfaceXmlSchemaProviderTest() {
+  override val minSdk = 34
+
+  @Test
+  fun `test the provider falls back to WFF version 2 when the version is invalid with minSdk 34`() {
+    addManifestWithWFFVersion("invalid")
+
+    // The tag should be autocompleted as it's part of the version 2 features
+    domRule.testCompletion(
+      "watch_face_completion_flavor_tag.xml",
+      "watch_face_completion_flavor_tag_after_version_2.xml",
+    )
   }
 }

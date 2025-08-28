@@ -75,7 +75,7 @@ public class AndroidLintIdeClientTest extends AndroidTestCase {
       }
     };
     File expectedLintRuleJars = new File("com/bar.jar");
-    AndroidModel.set(myFacet, TestAndroidModel.lintRuleJars(ImmutableList.of(expectedLintRuleJars)));
+    AndroidModel.setForTests(myFacet, TestAndroidModel.lintRuleJars(ImmutableList.of(expectedLintRuleJars)));
     temporaryFolder.create();
     File dir = temporaryFolder.newFolder("foo.aar");
     Project lintProject = new AndroidLintIdeProject(client, dir, dir);
@@ -95,7 +95,7 @@ public class AndroidLintIdeClientTest extends AndroidTestCase {
         return true;
       }
     };
-    AndroidModel.set(myFacet, TestAndroidModel.namespaced(myFacet));
+    AndroidModel.setForTests(myFacet, TestAndroidModel.namespaced(myFacet));
     temporaryFolder.create();
     File dir = temporaryFolder.newFolder("foo.aar");
     File expectedLintRuleJar = temporaryFolder.newFile("foo.aar/lint.jar");

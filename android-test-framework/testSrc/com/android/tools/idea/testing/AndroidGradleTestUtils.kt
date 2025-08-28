@@ -337,7 +337,38 @@ data class JavaModuleModelBuilder(
 }
 
 data class AndroidModuleDependency(val moduleGradlePath: String, val variant: String?)
-data class AndroidLibraryDependency(val library: IdeAndroidLibraryImpl)
+data class AndroidLibraryDependency(val library: IdeAndroidLibraryImpl) {
+  companion object {
+    fun fromAddress(address: String): AndroidLibraryDependency {
+      val folder = File("libraryFolder").resolve(address.replace(':', '-'))
+      return AndroidLibraryDependency(
+        IdeAndroidLibraryImpl(
+          address,
+          Component.parse(address),
+          "Gradle: $address",
+          folder = folder,
+          manifest = folder.resolve("AndroidManifest.xml"),
+          compileJarFiles = listOf(folder.resolve("file.jar")),
+          runtimeJarFiles = listOf(folder.resolve("api.jar")),
+          resFolder = folder.resolve("res"),
+          resStaticLibrary = folder.resolve("res.apk"),
+          assetsFolder = folder.resolve("assets"),
+          jniFolder = folder.resolve("jni"),
+          aidlFolder = folder.resolve("aidl"),
+          renderscriptFolder = folder.resolve("renderscriptFolder"),
+          proguardRules = folder.resolve("proguardRules"),
+          lintJar = folder.resolve("lint.jar"),
+          srcJars = listOf(folder.resolve("src.jar"), folder.resolve("sample.jar")),
+          docJar = folder.resolve("doc.jar"),
+          externalAnnotations = folder.resolve("externalAnnotations"),
+          publicResources = folder.resolve("publicResources"),
+          artifact = folder.resolve("artifactFile"),
+          symbolFile = folder.resolve("symbolFile")
+        )
+      )
+    }
+  }
+}
 data class JavaLibraryDependency(val library: IdeJavaLibraryImpl) {
   companion object {
     fun forJar(jarFile: File): JavaLibraryDependency {

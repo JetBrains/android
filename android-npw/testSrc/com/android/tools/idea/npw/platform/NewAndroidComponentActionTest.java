@@ -74,7 +74,7 @@ public final class NewAndroidComponentActionTest {
 
     mySelectedAndroidFacet = AndroidFacet.getInstance(projectRule.getModule());
     assertNotNull(mySelectedAndroidFacet);
-    AndroidModel.set(mySelectedAndroidFacet, mock(AndroidModel.class));
+    AndroidModel.setForTests(mySelectedAndroidFacet, mock(AndroidModel.class));
 
     AndroidModuleInfo mockAndroidModuleInfo = mock(AndroidModuleInfo.class);
     when(mockAndroidModuleInfo.getMinSdkVersion()).thenReturn(new AndroidVersion(1));

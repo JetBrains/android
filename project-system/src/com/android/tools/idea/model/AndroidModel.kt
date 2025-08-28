@@ -18,12 +18,15 @@ package com.android.tools.idea.model
 import com.android.projectmodel.DynamicResourceValue
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.lint.detector.api.Desugaring
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Key
-import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 import java.util.EnumSet
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.TestOnly
 
 /**
  * A common interface for Android module models.
@@ -127,7 +130,13 @@ interface AndroidModel {
   companion object {
     @JvmStatic
     fun get(facet: AndroidFacet): AndroidModel? {
-      return facet.getUserData<AndroidModel?>(KEY)
+      return facet.getModuleSystem().androidModel ?: if (ApplicationManager.getApplication().isUnitTestMode) {
+        // Also query the test model.
+        // Ideally we shouldn't allow this but many tests do this already and the migration off it is not straightforward.
+        facet.getUserData<AndroidModel?>(ANDROID_MODEL_KEY)
+      } else {
+        null
+      }
     }
 
     @JvmStatic
@@ -136,17 +145,17 @@ interface AndroidModel {
       return if (facet == null) null else get(facet)
     }
 
-    /**
-     * Sets the model used by this AndroidFacet. This method is meant to be called from build-system specific code that sets up the project
-     * during sync.
-     *
-     *
-     * NOTE: Please consider using [AndroidProjectRule.withAndroidModel] or similar methods to configure a test project before using
-     * this method.
-     */
+    /* Sets the android model through the specific project system's implementation. */
     @JvmStatic
-    fun set(facet: AndroidFacet, androidModel: AndroidModel?) {
-      facet.putUserData<AndroidModel?>(KEY, androidModel)
+    fun set(facet: AndroidFacet, androidModel: AndroidModel) {
+      facet.getModuleSystem().setAndroidModel(facet, androidModel)
+    }
+
+    /* Test helper for setting Android model. Consider using [AndroidProjectRule] instead. */
+    @JvmStatic
+    @TestOnly
+    fun setForTests(facet: AndroidFacet, androidModel: AndroidModel) {
+       facet.putUserData<AndroidModel?>(ANDROID_MODEL_KEY, androidModel)
     }
 
     /**
@@ -160,6 +169,6 @@ interface AndroidModel {
 
     const val UNINITIALIZED_APPLICATION_ID: String = "uninitialized.application.id"
 
-    val KEY: Key<AndroidModel?> = Key.create<AndroidModel?>(AndroidModel::class.java.getName())
+    val ANDROID_MODEL_KEY: Key<AndroidModel> = Key.create<AndroidModel>(AndroidModel::class.java.getName())
   }
 }

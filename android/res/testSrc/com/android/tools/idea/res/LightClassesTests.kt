@@ -220,7 +220,7 @@ abstract class SingleModuleLightClassesTestBase {
     )
 
     if (packageNameForNamespacing != null) {
-      AndroidModel.set(myFacet, namespaced(myFacet))
+      AndroidModel.setForTests(myFacet, namespaced(myFacet))
       updatePrimaryManifest(myFacet) { `package`.value = packageNameForNamespacing }
       LocalResourceManager.getInstance(myFacet.module)!!.invalidateAttributeDefinitions()
     }
@@ -1643,7 +1643,7 @@ class NamespacedModuleWithAarLightClassesTest {
       SdkConstants.FN_ANDROID_MANIFEST_XML,
     )
 
-    AndroidModel.set(myFacet, namespaced(myFacet))
+    AndroidModel.setForTests(myFacet, namespaced(myFacet))
     updatePrimaryManifest(myFacet) { `package`.value = "p1.p2" }
     LocalResourceManager.getInstance(myFacet.module)!!.invalidateAttributeDefinitions()
     addBinaryAarDependency(myModule)

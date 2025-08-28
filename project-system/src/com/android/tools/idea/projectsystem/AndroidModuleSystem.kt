@@ -23,6 +23,7 @@ import com.android.ide.common.repository.WellKnownMavenArtifactId
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.model.AndroidModel.Companion.ANDROID_MODEL_KEY
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.util.androidFacet
@@ -40,6 +41,18 @@ import java.nio.file.Path
  * contain methods that apply to a specific [Module].
  */
 interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvider {
+  val androidModel: AndroidModel? get() = module.androidFacet?.getUserData(ANDROID_MODEL_KEY)
+
+  /**
+   * Sets the [AndroidModel] for the module.
+   *
+   * Facet is a parameter to be able to provide backwards compatible default implementation.
+   *
+   * The facet needs to be provided because in this case it's expected to be still under
+   * initialization (i.e. not yet committed), and can't be retrieved via facet manager.
+   */
+  fun setAndroidModel(mutableFacet: AndroidFacet, androidModel: AndroidModel) =
+    mutableFacet.putUserData(ANDROID_MODEL_KEY, androidModel)
 
   enum class Type {
     TYPE_NON_ANDROID,

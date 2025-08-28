@@ -367,7 +367,7 @@ class LayoutInspectorRule(
  * test environment has a model with this [applicationId].
  */
 fun AndroidFacet.setApplicationIdForTest(applicationId: String) {
-  AndroidModel.set(this, TestAndroidModel(applicationId))
+  AndroidModel.setForTests(this, TestAndroidModel(applicationId))
   this.properties.run {
     USE_CUSTOM_MANIFEST_PACKAGE = true
     CUSTOM_MANIFEST_PACKAGE = applicationId

@@ -120,12 +120,12 @@ class ProjectApplicationIdsProviderImplTest {
 
   private fun mockFacet(vararg applicationIds: String): AndroidFacet {
     val facet = AndroidFacet(
-      MockModule(disposableRule.disposable),
+      projectRule.module,
       "ProjectApplicationIdsProviderImplTest:Facet",
       AndroidFacetConfiguration()
     )
     Disposer.register(disposableRule.disposable, facet)
-    AndroidModel.set(facet, TestAndroidModel(allApplicationIds = applicationIds.toSet()))
+    AndroidModel.setForTests(facet, TestAndroidModel(allApplicationIds = applicationIds.toSet()))
     return facet
   }
 }

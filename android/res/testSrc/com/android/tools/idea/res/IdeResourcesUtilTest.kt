@@ -387,7 +387,7 @@ class IdeResourcesUtilTest {
     application.invokeAndWait {
       CommandProcessor.getInstance().runUndoTransparentAction {
         application.runWriteAction {
-          AndroidModel.set(facet, namespaced(facet))
+          AndroidModel.setForTests(facet, namespaced(facet))
           val manifest = assertNotNull(Manifest.getMainManifest(facet))
           manifest.getPackage().value = appNs.packageName
         }

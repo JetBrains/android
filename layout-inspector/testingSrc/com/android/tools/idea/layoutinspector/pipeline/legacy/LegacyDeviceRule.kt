@@ -157,7 +157,7 @@ class LegacyDeviceRule(
     projectRule.fixture.addFileToProject("/AndroidManifest.xml", manifest)
     projectRule.fixture.addFileToProject("res/values/themes.xml", themes)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    AndroidModel.set(facet, TestAndroidModel(packageName))
+    AndroidModel.setForTests(facet, TestAndroidModel(packageName))
     clientInstance = createSimpleLegacyClient()
   }
 

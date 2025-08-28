@@ -1914,7 +1914,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     deleteManifest()
     addMinSdkManifest(minSdk)
     // Set desugaring level to DEFAULT which does not include java 8 desugaring.
-    AndroidModel.set(
+    AndroidModel.setForTests(
       myFacet,
       TestAndroidModel(minSdkVersion = AndroidVersion(minSdk), desugaring = Desugaring.DEFAULT),
     )
@@ -1951,7 +1951,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     deleteManifest()
     addMinSdkManifest(minSdk)
     // Explicitly enable full desugaring
-    AndroidModel.set(
+    AndroidModel.setForTests(
       myFacet,
       TestAndroidModel(minSdkVersion = AndroidVersion(minSdk), desugaring = Desugaring.FULL),
     )
