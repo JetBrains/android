@@ -2294,6 +2294,11 @@ public final class StudioFlags {
                     "Enable Vibe Edit Agent",
                     "When enabled, allow launch of Vibe Edit agent.");
 
+  public static final Flag<Boolean> STUDIOBOT_DEVICE_TOOLS =
+    new BooleanFlag(STUDIOBOT, "include.device.tools",
+                    "Enable using device tools",
+                    "Enables a set of tools allowing the agent to list and activate devices.");
+
   public static final Flag<Boolean> GEMINI_AGENT_MODE =
     new BooleanFlag(STUDIOBOT, "agent.mode",
                     "Enable agent mode.",
