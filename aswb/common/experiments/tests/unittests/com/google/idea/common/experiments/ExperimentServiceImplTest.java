@@ -285,7 +285,7 @@ public class ExperimentServiceImplTest {
             new MapExperimentLoader(
                 "id1", "bool", "1", "string", "over", "int", "10", "rollout", "10", "null", "0"),
             new MapExperimentLoader(
-                "id2", "bool", "0", "string", "val", "int", "11", "rollout", "5"),
+                "id2", "bool", "0", "string", "val", "int", "11", "rollout", "5", "rollout2", "100"),
             new MapExperimentLoader("id3", "bool", "0", "string", "base", "int", "12"));
 
     BoolExperiment boolEx = new BoolExperiment("bool", true);
@@ -301,6 +301,15 @@ public class ExperimentServiceImplTest {
               }
             },
             "rollout");
+    FeatureRolloutExperiment rollout2Ex =
+        new FeatureRolloutExperiment(
+            new UsernameProvider() {
+              @Override
+              public String getUsername() {
+                return "username";
+              }
+            },
+            "rollout2");
 
     assertThat(service.getOverridesLog(boolEx))
         .isEqualTo("bool: true [id1], false [id2], false [id3], true [default]");
@@ -314,12 +323,14 @@ public class ExperimentServiceImplTest {
 
     boolean unused = service.getExperiment(boolEx, true);
     unused = service.getExperiment(rolloutEx, true);
+    unused = service.getExperiment(rollout2Ex, true);
     unused = service.getExperiment(nullEx, true);
 
     assertThat(service.getOverridesLog())
         .isEqualTo(
             "bool: true [id1], false [id2], false [id3], true [default]\n"
-                + "rollout: 7<10? enabled [id1], 7<5? disabled [id2]\n");
+                + "rollout: 7<10? enabled [id1], 7<5? disabled [id2]\n"
+                + "rollout2: 29<100? enabled [id2]\n");
   }
 
   private static class MapExperimentLoader implements ExperimentLoader {

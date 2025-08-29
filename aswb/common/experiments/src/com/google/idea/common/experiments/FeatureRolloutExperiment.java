@@ -119,7 +119,6 @@ public class FeatureRolloutExperiment extends Experiment {
   public boolean isOverridden(List<ExperimentValue> values) {
     return super.isOverridden(values)
         || (values.size() == 1
-            && !values.get(0).value().equals("100")
             && !values.get(0).value().equals("0"));
   }
 
