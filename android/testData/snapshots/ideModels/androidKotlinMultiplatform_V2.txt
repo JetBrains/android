@@ -1790,8 +1790,8 @@ MODULE                        : Kotlin_Multiplatform.androidLib
         SarifReport                   : false
     JavaCompileOptions
         Encoding                      : UTF-8
-        SourceCompatibility           : 1.8
-        TargetCompatibility           : 1.8
+        SourceCompatibility           : 11
+        TargetCompatibility           : 11
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
         ApplicationRClassConstantIds  : false
@@ -2348,8 +2348,8 @@ MODULE                        : Kotlin_Multiplatform.app
         SarifReport                   : false
     JavaCompileOptions
         Encoding                      : UTF-8
-        SourceCompatibility           : 1.8
-        TargetCompatibility           : 1.8
+        SourceCompatibility           : 11
+        TargetCompatibility           : 11
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
         ApplicationRClassConstantIds  : false
@@ -2777,8 +2777,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
         SarifReport                   : false
     JavaCompileOptions
         Encoding                      : UTF-8
-        SourceCompatibility           : 1.8
-        TargetCompatibility           : 1.8
+        SourceCompatibility           : 11
+        TargetCompatibility           : 11
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
         ApplicationRClassConstantIds  : false
@@ -3149,7 +3149,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpFirstLib/build/classes/kotlin/android/instrumentedTest
-                    jvmTarget                     : 1.8
+                    jvmTarget                     : 11
                     moduleName                    : kmpFirstLib_instrumentedTest
                     noReflect                     : true
                     noStdlib                      : true
@@ -3218,7 +3218,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpFirstLib/build/classes/kotlin/android/main
-                    jvmTarget                     : 1.8
+                    jvmTarget                     : 11
                     moduleName                    : kmpFirstLib
                     noReflect                     : true
                     noStdlib                      : true
@@ -3296,7 +3296,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpFirstLib/build/classes/kotlin/android/unitTest
-                    jvmTarget                     : 1.8
+                    jvmTarget                     : 11
                     moduleName                    : kmpFirstLib_unitTest
                     noReflect                     : true
                     noStdlib                      : true
@@ -3603,8 +3603,8 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
         SarifReport                   : false
     JavaCompileOptions
         Encoding                      : UTF-8
-        SourceCompatibility           : 1.8
-        TargetCompatibility           : 1.8
+        SourceCompatibility           : 11
+        TargetCompatibility           : 11
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
         ApplicationRClassConstantIds  : false
@@ -3745,7 +3745,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpSecondLib/build/classes/kotlin/android/main
-                    jvmTarget                     : 1.8
+                    jvmTarget                     : 11
                     moduleName                    : kmpSecondLib
                     noReflect                     : true
                     noStdlib                      : true
@@ -3807,7 +3807,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/main
-                    jvmTarget                     : 1.8
+                    jvmTarget                     : 11
                     moduleName                    : kmpSecondLib
                     noReflect                     : true
                     noStdlib                      : true
@@ -3887,7 +3887,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/test
-                    jvmTarget                     : 1.8
+                    jvmTarget                     : 11
                     moduleName                    : kmpSecondLib_test
                     noReflect                     : true
                     noStdlib                      : true
