@@ -1063,7 +1063,7 @@ map<int32_t, DisplayInfo> Controller::GetDisplays() {
   map<int32_t, DisplayInfo> displays;
   for (auto display_id: display_ids) {
     DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni_, display_id);
-    if (display_info.logical_size.width > 0 && (display_info.flags & DisplayInfo::FLAG_PRIVATE) == 0) {
+    if (display_info.IsValid() && display_info.IsOn() && (display_info.flags & DisplayInfo::FLAG_PRIVATE) == 0) {
       displays[display_id] = display_info;
     }
   }
