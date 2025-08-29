@@ -2090,10 +2090,10 @@ public final class StudioFlags {
                     "Enable the Recent Files macro in the context drawer",
                     "This macro attaches the most recently opened files' (but not including the currently open one's) paths and contents with chat queries.");
 
-  public static final Flag<Boolean> STUDIOBOT_AGENT_MD_FILES_CONTEXT =
-    new BooleanFlag(STUDIOBOT, "agent.md.files.context",
-                    "Enable the AGENT.md Files macro in the context drawer",
-                    "This macro attaches AGENT.md or GEMINI.md Files under directories of the current file and its recursive parents.");
+  public static final Flag<Boolean> STUDIOBOT_AGENTS_MD_FILES_CONTEXT =
+    new BooleanFlag(STUDIOBOT, "agents.md.files.context",
+                    "Enable the AGENTS.md Files macro in the context drawer",
+                    "This macro attaches AGENTS.md or GEMINI.md Files under directories of the current file and its recursive parents.");
 
   public static final Flag<Boolean> STUDIOBOT_ASK_GEMINI_INCLUDE_BUILD_FILES_IN_CONTEXT =
     new BooleanFlag(STUDIOBOT, "askgemini.include.build.files.in.context",
