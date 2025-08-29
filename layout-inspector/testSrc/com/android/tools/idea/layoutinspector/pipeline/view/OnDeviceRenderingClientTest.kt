@@ -192,7 +192,6 @@ class OnDeviceRenderingClientTest {
     val drawInstructions =
       DrawInstruction(
         rootViewId = 1L,
-        displayId = 1,
         bounds = Rectangle(),
         color = 1,
         label = DrawInstruction.Label(text = "label", size = 1f),
@@ -221,7 +220,6 @@ class OnDeviceRenderingClientTest {
     val drawInstructions =
       DrawInstruction(
         rootViewId = 1L,
-        displayId = 1,
         bounds = Rectangle(),
         color = 1,
         label = null,
@@ -249,7 +247,6 @@ class OnDeviceRenderingClientTest {
     val drawInstructions =
       DrawInstruction(
         rootViewId = 1L,
-        displayId = 1,
         bounds = Rectangle(),
         color = 1,
         label = null,
@@ -277,7 +274,6 @@ class OnDeviceRenderingClientTest {
     val drawInstructions =
       DrawInstruction(
         rootViewId = 1L,
-        displayId = 1,
         bounds = Rectangle(),
         color = 1,
         label = null,

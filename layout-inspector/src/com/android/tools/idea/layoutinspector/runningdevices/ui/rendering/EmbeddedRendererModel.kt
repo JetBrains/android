@@ -43,7 +43,6 @@ const val AGENT_PACKAGE = "com.android.tools.agent.appinspection"
  * Draw instructions to render the bounds of a node.
  *
  * @param rootViewId The drawId of the root view the [bounds] belong to.
- * @param displayId The id of the on-device display this instruction should be drawn on-top of.
  * @param bounds The bounds of the node being rendered.
  * @param color The color used to render these [bounds].
  * @param label Optional label to be rendered with the [bounds].
@@ -52,7 +51,6 @@ const val AGENT_PACKAGE = "com.android.tools.agent.appinspection"
  */
 data class DrawInstruction(
   val rootViewId: Long,
-  val displayId: Int?,
   val bounds: Rectangle,
   val color: Int,
   val label: Label?,
@@ -76,9 +74,13 @@ data class DrawInstruction(
  * This is a new render model, currently used by embedded Layout Inspector rendering. This render
  * model is designed to be used by any [LayoutInspectorRenderer]. Once standalone Layout Inspector
  * and 3D view are removed, this should take over as the only render model.
+ *
+ * @param displayId When specified only nodes from this display can be interacted and rendered with
+ *   this render model.
  */
 class EmbeddedRendererModel(
   parentDisposable: Disposable,
+  val displayId: Int? = null,
   val inspectorModel: InspectorModel,
   private val treeSettings: TreeSettings,
   val renderSettings: RenderSettings,
@@ -137,14 +139,22 @@ class EmbeddedRendererModel(
   private val selectionListener =
     object : InspectorModel.SelectionListener {
       override fun onSelection(oldNode: ViewNode?, newNode: ViewNode?, origin: SelectionOrigin) {
-        setSelectedNode(newNode)
+        val newNodes = getNodes()
+        // Use getNodes to get the actual node, since [newNode] might need to be filtered out. For
+        // example if it belongs to another display.
+        val actualNode = newNodes.find { it.drawId == newNode?.drawId }
+        setSelectedNode(actualNode)
       }
     }
 
   private val hoverListener =
     object : InspectorModel.HoverListener {
       override fun onHover(oldNode: ViewNode?, newNode: ViewNode?) {
-        setHoveredNode(newNode)
+        val newNodes = getNodes()
+        // Use getNodes to get the actual node, since [newNode] might need to be filtered out. For
+        // example if it belongs to another display.
+        val actualNode = newNodes.find { it.drawId == newNode?.drawId }
+        setHoveredNode(actualNode)
       }
     }
 
@@ -154,8 +164,14 @@ class EmbeddedRendererModel(
         renderSettingsState = state
 
         // Update draw instruction to apply new settings.
-        setSelectedNode(inspectorModel.selection)
-        setVisibleNodes(getNodes())
+        val selectedNode = inspectorModel.selection
+        val newNodes = getNodes()
+        // Use getNodes to get the actual node, since [newNode] might need to be filtered out. For
+        // example if it belongs to another display.
+        val actualNode = newNodes.find { it.drawId == selectedNode?.drawId }
+
+        setSelectedNode(actualNode)
+        setVisibleNodes(newNodes)
       }
     }
 
@@ -192,7 +208,9 @@ class EmbeddedRendererModel(
 
   fun doubleClickNode(x: Double, y: Double, rootId: Long = inspectorModel.root.drawId) {
     selectNode(x, y, rootId)
-    navigateToSelectedViewOnDoubleClick()
+    if (selectedNode.value != null) {
+      navigateToSelectedViewOnDoubleClick()
+    }
   }
 
   fun setOverlay(image: ByteArray?) {
@@ -229,6 +247,19 @@ class EmbeddedRendererModel(
   private fun getNodes(rootId: Long = inspectorModel.root.drawId): List<ViewNode> {
     return inspectorModel[rootId]
       ?.reversePostOrderFlattenedList()
+      ?.filter {
+        if (displayId == null) {
+          // Display id is not specified. Keep all nodes.
+          return@filter true
+        }
+
+        // We decided to not store the displayId in each node, to avoid duplicating the information.
+        // This has the drawback of having to find the root and then the window each time we want
+        // to know the displayId of a node.
+        val rootNode = inspectorModel.rootFor(it)
+        val window = rootNode?.let { inspectorModel.windowFor(rootNode) }
+        window?.displayId == displayId
+      }
       ?.filter { inspectorModel.isVisible(it) }
       // Prevent selection of views added by Layout Inspector, making them selectable only from the
       // component tree:
@@ -308,10 +339,8 @@ class EmbeddedRendererModel(
     outlineColor: Int?,
   ): DrawInstruction? {
     val rootView = inspectorModel.rootFor(this) ?: return null
-    val window = inspectorModel.windowFor(rootView)
     return DrawInstruction(
       rootViewId = rootView.drawId,
-      displayId = window?.displayId,
       bounds = layoutBounds,
       color = color,
       strokeThickness = strokeThickness,

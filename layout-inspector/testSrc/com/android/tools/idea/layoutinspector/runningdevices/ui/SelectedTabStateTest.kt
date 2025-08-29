@@ -49,6 +49,7 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.awt.Dimension
 import java.awt.Rectangle
 import javax.swing.JPanel
 import org.junit.After
@@ -136,12 +137,12 @@ class SelectedTabStateTest {
     layoutInspectorRenderer =
       StudioRendererPanel(
         disposable = displayViewRule.disposable,
-        displayId = emulatorView.displayId,
         scope = displayViewRule.disposable.createCoroutineScope(),
         renderModel = renderModel,
         displayRectangleProvider = { Rectangle() },
         screenScaleProvider = { 1.0 },
         orientationQuadrantProvider = { 0 },
+        deviceDisplayDimensionProvider = { Dimension() },
       )
   }
 

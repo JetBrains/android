@@ -367,6 +367,7 @@ fun createRendererPanel(
   val renderModel =
     EmbeddedRendererModel(
       parentDisposable = tabComponents,
+      displayId = tabComponents.displayView.displayId,
       inspectorModel = layoutInspector.inspectorModel,
       treeSettings = layoutInspector.treeSettings,
       renderSettings = layoutInspector.renderSettings,
@@ -389,10 +390,12 @@ fun createRendererPanel(
       StudioRendererPanel(
         disposable = tabComponents,
         scope = layoutInspector.coroutineScope,
-        displayId = tabComponents.displayView.displayId,
         renderModel = renderModel,
         displayRectangleProvider = { tabComponents.displayView.displayRectangle },
         screenScaleProvider = { tabComponents.displayView.screenScalingFactor },
+        deviceDisplayDimensionProvider = {
+          renderModel.inspectorModel.getDisplayDimension(tabComponents.displayView.displayId)
+        },
         orientationQuadrantProvider = {
           calculateRotationCorrection(
             displayProvider = {

@@ -671,14 +671,12 @@ class StudioRendererPanelTest {
       }
 
     val (model, renderer) = createRenderer(inspectorModel = customModel, displayId = 0)
+    // Model is associated with displayId 0, but the views are on displayId 1
     model.selectNode(10.0, 20.0)
     model.hoverNode(15.0, 55.0)
 
-    assertThat(model.selectedNode.value!!.bounds)
-      .isEqualTo(model.inspectorModel[VIEW1]!!.layoutBounds)
-
-    assertThat(model.hoveredNode.value!!.bounds)
-      .isEqualTo(model.inspectorModel[COMPOSE1]!!.layoutBounds)
+    assertThat(model.selectedNode.value).isNull()
+    assertThat(model.hoveredNode.value).isNull()
 
     val renderImage = createRenderImage()
     paint(renderImage, renderer)
@@ -719,13 +717,14 @@ class StudioRendererPanelTest {
     inspectorModel: InspectorModel = verticalInspectorModel,
     deviceDisplayRectangle: Rectangle = this.deviceDisplayRectangle,
     displayOrientation: Int = 0,
-    displayId: Int = 0,
+    displayId: Int? = null,
     notificationModel: NotificationModel = NotificationModel(projectRule.project),
     scope: CoroutineScope = disposable.createCoroutineScope(),
   ): Pair<EmbeddedRendererModel, StudioRendererPanel> {
     val renderModel =
       EmbeddedRendererModel(
         parentDisposable = disposable,
+        displayId = displayId,
         inspectorModel = inspectorModel,
         treeSettings = treeSettings,
         renderSettings = renderSettings,
@@ -735,12 +734,12 @@ class StudioRendererPanelTest {
     val panel =
       StudioRendererPanel(
         disposable = disposable,
-        displayId = displayId,
         scope = scope,
         renderModel = renderModel,
         displayRectangleProvider = { deviceDisplayRectangle },
         screenScaleProvider = { 1.0 },
         orientationQuadrantProvider = { displayOrientation },
+        deviceDisplayDimensionProvider = { inspectorModel.getDisplayDimension(displayId) },
       )
 
     return Pair(renderModel, panel)

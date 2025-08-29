@@ -28,6 +28,7 @@ import java.awt.AlphaComposite
 import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Component
+import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Image
@@ -57,15 +58,17 @@ import kotlinx.coroutines.launch
  * @param orientationQuadrantProvider Returns an integer that indicates the rotation that should be
  *   applied to the Layout Inspector's rendering in order to match the rendering from Running
  *   Devices.
+ * @param deviceDisplayDimensionProvider Returns the dimension of the device display, as known by
+ *   Layout Inspector.
  */
 class StudioRendererPanel(
   disposable: Disposable,
   scope: CoroutineScope,
-  private val displayId: Int,
   private val renderModel: EmbeddedRendererModel,
   private val displayRectangleProvider: () -> Rectangle?,
   private val screenScaleProvider: () -> Double,
   private val orientationQuadrantProvider: () -> Int,
+  private val deviceDisplayDimensionProvider: () -> Dimension,
 ) : LayoutInspectorRenderer() {
 
   private val childScope = scope.createChildScope()
@@ -78,11 +81,6 @@ class StudioRendererPanel(
     }
 
   private var overlay: Image? = null
-
-  private var selectedNode: DrawInstruction? = null
-  private var hoveredNode: DrawInstruction? = null
-  private var visibleNodes: List<DrawInstruction> = emptyList()
-  private var recomposingNodes: List<DrawInstruction> = emptyList()
 
   init {
     Disposer.register(disposable, this)
@@ -105,30 +103,10 @@ class StudioRendererPanel(
     childScope.launch { renderModel.overlay.collect { updateOverlay(it) } }
     childScope.launch { renderModel.overlayAlpha.collect { refresh() } }
     childScope.launch { renderModel.interceptClicks.collect { refresh() } }
-    childScope.launch {
-      renderModel.selectedNode.collect {
-        selectedNode = it.filter(displayId)
-        refresh()
-      }
-    }
-    childScope.launch {
-      renderModel.hoveredNode.collect {
-        hoveredNode = it.filter(displayId)
-        refresh()
-      }
-    }
-    childScope.launch {
-      renderModel.visibleNodes.collect {
-        visibleNodes = it.mapNotNull { node -> node.filter(displayId) }
-        refresh()
-      }
-    }
-    childScope.launch {
-      renderModel.recomposingNodes.collect {
-        recomposingNodes = it.mapNotNull { node -> node.filter(displayId) }
-        refresh()
-      }
-    }
+    childScope.launch { renderModel.selectedNode.collect { refresh() } }
+    childScope.launch { renderModel.hoveredNode.collect { refresh() } }
+    childScope.launch { renderModel.visibleNodes.collect { refresh() } }
+    childScope.launch { renderModel.recomposingNodes.collect { refresh() } }
   }
 
   override fun dispose() {}
@@ -154,10 +132,10 @@ class StudioRendererPanel(
       g2d.composite = AlphaComposite.SrcOver.derive(renderModel.overlayAlpha.value)
       g2d.drawImage(overlay, bounds.x, bounds.y, bounds.width, bounds.height, null)
     }
-    recomposingNodes.forEach { it.paint(g2d, fill = true) }
-    visibleNodes.forEach { it.paint(g2d) }
-    hoveredNode?.paint(g2d)
-    selectedNode?.paint(g2d)
+    renderModel.recomposingNodes.value.forEach { it.paint(g2d, fill = true) }
+    renderModel.visibleNodes.value.forEach { it.paint(g2d) }
+    renderModel.hoveredNode.value?.paint(g2d)
+    renderModel.selectedNode.value?.paint(g2d)
   }
 
   /**
@@ -290,10 +268,10 @@ class StudioRendererPanel(
    *   rendered.
    */
   private fun getTransform(displayRectangle: Rectangle): AffineTransform {
-    val layoutInspectorScreenDimension = renderModel.inspectorModel.getDisplayDimension(displayId)
+    val deviceDisplayDimension = deviceDisplayDimensionProvider()
     // The rectangle containing LI rendering, in device scale.
     val layoutInspectorDisplayRectangle =
-      Rectangle(0, 0, layoutInspectorScreenDimension.width, layoutInspectorScreenDimension.height)
+      Rectangle(0, 0, deviceDisplayDimension.width, deviceDisplayDimension.height)
 
     val scale = calculateScaleDifference(displayRectangle, layoutInspectorDisplayRectangle)
     val orientationQuadrant = orientationQuadrantProvider()
@@ -422,11 +400,3 @@ private fun Rectangle.scale(physicalToLogicalScale: Double): Rectangle {
 private fun Point2D.scale(scale: Double) = Point2D.Double(x * scale, y * scale)
 
 private fun MouseEvent.coordinates() = Point2D.Double(x.toDouble(), y.toDouble())
-
-private fun DrawInstruction?.filter(displayId: Int): DrawInstruction? {
-  return if (this?.displayId == displayId) {
-    this
-  } else {
-    null
-  }
-}
