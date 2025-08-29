@@ -51,7 +51,7 @@ private const val KMP_PATH = "prebuilts/studio/buildbenchmarks/extra-large-kmp.2
 enum class BenchmarkProject(
   val projectPath: String,
   val maxHeapMB: Int,
-  val diffs: List<String> = listOf("diff-properties", "diff-compose-plugin"),
+  val diffs: List<String> = listOf("diff-properties", "diff-compose-plugin", "diff-built-in-kotlin", "diff-kapt"),
   val extraDiffs: List<String> = emptyList(),
   val automigrateNamespace: Boolean = true,
 ) {
