@@ -73,7 +73,7 @@ private fun createBenchmarkTestRule(projectName: String,
       projectSetupRule.addListener(it.listener)
     })
     .around(CollectDaemonLogsRule())
-    .around(DisableLibraryConstraintsRule())
+    .around(DisableBuiltInKotlinRule())
     .around(DisablePhasedSyncDependencyRule())
     .maybeAddCaptureJfrRule(projectSetupRule)
   return object : BenchmarkTestRule,

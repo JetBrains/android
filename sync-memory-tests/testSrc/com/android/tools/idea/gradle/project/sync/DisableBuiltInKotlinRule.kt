@@ -17,10 +17,10 @@ package com.android.tools.idea.gradle.project.sync
 
 import org.junit.rules.ExternalResource
 
-class DisableLibraryConstraintsRule : ExternalResource() {
+class DisableBuiltInKotlinRule : ExternalResource() {
   override fun before() {
     mutateGradleProperties {
-      this.properties.setProperty("android.dependency.excludeLibraryComponentsFromConstraints", true.toString())
+      this.properties.setProperty("android.builtInKotlin", false.toString())
     }
   }
 }
