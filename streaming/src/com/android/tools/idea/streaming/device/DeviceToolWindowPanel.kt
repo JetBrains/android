@@ -297,6 +297,7 @@ internal class DeviceToolWindowPanel(
     }
 
     fun reconfigureDisplayPanels(newDisplays: List<DisplayDescriptor>) {
+      thisLogger().info("Device displays: ${newDisplays.joinToString(", ")}")
       adjustDisplayDescriptors(newDisplays)
       if (newDisplays.size == 1 && displayDescriptors.size <= 1 || newDisplays == displayDescriptors) {
         return
