@@ -42,37 +42,42 @@ public class QuerySyncNodeDecorator implements ProjectViewNodeDecorator {
 
   @Override
   public void decorate(ProjectViewNode<?> node, PresentationData data) {
-    if (!ENABLED.getValue()) {
-      return;
-    }
     Project project = node.getProject();
     if (project == null || Blaze.getProjectType(project) != ProjectType.QUERY_SYNC) {
       return;
     }
-
-    VirtualFile vf = node.getVirtualFile();
-
-    // Tree nodes may be KtClassOrObjectTreeNodes, for which Virtual Files can be determined via the
-    // associated PsiElement
-    if (vf == null && node.getValue() instanceof PsiElement) {
-      vf = PsiUtilCore.getVirtualFile((PsiElement) node.getValue());
-    }
-
-    WorkspaceRoot workspaceRoot = WorkspaceRoot.fromProject(project);
-    if (vf == null || !workspaceRoot.isInWorkspace(vf)) {
-      return;
-    }
-    QuerySyncProjectSnapshot snapshot =
-        QuerySyncManager.getInstance(project).getCurrentSnapshot().orElse(null);
-    if (snapshot == null) {
-      return;
-    }
-    Set<Label> targets = snapshot.getPendingTargets(workspaceRoot.relativize(vf));
-    if (!targets.isEmpty()) {
+    QuerySyncManager manager = QuerySyncManager.getInstance(project);
+    if (manager.operationInProgress()) {
       String text = data.getPresentableText();
       data.clearText();
       data.addText(text, SimpleTextAttributes.REGULAR_ATTRIBUTES);
-      data.addText(String.format(" (%s)", targets.size()), SimpleTextAttributes.GRAY_ATTRIBUTES);
+      data.addText(" (syncing...)", SimpleTextAttributes.GRAY_ATTRIBUTES);
+    }
+    if (ENABLED.getValue()) {
+      VirtualFile vf = node.getVirtualFile();
+
+      // Tree nodes may be KtClassOrObjectTreeNodes, for which Virtual Files can be determined via the
+      // associated PsiElement
+      if (vf == null && node.getValue() instanceof PsiElement) {
+        vf = PsiUtilCore.getVirtualFile((PsiElement) node.getValue());
+      }
+
+      WorkspaceRoot workspaceRoot = WorkspaceRoot.fromProject(project);
+      if (vf == null || !workspaceRoot.isInWorkspace(vf)) {
+        return;
+      }
+      QuerySyncProjectSnapshot snapshot =
+          QuerySyncManager.getInstance(project).getCurrentSnapshot().orElse(null);
+      if (snapshot == null) {
+        return;
+      }
+      Set<Label> targets = snapshot.getPendingTargets(workspaceRoot.relativize(vf));
+      if (!targets.isEmpty()) {
+        String text = data.getPresentableText();
+        data.clearText();
+        data.addText(text, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+        data.addText(String.format(" (%s)", targets.size()), SimpleTextAttributes.GRAY_ATTRIBUTES);
+      }
     }
   }
 
