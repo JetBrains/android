@@ -38,16 +38,23 @@ import com.intellij.designer.model.EmptyXmlTag
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.findDocument
 import com.intellij.pom.Navigatable
 import com.intellij.profile.codeInspection.InspectionProfileManager
+import com.intellij.util.concurrency.annotations.RequiresReadLock
 import java.util.Objects
 import java.util.stream.Stream
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
+import org.jetbrains.kotlin.idea.core.util.toPsiFile
+import org.jetbrains.kotlin.ir.UNDEFINED_LINE_NUMBER
+import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 
 private const val COLOR_BLIND_ISSUE_SUMMARY = "Insufficient color contrast for color blind users"
 private const val VISUAL_LINT_ISSUE_CATEGORY = "Visual Lint Issue"
@@ -87,8 +94,23 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
   override val description: String
     get() = contentDescriptionProvider.invoke(unsuppressedModelCount).stringBuilder.toString()
 
-  /** Returns the text range of the issue. */
-  private var range: TextRange? = null
+  /** The text range of the issue. */
+  private val range: TextRange? by lazy { runReadAction { getTextRange() } }
+
+  /**
+   * The line number (0-based) in the source file where the issue is located, or
+   * [UNDEFINED_LINE_NUMBER] if it cannot be determined.
+   */
+  val lineNumber: Int by lazy { runReadAction { getIssueLineNumber() } }
+
+  /**
+   * The signature of the composable function call that has the visual lint issue (e.g.,
+   * `MyComposable(name = "text")`).
+   *
+   * This will be `null` if the signature could not be determined, or if the issue is from an XML
+   * layout. This is not supported for XML layouts.
+   */
+  val componentSignature: String? by lazy { runReadAction { getIssueComponentSignature() } }
 
   private val suppressList: MutableList<Suppress> = mutableListOf()
 
@@ -126,19 +148,46 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
       }
     }
 
-  init {
-    runReadAction { updateRange() }
+  /**
+   * Returns the [TextRange] of the first component associated with the issue source. This is used
+   * to determine the location of the issue in the source code. Returns null if there are no
+   * components associated with the issue source.
+   */
+  @RequiresReadLock
+  private fun getTextRange(): TextRange? {
+    synchronized(_components) {
+      return source.components.firstNotNullOfOrNull { it.getTextRange() }
+    }
   }
 
-  private fun updateRange() {
-    synchronized(_components) {
-      source.components.forEach { component ->
-        component.let {
-          range = it.getTextRange()
-          return@forEach
-        }
-      }
-    }
+  /**
+   * Returns the 0-based line number in the source file where the issue is located, or
+   * [UNDEFINED_LINE_NUMBER] if it cannot be determined.
+   */
+  @RequiresReadLock
+  private fun getIssueLineNumber(): Int {
+    val offset = range?.startOffset ?: return UNDEFINED_LINE_NUMBER
+    val navigatableFile = (navigatable as? OpenFileDescriptor)?.file ?: affectedFiles.firstOrNull()
+    val document = navigatableFile?.findDocument() ?: return UNDEFINED_LINE_NUMBER
+    if (offset < 0 || offset > document.textLength) return UNDEFINED_LINE_NUMBER
+    return document.getLineNumber(offset)
+  }
+
+  /**
+   * Returns the signature of the composable function call that has the visual lint issue (e.g.,
+   * `MyComposable(name = "text")`).
+   *
+   * Returns `null` if the signature could not be determined, or if the issue is in an XML layout.
+   * This method is not supported for XML layouts.
+   *
+   * This is extracted from the function call text at the issue's start offset in the affected file.
+   */
+  @RequiresReadLock
+  private fun getIssueComponentSignature(): String? {
+    val offset = range?.startOffset ?: return null
+    val model = components.firstOrNull()?.model ?: return null
+    val affectedFile = (navigatable as? OpenFileDescriptor)?.file ?: affectedFiles.firstOrNull()
+    return affectedFile?.let { getFunctionCallAt(it, offset, model.project)?.text }
   }
 
   /** Hash code that depends on xml range rather than component. */
@@ -311,6 +360,7 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
         if (component?.backend is NlComponentBackendEmpty) VisualLintOrigin.UI_CHECK
         else VisualLintOrigin.XML_LINTING
       VisualLintUsageTracker.getInstance().trackIssueCreation(issueType, issueOrigin, model.facet)
+
       return builder()
         .summary(summary)
         .severity(getSeverity(type, model.project))
@@ -345,5 +395,33 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
             .toString()
         HtmlBuilder().addHtml(contentDescription)
       }
+
+    /**
+     * Finds the function call expression at a caret offset within a given VirtualFile.
+     *
+     * @param virtualFile The file containing the code.
+     * @param offset The character offset within the file.
+     * @param project The current project context, needed to access the PSI.
+     * @return The enclosing KtCallExpression, or null if not found.
+     */
+    private fun getFunctionCallAt(
+      virtualFile: VirtualFile,
+      offset: Int,
+      project: Project,
+    ): KtCallExpression? {
+      try {
+        val ktFile = runReadAction { virtualFile.toPsiFile(project) } ?: return null
+
+        // Get the leaf PSI element at the caret's offset.
+        val correctedOffset = if (offset == ktFile.textLength) offset - 1 else offset
+        val elementAtCaret = runReadAction { ktFile.findElementAt(correctedOffset) } ?: return null
+
+        // Walk up the PSI tree from that element to find the parent function call.
+        return runReadAction { elementAtCaret.getParentOfType<KtCallExpression>(true) }
+      } catch (e: Exception) {
+        thisLogger().warn("Failed to get function call at offset $offset in ${virtualFile.name}", e)
+        return null
+      }
+    }
   }
 }

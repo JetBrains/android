@@ -43,6 +43,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 class VisualLintIssueNodeTest {
   @JvmField @Rule val rule = AndroidProjectRule.withSdk().onEdt()
@@ -255,6 +256,7 @@ class VisualLintIssueNodeTest {
   fun testEquality() {
     val file = rule.fixture.createFile("Compose.kt", "Compose file")
     val model = mock(NlModel::class.java)
+    whenever(model.virtualFile).thenReturn(file)
     val navigatable1 = OpenFileDescriptor(rule.project, file, 100)
     val navigatable2 = OpenFileDescriptor(rule.project, file, 100)
     val component1 = NlComponent(model, 651L).apply { setNavigatable(navigatable1) }
@@ -281,5 +283,105 @@ class VisualLintIssueNodeTest {
     val node1 = VisualLintIssueNode(issue1, parentNode)
     val node2 = VisualLintIssueNode(issue2, parentNode)
     assertTrue(node1 == node2)
+  }
+
+  @Test
+  fun testComponentSignature_simpleComposableCall() {
+    val offset = COMPOSABLE_CONTENT.lastIndexOf("SimpleComposable()")
+    runSignatureTest(COMPOSABLE_CONTENT, offset, 23, "SimpleComposable()")
+  }
+
+  @Test
+  fun testComponentSignature_nestedNoArguments() {
+    val offset =
+      COMPOSABLE_CONTENT.indexOf(
+        "SimpleComposable()",
+        COMPOSABLE_CONTENT.indexOf("OuterComposable"),
+      )
+    runSignatureTest(COMPOSABLE_CONTENT, offset, 16, "SimpleComposable()")
+  }
+
+  @Test
+  fun testComponentSignature_multipleArguments() {
+    val offset = COMPOSABLE_CONTENT.indexOf("ComposableWithArgs(text = \"hello\", value = 123)")
+    runSignatureTest(
+      COMPOSABLE_CONTENT,
+      offset,
+      17,
+      "ComposableWithArgs(text = \"hello\", value = 123)",
+    )
+  }
+
+  @Test
+  fun testComponentSignature_notAComposable() {
+    val offset = COMPOSABLE_CONTENT.indexOf("notAComposable")
+    runSignatureTest(COMPOSABLE_CONTENT, offset, 20, null)
+  }
+
+  @Test
+  fun testComponentSignature_functionDefinition() {
+    val offset = COMPOSABLE_CONTENT.indexOf("fun SimpleComposable()")
+    runSignatureTest(COMPOSABLE_CONTENT, offset, 5, null)
+  }
+
+  private fun runSignatureTest(
+    composableContent: String,
+    offset: Int,
+    expectedLine: Int,
+    expectedSignature: String?,
+  ) {
+    val file =
+      rule.fixture.addFileToProject("src/com/example/ComponentSignatures.kt", composableContent)
+    val model = mock(NlModel::class.java)
+    whenever(model.project).thenReturn(rule.project)
+    whenever(model.virtualFile).thenReturn(file.virtualFile)
+
+    val navigatable = OpenFileDescriptor(rule.project, file.virtualFile, offset)
+    val component = NlComponent(model, 1L).apply { setNavigatable(navigatable) }
+
+    val issue =
+      VisualLintRenderIssue.builder()
+        .summary("summary")
+        .severity(HighlightSeverity.WARNING)
+        .contentDescriptionProvider { HtmlBuilder() }
+        .model(model)
+        .components(mutableListOf(component))
+        .type(VisualLintErrorType.BOUNDS)
+        .build()
+
+    assertEquals(expectedLine, issue.lineNumber)
+    assertEquals(expectedSignature, issue.componentSignature)
+  }
+
+  private companion object {
+    private val COMPOSABLE_CONTENT =
+      """
+    package com.example
+
+    import androidx.compose.runtime.Composable
+
+    @Composable
+    fun SimpleComposable() { // line 5
+        // some content
+    }
+
+    @Composable
+    fun ComposableWithArgs(text: String, value: Int) { // line 10
+        // some content
+    }
+
+    @Composable
+    fun OuterComposable() { // line 15
+        SimpleComposable() // line 16
+        ComposableWithArgs(text = "hello", value = 123) // line 17
+    }
+
+    val notAComposable = 1 // line 20
+
+    fun topLevelCall() { // line 22
+      SimpleComposable() // line 23
+    }
+    """
+        .trimIndent()
   }
 }
