@@ -93,7 +93,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
   private static final Logger logger = Logger.getLogger(NewArtifactTracker.class.getName());
 
   public static final FeatureRolloutExperiment enableJdepsDependencyGraph =
-    new FeatureRolloutExperiment("qsync.enable.jdeps.dependency.graph");
+    new FeatureRolloutExperiment("qsync.enable.jdeps.dependency.graph.2");
 
   private final BuildArtifactCache artifactCache;
   private final Function<
