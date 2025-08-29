@@ -80,7 +80,7 @@ data class DrawInstruction(
  */
 class EmbeddedRendererModel(
   parentDisposable: Disposable,
-  val displayId: Int? = null,
+  private val displayId: Int? = null,
   val inspectorModel: InspectorModel,
   private val treeSettings: TreeSettings,
   val renderSettings: RenderSettings,

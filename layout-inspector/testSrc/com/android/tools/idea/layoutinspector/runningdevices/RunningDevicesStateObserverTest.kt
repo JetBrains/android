@@ -24,10 +24,10 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ui.components.BorderLayoutPanel
+import javax.swing.JPanel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JPanel
 
 @RunsInEdt
 class RunningDevicesStateObserverTest {
@@ -48,14 +48,14 @@ class RunningDevicesStateObserverTest {
         DeviceId.ofPhysicalDevice("tab1"),
         BorderLayoutPanel(),
         JPanel(),
-        displayViewRule.newEmulatorView(),
+        listOf(displayViewRule.newEmulatorView()),
       )
     tab2 =
       TabInfo(
         DeviceId.ofPhysicalDevice("tab2"),
         BorderLayoutPanel(),
         JPanel(),
-        displayViewRule.newEmulatorView(),
+        listOf(displayViewRule.newEmulatorView()),
       )
 
     fakeToolWindowManager = FakeToolWindowManager(displayViewRule.project, emptyList())

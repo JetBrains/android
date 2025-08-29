@@ -67,8 +67,12 @@ data class TabInfo(
   val deviceId: DeviceId,
   val content: BorderLayoutPanel,
   val container: Container,
-  val displayView: AbstractDisplayView,
-)
+  val displays: List<AbstractDisplayView>,
+) {
+  init {
+    displays.forEach { content.add(it) }
+  }
+}
 
 class FakeToolWindowManager(project: Project, tabs: List<TabInfo>) :
   ToolWindowHeadlessManagerImpl(project) {
@@ -569,7 +573,7 @@ class FakeRunningDevicesComponent(private val tabInfo: TabInfo) : JPanel(), UiDa
   override fun uiDataSnapshot(sink: DataSink) {
     sink[SERIAL_NUMBER_KEY] = tabInfo.deviceId.serialNumber
     sink[STREAMING_CONTENT_PANEL_KEY] = tabInfo.content
-    sink[DISPLAY_VIEW_KEY] = tabInfo.displayView
+    sink[DISPLAY_VIEW_KEY] = tabInfo.displays.first()
     sink[DEVICE_ID_KEY] = tabInfo.deviceId
   }
 }

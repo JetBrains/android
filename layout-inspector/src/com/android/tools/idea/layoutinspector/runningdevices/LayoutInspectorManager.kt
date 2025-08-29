@@ -29,6 +29,7 @@ import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.Layout
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.OnDeviceRendererPanel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.StudioRendererPanel
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
+import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
@@ -43,6 +44,8 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.concurrency.ThreadingAssertions
+import java.awt.Component
+import java.awt.Container
 
 const val SPLITTER_KEY =
   "com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager.Splitter"
@@ -237,22 +240,29 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
       DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, component)
 
     val streamingContentPanel = STREAMING_CONTENT_PANEL_KEY.getData(selectedTabDataProvider)
-    val displayView = DISPLAY_VIEW_KEY.getData(selectedTabDataProvider)
+    val mainDisplayView = DISPLAY_VIEW_KEY.getData(selectedTabDataProvider)
 
     checkNotNull(selectedTabContent)
     checkNotNull(streamingContentPanel)
-    checkNotNull(displayView)
+    checkNotNull(mainDisplayView)
+
+    val displayList = streamingContentPanel.allChildren().filterIsInstance<AbstractDisplayView>()
+
+    // Sanity check on the displayList
+    check(displayList.contains(mainDisplayView)) { "Display list does not contain mainDisplayView" }
 
     val tabComponents =
       TabComponents(
         disposable = selectedTabContent,
         tabContentPanel = streamingContentPanel,
         tabContentPanelContainer = streamingContentPanel.parent,
-        displayView = displayView,
+        displayList = displayList,
       )
 
     val layoutInspector = project.getLayoutInspector()
-    val renderingComponents = createRendererPanel(layoutInspector, tabComponents)
+
+    val renderingComponents =
+      createRenderingComponents(tabComponents = tabComponents, layoutInspector = layoutInspector)
     return SelectedTabState(project, deviceId, tabComponents, layoutInspector, renderingComponents)
   }
 
@@ -348,71 +358,97 @@ private fun Project.getLayoutInspector(): LayoutInspector {
 }
 
 data class RenderingComponents(
+  /** The display these components are associated with. */
+  val displayId: Int,
   val renderer: LayoutInspectorRenderer,
   val model: EmbeddedRendererModel,
 )
 
 @VisibleForTesting
-fun createRendererPanel(
-  layoutInspector: LayoutInspector,
+fun createRenderingComponents(
   tabComponents: TabComponents,
+  layoutInspector: LayoutInspector,
   statsProvider: () -> SessionStatistics = { layoutInspector.currentClient.stats },
-): RenderingComponents {
-  val isXrDevice = tabComponents.displayView.deviceType == DeviceType.XR_HEADSET
+): List<RenderingComponents> {
+  val isXrDevice = tabComponents.displayList.any { it.deviceType == DeviceType.XR_HEADSET }
   val useOnDeviceRendering =
     isXrDevice || StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ON_DEVICE_RENDERING.get()
 
   statsProvider().setOnDeviceRendering(useOnDeviceRendering)
 
-  val renderModel =
-    EmbeddedRendererModel(
-      parentDisposable = tabComponents,
-      displayId = tabComponents.displayView.displayId,
-      inspectorModel = layoutInspector.inspectorModel,
-      treeSettings = layoutInspector.treeSettings,
-      renderSettings = layoutInspector.renderSettings,
-      navigateToSelectedViewOnDoubleClick = {
-        layoutInspector.navigateToSelectedViewFromRendererDoubleClick()
-      },
-    )
+  if (useOnDeviceRendering) {
+    // For on-device rendering we want to always keep a single model and renderer.
+    // TODO(b/443263320): add support for multiple displays to on-device rendering
+    val renderModel =
+      EmbeddedRendererModel(
+        parentDisposable = tabComponents,
+        // In on-device rendering we don't want to filter nodes by display id. There is no concept
+        // of display there, since everything is rendered on-top of the views.
+        displayId = null,
+        inspectorModel = layoutInspector.inspectorModel,
+        treeSettings = layoutInspector.treeSettings,
+        renderSettings = layoutInspector.renderSettings,
+        navigateToSelectedViewOnDoubleClick = {
+          layoutInspector.navigateToSelectedViewFromRendererDoubleClick()
+        },
+      )
 
-  val renderer =
-    if (useOnDeviceRendering) {
+    val mainDisplayView = tabComponents.displayList.find { it.displayId == Display.MAIN_DISPLAY_ID }
+    checkNotNull(mainDisplayView) { "Main display is missing" }
+
+    val renderer =
       OnDeviceRendererPanel(
         disposable = tabComponents,
         scope = layoutInspector.coroutineScope,
         renderModel = renderModel,
         enableSendRightClicksToDevice = { enable ->
-          tabComponents.displayView.rightClicksAreSentToDevice = enable
+          mainDisplayView.rightClicksAreSentToDevice = enable
         },
       )
-    } else {
-      StudioRendererPanel(
-        disposable = tabComponents,
-        scope = layoutInspector.coroutineScope,
-        renderModel = renderModel,
-        displayRectangleProvider = { tabComponents.displayView.displayRectangle },
-        screenScaleProvider = { tabComponents.displayView.screenScalingFactor },
-        deviceDisplayDimensionProvider = {
-          renderModel.inspectorModel.getDisplayDimension(tabComponents.displayView.displayId)
-        },
-        orientationQuadrantProvider = {
-          calculateRotationCorrection(
-            displayProvider = {
-              layoutInspector.inspectorModel.resourceLookup.displays.find {
-                it.id == tabComponents.displayView.displayId
-              }
-            },
-            displayOrientationQuadrant = { tabComponents.displayView.displayOrientationQuadrants },
-            displayOrientationQuadrantCorrection = {
-              tabComponents.displayView.displayOrientationCorrectionQuadrants
-            },
-          )
-        },
-      )
-    }
 
-  return RenderingComponents(renderer, renderModel)
+    return listOf(RenderingComponents(mainDisplayView.displayId, renderer, renderModel))
+  } else {
+    return tabComponents.displayList.map { displayView ->
+      val renderModel =
+        EmbeddedRendererModel(
+          parentDisposable = tabComponents,
+          displayId = displayView.displayId,
+          inspectorModel = layoutInspector.inspectorModel,
+          treeSettings = layoutInspector.treeSettings,
+          renderSettings = layoutInspector.renderSettings,
+          navigateToSelectedViewOnDoubleClick = {
+            layoutInspector.navigateToSelectedViewFromRendererDoubleClick()
+          },
+        )
+
+      val renderer =
+        StudioRendererPanel(
+          disposable = tabComponents,
+          scope = layoutInspector.coroutineScope,
+          renderModel = renderModel,
+          displayRectangleProvider = { displayView.displayRectangle },
+          screenScaleProvider = { displayView.screenScalingFactor },
+          deviceDisplayDimensionProvider = {
+            renderModel.inspectorModel.getDisplayDimension(displayView.displayId)
+          },
+          orientationQuadrantProvider = {
+            calculateRotationCorrection(
+              displayProvider = {
+                layoutInspector.inspectorModel.resourceLookup.displays.find {
+                  it.id == displayView.displayId
+                }
+              },
+              displayOrientationQuadrant = { displayView.displayOrientationQuadrants },
+              displayOrientationQuadrantCorrection = {
+                displayView.displayOrientationCorrectionQuadrants
+              },
+            )
+          },
+        )
+
+      RenderingComponents(displayView.displayId, renderer, renderModel)
+    }
+  }
 }
 
 private fun LayoutInspector.navigateToSelectedViewFromRendererDoubleClick() {
@@ -480,4 +516,15 @@ fun calculateRotationCorrection(
   // The difference in quadrant rotation between Layout Inspector rendering and the Running Devices
   // rendering.
   return (layoutInspectorDisplayOrientationQuadrant - displayRectangleOrientationQuadrant).mod(4)
+}
+
+/** Recursively get all the children of [Container] */
+private fun Container.allChildren(): List<Component> {
+  return components.flatMap { child ->
+    if (child is Container) {
+      listOf(child) + child.allChildren()
+    } else {
+      listOf(child)
+    }
+  }
 }

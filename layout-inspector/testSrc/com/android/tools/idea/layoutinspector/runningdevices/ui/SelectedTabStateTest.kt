@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.runningdevices.ui
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.layoutinspector.FakeForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -36,12 +35,10 @@ import com.android.tools.idea.layoutinspector.runningdevices.RenderingComponents
 import com.android.tools.idea.layoutinspector.runningdevices.actions.UiConfig
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.EmbeddedRendererModel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.LayoutInspectorRenderer
-import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.StudioRendererPanel
 import com.android.tools.idea.layoutinspector.runningdevices.verifyUiInjected
 import com.android.tools.idea.layoutinspector.runningdevices.verifyUiRemoved
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.streaming.core.DeviceId
-import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
@@ -49,7 +46,6 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import java.awt.Dimension
 import java.awt.Rectangle
 import javax.swing.JPanel
 import org.junit.After
@@ -69,9 +65,6 @@ class SelectedTabStateTest {
   @get:Rule val displayViewRule = EmulatorViewRule()
 
   private lateinit var layoutInspector: LayoutInspector
-  private lateinit var renderModel: EmbeddedRendererModel
-  private lateinit var layoutInspectorRenderer: StudioRendererPanel
-  private lateinit var emulatorView: EmulatorView
 
   @Before
   fun setUp() {
@@ -96,7 +89,6 @@ class SelectedTabStateTest {
     val processModel = ProcessesModel(TestProcessDiscovery())
     val deviceModel = DeviceModel(displayViewRule.disposable, processModel)
     val notificationModel = NotificationModel(displayViewRule.project)
-    emulatorView = displayViewRule.newEmulatorView()
 
     val coroutineScope = AndroidCoroutineScope(displayViewRule.disposable)
     val launcher =
@@ -123,26 +115,6 @@ class SelectedTabStateTest {
         layoutInspectorModel = model,
         notificationModel = notificationModel,
         treeSettings = FakeTreeSettings(),
-      )
-
-    renderModel =
-      EmbeddedRendererModel(
-        parentDisposable = displayViewRule.disposable,
-        inspectorModel = layoutInspector.inspectorModel,
-        treeSettings = layoutInspector.treeSettings,
-        renderSettings = layoutInspector.renderSettings,
-        navigateToSelectedViewOnDoubleClick = {},
-      )
-
-    layoutInspectorRenderer =
-      StudioRendererPanel(
-        disposable = displayViewRule.disposable,
-        scope = displayViewRule.disposable.createCoroutineScope(),
-        renderModel = renderModel,
-        displayRectangleProvider = { Rectangle() },
-        screenScaleProvider = { 1.0 },
-        orientationQuadrantProvider = { 0 },
-        deviceDisplayDimensionProvider = { Dimension() },
       )
   }
 
@@ -202,21 +174,8 @@ class SelectedTabStateTest {
   @Test
   @RunsInEdt
   fun testUiConfigIsRestored() {
-    val container = JPanel()
-    val content = JPanel()
-    container.add(content)
-    val emulatorView = displayViewRule.newEmulatorView()
-
-    val tabsComponents1 =
-      TabComponents(displayViewRule.disposable, content, container, emulatorView)
-    val selectedTabState1 =
-      SelectedTabState(
-        project = displayViewRule.project,
-        deviceId = DeviceId.ofPhysicalDevice("tab"),
-        tabComponents = tabsComponents1,
-        layoutInspector = layoutInspector,
-        renderingComponents = getRenderingComponents(),
-      )
+    val tabsComponents1 = createTabComponents()
+    val selectedTabState1 = createSelectedTabState(tabsComponents1)
 
     selectedTabState1.enableLayoutInspector(UiConfig.VERTICAL)
 
@@ -224,7 +183,7 @@ class SelectedTabStateTest {
       UiConfig.VERTICAL,
       tabsComponents1.tabContentPanel,
       tabsComponents1.tabContentPanelContainer,
-      emulatorView,
+      tabsComponents1.displayList,
     )
 
     Disposer.dispose(tabsComponents1)
@@ -232,19 +191,11 @@ class SelectedTabStateTest {
     verifyUiRemoved(
       tabsComponents1.tabContentPanel,
       tabsComponents1.tabContentPanelContainer,
-      emulatorView,
+      tabsComponents1.displayList,
     )
 
-    val tabsComponents2 =
-      TabComponents(displayViewRule.disposable, content, container, emulatorView)
-    val selectedTabState2 =
-      SelectedTabState(
-        project = displayViewRule.project,
-        deviceId = DeviceId.ofPhysicalDevice("tab"),
-        tabComponents = tabsComponents2,
-        layoutInspector = layoutInspector,
-        renderingComponents = getRenderingComponents(),
-      )
+    val tabsComponents2 = createTabComponents()
+    val selectedTabState2 = createSelectedTabState(tabsComponents2)
 
     selectedTabState2.enableLayoutInspector()
 
@@ -252,42 +203,41 @@ class SelectedTabStateTest {
       UiConfig.VERTICAL,
       tabsComponents2.tabContentPanel,
       tabsComponents2.tabContentPanelContainer,
-      emulatorView,
+      tabsComponents2.displayList,
     )
   }
 
   @Test
   @RunsInEdt
   fun testLayoutInspectorIsInDataContext() {
-    val container = JPanel()
-    val content = JPanel()
-    container.add(content)
+    val tabsComponents = createTabComponents()
+    val selectedTabState = createSelectedTabState(tabsComponents)
 
-    val tabsComponents = TabComponents(displayViewRule.disposable, content, container, emulatorView)
-    val selectedTabState =
-      SelectedTabState(
-        project = displayViewRule.project,
-        deviceId = DeviceId.ofPhysicalDevice("tab"),
-        tabComponents = tabsComponents,
-        layoutInspector = layoutInspector,
-        renderingComponents = getRenderingComponents(),
-      )
+    val renderers =
+      tabsComponents.displayList.mapNotNull { display ->
+        selectedTabState.renderingComponents.findRenderer(display.displayId)
+      }
 
-    val inspector1 =
-      DataManager.getDataProvider(selectedTabState.renderingComponents.renderer)
-        ?.getData(LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
-    assertThat(inspector1).isNotNull()
+    renderers.forEach { renderer ->
+      val inspector1 =
+        DataManager.getDataProvider(renderer)?.getData(LAYOUT_INSPECTOR_DATA_KEY.name)
+          as LayoutInspector
+      assertThat(inspector1).isNotNull()
+    }
 
     Disposer.dispose(selectedTabState.tabComponents)
 
-    val inspector2 =
-      DataManager.getDataProvider(selectedTabState.renderingComponents.renderer)
-        ?.getData(LAYOUT_INSPECTOR_DATA_KEY.name) as? LayoutInspector
-    assertThat(inspector2).isNull()
+    renderers.forEach { renderer ->
+      val inspector2 =
+        DataManager.getDataProvider(renderer)?.getData(LAYOUT_INSPECTOR_DATA_KEY.name)
+          as? LayoutInspector
+      assertThat(inspector2).isNull()
+    }
   }
 
   private fun testConfiguration(uiConfig: UiConfig) {
-    val selectedTabState = createSelectedTabState()
+    val tabComponents = createTabComponents()
+    val selectedTabState = createSelectedTabState(tabComponents)
 
     selectedTabState.enableLayoutInspector(uiConfig)
 
@@ -295,7 +245,7 @@ class SelectedTabStateTest {
       uiConfig,
       selectedTabState.tabComponents.tabContentPanel,
       selectedTabState.tabComponents.tabContentPanelContainer,
-      emulatorView,
+      tabComponents.displayList,
     )
 
     Disposer.dispose(selectedTabState.tabComponents)
@@ -303,26 +253,49 @@ class SelectedTabStateTest {
     verifyUiRemoved(
       selectedTabState.tabComponents.tabContentPanel,
       selectedTabState.tabComponents.tabContentPanelContainer,
-      emulatorView,
+      tabComponents.displayList,
     )
   }
 
-  private fun createSelectedTabState(): SelectedTabState {
+  private fun createTabComponents(): TabComponents {
     val container = JPanel()
     val content = JPanel()
     container.add(content)
 
-    val tabsComponents = TabComponents(displayViewRule.disposable, content, container, emulatorView)
+    val displays =
+      listOf(
+        displayViewRule.newEmulatorView(displayId = 0),
+        displayViewRule.newEmulatorView(displayId = 1),
+      )
+    return TabComponents(displayViewRule.disposable, content, container, displays)
+  }
+
+  private fun createSelectedTabState(tabComponents: TabComponents): SelectedTabState {
+    val renderingComponents =
+      tabComponents.displayList.map { displayView ->
+        val renderModel =
+          EmbeddedRendererModel(
+            parentDisposable = displayViewRule.disposable,
+            displayId = displayView.displayId,
+            inspectorModel = layoutInspector.inspectorModel,
+            treeSettings = layoutInspector.treeSettings,
+            renderSettings = layoutInspector.renderSettings,
+            navigateToSelectedViewOnDoubleClick = {},
+          )
+
+        RenderingComponents(
+          displayId = displayView.displayId,
+          renderer = FakeLayoutInspectorRenderer(),
+          model = renderModel,
+        )
+      }
+
     return SelectedTabState(
       project = displayViewRule.project,
       deviceId = DeviceId.ofPhysicalDevice("tab"),
-      tabComponents = tabsComponents,
+      tabComponents = tabComponents,
       layoutInspector = layoutInspector,
-      renderingComponents = getRenderingComponents(),
+      renderingComponents = renderingComponents,
     )
-  }
-
-  private fun getRenderingComponents(): RenderingComponents {
-    return RenderingComponents(FakeLayoutInspectorRenderer(), renderModel)
   }
 }

@@ -37,6 +37,7 @@ import com.android.tools.idea.layoutinspector.runningdevices.actions.SwapVertica
 import com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleDeepInspectAction
 import com.android.tools.idea.layoutinspector.runningdevices.actions.UiConfig
 import com.android.tools.idea.layoutinspector.runningdevices.actions.VerticalSplitAction
+import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.LayoutInspectorRenderer
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.OverlayActionGroup
@@ -79,6 +80,9 @@ private val logger = Logger.getInstance(SelectedTabState::class.java)
  *
  * @param deviceId The id of selected tab.
  * @param tabComponents The components of the selected tab.
+ * @param renderingComponents The components required for the rendering of Layout Inspector UI on
+ *   the selected tab. It's a list because a tab can have multiple displays, in which case each
+ *   display has its on [RenderingComponents].
  */
 @UiThread
 data class SelectedTabState(
@@ -86,7 +90,7 @@ data class SelectedTabState(
   val deviceId: DeviceId,
   val tabComponents: TabComponents,
   val layoutInspector: LayoutInspector,
-  val renderingComponents: RenderingComponents,
+  val renderingComponents: List<RenderingComponents>,
 ) : Disposable {
 
   private var uiConfig = UiConfig.HORIZONTAL
@@ -100,8 +104,12 @@ data class SelectedTabState(
     uiConfig = uiConfigString?.let { UiConfig.valueOf(uiConfigString) } ?: UiConfig.HORIZONTAL
 
     val layoutInspectorProvider = dataProviderForLayoutInspector(layoutInspector)
-    DataManager.registerDataProvider(renderingComponents.renderer, layoutInspectorProvider)
-    Disposer.register(this) { DataManager.removeDataProvider(renderingComponents.renderer) }
+    renderingComponents.forEach {
+      DataManager.registerDataProvider(it.renderer, layoutInspectorProvider)
+    }
+    Disposer.register(this) {
+      renderingComponents.forEach { DataManager.removeDataProvider(it.renderer) }
+    }
   }
 
   @TestOnly
@@ -114,7 +122,12 @@ data class SelectedTabState(
     ApplicationManager.getApplication().assertIsDispatchThread()
 
     wrapUi(uiConfig)
-    tabComponents.displayView.add(renderingComponents.renderer)
+    tabComponents.displayList.forEach { displayView ->
+      val renderer = renderingComponents.findRenderer(displayView.displayId)
+      if (renderer != null) {
+        displayView.add(renderer)
+      }
+    }
 
     layoutInspector.processModel?.addSelectedProcessListeners(
       EdtExecutorService.getInstance(),
@@ -216,8 +229,12 @@ data class SelectedTabState(
   ): JComponent {
     val toggleDeepInspectAction =
       ToggleDeepInspectAction(
-        isSelected = { renderingComponents.model.interceptClicks.value },
-        setSelected = { renderingComponents.model.setInterceptClicks(it) },
+        isSelected = {
+          // For now all renderers share the same ToggleDeepInspectAction. Eventually we might want
+          // to consider adding a separate action for each renderer.
+          renderingComponents.all { comp -> comp.model.interceptClicks.value }
+        },
+        setSelected = { renderingComponents.forEach { comp -> comp.model.setInterceptClicks(it) } },
         isRendering = { layoutInspector.renderModel.isActive },
         connectedClientProvider = { layoutInspector.currentClient },
       )
@@ -246,9 +263,15 @@ data class SelectedTabState(
         listOf(
           OverlayActionGroup(
             inspectorModel = layoutInspector.inspectorModel,
-            getImage = { renderingComponents.model.overlay.value },
-            setImage = { renderingComponents.model.setOverlay(it) },
-            setAlpha = { renderingComponents.model.setOverlayTransparency(it) },
+            getImage = {
+              // For now all renderers share the same overlay. Eventually we might want to consider
+              // adding a separate overlay to each renderer.
+              renderingComponents.firstOrNull()?.model?.overlay?.value
+            },
+            setImage = { renderingComponents.forEach { comp -> comp.model.setOverlay(it) } },
+            setAlpha = {
+              renderingComponents.forEach { comp -> comp.model.setOverlayTransparency(it) }
+            },
           )
         ),
       lastGroupExtraActions =
@@ -293,7 +316,13 @@ data class SelectedTabState(
 
     unwrapUi()
 
-    tabComponents.displayView.remove(renderingComponents.renderer)
+    tabComponents.displayList.forEach { displayView ->
+      val renderer = renderingComponents.findRenderer(displayView.displayId)
+      if (renderer != null) {
+        displayView.remove(renderer)
+      }
+    }
+
     layoutInspector.processModel?.removeSelectedProcessListener(selectedProcessListener)
 
     tabComponents.tabContentPanelContainer.revalidate()
@@ -305,7 +334,7 @@ data class SelectedTabState(
     // are invoked.
     if (!project.isDisposed) {
       layoutInspector.inspectorClientSettings.inLiveMode = true
-      renderingComponents.model.setInterceptClicks(false)
+      renderingComponents.forEach { it.model.setInterceptClicks(false) }
     }
   }
 
@@ -400,4 +429,10 @@ data class SelectedTabState(
       overrideSplit = true,
     )
   }
+}
+
+/** Returns the renderer associated with [displayId] */
+@VisibleForTesting
+fun List<RenderingComponents>.findRenderer(displayId: Int): LayoutInspectorRenderer? {
+  return find { it.displayId == displayId }?.renderer
 }

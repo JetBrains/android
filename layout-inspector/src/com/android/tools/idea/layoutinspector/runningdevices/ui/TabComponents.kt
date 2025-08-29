@@ -28,14 +28,14 @@ import javax.swing.JComponent
  *
  * @param tabContentPanel The component containing the main content of the tab (the display).
  * @param tabContentPanelContainer The container of [tabContentPanel].
- * @param displayView The [AbstractDisplayView] from running devices. Component on which the device
- *   display is rendered.
+ * @param displayList The list of [AbstractDisplayView] from running devices. Each entry corresponds
+ *   to a display on the device. Layout Inspector UI is rendered on top of each display.
  */
 class TabComponents(
   disposable: Disposable,
   val tabContentPanel: JComponent,
   val tabContentPanelContainer: Container,
-  val displayView: AbstractDisplayView,
+  val displayList: List<AbstractDisplayView>,
 ) : Disposable {
   init {
     Disposer.register(disposable, this)

@@ -133,7 +133,7 @@ inline fun <reified T : LayoutInspectorRenderer> verifyUiInjected(
   uiConfig: UiConfig,
   content: Component,
   container: Container,
-  displayView: AbstractDisplayView,
+  displays: List<AbstractDisplayView>,
 ) {
   val workbench =
     when (uiConfig) {
@@ -248,10 +248,12 @@ inline fun <reified T : LayoutInspectorRenderer> verifyUiInjected(
   val inspectorBanner = container.allChildren().filterIsInstance<InspectorBanner>().first()
   assertThat(inspectorBanner).isNotNull()
 
-  assertThat(displayView.allChildren().filterIsInstance<T>()).hasSize(1)
+  displays.forEach { displayView ->
+    assertThat(displayView.allChildren().filterIsInstance<T>()).hasSize(1)
+  }
 }
 
-fun verifyUiRemoved(content: Component, container: Container, displayView: AbstractDisplayView) {
+fun verifyUiRemoved(content: Component, container: Container, displays: List<AbstractDisplayView>) {
   assertThat(content.allParents().filterIsInstance<Splitter>()).hasSize(0)
   assertThat(content.allParents().filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(0)
   assertThat(container.allChildren().filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(0)
@@ -267,7 +269,9 @@ fun verifyUiRemoved(content: Component, container: Container, displayView: Abstr
   val inspectorBanner = container.allChildren().filterIsInstance<InspectorBanner>()
   assertThat(inspectorBanner).hasSize(0)
 
-  assertThat(displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>()).hasSize(0)
+  displays.forEach { displayView ->
+    assertThat(displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>()).hasSize(0)
+  }
 }
 
 fun verifyToolbar(container: Container, shouldContainProcessPicker: Boolean) {

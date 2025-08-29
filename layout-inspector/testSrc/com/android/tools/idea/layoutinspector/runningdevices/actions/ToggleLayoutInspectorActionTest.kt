@@ -80,7 +80,7 @@ class ToggleLayoutInspectorActionTest {
         DeviceId.ofPhysicalDevice("tab1"),
         BorderLayoutPanel(),
         JPanel(),
-        displayViewRule.newEmulatorView(),
+        listOf(displayViewRule.newEmulatorView()),
       )
 
     toolWindowManager = FakeToolWindowManager(displayViewRule.project, listOf(tab1))
