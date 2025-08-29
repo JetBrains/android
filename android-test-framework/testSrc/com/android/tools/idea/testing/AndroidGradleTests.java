@@ -26,10 +26,9 @@ import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_DECLARATIVE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
-import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT;
-import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentUtil.resolveAgpVersionSoftwareEnvironment;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
@@ -41,7 +40,7 @@ import static com.intellij.openapi.util.io.FileUtil.copyDir;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static java.util.Collections.emptyList;
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -54,6 +53,9 @@ import com.android.tools.idea.concurrency.CoroutinesTestUtilsKt;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.plugin.AgpVersions;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildResult;
+import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTrackerManager;
@@ -62,7 +64,6 @@ import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.AndroidRunConfigurationsManager;
-import com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
@@ -72,12 +73,13 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.project.manage.SourceFolderManager;
 import com.intellij.openapi.externalSystem.service.project.manage.SourceFolderManagerImpl;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -104,13 +106,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import junit.framework.TestCase;
 import kotlin.Unit;
 import org.gradle.util.GradleVersion;
-import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -154,15 +157,64 @@ public class AndroidGradleTests {
   public static void waitForCreateRunConfigurations(@NotNull Project project) throws Exception {
     AndroidRunConfigurationsManager.getInstance(project).consumeBulkOperationsState((job) -> {
       CoroutinesTestUtilsKt.waitCoroutinesBlocking(job);
-      return null;
+      return Unit.INSTANCE;
     });
   }
 
   public static void waitForProjectStructureUsageTracker(@NotNull Project project) throws Exception {
     ProjectStructureUsageTrackerManager.getInstance(project).consumeBulkOperationsState((job) -> {
       CoroutinesTestUtilsKt.waitCoroutinesBlocking(job);
-      return null;
+      return Unit.INSTANCE;
     });
+  }
+
+  protected static GradleInvocationResult invokeGradleTasks(@NotNull Project project, @Nullable Long timeoutMillis, @NotNull String... tasks) {
+    assertThat(tasks).named("Gradle tasks").isNotEmpty();
+    File projectDir = getBaseDirPath(project);
+    // Tests should not need to access the network
+    return invokeGradle(project, gradleInvoker ->
+      gradleInvoker.executeTasks(
+        GradleBuildInvoker.Request.builder(project, projectDir, tasks)
+          .setCommandLineArguments(Lists.newArrayList("--offline"))
+          .build()
+      ), timeoutMillis);
+  }
+
+  @NotNull
+  protected static <T extends GradleBuildResult> T invokeGradle(
+    @NotNull Project project,
+    @NotNull Function<GradleBuildInvoker, ListenableFuture<T>> gradleInvocationTask) {
+    return invokeGradle(project, gradleInvocationTask, null);
+  }
+
+  protected static <T extends GradleBuildResult> T invokeGradle(
+    @NotNull Project project,
+    @NotNull Function<GradleBuildInvoker, ListenableFuture<T>> gradleInvocationTask,
+    @Nullable Long sourceFolderTimeoutMillis
+  ) {
+    GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
+
+    ListenableFuture<T> future = gradleInvocationTask.apply(gradleBuildInvoker);
+
+    T result;
+    try {
+      result = future.get(5, MINUTES);
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+
+    AndroidTestBase.refreshProjectFiles();
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      try {
+        waitForSourceFolderManagerToProcessUpdates(project, sourceFolderTimeoutMillis);
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+      }
+    });
+    assert result != null;
+    return result;
   }
 
   /**
@@ -183,44 +235,11 @@ public class AndroidGradleTests {
     }
   }
 
-  /**
-   * @deprecated use {@link AndroidGradleTests#updateToolingVersionsAndPaths(java.io.File) instead.}.
-   */
-  @Deprecated
-  public static void updateGradleVersions(@NotNull File folderRootPath) throws IOException {
-    updateToolingVersionsAndPaths(folderRootPath, resolveAgpVersionSoftwareEnvironment(AGP_CURRENT), null, emptyList());
-  }
-
-  public static void updateToolingVersionsAndPaths(@NotNull File folderRootPath) throws IOException {
-    updateToolingVersionsAndPaths(folderRootPath, resolveAgpVersionSoftwareEnvironment(AGP_CURRENT), null, emptyList());
-  }
-
-  public static void updateToolingVersionsAndPathsNoSync(@NotNull File path,
-                                                   @NotNull ResolvedAgpVersionSoftwareEnvironment agpVersion,
-                                                   @Nullable String ndkVersion,
-                                                   @NotNull List<File> localRepos)
-    throws IOException {
-
-    internalUpdateToolingVersionsAndPaths(path,
-                                          true,
-                                          agpVersion,
-                                          ndkVersion,
-                                          localRepos,
-                                          false);
-  }
-
   public static void updateToolingVersionsAndPaths(@NotNull File path,
                                                    @NotNull ResolvedAgpVersionSoftwareEnvironment agpVersion,
                                                    @Nullable String ndkVersion,
-                                                   @NotNull List<File> localRepos)
-    throws IOException {
-
-    internalUpdateToolingVersionsAndPaths(path,
-                                          true,
-                                          agpVersion,
-                                          ndkVersion,
-                                          localRepos,
-                                          true);
+                                                   @NotNull List<File> localRepos) throws IOException {
+    internalUpdateToolingVersionsAndPaths(path, true, agpVersion, ndkVersion, localRepos, true);
   }
 
   private static void internalUpdateToolingVersionsAndPaths(@NotNull File path,
@@ -604,55 +623,6 @@ public class AndroidGradleTests {
     }
   }
 
-  /**
-   * Finds the AndroidFacet to be used by the test.
-   */
-  @Nullable
-  public static AndroidFacet findAndroidFacetForTests(@NotNull Project project, Module[] modules, @Nullable String chosenModuleName) {
-    AndroidFacet testAndroidFacet = null;
-    // if module name is specified, find it
-    if (chosenModuleName != null) {
-      for (Module module : modules) {
-        if (chosenModuleName.equals(module.getName())) {
-          testAndroidFacet = AndroidFacet.getInstance(module);
-          break;
-        }
-      }
-    }
-
-    // Attempt to find a module with a suffix containing the chosenModuleName
-    if (chosenModuleName != null && testAndroidFacet == null && modules.length > 0) {
-      Module foundModule = TestModuleUtil.findModule(project, chosenModuleName);
-      testAndroidFacet = AndroidFacet.getInstance(foundModule);
-    }
-
-    if (testAndroidFacet == null) {
-      // then try and find a non-lib facet
-      for (Module module : modules) {
-        // Look for holder modules only in MPSS case. Otherwise any of the module group can match.
-        if (!LinkedAndroidModuleGroupUtilsKt.isHolderModule(module)) {
-          continue;
-        }
-        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-        if (androidFacet != null && androidFacet.getConfiguration().isAppProject()) {
-          testAndroidFacet = androidFacet;
-          break;
-        }
-      }
-    }
-
-    // then try and find ANY android facet
-    if (testAndroidFacet == null) {
-      for (Module module : modules) {
-        testAndroidFacet = AndroidFacet.getInstance(module);
-        if (testAndroidFacet != null) {
-          break;
-        }
-      }
-    }
-    return testAndroidFacet;
-  }
-
   public static void setUpSdks(@NotNull CodeInsightTestFixture fixture, @NotNull File androidSdkPath) {
     setUpSdks(fixture.getProject(), fixture.getProjectDisposable(), androidSdkPath);
   }
@@ -827,7 +797,7 @@ public class AndroidGradleTests {
     IdeSdks.getInstance().cleanJdkEnvVariableInitialization();
   }
 
-  public static String getEmbeddedJdk8Path() throws IOException {
+  public static String getEmbeddedJdk8Path() {
     Path jdkRootPath = StudioPathManager.resolvePathFromSourcesRoot("prebuilts/studio/jdk/jdk8");
     if (SystemInfo.isWindows) {
       // For JDK8 we have 32 and 64 bits versions on Windows
@@ -854,23 +824,5 @@ public class AndroidGradleTests {
     catch (IOException ignore) {
     }
     return jdkRootPath.toString();
-  }
-
-
-  /**
-   * Returns the main module for the Java module under the given moduleName.
-   *
-   * @param moduleName the name of the Gradle project to find the main module for
-   * @return the main module
-   */
-  @NotNull
-  public static Module getMainJavaModule(@NotNull Project project, @NotNull String moduleName) {
-    Module holderModule = TestModuleUtil.findModule(project, moduleName);
-
-    if (AndroidFacet.getInstance(holderModule) != null) {
-      throw new IllegalArgumentException("The module named " + moduleName + " must be a Java only module!");
-    }
-
-    return TestModuleUtil.findModule(project, moduleName + ".main");
   }
 }

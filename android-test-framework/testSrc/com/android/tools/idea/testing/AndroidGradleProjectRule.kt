@@ -68,19 +68,19 @@ class AndroidGradleProjectRule(
 
     override fun getAdditionalRepos(): Collection<File> = additionalRepositories
 
-    fun invokeTasks(
+    fun invokeGradleTasks(
       project: Project,
       timeoutMillis: Long?,
       vararg tasks: String,
     ): GradleInvocationResult {
-      return invokeGradleTasks(project, timeoutMillis, *tasks)
+      return AndroidGradleTests.invokeGradleTasks(project, timeoutMillis, *tasks)
     }
 
-    fun <T: GradleBuildResult> doInvokeGradle(
+    fun <T: GradleBuildResult> invokeGradle(
       project: Project,
       gradleInvocationTask: Function<GradleBuildInvoker, ListenableFuture<T>?>
     ): T {
-      return invokeGradle(project, gradleInvocationTask)
+      return AndroidGradleTests.invokeGradle(project, gradleInvocationTask)
     }
   }
 
@@ -196,11 +196,11 @@ class AndroidGradleProjectRule(
   }
 
   fun invokeTasks(timeoutMillis: Long?, vararg tasks: String): GradleInvocationResult {
-    return delegateTestCase.invokeTasks(project, timeoutMillis, *tasks)
+    return delegateTestCase.invokeGradleTasks(project, timeoutMillis, *tasks)
   }
 
   fun <T: GradleBuildResult> invokeGradle(gradleInvocationTask: Function<GradleBuildInvoker, ListenableFuture<T>?>): T {
-    return delegateTestCase.doInvokeGradle(project, gradleInvocationTask)
+    return delegateTestCase.invokeGradle(project, gradleInvocationTask)
   }
 
   fun resolveTestDataPath(relativePath: String): File =

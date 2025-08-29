@@ -15,22 +15,16 @@
  */
 package com.android.tools.idea.testing;
 
-import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivityKt.addJUnitProducersToIgnoredList;
 import static com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProjectKt.migratePackageAttribute;
 import static com.android.tools.idea.gradle.util.LastBuildOrSyncServiceKt.emulateStartupActivityForTest;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
-import static com.android.tools.idea.testing.AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates;
-import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static java.util.concurrent.TimeUnit.MINUTES;
 
 import com.android.ide.common.repository.AgpVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildResult;
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
@@ -38,9 +32,6 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.startup.GradleSpecificInitializer;
 import com.android.tools.idea.testing.AndroidGradleTests.SyncIssuesPresentError;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -68,7 +59,6 @@ import java.io.IOException;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTempDirTestFixture;
 import org.jetbrains.android.AndroidTestBase;
@@ -272,58 +262,9 @@ abstract class AndroidGradleTestCase extends AndroidTestBase implements GradleIn
 
   public final void generateSources() throws InterruptedException {
     GradleBuildResult result =
-      invokeGradle(getProject(), invoker -> invoker.generateSources(ModuleManager.getInstance(getProject()).getModules()));
+      AndroidGradleTests.invokeGradle(getProject(), invoker -> invoker.generateSources(ModuleManager.getInstance(getProject()).getModules()));
     assertTrue("Generating sources failed.", result.isBuildSuccessful());
     refreshProjectFiles();
-  }
-
-  protected static GradleInvocationResult invokeGradleTasks(@NotNull Project project, @Nullable Long timeoutMillis, @NotNull String... tasks) {
-    assertThat(tasks).named("Gradle tasks").isNotEmpty();
-    File projectDir = getBaseDirPath(project);
-    // Tests should not need to access the network
-    return invokeGradle(project, gradleInvoker ->
-      gradleInvoker.executeTasks(
-        GradleBuildInvoker.Request.builder(project, projectDir, tasks)
-          .setCommandLineArguments(Lists.newArrayList("--offline"))
-          .build()
-      ), timeoutMillis);
-  }
-
-  @NotNull
-  protected static <T extends GradleBuildResult> T invokeGradle(
-    @NotNull Project project,
-    @NotNull Function<GradleBuildInvoker, ListenableFuture<T>> gradleInvocationTask) {
-    return invokeGradle(project, gradleInvocationTask, null);
-  }
-
-  protected static <T extends GradleBuildResult> T invokeGradle(
-    @NotNull Project project,
-    @NotNull Function<GradleBuildInvoker, ListenableFuture<T>> gradleInvocationTask,
-    @Nullable Long sourceFolderTimeoutMillis
-  ) {
-    GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
-
-    ListenableFuture<T> future = gradleInvocationTask.apply(gradleBuildInvoker);
-
-    T result;
-    try {
-      result = future.get(5, MINUTES);
-    }
-    catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-
-    refreshProjectFiles();
-    ApplicationManager.getApplication().invokeAndWait(() -> {
-      try {
-        waitForSourceFolderManagerToProcessUpdates(project, sourceFolderTimeoutMillis);
-      }
-      catch (Exception e) {
-        e.printStackTrace();
-      }
-    });
-    assert result != null;
-    return result;
   }
 
   protected final void importProject(@NotNull JavaSdkVersion jdkVersion) {
