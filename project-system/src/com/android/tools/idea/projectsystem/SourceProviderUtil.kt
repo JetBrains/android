@@ -80,6 +80,7 @@ private fun String.stripPrefix(scopeType: ScopeType): String {
     ScopeType.TEST_FIXTURES -> this.stripPrefix("testFixtures")
     ScopeType.UNIT_TEST -> this.stripPrefix("test")
     ScopeType.SCREENSHOT_TEST -> this.stripPrefix("screenshotTest")
+    ScopeType.TEST_SUITE -> "$this TestSuite"
   }
 }
 

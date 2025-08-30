@@ -39,6 +39,7 @@ import com.android.tools.idea.gradle.project.model.ArtifactSelector.TEST_FIXTURE
 import com.android.tools.idea.gradle.project.model.ArtifactSelector.UNIT_TEST
 import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.TestComponentType
+import com.android.tools.idea.projectsystem.CommonTestType.TestSuite
 import com.intellij.util.containers.addIfNotNull
 import kotlinx.collections.immutable.toImmutableMap
 
@@ -76,11 +77,23 @@ private fun GradleAndroidModelData.collectTestFixturesSourceProviders(variant: I
   if (variant.testFixturesArtifact != null) collectCurrentProvidersFor(variant, TEST_FIXTURES)
   else emptyList()
 
+private fun GradleAndroidModelData.collectTestSuiteSourceProviders(variant: IdeVariantCore): Map<String, List<IdeSourceProvider>> {
+  val testSuitesDefinitions = this.androidProject.testSuites.associateBy { it.name }
+  return variant.testSuiteArtifacts.associate { testSuite ->
+    testSuite.suiteName to testSuitesDefinitions[testSuite.suiteName]!!.sources.map { it.sourceProvider }
+  }
+}
+
 private fun GradleAndroidModelData.collectAllSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(MAIN)
 private fun GradleAndroidModelData.collectAllUnitTestSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(UNIT_TEST)
 private fun GradleAndroidModelData.collectAllScreenshotTestSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(SCREENSHOT_TEST)
 private fun GradleAndroidModelData.collectAllAndroidTestSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(ANDROID_TEST)
 private fun GradleAndroidModelData.collectAllTestFixturesSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(TEST_FIXTURES)
+
+private fun GradleAndroidModelData.collectAllTestSuiteSourceProviders(): Map<String, List<IdeSourceProvider>> =
+  androidProject.testSuites.associate {
+    it.name to it.sources.map { it.sourceProvider }
+  }
 
 private fun GradleAndroidModelData.collectCurrentProvidersFor(variant: IdeVariantCore, artifactSelector: ArtifactSelector): List<IdeSourceProvider> {
   val productFlavors = this.androidProject.multiVariantData?.productFlavors.orEmpty().associateBy { it.productFlavor.name }
@@ -148,6 +161,9 @@ val GradleAndroidModelData.hostTestSourceProviders: Map<TestComponentType.HostTe
 
 val GradleAndroidModelData.deviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<IdeSourceProvider>>
   get() = mapOf(CommonTestType.ANDROID_TEST to collectAndroidTestSourceProviders(selectedVariantCore))
+val GradleAndroidModelData.testSuiteSourceProviders: Map<String, List<IdeSourceProvider>>
+  get() = collectTestSuiteSourceProviders(selectedVariantCore)
+
 val GradleAndroidModelData.testFixturesSourceProviders: List<IdeSourceProvider>
   get() = collectTestFixturesSourceProviders(selectedVariantCore)
 
@@ -166,3 +182,6 @@ val GradleAndroidModelData.allDeviceSourceProviders: Map<TestComponentType.Devic
   get() = mapOf(CommonTestType.ANDROID_TEST to collectAllAndroidTestSourceProviders())
 val GradleAndroidModelData.allTestFixturesSourceProviders: List<IdeSourceProvider>
   get() = collectAllTestFixturesSourceProviders()
+
+val GradleAndroidModelData.allTestSuiteSourceProviders: Map<String, List<IdeSourceProvider>>
+  get() = collectAllTestSuiteSourceProviders()

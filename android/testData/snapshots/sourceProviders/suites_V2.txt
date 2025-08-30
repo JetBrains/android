@@ -329,6 +329,29 @@ MODULE: project.app
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTest/resources
                     file://./app/src/androidTestDebug/resources
+        TestSuiteSources:
+            firstTestSuiteSources (IDEA)
+                ScopeType: TEST_SUITE
+                ManifestFileUrls:
+                    file://./app/src/first/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/first
+                ManifestDirectories:
+                    file://./app/src/first
+            secondTestSuiteSources (IDEA)
+                ScopeType: TEST_SUITE
+                ManifestFileUrls:
+                    file://./app/src/second/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/second
+                ManifestDirectories:
+                    file://./app/src/second
+                JavaDirectoryUrls:
+                    file://./app/src/second/java
+                KotlinDirectoryUrls:
+                    file://./app/src/second/kotlin
+                KotlinDirectories:
+                    file://./app/src/second/kotlin
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -713,6 +736,29 @@ MODULE: project.app
                     file://./app/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestDebug/resources
+        CurrentTestSuiteSourceProviders:
+            first (IDEA)
+                ScopeType: TEST_SUITE
+                ManifestFileUrls:
+                    file://./app/src/first/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/first
+                ManifestDirectories:
+                    file://./app/src/first
+            second (IDEA)
+                ScopeType: TEST_SUITE
+                ManifestFileUrls:
+                    file://./app/src/second/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/second
+                ManifestDirectories:
+                    file://./app/src/second
+                JavaDirectoryUrls:
+                    file://./app/src/second/java
+                KotlinDirectoryUrls:
+                    file://./app/src/second/kotlin
+                KotlinDirectories:
+                    file://./app/src/second/kotlin
         CurrentTestFixturesSourceProviders:
 Build configuration files:
     file://./build.gradle : Project: project [0]

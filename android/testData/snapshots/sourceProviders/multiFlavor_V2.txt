@@ -780,6 +780,7 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestFirstAbcSecondAbc/resources
                     file://./app/src/androidTestDebug/resources
                     file://./app/src/androidTestFirstAbcSecondAbcDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -1929,6 +1930,7 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestFirstAbcSecondAbcDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestFirstAbcSecondAbcDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 Build configuration files:
     file://./build.gradle : Project: MultiFlavor [0]

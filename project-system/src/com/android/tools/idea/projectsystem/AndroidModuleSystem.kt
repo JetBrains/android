@@ -383,20 +383,21 @@ enum class ScopeType {
   UNIT_TEST,
   TEST_FIXTURES,
   SCREENSHOT_TEST,
+  TEST_SUITE
   ;
 
   /** Converts this [ScopeType] to a [Boolean], so it can be used with APIs that don't distinguish between test types. */
   val isForTest
     get() = when (this) {
       MAIN, TEST_FIXTURES -> false
-      ANDROID_TEST, UNIT_TEST, SCREENSHOT_TEST -> true
+      ANDROID_TEST, UNIT_TEST, SCREENSHOT_TEST, TEST_SUITE -> true
     }
 
   /** Returns true if this [ScopeType] can contain Android resources. */
   val canHaveAndroidResources
     get() = when (this) {
       TEST_FIXTURES, UNIT_TEST -> false
-      MAIN, ANDROID_TEST, SCREENSHOT_TEST -> true
+      MAIN, ANDROID_TEST, SCREENSHOT_TEST, TEST_SUITE -> true
     }
 }
 

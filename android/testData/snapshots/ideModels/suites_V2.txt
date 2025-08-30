@@ -891,6 +891,7 @@ MODULE                        : project.app
                     Type                          : ASSETS
                     SourceProvider
                         Name                          : first
+                        Manifest                      : <ROOT>/app/src/first/AndroidManifest.xml [-]
                         CustomSourceDirectories
                             SourceTypeName                : assets (test suite)
                             Directory                     : <ROOT>/app/src/first
@@ -906,6 +907,7 @@ MODULE                        : project.app
                     Type                          : HOST_JAR
                     SourceProvider
                         Name                          : second
+                        Manifest                      : <ROOT>/app/src/second/AndroidManifest.xml [-]
                         JavaDirectories               : <ROOT>/app/src/second/java [-]
                         KotlinDirectories             : <ROOT>/app/src/second/kotlin
             JUnitEngineInfo
@@ -920,6 +922,7 @@ MODULE                        : project.app
                     Type                          : ASSETS
                     SourceProvider
                         Name                          : third
+                        Manifest                      : <ROOT>/app/src/third/AndroidManifest.xml [-]
                         CustomSourceDirectories
                             SourceTypeName                : assets (test suite)
                             Directory                     : <ROOT>/app/src/third [-]

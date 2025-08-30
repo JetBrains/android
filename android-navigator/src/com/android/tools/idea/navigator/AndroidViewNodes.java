@@ -49,6 +49,7 @@ public class AndroidViewNodes {
       sourceProviders.getCurrentSourceProviders(),
       Iterables.concat(sourceProviders.getCurrentHostTestSourceProviders().values()),
       Iterables.concat(sourceProviders.getCurrentDeviceTestSourceProviders().values()),
+      Iterables.concat(sourceProviders.getCurrentTestSuiteSourceProviders().values()),
       sourceProviders.getCurrentTestFixturesSourceProviders()
     );
   }

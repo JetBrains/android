@@ -58,6 +58,7 @@ MODULE: MyApplication
                     file://./res
         HostTestSources:
         DeviceTestSources:
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -156,4 +157,5 @@ MODULE: MyApplication
                     file://./res
         CurrentHostTestSourceProviders:
         CurrentDeviceTestSourceProviders:
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:

@@ -53,6 +53,11 @@ interface SourceProviders {
   val deviceTestSources: Map<TestComponentType.DeviceTest, IdeaSourceProvider>
 
   /**
+   * Returns a map of the source provider for all test suite sources in the currently selected variant in the overlay order.
+   */
+  val testSuiteSources: Map<String, List<IdeaSourceProvider>>
+
+  /**
    * Returns the source provider for all test fixtures sources in the currently selected variant in the overlay order.
    */
   val testFixturesSources: IdeaSourceProvider
@@ -120,6 +125,11 @@ interface SourceProviders {
   val currentDeviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<NamedIdeaSourceProvider>>
 
   /**
+   * Returns a map of the source provider for all test suite sources in the currently selected variant in the overlay order.
+   */
+  val currentTestSuiteSourceProviders: Map<String, List<NamedIdeaSourceProvider>>
+
+  /**
    * Returns a list of source providers for test fixtures artifacts (e.g. `testFixtures/` source sets), in increasing
    * precedence order.
    *
@@ -178,6 +188,8 @@ interface SourceProviders {
           get() = throw UnsupportedOperationException()
         override val deviceTestSources: Map<TestComponentType.DeviceTest, IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
+        override val testSuiteSources: Map<String, List<IdeaSourceProvider>>
+          get() = throw UnsupportedOperationException()
         override val testFixturesSources: IdeaSourceProvider
           get() = throw UnsupportedOperationException()
         override val generatedSources: IdeaSourceProvider =
@@ -193,6 +205,8 @@ interface SourceProviders {
         override val currentHostTestSourceProviders: Map<TestComponentType.HostTest, List<NamedIdeaSourceProvider>>
           get() = throw UnsupportedOperationException()
         override val currentDeviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<NamedIdeaSourceProvider>>
+          get() = throw UnsupportedOperationException()
+        override val currentTestSuiteSourceProviders: Map<String, List<NamedIdeaSourceProvider>>
           get() = throw UnsupportedOperationException()
         override val currentTestFixturesSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
@@ -242,6 +256,10 @@ interface SourceProviders {
         override val currentDeviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<NamedIdeaSourceProvider>>
           get() = throw UnsupportedOperationException()
         override val currentTestFixturesSourceProviders: List<NamedIdeaSourceProvider>
+          get() = throw UnsupportedOperationException()
+        override val currentTestSuiteSourceProviders: Map<String, List<NamedIdeaSourceProvider>>
+          get() = throw UnsupportedOperationException()
+        override val testSuiteSources: Map<String, List<IdeaSourceProvider>>
           get() = throw UnsupportedOperationException()
         override val currentAndSomeFrequentlyUsedInactiveSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
@@ -366,7 +384,8 @@ fun SourceProviders.getForFile(targetFolder: VirtualFile?): List<NamedIdeaSource
     // Also checks in the test providers.
     (currentAndSomeFrequentlyUsedInactiveSourceProviders +
      currentDeviceTestSourceProviders.values.flatten() +
-     currentHostTestSourceProviders.values.flatten()
+     currentHostTestSourceProviders.values.flatten() +
+     currentTestSuiteSourceProviders.values.flatten()
     ).filter { provider -> provider.containsFile(targetFolder) || provider.isContainedBy(targetFolder) }.takeUnless { it.isEmpty() }
   }
   else null
@@ -424,7 +443,8 @@ fun <T : IdeaSourceProvider> Iterable<T>.findByFile(file: VirtualFile): T? = fir
 
 fun isTestFile(facet: AndroidFacet, candidate: VirtualFile): Boolean {
   return SourceProviders.getInstance(facet).hostTestSources.values.findByFile(candidate) != null ||
-         SourceProviders.getInstance(facet).deviceTestSources.values.findByFile(candidate) != null
+         SourceProviders.getInstance(facet).deviceTestSources.values.findByFile(candidate) != null ||
+         SourceProviders.getInstance(facet).testSuiteSources.values.flatten().findByFile(candidate) != null
 }
 
 /** Returns true if the given candidate file is a manifest file in the given module  */

@@ -329,6 +329,7 @@ MODULE: AS36.app
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTest/resources
                     file://./app/src/androidTestDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -713,6 +714,7 @@ MODULE: AS36.app
                     file://./app/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 MODULE: AS36.features.dynamicfeature
     by Facet:
@@ -1021,6 +1023,7 @@ MODULE: AS36.features.dynamicfeature
                 ResourcesDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTest/resources
                     file://./features/dynamicfeature/src/androidTestDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -1363,6 +1366,7 @@ MODULE: AS36.features.dynamicfeature
                     file://./features/dynamicfeature/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTestDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 MODULE: AS36.features.dynamicfeature2
     by Facet:
@@ -1671,6 +1675,7 @@ MODULE: AS36.features.dynamicfeature2
                 ResourcesDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTest/resources
                     file://./features/dynamicfeature2/src/androidTestDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -2013,6 +2018,7 @@ MODULE: AS36.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTestDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 MODULE: AS36.libs.android_library
     by Facet:
@@ -2345,6 +2351,7 @@ MODULE: AS36.libs.android_library
                 ResourcesDirectoryUrls:
                     file://./libs/android_library/src/androidTest/resources
                     file://./libs/android_library/src/androidTestDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -2729,6 +2736,7 @@ MODULE: AS36.libs.android_library
                     file://./libs/android_library/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./libs/android_library/src/androidTestDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 Build configuration files:
     file://./build.gradle : Project: AS36 [0]
