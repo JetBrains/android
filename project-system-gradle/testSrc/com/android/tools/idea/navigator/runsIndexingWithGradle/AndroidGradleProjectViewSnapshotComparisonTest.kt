@@ -80,6 +80,21 @@ class AndroidGradleProjectViewSnapshotComparisonTest : SnapshotComparisonTest {
     }
   }
 
+  @Test
+  @RunsInEdt
+  fun testTestSuites() {
+    try {
+      val preparedProject = projectRule.prepareTestProject(TestProject.TEST_SUITES)
+      val text = preparedProject.open { project: Project ->
+        project.dumpAndroidProjectView()
+      }
+
+      assertIsEqualToSnapshot(text)
+    } finally {
+      AndroidGradleTests.restoreJdk()
+    }
+  }
+
   override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/projectViews"
 
   override fun getName(): String = testName.methodName

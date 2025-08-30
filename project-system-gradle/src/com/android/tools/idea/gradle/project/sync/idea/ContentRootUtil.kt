@@ -20,8 +20,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeSourceProvider
-import com.android.tools.idea.gradle.model.IdeTestSuite
-import com.android.tools.idea.gradle.model.impl.IdeTestSuiteVariantTargetImpl
+import com.android.tools.idea.gradle.model.IdeTestSuiteVariantTarget
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.model.activeSourceProviders
 import com.android.tools.idea.gradle.project.model.testFixturesSourceProviders
@@ -80,22 +79,9 @@ fun DataNode<ModuleData>.setupAndroidContentEntriesPerSourceSet(androidModel: Gr
     return contentRoots.map { sourceSetDataNode.createChild(ProjectKeys.CONTENT_ROOT, it) }
   }
 
-  fun createTestSuiteContentRoots(ideTestSuite: IdeTestSuite): Collection<ContentRootData> {
-    val newContentRoots = mutableListOf<ContentRootData>()
-
-    for (source in ideTestSuite.sources) {
-      source.sourceProvider.processAll(forTest = true) { path, sourceType ->
-        newContentRoots.add(createContentRootData(path, sourceType))
-      }
-    }
-
-    return newContentRoots
-  }
-
-  fun populateTestSuiteContentEntries(ideTestSuite: IdeTestSuite,
-                                      ideTestSuiteVariantTarget: IdeTestSuiteVariantTargetImpl): List<DataNode<ContentRootData>> {
-    val sourceSetDataNode = findSourceSetDataForArtifact(ideTestSuiteVariantTarget)
-    val contentRoots = createTestSuiteContentRoots(ideTestSuite)
+  fun populateContentEntries(artifact: IdeTestSuiteVariantTarget?, sourceProviders: List<IdeSourceProvider>): List<DataNode<ContentRootData>> {
+    val sourceSetDataNode = findSourceSetDataForArtifact(artifact ?: return emptyList())
+    val contentRoots = collectContentRootDataForTestSuite(sourceProviders)
     return contentRoots.map { sourceSetDataNode.createChild(ProjectKeys.CONTENT_ROOT, it) }
   }
 
@@ -106,17 +92,10 @@ fun DataNode<ModuleData>.setupAndroidContentEntriesPerSourceSet(androidModel: Gr
         .find { it.name == IdeArtifactName.ANDROID_TEST }
         ?.let { add(populateContentEntries(it, androidModel.getTestSourceProviders(it.name))) }
       add(populateContentEntries(variant.testFixturesArtifact, androidModel.testFixturesSourceProviders))
-    }
-
-  if (StudioFlags.AGP_TEST_SUITES_ENABLED.get()) {
-    for (testSuite in androidModel.androidProject.testSuites) {
-      // Ignore test suites not enabled for this variant
-      val testSuiteArtifacts = variant.testSuiteArtifacts.find { it.suiteName == testSuite.name }
-      if (testSuiteArtifacts != null) {
-        populateTestSuiteContentEntries(testSuite, testSuiteArtifacts)
+      if (StudioFlags.AGP_TEST_SUITES_ENABLED.get()) {
+        variant.testSuiteArtifacts.forEach { add(populateContentEntries(it, androidModel.getTestSuiteSourceProviders(it.suiteName))) }
       }
     }
-  }
 
   val holderModuleRoots = findAll(ProjectKeys.CONTENT_ROOT)
 
@@ -189,3 +168,15 @@ private fun createContentRootData(path: @SystemDependent String, sourceType: Ext
   return contentRootData
 }
 
+private fun collectContentRootDataForTestSuite(
+  sourceProviders: List<IdeSourceProvider>,
+) : Collection<ContentRootData> {
+
+  val newContentRoots = mutableListOf<ContentRootData>()
+  sourceProviders.forEach { sourceProvider ->
+    sourceProvider.processAll(true) { path, sourceType ->
+      newContentRoots.add(createContentRootData(path, sourceType))
+    }
+  }
+  return newContentRoots
+}

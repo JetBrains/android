@@ -542,6 +542,7 @@ MODULE: MainActivity.app
                     file://./app/src/androidTestLocal/resources
                     file://./app/src/androidTestDebug/resources
                     file://./app/src/androidTestLocalDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -1270,6 +1271,7 @@ MODULE: MainActivity.app
                     file://./app/src/androidTestLocalDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestLocalDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 MODULE: MainActivity.lib
     by Facet:
@@ -1578,6 +1580,7 @@ MODULE: MainActivity.lib
                 ResourcesDirectoryUrls:
                     file://./lib/src/androidTest/resources
                     file://./lib/src/androidTestDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -1920,6 +1923,7 @@ MODULE: MainActivity.lib
                     file://./lib/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/androidTestDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 Build configuration files:
     file://./build.gradle : Project: MainActivity [0]

@@ -764,6 +764,7 @@ MODULE: project.app
                     file://./app/src/androidTestBasicBar/resources
                     file://./app/src/androidTestDebug/resources
                     file://./app/src/androidTestBasicBarDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -1862,6 +1863,7 @@ MODULE: project.app
                     file://./app/src/androidTestBasicBarDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestBasicBarDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 MODULE: project.dyn_feature
     by Facet:
@@ -2170,6 +2172,7 @@ MODULE: project.dyn_feature
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/androidTest/resources
                     file://./dyn_feature/src/androidTestDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -2512,6 +2515,7 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/androidTestDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 MODULE: project.lib
     by Facet:
@@ -2832,6 +2836,7 @@ MODULE: project.lib
                 ResourcesDirectoryUrls:
                     file://./lib/src/androidTest/resources
                     file://./lib/src/androidTestDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -3192,6 +3197,7 @@ MODULE: project.lib
                     file://./lib/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/androidTestDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 MODULE: project.nested1
     by Facet:
@@ -3500,6 +3506,7 @@ MODULE: project.nested1
                 ResourcesDirectoryUrls:
                     file://./nested1/src/androidTest/resources
                     file://./nested1/src/androidTestDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -3842,6 +3849,7 @@ MODULE: project.nested1
                     file://./nested1/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested1/src/androidTestDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 MODULE: project.nested1.deep
     by Facet:
@@ -4150,6 +4158,7 @@ MODULE: project.nested1.deep
                 ResourcesDirectoryUrls:
                     file://./nested1/deep/src/androidTest/resources
                     file://./nested1/deep/src/androidTestDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -4492,6 +4501,7 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested1/deep/src/androidTestDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 MODULE: project.nested2
     by Facet:
@@ -5013,6 +5023,7 @@ MODULE: project.nested2
                     file://./nested2/src/androidTestBasic/resources
                     file://./nested2/src/androidTestDebug/resources
                     file://./nested2/src/androidTestBasicDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -5693,6 +5704,7 @@ MODULE: project.nested2
                     file://./nested2/src/androidTestBasicDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/androidTestBasicDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 MODULE: project.nested2.deep
     by Facet:
@@ -6001,6 +6013,7 @@ MODULE: project.nested2.deep
                 ResourcesDirectoryUrls:
                     file://./nested2/deep/src/androidTest/resources
                     file://./nested2/deep/src/androidTestDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -6343,6 +6356,7 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/deep/src/androidTestDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 MODULE: project.nested2.trans.deep2
     by Facet:
@@ -6651,6 +6665,7 @@ MODULE: project.nested2.trans.deep2
                 ResourcesDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTest/resources
                     file://./nested2/trans/deep2/src/androidTestDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -6993,6 +7008,7 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTestDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 Build configuration files:
     file://./build.gradle : Project: project [0]

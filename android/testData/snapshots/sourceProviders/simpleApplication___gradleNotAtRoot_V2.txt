@@ -329,6 +329,7 @@ MODULE: gradle_project.app
                 ResourcesDirectoryUrls:
                     file://./gradle_project/app/src/androidTest/resources
                     file://./gradle_project/app/src/androidTestDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -713,6 +714,7 @@ MODULE: gradle_project.app
                     file://./gradle_project/app/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./gradle_project/app/src/androidTestDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 Build configuration files:
     file://./gradle_project/build.gradle : Project: gradle_project [0]

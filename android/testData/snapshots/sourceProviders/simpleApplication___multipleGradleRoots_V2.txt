@@ -329,6 +329,7 @@ MODULE: gradle_project_1.app
                 ResourcesDirectoryUrls:
                     file://./gradle_project_1/app/src/androidTest/resources
                     file://./gradle_project_1/app/src/androidTestDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -713,6 +714,7 @@ MODULE: gradle_project_1.app
                     file://./gradle_project_1/app/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./gradle_project_1/app/src/androidTestDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 MODULE: gradle_project_name.app
     by Facet:
@@ -1045,6 +1047,7 @@ MODULE: gradle_project_name.app
                 ResourcesDirectoryUrls:
                     file://./gradle_project_2/app/src/androidTest/resources
                     file://./gradle_project_2/app/src/androidTestDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -1429,6 +1432,7 @@ MODULE: gradle_project_name.app
                     file://./gradle_project_2/app/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./gradle_project_2/app/src/androidTestDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 Build configuration files:
     file://./gradle_project_1/build.gradle : Project: gradle_project_1 [0]

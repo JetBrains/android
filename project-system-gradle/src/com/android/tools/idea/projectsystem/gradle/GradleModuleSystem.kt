@@ -470,6 +470,7 @@ class GradleModuleSystem(
       ScopeType.ANDROID_TEST -> androidTestModule?.getModuleWithDependenciesAndLibrariesScope(true)
       ScopeType.TEST_FIXTURES -> fixturesModule?.getModuleWithDependenciesAndLibrariesScope(true)
       ScopeType.SCREENSHOT_TEST -> screenshotTestModule?.getModuleWithDependenciesAndLibrariesScope(true)
+      ScopeType.TEST_SUITE -> throw RuntimeException("TestSuite scope not supported")
     } ?: GlobalSearchScope.EMPTY_SCOPE
   }
 

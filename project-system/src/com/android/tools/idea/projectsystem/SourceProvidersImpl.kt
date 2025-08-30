@@ -23,6 +23,7 @@ class SourceProvidersImpl(
   override val currentHostTestSourceProviders: Map<TestComponentType.HostTest, List<NamedIdeaSourceProvider>>,
   override val currentDeviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<NamedIdeaSourceProvider>>,
   override val currentTestFixturesSourceProviders: List<NamedIdeaSourceProvider>,
+  override val currentTestSuiteSourceProviders: Map<String, List<NamedIdeaSourceProvider>>,
   override val allVariantAllArtifactsSourceProviders: List<NamedIdeaSourceProvider>,
   override val currentAndSomeFrequentlyUsedInactiveSourceProviders: List<NamedIdeaSourceProvider>,
 
@@ -47,6 +48,10 @@ class SourceProvidersImpl(
         put(it.key, createMergedSourceProvider(it.key.scopeTypeByName(), it.value))
       }
     }.toImmutableMap()
+
+  override val testSuiteSources: Map<String, List<IdeaSourceProvider>> =
+    currentTestSuiteSourceProviders
+
   override val testFixturesSources: IdeaSourceProvider =
     createMergedSourceProvider(ScopeType.TEST_FIXTURES, currentTestFixturesSourceProviders)
 }

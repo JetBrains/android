@@ -200,5 +200,13 @@ data class IdeVariantImpl(
   override val deviceTestArtifacts: List<IdeAndroidArtifactImpl> = core.deviceTestArtifacts.map { IdeAndroidArtifactImpl(it, resolver) }
   override val testFixturesArtifact: IdeAndroidArtifactImpl? = core.testFixturesArtifact?.let { IdeAndroidArtifactImpl(it, resolver) }
   override val hostTestArtifacts: List<IdeJavaArtifactImpl> = core.hostTestArtifacts.map { IdeJavaArtifactImpl(it, resolver) }
-  override val testSuiteArtifacts: List<IdeTestSuiteVariantTargetImpl> = core.testSuiteArtifacts
+  override val testSuiteArtifacts: List<IdeTestSuiteVariantTargetImpl> = core.testSuiteArtifacts.map {
+    IdeTestSuiteVariantTargetImpl(
+      it.suiteName,
+      it.targetedVariantName,
+      it.targets.map { target ->
+        IdeTestSuiteTargetImpl(target.targetName, target.testTaskName, target.targetedDevices)
+      }
+    )
+  }
 }

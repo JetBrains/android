@@ -329,6 +329,7 @@ MODULE: TestCompositeLib1.app
                 ResourcesDirectoryUrls:
                     file://./TestCompositeLib1/app/src/androidTest/resources
                     file://./TestCompositeLib1/app/src/androidTestDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -713,6 +714,7 @@ MODULE: TestCompositeLib1.app
                     file://./TestCompositeLib1/app/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./TestCompositeLib1/app/src/androidTestDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 MODULE: TestCompositeLib1.lib
     by Facet:
@@ -1045,6 +1047,7 @@ MODULE: TestCompositeLib1.lib
                 ResourcesDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/androidTest/resources
                     file://./TestCompositeLib1/lib/src/androidTestDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -1429,6 +1432,7 @@ MODULE: TestCompositeLib1.lib
                     file://./TestCompositeLib1/lib/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/androidTestDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 MODULE: TestCompositeLib3.app
     by Facet:
@@ -1761,6 +1765,7 @@ MODULE: TestCompositeLib3.app
                 ResourcesDirectoryUrls:
                     file://./TestCompositeLib3/app/src/androidTest/resources
                     file://./TestCompositeLib3/app/src/androidTestDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -2145,6 +2150,7 @@ MODULE: TestCompositeLib3.app
                     file://./TestCompositeLib3/app/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./TestCompositeLib3/app/src/androidTestDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 MODULE: TestCompositeLib3.lib
     by Facet:
@@ -2477,6 +2483,7 @@ MODULE: TestCompositeLib3.lib
                 ResourcesDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/androidTest/resources
                     file://./TestCompositeLib3/lib/src/androidTestDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -2861,6 +2868,7 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/androidTestDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 MODULE: project.app
     by Facet:
@@ -3193,6 +3201,7 @@ MODULE: project.app
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTest/resources
                     file://./app/src/androidTestDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -3577,6 +3586,7 @@ MODULE: project.app
                     file://./app/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 MODULE: project.lib
     by Facet:
@@ -3909,6 +3919,7 @@ MODULE: project.lib
                 ResourcesDirectoryUrls:
                     file://./lib/src/androidTest/resources
                     file://./lib/src/androidTestDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -4293,6 +4304,7 @@ MODULE: project.lib
                     file://./lib/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/androidTestDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 Build configuration files:
     file://./build.gradle : Project: project [0]

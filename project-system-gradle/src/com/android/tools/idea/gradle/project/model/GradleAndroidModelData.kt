@@ -108,6 +108,9 @@ data class GradleAndroidModelData(
     }
   }
 
+  fun getTestSuiteSourceProviders(suiteName: String): List<IdeSourceProvider> =
+    testSuiteSourceProviders[suiteName] ?: emptyList()
+
   companion object {
     fun findFromModuleDataNode(dataNode: DataNode<*>): GradleAndroidModelData? {
       return when (dataNode.key) {

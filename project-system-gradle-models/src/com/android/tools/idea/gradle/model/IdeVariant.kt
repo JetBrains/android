@@ -133,4 +133,5 @@ interface IdeVariant : IdeVariantCore {
   override val deviceTestArtifacts: List<IdeAndroidArtifact>
   override val testFixturesArtifact: IdeAndroidArtifact?
   override val hostTestArtifacts: List<IdeJavaArtifact>
+  override val testSuiteArtifacts: List<IdeTestSuiteVariantTarget>
 }

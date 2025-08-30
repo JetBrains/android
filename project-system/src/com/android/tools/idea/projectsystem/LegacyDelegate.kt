@@ -161,6 +161,7 @@ fun createSourceProvidersForLegacyModule(facet: AndroidFacet): SourceProviders {
     mapOf(CommonTestType.UNIT_TEST to createMergedSourceProvider(ScopeType.UNIT_TEST, emptyList())),
     generatedDeviceTestSources =
     mapOf(CommonTestType.ANDROID_TEST to createMergedSourceProvider(ScopeType.ANDROID_TEST, emptyList())),
+    currentTestSuiteSourceProviders = emptyMap(),
     generatedTestFixturesSources = createMergedSourceProvider(ScopeType.TEST_FIXTURES, emptyList())
   )
 }

@@ -189,8 +189,12 @@ fun modelCacheV2Impl(
     return IdeSourceProvider(
       name = name.deduplicate(),
       // so far, we only support a single source in test APK, but this will need to be revisited.
+      // either TestSuiteSource should carry all relevant information depending on source type or
+      // it should just use SourceProvider for all source types.
       folder = providers.first(),
-      manifestFile = null,
+      // TODO: (b449696506) the next three assignments should be reworked once the model decision mentioned
+      // above is settled.
+      manifestFile = File(providers.first(), "AndroidManifest.xml").makeRelativeAndDeduplicate(),
       javaDirectories = if (source.type == SourceType.HOST_JAR) providers.map {
         it.resolve("java").makeRelativeAndDeduplicate()
       }

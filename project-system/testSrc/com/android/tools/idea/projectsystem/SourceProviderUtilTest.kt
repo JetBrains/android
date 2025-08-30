@@ -127,7 +127,8 @@ class SourceProviderUtilTest {
       generatedSources = emptySourceProvider(ScopeType.MAIN),
       generatedHostTestSources = mapOf(CommonTestType.UNIT_TEST to emptySourceProvider(ScopeType.UNIT_TEST)),
       generatedDeviceTestSources = mapOf(CommonTestType.ANDROID_TEST to emptySourceProvider(ScopeType.ANDROID_TEST)),
-      generatedTestFixturesSources = emptySourceProvider(ScopeType.TEST_FIXTURES)
+      generatedTestFixturesSources = emptySourceProvider(ScopeType.TEST_FIXTURES),
+      currentTestSuiteSourceProviders = mapOf()
     )
 
   private fun createSourceProviderAt(

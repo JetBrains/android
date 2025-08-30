@@ -20,6 +20,9 @@ sealed interface TestComponentType {
 
   sealed interface HostTest : TestComponentType
   sealed interface DeviceTest : TestComponentType
+  sealed interface TestSuite: TestComponentType {
+    val name: String
+  }
 }
 
 sealed interface CommonTestType : TestComponentType {
@@ -32,11 +35,15 @@ sealed interface CommonTestType : TestComponentType {
   enum class DeviceTest(override val type: String) : CommonTestType, TestComponentType.DeviceTest {
     ANDROID_TEST("_android_test_")
   }
+  enum class TestSuite(override val type: String) : CommonTestType, TestComponentType.TestSuite {
+    TEST_SUITE("_test_suite_")
+  }
 
   companion object {
     @JvmField val UNIT_TEST = HostTest.UNIT_TEST
     @JvmField val SCREENSHOT_TEST = HostTest.SCREENSHOT_TEST
     @JvmField val ANDROID_TEST = DeviceTest.ANDROID_TEST
+    @JvmField val TEST_SUITE = TestSuite.TEST_SUITE
   }
 }
 
@@ -45,6 +52,6 @@ fun TestComponentType.scopeTypeByName(): ScopeType {
     CommonTestType.ANDROID_TEST -> ScopeType.ANDROID_TEST
     CommonTestType.UNIT_TEST -> ScopeType.UNIT_TEST
     CommonTestType.SCREENSHOT_TEST -> ScopeType.SCREENSHOT_TEST
-    else -> error("unknown scope type $this")
-  }
+    CommonTestType.TEST_SUITE -> ScopeType.TEST_SUITE
+    else -> error("unknown scope type $this")  }
 }

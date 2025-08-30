@@ -148,14 +148,15 @@ public class BazelProjectSystem implements AndroidProjectSystem {
             ImmutableMap.of(CommonTestType.UNIT_TEST, ImmutableList.of()),
             ImmutableMap.of(CommonTestType.ANDROID_TEST, ImmutableList.of()),
             ImmutableList.of(),
-            ImmutableList.of(mainSourceProvider),
-            ImmutableList.of(mainSourceProvider),
-            ImmutableList.of(mainSourceProvider),
-            emptySourceProvider(ScopeType.MAIN),
-            ImmutableMap.of(CommonTestType.UNIT_TEST, emptySourceProvider(ScopeType.UNIT_TEST)),
-            ImmutableMap.of(
-              CommonTestType.ANDROID_TEST, emptySourceProvider(ScopeType.ANDROID_TEST)),
-            emptySourceProvider(ScopeType.TEST_FIXTURES));
+            ImmutableMap.of(),
+              ImmutableList.of(mainSourceProvider),
+              ImmutableList.of(mainSourceProvider),
+              ImmutableList.of(mainSourceProvider),
+              emptySourceProvider(ScopeType.MAIN),
+              ImmutableMap.of(CommonTestType.UNIT_TEST, emptySourceProvider(ScopeType.UNIT_TEST)),
+              ImmutableMap.of(
+                  CommonTestType.ANDROID_TEST, emptySourceProvider(ScopeType.ANDROID_TEST)),
+              emptySourceProvider(ScopeType.TEST_FIXTURES));
         } else {
           BlazeAndroidModel model = ((BlazeAndroidModel)AndroidModel.get(facet));
           if (model != null) {
@@ -175,14 +176,16 @@ public class BazelProjectSystem implements AndroidProjectSystem {
             ImmutableMap.of(CommonTestType.UNIT_TEST, ImmutableList.of(mainSourceProvider)),
             ImmutableMap.of(CommonTestType.ANDROID_TEST, ImmutableList.of(mainSourceProvider)),
             ImmutableList.of(mainSourceProvider),
-            ImmutableList.of(mainSourceProvider),
-            ImmutableList.of(mainSourceProvider),
-            ImmutableList.of(mainSourceProvider),
-            emptySourceProvider(ScopeType.MAIN),
-            ImmutableMap.of(CommonTestType.UNIT_TEST, emptySourceProvider(ScopeType.UNIT_TEST)),
-            ImmutableMap.of(
-                CommonTestType.ANDROID_TEST, emptySourceProvider(ScopeType.ANDROID_TEST)),
-            emptySourceProvider(ScopeType.TEST_FIXTURES));
+            ImmutableMap.of(),
+              ImmutableList.of(mainSourceProvider),
+              ImmutableList.of(mainSourceProvider),
+              ImmutableList.of(mainSourceProvider),
+              emptySourceProvider(ScopeType.MAIN),
+              ImmutableMap.of(CommonTestType.UNIT_TEST, emptySourceProvider(ScopeType.UNIT_TEST)),
+              ImmutableMap.of(
+                  CommonTestType.ANDROID_TEST, emptySourceProvider(ScopeType.ANDROID_TEST)),
+              emptySourceProvider(ScopeType.TEST_FIXTURES));
+
       }
     };
   }
