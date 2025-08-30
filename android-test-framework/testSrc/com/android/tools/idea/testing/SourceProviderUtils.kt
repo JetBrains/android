@@ -194,6 +194,7 @@ fun Project.dumpSourceProviders(): String {
             nest("Sources:") { sourceProviderManager.sources.dump("Sources") }
             nest("HostTestSources:") { sourceProviderManager.hostTestSources.forEach { it.value.dump("${it.key.type.toPrintableName()}Sources") } }
             nest("DeviceTestSources:") { sourceProviderManager.deviceTestSources.forEach { it.value.dump("${it.key.type.toPrintableName()}TestSources") } }
+            nest("TestSuiteSources:") { sourceProviderManager.testSuiteSources.forEach { it.value.forEach {  sourceProvider -> sourceProvider.dump("${it.key}TestSuiteSources") } } }
             nest("TestFixturesSources:") { sourceProviderManager.testFixturesSources.dump("TestFixturesSources") }
             nest("GeneratedSources:") { sourceProviderManager.generatedSources.dump("GeneratedSources") }
             nest("GeneratedHostTestSources:") {
@@ -218,6 +219,9 @@ fun Project.dumpSourceProviders(): String {
             }
             nest("CurrentDeviceTestSourceProviders:") {
               sourceProviderManager.currentDeviceTestSourceProviders.values.flatten().forEach { it.dump() }
+            }
+            nest("CurrentTestSuiteSourceProviders:") {
+              sourceProviderManager.currentTestSuiteSourceProviders.values.flatten().forEach { it.dump() }
             }
             nest("CurrentTestFixturesSourceProviders:") { sourceProviderManager.currentTestFixturesSourceProviders.forEach { it.dump() } }
           }

@@ -329,6 +329,7 @@ MODULE: project_sm_src.app
                 ResourcesDirectoryUrls:
                     file://._sm_src/app/src/androidTest/resources
                     file://._sm_src/app/src/androidTestDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -713,6 +714,7 @@ MODULE: project_sm_src.app
                     file://._sm_src/app/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://._sm_src/app/src/androidTestDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 Build configuration files:
     file://._sm_src/build.gradle : Project: project_sm_src [0]

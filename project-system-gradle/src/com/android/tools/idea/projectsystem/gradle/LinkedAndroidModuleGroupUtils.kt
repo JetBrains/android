@@ -37,7 +37,7 @@ data class LinkedAndroidGradleModuleGroup(
   val androidTest: ModulePointer?,
   val testFixtures: ModulePointer?,
   val screenshotTest: ModulePointer?,
-  val testSuites: List<ModulePointer>
+  val testSuites: Collection<ModulePointer>
 ) {
   fun getModules() = listOfNotNull(holder, main, unitTest, androidTest, testFixtures, screenshotTest,
                                    *testSuites.toTypedArray()).mapNotNull { it.module }

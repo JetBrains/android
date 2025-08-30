@@ -152,10 +152,13 @@ open class GradleAndroidModelImpl(
   override val activeSourceProviders: List<IdeSourceProvider> get() = data.activeSourceProviders
   override val hostTestSourceProviders: Map<TestComponentType.HostTest, List<IdeSourceProvider>> get() = data.hostTestSourceProviders
   override val deviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<IdeSourceProvider>> get() = data.deviceTestSourceProviders
+  override val testSuiteSourceProviders: Map<String, List<IdeSourceProvider>>
+    get() = data.testSuiteSourceProviders
   override val testFixturesSourceProviders: List<IdeSourceProvider> get() = data.testFixturesSourceProviders
   override val allSourceProviders: List<IdeSourceProvider> get() = data.allSourceProviders
   override val allHostTestSourceProviders: Map<TestComponentType.HostTest, List<IdeSourceProvider>> get() = data.allHostTestSourceProviders
   override val allDeviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<IdeSourceProvider>> get() = data.allDeviceSourceProviders
+  override val allTestSuiteSourceProviders: Map<String, List<IdeSourceProvider>>  = data.allTestSuiteSourceProviders
   override val allTestFixturesSourceProviders: List<IdeSourceProvider> get() = data.allTestFixturesSourceProviders
   override val mainArtifact: IdeAndroidArtifactCoreImpl get() = selectedVariant.mainArtifact
 
@@ -387,10 +390,12 @@ sealed interface GradleAndroidModel: AndroidModel {
   val hostTestSourceProviders: Map<TestComponentType.HostTest, List<IdeSourceProvider>>
   val deviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<IdeSourceProvider>>
   val testFixturesSourceProviders: List<IdeSourceProvider>
+  val testSuiteSourceProviders: Map<String, List<IdeSourceProvider>>
   val allSourceProviders: List<IdeSourceProvider>
   val allHostTestSourceProviders: Map<TestComponentType.HostTest, List<IdeSourceProvider>>
   val allDeviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<IdeSourceProvider>>
   val allTestFixturesSourceProviders: List<IdeSourceProvider>
+  val allTestSuiteSourceProviders: Map<String, List<IdeSourceProvider>>
   fun findBasicVariantByName(variantName: String): IdeBasicVariant?
   fun getGradleScreenshotTestTaskNameForSelectedVariant(mode: String): String
   fun getGenerateBaselineProfileTaskNameForSelectedVariant(useAllVariants: Boolean): String?

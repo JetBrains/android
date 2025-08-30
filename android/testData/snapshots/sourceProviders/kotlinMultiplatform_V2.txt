@@ -325,6 +325,7 @@ MODULE: kotlinMultiPlatform.app
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTest/resources
                     file://./app/src/androidTestDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -703,6 +704,7 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 MODULE: kotlinMultiPlatform.module2
     by Facet:
@@ -1131,6 +1133,7 @@ MODULE: kotlinMultiPlatform.module2
                     file://./module2/src/androidInstrumentedTest/resources
                     file://./module2/src/androidTestDebug/resources
                     file://./module2/src/androidInstrumentedTestDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -1615,6 +1618,7 @@ MODULE: kotlinMultiPlatform.module2
                 ResourcesDirectoryUrls:
                     file://./module2/src/androidTestDebug/resources
                     file://./module2/src/androidInstrumentedTestDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 Build configuration files:
     file://./build.gradle : Project: kotlinMultiPlatform [0]

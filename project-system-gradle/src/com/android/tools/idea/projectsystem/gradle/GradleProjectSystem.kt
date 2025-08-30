@@ -342,6 +342,9 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
       putAll(model.allTestFixturesSourceProviders.associateWith {
         createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.TEST_FIXTURES)
       })
+      model.allTestSuiteSourceProviders.map { (k, v) ->
+        putAll(v.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.TEST_SUITE) })
+      }
       }
 
 
@@ -408,6 +411,7 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
     currentHostTestSourceProviders = model.hostTestSourceProviders.mapValues { (_, v) -> v.map { it.toIdeaSourceProvider() } },
     currentDeviceTestSourceProviders = model.deviceTestSourceProviders.mapValues { (_, v) -> v.map { it.toIdeaSourceProvider() } },
     currentTestFixturesSourceProviders = model.testFixturesSourceProviders.map { it.toIdeaSourceProvider() },
+    currentTestSuiteSourceProviders = model.testSuiteSourceProviders.mapValues { (_, v) -> v.map { it.toIdeaSourceProvider() } },
     allVariantAllArtifactsSourceProviders = model.run {
       allSourceProviders.map { it.toIdeaSourceProvider() } +
       allHostTestSourceProviders.values.flatten().map { it.toIdeaSourceProvider() } +
@@ -440,9 +444,7 @@ private fun createIdeaSourceProviderFromModelSourceProvider(it: IdeSourceProvide
     it.name,
     scopeType,
     core = object : NamedIdeaSourceProviderImpl.Core {
-      override val manifestFileUrl: String? get() {
-        return VfsUtil.fileToUrl(it.manifestFile ?: return null)
-      }
+      override val manifestFileUrl: String? get() = it.manifestFile?.let { file -> VfsUtil.fileToUrl(file) }
       override val javaDirectoryUrls: Sequence<String> get() = it.javaDirectories.asSequence().toUrls()
       override val kotlinDirectoryUrls: Sequence<String> get() = it.kotlinDirectories.asSequence().toUrls()
       override val resourcesDirectoryUrls: Sequence<String> get() = it.resourcesDirectories.asSequence().toUrls()
