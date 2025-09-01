@@ -311,6 +311,13 @@ public final class StudioFlags {
     "Allow configuring the maximum number of file references to be kept.",
     150L
   );
+
+  public static final Flag<Boolean> DYNAMIC_MATERIAL_SYMBOLS = new BooleanFlag(
+    DESIGN_TOOLS,
+    "assetstudio.dynamic.material.symbols",
+    "Render Material Symbols Dynamically",
+    "Render Material Symbols as customizable layout files. When enabled deprecates Material Icons"
+  );
   //endregion
 
   //region Layout Editor

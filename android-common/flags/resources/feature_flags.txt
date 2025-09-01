@@ -34,6 +34,7 @@ compose.transform.ui.with.ai=PREVIEW
 compose.ui.check.fix.with.ai=INTERNAL
 compose.ui.check.mode.wear=COMPLETE:2024
 deprecationpolicy.use.policy.with.deprecate=COMPLETE:2025
+design.tools.assetstudio.dynamic.material.symbols=INTERNAL
 device.manager.xr.device.support.enabled=COMPLETE:2025
 editor.compose.state.read.inlay.hints.enabled=PREVIEW
 editor.remote.sdk.documentation.fetch.via.content.serving.api.enabled=PREVIEW
