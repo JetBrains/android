@@ -183,18 +183,18 @@ public class AndroidGradleTests {
   @NotNull
   protected static <T extends GradleBuildResult> T invokeGradle(
     @NotNull Project project,
-    @NotNull Function<GradleBuildInvoker, ListenableFuture<T>> gradleInvocationTask) {
-    return invokeGradle(project, gradleInvocationTask, null);
+    @NotNull Function<GradleBuildInvoker, ListenableFuture<T>> invocation) {
+    return invokeGradle(project, invocation, null);
   }
 
-  protected static <T extends GradleBuildResult> T invokeGradle(
+  private static <T extends GradleBuildResult> T invokeGradle(
     @NotNull Project project,
-    @NotNull Function<GradleBuildInvoker, ListenableFuture<T>> gradleInvocationTask,
+    @NotNull Function<GradleBuildInvoker, ListenableFuture<T>> invocation,
     @Nullable Long sourceFolderTimeoutMillis
   ) {
     GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
 
-    ListenableFuture<T> future = gradleInvocationTask.apply(gradleBuildInvoker);
+    ListenableFuture<T> future = invocation.apply(gradleBuildInvoker);
 
     T result;
     try {

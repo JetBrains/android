@@ -78,9 +78,9 @@ class AndroidGradleProjectRule(
 
     fun <T: GradleBuildResult> invokeGradle(
       project: Project,
-      gradleInvocationTask: Function<GradleBuildInvoker, ListenableFuture<T>?>
+      invocation: Function<GradleBuildInvoker, ListenableFuture<T>?>
     ): T {
-      return AndroidGradleTests.invokeGradle(project, gradleInvocationTask)
+      return AndroidGradleTests.invokeGradle(project, invocation)
     }
   }
 
@@ -199,8 +199,8 @@ class AndroidGradleProjectRule(
     return delegateTestCase.invokeGradleTasks(project, timeoutMillis, *tasks)
   }
 
-  fun <T: GradleBuildResult> invokeGradle(gradleInvocationTask: Function<GradleBuildInvoker, ListenableFuture<T>?>): T {
-    return delegateTestCase.invokeGradle(project, gradleInvocationTask)
+  fun <T: GradleBuildResult> invokeGradle(invocation: Function<GradleBuildInvoker, ListenableFuture<T>?>): T {
+    return delegateTestCase.invokeGradle(project, invocation)
   }
 
   fun resolveTestDataPath(relativePath: String): File =
