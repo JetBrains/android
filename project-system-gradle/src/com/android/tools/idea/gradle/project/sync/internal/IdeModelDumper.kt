@@ -54,9 +54,9 @@ import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.model.IdeViewBindingOptions
 import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable
 import com.android.tools.idea.gradle.model.lookup
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.gradleModuleModel
@@ -64,7 +64,9 @@ import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
+import com.android.tools.idea.projectsystem.gradle.getHolderModule
 import com.android.tools.idea.projectsystem.gradle.isHolderModule
+import com.android.tools.idea.projectsystem.gradle.isLinkedAndroidModule
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.util.toIoFile
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -123,13 +125,15 @@ fun ProjectDumper.dumpAndroidIdeModel(
           module.gradleModuleModel?.let {
             // Skip all but holders to prevent needless spam in the snapshots. All modules
             // point to the same facet.
-            if (!dumpAllLinkedModules && !module.isHolderModule()) return@let
-            dump(it)
+            if (forSnapshotComparison || module.isHolderModule() || module.hasDifferentGradleModuleModelThanHolder()) {
+              dump(it)
+            }
           }
           GradleAndroidModel.get(module)?.let { it ->
             // Skip all but holders to prevent needless spam in the snapshots. All modules
             // point to the same facet.
-            if (!dumpAllLinkedModules && !module.isHolderModule()) return@let
+            val shouldDump = forSnapshotComparison || module.isHolderModule() || module.hasDifferentGradleAndroidModelThanHolder()
+            if (!shouldDump) return@let
             head("CurrentVariantReportedVersions")
             nest {
               StudioAndroidModuleInfo.getInstance(module)?.minSdkVersion?.dump("minSdk")
@@ -961,3 +965,15 @@ class DumpProjectIdeModelAction : InternalDumpAction("IDE Models") {
       .info("Android IDE models dumped to file: " + outputFile.toURI().toURL())
   }
 }
+
+fun  Module.hasDifferentGradleModuleModelThanHolder() =
+  takeIf { it.isLinkedAndroidModule() }?.getHolderModule()?.let { holderModule ->
+    gradleModuleModel?.copy(moduleNameField = holderModule.name) != holderModule.gradleModuleModel
+  } == true
+
+fun  Module.hasDifferentGradleAndroidModelThanHolder() =
+  takeIf { it.isLinkedAndroidModule() }?.getHolderModule()?.let { holderModule ->
+    (GradleAndroidModel.get(this) as GradleAndroidModelImpl).data.copy(moduleNameField =  holderModule.name) !=
+      (GradleAndroidModel.get(holderModule) as GradleAndroidModelImpl).data
+  } == true
+

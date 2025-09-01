@@ -71,7 +71,6 @@ import org.jetbrains.annotations.VisibleForTesting
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
-@VisibleForTesting
 open class GradleAndroidModelImpl(
   val data: GradleAndroidModelData,
 ) : GradleAndroidModel {
