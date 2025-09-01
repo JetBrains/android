@@ -82,7 +82,6 @@ fun RecipeExecutor.generateCommonModule(
       minApi,
       apis.targetApi,
       useAndroidX,
-      formFactorNames = projectData.includedFormFactorNames,
       hasTests = generateGenericLocalTests,
       addLintOptions = addLintOptions,
       enableCpp = enableCpp,

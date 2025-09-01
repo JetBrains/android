@@ -30,7 +30,6 @@ android {
 }
 
 dependencies {
-
     implementation libs.androidx.leanback
     implementation libs.glide
 }

@@ -78,7 +78,6 @@ fun RecipeExecutor.generateDynamicFeatureModule(
       targetApi = targetApi,
       useAndroidX = useAndroidX,
       baseFeatureName = baseFeature.name,
-      formFactorNames = projectData.includedFormFactorNames,
       useVersionCatalog = useVersionCatalog,
     ),
     moduleOut.resolve(buildFile),

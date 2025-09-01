@@ -21,8 +21,6 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.npw.module.recipes.androidConfig
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.wizard.template.CppStandardType
-import com.android.tools.idea.wizard.template.FormFactor
-import com.android.tools.idea.wizard.template.has
 import com.android.tools.idea.wizard.template.renderIf
 
 fun buildGradle(
@@ -38,8 +36,6 @@ fun buildGradle(
   useAndroidX: Boolean,
   isCompose: Boolean = false,
   baseFeatureName: String = "base",
-  wearProjectName: String = "wear",
-  formFactorNames: Map<FormFactor, List<String>>,
   hasTests: Boolean = true,
   addLintOptions: Boolean = false,
   enableCpp: Boolean = false,
@@ -78,19 +74,10 @@ dependencies {
   val composeDependenciesBlock =
     renderIf(isCompose) { "kotlinPlugin \"androidx.compose:compose-compiler:+\"" }
 
-  val wearProjectBlock =
-    when {
-      wearProjectName.isNotBlank() &&
-        formFactorNames.has(FormFactor.Mobile) &&
-        formFactorNames.has(FormFactor.Wear) -> """wearApp project (":${wearProjectName}")"""
-      else -> ""
-    }
-
   val dependenciesBlock =
     """
   dependencies {
     $composeDependenciesBlock
-    $wearProjectBlock
   }
   """
 
@@ -137,7 +124,6 @@ internal fun String.gradleToKtsIfKts(isKts: Boolean): String =
         .toKtsProperty("minifyEnabled")
         .toKtsFunction("proguardFiles")
         .toKtsFunction("consumerProguardFiles")
-        .toKtsFunction("wearApp")
         .toKtsFunction(
           "implementation"
         ) // For dynamic app: implementation project(":app") -> implementation(project(":app"))
