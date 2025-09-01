@@ -32,10 +32,11 @@ class GradlePseudoLocalesToken: PseudoLocalesToken, GradleToken {
     val model = GradleAndroidModel.get(context.facet) ?: return PseudoLocalesToken.PseudoLocalesState.UNKNOWN.also { Logger.getInstance(GradlePseudoLocalesToken::class.java).warn("Failed to find GradleAndroidModel for ${context.facet.module.name}") }
     for (variant in model.androidProject.basicVariants) {
       if (variant.applicationId != applicationId && variant.testApplicationId != applicationId) continue
-      if (model.getBuildType(variant).buildType.isPseudoLocalesEnabled) {
-        enabled = true
-      } else {
-        disabled = true
+      val container = model.getBuildType(variant)
+      when {
+        container == null -> continue
+        container.buildType.isPseudoLocalesEnabled -> enabled = true
+        else -> disabled = true
       }
     }
     return when {

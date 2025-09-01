@@ -56,12 +56,8 @@ class BuildTypesUnitTestDefaultRefactoringProcessor : AbstractBooleanPropertyDef
       val androidModel = GradleAndroidModel.get(module) ?: return@any false
 
       androidModel.variants.any { variant ->
-        val basicVariant = androidModel.findBasicVariantByName(variant.name)
-        if (basicVariant == null || basicVariant.buildType == null) {
-          return@any false
-        }
-
-        val buildTypeContainer = androidModel.getBuildType(basicVariant)
+        val basicVariant = androidModel.findBasicVariantByName(variant.name) ?: return@any false
+        val buildTypeContainer = androidModel.getBuildType(basicVariant) ?: return@any false
         val isDebuggable = buildTypeContainer.buildType.isDebuggable
         if (isDebuggable) {
           false

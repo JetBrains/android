@@ -182,8 +182,8 @@ private open class GradleAndroidModelImpl(
     return buildTypeContainer.buildType.isDebuggable
   }
 
-  override fun getBuildType(variant: IdeBasicVariant): IdeBuildTypeContainer {
-    return myBuildTypesByName[variant.buildType] ?: error("Build type ${variant.buildType} not found")
+  override fun getBuildType(variant: IdeBasicVariant): IdeBuildTypeContainer? {
+    return variant.buildType?.let { myBuildTypesByName[it] }
   }
 
   private val myMinSdkVersion: AndroidVersion by lazy(LazyThreadSafetyMode.PUBLICATION) {
@@ -379,7 +379,7 @@ interface GradleAndroidModel: AndroidModel {
   fun findBasicVariantByName(variantName: String): IdeBasicVariant?
   fun getGradleScreenshotTestTaskNameForSelectedVariant(mode: String): String
   fun getGenerateBaselineProfileTaskNameForSelectedVariant(useAllVariants: Boolean): String?
-  fun getBuildType(variant: IdeBasicVariant): IdeBuildTypeContainer
+  fun getBuildType(variant: IdeBasicVariant): IdeBuildTypeContainer?
   fun getTargetLanguageLevel(): LanguageLevel?
   val filteredDebuggableVariants: Set<String>
   val selectedVariant: IdeVariantCore
