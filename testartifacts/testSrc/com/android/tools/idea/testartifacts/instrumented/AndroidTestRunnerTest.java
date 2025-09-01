@@ -42,7 +42,14 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.testFramework.RunsInEdt;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.Arrays;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assume;
@@ -102,7 +109,25 @@ public class AndroidTestRunnerTest {
 
   @Test
   public void testRunnerAtoUsed() throws Exception {
-    projectRule.loadProject(TestProjectPaths.INSTRUMENTATION_RUNNER_ANDROID_TEST_ORCHESTRATOR);
+    Function1<File, Unit> androidTestOrchestratorPatch = (root) -> {
+      File appBuildFile = new File(root, "app/build.gradle");
+      String text;
+      try {
+        text = Files.readString(appBuildFile.toPath());
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      StringBuilder sb = new StringBuilder(text);
+      sb.append("\nandroid.testOptions.execution \"android_test_orchestrator\"");
+      try {
+        Files.writeString(appBuildFile.toPath(), sb.toString());
+      }
+      catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      return Unit.INSTANCE;
+    };
+    projectRule.loadProject(TestProjectPaths.INSTRUMENTATION_RUNNER, null, null, androidTestOrchestratorPatch);
     AndroidFacet facet = projectRule.androidTestAndroidFacet(":app");
     RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner("google.testapplication.ApplicationTest", facet);
     assertThat(runner).isInstanceOf(AndroidTestOrchestratorRemoteAndroidTestRunner.class);
