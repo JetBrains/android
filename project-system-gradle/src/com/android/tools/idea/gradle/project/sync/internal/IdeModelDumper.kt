@@ -100,19 +100,13 @@ fun ProjectDumper.dumpAndroidIdeModel(
   kaptModels: (Module) -> KaptGradleModel?,
   mppModels: (Module) -> KotlinMPPGradleModel?,
   externalProjects: (Module) -> ExternalProject?,
-  // Only the selected variant will be dumped otherwise
-  dumpAllVariants: Boolean = true,
-  // Whether to include the project structure of the root module first as a header
-  dumpRootModuleProjectStructure: Boolean = true,
-  // Whether to dump all modules in a linked group
-  dumpAllLinkedModules: Boolean = false,
 ) {
   val projectRoot = File(project.basePath!!)
   nest(projectRoot, "PROJECT") {
     with(ideModelDumper(this)) {
-      if (dumpRootModuleProjectStructure) {
-      // Android Studio projects always have just one Gradle root, and thus we dump the composite build structure of the root project of a
-      // build located at the root of the IDE project.
+      if (!forSnapshotComparison) {
+        // Android Studio projects always have just one Gradle root, and thus we dump the composite build structure of the root project of a
+        // build located at the root of the IDE project.
         GradleHolderProjectPath(projectRoot.canonicalPath, ":")
           .resolveIn(project)
           ?.let { dump(it) }
@@ -146,13 +140,13 @@ fun ProjectDumper.dumpAndroidIdeModel(
             nest {
               if (it is GradleAndroidDependencyModel) {
                 it.variantsWithDependencies.filter { variant ->
-                  dumpAllVariants || variant.name == it.selectedVariantName
+                  forSnapshotComparison || variant.name == it.selectedVariantName
                 }.forEach {
                   dump(it)
                 }
               } else {
                 it.variants.filter { variant ->
-                  dumpAllVariants || variant.name == it.selectedVariantName
+                  forSnapshotComparison || variant.name == it.selectedVariantName
                 }.forEach {
                   dump(it)
                 }

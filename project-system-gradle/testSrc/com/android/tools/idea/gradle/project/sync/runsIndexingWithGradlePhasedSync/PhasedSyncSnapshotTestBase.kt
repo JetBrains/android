@@ -187,11 +187,6 @@ private fun Project.dumpAllIdeModels() : Sequence<String> {
       kaptModels = { null },
       mppModels = { null },
       externalProjects = { null },
-      // We have full variant information set up in the GradleAndroidModel in phased sync case
-      // without the dependencies, whereas that's not the case formerly.
-      dumpAllVariants = false,
-      // IdeModelDumper dump the root project structure by default, we don't want that here
-      dumpRootModuleProjectStructure = false,
   )
 
   return dumper.toString().nameProperties()

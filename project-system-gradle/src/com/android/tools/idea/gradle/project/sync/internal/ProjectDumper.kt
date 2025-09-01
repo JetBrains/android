@@ -50,6 +50,9 @@ class ProjectDumper(
   // - The library details are always expanded
   // - Only the first level of dependencies are dumped as the second level makes comparison too hard
   // - Filters some fields affected by the VFS
+  // - Dumps all the variants, not just the selected one
+  // - Dumps models all modules, not just the holder
+  // - Skips the root project structure when dumping IDE models, normally included for reference.
   internal val forSnapshotComparison: Boolean = false
 ) {
   private val gradleCache: File = getGradleCacheLocation()
