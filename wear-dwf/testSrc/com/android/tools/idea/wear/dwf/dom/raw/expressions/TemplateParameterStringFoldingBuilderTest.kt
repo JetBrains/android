@@ -66,4 +66,12 @@ class TemplateParameterStringFoldingBuilderTest {
     )
     fixture.testFolding("${fixture.testDataPath}/res/raw/watch_face_folding_disabled.xml")
   }
+
+  // Regression test for b/441987780
+  @Test
+  fun `does not throw exceptions on invalid resource names`() {
+    fixture.testFolding(
+      "${fixture.testDataPath}/res/raw/watch_face_folding_with_invalid_resource_name.xml"
+    )
+  }
 }

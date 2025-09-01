@@ -1,0 +1,5 @@
+<WatchFace<fold text='...'>>
+  <Template<fold text='...'>>%s
+    <Parameter expression="[CONFIGURATION.themeColor.0] != null ? [COMPLICATION.TEXT] : [COMPLICATION.TITLE]" />
+  </Template</fold>>
+</WatchFace</fold>>

@@ -18,6 +18,7 @@ package com.android.tools.idea.wear.dwf.dom.raw.expressions
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import com.android.resources.ResourceUrl
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.folding.AndroidFoldingSettings
 import com.android.tools.idea.wear.dwf.WFFConstants.ATTRIBUTE_EXPRESSION
@@ -66,12 +67,10 @@ class TemplateParameterStringFoldingBuilder : FoldingBuilderEx() {
           parentTag.parentTag?.name == TAG_TEMPLATE
       }
       .mapNotNull { xmlAttributeValue ->
+        val resourceName = xmlAttributeValue.value.removeSurroundingQuotes()
+        if (!ResourceUrl.isValidName(resourceName, ResourceType.STRING)) return@mapNotNull null
         val reference =
-          ResourceReference(
-            ResourceNamespace.RES_AUTO,
-            ResourceType.STRING,
-            xmlAttributeValue.value.removeSurroundingQuotes(),
-          )
+          ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STRING, resourceName)
         val resourceResolver =
           AndroidAnnotatorUtil.pickConfiguration(xmlAttributeValue.containingFile, facet)
             ?.resourceResolver ?: return@mapNotNull null
