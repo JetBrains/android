@@ -112,12 +112,10 @@ abstract class AbstractBlockPropertyWithPreviousDefaultProcessorTestBase: Abstra
   }
 }
 
-class BlockAidlProcessorTest: AbstractBlockPropertyWithPreviousDefaultProcessorTestBase() {
+class BlockAidlProcessorTest: AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
   override val removedVersion = AgpVersion.parse("9.0.0-alpha01")
   override val propertyKey = "android.defaults.buildfeatures.aidl"
   override val defaultWhenRemoved = false
-  override val featureName = "AIDL"
-  override val changeDefaultVersion = AgpVersion.parse("8.0.0-alpha04")
 
   override fun createProcessor(currentVersion: AgpVersion, newVersion: AgpVersion): AbstractBlockPropertyUnlessNoOpProcessor {
     return BlockAidlProcessor(project, currentVersion, newVersion)
@@ -164,12 +162,10 @@ class BlockPreciseShrinkingProcessorTest: AbstractBlockPropertyUnlessNoOpProcess
   }
 }
 
-class BlockRenderScriptProcessorTest: AbstractBlockPropertyWithPreviousDefaultProcessorTestBase() {
+class BlockRenderScriptProcessorTest: AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
   override val removedVersion = AgpVersion.parse("9.0.0-alpha01")
   override val propertyKey = "android.defaults.buildfeatures.renderscript"
   override val defaultWhenRemoved = false
-  override val featureName = "Render Script"
-  override val changeDefaultVersion = AgpVersion.parse("8.0.0-alpha02")
 
   override fun createProcessor(currentVersion: AgpVersion, newVersion: AgpVersion): AbstractBlockPropertyUnlessNoOpProcessor {
     return BlockRenderScriptProcessor(project, currentVersion, newVersion)
