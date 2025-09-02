@@ -30,6 +30,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade.integration
 
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.junit4.OldAgpSuite
 import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_8_11
@@ -42,7 +43,6 @@ import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.
 import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_7_3
 import com.android.tools.idea.gradle.project.upgrade.integration.TestProject.ALL_DEPRECATIONS
 import com.android.tools.idea.gradle.project.upgrade.integration.TestProject.BASIC
-import com.android.tools.idea.gradle.util.CompatibleGradleVersion
 import com.android.utils.FileUtils
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 
@@ -66,19 +66,18 @@ enum class TestProject(
  */
 enum class TestAGPVersion(
   val agpVersion: String?,
-  val gradleVersion: CompatibleGradleVersion,
   val jdkVersion: JavaSdkVersion? = null,
   val kotlinVersion: String = "1.3.72",
-  val compileSdkVersion: AndroidVersion = AndroidVersion(34)
+  val compileSdkVersion: AndroidVersion = AndroidVersion(AndroidApiLevel(34))
 ) {
-  V_4_0("4.0.0", CompatibleGradleVersion.VERSION_6_1_1, jdkVersion = JavaSdkVersion.JDK_11),
-  V_4_1("4.1.0", CompatibleGradleVersion.VERSION_6_5, jdkVersion = JavaSdkVersion.JDK_11),
-  V_4_2("4.2.0", CompatibleGradleVersion.VERSION_6_7_1, jdkVersion = JavaSdkVersion.JDK_11),
-  V_7_0("7.0.0", CompatibleGradleVersion.VERSION_7_0_2, jdkVersion = JavaSdkVersion.JDK_11),
-  V_7_1("7.1.0", CompatibleGradleVersion.VERSION_7_2, jdkVersion = JavaSdkVersion.JDK_11),
-  V_7_2("7.2.0", CompatibleGradleVersion.VERSION_7_3_3, jdkVersion = JavaSdkVersion.JDK_11),
-  V_7_3("7.3.0", CompatibleGradleVersion.VERSION_7_4, jdkVersion = JavaSdkVersion.JDK_11, kotlinVersion = "1.6.21"),
-  V_8_11("8.11.0", CompatibleGradleVersion.VERSION_8_13, kotlinVersion = "1.6.21", jdkVersion = JavaSdkVersion.JDK_17),
+  V_4_0("4.0.0", jdkVersion = JavaSdkVersion.JDK_11),
+  V_4_1("4.1.0", jdkVersion = JavaSdkVersion.JDK_11),
+  V_4_2("4.2.0", jdkVersion = JavaSdkVersion.JDK_11),
+  V_7_0("7.0.0", jdkVersion = JavaSdkVersion.JDK_11),
+  V_7_1("7.1.0", jdkVersion = JavaSdkVersion.JDK_11),
+  V_7_2("7.2.0", jdkVersion = JavaSdkVersion.JDK_11),
+  V_7_3("7.3.0", jdkVersion = JavaSdkVersion.JDK_11, kotlinVersion = "1.6.21"),
+  V_8_11("8.11.0", kotlinVersion = "1.6.21", jdkVersion = JavaSdkVersion.JDK_17),
 }
 
 /**
