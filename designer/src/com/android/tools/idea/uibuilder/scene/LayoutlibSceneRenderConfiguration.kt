@@ -207,6 +207,12 @@ class LayoutlibSceneRenderConfiguration(
    */
   var disableAnimation = false
 
+  /**
+   * Factory of [SessionClock]s to be used in context of the renders. A new clock is created on each
+   * new inflation, but not necessarily on each render.
+   */
+  var sessionClockProvider: () -> SessionClock = ::RealTimeSessionClock
+
   /** No-op in production, intended to be used for testing purposes only. */
   private var wrapRenderModule: (RenderModelModule) -> RenderModelModule = identity()
 

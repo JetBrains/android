@@ -418,7 +418,7 @@ open class LayoutlibSceneManager(
   final override var interactiveEventsCount = 0
     private set
 
-  private fun currentTimeNanos(): Long = layoutlibSceneRenderer.sessionClock.timeNanos
+  private fun currentTimeNanos(): Long = layoutlibSceneRenderer.sessionClock?.timeNanos ?: 0
 
   /**
    * Informs layoutlib that there was a (mouse) touch event detected of a particular type at a
@@ -471,10 +471,14 @@ open class LayoutlibSceneManager(
   }
 
   /** Pauses session clock, so that session time stops advancing. */
-  override fun pauseSessionClock(): Unit = layoutlibSceneRenderer.sessionClock.pause()
+  override fun pauseSessionClock() {
+    layoutlibSceneRenderer.sessionClock?.pause()
+  }
 
   /** Resumes session clock, so that session time keeps advancing. */
-  override fun resumeSessionClock(): Unit = layoutlibSceneRenderer.sessionClock.resume()
+  override fun resumeSessionClock() {
+    layoutlibSceneRenderer.sessionClock?.resume()
+  }
 
   /** Resets the counter of user events received by this scene to 0. */
   override fun resetInteractiveEventsCounter() {

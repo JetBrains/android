@@ -86,6 +86,8 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisi
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
+import com.android.tools.idea.uibuilder.scene.SteppingSessionClock
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
@@ -115,6 +117,7 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.JComponent
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -735,6 +738,15 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
         config.cacheSuccessfulRenderImage = mode.value !is PreviewMode.Interactive
         config.classesToPreload =
           if (mode.value is PreviewMode.Interactive) INTERACTIVE_CLASSES_TO_PRELOAD else emptyList()
+        config.sessionClockProvider = {
+          // For static preview use a clock that increments the time by 500ms on each read so that
+          // callbacks are executed in a deterministic way and without needing to actually wait for
+          // the 500ms to pass.
+          if (mode.value.isNormal) SteppingSessionClock(step = 500.milliseconds)
+          // For interactive and animation preview use a "real" clock to better simulate an
+          // interactive session
+          else RealTimeSessionClock()
+        }
         config.usePrivateClassLoader = mode.value is PreviewMode.Interactive
         config.quality = qualityManager.getTargetQuality(this@apply)
       }

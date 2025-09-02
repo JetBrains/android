@@ -99,6 +99,8 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisi
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
+import com.android.tools.idea.uibuilder.scene.SteppingSessionClock
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
@@ -151,6 +153,7 @@ import javax.swing.JPanel
 import javax.swing.SwingConstants
 import javax.swing.event.AncestorEvent
 import kotlin.properties.Delegates
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -237,7 +240,7 @@ private fun createPreviewElementDataProvider(
  *
  * @param showDecorations when true, the rendered content will be shown with the full device size
  *   specified in the device configuration and with the frame decorations.
- * @param isInteractive whether the scene displays an interactive preview.
+ * @param previewMode the current [PreviewMode], under which the preview will be rendered.
  * @param runVisualAnalysis whether to run Accessibility checks and Visual Lint analysis on the
  *   preview after it has been rendered. This will run the ATF scanner to detect issues affecting
  *   accessibility (e.g. low contrast, missing content description...), and the Visual Lint
@@ -247,7 +250,7 @@ private fun createPreviewElementDataProvider(
 fun configureLayoutlibSceneManager(
   sceneManager: LayoutlibSceneManager,
   showDecorations: Boolean,
-  isInteractive: Boolean,
+  previewMode: PreviewMode,
   requestPrivateClassLoader: Boolean,
   runVisualAnalysis: Boolean,
   quality: Float,
@@ -260,8 +263,18 @@ fun configureLayoutlibSceneManager(
       // When the cache successful render image is enabled, the scene manager will retain the last
       // valid image even if subsequent renders fail. But do not cache in interactive mode as it
       // does not help, and it would make unnecessary copies of the bitmap.
-      config.cacheSuccessfulRenderImage = !isInteractive
-      config.classesToPreload = if (isInteractive) INTERACTIVE_CLASSES_TO_PRELOAD else emptyList()
+      config.cacheSuccessfulRenderImage = previewMode !is PreviewMode.Interactive
+      config.classesToPreload =
+        if (previewMode is PreviewMode.Interactive) INTERACTIVE_CLASSES_TO_PRELOAD else emptyList()
+      config.sessionClockProvider = {
+        // For static preview use a clock that increments the time by 500ms on each read so that
+        // callbacks are executed in a deterministic way and without needing to actually wait for
+        // the 500ms to pass.
+        if (previewMode.isNormal) SteppingSessionClock(step = 500.milliseconds)
+        // For interactive and animation preview use a "real" clock to better simulate an
+        // interactive session
+        else RealTimeSessionClock()
+      }
       config.usePrivateClassLoader = requestPrivateClassLoader
       config.showDecorations = showDecorations
       // The Compose Preview has its own way to track out of date files so we ask the Layoutlib
@@ -1037,7 +1050,7 @@ class ComposePreviewRepresentation(
     configureLayoutlibSceneManager(
       layoutlibSceneManager,
       showDecorations = displaySettings.showDecoration,
-      isInteractive = mode.value is PreviewMode.Interactive,
+      previewMode = mode.value,
       requestPrivateClassLoader = usePrivateClassLoader(),
       runVisualAnalysis = mode.value is PreviewMode.UiCheck,
       quality = qualityManager.getTargetQuality(layoutlibSceneManager),

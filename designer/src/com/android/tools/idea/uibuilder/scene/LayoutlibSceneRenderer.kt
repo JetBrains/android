@@ -140,8 +140,7 @@ class LayoutlibSceneRenderer(
         if (isDisposedOrDeactivated() && newTask != null) oldTask = newTask
         else {
           oldTask = field
-          // TODO(b/168445543): move session clock to RenderTask
-          sessionClock = RealTimeSessionClock()
+          sessionClock = sceneRenderConfiguration.sessionClockProvider()
           field = newTask
           if (field == null) sceneRenderConfiguration.needsInflation.set(true)
         }
@@ -154,7 +153,7 @@ class LayoutlibSceneRenderer(
     }
 
   @GuardedBy("renderTaskLock")
-  internal var sessionClock: SessionClock = RealTimeSessionClock()
+  internal var sessionClock: SessionClock? = null
     get() = renderTaskLock.withLock { field }
     private set
 
@@ -167,8 +166,9 @@ class LayoutlibSceneRenderer(
     var hasCallbacks = true
     withTimeoutOrNull(timeMillis = 100L) {
       while (hasCallbacks) {
-        hasCallbacks =
-          renderTask?.executeCallbacks(sessionClock.timeNanos)?.await()?.hasMoreCallbacks() ?: false
+        val task = renderTask ?: return@withTimeoutOrNull
+        val clock = sessionClock ?: return@withTimeoutOrNull
+        hasCallbacks = task.executeCallbacks(clock.timeNanos).await().hasMoreCallbacks()
       }
     }
   }
@@ -359,7 +359,7 @@ class LayoutlibSceneRenderer(
         val quality = sceneRenderConfiguration.quality
         it.setQuality(quality)
         if (executeCallbacksBeforeRendering) {
-          it.executeCallbacks(sessionClock.timeNanos).await()
+          executeAllCallbacks()
         }
         result = it.render().await() // await is the suspendable version of join
         if (result?.renderResult?.isSuccess == true) {
