@@ -22,6 +22,7 @@ import com.google.idea.blaze.base.logging.utils.HighlightStats;
 import com.google.idea.blaze.base.logging.utils.SyncStats;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStats;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats;
+import com.google.idea.blaze.ext.Logentry.AiEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import java.time.Duration;
 import java.util.Collection;
@@ -46,6 +47,8 @@ public interface EventLoggingService {
   void log(QuerySyncActionStats querySyncStats);
 
   void log(QuerySyncAutoConversionStats querySyncAutoConversionStats);
+
+  void log(AiEvent aiEvent);
 
   void logCommand(Class<?> loggingClass, Command command);
 

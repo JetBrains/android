@@ -22,6 +22,7 @@ import com.google.idea.blaze.base.logging.utils.HighlightStats;
 import com.google.idea.blaze.base.logging.utils.SyncStats;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStats;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats;
+import com.google.idea.blaze.ext.Logentry.AiEvent;
 import com.google.idea.testing.ServiceHelper;
 import com.intellij.openapi.Disposable;
 import java.util.List;
@@ -36,6 +37,7 @@ public class MockEventLoggingService implements EventLoggingService {
   private final List<SyncStats> syncStats = Lists.newArrayList();
   private final List<QuerySyncActionStats> querySyncStats = Lists.newArrayList();
   private final List<QuerySyncAutoConversionStats> querySyncAutoConversionStats = Lists.newArrayList();
+  private final List<AiEvent> aiEvents = Lists.newArrayList();
 
   public MockEventLoggingService(Disposable parentDisposable) {
     ServiceHelper.registerApplicationService(EventLoggingService.class, this, parentDisposable);
@@ -49,7 +51,11 @@ public class MockEventLoggingService implements EventLoggingService {
     return ImmutableList.copyOf(querySyncStats);
   }
 
-  public ImmutableList<QuerySyncAutoConversionStats> getQuerySyncAutoConversionStats() { return ImmutableList.copyOf(querySyncAutoConversionStats); }
+  public ImmutableList<QuerySyncAutoConversionStats> getQuerySyncAutoConversionStats() {
+    return ImmutableList.copyOf(querySyncAutoConversionStats);
+  }
+
+  public ImmutableList<AiEvent> aiEvents() { return ImmutableList.copyOf(aiEvents); }
 
   @Override
   public void log(SyncStats stats) {
@@ -63,6 +69,9 @@ public class MockEventLoggingService implements EventLoggingService {
 
   @Override
   public void log(QuerySyncAutoConversionStats stats) { querySyncAutoConversionStats.add(stats); }
+
+  @Override
+  public void log(AiEvent aiEvent) { aiEvents.add(aiEvent); }
 
   @Override
   public void logCommand(Class<?> loggingClass, Command command) { }
