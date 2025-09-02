@@ -1,5 +1,5 @@
 android {
   compileSdk {
-    version = preview("Tiramisu")
+    version = preview('Tiramisu')
   }
 }

@@ -115,7 +115,7 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
 
     val compileSdkVersion = android.compileSdkVersion()
     assertThat(compileSdkVersion).isNotNull()
-    assertThat(compileSdkVersion.getValue(GradlePropertyModel.STRING_TYPE)).isEqualTo("Tiramisu")
+    assertThat(compileSdkVersion.getValue(GradlePropertyModel.STRING_TYPE)).isEqualTo("android-Tiramisu")
     val config = compileSdkVersion.toCompileSdkConfig()
     assertThat(config).isNotNull()
     val version = config!!.getVersion()
@@ -146,7 +146,7 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
 
     val compileSdkVersion = android.compileSdkVersion()
     assertThat(compileSdkVersion).isNotNull()
-    assertThat(compileSdkVersion.getRawValue(GradlePropertyModel.OBJECT_TYPE)).isEqualTo("Tiramisu")
+    assertThat(compileSdkVersion.getRawValue(GradlePropertyModel.OBJECT_TYPE)).isEqualTo("android-Tiramisu")
     val config = compileSdkVersion.toCompileSdkConfig()
     assertThat(config).isNotNull()
     val version = config!!.getVersion()
@@ -296,7 +296,7 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
     assertThat(compileSdkVersion.toCompileSdkConfig()?.getVersion()).isInstanceOf(CompileSdkReleaseModel::class.java)
 
     compileSdkVersion.setValue("Tiramisu")
-    assertThat(compileSdkVersion.getValue(GradlePropertyModel.STRING_TYPE)).isEqualTo("Tiramisu")
+    assertThat(compileSdkVersion.getValue(GradlePropertyModel.STRING_TYPE)).isEqualTo("android-Tiramisu")
     assertThat(compileSdkVersion.toCompileSdkConfig()?.getVersion()).isInstanceOf(CompileSdkPreviewModel::class.java)
     assertThat(compileSdkVersion.getValue(GradlePropertyModel.INTEGER_TYPE)).isNull()
 
@@ -350,6 +350,32 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
     compileSdkVersion.setValue(33)
 
     assertThat(android.compileSdkVersion().getValue(GradlePropertyModel.INTEGER_TYPE)).isEqualTo(33)
+  }
+
+  @Test
+  fun testSetCompileSdkPreviewWithExistingCompileSdkRelease() {
+    writeToBuildFile(TestFile.READ_RELEASE_BLOCK)
+    val buildModel = gradleBuildModel
+
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    android.compileSdkVersion().setValue("android-Tiramisu")
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, TestFile.READ_PREVIEW_METHOD)
+  }
+
+  @Test
+  fun testSetCompileSdkReleaseWithExistingCompileSdkPreview() {
+    writeToBuildFile(TestFile.READ_PREVIEW_METHOD)
+    val buildModel = gradleBuildModel
+
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    android.compileSdkVersion().setValue("android-33.1-ext18")
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, TestFile.READ_RELEASE_BLOCK)
   }
 
   private fun initTest(testFileName: TestFileName): GradleBuildModel {

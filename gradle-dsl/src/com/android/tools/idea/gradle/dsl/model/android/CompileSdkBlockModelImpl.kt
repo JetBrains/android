@@ -52,7 +52,11 @@ class CompileSdkBlockModelImpl(dslElement: GradlePropertiesDslElement) : GradleD
             .buildResolved()
 
           object : CompileSdkPreviewModel {
-            override fun toHash(): String? = previewProperty.resolve().valueAsString()
+            override fun toHash(): String? {
+              return if (previewProperty.resolve().valueAsString() != null) {
+                "android-" + previewProperty.resolve().valueAsString()
+              } else null
+            }
             override fun toInt(): Int? = null
             override fun getVersion(): ResolvedPropertyModel = previewProperty
             override fun delete() = previewProperty.delete()
@@ -116,7 +120,11 @@ class CompileSdkBlockModelImpl(dslElement: GradlePropertiesDslElement) : GradleD
     val methodCall = GradleDslMethodCall(myDslElement, GradleNameElement.create(VERSION), PREVIEW_NAME)
     myDslElement.setNewElement(methodCall)
     val versionLiteral = GradleDslLiteral(methodCall.argumentsElement, GradleNameElement.empty())
-    versionLiteral.setValue(version)
+    if (version is String && version.startsWith("android-")) {
+      versionLiteral.setValue(version.substringAfter("android-"))
+    } else {
+      versionLiteral.setValue(version)
+    }
     methodCall.addNewArgument(versionLiteral)
   }
 
