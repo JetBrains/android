@@ -30,7 +30,6 @@ import com.android.tools.idea.testing.TestProjectPaths.ANDROID_KOTLIN_MULTIPLATF
 import com.android.tools.idea.testing.TestProjectPaths.BASIC_COMPOSITE_BUILD
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_WITH_DUPLICATES
-import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APP_ANDROID_TEST_DISABLED
 import com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN
 import com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN_MULTIPLATFORM
 import com.android.tools.idea.testing.TestProjectPaths.TEST_RESOURCES
@@ -60,6 +59,7 @@ import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.RunsInEdt
+import java.io.File
 import org.jetbrains.plugins.gradle.GradleManager
 import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.execution.test.runner.GradleTestsExecutionConsoleManager
@@ -309,7 +309,17 @@ class AndroidGradleConfigurationProducersTest {
   // For reference: b/389733593
   @Test
   fun testOnlyUnitTestConfigurationIsCreatedWhenAndroidTestIsDisabled() {
-    projectRule.loadProject(SIMPLE_APP_ANDROID_TEST_DISABLED)
+    projectRule.loadProject(SIMPLE_APPLICATION) { root ->
+      val appBuildFile = File(root, "app/build.gradle")
+      appBuildFile.appendText("""
+
+        androidComponents {
+          beforeVariants(selector().all()) { variant ->
+            variant.androidTest.enable = false
+          }
+        }
+      """.trimIndent())
+    }
     // Verify we cannot create androidTest RC from UnitTest class.
     assertThat(createAndroidTestConfigurationFromClass(project, "google.simpleapplication.UnitTest")).isNull()
     // Verify we cannot create androidTest RC from UnitTest method.
