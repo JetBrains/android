@@ -23,6 +23,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.resolveValue
+import com.android.tools.idea.ui.resourcemanager.plugin.LayoutRenderOptions
 import com.android.tools.idea.ui.resourcemanager.plugin.LayoutRenderer
 import com.android.tools.idea.util.toVirtualFile
 import com.intellij.openapi.vfs.VirtualFile
@@ -35,16 +36,18 @@ import java.awt.image.BufferedImage
  * [SlowResourcePreviewProvider] for Layout and Menu resources.
  */
 class LayoutSlowPreviewProvider(private val facet: AndroidFacet,
-                                private val resourceResolver: ResourceResolver) : SlowResourcePreviewProvider {
+                                private val resourceResolver: ResourceResolver,
+                                private val renderingOptions: LayoutRenderOptions? = null,
+                                placeholderImage: BufferedImage? = null) : SlowResourcePreviewProvider {
 
-  override val previewPlaceholder: BufferedImage = createLayoutPlaceholderImage(JBUIScale.scale(100), JBUIScale.scale(100))
+  override val previewPlaceholder: BufferedImage = placeholderImage ?: createLayoutPlaceholderImage(JBUIScale.scale(100), JBUIScale.scale(100))
 
   override fun getSlowPreview(width: Int, height: Int, asset: Asset): BufferedImage? {
     val designAsset = asset as? DesignAsset ?: return null
     val file = resourceResolver.getResolvedLayoutFile(designAsset) ?: return null
     val psiFile = AndroidPsiUtils.getPsiFileSafely(facet.module.project, file) as? XmlFile ?: return null
     val configuration = ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(file)
-    return LayoutRenderer.getInstance(facet).getLayoutRender(psiFile, configuration).get()
+    return LayoutRenderer.getInstance(facet).getLayoutRender(psiFile, configuration, renderingOptions).get()
   }
 
   private fun ResourceResolver.getResolvedLayoutFile(designAsset: DesignAsset): VirtualFile? =

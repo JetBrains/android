@@ -18,9 +18,11 @@ package com.android.tools.idea.ui.resourcemanager.rendering
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
+import com.android.tools.idea.ui.resourcemanager.plugin.LayoutRenderOptions
 import com.android.tools.idea.ui.resourcemanager.rendering.SlowResource.Companion.toSlowResource
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.vfs.VirtualFile
+import java.awt.image.BufferedImage
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -46,7 +48,7 @@ interface AssetPreviewManager {
  * [ResourceType.LAYOUT], [ResourceType.COLOR] and [ResourceType.MIPMAP]
  */
 class AssetPreviewManagerImpl(
-  private val facet: AndroidFacet, imageCache: ImageCache, private val resourceResolver: ResourceResolver, private val contextFile: VirtualFile? = null
+  private val facet: AndroidFacet, imageCache: ImageCache, private val resourceResolver: ResourceResolver, private val contextFile: VirtualFile? = null, private val renderingOptions: LayoutRenderOptions? = null, private val placeHolderImage: BufferedImage? = null
 ) : AssetPreviewManager {
 
   private val colorPreviewProvider by lazy {
@@ -59,7 +61,7 @@ class AssetPreviewManagerImpl(
     SlowResourcePreviewManager(imageCache, DrawableSlowPreviewProvider(facet, resourceResolver, contextFile))
   }
   private val layoutPreviewProvider by lazy {
-    SlowResourcePreviewManager(imageCache, LayoutSlowPreviewProvider(facet, resourceResolver))
+    SlowResourcePreviewManager(imageCache, LayoutSlowPreviewProvider(facet, resourceResolver, renderingOptions, placeHolderImage))
   }
   private val navGraphPreviewProvider by lazy {
     SlowResourcePreviewManager(imageCache, NavigationSlowPreviewProvider(facet, resourceResolver))

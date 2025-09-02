@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.plugin
 
+import com.android.ide.common.rendering.api.SessionParams
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.layoutlib.RenderingException
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
@@ -22,6 +23,7 @@ import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilder
 import com.android.tools.rendering.RenderResult
+import com.android.tools.rendering.RenderService
 import com.android.tools.rendering.RenderTask
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.util.Disposer
@@ -45,13 +47,12 @@ private val LAYOUT_KEY = Key.create<LayoutRenderer>(LayoutRenderer::class.java.n
 
 private fun createRenderTask(buildTarget: AndroidBuildTargetReference,
                              xmlFile: XmlFile,
-                             configuration: Configuration
+                             configuration: Configuration,
+                             layoutRenderOptions: LayoutRenderOptions
 ): CompletableFuture<RenderTask?> {
-  return StudioRenderService.getInstance(buildTarget.project)
-    .taskBuilder(buildTarget, configuration)
+  return layoutRenderOptions.applyTo(StudioRenderService.getInstance(buildTarget.project).taskBuilder(buildTarget, configuration))
     .withPsiFile(PsiXmlFile(xmlFile))
     .withMaxRenderSize(MAX_RENDER_WIDTH, MAX_RENDER_HEIGHT)
-    .disableDecorations()
     .build()
 }
 
@@ -63,7 +64,7 @@ class LayoutRenderer
 @VisibleForTesting
 constructor(
   facet: AndroidFacet,
-  private val renderTaskProvider: (AndroidBuildTargetReference, XmlFile, Configuration) -> CompletableFuture<RenderTask?>,
+  private val renderTaskProvider: (AndroidBuildTargetReference, XmlFile, Configuration, LayoutRenderOptions) -> CompletableFuture<RenderTask?>,
   private val futuresManager: ImageFuturesManager<VirtualFile>
 ) : AndroidFacetScopedService(facet) {
 
@@ -73,13 +74,14 @@ constructor(
 
   override fun onServiceDisposal(facet: AndroidFacet) {}
 
-  fun getLayoutRender(xmlFile: XmlFile, configuration: Configuration): CompletableFuture<BufferedImage?> {
-    val imageRenderCallback: () -> CompletableFuture<BufferedImage?> = { getImage(xmlFile, configuration) }
+  fun getLayoutRender(xmlFile: XmlFile, configuration: Configuration, layoutRenderOptions: LayoutRenderOptions? = null): CompletableFuture<BufferedImage?> {
+    val imageRenderCallback: () -> CompletableFuture<BufferedImage?> = { getImage(xmlFile, configuration, layoutRenderOptions) }
     return futuresManager.registerAndGet(xmlFile.virtualFile, imageRenderCallback)
   }
 
-  private fun getImage(xmlFile: XmlFile, configuration: Configuration): CompletableFuture<BufferedImage?> {
-    val renderTaskFuture = renderTaskProvider(AndroidBuildTargetReference.gradleOnly(facet), xmlFile, configuration)
+  private fun getImage(xmlFile: XmlFile, configuration: Configuration, layoutRenderOptions: LayoutRenderOptions?): CompletableFuture<BufferedImage?> {
+    val options = layoutRenderOptions ?: LayoutRenderOptions()
+    val renderTaskFuture = renderTaskProvider(AndroidBuildTargetReference.gradleOnly(facet), xmlFile, configuration, options)
     return renderTaskFuture.thenCompose { it?.render() }
       .thenApplyAsync(Function<RenderResult?, BufferedImage?> {
         if (it == null) {
@@ -116,6 +118,31 @@ constructor(
     fun setInstance(facet: AndroidFacet, layoutRenderer: LayoutRenderer?) {
       // TODO: Move method to test Module and use AndroidFacet.putUserData directly, make the Key @VisibleForTesting instead
       facet.putUserData(LAYOUT_KEY, layoutRenderer)
+    }
+  }
+}
+
+/**
+ * Used to apply additional RenderTask configuration to the [LayoutRenderer].
+ *
+ * @property renderingMode The rendering mode to be used in the [RenderTask], defaults to [SessionParams.RenderingMode.NORMAL]
+ * @property disableDecorations Disables decorations in the render, defaults to true for the [LayoutRenderer]
+ * @property transparentBackground Enables window transparency in the future render
+ */
+data class LayoutRenderOptions(
+  val renderingMode: SessionParams.RenderingMode? = null,
+  val disableDecorations: Boolean = true,
+  val transparentBackground: Boolean = false,
+) {
+  fun applyTo(builder: RenderService.RenderTaskBuilder): RenderService.RenderTaskBuilder {
+    return builder.apply {
+      renderingMode?.let { withRenderingMode(it) }
+      if (transparentBackground) {
+        useTransparentBackground()
+      }
+      if (disableDecorations) {
+        disableDecorations()
+      }
     }
   }
 }

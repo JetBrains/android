@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.plugin
 
+import com.android.ide.common.rendering.api.SessionParams
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.tools.configurations.Configuration
@@ -29,6 +30,7 @@ import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListVi
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModelImpl
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
+import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerImpl
 import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
@@ -113,6 +115,30 @@ class LayoutRendererTest {
     assertThat(image.height).isEqualTo(height)
   }
 
+  @Test
+  fun shrinkRenderingModeLowersHeight() {
+    val layoutRenderOptions = LayoutRenderOptions(
+      renderingMode = SessionParams.RenderingMode.SHRINK,
+      disableDecorations = true,
+    )
+
+    val androidFacet = rule.module.androidFacet!!
+    val layoutRenderer = LayoutRenderer(androidFacet, ::createRenderTaskForTest, ImageFuturesManager())
+    LayoutRenderer.setInstance(androidFacet, layoutRenderer)
+
+    val designAsset = DesignAsset(createLayoutFile().virtualFile, emptyList(), ResourceType.LAYOUT)
+
+    val cache = ImageCache.createImageCache(rule.fixture.projectDisposable)
+    val assetPreviewManager = AssetPreviewManagerImpl(androidFacet, cache, mock<ResourceResolver>(), null, layoutRenderOptions, null)
+    val previewProvider = assetPreviewManager.getPreviewProvider(ResourceType.LAYOUT)
+    val width = 100
+    val height = 200
+    val bufferedImage = (previewProvider.getIcon(designAsset, width, height, JLabel(), {})
+      as ImageIcon).image.toBufferedImage()
+
+    assert(bufferedImage.height < height)
+  }
+
   private fun createLayoutFile(): XmlFile {
     @Language("XML") val layoutXml = """<?xml version="1.0" encoding="utf-8" ?>
   <LinearLayout
@@ -133,11 +159,10 @@ class LayoutRendererTest {
   }
 }
 
-private fun createRenderTaskForTest(buildTarget: AndroidBuildTargetReference, xmlFile: XmlFile, configuration: Configuration) =
-  StudioRenderService.getInstance(buildTarget.project).taskBuilder(buildTarget, configuration)
+private fun createRenderTaskForTest(buildTarget: AndroidBuildTargetReference, xmlFile: XmlFile, configuration: Configuration, renderingOptions: LayoutRenderOptions? = LayoutRenderOptions()) =
+  renderingOptions!!.applyTo(StudioRenderService.getInstance(buildTarget.project).taskBuilder(buildTarget, configuration))
     .withPsiFile(PsiXmlFile(xmlFile))
     .withMaxRenderSize(MAX_RENDER_WIDTH, MAX_RENDER_HEIGHT)
-    .disableDecorations()
     .disableSecurityManager()
     .build()
 
