@@ -65,6 +65,10 @@ class GeneratedResourcesTest {
           }
         }
         """.trimIndent())
+      File(projectRoot, "gradle.properties").appendText(
+        """
+        android.newDsl=false
+        """.trimIndent())
     }
 
     AndroidProjectRootListener.ensureSubscribed(project)

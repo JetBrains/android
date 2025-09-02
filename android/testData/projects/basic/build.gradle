@@ -118,9 +118,9 @@ android {
     }
 
     // Override the versionCode of the release version
-    applicationVariants.all { variant ->
-        if (variant.buildType.name == "release") {
-            variant.outputs.collect().get(0).versionCodeOverride = 13
+    androidComponents {
+        onVariants(selector().withBuildType("release")) { variant ->
+            variant.outputs.forEach { it.versionCode.set(13) }
         }
     }
 }

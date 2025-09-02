@@ -391,12 +391,9 @@ class MigrateToNonTransitiveRClassesProcessorTest {
     MigrateToNonTransitiveRClassesProcessor.forEntireProject(projectRule.project, AgpVersion.parse("4.2.0")).run()
 
     val properties = VfsUtil.findRelativeFile(projectRule.project.guessProjectDir(), "gradle.properties")!!
-    assertThat(FileDocumentManager.getInstance().getDocument(properties)!!.text).contains(
-      """
-        android.experimental.nonTransitiveAppRClass=true
-        android.nonTransitiveRClass=true
-      """.trimIndent()
-    )
+    val gradlePropertiesContent = FileDocumentManager.getInstance().getDocument(properties)!!.text
+    assertThat(gradlePropertiesContent).contains("android.experimental.nonTransitiveAppRClass=true")
+    assertThat(gradlePropertiesContent).contains("android.nonTransitiveRClass=true")
 
     projectRule.fixture.checkResult(
       "app/src/main/java/com/example/app/AppJavaClass.java",
@@ -438,12 +435,9 @@ class MigrateToNonTransitiveRClassesProcessorTest {
 
     MigrateToNonTransitiveRClassesProcessor.forEntireProject(projectRule.project, AgpVersion.parse("4.2.0-rc01")).run()
     val properties = VfsUtil.findRelativeFile(projectRule.project.guessProjectDir(), "gradle.properties")!!
-    assertThat(FileDocumentManager.getInstance().getDocument(properties)!!.text).contains(
-      """
-        android.experimental.nonTransitiveAppRClass=true
-        android.nonTransitiveRClass=true
-      """.trimIndent()
-    )
+    val gradlePropertiesContent = FileDocumentManager.getInstance().getDocument(properties)!!.text
+    assertThat(gradlePropertiesContent).contains("android.experimental.nonTransitiveAppRClass=true")
+    assertThat(gradlePropertiesContent).contains("android.nonTransitiveRClass=true")
   }
 
   @Test
