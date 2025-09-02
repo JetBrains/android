@@ -217,7 +217,7 @@ final class ProjectStateSyncTask {
         BlazeVersionData.build(
             Blaze.getBuildSystemProvider(project).getBuildSystem(), workspaceRoot, blazeInfo);
 
-    if (!BuildSystemVersionChecker.verifyVersionSupported(context, blazeVersionData)) {
+    if (!BuildSystemVersionChecker.verifyVersionSupported(project, context, blazeVersionData)) {
       throw new SyncFailedException();
     }
 

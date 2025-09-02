@@ -23,9 +23,12 @@ import com.google.common.io.MoreFiles
 import com.google.idea.blaze.base.bazel.BuildSystem
 import com.google.idea.blaze.base.logging.utils.querysync.BuildDepsStatsScope
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
+import com.google.idea.blaze.base.plugin.BazelVersionChecker
+import com.google.idea.blaze.base.plugin.BuildSystemVersionChecker
 import com.google.idea.blaze.base.projectview.ProjectViewSet
 import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.base.settings.BlazeImportSettings
+import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver
 import com.google.idea.blaze.base.targetmaps.SourceToTargetMap
@@ -192,7 +195,10 @@ class QuerySyncProject(
     BlazeContext.create(context).use { context ->
       try {
         context.push(BuildDepsStatsScope())
-        return this.dependencyTracker.buildDependenciesForTargets(context, request)
+        if (BuildSystemVersionChecker.verifyVersionSupported(ideProject, context, projectData.getBlazeVersionData())) {
+          return this.dependencyTracker.buildDependenciesForTargets(context, request)
+        }
+        throw BuildException(String.format("Failed to build dependencies - %s version not supported", buildSystem.name))
       }
       catch (e: IOException) {
         throw BuildException("Failed to build dependencies", e)
@@ -236,6 +242,7 @@ class QuerySyncProject(
   }
 
   class CreateProjectStructureResult(val projectStructure: ProjectProto.Project, val artifactState: ArtifactTracker.State)
+
   fun createProjectStructure(context: BlazeContext, queryData: PostQuerySyncData, graph: BuildGraphData): CreateProjectStructureResult {
     val artifactTrackerState = artifactTracker.getStateSnapshot()
     val newProjectStructure =

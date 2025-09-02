@@ -15,23 +15,23 @@
  */
 package com.google.idea.blaze.base.plugin;
 
+import com.google.idea.blaze.base.settings.BlazeImportSettings;
+import com.intellij.openapi.project.Project;
 import com.google.idea.blaze.base.bazel.BazelVersion;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.output.IssueOutput;
 import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.settings.BuildSystemName;
-import com.intellij.openapi.project.Project;
 
 /** Verifies that the available Bazel version is supported by this plugin. */
-public class BazelVersionChecker implements BuildSystemVersionChecker {
+public class QuerySyncBazelVersionChecker implements BuildSystemVersionChecker {
 
-  private static final BazelVersion OLDEST_SUPPORTED_VERSION = new BazelVersion(4, 0, 0);
+  private static final BazelVersion OLDEST_SUPPORTED_VERSION = new BazelVersion(7, 1, 0);
 
   @Override
   public boolean versionSupported(Project project, BlazeContext context, BlazeVersionData version) {
-    if (version.buildSystem() != BuildSystemName.Bazel || Blaze.getProjectType(project) != BlazeImportSettings.ProjectType.ASPECT_SYNC) {
+    if (version.buildSystem() != BuildSystemName.Bazel || Blaze.getProjectType(project) != BlazeImportSettings.ProjectType.QUERY_SYNC) {
       return true;
     }
     if (version.bazelIsAtLeastVersion(OLDEST_SUPPORTED_VERSION)) {

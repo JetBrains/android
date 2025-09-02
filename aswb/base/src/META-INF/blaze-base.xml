@@ -587,6 +587,7 @@
     <ProjectViewDefaultValueProvider implementation="com.google.idea.blaze.base.projectview.section.sections.AdditionalLanguagesSection$AdditionalLanguagesDefaultValueProvider"/>
     <PrefetchFileSource implementation="com.google.idea.blaze.base.prefetch.ProtoPrefetchFileSource"/>
     <BuildSystemVersionChecker implementation="com.google.idea.blaze.base.plugin.BazelVersionChecker"/>
+    <BuildSystemVersionChecker implementation="com.google.idea.blaze.base.plugin.QuerySyncBazelVersionChecker"/>
     <BlazeConsoleLineProcessorProvider implementation="com.google.idea.blaze.base.console.BlazeConsoleLineProcessorProvider$GeneralProvider"/>
     <TargetFinder implementation="com.google.idea.blaze.base.run.targetfinder.ProjectTargetFinder"/>
     <SourceToTargetFinder implementation="com.google.idea.blaze.base.run.testmap.ProjectSourceToTargetFinder"/>

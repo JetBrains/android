@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.base.plugin;
 
+import com.intellij.openapi.project.Project;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.intellij.openapi.extensions.ExtensionPointName;
@@ -29,9 +30,9 @@ public interface BuildSystemVersionChecker {
   ExtensionPointName<BuildSystemVersionChecker> EP_NAME =
       ExtensionPointName.create("com.google.idea.blaze.BuildSystemVersionChecker");
 
-  static boolean verifyVersionSupported(BlazeContext context, BlazeVersionData version) {
+  static boolean verifyVersionSupported(Project project, BlazeContext context, BlazeVersionData version) {
     for (BuildSystemVersionChecker checker : EP_NAME.getExtensions()) {
-      if (!checker.versionSupported(context, version)) {
+      if (!checker.versionSupported(project, context, version)) {
         return false;
       }
     }
@@ -43,5 +44,5 @@ public interface BuildSystemVersionChecker {
    *
    * <p>Also displays corresponding errors via the {@link BlazeContext}.
    */
-  boolean versionSupported(BlazeContext context, BlazeVersionData version);
+  boolean versionSupported(Project project,  BlazeContext context, BlazeVersionData version);
 }
