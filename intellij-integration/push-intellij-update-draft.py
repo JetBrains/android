@@ -64,8 +64,8 @@ def main():
             elif check('git', 'rev-parse', '-q', '--verify', args.branch, cwd=path, stdout=DEVNULL):
                 # Pin revision to a synthetic draft commit that we push to Gerrit.
                 ref = run('git', 'commit-tree', '-p', 'm/studio-main^{}', '-m', COMMIT_MSG, f'{args.branch}^{{tree}}', cwd=path)
-                if str(path) in ['tools/idea', 'tools/vendor/intellij/cidr']:
-                    continue  # TODO: Gerrit falls over when trying to render huge commits in IntelliJ/CIDR.
+                if str(path) in ['tools/idea', 'tools/vendor/intellij/cidr', 'external/jetbrains/kotlin']:
+                    continue  # TODO: Gerrit falls over when trying to render huge commits in IntelliJ/CIDR/Kotlin.
                 else:
                     jobs.append(executor.submit(push_to_gerrit, path, ref, 'goog', args.push))
                 project.set('revision', ref)
