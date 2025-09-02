@@ -69,7 +69,7 @@ public class RenderJarCache {
           String.format("Could not get directory for project '%s'", project.getName()));
     }
 
-    return new File(BlazeDataStorage.getProjectDataDir(importSettings), "renderjars");
+    return new File(BlazeDataStorage.getProjectDataDirDoNotUse(importSettings), "renderjars");
   }
 
   private final Project project;

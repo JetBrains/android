@@ -43,7 +43,7 @@ public class JarCacheFolderProvider {
   public File getJarCacheFolder() {
     BlazeImportSettings importSettings =
         BlazeImportSettingsManager.getInstance(project).getImportSettings();
-    return new File(BlazeDataStorage.getProjectDataDir(importSettings), JAR_CACHE_FOLDER_NAME);
+    return new File(BlazeDataStorage.getProjectDataDirDoNotUse(importSettings), JAR_CACHE_FOLDER_NAME);
   }
 
   /** Returns the {@link File} instance that represents a JAR file by the {@code key} value. */

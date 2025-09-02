@@ -249,7 +249,7 @@ public final class RemoteOutputsCache {
   private static File getCacheDir(Project project) {
     BlazeImportSettings importSettings =
         BlazeImportSettingsManager.getInstance(project).getImportSettings();
-    return new File(BlazeDataStorage.getProjectDataDir(importSettings), "remoteOutputCache");
+    return new File(BlazeDataStorage.getProjectDataDirDoNotUse(importSettings), "remoteOutputCache");
   }
 
   private Collection<ListenableFuture<?>> copyLocally(Map<String, RemoteOutputArtifact> updated) {

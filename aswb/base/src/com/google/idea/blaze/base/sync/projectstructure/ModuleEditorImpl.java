@@ -147,7 +147,7 @@ public class ModuleEditorImpl implements BlazeSyncPlugin.ModuleEditor {
   }
 
   private File getImlDirectory(BlazeImportSettings importSettings) {
-    return new File(BlazeDataStorage.getProjectDataDir(importSettings), "modules");
+    return new File(BlazeDataStorage.getProjectDataDirDoNotUse(importSettings), "modules");
   }
 
   // Delete using the virtual file to ensure that IntelliJ properly updates its index.

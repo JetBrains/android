@@ -436,7 +436,7 @@ final class ProjectUpdateSyncTask {
         modifiableModel.addContentEntry(pathToUrl(projectDataDirectory));
     rootContentEntry.addExcludeFolder(pathToUrl(new File(projectDataDirectory, ".idea")));
     rootContentEntry.addExcludeFolder(
-        pathToUrl(BlazeDataStorage.getProjectDataDir(importSettings)));
+        pathToUrl(BlazeDataStorage.getProjectDataDirDoNotUse(importSettings)));
   }
 
   private static String pathToUrl(File path) {

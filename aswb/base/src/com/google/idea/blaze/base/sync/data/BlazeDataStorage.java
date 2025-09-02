@@ -56,7 +56,11 @@ public class BlazeDataStorage {
     }
   }
 
-  public static File getProjectDataDir(BlazeImportSettings importSettings) {
+  /**
+   * DO NOT USE! Project subdirectories will need to be registered and described so that their location can be redirected by policy.
+   */
+  @java.lang.Deprecated
+  public static File getProjectDataDirDoNotUse(BlazeImportSettings importSettings) {
     return new File(importSettings.getProjectDataDirectory(), BLAZE_DATA_SUBDIRECTORY);
   }
 
@@ -94,7 +98,7 @@ public class BlazeDataStorage {
           importSettings
             .getProjectDataDirectory()));
     return ImmutableList.of(
-      getProjectDataDir(importSettings).toPath(),
+      getProjectDataDirDoNotUse(importSettings).toPath(),
       pathResolver.resolve(ArtifactDirectories.ROOT),
       ProjectLoaderImpl.getBuildCachePath(project)
     );
@@ -111,7 +115,7 @@ public class BlazeDataStorage {
     public Optional<LoggedDirectory> getLoggedDirectory(Project project) {
       return Optional.ofNullable(
               BlazeImportSettingsManager.getInstance(project).getImportSettings())
-          .map(BlazeDataStorage::getProjectDataDir)
+          .map(BlazeDataStorage::getProjectDataDirDoNotUse)
           .map(
               file ->
                   LoggedDirectory.builder()

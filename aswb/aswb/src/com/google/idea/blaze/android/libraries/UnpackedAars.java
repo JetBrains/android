@@ -112,7 +112,7 @@ public class UnpackedAars {
   }
 
   private static File getCacheDir(BlazeImportSettings importSettings) {
-    return new File(BlazeDataStorage.getProjectDataDir(importSettings), "aar_libraries");
+    return new File(BlazeDataStorage.getProjectDataDirDoNotUse(importSettings), "aar_libraries");
   }
 
   void onSync(
