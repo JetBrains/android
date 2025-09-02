@@ -681,7 +681,7 @@ class KotlinModelConverter {
           name = kotlinMultiplatformAndroidVariantName,
           applicationId = null,
           testApplicationId = androidTestAndroidCompilation?.instrumentedTestInfo?.namespace,
-          buildType = null,
+          buildType = "",
           false,
         )
       ),
