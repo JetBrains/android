@@ -1986,6 +1986,32 @@ class AndroidModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testSetCompileSdkPreviewWithExistingCompileSdkMinorAndExtension() {
+    writeToBuildFile(TestFile.ADD_AND_APPLY_COMPILE_SDK_WITH_MINOR_AND_EXTENSION_EXPECTED)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    android.compileSdkVersion().setValue("android-Baklava")
+    assertEquals("compileSdkVersion", "android-Baklava", android.compileSdkVersion())
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.COMPILE_SDK_PREVIEW);
+  }
+
+  @Test
+  fun testSetCompileSdkMinorAndExtensionWithExistingCompileSdkPreview() {
+    writeToBuildFile(TestFile.COMPILE_SDK_PREVIEW)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    android.compileSdkVersion().setValue("android-36.1-ext2")
+    assertEquals("compileSdkVersion", "android-36.1-ext2", android.compileSdkVersion())
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_COMPILE_SDK_WITH_MINOR_AND_EXTENSION_EXPECTED);
+  }
+
+  @Test
   fun testAddAndApplyStringSdkElements() {
     writeToBuildFile(TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
     val buildModel = gradleBuildModel
@@ -2642,7 +2668,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     ANDROID_BLOCK_DELETE_USE_LIBRARY_EXPECTED("androidBlockDeleteUseLibraryExpected"),
     ANDROID_BLOCK_DUPLICATE_USE_LIBRARY("androidBlockDuplicateUseLibrary"),
     EMPTY_FILE("emptyFile"),
-    COMPILE_SDK_MINOR_AND_EXTENSION("compileSdkMinorAndExtension")
+    COMPILE_SDK_MINOR_AND_EXTENSION("compileSdkMinorAndExtension"),
+    COMPILE_SDK_PREVIEW("compileSdkPreview")
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

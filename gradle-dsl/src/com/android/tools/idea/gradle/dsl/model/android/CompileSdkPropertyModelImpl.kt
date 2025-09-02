@@ -171,13 +171,13 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
       }
     }
     else {
+      internalMinorModel?.delete()
+      internalExtensionModel?.delete()
       val apiMatchResult = API_PATTERN.matchEntire(value.toString())
       if (apiMatchResult != null) {
         val releaseVersion = apiMatchResult.groupValues[1].toInt()
         val minorApi = apiMatchResult.groups["minor"]?.value?.toInt()
         val extension = apiMatchResult.groups["ext"]?.value?.toInt()
-        internalMinorModel?.delete()
-        internalExtensionModel?.delete()
         internalModel.setValue(releaseVersion)
         if (minorApi != null) internalMinorModel?.setValue(minorApi)
         if (extension != null) internalExtensionModel?.setValue(extension)
