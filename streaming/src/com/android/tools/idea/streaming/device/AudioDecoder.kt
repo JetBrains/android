@@ -220,7 +220,7 @@ internal class AudioDecoder(
     }
 
     @Synchronized
-    fun processPacket(packet: AVPacket) { // stream_push_packet
+    fun processPacket(packet: AVPacket) {
       val isConfig = packet.pts() == AV_NOPTS_VALUE
 
       var packetToProcess = packet
