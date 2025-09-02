@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.ui.properties
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.AbstractTableCellEditor
 import java.awt.Component
 import javax.swing.JTable
@@ -53,7 +54,9 @@ abstract class PropertyCellEditor<ValueT : Any> : AbstractTableCellEditor() {
         lastValue = currentRowProperty?.getParsedValue()
         currentRow = -1
         currentRowProperty = null
-        lastEditor?.dispose()
+        lastEditor?.let {
+          Disposer.dispose(it)
+        }
         lastEditor = null
         fireEditingStopped()
         true
@@ -66,7 +69,9 @@ abstract class PropertyCellEditor<ValueT : Any> : AbstractTableCellEditor() {
     lastValue = null
     currentRow = -1
     currentRowProperty = null
-    lastEditor?.dispose()
+    lastEditor?.let {
+      Disposer.dispose(it)
+    }
     lastEditor = null
     super.cancelCellEditing()
   }
