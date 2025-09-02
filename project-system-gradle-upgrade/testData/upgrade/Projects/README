@@ -7,10 +7,11 @@ and another using all the new APIs.
 
 Please, use the following structure:
 -Projects
-  +-Project Name
-    +-version1 - files
-    |
-    +-version2 - files
+  + FromAgp<Baseline>
+    +-Project Name
+      +-version1 - files
+      |
+      +-version2 - files
 
 To avoid copying all unrelated files over for each version, copy only the files that supposed to change.
 In project descriptor (AUATestProjectState) there is a 'projectBasePath' and 'projectChangesPath'.
