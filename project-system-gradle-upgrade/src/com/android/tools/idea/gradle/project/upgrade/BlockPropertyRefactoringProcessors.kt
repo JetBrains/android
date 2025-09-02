@@ -180,7 +180,7 @@ abstract class AbstractBlockPropertyWithPreviousDefaultProcessor: AbstractBlockP
 /**
  * Processor that blocks AGP upgrades if android.defaults.buildfeatures.aidl is present in gradle.properties after moving to AGP 9.0.0-alpha01
  */
-class BlockAidlProcessor: AbstractBlockPropertyWithPreviousDefaultProcessor {
+class BlockAidlProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
@@ -188,7 +188,6 @@ class BlockAidlProcessor: AbstractBlockPropertyWithPreviousDefaultProcessor {
   override val propertyKey = "android.defaults.buildfeatures.aidl"
   override val propertyRemovedVersion = AgpVersion.parse("9.0.0-alpha01")
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_AIDL_PROPERTY_PRESENT
-  override val defaultChangedVersion = AidlDefaultRefactoringProcessor.DEFAULT_CHANGED
   override val noOpValue = false
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.aidlBlockProperty"
 }
@@ -256,7 +255,7 @@ class BlockPreciseShrinkingProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
 /**
  * Processor that blocks AGP upgrades if android.defaults.buildfeatures.renderscript is present in gradle.properties after moving to AGP 9.0
  */
-class BlockRenderScriptProcessor: AbstractBlockPropertyWithPreviousDefaultProcessor {
+class BlockRenderScriptProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
@@ -264,7 +263,6 @@ class BlockRenderScriptProcessor: AbstractBlockPropertyWithPreviousDefaultProces
   override val propertyKey = "android.defaults.buildfeatures.renderscript"
   override val propertyRemovedVersion = AgpVersion.parse("9.0.0-alpha01")
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_RENDER_SCRIPT_PROPERTY_PRESENT
-  override val defaultChangedVersion = RenderScriptDefaultRefactoringProcessor.DEFAULT_CHANGED
   override val noOpValue = false
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.renderScriptBlockProperty"
 }
