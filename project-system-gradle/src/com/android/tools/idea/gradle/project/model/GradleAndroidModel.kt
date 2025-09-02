@@ -178,13 +178,8 @@ open class GradleAndroidModelImpl(
 
   override val isDebuggable: Boolean
     get() {
-      // TODO(b/288091803): Figure out if kotlin multiplatform android modules should be marked debuggable
-      if (androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM) {
-        return true
-      }
-
       val buildTypeContainer = myBuildTypesByName[selectedVariant.buildType]
-                               ?: error("Build type ${selectedVariant.buildType} not found")
+        ?: error("Build type ${selectedVariant.buildType} not found")
       return buildTypeContainer.buildType.isDebuggable
     }
 
