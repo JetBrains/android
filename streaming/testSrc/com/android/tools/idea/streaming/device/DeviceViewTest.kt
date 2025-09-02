@@ -848,6 +848,16 @@ internal class DeviceViewTest {
   }
 
   @Test
+  fun testEmptyFrame() {
+    createDeviceView(200, 300)
+    waitForFrame()
+
+    runBlocking { agent.produceEmptyVideoFrame(PRIMARY_DISPLAY_ID) }
+    waitForFrame()
+    assertAppearance("EmptyFrame")
+  }
+
+  @Test
   fun testInvalidFrameRecovery() {
     createDeviceView(200, 300)
     waitForFrame()

@@ -31,10 +31,12 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.text.StringUtil.toHexString
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.io.toByteArray
+import java.awt.Color
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.color.ColorSpace
 import java.awt.image.BufferedImage
+import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.awt.image.DataBuffer
 import java.awt.image.DataBufferInt
 import java.awt.image.DirectColorModel
@@ -44,6 +46,7 @@ import java.io.EOFException
 import java.lang.Long.toHexString
 import java.nio.ByteBuffer
 import java.nio.ByteOrder.LITTLE_ENDIAN
+import java.nio.IntBuffer
 import java.nio.channels.ClosedChannelException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
@@ -209,13 +212,14 @@ class VideoDecoder internal constructor(
   }
 
   class VideoFrame(
-      val image: BufferedImage,
-      val displaySize: Dimension,
-      val orientation: Int,
-      val orientationCorrection: Int,
-      val round: Boolean,
-      val frameNumber: UInt,
-      val originationTime: Long)
+    val image: BufferedImage,
+    val displaySize: Dimension,
+    val orientation: Int,
+    val orientationCorrection: Int,
+    val round: Boolean,
+    val frameNumber: UInt,
+    val originationTime: Long,
+  )
 
   private inner class PacketReader : AutoCloseable {
 
@@ -227,25 +231,30 @@ class VideoDecoder internal constructor(
       videoChannel.readFully(headerBuffer)
       headerBuffer.rewind()
       val header = VideoPacketHeader.deserialize(headerBuffer)
-      val presentationTimestampUs = header.presentationTimestampUs
+      headerBuffer.clear()
       val packetSize = header.packetSize
-      if (presentationTimestampUs < 0 || packetSize <= 0) {
+      val presentationTimestampUs = header.presentationTimestampUs
+      if (presentationTimestampUs < 0 || packetSize < 0) {
         throw VideoDecoderException("Invalid packet header: ${toHexString(headerBuffer.rewind().toByteArray())}")
       }
-      headerBuffer.clear()
-
-      try {
-        if (av_new_packet(packet, packetSize) != 0) {
-          throw VideoDecoderException("Display ${header.displayId}: could not allocate packet of $packetSize bytes")
-        }
-
-        videoChannel.readFully(packet.data().asByteBufferOfSize(packetSize))
-
-        packet.pts(if (presentationTimestampUs == 0L) AV_NOPTS_VALUE else presentationTimestampUs)
-        decodingContexts[header.displayId]?.processPacket(packet, header)
+      if (packetSize == 0) {
+        // Zero size packet is interpreted as a black screen.
+        decodingContexts[header.displayId]?.processEmptyPacket(header)
       }
-      finally {
-        av_packet_unref(packet)
+      else {
+        try {
+          if (av_new_packet(packet, packetSize) != 0) {
+            throw VideoDecoderException("Display ${header.displayId}: could not allocate packet of $packetSize bytes")
+          }
+
+          videoChannel.readFully(packet.data().asByteBufferOfSize(packetSize))
+
+          packet.pts(if (presentationTimestampUs == 0L) AV_NOPTS_VALUE else presentationTimestampUs)
+          decodingContexts[header.displayId]?.processPacket(packet, header)
+        }
+        finally {
+          av_packet_unref(packet)
+        }
       }
     }
 
@@ -347,7 +356,7 @@ class VideoDecoder internal constructor(
     }
 
     @Synchronized
-    fun processPacket(packet: AVPacket, header: VideoPacketHeader) { // stream_push_packet
+    fun processPacket(packet: AVPacket, header: VideoPacketHeader) {
       @Suppress("OPT_IN_USAGE")
       if (!ensureInitialized(codec.getCompleted())) {
         return
@@ -408,6 +417,16 @@ class VideoDecoder internal constructor(
       }
     }
 
+    @Synchronized
+    fun processEmptyPacket(header: VideoPacketHeader) {
+      @Suppress("OPT_IN_USAGE")
+      if (!ensureInitialized(codec.getCompleted())) {
+        return
+      }
+      val size = header.displaySize.rotatedByQuadrants(header.displayOrientation)
+      createFrameForDisplay(header, size.width, size.height, null)
+    }
+
     private fun processDataPacket(packet: AVPacket, header: VideoPacketHeader) {
       val outData = BytePointer()
       val outLen = IntPointer(0)
@@ -459,26 +478,38 @@ class VideoDecoder internal constructor(
       val startY = (frameHeight - imageHeight) / 2
       framePixels.position(startY * frameWidth) // Skip the potential black strip at the top of the frame.
 
+      createFrameForDisplay(header, frameWidth, imageHeight, framePixels)
+    }
+
+    @Suppress("UseJBColor")
+    private fun createFrameForDisplay(header: VideoPacketHeader, width: Int, height: Int, pixels: IntBuffer?) {
       val displayIsRound = header.isDisplayRound && header.displaySize.width == header.displaySize.height
       synchronized(imageLock) {
         var image = displayFrame?.image
-        if (image?.width == frameWidth && image.height == imageHeight &&
-            displayFrame?.orientationCorrection == 0 && header.displayOrientationCorrection == 0 && !displayIsRound) {
+        if (image?.width == width && image.height == height && header.displayOrientationCorrection.mod(2) == 0) {
           val imagePixels = (image.raster.dataBuffer as DataBufferInt).data
-          framePixels.get(imagePixels, 0, imageHeight * frameWidth)
+          pixels?.get(imagePixels, 0, height * width) ?: image.fill(Color.BLACK)
+          image = ImageUtils.rotateByQuadrants(image, header.displayOrientationCorrection)
+        }
+        else if (pixels == null) {
+          image = when (header.displayOrientationCorrection.mod(2)) {
+            0 -> BufferedImage(width, height, TYPE_INT_ARGB)
+            else -> BufferedImage(height, width, TYPE_INT_ARGB)
+          }
+          image.fill(Color.BLACK)
         }
         else {
-          val imagePixels = IntArray(frameWidth * imageHeight)
-          framePixels.get(imagePixels, 0, imageHeight * frameWidth)
+          val imagePixels = IntArray(width * height)
+          pixels.get(imagePixels, 0, height * width)
           val buffer = DataBufferInt(imagePixels, imagePixels.size)
-          val sampleModel = SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, frameWidth, imageHeight, SAMPLE_MODEL_BIT_MASKS)
+          val sampleModel = SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, width, height, SAMPLE_MODEL_BIT_MASKS)
           val raster = Raster.createWritableRaster(sampleModel, buffer, ZERO_POINT)
           image = ImageUtils.rotateByQuadrants(BufferedImage(COLOR_MODEL, raster, false, null), header.displayOrientationCorrection)
-          if (displayIsRound) {
-            image = ellipticalClip(image, null)
-          }
         }
 
+        if (displayIsRound) {
+          image = ellipticalClip(image, null)
+        }
         displayFrame = VideoFrame(image, header.displaySize, header.displayOrientation, header.displayOrientationCorrection,
                                   displayIsRound, header.frameNumber, header.originationTimestampUs / 1000)
       }
@@ -615,6 +646,15 @@ private fun Pointer.asByteBufferOfSize(size: Int): ByteBuffer =
 
 private fun AVPacket.toDebugString(): String =
   "packet size=${size()}, flags=0x${Integer.toHexString(flags())} pts=0x${toHexString(pts())} dts=${toHexString(dts())}"
+
+
+/** Fills image with the given color. */
+private fun BufferedImage.fill(color: Color) {
+  val g = createGraphics()
+  g.color = color
+  g.fillRect(0, 0, width, height)
+  g.dispose()
+}
 
 private const val CHANNEL_HEADER_LENGTH = 20
 /** Number of frames to be received before considering bit rate to be stable. */

@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.device
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.adblib.DevicePropertyNames.RO_BUILD_CHARACTERISTICS
 import com.android.annotations.concurrency.UiThread
+import com.android.fakeadbserver.DeviceState as FakeDeviceState
 import com.android.fakeadbserver.ShellV2Protocol
 import com.android.sdklib.AndroidVersionUtil
 import com.android.tools.adtui.ImageUtils
@@ -42,6 +43,32 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.UIUtil
 import it.unimi.dsi.fastutil.ints.Int2ObjectFunction
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
+import java.awt.Color
+import java.awt.Dimension
+import java.awt.RenderingHints
+import java.awt.geom.Path2D
+import java.awt.image.BufferedImage
+import java.awt.image.DataBufferByte
+import java.io.EOFException
+import java.io.IOException
+import java.net.InetSocketAddress
+import java.net.SocketException
+import java.nio.ByteBuffer
+import java.nio.ByteOrder.LITTLE_ENDIAN
+import java.nio.channels.ClosedChannelException
+import java.util.concurrent.LinkedBlockingDeque
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
+import java.util.function.Predicate
+import kotlin.math.PI
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
+import kotlin.math.roundToLong
+import kotlin.math.sin
+import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -89,33 +116,6 @@ import org.bytedeco.ffmpeg.global.swscale.sws_scale
 import org.bytedeco.javacpp.BytePointer
 import org.bytedeco.javacpp.DoublePointer
 import org.bytedeco.javacpp.Pointer
-import java.awt.Color
-import java.awt.Dimension
-import java.awt.RenderingHints
-import java.awt.geom.Path2D
-import java.awt.image.BufferedImage
-import java.awt.image.DataBufferByte
-import java.io.EOFException
-import java.io.IOException
-import java.net.InetSocketAddress
-import java.net.SocketException
-import java.nio.ByteBuffer
-import java.nio.ByteOrder.LITTLE_ENDIAN
-import java.nio.channels.ClosedChannelException
-import java.util.concurrent.LinkedBlockingDeque
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicReference
-import java.util.function.Predicate
-import kotlin.math.PI
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.roundToInt
-import kotlin.math.roundToLong
-import kotlin.math.sin
-import kotlin.time.Duration
-import com.android.fakeadbserver.DeviceState as FakeDeviceState
 
 /**
  * Fake Screen Sharing Agent for use in tests.
@@ -460,6 +460,13 @@ class FakeScreenSharingAgent(
   suspend fun renderDisplay(displayId: Int, flavor: Int) {
     return withContext(singleThreadedDispatcher) {
       displayStreamers[displayId]?.renderDisplay(flavor)
+    }
+  }
+
+  /** Produces an empty video frame that represents a black screen. */
+  suspend fun produceEmptyVideoFrame(displayId: Int) {
+    return withContext(singleThreadedDispatcher) {
+      displayStreamers[displayId]?.produceEmptyFrame()
     }
   }
 
@@ -825,6 +832,27 @@ class FakeScreenSharingAgent(
       }
     }
 
+    suspend fun produceEmptyFrame() {
+      packetHeader.originationTimestampUs = System.currentTimeMillis() * 1000
+      packetHeader.presentationTimestampUs = packetHeader.originationTimestampUs - presentationTimestampOffset
+      packetHeader.displaySize.size = getFoldedDisplaySize()
+      packetHeader.displayOrientation = deviceOrientation
+      packetHeader.displayOrientationCorrection = 0
+      packetHeader.frameNumber = ++frameNumber
+      packetHeader.packetSize = 0
+      val buffer = VideoPacketHeader.createBuffer(0)
+      packetHeader.serialize(buffer)
+      buffer.flip()
+      try {
+        channel.writeFully(buffer)
+      }
+      catch (e: IOException) {
+        if (!isLostConnection(e)) { // Lost connection is not an error because it means that the other end closed the socket connection.
+          throw e
+        }
+      }
+    }
+
     suspend fun produceInvalidFrame() {
       nextFrameIsInvalid = true
       renderDisplay()
@@ -1052,7 +1080,7 @@ class FakeScreenSharingAgent(
           val packetSize = packet.size()
           val packetHeader = AudioPacketHeader(packet.pts() == AV_NOPTS_VALUE, packetSize)
           val packetData = packet.data().asByteBufferOfSize(packetSize)
-          val buffer = VideoPacketHeader.createBuffer(packetSize)
+          val buffer = AudioPacketHeader.createBuffer(packetSize)
           packetHeader.serialize(buffer)
           buffer.put(packetData)
           buffer.flip()
