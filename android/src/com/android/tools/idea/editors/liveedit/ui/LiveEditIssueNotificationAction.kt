@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.liveedit.ui
 
-import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.IDevice
 import com.android.tools.adtui.status.IdeStatus
 import com.android.tools.adtui.status.InformationPopup
@@ -177,12 +176,10 @@ class LiveEditIssueNotificationAction : IssueNotificationAction(::getStatusInfo,
     return JBUI.insets(2)
   }
 
-  @UiThread
   override fun shouldHide(status: IdeStatus, dataContext: DataContext): Boolean {
     return shouldHideImpl(status, dataContext)
   }
 
-  @UiThread
   override fun shouldSimplify(status: IdeStatus, dataContext: DataContext): Boolean {
     val toolWindowId = dataContext.getData(PlatformDataKeys.TOOL_WINDOW)
     return toolWindowId?.id == RUNNING_DEVICES_TOOL_WINDOW_ID && status.shouldSimplify
@@ -193,7 +190,6 @@ class LiveEditIssueNotificationAction : IssueNotificationAction(::getStatusInfo,
   }
 }
 
-@UiThread
 private fun shouldHideImpl(status: IdeStatus, dataContext: DataContext): Boolean {
   dataContext.project?.let { if (!CommonAndroidUtil.getInstance().isAndroidProject(it)) return true } ?: return true
   if (status != LiveEditStatus.Disabled) {

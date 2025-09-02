@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.liveedit.ui
 
-import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.status.IdeStatus
 import com.android.tools.adtui.status.InformationPopup
 import com.android.tools.adtui.status.InformationPopupImpl
@@ -94,12 +93,10 @@ class LiveEditNotificationAction : IssueNotificationAction(::getStatusInfo, ::cr
     return JBUI.insets(2)
   }
 
-  @UiThread
   override fun shouldHide(status: IdeStatus, dataContext: DataContext): Boolean {
     return shouldHideImpl(status, dataContext)
   }
 
-  @UiThread
   override fun shouldSimplify(status: IdeStatus, dataContext: DataContext): Boolean {
     return status.shouldSimplify
   }
@@ -128,7 +125,6 @@ internal class NotificationPresenter {
   }
 }
 
-@UiThread
 private fun shouldHideImpl(status: IdeStatus, dataContext: DataContext): Boolean {
   dataContext.project?.let { if (!CommonAndroidUtil.getInstance().isAndroidProject(it)) return true } ?: return true
   if (status != LiveEditStatus.Disabled) {

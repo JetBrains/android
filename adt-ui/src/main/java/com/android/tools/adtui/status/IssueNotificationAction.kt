@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.status
 
-import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
@@ -110,7 +109,7 @@ open class IssueNotificationAction(
   private var popup: InformationPopup? = null
 
   // shouldHide and shouldSimplify require running in the UI thread since they access UI state.
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   /**
    * Creates an [AnActionEvent] from a mouse event, it's a lambda because we can replace with our own fake [DataContext].
@@ -140,7 +139,6 @@ open class IssueNotificationAction(
     return JBUI.insets(1)
   }
 
-  @UiThread
   open fun shouldHide(status: IdeStatus, dataContext: DataContext) : Boolean {
     return status.icon == null && StringUtil.isEmpty(status.title)
   }
@@ -149,7 +147,6 @@ open class IssueNotificationAction(
    * Returns true if a minified version of the status should be displayed for places
    * where screen real estate is limited.
    */
-  @UiThread
   open fun shouldSimplify(status: IdeStatus, dataContext: DataContext) : Boolean = false
 
   override fun update(e: AnActionEvent) {
