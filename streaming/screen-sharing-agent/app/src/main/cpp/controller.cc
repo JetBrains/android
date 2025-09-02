@@ -814,7 +814,7 @@ void Controller::ProcessXrVelocity(const XrVelocityMessage& message) {
   XrSimulatedInputManager::InjectHeadMovementVelocity(jni_, data);
 }
 
-void Controller::XrRecenter(const XrRecenterMessage& message) {
+void Controller::XrRecenter(const XrRecenterMessage& message) {  //nolint:unparam
   XrSimulatedInputManager::Recenter(jni_);
 }
 
