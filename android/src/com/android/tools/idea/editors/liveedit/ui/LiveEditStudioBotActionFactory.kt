@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.editors.liveedit.ui
 
-import com.android.tools.idea.run.deployment.liveedit.VibeTransformerProvider
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.project.Project
 
 interface LiveEditStudioBotActionFactory {
-   fun vibeEditAgentAction(): AnAction
+   fun vibeEditAgentAction(project: Project): AnAction
 
   companion object {
     val EP_NAME: ExtensionPointName<LiveEditStudioBotActionFactory> =

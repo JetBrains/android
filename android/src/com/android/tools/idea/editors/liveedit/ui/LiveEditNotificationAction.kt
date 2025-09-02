@@ -196,7 +196,7 @@ private fun createInformationPopup(project: Project, dataContext: DataContext) :
 
     val vibeEditAgent =
       if (STUDIOBOT_DEPLOY_VIBE_EDIT_AGENT.get()) {
-        AnActionLink("Vibe Edit Agent", LiveEditStudioBotActionFactory.EP_NAME.extensionList.get(0).vibeEditAgentAction())
+        AnActionLink("Vibe Edit Agent", LiveEditStudioBotActionFactory.EP_NAME.extensionList.get(0).vibeEditAgentAction(project))
       } else {
         null
       }
