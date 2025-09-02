@@ -16,15 +16,20 @@
 package com.android.tools.idea.layoutinspector.tree
 
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.snapshots.FileEditorInspectorClient
 import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import icons.StudioIcons
+
+private const val SHOW_RECOMPOSITION_COUNTS = "Show Recomposition Counts"
+private const val SHOW_STATE_READS_FOR_ALL = "State Reads for All Composable"
 
 /** This file contains view options for the component tree. */
 
@@ -40,6 +45,7 @@ class FilterGroupAction(renderModelProvider: () -> RenderModel?) :
     add(HighlightSemanticsAction)
     add(CallstackAction)
     add(RecompositionCounts)
+    add(StateReadsForAll)
     add(SupportLines)
   }
 }
@@ -134,7 +140,7 @@ object SupportLines : ToggleAction("Show Support Lines", null, null) {
   }
 }
 
-object RecompositionCounts : ToggleAction("Show Recomposition Counts", null, null) {
+object RecompositionCounts : ToggleAction(SHOW_RECOMPOSITION_COUNTS, null, null) {
 
   override fun isSelected(event: AnActionEvent): Boolean =
     LayoutInspector.get(event)?.treeSettings?.showRecompositions ?: DEFAULT_RECOMPOSITIONS
@@ -166,10 +172,53 @@ object RecompositionCounts : ToggleAction("Show Recomposition Counts", null, nul
         Capability.HAS_LINE_NUMBER_INFORMATION,
       )
     event.presentation.text =
-      if (event.presentation.isEnabled || !isActionActive(event)) "Show Recomposition Counts"
+      if (event.presentation.isEnabled || !isActionActive(event)) SHOW_RECOMPOSITION_COUNTS
       else if (!isActionActive(event, Capability.HAS_LINE_NUMBER_INFORMATION))
-        "Show Recomposition Counts (No Source Information Found)"
-      else "Show Recomposition Counts (Needs Compose 1.2.1+)"
+        "$SHOW_RECOMPOSITION_COUNTS (No Source Information Found)"
+      else "$SHOW_RECOMPOSITION_COUNTS (Needs Compose 1.2.1+)"
+  }
+}
+
+object StateReadsForAll : ToggleAction(SHOW_STATE_READS_FOR_ALL, null, null) {
+  override fun isSelected(event: AnActionEvent): Boolean =
+    LayoutInspector.get(event)?.treeSettings?.observeStateReadsForAll ?: DEFAULT_STATE_READS_FOR_ALL
+
+  override fun setSelected(event: AnActionEvent, state: Boolean) {
+    val inspector = LayoutInspector.get(event) ?: return
+    inspector.treeSettings.observeStateReadsForAll = state
+
+    // Reset the recomposition counts to indicate the previous state reads are
+    // no longer available, any new recomposition counts can observe state reads
+    // as requested by the user.
+    val panel = event.treePanel()
+    panel?.resetRecompositionCountsAndChangeSettingsOnDevice()
+
+    // TODO(b/444018952): gather stats about switching this setting
+  }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
+  override fun update(event: AnActionEvent) {
+    super.update(event)
+    event.presentation.isVisible =
+      StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_STATE_READS.get() &&
+        isActionActive(event, Capability.SUPPORTS_COMPOSE) &&
+        LayoutInspector.get(event)?.currentClient !is FileEditorInspectorClient &&
+        LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
+
+    event.presentation.isEnabled =
+      LayoutInspector.get(event)?.treeSettings?.showRecompositions ?: false &&
+        isActionActive(
+          event,
+          Capability.CAN_OBSERVE_RECOMPOSE_STATE_READS,
+          Capability.HAS_LINE_NUMBER_INFORMATION,
+        )
+
+    event.presentation.text =
+      if (event.presentation.isEnabled || !isActionActive(event)) SHOW_STATE_READS_FOR_ALL
+      else if (!isActionActive(event, Capability.HAS_LINE_NUMBER_INFORMATION))
+        "$SHOW_STATE_READS_FOR_ALL (No Source Information Found)"
+      else "$SHOW_STATE_READS_FOR_ALL (Needs Compose 1.10.0+)"
   }
 }
 

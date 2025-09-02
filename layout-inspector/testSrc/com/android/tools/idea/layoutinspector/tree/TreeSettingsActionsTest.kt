@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
+import com.android.flags.junit.FlagRule
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.adtui.workbench.ToolContent
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
@@ -43,6 +45,7 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.treeStructure.Tree
@@ -65,7 +68,11 @@ class TreeSettingsActionsTest {
     @JvmField @ClassRule val rule = ApplicationRule()
   }
 
-  @get:Rule val disposableRule = DisposableRule()
+  private val studioFlagRule =
+    FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_STATE_READS, true)
+  private val disposableRule = DisposableRule()
+
+  @get:Rule val chain = RuleChain(disposableRule, studioFlagRule)
 
   private val treeSettings = FakeTreeSettings()
   private val model = createModel()
@@ -198,6 +205,58 @@ class TreeSettingsActionsTest {
     assertThat(RecompositionCounts.isSelected(event)).isTrue()
     RecompositionCounts.setSelected(event, false)
     assertThat(RecompositionCounts.isSelected(event)).isFalse()
+  }
+
+  @Test
+  fun testStateReadsForAll() {
+    val event = createEvent()
+    assertThat(StateReadsForAll.isSelected(event)).isEqualTo(DEFAULT_STATE_READS_FOR_ALL)
+
+    StateReadsForAll.testActionVisibility(event, Capability.SUPPORTS_COMPOSE)
+    capabilities.add(Capability.HAS_LINE_NUMBER_INFORMATION)
+    StateReadsForAll.update(event)
+
+    // Check recomposition not supported in compose inspector:
+    assertThat(event.presentation.isEnabled).isFalse()
+    assertThat(event.presentation.text)
+      .isEqualTo("State Reads for All Composable (Needs Compose 1.10.0+)")
+
+    capabilities.remove(Capability.HAS_LINE_NUMBER_INFORMATION)
+    capabilities.add(Capability.CAN_OBSERVE_RECOMPOSE_STATE_READS)
+    StateReadsForAll.update(event)
+
+    // Check recomposition no source information:
+    assertThat(event.presentation.isEnabled).isFalse()
+    assertThat(event.presentation.text)
+      .isEqualTo("State Reads for All Composable (No Source Information Found)")
+
+    capabilities.add(Capability.HAS_LINE_NUMBER_INFORMATION)
+    currentClient = snapshotClient
+    StateReadsForAll.update(event)
+    assertThat(event.presentation.isVisible).isFalse()
+
+    currentClient = appClient
+    StateReadsForAll.update(event)
+    assertThat(event.presentation.isVisible).isTrue()
+    assertThat(event.presentation.isEnabled).isTrue()
+    assertThat(event.presentation.text).isEqualTo("State Reads for All Composable")
+
+    StateReadsForAll.setSelected(event, true)
+    assertThat(treeSettings.observeStateReadsForAll).isEqualTo(true)
+    verify(event.treePanel())!!.resetRecompositionCountsAndChangeSettingsOnDevice()
+
+    StateReadsForAll.setSelected(event, false)
+    assertThat(treeSettings.observeStateReadsForAll).isEqualTo(false)
+    verify(event.treePanel(), times(2))!!.resetRecompositionCountsAndChangeSettingsOnDevice()
+
+    // Disconnect and check modifying setting:
+    isConnected = false
+    inLiveMode = false
+    assertThat(StateReadsForAll.isSelected(event)).isFalse()
+    StateReadsForAll.setSelected(event, true)
+    assertThat(StateReadsForAll.isSelected(event)).isTrue()
+    StateReadsForAll.setSelected(event, false)
+    assertThat(StateReadsForAll.isSelected(event)).isFalse()
   }
 
   private fun AnAction.testActionVisibility(
