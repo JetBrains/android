@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.base.qsync;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
@@ -38,6 +37,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.common.artifact.ArtifactFetcher;
@@ -47,13 +47,13 @@ import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.common.artifact.CachedArtifact;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.google.idea.blaze.exception.BuildException;
+import com.google.idea.blaze.qsync.project.QuerySyncProjectDirectory;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.FileTime;
 import java.time.Duration;
@@ -71,7 +71,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
 /**
@@ -126,7 +125,7 @@ public class BuildArtifactCacheDirectory implements BuildArtifactCache {
 
   public BuildArtifactCacheDirectory(Project project) throws BuildException {
     this(
-      Paths.get(checkNotNull(project.getBasePath())).resolve(".buildcache"),
+      Blaze.getBuildSystemProvider(project).getProjectDirectoryConfigurator(project).configureDirectory(QuerySyncProjectDirectory.BUILD_CACHE),
       project.getService(ArtifactFetcher.class),
       MoreExecutors.listeningDecorator(
         AppExecutorUtil.createBoundedApplicationPoolExecutor("BuildArtifactCache", 128)),

@@ -19,8 +19,10 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.lang.buildfile.language.semantics.RuleDefinition;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
+import com.google.idea.blaze.base.qsync.DefaultProjectDirectoryConfigurator;
 import com.google.idea.blaze.base.qsync.ProjectLoader;
 import com.google.idea.blaze.base.qsync.ProjectLoaderImpl;
+import com.google.idea.blaze.qsync.project.ProjectDirectoryConfigurator;
 import com.intellij.openapi.project.Project;
 import java.util.Optional;
 import java.util.function.Function;
@@ -62,6 +64,11 @@ public abstract class FakeBuildSystemProvider implements BuildSystemProvider {
   @Override
   public ProjectLoader createProjectLoader(Project project) {
     return new ProjectLoaderImpl(project);
+  }
+
+  @Override
+  public ProjectDirectoryConfigurator getProjectDirectoryConfigurator(Project project) {
+    return new DefaultProjectDirectoryConfigurator(project);
   }
 
   @Override

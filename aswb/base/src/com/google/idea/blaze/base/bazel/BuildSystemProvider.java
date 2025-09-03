@@ -21,6 +21,7 @@ import com.google.idea.blaze.base.lang.buildfile.language.semantics.RuleDefiniti
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.ProjectLoader;
 import com.google.idea.blaze.base.settings.BuildSystemName;
+import com.google.idea.blaze.qsync.project.ProjectDirectoryConfigurator;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.fileTypes.ExactFileNameMatcher;
 import com.intellij.openapi.fileTypes.ExtensionFileNameMatcher;
@@ -72,6 +73,8 @@ public interface BuildSystemProvider {
   BuildSystem getBuildSystem();
 
   ProjectLoader createProjectLoader(Project project);
+
+  ProjectDirectoryConfigurator getProjectDirectoryConfigurator(Project project);
 
   Optional<String> getQuerySyncDocumentationUrl();
 

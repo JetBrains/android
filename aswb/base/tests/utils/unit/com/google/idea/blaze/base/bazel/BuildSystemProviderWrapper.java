@@ -34,6 +34,7 @@ import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.SyncScope.SyncFailedException;
 import com.google.idea.blaze.exception.BuildException;
+import com.google.idea.blaze.qsync.project.ProjectDirectoryConfigurator;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.project.Project;
 import java.io.InputStream;
@@ -141,6 +142,11 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
   @Override
   public ProjectLoader createProjectLoader(Project project) {
     return inner.createProjectLoader(project);
+  }
+
+  @Override
+  public ProjectDirectoryConfigurator getProjectDirectoryConfigurator(Project project) {
+    return inner.getProjectDirectoryConfigurator(project);
   }
 
   @Override

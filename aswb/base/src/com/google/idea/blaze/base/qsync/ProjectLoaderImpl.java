@@ -59,7 +59,9 @@ import com.google.idea.blaze.qsync.java.PackageReader;
 import com.google.idea.blaze.qsync.java.PackageStatementParser;
 import com.google.idea.blaze.qsync.java.ParallelPackageReader;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
+import com.google.idea.blaze.qsync.project.ProjectDirectoryConfigurator;
 import com.google.idea.blaze.qsync.project.ProjectPath;
+import com.google.idea.blaze.qsync.project.QuerySyncProjectDirectory;
 import com.google.idea.blaze.qsync.query.QuerySpec.QueryStrategy;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.google.idea.common.experiments.EnumExperiment;
@@ -180,11 +182,13 @@ public class ProjectLoaderImpl implements ProjectLoader {
       createProjectDefinition(workspaceRoot, importSettings.getBuildSystem(), projectViewSet);
     WorkspaceLanguageSettings workspaceLanguageSettings =
       LanguageSupport.createWorkspaceLanguageSettings(projectViewSet);
-    BuildSystem buildSystem =
-      BuildSystemProvider.getBuildSystemProvider(importSettings.getBuildSystem())
-        .getBuildSystem(); // TODO: solodkyy - read from the project view.
+    // TODO: solodkyy - read from the project view.
+    BuildSystemProvider buildSystemProvider = BuildSystemProvider.getBuildSystemProvider(importSettings.getBuildSystem());
+    BuildSystem buildSystem = buildSystemProvider.getBuildSystem();
+    ProjectDirectoryConfigurator projectDirectoryConfigurator = buildSystemProvider.getProjectDirectoryConfigurator(project);
 
-    return new ProjectToLoadDefinition(workspaceRoot, buildSystem, projectDefinition, projectViewSet, workspaceLanguageSettings);
+    return new ProjectToLoadDefinition(workspaceRoot, projectDirectoryConfigurator, buildSystem, projectDefinition, projectViewSet,
+                                       workspaceLanguageSettings);
   }
 
   private QuerySyncProjectDeps instantiateDeps() {
@@ -197,6 +201,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
     final var workspaceRoot = projectToLoad.workspaceRoot();
     final var latestProjectDef = projectToLoad.definition();
     final var buildSystem = projectToLoad.buildSystem();
+    final var projectDirectoryConfigurator = projectToLoad.projectDirectoryConfigurator();
 
     WorkspaceLanguageSettings workspaceLanguageSettings = projectToLoad.workspaceLanguageSettings();
 
@@ -217,12 +222,15 @@ public class ProjectLoaderImpl implements ProjectLoader {
       createDependencyBuilder(
         workspaceRoot, latestProjectDef, snapshotHolder, buildSystem, vcsHandler, artifactCache, handledRules);
 
+    // This directory is later used without being configured.
+    projectDirectoryConfigurator.configureDirectory(QuerySyncProjectDirectory.BAZEL_ARTIFACTS);
+
     ArtifactTracker<BlazeContext> artifactTracker;
     RenderJarArtifactTracker renderJarArtifactTracker;
     AppInspectorArtifactTracker appInspectorArtifactTracker;
     NewArtifactTracker<BlazeContext> tracker =
         new NewArtifactTracker<>(
-            BlazeDataStorage.getProjectDataDirDoNotUse(importSettings).toPath(),
+            projectDirectoryConfigurator.configureDirectory(QuerySyncProjectDirectory.BAZEL_SYSTEM),
             artifactCache,
             // don't pass the composed transform directly as it's not fully constructed yet:
             t -> projectTransformRegistry.getComposedTransform().getRequiredArtifactMetadata(t),
@@ -273,10 +281,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
                                     snapshotHolder, artifactCache, artifactTracker, renderJarArtifactTracker, appInspectorArtifactTracker,
                                     appInspectorTracker,  dependencyBuilder, dependencyTracker, snapshotBuilder,
                                     projectQuerier, sourceToTargetMap, handledRules);
-  }
-
-  public static Path getBuildCachePath(Project project) {
-    return Paths.get(checkNotNull(project.getBasePath())).resolve(".buildcache");
   }
 
   private PackageReader createPackageReader() {
