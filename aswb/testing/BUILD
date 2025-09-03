@@ -23,16 +23,17 @@ java_library(
         "//tools/adt/idea/studio:required_jvm_args",  # Used by BlazeTestSystemProperties.
     ],
     exports = ["//tools/adt/idea/aswb/testing/src/com/google/idea/testing/runfiles"],
+    runtime_deps = [
+        "@maven//:org.opentest4j.opentest4j",  # Needed by the IntelliJ test framework.
+    ],
     deps = [
+        ":runfiles",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/common/experiments:unit_test_utils",
         "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "@maven//:com.google.guava.guava",
-    ],
-    runtime_deps = [
-        "@maven//:org.opentest4j.opentest4j",  # Needed by the IntelliJ test framework.
     ],
 )
 
