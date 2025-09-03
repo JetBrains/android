@@ -625,8 +625,7 @@ class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
 
   override fun transformPreviewAction() = fakeAction
 
-  override fun fixComposeAccessibilityAction(visualLintIssues: List<VisualLintRenderIssue>) =
-    fakeAction
+  override fun fixVisualLintIssuesAction(visualLintIssues: List<VisualLintRenderIssue>) = fakeAction
 
   override fun fixComposeRenderIssueAction(issues: List<Issue>) = fakeAction
 

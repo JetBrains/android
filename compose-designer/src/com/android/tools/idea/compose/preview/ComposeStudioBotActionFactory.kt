@@ -30,8 +30,8 @@ interface ComposeStudioBotActionFactory {
    */
   fun transformPreviewAction(): AnAction?
 
-  /** An action to fix accessibility issues found by UI Check for a Compose Preview. */
-  fun fixComposeAccessibilityAction(visualLintIssues: List<VisualLintRenderIssue>): AnAction?
+  /** An action to fix visual lint issues found by UI Check for a Compose Preview. */
+  fun fixVisualLintIssuesAction(visualLintIssues: List<VisualLintRenderIssue>): AnAction?
 
   /** An action to fix render issues in Compose Previews. */
   fun fixComposeRenderIssueAction(renderIssues: List<Issue>): AnAction?

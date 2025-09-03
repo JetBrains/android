@@ -78,7 +78,7 @@ internal class PreviewSurfaceActionManager(
       ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull()?.let {
         // TODO(b/436827844): Remove empty list when we change the agent to be used as a loop agent
         // rather than a one-shot agent.
-        it.fixComposeAccessibilityAction(emptyList())?.let { action ->
+        it.fixVisualLintIssuesAction(emptyList())?.let { action ->
           actionGroup.add(action.visibleOnlyInStaticPreview())
         }
       }

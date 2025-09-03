@@ -55,7 +55,7 @@ import org.mockito.kotlin.whenever
 // EnableInteractiveAction(),
 // DeployToDeviceAction(),
 // TransformPreviewAction(),
-// FixComposeAccessibilityAction(),
+// FixVisualLintIssuesAction(),
 // AlignUiToTargetImageAction(),
 // in wrappers
 private const val EXPECTED_NUMBER_OF_ACTIONS = 10
@@ -139,11 +139,10 @@ class PreviewSurfaceActionManagerTest {
       (actions[7] as ShowGroupUnderConditionWrapper).getChildren(null).single()
     assertThat(transformPreviewAction.templatePresentation.text).isEqualTo("transformPreview")
 
-    // Fix Compose Accessibility action.
-    val fixComposeAccessibilityAction =
+    // Fix Visual Lint Issues action.
+    val fixVisualLintIssuesAction =
       (actions[8] as ShowGroupUnderConditionWrapper).getChildren(null).single()
-    assertThat(fixComposeAccessibilityAction.templatePresentation.text)
-      .isEqualTo("fixComposeAccessibility")
+    assertThat(fixVisualLintIssuesAction.templatePresentation.text).isEqualTo("fixVisualLintIssues")
 
     // Align Ui to Image action.
     val alignUiImageAction =
@@ -299,8 +298,8 @@ class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
 
   override fun transformPreviewAction() = fakeAction("transformPreview")
 
-  override fun fixComposeAccessibilityAction(visualLintIssues: List<VisualLintRenderIssue>) =
-    fakeAction("fixComposeAccessibility")
+  override fun fixVisualLintIssuesAction(visualLintIssues: List<VisualLintRenderIssue>) =
+    fakeAction("fixVisualLintIssues")
 
   override fun fixComposeRenderIssueAction(renderIssues: List<Issue>): AnAction? =
     fakeAction("fixComposeRender")
