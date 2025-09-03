@@ -74,10 +74,17 @@ private fun createBenchmarkTestRule(projectName: String,
     })
     .around(CollectDaemonLogsRule())
     .around(DisablePhasedSyncDependencyRule())
+    .maybeDisableBuiltInKotlin(project)
     .maybeAddCaptureJfrRule(projectSetupRule)
   return object : BenchmarkTestRule,
                   ProjectSetupRule by projectSetupRule,
                   TestRule by wrappedRules {}
+}
+
+fun RuleChain.maybeDisableBuiltInKotlin(project: BenchmarkProject): RuleChain = if (project == BenchmarkProject.KMP_2000) {
+  this.around(DisableBuiltInKotlinRule())
+} else {
+  this
 }
 
 fun RuleChain.maybeAddCaptureJfrRule(projectSetupRule: ProjectSetupRule): RuleChain =
