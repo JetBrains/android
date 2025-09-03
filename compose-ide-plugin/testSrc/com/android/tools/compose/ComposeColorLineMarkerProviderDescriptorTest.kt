@@ -437,6 +437,31 @@ class ComposeColorLineMarkerProviderDescriptorTest {
     checkGutterIconInfos(listOf())
   }
 
+  @Test
+  fun testColorReference() {
+    val psiFile =
+      myFixture.addFileToProject(
+        "src/com/android/test/A.kt",
+        // language=kotlin
+        """
+      package com.android.test
+      import androidx.compose.ui.graphics.Color
+      import androidx.compose.ui.graphics.colorspace.ColorSpaces
+      class A {
+        private val other = Color(0xFFC20029)
+        fun () {
+          val reference = other
+          val indirect = reference
+        }
+      }
+      """
+          .trimIndent(),
+      )
+    myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
+    // No gutter for color space.
+    checkGutterIconInfos(listOf(Color(194, 0, 41), Color(194, 0, 41), Color(194, 0, 41)))
+  }
+
   private fun setNewColor(window: String, newColor: Color) {
     val element = runInEdtAndGet { myFixture.moveCaret(window) }
 

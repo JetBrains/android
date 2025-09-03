@@ -38,11 +38,15 @@ import java.util.Locale
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
+import org.jetbrains.kotlin.idea.codeinsight.utils.getInitializerOrGetterInitializer
 import org.jetbrains.kotlin.idea.inspections.AbstractRangeInspection.Companion.constantValueOrNull
+import org.jetbrains.kotlin.j2k.resolve
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.uast.UCallExpression
 import org.jetbrains.uast.UExpression
@@ -51,15 +55,47 @@ import org.jetbrains.uast.toUElement
 
 private const val ICON_SIZE = 8
 
+/**
+ * Resolves the given [KtReferenceExpression] to a [KtCallExpression], potentially traversing
+ * through intermediate properties.
+ *
+ * @param allowedDepth The maximum depth of resolution allowed. Defaults to 3.
+ * @return The resolved [KtCallExpression], or `null` if resolution fails within the allowed depth.
+ */
+private fun KtReferenceExpression.resolveAll(allowedDepth: Int = 3): KtCallExpression? {
+  if (this is KtCallExpression) return this
+  if (allowedDepth == 0) return null
+
+  var current: KtReferenceExpression? = this
+  while (current != null) {
+    when (@Suppress("UnstableApiUsage") val resolved = current.resolve()) {
+      is KtCallExpression -> return resolved
+      is KtProperty -> {
+        return (resolved.getInitializerOrGetterInitializer() as? KtReferenceExpression)?.resolveAll(
+          allowedDepth - 1
+        )
+      }
+      else -> current = resolved as? KtReferenceExpression
+    }
+  }
+  return null
+}
+
 class ComposeColorLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() {
   override fun getName() = ComposeBundle.message("compose.color.picker.name")
 
   override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
     if (element.elementType != KtTokens.IDENTIFIER || !isComposeEnabled(element)) return null
 
-    val uElement =
-      (element.parent.parent as? KtCallExpression)?.toUElement(UCallExpression::class.java)
+    // This handles two different cases:
+    //  - Annotates variable declarations like `val color = Color(0xFF00000)
+    //  - Annotates color references, for example where `color` is used.
+    val ktCallExpression =
+      (element.parent.parent as? KtCallExpression)
+        ?: ((element.parent as? KtReferenceExpression)?.resolveAll())
         ?: return null
+
+    val uElement = ktCallExpression.toUElement(UCallExpression::class.java) ?: return null
     if (!uElement.isColorCall()) return null
 
     val color = getColor(uElement) ?: return null
@@ -323,9 +359,7 @@ private inline fun <reified T> getArgumentNameValuePair(
 
 private inline fun <reified T> KtExpression.evaluateToConstantOrNull(): T? {
   return if (KotlinPluginModeProvider.isK2Mode()) {
-    analyze(this) {
-      evaluate()?.value as? T ?: return null
-    }
+    analyze(this) { evaluate()?.value as? T ?: return null }
   } else {
     constantValueOrNull()?.value as? T ?: return null
   }
