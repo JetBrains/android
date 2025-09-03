@@ -560,7 +560,7 @@ class GradleModuleSystem(
 
   override fun getDynamicFeatureModules(): List<Module> {
     val project = GradleAndroidModel.get(module)?.androidProject ?: return emptyList()
-    val ourGradleProjectPath = gradleProjectPath.toHolder()
+    val ourGradleProjectPath = module.getGradleProjectPath()?.toHolder() ?: return emptyList()
     return project.dynamicFeatures.map { dynamicFeature ->
       val dynamicFeatureGradleProjectPath = ourGradleProjectPath.copy(path = dynamicFeature)
       dynamicFeatureGradleProjectPath.resolveIn(module.project) ?: error("Missing dynamic feature module: $dynamicFeatureGradleProjectPath")
