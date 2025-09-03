@@ -19,15 +19,30 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.buildMainSourceProviderStub
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.junit.Assert.assertEquals
-import org.junit.Ignore
 import org.junit.Test
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.writeText
+import org.junit.Assert.assertTrue
+import org.junit.Before
 
 @RunsInEdt
 class AidlDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
+  private lateinit var gradlePropertiesFile : VirtualFile
+
+  @Before
+  fun setUpGradlePropertiesFile() {
+    com.intellij.openapi.application.runWriteAction {
+      gradlePropertiesFile = projectRule.fixture.tempDirFixture.createFile("gradle.properties")
+      assertTrue(gradlePropertiesFile.isWritable)
+    }
+  }
+
   override val projectRule = AndroidProjectRule.withAndroidModel(
     AndroidProjectBuilder(includeAidlSources = { true }).withMainSourceProvider { buildMainSourceProviderStub() }
   )
@@ -56,6 +71,7 @@ class AidlDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     val processor = AidlDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("AidlDefault/NoAidlDeclaration"))
+    assertThat(gradlePropertiesFile.load()).doesNotContain("android.defaults.buildfeatures.aidl")
   }
 
   @Test
@@ -68,6 +84,7 @@ class AidlDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     val processor = AidlDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("AidlDefault/AidlDeclarationAdded"))
+    assertThat(gradlePropertiesFile.load()).doesNotContain("android.defaults.buildfeatures.aidl")
   }
 
   @Test
@@ -80,6 +97,7 @@ class AidlDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     val processor = AidlDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("AidlDefault/AidlFalse"))
+    assertThat(gradlePropertiesFile.load()).doesNotContain("android.defaults.buildfeatures.aidl")
   }
 
   @Test
@@ -92,6 +110,7 @@ class AidlDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     val processor = AidlDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("AidlDefault/AidlTrue"))
+    assertThat(gradlePropertiesFile.load()).doesNotContain("android.defaults.buildfeatures.aidl")
   }
 
   @Test
@@ -100,11 +119,12 @@ class AidlDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     runWriteAction {
       projectRule.fixture.tempDirFixture.findOrCreateDir("src/main/aidl")
       projectRule.fixture.tempDirFixture.createFile("src/main/aidl/foo.aidl", "foo\n")
-      projectRule.fixture.tempDirFixture.createFile("gradle.properties", "android.defaults.buildfeatures.aidl=FaLsE")
+      gradlePropertiesFile.writeText("android.defaults.buildfeatures.aidl=FaLsE")
     }
     val processor = AidlDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("AidlDefault/NoAidlDeclaration"))
+    assertThat(gradlePropertiesFile.load()).contains("android.defaults.buildfeatures.aidl=FaLsE")
   }
 
   @Test
@@ -113,10 +133,16 @@ class AidlDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     runWriteAction {
       projectRule.fixture.tempDirFixture.findOrCreateDir("src/main/aidl")
       projectRule.fixture.tempDirFixture.createFile("src/main/aidl/foo.aidl", "foo\n")
-      projectRule.fixture.tempDirFixture.createFile("gradle.properties", "android.defaults.buildfeatures.aidl=TrUe")
+      gradlePropertiesFile.writeText("android.defaults.buildfeatures.aidl=TrUe")
     }
     val processor = AidlDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("AidlDefault/NoAidlDeclaration"))
+    assertThat(gradlePropertiesFile.load()).contains("android.defaults.buildfeatures.aidl=TrUe")
   }
+
+  fun VirtualFile.load():String = VfsUtilCore.loadText(this).normalize()
+
+  fun String.normalize() = replace("[ \\t]+".toRegex(), "").trim { it <= ' ' }
+
 }
