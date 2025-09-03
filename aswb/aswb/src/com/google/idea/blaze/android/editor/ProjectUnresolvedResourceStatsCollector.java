@@ -193,7 +193,7 @@ class ProjectUnresolvedResourceStatsCollector implements Disposable {
             .setFileHighlights(getAllFileHighlights())
             .build();
 
-    EventLoggingService.getInstance().logHighlightStats(highlightStats);
+    EventLoggingService.getInstance().logHighlightStats(project, highlightStats);
     clearMap();
   }
 

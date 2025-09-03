@@ -60,7 +60,7 @@ class CMakeWorkspaceOverride {
     }
     boolean notified = false;
     for (Module module : getCMakeModules(project)) {
-      clearClasspath(module);
+      clearClasspath(project, module);
       clearContentRootsAndLibrariesIfModifiedForCMake(module);
       if (!notified) {
         suggestRemedies(project);
@@ -78,12 +78,12 @@ class CMakeWorkspaceOverride {
         .collect(Collectors.toList());
   }
 
-  private static void clearClasspath(Module module) {
+  private static void clearClasspath(Project project, Module module) {
     ClasspathStorage.setStorageType(
         ModuleRootManager.getInstance(module), ClassPathStorageUtil.DEFAULT_STORAGE);
     Logger.getInstance(CMakeWorkspaceOverride.class).warn("Had to clear CMake classpath");
     EventLoggingService.getInstance()
-        .logEvent(CMakeWorkspaceOverride.class, "cleared-cmake-classpath", ImmutableMap.of());
+        .logEvent(project, CMakeWorkspaceOverride.class, "cleared-cmake-classpath", ImmutableMap.of());
   }
 
   private static void clearContentRootsAndLibrariesIfModifiedForCMake(Module module) {
@@ -107,6 +107,7 @@ class CMakeWorkspaceOverride {
         .warn("Need to migrate hybrid CMake+Blaze project");
     EventLoggingService.getInstance()
         .logEvent(
+            project,
             CMakeWorkspaceOverride.class,
             "must-migrate-hybrid-cmake-blaze-project",
             ImmutableMap.of());
@@ -125,6 +126,7 @@ class CMakeWorkspaceOverride {
             ShowFilePathAction.openFile(projectFile);
             EventLoggingService.getInstance()
                 .logEvent(
+                    project,
                     CMakeWorkspaceOverride.class,
                     "must-migrate-hybrid-cmake-blaze-opened-xml",
                     ImmutableMap.of());

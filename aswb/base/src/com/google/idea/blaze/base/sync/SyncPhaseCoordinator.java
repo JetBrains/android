@@ -654,7 +654,7 @@ final class SyncPhaseCoordinator {
           .setStartTime(startTime)
           .setBlazeExecTime(totalBlazeTime(stats.getCurrentTimedEvents()))
           .setTotalClockTime(Duration.between(startTime, Instant.now()));
-      EventLoggingService.getInstance().log(stats.build());
+      EventLoggingService.getInstance().log(project, stats.build());
       context.output(new StatusOutput("Sync " + syncStatus));
       outputTimingSummary(context, stats.getCurrentTimedEvents());
 

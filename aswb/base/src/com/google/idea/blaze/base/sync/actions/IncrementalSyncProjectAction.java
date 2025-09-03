@@ -50,7 +50,7 @@ public class IncrementalSyncProjectAction extends BlazeProjectSyncAction {
   public static void doIncrementalSync(Class<?> klass, Project project, @Nullable AnActionEvent e) {
     if (Blaze.getProjectType(project) == ProjectType.QUERY_SYNC) {
       QuerySyncManager qsm = QuerySyncManager.getInstance(project);
-      QuerySyncActionStatsScope scope = QuerySyncActionStatsScope.create(klass, e);
+      QuerySyncActionStatsScope scope = QuerySyncActionStatsScope.create(project, klass, e);
       qsm.deltaSync(scope, TaskOrigin.USER_ACTION);
     } else {
       BlazeSyncManager.getInstance(project)

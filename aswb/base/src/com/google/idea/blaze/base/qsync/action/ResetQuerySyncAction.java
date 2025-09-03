@@ -41,7 +41,7 @@ public final class ResetQuerySyncAction extends DumbAwareAction {
   public void actionPerformed(@NotNull AnActionEvent e) {
     QuerySyncManager qsm = QuerySyncManager.getInstance(e.getProject());
     qsm.resetQuerySyncState(
-        QuerySyncActionStatsScope.create(getClass(), e), TaskOrigin.USER_ACTION);
+        QuerySyncActionStatsScope.create(e.getProject(), getClass(), e), TaskOrigin.USER_ACTION);
   }
 
   /**

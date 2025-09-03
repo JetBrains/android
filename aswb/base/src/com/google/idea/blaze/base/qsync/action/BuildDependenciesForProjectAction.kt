@@ -60,7 +60,7 @@ class BuildDependenciesForProjectAction : BlazeProjectAction() {
     }
 
     val querySyncActionStats =
-      QuerySyncActionStatsScope.create(this.javaClass, e)
+      QuerySyncActionStatsScope.create(project,this.javaClass, e)
     syncMan.enableAnalysisForWholeProject(
       querySyncActionStats,
       QuerySyncManager.TaskOrigin.USER_ACTION

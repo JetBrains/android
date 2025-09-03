@@ -142,7 +142,7 @@ public class BlazeCommandRunConfiguration
     this.targetKindString = null;
     this.contextElementString = pendingContext.getSourceElementString();
     updateHandler();
-    EventLoggingService.getInstance().logEvent(getClass(), "async-run-config");
+    EventLoggingService.getInstance().logEvent(getProject(), getClass(), "async-run-config");
   }
 
   public void clearPendingContext() {

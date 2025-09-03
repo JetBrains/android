@@ -42,7 +42,7 @@ class BuildDependenciesForOpenFilesAction : BlazeProjectAction() {
     // or because a source file is included in multiple targets.
     val openFiles = FileEditorManager.getInstance(project).allEditors.map { it.file }
     val querySyncActionStats =
-      QuerySyncActionStatsScope.createForFiles(javaClass, event, ImmutableList.copyOf(openFiles))
+      QuerySyncActionStatsScope.createForFiles(project, javaClass, event, ImmutableList.copyOf(openFiles))
 
     helper.determineTargetsAndRun(
       workspaceRelativePaths = WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, openFiles),

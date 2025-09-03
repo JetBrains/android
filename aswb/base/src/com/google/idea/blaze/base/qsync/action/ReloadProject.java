@@ -49,6 +49,6 @@ public class ReloadProject extends AnAction {
   public void actionPerformed(@NotNull AnActionEvent anActionEvent) {
     QuerySyncManager.getInstance(anActionEvent.getProject())
         .reloadProject(
-            QuerySyncActionStatsScope.create(getClass(), anActionEvent), TaskOrigin.USER_ACTION);
+            QuerySyncActionStatsScope.create(anActionEvent.getProject(), getClass(), anActionEvent), TaskOrigin.USER_ACTION);
   }
 }

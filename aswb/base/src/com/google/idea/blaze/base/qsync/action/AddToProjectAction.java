@@ -265,7 +265,7 @@ public class AddToProjectAction extends BlazeProjectAction {
       edit.apply();
       notify(NotificationType.INFORMATION, "Added %s to project view; starting sync", chosen.path);
       QuerySyncManager.getInstance(project)
-          .fullSync(QuerySyncActionStatsScope.create(getClass(), event), TaskOrigin.USER_ACTION);
+          .fullSync(QuerySyncActionStatsScope.create(project, getClass(), event), TaskOrigin.USER_ACTION);
     }
   }
 

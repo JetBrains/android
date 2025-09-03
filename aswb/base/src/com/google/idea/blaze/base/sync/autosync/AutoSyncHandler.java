@@ -190,7 +190,7 @@ public class AutoSyncHandler implements ProjectComponent {
     if (syncParams.syncMode() == SyncMode.PARTIAL) {
       data.put("targets", Joiner.on(',').join(syncParams.targetExpressions()));
     }
-    EventLoggingService.getInstance().logEvent(getClass(), "auto-sync", data);
+    EventLoggingService.getInstance().logEvent(project, getClass(), "auto-sync", data);
     logger.info("Automatic sync queued: " + syncParams.syncMode());
   }
 

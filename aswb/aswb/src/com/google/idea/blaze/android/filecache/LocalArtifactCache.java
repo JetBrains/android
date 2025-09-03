@@ -455,7 +455,7 @@ public class LocalArtifactCache implements ArtifactCache {
     ArtifactCacheData artifactCacheData = new ArtifactCacheData(cacheState.values());
 
     try {
-      ListenableFuture<?> writeFuture = writeCacheData(cacheDir, cacheDataFile, artifactCacheData);
+      ListenableFuture<?> writeFuture = writeCacheData(project, cacheDir, cacheDataFile, artifactCacheData);
       writeFuture.get();
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
@@ -465,13 +465,13 @@ public class LocalArtifactCache implements ArtifactCache {
   }
 
   private static ListenableFuture<?> writeCacheData(
-      Path cacheDir, File cacheDataFile, ArtifactCacheData artifactCacheData) {
+      Project project, Path cacheDir, File cacheDataFile, ArtifactCacheData artifactCacheData) {
     // Logger will catch any issues with writing the cache state
     return FetchExecutor.EXECUTOR.submit(
         () -> {
           try {
             writeJsonToDisk(cacheDataFile, artifactCacheData);
-            logCacheInfo(cacheDir.toFile());
+            logCacheInfo(project, cacheDir.toFile());
           } catch (IOException e) {
             logger.warn(String.format("Failed to write cache state file %s", cacheDataFile));
           }
@@ -499,7 +499,7 @@ public class LocalArtifactCache implements ArtifactCache {
     }
   }
 
-  private static void logCacheInfo(File cacheDirFile) {
+  private static void logCacheInfo(Project project, File cacheDirFile) {
     long cacheDirSize = FileOperationProvider.getInstance().getFileSize(cacheDirFile);
 
     int numFiles = 0;
@@ -513,7 +513,7 @@ public class LocalArtifactCache implements ArtifactCache {
     data.put("CacheSize", Long.toString(cacheDirSize));
     data.put("NumCachedFiles", Integer.toString(numFiles));
     EventLoggingService.getInstance()
-        .logEvent(LocalArtifactCache.class, "CacheDataWritten", data.build());
+      .logEvent(project, LocalArtifactCache.class, "CacheDataWritten", data.build());
   }
 
   /** Returns the {@link File} containing serialized cache data */

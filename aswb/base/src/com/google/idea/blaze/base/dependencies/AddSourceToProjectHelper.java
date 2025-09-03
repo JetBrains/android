@@ -87,7 +87,7 @@ class AddSourceToProjectHelper {
       boolean inProjectDirectories,
       Future<List<TargetInfo>> targetsFuture) {
     EventLoggingService.getInstance()
-        .logEvent(AddSourceToProjectHelper.class, "AddSourceToProject");
+        .logEvent(project, AddSourceToProjectHelper.class, "AddSourceToProject");
     List<TargetInfo> targets;
     try {
       targets = targetsFuture.get();

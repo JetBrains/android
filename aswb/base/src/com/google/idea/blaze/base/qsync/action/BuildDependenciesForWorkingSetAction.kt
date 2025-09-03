@@ -59,7 +59,7 @@ class BuildDependenciesForWorkingSetAction : BlazeProjectAction() {
     }
 
     val querySyncActionStats =
-      QuerySyncActionStatsScope.createForPaths(javaClass, e, ImmutableSet.copyOf(workingSet))
+      QuerySyncActionStatsScope.createForPaths(project, javaClass, e, ImmutableSet.copyOf(workingSet))
 
     helper.determineTargetsAndRun(
       workspaceRelativePaths = workingSet,

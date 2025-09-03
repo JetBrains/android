@@ -90,7 +90,7 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
   Deferred<Boolean> buildArtifactsAsync(BazelBuildTargetReference target) {
     var project = target.getProject();
     var file = target.getFile();
-    var scope = QuerySyncActionStatsScope.createForFile(BazelBuildServices.class, null, file);
+    var scope = QuerySyncActionStatsScope.createForFile(project, BazelBuildServices.class, null, file);
 
     return new BuildDependenciesHelper(project).determineTargetsAndRun(
       WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, List.of(file)),

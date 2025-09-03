@@ -126,7 +126,7 @@ public class BlazeCoverageProgramRunner extends DefaultProgramRunner {
     if (result == null) {
       return null;
     }
-    EventLoggingService.getInstance().logEvent(getClass(), "run-with-coverage");
+    EventLoggingService.getInstance().logEvent(env.getProject(), getClass(), "run-with-coverage");
     // remove any old copy of the coverage data
 
     // retrieve coverage data and copy locally

@@ -222,6 +222,6 @@ public final class BlazeNewProjectBuilder {
   void commitToProject(Project project) {
     BlazeWizardUserSettingsStorage.getInstance().commit(userSettings);
     EventLoggingService.getInstance()
-        .logEvent(getClass(), "blaze-project-created", ImmutableMap.copyOf(userSettings.values));
+        .logEvent(project, getClass(), "blaze-project-created", ImmutableMap.copyOf(userSettings.values));
   }
 }

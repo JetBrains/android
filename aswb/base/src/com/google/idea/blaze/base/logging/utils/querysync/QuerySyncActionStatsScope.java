@@ -22,11 +22,11 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.logging.EventLoggingService;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStats.Result;
-import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.BlazeScope;
 import com.google.idea.blaze.common.TimeSource;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -41,30 +41,34 @@ public class QuerySyncActionStatsScope implements BlazeScope {
   private final ProjectInfoStats.Builder projectInfoStatsBuilder;
   private final DependenciesInfoStats.Builder dependenciesInfoStatsBuilder;
   private final TimeSource timeSource;
+  private final Project project;
 
   public static QuerySyncActionStatsScope create(
-      Class<?> actionClass, @Nullable AnActionEvent event) {
-    return createForPaths(actionClass, event, ImmutableSet.of(), () -> Instant.now());
+      Project project, Class<?> actionClass, @Nullable AnActionEvent event) {
+    return createForPaths(project, actionClass, event, ImmutableSet.of(), () -> Instant.now());
   }
 
   public static QuerySyncActionStatsScope createForFile(
-      Class<?> actionClass, @Nullable AnActionEvent event, VirtualFile requestFile) {
-    return createForFiles(actionClass, event, ImmutableSet.of(requestFile));
+      Project project, Class<?> actionClass, @Nullable AnActionEvent event, VirtualFile requestFile) {
+    return createForFiles(project, actionClass, event, ImmutableSet.of(requestFile));
   }
 
   public static QuerySyncActionStatsScope createForFiles(
+      Project project,
       Class<?> actionClass,
       @Nullable AnActionEvent event,
       ImmutableCollection<VirtualFile> requestFiles) {
-    return createForFiles(actionClass, event, requestFiles, () -> Instant.now());
+    return createForFiles(project, actionClass, event, requestFiles, () -> Instant.now());
   }
 
   public static QuerySyncActionStatsScope createForFiles(
+      Project project,
       Class<?> actionClass,
       @Nullable AnActionEvent event,
       ImmutableCollection<VirtualFile> requestFiles,
       TimeSource timeSource) {
     return createForPaths(
+        project,
         actionClass,
         event,
         requestFiles.stream().map(it -> it.getFileSystem().getNioPath(it)).filter(Objects::nonNull).collect(toImmutableSet()),
@@ -72,20 +76,22 @@ public class QuerySyncActionStatsScope implements BlazeScope {
   }
 
   public static QuerySyncActionStatsScope createForPaths(
-      Class<?> actionClass, @Nullable AnActionEvent event, ImmutableCollection<Path> requestFiles) {
-    return createForPaths(actionClass, event, requestFiles, () -> Instant.now());
+      Project project, Class<?> actionClass, @Nullable AnActionEvent event, ImmutableCollection<Path> requestFiles) {
+    return createForPaths(project, actionClass, event, requestFiles, () -> Instant.now());
   }
 
   public static QuerySyncActionStatsScope createForPaths(
+      Project project,
       Class<?> actionClass,
       @Nullable AnActionEvent event,
       ImmutableCollection<Path> requestFiles,
       TimeSource timeSource) {
-    return new QuerySyncActionStatsScope(actionClass, event, requestFiles, timeSource);
+    return new QuerySyncActionStatsScope(project, actionClass, event, requestFiles, timeSource);
   }
 
   @VisibleForTesting
   public QuerySyncActionStatsScope(
+      Project project,
       Class<?> actionClass,
       @Nullable AnActionEvent event,
       ImmutableCollection<Path> requestFiles,
@@ -98,6 +104,7 @@ public class QuerySyncActionStatsScope implements BlazeScope {
     this.timeSource = timeSource;
     projectInfoStatsBuilder = ProjectInfoStats.builder();
     dependenciesInfoStatsBuilder = DependenciesInfoStats.builder();
+    this.project = project;
   }
 
   public QuerySyncActionStats.Builder getBuilder() {
@@ -141,13 +148,15 @@ public class QuerySyncActionStatsScope implements BlazeScope {
     fromContext(context)
         .ifPresent(
             builder ->
-                EventLoggingService.getInstance()
-                    .log(
-                        builder
-                            .setDependenciesInfo(dependenciesInfoStatsBuilder.build())
-                            .setProjectInfo(projectInfoStatsBuilder.build())
-                            .setTotalClockTime(Duration.between(builder.startTime(), Instant.now()))
-                            .setResult(getSyncResult(context))
-                            .build()));
+              EventLoggingService.getInstance()
+                .log(
+                  project,
+                  builder
+                    .setDependenciesInfo(dependenciesInfoStatsBuilder.build())
+                    .setProjectInfo(projectInfoStatsBuilder.build())
+                    .setTotalClockTime(Duration.between(builder.startTime(), Instant.now()))
+                    .setResult(getSyncResult(context))
+                    .build()
+                ));
   }
 }

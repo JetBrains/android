@@ -20,6 +20,7 @@ import com.google.idea.blaze.base.logging.utils.SyncStats;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStats;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats;
 import com.google.idea.blaze.ext.Logentry.AiEvent;
+import com.intellij.openapi.project.Project;
 import java.util.Map;
 import javax.annotation.Nullable;
 
@@ -27,13 +28,13 @@ import javax.annotation.Nullable;
 public final class NoopEventLoggingService implements EventLoggingService {
 
   @Override
-  public void log(SyncStats syncStats) {}
+  public void log(Project project, SyncStats syncStats) {}
 
   @Override
-  public void log(QuerySyncActionStats querySyncActionStats) {}
+  public void log(Project project, QuerySyncActionStats querySyncActionStats) {}
 
   @Override
-  public void log(QuerySyncAutoConversionStats querySyncAutoConversionStats) {}
+  public void log(Project project, QuerySyncAutoConversionStats querySyncAutoConversionStats) {}
 
   @Override
   public void log(AiEvent aiEvent) {}
@@ -49,5 +50,13 @@ public final class NoopEventLoggingService implements EventLoggingService {
       @Nullable Long durationInNanos) {}
 
   @Override
-  public void logHighlightStats(HighlightStats highlightStats) {}
+  public void logEvent(
+    Project project,
+    Class<?> loggingClass,
+    String eventType,
+    Map<String, String> keyValues,
+    @Nullable Long durationInNanos) {}
+
+  @Override
+  public void logHighlightStats(Project project, HighlightStats highlightStats) {}
 }

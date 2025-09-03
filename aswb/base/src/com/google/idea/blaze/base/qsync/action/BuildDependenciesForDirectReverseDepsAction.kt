@@ -47,7 +47,7 @@ class BuildDependenciesForDirectReverseDepsAction : BlazeProjectAction() {
       return
     }
 
-    val querySyncActionStats = QuerySyncActionStatsScope.createForFiles(javaClass, e, ImmutableList.copyOf(vfs))
+    val querySyncActionStats = QuerySyncActionStatsScope.createForFiles(project, javaClass, e, ImmutableList.copyOf(vfs))
     helper.determineTargetsAndRun(
       workspaceRelativePaths = WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, vfs),
       disambiguateTargetPrompt = createDisambiguateTargetPrompt(PopupPositioner.showAtMousePointerOrCentered(e)),

@@ -24,6 +24,7 @@ import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStats;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats;
 import com.google.idea.blaze.ext.Logentry.AiEvent;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
@@ -42,11 +43,11 @@ public interface EventLoggingService {
     return service != null ? service : new NoopEventLoggingService();
   }
 
-  void log(SyncStats syncStats);
+  void log(Project project, SyncStats syncStats);
 
-  void log(QuerySyncActionStats querySyncStats);
+  void log(Project project, QuerySyncActionStats querySyncStats);
 
-  void log(QuerySyncAutoConversionStats querySyncAutoConversionStats);
+  void log(Project project, QuerySyncAutoConversionStats querySyncAutoConversionStats);
 
   void log(AiEvent aiEvent);
 
@@ -56,8 +57,20 @@ public interface EventLoggingService {
     logEvent(loggingClass, eventType, /* keyValues= */ ImmutableMap.of());
   }
 
+  default void logEvent(Project project, Class<?> loggingClass, String eventType) {
+    logEvent(project, loggingClass, eventType, /* keyValues= */ ImmutableMap.of());
+  }
+
   default void logEvent(Class<?> loggingClass, String eventType, Map<String, String> keyValues) {
     logEvent(loggingClass, eventType, keyValues, /* durationInNanos= */ null);
+  }
+
+  default void logEvent(
+    Project project,
+    Class<?> loggingClass,
+    String eventType,
+    Map<String, String> keyValues) {
+    logEvent(project, loggingClass, eventType, keyValues, /* durationInNanos= */ null);
   }
 
   void logEvent(
@@ -66,7 +79,14 @@ public interface EventLoggingService {
       Map<String, String> keyValues,
       @Nullable Long durationInNanos);
 
-  void logHighlightStats(HighlightStats highlightStats);
+  void logEvent(
+    Project project,
+    Class<?> loggingClass,
+    String eventType,
+    Map<String, String> keyValues,
+    @Nullable Long durationInNanos);
+
+  void logHighlightStats(Project project, HighlightStats highlightStats);
 
   /** Information about an external command that was launched from the IDE. */
   @AutoValue

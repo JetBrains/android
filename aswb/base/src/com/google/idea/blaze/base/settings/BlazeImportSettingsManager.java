@@ -217,6 +217,7 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
       querySyncConversionUtility.backupExistingProjectDirectories();
     }
     EventLoggingService.getInstance().log(
+      project,
       QuerySyncAutoConversionStats.builder()
         .setStatus(querySyncConversionUtility.calculateStatus(importSettings, projectViewFilePath))
         .setShardingType(querySyncConversionUtility.calculateShardingType(importSettings, projectViewFilePath, legacySyncShardCount))

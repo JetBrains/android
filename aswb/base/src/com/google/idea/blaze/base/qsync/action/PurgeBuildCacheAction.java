@@ -21,6 +21,6 @@ public class PurgeBuildCacheAction extends BlazeProjectAction implements DumbAwa
   @Override
   protected void actionPerformedInBlazeProject(Project project, AnActionEvent e) {
     QuerySyncManager.getInstance(project)
-        .purgeBuildCache(QuerySyncActionStatsScope.create(getClass(), e));
+        .purgeBuildCache(QuerySyncActionStatsScope.create(project, getClass(), e));
   }
 }

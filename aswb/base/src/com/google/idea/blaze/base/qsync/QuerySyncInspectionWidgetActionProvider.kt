@@ -68,7 +68,7 @@ class QuerySyncInspectionWidgetActionProvider : InspectionWidgetActionProvider {
 
     override fun actionPerformed(e: AnActionEvent) {
       val vfs = e.getVirtualFiles() ?: return
-      val querySyncActionStats = QuerySyncActionStatsScope.createForFiles(javaClass, e, ImmutableList.copyOf(vfs))
+      val querySyncActionStats = QuerySyncActionStatsScope.createForFiles(project, javaClass, e, ImmutableList.copyOf(vfs))
       buildDepsHelper.determineTargetsAndRun(
         workspaceRelativePaths = WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, vfs),
         disambiguateTargetPrompt = BuildDependenciesHelperSelectTargetPopup.createDisambiguateTargetPrompt(

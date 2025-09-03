@@ -102,7 +102,7 @@ public class AspectSyncProjectDataManager implements BlazeProjectDataManager {
                     synchronized (this) {
                       this.projectData.saveToDisk(file);
                     }
-                    logFileSize(projectData, file);
+                    logFileSize(project, projectData, file);
 
                   } catch (Throwable e) {
                     logger.error(serializationErrorMessage(e), e);
@@ -110,7 +110,7 @@ public class AspectSyncProjectDataManager implements BlazeProjectDataManager {
                 });
   }
 
-  private static void logFileSize(BlazeProjectData projectData, File cacheFile) {
+  private static void logFileSize(Project project, BlazeProjectData projectData, File cacheFile) {
     ImmutableMap.Builder<String, String> data = ImmutableMap.builder();
     data.put("size", Long.toString(FileOperationProvider.getInstance().getFileSize(cacheFile)));
     Long clientCl = projectData.getBlazeVersionData().clientCl;
@@ -118,7 +118,7 @@ public class AspectSyncProjectDataManager implements BlazeProjectDataManager {
       data.put("cl", Long.toString(clientCl));
     }
     EventLoggingService.getInstance()
-        .logEvent(AspectSyncProjectDataManager.class, "ProjectDataSerialized", data.build());
+        .logEvent(project, AspectSyncProjectDataManager.class, "ProjectDataSerialized", data.build());
   }
 
   private static String serializationErrorMessage(Throwable e) {

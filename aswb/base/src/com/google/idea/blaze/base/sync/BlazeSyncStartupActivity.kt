@@ -42,7 +42,7 @@ class BlazeSyncStartupActivity : ProjectActivity {
     if (Blaze.getProjectType(project) == BlazeImportSettings.ProjectType.QUERY_SYNC) {
       // When query sync is not enabled hasProjectData triggers the load
       QuerySyncManager.getInstance(project)
-        .onStartup(QuerySyncActionStatsScope.create(javaClass, null))
+        .onStartup(QuerySyncActionStatsScope.create(project, javaClass, null))
       return
     }
     DumbService.getInstance(project).runWhenSmart {

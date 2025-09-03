@@ -25,6 +25,7 @@ import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversio
 import com.google.idea.blaze.ext.Logentry.AiEvent;
 import com.google.idea.testing.ServiceHelper;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.project.Project;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -58,17 +59,17 @@ public class MockEventLoggingService implements EventLoggingService {
   public ImmutableList<AiEvent> aiEvents() { return ImmutableList.copyOf(aiEvents); }
 
   @Override
-  public void log(SyncStats stats) {
+  public void log(Project project, SyncStats stats) {
     syncStats.add(stats);
   }
 
   @Override
-  public void log(QuerySyncActionStats stats) {
+  public void log(Project project, QuerySyncActionStats stats) {
     querySyncStats.add(stats);
   }
 
   @Override
-  public void log(QuerySyncAutoConversionStats stats) { querySyncAutoConversionStats.add(stats); }
+  public void log(Project project, QuerySyncAutoConversionStats stats) { querySyncAutoConversionStats.add(stats); }
 
   @Override
   public void log(AiEvent aiEvent) { aiEvents.add(aiEvent); }
@@ -84,5 +85,13 @@ public class MockEventLoggingService implements EventLoggingService {
     @Nullable Long durationInNanos) { }
 
   @Override
-  public void logHighlightStats(HighlightStats highlightStats) { }
+  public void logEvent(
+    Project project,
+    Class<?> loggingClass,
+    String eventType,
+    Map<String, String> keyValues,
+    @Nullable Long durationInNanos) { }
+
+  @Override
+  public void logHighlightStats(Project project, HighlightStats highlightStats) { }
 }

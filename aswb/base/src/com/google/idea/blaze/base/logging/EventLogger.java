@@ -16,6 +16,7 @@
 package com.google.idea.blaze.base.logging;
 
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.project.Project;
 import java.util.Map;
 import javax.annotation.Nullable;
 
@@ -28,7 +29,8 @@ public interface EventLogger {
       Class<?> loggingClass,
       String eventType,
       Map<String, String> keyValues,
-      @Nullable Long durationInNanos);
+      @Nullable Long durationInNanos,
+      String projectHash);
 
   void logSerializedProto(byte[] serializedIntellijLogEntry);
 }

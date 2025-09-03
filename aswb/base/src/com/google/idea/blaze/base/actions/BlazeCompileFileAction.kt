@@ -73,7 +73,7 @@ internal class BlazeCompileFileAction : BlazeProjectAction() {
 
     if (Blaze.getProjectType(project) == BlazeImportSettings.ProjectType.QUERY_SYNC) {
       val buildDependenciesHelper = BuildDependenciesHelper(project)
-      val querySyncActionStats = QuerySyncActionStatsScope.createForFiles(javaClass, e, ImmutableList.copyOf(files))
+      val querySyncActionStats = QuerySyncActionStatsScope.createForFiles(project, javaClass, e, ImmutableList.copyOf(files))
       buildDependenciesHelper.determineTargetsAndRun(
         workspaceRelativePaths = WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, files),
         disambiguateTargetPrompt = createDisambiguateTargetPrompt({ popup -> popup.showCenteredInCurrentWindow(project) }),

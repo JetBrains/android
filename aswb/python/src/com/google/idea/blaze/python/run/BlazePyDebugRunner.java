@@ -75,7 +75,7 @@ public class BlazePyDebugRunner extends PyDebugRunner {
     if (!(state instanceof BlazePyDummyRunProfileState)) {
       return null;
     }
-    EventLoggingService.getInstance().logEvent(getClass(), "debugging-python");
+    EventLoggingService.getInstance().logEvent(environment.getProject(), getClass(), "debugging-python");
     try {
       state = ((BlazePyDummyRunProfileState) state).toNativeState(environment);
       return super.doExecute(state, environment);

@@ -32,6 +32,6 @@ public final class ClearDependencies extends DumbAwareAction {
   public void actionPerformed(@NotNull AnActionEvent e) {
     QuerySyncManager qsm = QuerySyncManager.getInstance(e.getProject());
     qsm.clearAllDependencies(
-        QuerySyncActionStatsScope.create(getClass(), e), TaskOrigin.USER_ACTION);
+        QuerySyncActionStatsScope.create(e.getProject(), getClass(), e), TaskOrigin.USER_ACTION);
   }
 }
