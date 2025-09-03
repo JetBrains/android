@@ -39,7 +39,6 @@
     <projectService serviceImplementation="com.google.idea.blaze.android.sync.model.AndroidResourceModuleRegistry"/>
     <projectService serviceImplementation="com.google.idea.blaze.android.projectsystem.ExternalLibraryInterner"/>
     <projectService serviceImplementation="com.google.idea.blaze.android.libraries.UnpackedAars"/>
-    <projectService serviceImplementation="com.google.idea.blaze.android.libraries.RenderJarCache"/>
     <projectService serviceImplementation="com.google.idea.blaze.android.resources.BlazeLightResourceClassService"/>
     <projectService serviceImplementation="com.google.idea.blaze.android.projectsystem.BlazeProjectSystemSyncManager$LastSyncResultCache"/>
     <projectService serviceImplementation="com.google.idea.blaze.android.editor.ProjectUnresolvedResourceStatsCollector"/>
@@ -106,7 +105,6 @@
     <SyncListener implementation="com.google.idea.blaze.android.projectsystem.BlazeProjectSystemSyncManager$SyncStatusPublisher"/>
     <JavaSyncAugmenter implementation="com.google.idea.blaze.android.sync.BlazeAndroidJavaSyncAugmenter"/>
     <FileCache implementation="com.google.idea.blaze.android.libraries.UnpackedAars$FileCacheAdapter"/>
-    <FileCache implementation="com.google.idea.blaze.android.libraries.RenderJarCache$FileCacheAdapter"/>
     <OutputsProvider implementation="com.google.idea.blaze.android.sync.AndroidOutputsProvider"/>
     <BlazeCommandRunConfigurationHandlerProvider implementation="com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryRunConfigurationHandlerProvider"/>
     <BlazeCommandRunConfigurationHandlerProvider implementation="com.google.idea.blaze.android.run.test.BlazeAndroidTestRunConfigurationHandlerProvider"/>
@@ -120,7 +118,6 @@
     <BlazeHighlightStatsCollector implementation="com.google.idea.blaze.android.editor.UnresolvedResourceStatsCollector"/>
     <SyncListener implementation="com.google.idea.blaze.android.editor.ProjectUnresolvedResourceStatsCollector$CollectorSyncListener"/>
     <SyncListener implementation="com.google.idea.blaze.android.targetmaps.TargetToBinaryMapImpl$Adapter"/>
-    <OutputGroupsProvider implementation="com.google.idea.blaze.android.sync.aspects.strategy.RenderResolveOutputGroupProvider"/>
     <ComposeStatusProvider implementation="com.google.idea.blaze.android.compose.ExperimentComposeStatusProvider"/>
     <BlazeBuildListener implementation="com.google.idea.blaze.android.projectsystem.BlazeProjectSystemBuildManager$BuildCallbackPublisher"/>
     <android.ApkBuildStepProvider implementation="com.google.idea.blaze.android.run.BazelApkBuildStepProvider" />

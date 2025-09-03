@@ -26,6 +26,7 @@ import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.projectmodel.ExternalLibraryImpl;
 import com.android.projectmodel.SelectiveResourceFolder;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.ClassContent;
 import com.android.tools.idea.projectsystem.ClassFileFinder;
 import com.android.tools.idea.projectsystem.DependencyManagementException;
 import com.android.tools.idea.projectsystem.DependencyScopeType;
@@ -103,6 +104,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
@@ -124,7 +126,6 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem, Registering
   protected final Project project;
   private final ProjectPath.Resolver pathResolver;
   SampleDataDirectoryProvider sampleDataDirectoryProvider;
-  RenderJarClassFileFinder classFileFinder;
   final boolean isWorkspaceModule;
 
   BlazeModuleSystemBase(Module module) {
@@ -137,7 +138,6 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem, Registering
                 BlazeImportSettingsManager.getInstance(project)
                     .getImportSettings()
                     .getProjectDataDirectory()));
-    classFileFinder = new RenderJarClassFileFinder(module);
     sampleDataDirectoryProvider = new BlazeSampleDataDirectoryProvider(module);
     isWorkspaceModule = module.getName().equals(BlazeDataStorage.WORKSPACE_MODULE_NAME);
   }
@@ -149,7 +149,7 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem, Registering
 
   @Override
   public ClassFileFinder getModuleClassFileFinder() {
-    return classFileFinder;
+    return fqcn -> null;
   }
 
   @Override
