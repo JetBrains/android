@@ -297,7 +297,7 @@ class TableController(
         .selectOrdered(databaseId, sqliteStatement, orderBy)
         .transform(edtExecutor) { newResultSet ->
           if (isDisposed) {
-            newResultSet.dispose()
+            Disposer.dispose(newResultSet)
             throw ProcessCanceledException()
           }
 
