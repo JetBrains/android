@@ -19,6 +19,7 @@ import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.Device
+import com.android.tools.idea.insights.FetchSource
 import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.MultiSelection
@@ -42,6 +43,7 @@ data class IssuesChanged(
   val issues: LoadingState.Done<IssueResponse>,
   private val clock: Clock,
   private val previousGoodState: AppInsightsState?,
+  private val source: FetchSource,
 ) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
@@ -82,7 +84,7 @@ data class IssuesChanged(
             signalFilter = request.filters.signal.toLogProto()
             visibilityFilter = request.filters.visibilityType.toLogProto()
             defaultProject = false
-            fetchSource?.let { this.fetchSource = it }
+            fetchSource = source.toProto()
             numRetries = 0
             this.cache = false
             vcsIntegrationDetails = vcsIntegrationDetailsBuilder.build()
@@ -165,4 +167,16 @@ private fun getOptInStatus(firebaseProject: String?): AiInsightsOptInStatus =
       if (TosPersistence.getInstance().isTosAccepted(firebaseProject))
         AiInsightsOptInStatus.OPTED_IN
       else AiInsightsOptInStatus.UNKNOWN_STATUS
+  }
+
+private fun FetchSource.toProto() =
+  when (this) {
+    FetchSource.BACKGROUND ->
+      AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.BACKGROUND
+    FetchSource.REFRESH ->
+      AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.REFRESH
+    FetchSource.FILTER ->
+      AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.FILTER
+    FetchSource.PROJECT_SELECTION ->
+      AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.PROJECT_SELECTION
   }

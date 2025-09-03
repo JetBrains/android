@@ -27,6 +27,7 @@ import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.DynamicEventGallery
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.FakeInsightsProvider
+import com.android.tools.idea.insights.FetchSource
 import com.android.tools.idea.insights.Filters
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
@@ -108,6 +109,7 @@ class IssuesChangedTest {
         ),
         FakeClock(),
         currentState,
+        FetchSource.REFRESH,
       )
 
     with(
@@ -147,6 +149,7 @@ class IssuesChangedTest {
         ),
         clock,
         currentState,
+        FetchSource.REFRESH,
       )
 
     with(
@@ -194,6 +197,7 @@ class IssuesChangedTest {
         ),
         clock,
         currentState,
+        FetchSource.REFRESH,
       )
 
     with(
@@ -244,6 +248,7 @@ class IssuesChangedTest {
           TEST_FILTERS,
           LoadingState.Loading,
         ),
+        FetchSource.REFRESH,
       )
 
     val resultState =
@@ -305,6 +310,7 @@ class IssuesChangedTest {
           TEST_FILTERS,
           LoadingState.Loading,
         ),
+        FetchSource.REFRESH,
       )
 
     val result =
@@ -354,6 +360,7 @@ class IssuesChangedTest {
         ),
         clock,
         currentState,
+        FetchSource.REFRESH,
       )
 
     with(

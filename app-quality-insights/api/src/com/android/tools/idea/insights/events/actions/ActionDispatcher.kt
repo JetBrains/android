@@ -290,10 +290,10 @@ class ActionDispatcher(
             if (connectionMode == ConnectionMode.ONLINE && state.mode == ConnectionMode.OFFLINE) {
               eventEmitter(EnterOnlineMode)
             }
-            eventEmitter(IssuesChanged(fetchResult, clock, lastGoodState))
+            eventEmitter(IssuesChanged(fetchResult, clock, lastGoodState, reason))
           }
           is LoadingState.Failure -> {
-            eventEmitter(IssuesChanged(fetchResult, clock, lastGoodState))
+            eventEmitter(IssuesChanged(fetchResult, clock, lastGoodState, reason))
           }
         }
       }

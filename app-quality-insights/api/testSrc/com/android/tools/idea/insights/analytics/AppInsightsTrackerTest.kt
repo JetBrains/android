@@ -115,6 +115,9 @@ class AppInsightsTrackerTest {
           deviceFilter &&
             osFilter &&
             versionFilter &&
+            fetchSource !=
+              AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
+                .UNKNOWN_SOURCE &&
             severityFilter ==
               AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.FATAL &&
             visibilityFilter ==
