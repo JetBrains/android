@@ -33,10 +33,11 @@ using namespace std::chrono;
 
 namespace {
 
+constexpr int NUM_DEQUE_ATTEMPTS = 2;
 constexpr int MAX_SUBSEQUENT_ERRORS = 5;
 constexpr int MIN_VIDEO_RESOLUTION = 128;
-constexpr int64_t INITIAL_FRAME_TIMEOUT_MILLIS = 200;
-constexpr int64_t FRAME_TIMEOUT_MILLIS = 30000;
+constexpr duration INITIAL_FRAME_TIMEOUT = 200ms;
+constexpr duration FRAME_TIMEOUT = 30s;
 constexpr int COLOR_FormatSurface = 0x7F000789;  // See android.media.MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface.
 constexpr int MAX_FRAME_RATE = 60;
 constexpr int REDUCED_FRAME_RATE = 30;  // Frame rate used for watches.
@@ -215,11 +216,13 @@ void DisplayStreamer::Run() {
   AMediaFormat* media_format = CreateMediaFormat(codec_info_->mime_type);
   VideoPacketHeader packet_header = { .display_id = display_id_, .frame_number = frame_number_};
   FrameStreamStopReason stop_reason = FrameStreamStopReason::CODEC_STOPPED;
-  consequent_deque_error_count_ = 0;
+  int error_count = 0;
 
   while (stop_reason != FrameStreamStopReason::END_OF_STREAM && !streamer_stopped_ && !Agent::IsShuttingDown()) {
     DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni, display_id_);
-    if (!display_info.IsValid()) {
+    if (display_id_ != PRIMARY_DISPLAY_ID && (!display_info.IsValid() || !display_info.IsOn())) {
+      Log::W("Display %d: turned off", display_id_);
+      DisplayManager::OnDisplayRemoved(jni, display_id_);
       break;
     }
     Log::D("Display %d: display_info: %s", display_id_, display_info.ToDebugString().c_str());
@@ -297,6 +300,32 @@ void DisplayStreamer::Run() {
     }
     ANativeWindow_release(surface_);
     surface_ = nullptr;
+    if (stop_reason == FrameStreamStopReason::CODEC_ERROR) {
+      if (++error_count >= MAX_SUBSEQUENT_ERRORS && !ReduceBitRate()) {
+        ExitCode exitCode = bit_rate_ <= MIN_BIT_RATE ? WEAK_VIDEO_ENCODER : REPEATED_VIDEO_ENCODER_ERRORS;
+        Log::Fatal(exitCode, "Display %d: too many video encoder errors:\n%s", display_id_,
+                   GetVideoEncoderDetails(*codec_info_, packet_header.display_width, packet_header.display_height).c_str());
+      }
+    } else {
+      error_count = 0;
+      if (stop_reason == FrameStreamStopReason::TIMEOUT) {
+        // Write an empty video packet.
+        int64_t timestamp = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
+        packet_header.origination_timestamp_us = timestamp;
+        if (presentation_timestamp_offset_ == 0) {
+          presentation_timestamp_offset_ = timestamp;
+        }
+        packet_header.presentation_timestamp_us = timestamp - presentation_timestamp_offset_;
+        packet_header.packet_size = 0;
+        if (Log::IsEnabled(Log::Level::VERBOSE)) {
+          Log::V("Display %d: writing an video packet", display_id_);
+        }
+        auto res = writer_->Write(&packet_header, VideoPacketHeader::SIZE);
+        if (res != SocketWriter::Result::SUCCESS && res != SocketWriter::Result::SUCCESS_AFTER_BLOCKING) {
+          stop_reason = FrameStreamStopReason::END_OF_STREAM;
+        }
+      }
+    }
   }
 
   ReleaseVirtualDisplay(jni);
@@ -313,29 +342,29 @@ DisplayStreamer::FrameStreamStopReason DisplayStreamer::ProcessFramesUntilCodecS
     VideoPacketHeader* packet_header, const AMediaFormat* sync_frame_request) {
   bool continue_streaming = true;
   bool request_sync_frame = true;
+  int32_t error_count = 0;
   while (continue_streaming && IsCodecRunning()) {
     CodecOutputBuffer codec_buffer(codec_, StringPrintf("Display %d: ", display_id_));
     if (frame_number_ == initial_frame_number_) {
       Log::D("Display %d: calling AMediaCodec_dequeueOutputBuffer", display_id_);
     }
-    int64_t timeout = frame_number_ == initial_frame_number_ ? INITIAL_FRAME_TIMEOUT_MILLIS * 1000 : FRAME_TIMEOUT_MILLIS * 1000;
-    if (!codec_buffer.Deque(timeout)) {
-      if (++consequent_deque_error_count_ >= MAX_SUBSEQUENT_ERRORS && !ReduceBitRate()) {
-        ExitCode exitCode = bit_rate_ <= MIN_BIT_RATE ? WEAK_VIDEO_ENCODER : REPEATED_VIDEO_ENCODER_ERRORS;
-        Log::Fatal(exitCode, "Display %d: too many video encoder errors:\n%s", display_id_,
-                   GetVideoEncoderDetails(*codec_info_, packet_header->display_width, packet_header->display_height).c_str());
+    duration timeout = frame_number_ == initial_frame_number_ ? INITIAL_FRAME_TIMEOUT : FRAME_TIMEOUT;
+    steady_clock::time_point start_time = steady_clock::now();
+    if (!codec_buffer.Deque(duration_cast<microseconds>(timeout).count())) {
+      if (!IsCodecRunning()) {
+        return FrameStreamStopReason::CODEC_STOPPED;
       }
-      if (frame_number_ != initial_frame_number_) {
+      if (steady_clock::now() - start_time >= timeout) {
         return FrameStreamStopReason::TIMEOUT;
+      }
+      if (codec_buffer.error_code() == AMEDIACODEC_INFO_TRY_AGAIN_LATER || ++error_count >= NUM_DEQUE_ATTEMPTS) {
+        return FrameStreamStopReason::CODEC_ERROR;
       }
       continue;
     }
 
-    consequent_deque_error_count_ = 0;
+    error_count = 0;
     continue_streaming = !codec_buffer.IsEndOfStream();
-    if (!IsCodecRunning()) {
-      return FrameStreamStopReason::CODEC_STOPPED;
-    }
     // Skip an AV1-specific data packet that is not a part of AV1 bitstream.
     // See https://aomediacodec.github.io/av1-spec/#obu-header-semantics.
     if (codec_info_->mime_type == "video/av01" && (*codec_buffer.buffer() & 0x80) != 0) {
@@ -477,7 +506,6 @@ void DisplayStreamer::StopCodecUnlocked() {
       Log::W("Display %d: AMediaCodec_stop returned %d", display_id_, status);
     }
     codec_running_ = false;
-    consequent_deque_error_count_ = 0;
   } else {
     codec_stop_pending_ = true;
   }

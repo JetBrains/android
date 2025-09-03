@@ -92,7 +92,7 @@ private:
     DISALLOW_COPY_AND_ASSIGN(DisplayRotationWatcher);
   };
 
-  enum class FrameStreamStopReason { TIMEOUT, CODEC_STOPPED, END_OF_STREAM };
+  enum class FrameStreamStopReason { CODEC_ERROR, TIMEOUT, CODEC_STOPPED, END_OF_STREAM };
 
   void Run();
   // Returns true if the streaming should continue, otherwise false.
@@ -125,7 +125,6 @@ private:
   int64_t presentation_timestamp_offset_ = 0;
   int32_t bit_rate_;
   bool bit_rate_reduced_ = false;
-  int32_t consequent_deque_error_count_ = 0;
   std::atomic_bool streamer_stopped_ = true;
   VirtualDisplay virtual_display_;
   JObject display_token_;

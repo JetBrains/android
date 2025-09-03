@@ -38,7 +38,7 @@ CodecOutputBuffer::~CodecOutputBuffer() {
 bool CodecOutputBuffer::Deque(int64_t timeout_us) {
   index_ = AMediaCodec_dequeueOutputBuffer(codec_, &info_, timeout_us);
   if (index_ < 0) {
-    Log::W("%sAMediaCodec_dequeueOutputBuffer returned %ld", log_prefix_.c_str(), static_cast<long>(index_));
+    Log::W("%sAMediaCodec_dequeueOutputBuffer(..., %" PRId64 ") returned %ld", log_prefix_.c_str(), timeout_us, static_cast<long>(index_));
     return false;
   }
   if (Log::IsEnabled(Log::Level::VERBOSE)) {

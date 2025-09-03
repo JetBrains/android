@@ -18,6 +18,7 @@
 
 #include <media/NdkMediaCodec.h>
 
+#include <algorithm>
 #include <string>
 
 #include "common.h"
@@ -29,6 +30,8 @@ public:
   CodecOutputBuffer(AMediaCodec* codec, std::string&& log_prefix);
   ~CodecOutputBuffer();
 
+  // Returns true if successful. If not, the error_code method can be used to get the error code
+  // returned by AMediaCodec_dequeueOutputBuffer.
   [[nodiscard]] bool Deque(int64_t timeout_us);
 
   [[nodiscard]] bool IsEndOfStream() const { return (info_.flags & AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM) != 0; }
@@ -38,6 +41,7 @@ public:
   [[nodiscard]] int32_t size() const { return info_.size; }
   [[nodiscard]] int64_t presentation_time_us() const { return info_.presentationTimeUs; }
   [[nodiscard]] uint32_t flags() const { return info_.flags; }
+  [[nodiscard]] int error_code() const { return std::max(static_cast<int>(index_), 0); }
 
 private:
   AMediaCodec* codec_;
