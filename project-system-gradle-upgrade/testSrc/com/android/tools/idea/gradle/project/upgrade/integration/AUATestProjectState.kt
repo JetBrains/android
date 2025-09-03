@@ -41,8 +41,10 @@ import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.
 import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_7_1
 import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_7_2
 import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_7_3
+import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_8_0
 import com.android.tools.idea.gradle.project.upgrade.integration.TestProject.FROM_AGP_40_ALL_DEPRECATIONS
 import com.android.tools.idea.gradle.project.upgrade.integration.TestProject.FROM_AGP_40_BASIC
+import com.android.tools.idea.gradle.project.upgrade.integration.TestProject.FROM_AGP_80_BASIC
 import com.android.utils.FileUtils
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 
@@ -55,7 +57,8 @@ enum class TestProject(
   vararg val path: String
 ){
   FROM_AGP_40_BASIC("FromAgp40", "Basic"),
-  FROM_AGP_40_ALL_DEPRECATIONS("FromAgp40", "AllDeprecations")
+  FROM_AGP_40_ALL_DEPRECATIONS("FromAgp40", "AllDeprecations"),
+  FROM_AGP_80_BASIC("FromAgp80", "Basic"),
 }
 
 /**
@@ -77,7 +80,8 @@ enum class TestAGPVersion(
   V_7_1("7.1.0", jdkVersion = JavaSdkVersion.JDK_11),
   V_7_2("7.2.0", jdkVersion = JavaSdkVersion.JDK_11),
   V_7_3("7.3.0", jdkVersion = JavaSdkVersion.JDK_11, kotlinVersion = "1.6.21"),
-  V_8_11("8.11.0", kotlinVersion = "1.6.21", jdkVersion = JavaSdkVersion.JDK_17),
+  V_8_0("8.0.2", jdkVersion = JavaSdkVersion.JDK_17, kotlinVersion = "1.6.21"),
+  V_8_11("8.11.0", jdkVersion = JavaSdkVersion.JDK_17, kotlinVersion = "1.6.21"),
 }
 
 /**
@@ -126,6 +130,8 @@ enum class AUATestProjectState(
   ALL_DEPRECATIONS_7_3_FULL(FROM_AGP_40_ALL_DEPRECATIONS, V_7_3, minimalState = false, basePath = "4.2.0-base", patchPath = "7.1.0-upgraded"),
   ALL_DEPRECATIONS_8_11_MIN(FROM_AGP_40_ALL_DEPRECATIONS, V_8_11, minimalState = true, basePath = "4.2.0-base", patchPath = "dev-minimal"),
   ALL_DEPRECATIONS_8_11_FULL(FROM_AGP_40_ALL_DEPRECATIONS, V_8_11, minimalState = false, basePath = "4.2.0-base", patchPath = "dev-upgraded"),
+
+  FROM_80_BASIC_8_0(FROM_AGP_80_BASIC, V_8_0, minimalState = true, basePath = "8.0.0"),
   ;
 
   fun projectBasePath() = FileUtils.join(*project.path, basePath)

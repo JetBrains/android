@@ -1,6 +1,6 @@
 load("@rules_java//java:defs.bzl", "java_test")
 load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "generate_old_agp_tests_from_list", "get_agp_versions_from_tests_list")
-load("//tools/adt/idea/old-agp-tests:agp_versions.bzl", "AGP_4_0", "AGP_4_1", "AGP_4_2", "AGP_7_0", "AGP_7_1", "AGP_7_2", "AGP_7_3", "AGP_8_11", "AGP_DATA")
+load("//tools/adt/idea/old-agp-tests:agp_versions.bzl", "AGP_4_0", "AGP_4_1", "AGP_4_2", "AGP_7_0", "AGP_7_1", "AGP_7_2", "AGP_7_3", "AGP_8_0", "AGP_8_11", "AGP_DATA")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 
@@ -114,16 +114,31 @@ maven_repository(
     name = "test_deps",
     # keep sorted: for buildifier
     artifacts = [
+        "@maven//:androidx.activity.activity-compose_1.5.1",
         "@maven//:androidx.annotation.annotation_1.2.0-rc01",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
+        "@maven//:androidx.compose.compose-bom_2022.10.00",
+        "@maven//:androidx.compose.foundation.foundation_1.3.0",
+        "@maven//:androidx.compose.material.material_1.3.0",
+        "@maven//:androidx.compose.material3.material3_1.0.0",
+        "@maven//:androidx.compose.ui.ui-graphics_1.3.0",
+        "@maven//:androidx.compose.ui.ui-test-junit4_1.3.0",
+        "@maven//:androidx.compose.ui.ui-test-manifest_1.3.0",
+        "@maven//:androidx.compose.ui.ui-tooling-preview_1.3.0",
+        "@maven//:androidx.compose.ui.ui-tooling_1.3.0",
+        "@maven//:androidx.compose.ui.ui_1.3.0",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
         "@maven//:androidx.core.core-ktx_1.6.0",
+        "@maven//:androidx.core.core-ktx_1.8.0",
         "@maven//:androidx.lifecycle.lifecycle-common_2.3.0-rc01",
+        "@maven//:androidx.lifecycle.lifecycle-runtime-ktx_2.3.1",
         "@maven//:androidx.navigation.navigation-fragment-ktx_2.3.5",
         "@maven//:androidx.navigation.navigation-ui-ktx_2.3.5",
         "@maven//:androidx.savedstate.savedstate_1.1.0-rc01",
         "@maven//:androidx.test.espresso.espresso-core_3.2.0",
+        "@maven//:androidx.test.espresso.espresso-core_3.4.0",
         "@maven//:androidx.test.ext.junit_1.1.2",
+        "@maven//:androidx.test.ext.junit_1.1.3",
         "@maven//:com.android.support.appcompat-v7_28.0.0",
         "@maven//:com.android.support.constraint.constraint-layout_1.0.2",
         "@maven//:com.android.support.test.espresso.espresso-core_3.0.2",
@@ -147,7 +162,9 @@ maven_repository(
         "@maven//:net.sf.proguard.proguard-gradle_6.0.3",
         "@maven//:org.apache.commons.commons-compress_1.12",
         "@maven//:org.codehaus.mojo.animal-sniffer-annotations_1.17",
+        "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.6.21",
         "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.6.21",
+        "@maven//:org.jetbrains.kotlin.kotlin-bom_1.8.0",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.6.21",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.22",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.4.31",
@@ -340,6 +357,29 @@ tests_list = [
             "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
             "//tools/base/build-system/previous-versions:7.3.0",
             "//tools/base/build-system/previous-versions:kgp1.3.72",
+        ],
+        tags = [
+            "block-network",
+            "noci:studio-win",
+        ],
+        test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
+    ),
+    dict(
+        timeout = "long",
+        agp_version = AGP_8_0,
+        data = [
+            "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+            "//tools/adt/idea/project-system-gradle-upgrade/testData",
+            "//tools/base/build-system:gradle-distrib-8.0",
+        ] + AGP_DATA[AGP_8_0],
+        gradle_version = "8.0",
+        ignore_other_tests = True,
+        jvm_flags = ["-Didea.skip.indices.initialization=true"],
+        maven_deps = [
+            ":test_deps",
+            "//tools/base/build-system:android_gradle_plugin.zip",
+            "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+            "//tools/base/build-system/previous-versions:8.0.2",
         ],
         tags = [
             "block-network",
