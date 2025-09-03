@@ -67,15 +67,6 @@ public interface BuildArtifactCache {
     void cancel();
   }
 
-  static BuildArtifactCache create(
-      Path cacheDir,
-      ArtifactFetcher<OutputArtifact> fetcher,
-      ListeningExecutorService executor,
-      CleanRequest cleanRequest)
-      throws BuildException {
-    return new BuildArtifactCacheDirectory(cacheDir, fetcher, executor, cleanRequest);
-  }
-
   /**
    * Requests that the given artifacts are added to the cache.
    *

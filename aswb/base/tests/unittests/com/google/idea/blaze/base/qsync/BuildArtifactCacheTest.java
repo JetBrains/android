@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.common.artifact;
+package com.google.idea.blaze.base.qsync;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
@@ -27,6 +27,9 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.idea.blaze.common.NoopContext;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache.CleanRequest;
+import com.google.idea.blaze.common.artifact.OutputArtifact;
+import com.google.idea.blaze.common.artifact.TestArtifactFetcher;
+import com.google.idea.blaze.common.artifact.TestOutputArtifact;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;

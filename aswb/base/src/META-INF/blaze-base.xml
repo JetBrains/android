@@ -293,6 +293,12 @@
                     serviceImplementation="com.google.idea.blaze.base.targetmaps.TransitiveDependencyMap"/>
     <projectService serviceImplementation="com.google.idea.blaze.base.settings.BlazeImportSettingsManager"/>
     <projectService serviceImplementation="com.google.idea.blaze.base.sync.status.BlazeSyncStatusStateManager"/>
+    <projectService
+        serviceInterface="com.google.idea.blaze.common.artifact.BuildArtifactCache"
+        serviceImplementation="com.google.idea.blaze.base.qsync.BuildArtifactCacheDirectory" />
+    <projectService
+        serviceInterface="com.google.idea.blaze.common.artifact.BuildArtifactCache$CleanRequest"
+        serviceImplementation="com.google.idea.blaze.base.qsync.CacheCleaner" />
     <applicationService serviceImplementation="com.google.idea.blaze.base.settings.BlazeUserSettings" id="BlazeUserSettings"/>
     <applicationService serviceImplementation="com.google.idea.blaze.base.sync.autosync.AutoSyncSettings" order="after BlazeUserSettings"/>
     <projectService serviceInterface="com.google.idea.blaze.base.lang.buildfile.language.semantics.BuildLanguageSpecProvider"

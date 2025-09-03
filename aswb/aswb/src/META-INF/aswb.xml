@@ -52,12 +52,6 @@
         serviceImplementation="com.google.idea.blaze.base.project.BaseQuerySyncConversionUtility" />
     <projectService serviceImplementation="com.google.idea.blaze.android.projectsystem.BlazeProjectSystemBuildManager$LastBuildResultCache"/>
     <projectService
-        serviceInterface="com.google.idea.blaze.common.artifact.BuildArtifactCache"
-        serviceImplementation="com.google.idea.blaze.common.artifact.BuildArtifactCacheDirectory" />
-    <projectService
-        serviceInterface="com.google.idea.blaze.common.artifact.BuildArtifactCache$CleanRequest"
-        serviceImplementation="com.google.idea.blaze.base.qsync.CacheCleaner" />
-    <projectService
         serviceInterface="com.google.idea.blaze.common.artifact.ArtifactFetcher"
         serviceImplementation="com.google.idea.blaze.base.qsync.DynamicallyDispatchingArtifactFetcher" />
     <applicationService serviceImplementation="com.google.idea.blaze.android.settings.BlazeAndroidUserSettings"/>

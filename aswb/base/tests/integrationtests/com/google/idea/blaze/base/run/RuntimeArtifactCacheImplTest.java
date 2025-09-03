@@ -33,7 +33,7 @@ import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.artifact.ArtifactFetcher;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
-import com.google.idea.blaze.common.artifact.BuildArtifactCacheDirectory;
+import com.google.idea.blaze.base.qsync.BuildArtifactCacheDirectory;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.google.idea.blaze.exception.BuildException;
 import java.io.IOException;

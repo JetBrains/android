@@ -52,7 +52,6 @@ test_suite(
     tests = [
         "//tools/adt/idea/aswb/shared/javatests/com/google/idea/blaze/common:LabelTest",
         "//tools/adt/idea/aswb/shared/javatests/com/google/idea/blaze/common:TargetTreeTest",
-        "//tools/adt/idea/aswb/shared/javatests/com/google/idea/blaze/common/artifact:BuildArtifactCacheTest",
         "//tools/adt/idea/aswb/shared/javatests/com/google/idea/blaze/common/proto:ProtoStringInternerTest",
         "//tools/adt/idea/aswb/shared/javatests/com/google/idea/blaze/common/vcs:VcsStateTest",
     ],

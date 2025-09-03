@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.common.artifact;
+package com.google.idea.blaze.base.qsync;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
@@ -40,7 +40,12 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.PrintOutput;
+import com.google.idea.blaze.common.artifact.ArtifactFetcher;
 import com.google.idea.blaze.common.artifact.ArtifactFetcher.ArtifactDestination;
+import com.google.idea.blaze.common.artifact.BlazeArtifact;
+import com.google.idea.blaze.common.artifact.BuildArtifactCache;
+import com.google.idea.blaze.common.artifact.CachedArtifact;
+import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.google.idea.blaze.exception.BuildException;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.AppExecutorUtil;
@@ -55,6 +60,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.PriorityQueue;
@@ -465,19 +471,21 @@ public class BuildArtifactCacheDirectory implements BuildArtifactCache {
       if (remainingSize <= maxTargetSize) {
         // size target reached
         logger.info(
-            String.format(
-                "Reached target cache size: %d<=%d; deleted %d entries",
-                remainingSize, maxTargetSize, deleted));
+          String.format(
+            Locale.ROOT,
+            "Reached target cache size: %d<=%d; deleted %d entries",
+            remainingSize, maxTargetSize, deleted));
         return;
       }
       if (queue.peek().lastAccessTime().toInstant().isAfter(minAgeToDelete)) {
         // the oldest artifact is newer than the minimum age, so we stop deleting artifacts even
         // though the cache is bigger than the max size.
         logger.info(
-            String.format(
-                "Not deleting entries accessed since %s; remaining cache size=%d; deleted %d"
-                    + " entries",
-                minAgeToDelete, remainingSize, deleted));
+          String.format(
+            Locale.ROOT,
+            "Not deleting entries accessed since %s; remaining cache size=%d; deleted %d"
+            + " entries",
+            minAgeToDelete, remainingSize, deleted));
         return;
       }
 

@@ -7,21 +7,6 @@ package(
     ],
 )
 
-java_test(
-    name = "BuildArtifactCacheTest",
-    size = "small",
-    srcs = ["BuildArtifactCacheTest.java"],
-    deps = [
-        ":test_utils",
-        "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common/artifact",
-        "//tools/adt/idea/aswb/shared/javatests/com/google/idea/blaze/common:test_utils",
-        "//tools/adt/idea/aswb/third_party/java/junit",
-        "//tools/adt/idea/aswb/third_party/java/truth",
-        "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
-        "@maven//:com.google.guava.guava",
-    ],
-)
-
 java_library(
     name = "test_utils",
     srcs = [
