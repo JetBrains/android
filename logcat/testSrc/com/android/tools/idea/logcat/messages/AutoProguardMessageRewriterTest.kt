@@ -43,17 +43,21 @@ import org.junit.runners.JUnit4
 
 private val MESSAGE =
   """
-    at c1.e.d(r8-map-id-MAP_ID:5)
-    at m.j.k(r8-map-id-MAP_ID:139)
-    at k1.a.r(r8-map-id-MAP_ID:9)
-    at A1.x.n(r8-map-id-MAP_ID:83)
-    at A1.f.p(r8-map-id-MAP_ID:114)
+    java.lang.RuntimeException
+      at java.util.Objects.checkIndex(Objects.java:385)
+      at c1.e.d(r8-map-id-MAP_ID:5)
+      at m.j.k(r8-map-id-MAP_ID:139)
+      at k1.a.r(r8-map-id-MAP_ID:9)
+      at A1.x.n(r8-map-id-MAP_ID:83)
+      at A1.f.p(r8-map-id-MAP_ID:114)
   """
     .trimIndent()
 
 private val CLEAR_MESSAGE =
   """
-    at com.example.proguardedapp.MainActivityKt.logStackTrace(MainActivity.kt:43) (Show original)
+  java.lang.RuntimeException (Show original)
+    at java.util.Objects.checkIndex(Objects.java:385)
+    at com.example.proguardedapp.MainActivityKt.logStackTrace(MainActivity.kt:43)
     at com.example.proguardedapp.MainActivityKt.access${'$'}logStackTrace(MainActivity.kt:1)
     at com.example.proguardedapp.MainActivityKt${'$'}App$1$1$1$1.invoke(MainActivity.kt:38)
     at com.example.proguardedapp.MainActivityKt${'$'}App$1$1$1$1.invoke(MainActivity.kt:38)

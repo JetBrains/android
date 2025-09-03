@@ -21,7 +21,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.r8.retrace.RetraceCommand
-import com.android.utils.text.dropPrefix
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level.PROJECT
@@ -35,9 +34,7 @@ import kotlin.io.path.notExists
 import kotlin.io.path.useLines
 import org.jetbrains.annotations.VisibleForTesting
 
-private val exceptionLinePattern = Regex("\n\\s*at .+\\((?<filename>.+)\\)\n")
-
-private const val R8MAP_ID_PREFIX = "r8-map-id-"
+private val exceptionLinePattern = Regex("\n\\s*at .+\\(r8-map-id-(?<mapId>.+):\\d+\\)\n")
 
 private const val MAPPINGS_DIR = "build/outputs/mapping"
 
@@ -64,16 +61,13 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
   }
 
   fun rewrite(message: String, applicationId: String): String {
-    val match = exceptionLinePattern.find(message) ?: return message
-    val filename = match.groups["filename"]?.value ?: return message
     if (StudioFlags.LOGCAT_AUTO_DEOBFUSCATE.get()) {
-      if (filename.startsWith(R8MAP_ID_PREFIX)) {
-        val id = filename.dropPrefix(R8MAP_ID_PREFIX).substringBefore(':')
-        val retracer = getAutoRetracer(id, applicationId)
-        val result = retracer?.rewrite(message) ?: message
-        if (result != message) {
-          return result
-        }
+      val match = exceptionLinePattern.find(message) ?: return message
+      val id = match.groups["mapId"]?.value ?: return message
+      val retracer = getAutoRetracer(id, applicationId)
+      val result = retracer?.rewrite(message) ?: message
+      if (result != message) {
+        return result
       }
     }
     return message
