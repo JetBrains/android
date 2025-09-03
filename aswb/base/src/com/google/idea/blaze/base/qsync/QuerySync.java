@@ -18,10 +18,13 @@ package com.google.idea.blaze.base.qsync;
 import com.google.idea.blaze.base.project.BaseQuerySyncConversionUtility;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.common.experiments.BoolExperiment;
+import com.google.idea.common.experiments.FeatureRolloutExperiment;
 
 /** Holder class for basic information about querysync, e.g. is it enabled? */
 public class QuerySync {
   public static final String BUILD_DEPENDENCIES_ACTION_NAME = "Enable analysis";
+  public static final BoolExperiment TEMPORARY_REENABLE_LEGACY_SYNC =
+    new BoolExperiment("querysync.temporary.reenable.legacy.sync", true);
 
   public static final BoolExperiment ATTACH_DEP_SRCJARS =
       new BoolExperiment("querysync.attach.dep.srcjars", true);
@@ -32,7 +35,16 @@ public class QuerySync {
    * Checks if query sync for new project is enabled via experiment or settings page or Query-Sync auto-convert experiment is set.
    */
   public static boolean useForNewProjects() {
+    if (!TEMPORARY_REENABLE_LEGACY_SYNC.getValue()) return true;
     return QuerySyncSettings.getInstance().useQuerySync()
            || BaseQuerySyncConversionUtility.AUTO_CONVERT_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT.isEnabled();
+  }
+
+  public static boolean syncModeSelectionEnabled() {
+    return TEMPORARY_REENABLE_LEGACY_SYNC.getValue() && !BaseQuerySyncConversionUtility.AUTO_CONVERT_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT.isEnabled();
+  }
+
+  public static boolean legacySyncEnabled() {
+    return TEMPORARY_REENABLE_LEGACY_SYNC.getValue();
   }
 }

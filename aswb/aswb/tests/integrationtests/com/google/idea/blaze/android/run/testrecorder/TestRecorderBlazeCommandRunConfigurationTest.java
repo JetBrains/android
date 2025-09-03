@@ -55,7 +55,7 @@ public class TestRecorderBlazeCommandRunConfigurationTest extends BlazeIntegrati
 
   @Rule
   public final AndroidIntegrationTestSetupRule androidSetupRule =
-      new AndroidIntegrationTestSetupRule();
+      new AndroidIntegrationTestSetupRule(true);
 
   private RunManagerImpl runManager;
   private Element defaultRunManagerState;

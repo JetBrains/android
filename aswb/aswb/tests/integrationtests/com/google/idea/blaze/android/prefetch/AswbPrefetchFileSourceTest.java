@@ -31,7 +31,7 @@ public class AswbPrefetchFileSourceTest extends BlazeIntegrationTestCase {
 
   @Rule
   public final AndroidIntegrationTestSetupRule androidSetupRule =
-      new AndroidIntegrationTestSetupRule();
+      new AndroidIntegrationTestSetupRule(true);
 
   @Test
   public void testPrefetchedExtensions() {

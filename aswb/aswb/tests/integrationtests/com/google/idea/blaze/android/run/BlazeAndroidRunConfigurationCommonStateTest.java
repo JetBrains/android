@@ -38,7 +38,7 @@ public class BlazeAndroidRunConfigurationCommonStateTest extends BlazeIntegratio
 
   @Rule
   public final AndroidIntegrationTestSetupRule androidSetupRule =
-      new AndroidIntegrationTestSetupRule();
+      new AndroidIntegrationTestSetupRule(true);
 
   private BlazeAndroidRunConfigurationCommonState state;
 

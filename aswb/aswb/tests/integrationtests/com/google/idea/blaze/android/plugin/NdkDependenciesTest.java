@@ -46,7 +46,7 @@ public class NdkDependenciesTest extends BlazeIntegrationTestCase {
 
   @Rule
   public final AndroidIntegrationTestSetupRule androidSetupRule =
-      new AndroidIntegrationTestSetupRule();
+      new AndroidIntegrationTestSetupRule(false);
 
   @Ignore("b/337933435")
   @Test

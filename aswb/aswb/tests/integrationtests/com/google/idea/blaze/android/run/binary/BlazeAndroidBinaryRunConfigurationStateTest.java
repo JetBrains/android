@@ -42,7 +42,7 @@ public class BlazeAndroidBinaryRunConfigurationStateTest extends BlazeIntegratio
 
   @Rule
   public final AndroidIntegrationTestSetupRule androidSetupRule =
-      new AndroidIntegrationTestSetupRule();
+      new AndroidIntegrationTestSetupRule(true);
 
   private BlazeAndroidBinaryRunConfigurationState state;
 

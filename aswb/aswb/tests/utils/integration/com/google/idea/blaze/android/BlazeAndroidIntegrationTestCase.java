@@ -39,7 +39,7 @@ import org.junit.Rule;
 public class BlazeAndroidIntegrationTestCase extends BlazeSyncIntegrationTestCase {
   @Rule
   public final AndroidIntegrationTestSetupRule androidSetupRule =
-      new AndroidIntegrationTestSetupRule();
+      new AndroidIntegrationTestSetupRule(true);
 
   @Override
   protected final boolean isLightTestCase() {

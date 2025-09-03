@@ -41,7 +41,7 @@ public class BlazeAndroidTestRunConfigurationStateTest extends BlazeIntegrationT
 
   @Rule
   public final AndroidIntegrationTestSetupRule androidSetupRule =
-      new AndroidIntegrationTestSetupRule();
+      new AndroidIntegrationTestSetupRule(true);
 
   private BlazeAndroidTestRunConfigurationState state;
 

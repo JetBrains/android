@@ -32,6 +32,7 @@ import com.google.idea.blaze.base.projectview.section.sections.ShardBlazeBuildsS
 import com.google.idea.blaze.base.projectview.section.sections.TextBlock;
 import com.google.idea.blaze.base.projectview.section.sections.TextBlockSection;
 import com.google.idea.blaze.base.projectview.section.sections.UseQuerySyncSection;
+import com.google.idea.blaze.base.qsync.QuerySync;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolverImpl;
@@ -78,6 +79,9 @@ public class BaseQuerySyncConversionUtility implements QuerySyncConversionUtilit
 
   @Override
   public boolean canConvert(BlazeImportSettings blazeImportSettings, Path projectViewFilePath) {
+    if (!QuerySync.legacySyncEnabled()) {
+      return false;
+    }
     var useQuerySync = parseUseQuerySync(blazeImportSettings, projectViewFilePath);
     return AUTO_CONVERT_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT.isEnabled() &&
            !hasConversionIndicator(projectViewFilePath) &&
@@ -95,6 +99,9 @@ public class BaseQuerySyncConversionUtility implements QuerySyncConversionUtilit
   public QuerySyncAutoConversionStats.ShardingType calculateShardingType(BlazeImportSettings blazeImportSettings,
                                                                          Path projectViewFilePath,
                                                                          int legacySyncShardCount) {
+    if (!QuerySync.legacySyncEnabled()) {
+      return MULTI_SHARD_NO_FULL_SYNC;
+    }
     var shardSync = parseShardSync(blazeImportSettings, projectViewFilePath);
     if (shardSync) {
       if (legacySyncShardCount == 0) {

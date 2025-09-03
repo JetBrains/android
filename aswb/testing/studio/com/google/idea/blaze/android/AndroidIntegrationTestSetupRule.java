@@ -27,11 +27,20 @@ import org.junit.rules.ExternalResource;
 
 /** Runs before Android Studio integration tests. */
 public class AndroidIntegrationTestSetupRule extends ExternalResource {
-  private final Disposable testRootDisposable = Disposer.newDisposable();
 
+  private final boolean legacyMode;
+
+  public AndroidIntegrationTestSetupRule(boolean legacyMode) {
+    this.legacyMode = legacyMode;
+  }
+
+  private final Disposable testRootDisposable = Disposer.newDisposable();
   @Override
   protected void before() throws Throwable {
     System.setProperty("android.studio.sdk.manager.disabled", "true");
+    if (legacyMode) {
+      System.setProperty("blaze.experiment.querysync.temporary.reenable.legacy.sync", "1");
+    }
     Path runfilesPath = Runfiles.runfilesPath();
     final var runFilesRoot = runfilesPath.toRealPath().toString();
     VfsRootAccess.allowRootAccess(testRootDisposable, runFilesRoot);

@@ -22,6 +22,7 @@ import com.google.idea.blaze.base.projectview.section.ScalarSection;
 import com.google.idea.blaze.base.projectview.section.sections.EnableCodeAnalysisOnSyncSection;
 import com.google.idea.blaze.base.projectview.section.sections.UseQuerySyncSection;
 import com.google.idea.blaze.base.projectview.section.sections.WorkspaceLocationSection;
+import com.google.idea.blaze.base.qsync.QuerySync;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.exception.BuildException;
@@ -92,6 +93,9 @@ public abstract class ProjectViewManager {
                                                       ProjectViewSet.ProjectViewFile projectViewFile,
                                                       ProjectView.Builder projectView,
                                                       QuerySyncConversionUtility querySyncConversionUtility) {
+    if (!QuerySync.legacySyncEnabled()) {
+      return false;
+    }
     ScalarSection<Boolean> useQuerySyncSection = ScalarSection.builder(UseQuerySyncSection.KEY)
       .set(importSettings.getProjectType() == BlazeImportSettings.ProjectType.QUERY_SYNC).build();
     ScalarSection<Boolean> existingUseQuerySyncSection = projectView.getLast(UseQuerySyncSection.KEY);
@@ -104,7 +108,8 @@ public abstract class ProjectViewManager {
       ? BlazeImportSettings.ProjectType.QUERY_SYNC
       : BlazeImportSettings.ProjectType.ASPECT_SYNC;
 
-    if (existingProjectType == BlazeImportSettings.ProjectType.ASPECT_SYNC
+    if (QuerySync.legacySyncEnabled() &&
+        existingProjectType == BlazeImportSettings.ProjectType.ASPECT_SYNC
         && importSettings.getProjectType() == BlazeImportSettings.ProjectType.QUERY_SYNC) {
       projectView.remove(existingUseQuerySyncSection);
       projectView.add(useQuerySyncSection);

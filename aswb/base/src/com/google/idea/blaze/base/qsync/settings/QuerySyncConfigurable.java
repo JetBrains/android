@@ -17,6 +17,7 @@ package com.google.idea.blaze.base.qsync.settings;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.idea.blaze.base.project.BaseQuerySyncConversionUtility;
+import com.google.idea.blaze.base.qsync.QuerySync;
 import com.intellij.openapi.options.BoundSearchableConfigurable;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.ui.DialogPanel;
@@ -52,14 +53,13 @@ class QuerySyncConfigurable extends BoundSearchableConfigurable implements Confi
     return ip.row(
         /* label= */ ((JLabel) null),
         /* init= */ r -> {
-          Cell<JBCheckBox> unusedCheckbox =
+          Cell<JBCheckBox> checkBoxCell =
               r.checkBox(label)
                   .bind(
                       /* componentGet= */ AbstractButton::isSelected,
                       /* componentSet= */ (jbCheckBox, selected) -> {
                         jbCheckBox.setSelected(selected);
-                        jbCheckBox.setEnabled(
-                          !BaseQuerySyncConversionUtility.AUTO_CONVERT_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT.isEnabled());
+                        jbCheckBox.setEnabled(QuerySync.useForNewProjects());
                         return Unit.INSTANCE;
                       },
                       /* prop= */ new MutableProperty<Boolean>() {
@@ -72,8 +72,10 @@ class QuerySyncConfigurable extends BoundSearchableConfigurable implements Confi
                         public void set(Boolean selected) {
                           setter.accept(selected);
                         }
-                      })
-                  .enabledIf(ButtonKt.getSelected(enableQuerySyncCheckBoxCell));
+                      });
+          if (QuerySync.syncModeSelectionEnabled()) {
+            checkBoxCell.enabledIf(ButtonKt.getSelected(enableQuerySyncCheckBoxCell));
+          }
           return Unit.INSTANCE;
         });
   }
@@ -87,14 +89,14 @@ class QuerySyncConfigurable extends BoundSearchableConfigurable implements Confi
               p.row(
                   /* label= */ ((JLabel) null),
                   /* init= */ r -> {
-                    enableQuerySyncCheckBoxCell =
+                    enableQuerySyncCheckBoxCell = QuerySync.syncModeSelectionEnabled() ?
                         r.checkBox("Enable Query Sync for new projects")
                             .bind(
                                 /* componentGet= */ AbstractButton::isSelected,
                                 /* componentSet= */ (jbCheckBox, selected) -> {
                                   jbCheckBox.setSelected(selected);
                                   // Disable the checkbox if the Query-Sync auto conversion experiment is enabled
-                                  jbCheckBox.setEnabled(!BaseQuerySyncConversionUtility.AUTO_CONVERT_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT.isEnabled());
+                                  jbCheckBox.setEnabled(QuerySync.syncModeSelectionEnabled());
                                   return Unit.INSTANCE;
                                 },
                                 /* prop= */ new MutableProperty<Boolean>() {
@@ -107,7 +109,7 @@ class QuerySyncConfigurable extends BoundSearchableConfigurable implements Confi
                                   public void set(Boolean selected) {
                                     settings.enableUseQuerySync(selected);
                                   }
-                                });
+                                }) : null;
                     return Unit.INSTANCE;
                   });
 

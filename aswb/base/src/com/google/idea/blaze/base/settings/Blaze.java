@@ -16,6 +16,7 @@
 package com.google.idea.blaze.base.settings;
 
 import com.google.idea.blaze.base.bazel.BuildSystemProvider;
+import com.google.idea.blaze.base.qsync.QuerySync;
 import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.project.Project;
@@ -53,6 +54,9 @@ public class Blaze {
         BlazeImportSettingsManager.getInstance(project).getImportSettings();
     if (blazeImportSettings == null) {
       return ProjectType.UNKNOWN;
+    }
+    if (!QuerySync.TEMPORARY_REENABLE_LEGACY_SYNC.getValue()) {
+      return ProjectType.QUERY_SYNC;
     }
     return blazeImportSettings.getProjectType();
   }

@@ -42,7 +42,7 @@ public class BlazeAndroidTestEventsHandlerTest extends BlazeIntegrationTestCase 
 
   @Rule
   public final AndroidIntegrationTestSetupRule androidSetupRule =
-      new AndroidIntegrationTestSetupRule();
+      new AndroidIntegrationTestSetupRule(true);
 
   private final BlazeAndroidTestEventsHandler handler = new BlazeAndroidTestEventsHandler();
 

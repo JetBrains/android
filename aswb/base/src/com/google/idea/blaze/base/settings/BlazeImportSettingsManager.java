@@ -22,17 +22,30 @@ import com.google.idea.blaze.base.async.executor.ProgressiveTaskWithProgressIndi
 import com.google.idea.blaze.base.logging.EventLoggingService;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats;
 import com.google.idea.blaze.base.project.QuerySyncConversionUtility;
+import com.google.idea.blaze.base.projectview.ProjectView;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
+import com.google.idea.blaze.base.projectview.ProjectViewStorageManager;
 import com.google.idea.blaze.base.projectview.parser.ProjectViewParser;
 import com.google.idea.blaze.base.projectview.section.sections.UseQuerySyncSection;
 import com.google.idea.blaze.base.projectview.section.sections.WorkspaceLocationSection;
+import com.google.idea.blaze.base.qsync.QuerySync;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.scopes.ToolWindowScopeRunner;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.exception.BuildException;
+import com.intellij.ide.BrowserUtil;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationAction;
+import com.intellij.notification.NotificationDisplayType;
+import com.intellij.notification.NotificationGroupManager;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.NotificationsConfiguration;
+import com.intellij.notification.NotificationsManager;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
@@ -43,6 +56,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -140,6 +154,49 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
                            ? BlazeImportSettings.ProjectType.QUERY_SYNC
                            : BlazeImportSettings.ProjectType.ASPECT_SYNC));
     final var projectViewWorkspaceLocation = Optional.ofNullable(topLevelProjectView.getScalarValue(WorkspaceLocationSection.KEY));
+
+    if (!QuerySync.legacySyncEnabled() && (projectViewProjectType.orElse(null) == BlazeImportSettings.ProjectType.ASPECT_SYNC)) {
+      Notification notification = new Notification("ASwB Legacy Sync Mode", "Legacy sync mode is not supported",
+                                                         "`use_query_sync: false` was ignored and can be removed",
+                                                         NotificationType.INFORMATION);
+      notification.addAction(new NotificationAction("Remove") {
+        @Override
+        public void actionPerformed(@NotNull AnActionEvent anActionEvent,
+                                    @NotNull Notification notification) {
+          ProjectViewSet viewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
+          if (viewSet == null) return;
+          ProjectViewSet.ProjectViewFile levelProjectViewFile = viewSet.getTopLevelProjectViewFile();
+          if (levelProjectViewFile == null) return;
+          final var newFile = ProjectView.builder(levelProjectViewFile.projectView);
+          viewSet.getSections(UseQuerySyncSection.KEY).forEach(newFile::remove);
+          try {
+            ProjectViewStorageManager.getInstance()
+              .writeProjectView(ProjectViewParser.projectViewToString(newFile.build()), levelProjectViewFile.projectViewFile);
+          }
+          catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+          notification.hideBalloon();
+        }
+      });
+      notification.addAction(new NotificationAction("Ack") {
+        @Override
+        public void actionPerformed(@NotNull AnActionEvent anActionEvent,
+                                    @NotNull Notification notification) {
+          //noinspection UnstableApiUsage
+          notification.setDoNotAskFor(project);
+          notification.hideBalloon();
+        }
+      });
+      notification.addAction(new NotificationAction("Learn more...") {
+        @Override
+        public void actionPerformed(@NotNull AnActionEvent anActionEvent,
+                                    @NotNull Notification notification) {
+          BrowserUtil.browse("http://go/aswb-new-sync-mode");
+        }
+      });
+      NotificationsManager.getNotificationsManager().showNotification(notification, project);
+    }
 
     final var workspaceLocation = projectViewWorkspaceLocation.or(() -> loadedImportSettings.map(BlazeImportSettings::getWorkspaceRoot));
     if (workspaceLocation.isEmpty()) {

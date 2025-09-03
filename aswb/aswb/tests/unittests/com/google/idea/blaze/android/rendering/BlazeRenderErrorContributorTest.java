@@ -58,6 +58,8 @@ import com.google.idea.blaze.base.sync.workspace.MockArtifactLocationDecoder;
 import com.google.idea.blaze.base.targetmaps.SourceToTargetMap;
 import com.google.idea.blaze.base.targetmaps.TransitiveDependencyMap;
 import com.google.idea.blaze.java.AndroidBlazeRules;
+import com.google.idea.common.experiments.ExperimentService;
+import com.google.idea.common.experiments.MockExperimentService;
 import com.intellij.codeInsight.multiverse.CodeInsightContext;
 import com.intellij.codeInsight.multiverse.CodeInsightContextManager;
 import com.intellij.codeInsight.multiverse.CodeInsightSession;
@@ -115,6 +117,7 @@ public class BlazeRenderErrorContributorTest extends BlazeTestCase {
     super.initTest(applicationServices, projectServices);
     applicationServices.register(FileTypeManager.class, new MockFileTypeManager(MockLanguageFileType.INSTANCE));
     applicationServices.register(QuerySyncSettings.class, new QuerySyncSettings());
+    applicationServices.register(ExperimentService.class, new MockExperimentService());
 
     projectFileIndex = mock(ProjectFileIndex.class);
     projectServices.register(ProjectFileIndex.class, projectFileIndex);
