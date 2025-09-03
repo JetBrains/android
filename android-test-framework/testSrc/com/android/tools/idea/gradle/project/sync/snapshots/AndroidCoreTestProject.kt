@@ -46,7 +46,24 @@ enum class AndroidCoreTestProject(
   APP_WITH_ACTIVITY_IN_LIB(TestProjectPaths.APP_WITH_ACTIVITY_IN_LIB, isCompatibleWith = { it >= AGP_74 }),
   APPLICATION_ID_SUFFIX(TestProjectPaths.APPLICATION_ID_SUFFIX),
   APPLICATION_ID_VARIANT_API(TestProjectPaths.APPLICATION_ID_VARIANT_API),
-  APPLICATION_ID_VARIANT_API_BROKEN(TestProjectPaths.APPLICATION_ID_VARIANT_API_BROKEN),
+  APPLICATION_ID_VARIANT_API_BROKEN(TestProjectPaths.APPLICATION_ID_VARIANT_API, patch = { root ->
+    root.resolve("app/build.gradle").replaceContent { content ->
+      content.replace(Regex("androidComponents \\{.*?^}", setOf(RegexOption.MULTILINE, RegexOption.DOT_MATCHES_ALL)),
+                      Regex.escapeReplacement(
+                        """
+                          androidComponents {
+                            onVariants(selector().all()) { variant ->
+                              variant.applicationId.set(
+                                provider { throw new RuntimeException("Broken provider for ${'$'}{variant.name}.") }
+                              )
+                              variant.androidTest?.applicationId?.set(
+                                provider { throw new RuntimeException("Broken provider for ${'$'}{variant.name} androidTest.") }
+                              )
+                            }
+                          }
+                        """.trimIndent()))
+    }
+  }),
   BASIC(TestProjectPaths.BASIC),
   BUDDY_APKS(TestProjectPaths.BUDDY_APKS),
   BUILD_ANALYZER_CHECK_ANALYZERS(TestProjectPaths.BUILD_ANALYZER_CHECK_ANALYZERS),

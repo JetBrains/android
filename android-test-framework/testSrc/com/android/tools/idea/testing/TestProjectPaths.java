@@ -13,7 +13,6 @@ public final class TestProjectPaths {
   public static final String APP_WITH_LIB_WITH_SAMPLES = "projects/appWithLibWithSamples";
   public static final String APPLICATION_ID_SUFFIX = "projects/applicationIdSuffix";
   public static final String APPLICATION_ID_VARIANT_API = "projects/applicationIdViaVariantApi";
-  public static final String APPLICATION_ID_VARIANT_API_BROKEN = "projects/applicationIdViaVariantApiBroken";
   public static final String APP_WITH_ACTIVITY_IN_LIB = "projects/appWithActivityInLib";
 
   public static final String BASIC = "projects/basic";

@@ -1,2 +1,0 @@
-include ':app'
-rootProject.name = "Application ID broken in variant API"
