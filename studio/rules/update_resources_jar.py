@@ -14,6 +14,8 @@ def main(argv):
   parser.add_argument("--out", help="The updated resources jar")
   parser.add_argument("--svg", help="The icon as a SVG file")
   parser.add_argument("--svg_small", help="The icon as a smaller SVG")
+  parser.add_argument("--splash", help="The splash screen")
+  parser.add_argument("--splash2x", help="The splash screen at 2x resolution for Retina displays")
 
   args = parser.parse_args(argv)
 
@@ -23,6 +25,8 @@ def main(argv):
     replaced.append(write_entry(out, args.svg_small, 'artwork/androidstudio-small.svg'))
     replaced.append(write_entry(out, args.svg, 'artwork/preview/androidstudio.svg'))
     replaced.append(write_entry(out, args.svg_small, 'artwork/preview/androidstudio-small.svg'))
+    replaced.append(write_entry(out, args.splash, 'artwork/studio_splash.png'))
+    replaced.append(write_entry(out, args.splash2x, 'artwork/studio_splash@2x.png'))
 
     with zipfile.ZipFile(args.resources_jar) as res_jar:
       for f in replaced:

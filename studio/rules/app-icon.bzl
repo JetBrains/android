@@ -8,6 +8,8 @@ AppIconInfo = provider(
         "icns": "The MacOS app icon.",
         "svg": "A svg file used on all platforms.",
         "svg_small": "A smaller svg icon file.",
+        "splash": "The splash screen.",
+        "splash2x": "The splash screen at 2x resolution for Retina displays.",
     },
 )
 
@@ -25,6 +27,8 @@ def _app_icon_impl(ctx):
         icns = ctx.file.icns,
         svg = ctx.file.svg,
         svg_small = ctx.file.svg_small,
+        splash = ctx.file.splash,
+        splash2x = ctx.file.splash2x,
     )
 
 app_icon = rule(
@@ -48,6 +52,16 @@ app_icon = rule(
         "svg_small": attr.label(
             doc = "A smaller svg file.",
             allow_single_file = True,
+        ),
+        "splash": attr.label(
+            doc = "The splash screen.",
+            allow_single_file = True,
+            mandatory = True,
+        ),
+        "splash2x": attr.label(
+            doc = "The splash screen at 2x resolution for Retina displays.",
+            allow_single_file = True,
+            mandatory = True,
         ),
     },
     implementation = _app_icon_impl,
@@ -106,7 +120,7 @@ def replace_app_icon(ctx, platform_name, file_map, icon_info):
 
     new_res_jar = ctx.actions.declare_file(ctx.attr.name + ".%s.updated-app-icon-resources.jar" % platform_name)
     ctx.actions.run(
-        inputs = [file_map[resources_jar], icon_info.svg, icon_info.svg_small],
+        inputs = [file_map[resources_jar], icon_info.svg, icon_info.svg_small, icon_info.splash, icon_info.splash2x],
         outputs = [new_res_jar],
         arguments = [
             "--resources_jar",
@@ -115,6 +129,10 @@ def replace_app_icon(ctx, platform_name, file_map, icon_info):
             icon_info.svg.path,
             "--svg_small",
             icon_info.svg_small.path,
+            "--splash",
+            icon_info.splash.path,
+            "--splash2x",
+            icon_info.splash2x.path,
             "--out",
             new_res_jar.path,
         ],

@@ -12,11 +12,23 @@ package(
     ],
 )
 
+exports_files(
+    [
+        "preview/studio_splash.png",
+        "preview/studio_splash@2x.png",
+        "stable/studio_splash.png",
+        "stable/studio_splash@2x.png",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 app_icon(
     name = "stable-icon",
     icns = "stable/studio.icns",
     ico = "stable/studio.ico",
     png = "stable/studio.png",
+    splash = "stable/studio_splash.png",
+    splash2x = "stable/studio_splash@2x.png",
     svg = "stable/studio.svg",
     svg_small = "stable/studio-small.svg",
 )
@@ -26,6 +38,8 @@ app_icon(
     icns = "preview/studio.icns",
     ico = "preview/studio.ico",
     png = "preview/studio.png",
+    splash = "preview/studio_splash.png",
+    splash2x = "preview/studio_splash@2x.png",
     svg = "preview/studio.svg",
     svg_small = "preview/studio-small.svg",
 )
@@ -35,6 +49,8 @@ app_icon(
     icns = "nightly/studio.icns",
     ico = "nightly/studio.ico",
     png = "nightly/studio.png",
+    splash = "preview/studio_splash.png",
+    splash2x = "preview/studio_splash@2x.png",
     svg = "nightly/studio.svg",
     svg_small = "nightly/studio-small.svg",
 )
