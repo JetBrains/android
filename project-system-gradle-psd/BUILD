@@ -60,6 +60,11 @@ iml_module(
             "tags": ["noci:studio-win"],
             "test_filter": "com.android.tools.idea.gradle.structure.model.DependencyManagementTest",
         },
+        "gradle.structure.model.CatalogDependencyManagementTest": {
+            # Path separators in map keys (b/151462469)
+            "tags": ["noci:studio-win"],
+            "test_filter": "com.android.tools.idea.gradle.structure.model.CatalogDependencyManagementTest",
+        },
         "gradle.structure.configurables.dependencies.treeview": {
             # Path separators e.g. (..\lib) (b/152560457)
             "tags": ["noci:studio-win"],

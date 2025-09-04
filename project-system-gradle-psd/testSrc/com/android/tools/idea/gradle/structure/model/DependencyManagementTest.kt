@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
@@ -31,12 +30,9 @@ import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
-import com.android.tools.idea.util.toIoFile
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.containers.nullize
 import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.CoreMatchers.nullValue
@@ -91,51 +87,6 @@ class DependencyManagementTest {
         val module1 = jLibModule.dependencies.findModuleDependencies(":jModuleL")
         assertThat(module1.testDeclaredScopes(), hasItems("implementation"))
       }
-    }
-  }
-
-  @Test
-  fun testCatalogScopesForVersionVariable() {
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY_CATALOG)
-    projectRule.psTestWithProject(preparedProject) {
-      val appModule = project.findModuleByName("moduleCatalog") as PsAndroidModule
-
-      val dependency = appModule.dependencies.findLibraryDependency("com.example.jlib:lib3:0.9.1")
-      val scope = dependency!![0].versionScope()
-      assertThat(scope.getVariable("coreVersion")?.value, equalTo("0.9.1".asParsed<Any>()))
-      assertThat(scope.getVariable("anotherVersion")?.value, equalTo("0.9.2".asParsed<Any>()))
-      assertThat(scope.getVariable("wrongVersion")?.value, equalTo("wrongVersion".asParsed<Any>()))
-
-      assertThat(
-        scope.map { it.name }.toSet(),
-        equalTo(
-          setOf("coreVersion", "anotherVersion", "wrongVersion")))
-
-      val dependency2 = appModule.dependencies.findLibraryDependency("com.example.jlib:lib4:0.6")
-      val scope2 = dependency2!![0].versionScope()
-      // expecting variables for compact notation as well as we can do literal to map transformation on the fly
-      assertThat(
-        scope2.map { it.name }.toSet(),
-        equalTo(
-          setOf("coreVersion", "anotherVersion", "wrongVersion")))
-    }
-  }
-
-  @Test
-  fun testVariablesScopesForDependencyInRoot() {
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY_CATALOG)
-    projectRule.psTestWithProject(preparedProject) {
-      val appModule = project.findModuleByName("moduleCatalog") as PsAndroidModule
-      val dependency = appModule.dependencies.findLibraryDependency("com.android.support:appcompat-v7:+")
-      val scope = dependency!![0].versionScope()
-      assertThat(scope.getVariable("var06")?.value, equalTo("0.6".asParsed<Any>()))
-      assertThat(scope.getVariable("var10")?.value, equalTo("1.0".asParsed<Any>()))
-      // this will be filtered out as value is not in set of all possible library versions
-      assertThat(scope.getVariable("varLib")?.value, equalTo("com.android.support:appcompat-v7:+".asParsed<Any>()))
-      assertThat(
-        scope.map { it.name }.toSet(),
-        equalTo(
-          setOf("var06", "var10", "varLib")))
     }
   }
 
@@ -551,105 +502,6 @@ class DependencyManagementTest {
         val resolvedDependencies = jModule.resolvedDependencies
         assertThat(resolvedDependencies.findLibraryDependency("com.example.jlib:lib4:1.0"), notNullValue())
       }
-    }
-  }
-
-  @Test
-  fun testAddCatalogLibraryDependency() {
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY_CATALOG)
-    projectRule.psTestWithProject(preparedProject) {
-      var module = project.findModuleByName("moduleCatalog") as PsAndroidModule
-      assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
-      module.addLibraryDependency("com.example.libs:lib1:1.0".asParsed(), "implementation")
-      assertThat(module.isModified, equalTo(true))
-      assertThat(project.isModified, equalTo(true))
-      val dependency = module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0")
-      assertThat(dependency, notNullValue())
-      val buildDependencyModel = dependency!![0]
-      assertThat(buildDependencyModel, notNullValue())
-      assertThat((buildDependencyModel.parsedModel.completeModel().rawElement as GradleDslLiteral).unresolvedValue, equalTo("libs.lib1"))
-
-      val catalogModel = project.parsedModel.versionCatalogsModel.getVersionCatalogModel("libs")!!
-      val declaration = catalogModel.libraryDeclarations().getAll()["lib1"]
-      assertThat(declaration, notNullValue())
-      assertThat(declaration!!.compactNotation(), equalTo("com.example.libs:lib1:1.0"))
-
-
-      run {
-        val resolvedDependencies = module.findVariant("release")?.findArtifact(IdeArtifactName.MAIN)?.dependencies
-        assertThat(resolvedDependencies?.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
-      }
-
-      project.applyChanges()
-      requestSyncAndWait()
-      reparse()
-
-      // check if we have lib1 declared in catalog with version declared in versions section
-      val updatedCatalogModel = project.parsedModel.versionCatalogsModel.getVersionCatalogModel("libs")!!
-      val libsText = VfsUtil.loadText(updatedCatalogModel.virtualFile)
-      assertThat(libsText, containsString("{ group = \"com.example.libs\", name = \"lib1\", version.ref = \""))
-      val matcher = "\\{ group = \"com.example.libs\", name = \"lib1\", version.ref = \"(.*)\" }".toRegex().find(libsText)
-      assertThat(matcher, notNullValue())
-      assertThat(matcher!!.groupValues.size, equalTo(2))
-      assertThat(libsText, containsString("${matcher.groupValues[1]} = \"1.0\""))
-
-      module = project.findModuleByName("moduleCatalog") as PsAndroidModule
-      assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
-
-      run {
-        val resolvedDependencies = module.findVariant("release")?.findArtifact(IdeArtifactName.MAIN)?.dependencies
-        assertThat(resolvedDependencies?.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
-      }
-
-      val catalogModel2 = project.parsedModel.versionCatalogsModel.getVersionCatalogModel("libs")!!
-      val declaration2 = catalogModel2.libraryDeclarations().getAll()["lib1"]
-      assertThat(declaration2, notNullValue())
-      assertThat(declaration2!!.compactNotation(), equalTo("com.example.libs:lib1:1.0"))
-
-    }
-  }
-
-  @Test
-  fun testAddCatalogLibraryDependencyWhenLibraryDeclaredInCatalog() {
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY_CATALOG)
-    projectRule.psTestWithProject(preparedProject) {
-      val catalogModel = project.parsedModel.versionCatalogsModel.getVersionCatalogModel("libs")!!
-      catalogModel.virtualFile.toIoFile().appendText("\nlib1O_old = \"com.example.libs:lib1:1.0\"\n")
-      requestSyncAndWait()
-      reparse()
-
-      var module = project.findModuleByName("moduleCatalog") as PsAndroidModule
-      assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
-      module.addLibraryDependency("com.example.libs:lib1:1.0".asParsed(), "implementation")
-      assertThat(module.isModified, equalTo(true))
-      assertThat(project.isModified, equalTo(true))
-      val dependency = module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0")
-      assertThat(dependency, notNullValue())
-      val buildDependencyModel = dependency!![0]
-      assertThat(buildDependencyModel, notNullValue())
-      assertThat((buildDependencyModel.parsedModel.completeModel().rawElement as GradleDslLiteral).unresolvedValue, equalTo("libs.lib1O.old"))
-
-      /////
-      assertThat(catalogModel.libraryDeclarations().getAll()["lib1"], nullValue())
-
-      run {
-        val resolvedDependencies = module.findVariant("release")?.findArtifact(IdeArtifactName.MAIN)?.dependencies
-        assertThat(resolvedDependencies?.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
-      }
-
-      project.applyChanges()
-      requestSyncAndWait()
-      reparse()
-
-      module = project.findModuleByName("moduleCatalog") as PsAndroidModule
-      assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
-
-      run {
-        val resolvedDependencies = module.findVariant("release")?.findArtifact(IdeArtifactName.MAIN)?.dependencies
-        assertThat(resolvedDependencies?.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
-      }
-
-      assertThat(catalogModel.libraryDeclarations().getAll()["lib1"], nullValue())
     }
   }
 
@@ -1070,25 +922,6 @@ class DependencyManagementTest {
   }
 
   @Test
-  fun testCatalogDependencyCanExtractVariableIsFalse() {
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_VERSION_CATALOG_SAMPLE_GROOVY)
-    projectRule.psTestWithProject(preparedProject) {
-      val module = project.findModuleByName("app") as PsAndroidModule
-      run {
-        val resolvedDependencies = module.findVariant("release")?.findArtifact(IdeArtifactName.MAIN)?.dependencies
-        val catalogDep = resolvedDependencies?.findLibraryDependencies("com.google.guava", "guava")?.singleOrNull()?.declaredDependencies
-        assertThat(catalogDep!!.size, equalTo(1))
-        assertFalse(catalogDep[0].canExtractVariable())
-
-        val plainDep = resolvedDependencies.findLibraryDependencies("com.android.support",
-                                                                    "appcompat-v7").singleOrNull()?.declaredDependencies
-        assertThat(plainDep!!.size, equalTo(1))
-        assertTrue(plainDep[0].canExtractVariable())
-      }
-    }
-  }
-
-  @Test
   fun testAddJavaModuleDependencyToJavaModule() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
     projectRule.psTestWithProject(preparedProject) {
@@ -1328,39 +1161,3 @@ class DependencyManagementTest {
     }
   }
 }
-
-private fun <T> PsDeclaredDependencyCollection<*, T, *, *>.findLibraryDependency(
-  compactNotation: String,
-  configuration: String? = null
-): List<T>?
-  where T : PsDeclaredDependency,
-        T : PsLibraryDependency =
-  PsArtifactDependencySpec.create(compactNotation)?.let { spec ->
-    findLibraryDependencies(
-      spec.group,
-      spec.name
-    )
-      .filter { it.spec.version == spec.version && it.configurationName == (configuration ?: it.configurationName) }
-      .let { it.ifEmpty { null } }
-  }
-
-private fun <T> PsResolvedDependencyCollection<*, *, T, *, *>.findLibraryDependency(compactNotation: String): List<T>?
-  where T : PsResolvedDependency,
-        T : PsLibraryDependency =
-  PsArtifactDependencySpec.create(compactNotation)?.let { spec ->
-    findLibraryDependencies(
-      spec.group,
-      spec.name
-    )
-      .filter { it.spec.version == spec.version }
-      .let { it.ifEmpty { null } }
-  }
-
-private fun List<PsResolvedDependency>?.testMatchingScopes(): List<String> =
-  orEmpty().map { resolvedDependency -> resolvedDependency.getParsedModels().joinToString(":") { it.configurationName() } }
-
-private fun List<PsDeclaredDependency>?.testDeclaredScopes(): List<String> = orEmpty().map { it.parsedModel.configurationName() }
-
-private fun List<PsModel>?.testDeclared(): List<Boolean> = orEmpty().map { it.isDeclared }
-private fun List<PsResolvedLibraryDependency>?.testHasPromotedVersion(): List<Boolean> = orEmpty().map { it.hasPromotedVersion() }
-private fun <T : Any> T.asParsed() = ParsedValue.Set.Parsed(this, DslText.Literal)
