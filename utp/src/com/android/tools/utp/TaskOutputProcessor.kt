@@ -26,7 +26,8 @@ import java.util.Base64
  *
  * @param listeners a map from device ID to listener to be notified of test events
  */
-class TaskOutputProcessor(val listeners: Map<String, TaskOutputProcessorListener>) {
+class TaskOutputProcessor(val listener: GlobalTaskOutputProcessorListener) {
+  constructor(listeners: Map<String, TaskOutputProcessorListener>) : this(TaskOutputProcessorListenerDispatcher(listeners))
 
   companion object {
     const val ON_RESULT_OPENING_TAG = "<UTP_TEST_RESULT_ON_TEST_RESULT_EVENT>"
@@ -78,25 +79,25 @@ class TaskOutputProcessor(val listeners: Map<String, TaskOutputProcessorListener
   private fun processTestSuiteStarted(event: TestResultEvent) {
     val testSuiteStarted = event.testSuiteStarted
     val testSuite = testSuiteStarted.testSuiteMetadata.unpack(TestSuiteResultProto.TestSuiteMetaData::class.java)
-    listeners[event.deviceId]?.onTestSuiteStarted(testSuite)
+    listener.onTestSuiteStarted(event.deviceId, testSuite)
   }
 
   private fun processTestCaseStarted(event: TestResultEvent) {
     val testCaseStarted = event.testCaseStarted
     val testCase = testCaseStarted.testCase.unpack(TestCaseProto.TestCase::class.java)
-    listeners[event.deviceId]?.onTestCaseStarted(testCase)
+    listener.onTestCaseStarted(event.deviceId, testCase)
   }
 
   private fun processTestCaseFinished(event: TestResultEvent) {
     val testCaseFinished = event.testCaseFinished
     val testCaseResult = testCaseFinished.testCaseResult.unpack(TestResultProto.TestResult::class.java)
-    listeners[event.deviceId]?.onTestCaseFinished(testCaseResult)
+    listener.onTestCaseFinished(event.deviceId, testCaseResult)
   }
 
   private fun processTestSuiteFinished(event: TestResultEvent) {
     val testSuiteFinished = event.testSuiteFinished
     val testSuiteResult = testSuiteFinished.testSuiteResult.unpack(TestSuiteResultProto.TestSuiteResult::class.java)
-    listeners[event.deviceId]?.onTestSuiteFinished(testSuiteResult)
+    listener.onTestSuiteFinished(event.deviceId, testSuiteResult)
   }
 }
 
@@ -105,4 +106,49 @@ class TaskOutputProcessor(val listeners: Map<String, TaskOutputProcessorListener
  */
 private fun decodeBase64EncodedProto(base64EncodedProto: String): TestResultEvent {
   return TestResultEvent.parseFrom(Base64.getDecoder().decode(base64EncodedProto))
+}
+
+interface GlobalTaskOutputProcessorListener {
+  /**
+   * Called when a test suite execution is started.
+   */
+  fun onTestSuiteStarted(deviceId: String, testSuite: TestSuiteResultProto.TestSuiteMetaData)
+
+  /**
+   * Called when a test case execution is started.
+   */
+  fun onTestCaseStarted(deviceId: String, testCase: TestCaseProto.TestCase)
+
+  /**
+   * Called when a test case execution is finished.
+   */
+  fun onTestCaseFinished(deviceId: String, testCaseResult: TestResultProto.TestResult)
+
+  /**
+   * Called when a test suite execution is finished.
+   */
+  fun onTestSuiteFinished(deviceId: String, testSuiteResult: TestSuiteResultProto.TestSuiteResult)
+}
+
+private class TaskOutputProcessorListenerDispatcher(
+  val listeners: Map<String, TaskOutputProcessorListener>
+) : GlobalTaskOutputProcessorListener {
+  override fun onTestSuiteStarted(deviceId: String,
+                                  testSuite: TestSuiteResultProto.TestSuiteMetaData) {
+    listeners[deviceId]?.onTestSuiteStarted(testSuite)
+  }
+
+  override fun onTestCaseStarted(deviceId: String, testCase: TestCaseProto.TestCase) {
+    listeners[deviceId]?.onTestCaseStarted(testCase)
+  }
+
+  override fun onTestCaseFinished(deviceId: String,
+                                  testCaseResult: TestResultProto.TestResult) {
+    listeners[deviceId]?.onTestCaseFinished(testCaseResult)
+  }
+
+  override fun onTestSuiteFinished(deviceId: String,
+                                   testSuiteResult: TestSuiteResultProto.TestSuiteResult) {
+    listeners[deviceId]?.onTestSuiteFinished(testSuiteResult)
+  }
 }
