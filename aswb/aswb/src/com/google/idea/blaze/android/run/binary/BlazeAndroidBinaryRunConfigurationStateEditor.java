@@ -66,7 +66,7 @@ class BlazeAndroidBinaryRunConfigurationStateEditor implements RunConfigurationS
   private JRadioButton launchNothingButton;
   private JRadioButton launchDefaultButton;
   private JRadioButton launchCustomButton;
-  private JCheckBox useMobileInstallCheckBox;
+  private JCheckBox useIncrementalBuildCheckbox;
   private JCheckBox useWorkProfileIfPresentCheckBox;
   private JCheckBox showLogcatAutomaticallyCheckBox;
   private JLabel userIdLabel;
@@ -128,7 +128,7 @@ class BlazeAndroidBinaryRunConfigurationStateEditor implements RunConfigurationS
     launchDefaultButton.addActionListener(listener);
     launchNothingButton.addActionListener(listener);
 
-    useMobileInstallCheckBox.addActionListener(
+    useIncrementalBuildCheckbox.addActionListener(
         e -> PropertiesComponent.getInstance(project).setValue(MI_NEVER_ASK_AGAIN, true));
 
     useWorkProfileIfPresentCheckBox.addActionListener(listener);
@@ -153,7 +153,7 @@ class BlazeAndroidBinaryRunConfigurationStateEditor implements RunConfigurationS
       activityField.getChildComponent().setText(state.getActivityClass());
     }
 
-    useMobileInstallCheckBox.setSelected(
+    useIncrementalBuildCheckbox.setSelected(
         AndroidBinaryLaunchMethodsUtils.useMobileInstall(state.getLaunchMethod()));
     useWorkProfileIfPresentCheckBox.setSelected(state.useWorkProfileIfPresent());
     userIdField.setValue(state.getUserId());
@@ -181,7 +181,7 @@ class BlazeAndroidBinaryRunConfigurationStateEditor implements RunConfigurationS
       state.setMode(BlazeAndroidBinaryRunConfigurationState.DO_NOTHING);
     }
     state.setLaunchMethod(
-        AndroidBinaryLaunchMethodsUtils.getLaunchMethod(useMobileInstallCheckBox.isSelected()));
+        AndroidBinaryLaunchMethodsUtils.getLaunchMethod(useIncrementalBuildCheckbox.isSelected()));
     state.setUseWorkProfileIfPresent(useWorkProfileIfPresentCheckBox.isSelected());
     state.setShowLogcatAutomatically(showLogcatAutomaticallyCheckBox.isSelected());
     state.setAmStartOptions(launchOptionsField.getText());
@@ -208,7 +208,7 @@ class BlazeAndroidBinaryRunConfigurationStateEditor implements RunConfigurationS
     launchNothingButton.setEnabled(componentEnabled);
     launchDefaultButton.setEnabled(componentEnabled);
     launchCustomButton.setEnabled(componentEnabled);
-    useMobileInstallCheckBox.setEnabled(componentEnabled);
+    useIncrementalBuildCheckbox.setEnabled(componentEnabled);
     useWorkProfileIfPresentCheckBox.setEnabled(componentEnabled);
     showLogcatAutomaticallyCheckBox.setEnabled(componentEnabled);
   }
@@ -222,9 +222,9 @@ class BlazeAndroidBinaryRunConfigurationStateEditor implements RunConfigurationS
   /** Create UI components. */
   private void setupUI(Project project) {
     // Mobile install settings
-    useMobileInstallCheckBox = new JCheckBox();
-    useMobileInstallCheckBox.setText("Use mobile-install");
-    useMobileInstallCheckBox.setSelected(true);
+    useIncrementalBuildCheckbox = new JCheckBox();
+    useIncrementalBuildCheckbox.setText("Use incremental build and deployment optimization for development");
+    useIncrementalBuildCheckbox.setSelected(true);
 
     // User settings
     useWorkProfileIfPresentCheckBox = new JCheckBox();
@@ -301,6 +301,6 @@ class BlazeAndroidBinaryRunConfigurationStateEditor implements RunConfigurationS
     // Panel for items under the "Miscellaneous" tab
     mainContainer =
         UiUtil.createBox(
-            useMobileInstallCheckBox, userBox, logcatBox, activityBox, launchOptionsBox);
+            useIncrementalBuildCheckbox, userBox, logcatBox, activityBox, launchOptionsBox);
   }
 }
