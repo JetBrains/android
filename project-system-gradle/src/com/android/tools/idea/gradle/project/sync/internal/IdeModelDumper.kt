@@ -440,7 +440,9 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
     }
 
     fun dump(libraryTable: IdeResolvedLibraryTable) {
-      val libraryComparator = compareBy<IdeLibrary?> { it?.toLibraryType() }.thenBy { it?.toDisplayString() }
+      val libraryComparator = compareBy<IdeLibrary?> { it?.toLibraryType() }
+        .thenBy { it?.toDisplayString() }
+        .thenBy { (it as? IdeModuleLibrary)?.variant} // variant is not present in the display string
       libraryTable.libraries
         .map { it.sortedWith (libraryComparator) } // sort each list first
         .sortedWith(compareBy(libraryComparator) { it.firstOrNull() } ) // then compare the min elements of lists
