@@ -439,6 +439,7 @@ filegroup(
         "//tools/vendor/google/ml/aiplugin/android-plugin/integration:aida_proto",
         "//tools/vendor/google/ml/aiplugin/android-plugin/integration:aida_protobuf",
         "//tools/vendor/google/ml/aiplugin/android/journeys:proto-models-1.0",
+        "//tools/vendor/google/ml/aiplugin/android:agent_log_proto",
         "//tools/vendor/google/ml/aiplugin/core/aicore:aida_grpc",
         "//tools/vendor/google/ml/aiplugin/core/aicore:aida_proto",
         "//tools/vendor/google/ml/aiplugin/core/aicore:aida_protobuf",

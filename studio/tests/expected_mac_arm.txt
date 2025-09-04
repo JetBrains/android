@@ -3084,6 +3084,7 @@ Android Studio Preview.app/Contents/plugins/gemini/lib/gemini_plugin_proto.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/google-api-services-cloudresourcemanager-v1beta1-rev20240128-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/jackson-datatype-jdk8-2.18.2.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/jackson-datatype-jsr310-2.18.2.jar
+Android Studio Preview.app/Contents/plugins/gemini/lib/libagent_log_proto.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/libfeedback_java_proto.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/libgoogle_auth_intellij_lib.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/libserviceusage_v1_java_lib.jar

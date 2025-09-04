@@ -765,6 +765,7 @@ studio_plugin(
         "//prebuilts/tools/common/m2:sqlite-jdbc-3.43.0.0",
         "//prebuilts/tools/common/m2:wire-runtime-jvm-5.3.1",
         "//tools/adt/idea/.idea/libraries:lucene",
+        "//tools/vendor/google/ml/aiplugin/android:agent_log_proto",
         "//tools/vendor/google/ml/aiplugin/android/journeys:proto-models-1.0",
         "//tools/vendor/google/ml/aiplugin/cloudcode-core:libgoogle_auth_intellij_lib",
         "//tools/vendor/google/ml/aiplugin/cloudcode-core:libfeedback_java_proto",
