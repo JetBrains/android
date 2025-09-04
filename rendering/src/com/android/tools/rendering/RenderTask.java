@@ -166,8 +166,9 @@ public class RenderTask {
    * Layoutlib cleans up native memory when their related Java objects get garbage collected. This means a lot of native memory
    * can be used while at the same time the JVM not needing to do a garbage collection as the related Java objects may be very small.
    * In this situation, we want to manually trigger a garbage collection to reclaim the native memory.
+   * The limit is capped at 8GB.
    */
-  private static final long MAX_NATIVE_MEMORY = Runtime.getRuntime().maxMemory() / 2;
+  private static final long MAX_NATIVE_MEMORY = Math.min(Runtime.getRuntime().maxMemory() / 2, 8L * 1024*1024*1024);
 
   /**
    * Executor to run the dispose tasks. The thread will run them sequentially.
