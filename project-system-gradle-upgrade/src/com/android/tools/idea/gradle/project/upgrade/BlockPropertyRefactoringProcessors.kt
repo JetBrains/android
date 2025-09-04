@@ -324,7 +324,7 @@ class BlockBuildFeaturesBuildConfigProcessor: AbstractBlockPropertyWithPreviousD
   override val propertyRemovedVersion = AgpVersion.parse("9.0.0-alpha01")
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_BUILD_FEATURE_BUILD_CONFIG_PRESENT
   override val defaultChangedVersion = BuildConfigDefaultRefactoringProcessor.DEFAULT_CHANGED
-  override val noOpValue = true
+  override val noOpValue = false
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.buildFeaturesBuildConfigBlockProperty"
 }
 
