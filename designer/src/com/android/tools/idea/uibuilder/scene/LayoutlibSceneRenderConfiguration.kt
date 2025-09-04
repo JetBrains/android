@@ -34,30 +34,10 @@ import com.android.tools.rendering.api.RenderModelModule
 import com.android.tools.rendering.imagepool.ImagePool
 import com.intellij.openapi.util.Disposer
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.job
 import org.jetbrains.kotlin.utils.identity
-
-/**
- * When rendering a model, different use cases require to execute the layoutlib callbacks in
- * different moments. And it can be specified in a [LayoutlibSceneRenderConfiguration] by using this
- * enum.
- */
-enum class LayoutlibCallbacksConfig {
-  /** Indicates that layoutlib callbacks should not be executed. */
-  DO_NOT_EXECUTE,
-
-  /** Indicates that layoutlib callbacks should be executed before the next render. */
-  EXECUTE_BEFORE_RENDERING,
-
-  /**
-   * Indicates that after the next render, layoutlib callbacks should be executed and then the model
-   * should be re-rendered.
-   */
-  EXECUTE_AND_RERENDER,
-}
 
 /**
  * Render configuration to be used when rendering the given [model].
@@ -94,11 +74,15 @@ class LayoutlibSceneRenderConfiguration(
    */
   val needsInflation = AtomicBoolean(true)
 
-  /** When true, a re-render of the model will be done after the next render if needed. */
-  val doubleRenderIfNeeded = AtomicBoolean(false)
+  /** When true, a re-render of the model will be done after the next render. */
+  val doubleRender = AtomicBoolean(false)
 
-  /** See [LayoutlibCallbacksConfig]. */
-  val layoutlibCallbacksConfig = AtomicReference(LayoutlibCallbacksConfig.DO_NOT_EXECUTE)
+  /**
+   * When true, layoutlib callbacks will be executed after the render.
+   *
+   * Note that callbacks are always executed after inflation, and this flag doesn't affect that.
+   */
+  val executeCallbacksAfterRender = AtomicBoolean(false)
 
   /**
    * If true, when a render fails, the result will retain the last successful image.

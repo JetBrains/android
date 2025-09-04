@@ -50,7 +50,7 @@ class InteractivePreviewManager(
         {
           if (!RenderService.isBusy() && fpsCounter.getFps() <= fpsLimit) {
             fpsCounter.incrementFrameCounter()
-            interactiveScenesProvider().forEach { it.executeCallbacksAndRequestRender() }
+            interactiveScenesProvider().forEach { it.requestInteractiveRender() }
           }
         },
         Duration.ofMillis(5),

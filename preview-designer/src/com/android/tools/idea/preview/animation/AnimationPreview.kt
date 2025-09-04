@@ -22,7 +22,6 @@ import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.concurrency.scopeDisposable
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
-import com.android.tools.idea.uibuilder.scene.LayoutlibCallbacksConfig
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.executeInRenderSession
 import com.google.common.annotations.VisibleForTesting
@@ -316,9 +315,7 @@ abstract class AnimationPreview<T : AnimationManager>(
   /** Triggers a render/update of the displayed preview. */
   protected suspend fun renderAnimation() {
     sceneManagerProvider()?.let {
-      it.sceneRenderConfiguration.layoutlibCallbacksConfig.set(
-        LayoutlibCallbacksConfig.EXECUTE_BEFORE_RENDERING
-      )
+      it.sceneRenderConfiguration.executeCallbacksAfterRender.set(true)
       it.requestRenderAndWait()
     }
   }

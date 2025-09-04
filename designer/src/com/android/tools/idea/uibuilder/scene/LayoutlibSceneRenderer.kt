@@ -23,7 +23,7 @@ import com.android.tools.idea.common.analytics.CommonUsageTracker
 import com.android.tools.idea.common.diagnostics.NlDiagnosticsManager
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.rendering.ShowFixFactory
 import com.android.tools.idea.rendering.StudioRenderService
@@ -193,7 +193,7 @@ class LayoutlibSceneRenderer(
               // newResult can not be null if isErrorResult is true
               // oldResult can not be null if containsValidImage is true
               newResult!!.copyWithNewImageAndRootViewDimensions(
-                StudioRenderService.Companion.getInstance(newResult.project)
+                StudioRenderService.getInstance(newResult.project)
                   .sharedImagePool
                   .copyOf(oldResult!!.getRenderedImage().copy),
                 oldResult.rootViewDimensions,
@@ -208,7 +208,7 @@ class LayoutlibSceneRenderer(
    * This channel will receive all render requests but will keep at most one in its queue, dropping
    * old requests waiting to be processed when a newer comes in.
    */
-  private val requestsChannel = Channel<RenderRequest>(capacity = Channel.Factory.CONFLATED)
+  private val requestsChannel = Channel<RenderRequest>(capacity = Channel.CONFLATED)
 
   /**
    * This flow contains the [RenderRequest.requestTime] of the latest request that has finished to
@@ -221,32 +221,18 @@ class LayoutlibSceneRenderer(
     // leaked
     // if this class is disposed before the scope is correctly initialized.
     Disposer.register(parentDisposable, this)
-    scope = AndroidCoroutineScope(this)
+    scope = this.createCoroutineScope()
     scope.launch {
       requestsChannel.receiveAsFlow().collect {
         renderIsRunning.set(true)
         try {
           if (isActive.get()) {
-            val reverseUpdate = AtomicBoolean(false)
-            val rerenderIfNeeded = sceneRenderConfiguration.doubleRenderIfNeeded.getAndSet(false)
-            val callbacksConfig =
-              sceneRenderConfiguration.layoutlibCallbacksConfig.getAndSet(
-                LayoutlibCallbacksConfig.DO_NOT_EXECUTE
-              )
-            doRender(
-              it,
-              callbacksConfig == LayoutlibCallbacksConfig.EXECUTE_BEFORE_RENDERING,
-              reverseUpdate,
-            )
-            if (
-              (rerenderIfNeeded && reverseUpdate.get()) ||
-                callbacksConfig == LayoutlibCallbacksConfig.EXECUTE_AND_RERENDER
-            ) {
-              doRender(
-                it,
-                callbacksConfig == LayoutlibCallbacksConfig.EXECUTE_AND_RERENDER,
-                reverseUpdate,
-              )
+            val doubleRender = sceneRenderConfiguration.doubleRender.getAndSet(false)
+            val executeCallbacks =
+              sceneRenderConfiguration.executeCallbacksAfterRender.getAndSet(false)
+            doRender(it, executeCallbacks)
+            if (doubleRender) {
+              doRender(it, executeCallbacks)
             }
           } else {
             log.info("Render skipped due to deactivated LayoutlibSceneRenderer (model = $model)")
@@ -318,11 +304,7 @@ class LayoutlibSceneRenderer(
    * [LayoutlibSceneRenderConfiguration.needsInflation] is true or when [renderTask] is null).
    */
   @RequiresBackgroundThread
-  private suspend fun doRender(
-    request: RenderRequest,
-    executeCallbacksBeforeRendering: Boolean,
-    reverseUpdate: AtomicBoolean,
-  ) {
+  private suspend fun doRender(request: RenderRequest, executeCallbacks: Boolean) {
     var result: RenderResult? = null
     val renderStartTimeMs = System.currentTimeMillis()
 
@@ -337,7 +319,7 @@ class LayoutlibSceneRenderer(
       }
       val inflateResult =
         if (sceneRenderConfiguration.needsInflation.getAndSet(false) || renderTask == null)
-          inflate(reverseUpdate)
+          inflate()
         else null
       if (inflateResult?.renderResult?.isSuccess == false) {
         surface.updateErrorDisplay()
@@ -358,9 +340,6 @@ class LayoutlibSceneRenderer(
         // Make sure that the task's quality is up-to-date before rendering
         val quality = sceneRenderConfiguration.quality
         it.setQuality(quality)
-        if (executeCallbacksBeforeRendering) {
-          executeAllCallbacks()
-        }
         result = it.render().await() // await is the suspendable version of join
         if (result?.renderResult?.isSuccess == true) {
           lastRenderQuality = quality
@@ -369,7 +348,9 @@ class LayoutlibSceneRenderer(
           renderTask?.setEnableLayoutScanner(false)
           // When the layout was inflated in this same call, we do not have to update the hierarchy
           // again
-          if (inflateResult == null) reverseUpdate.set(updateHierarchy(result))
+          if (inflateResult == null) updateHierarchy(result)
+          // After a render, execute callbacks if indicated, to be ready for the next render.
+          if (executeCallbacks) executeAllCallbacks()
         }
       }
     } catch (throwable: Throwable) {
@@ -417,7 +398,7 @@ class LayoutlibSceneRenderer(
    * It throws a [CancellationException] if cancelled midway.
    */
   @RequiresBackgroundThread
-  private suspend fun inflate(reverseUpdate: AtomicBoolean): RenderResult? {
+  private suspend fun inflate(): RenderResult? {
     val project: Project = model.project
     if (project.isDisposed || isDisposed.get()) {
       return null
@@ -462,7 +443,9 @@ class LayoutlibSceneRenderer(
       renderResult = result
       if (result?.renderResult?.isSuccess == true && !isDisposed.get()) {
         renderTask = newTask
-        reverseUpdate.set(updateHierarchy(result))
+        // After inflation, always execute callbacks to be ready for the follow-up render.
+        executeAllCallbacks()
+        updateHierarchy(result)
         // Do more updates async
         scope.launch {
           model.notifyListenersModelDerivedDataChanged()
@@ -496,7 +479,7 @@ class LayoutlibSceneRenderer(
             "Inflate returned unsuccessful RenderResult without an internal exception"
           )
       }
-      return result!!
+      return result
     } catch (throwable: Throwable) {
       // Do not ignore ClassNotFoundException on inflate
       if (throwable is ClassNotFoundException) {
@@ -521,19 +504,16 @@ class LayoutlibSceneRenderer(
 
   // TODO(b/335424569): make this method private
   /** Updates the hierarchy based on the [model]'s render/inflate result. */
-  fun updateHierarchy(result: RenderResult?): Boolean {
-    var reverseUpdate = false
+  fun updateHierarchy(result: RenderResult?) {
     try {
       updateHierarchyLock.withLock {
-        reverseUpdate =
-          if (result == null || !result.renderResult.isSuccess) {
-            NlModelHierarchyUpdater.updateHierarchy(emptyList<ViewInfo>(), model)
-          } else {
-            NlModelHierarchyUpdater.updateHierarchy(result, model)
-          }
+        if (result == null || !result.renderResult.isSuccess) {
+          NlModelHierarchyUpdater.updateHierarchy(emptyList<ViewInfo>(), model)
+        } else {
+          NlModelHierarchyUpdater.updateHierarchy(result, model)
+        }
       }
     } catch (ignored: InterruptedException) {}
-    return reverseUpdate
   }
 
   fun activate() {

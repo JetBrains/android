@@ -241,7 +241,7 @@ open class LayoutlibSceneManager(
         // is lost in the view hierarchy) we need to run render again to propagate the change
         // (re-layout) in the scrolling values to the View hierarchy (position, children etc.) and
         // render the updated result.
-        layoutlibSceneRenderer.sceneRenderConfiguration.doubleRenderIfNeeded.set(true)
+        layoutlibSceneRenderer.sceneRenderConfiguration.doubleRender.set(true)
         requestRender()
       }
 
@@ -463,10 +463,8 @@ open class LayoutlibSceneManager(
   }
 
   /** Executes the given [Runnable] callback synchronously with a 30ms timeout. */
-  override fun executeCallbacksAndRequestRender() {
-    sceneRenderConfiguration.layoutlibCallbacksConfig.set(
-      LayoutlibCallbacksConfig.EXECUTE_BEFORE_RENDERING
-    )
+  override fun requestInteractiveRender() {
+    sceneRenderConfiguration.executeCallbacksAfterRender.set(true)
     requestRender()
   }
 

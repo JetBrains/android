@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.scene
 
 interface InteractiveSceneManager {
 
-  fun executeCallbacksAndRequestRender()
+  fun requestInteractiveRender()
 
   /** Pauses session clock, so that session time stops advancing. */
   fun pauseSessionClock()

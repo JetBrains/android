@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.Result
 import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil.model
 import com.android.tools.idea.uibuilder.property.testutils.ComponentUtil.component
@@ -50,9 +51,13 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertFails
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -79,6 +84,7 @@ class LayoutlibSceneRendererTest {
   private var inflateLatch = CountDownLatch(0)
   private lateinit var simulatedInflateResult: RenderResult
   private lateinit var simulatedRenderResult: RenderResult
+  private var fakeCallback = { CompletableFuture.completedFuture(ExecuteCallbacksResult.EMPTY) }
 
   @Before
   fun setUp() {
@@ -112,6 +118,7 @@ class LayoutlibSceneRendererTest {
     whenever(renderTaskBuilderMock.build(any()))
       .thenReturn(CompletableFuture.completedFuture(renderTaskMock))
     renderer.sceneRenderConfiguration.setRenderTaskBuilderWrapperForTest { renderTaskBuilderMock }
+    whenever(renderTaskMock.executeCallbacks(any())).then { fakeCallback() }
   }
 
   @After
@@ -298,39 +305,78 @@ class LayoutlibSceneRendererTest {
   }
 
   @Test
-  fun testLayoutlibCallbacks() = runBlocking {
+  fun testLayoutlibCallbacks_infinite() = runBlocking {
     var executeCallbacksCount = 0
-    whenever(renderTaskMock.executeCallbacks(any())).then {
+    val scope = projectRule.testRootDisposable.createCoroutineScope(Dispatchers.Default)
+    fakeCallback = {
+      executeCallbacksCount++
+      scope
+        .async {
+          delay(10)
+          ExecuteCallbacksResult.create(/* hasMoreCallbacks= */ true, /* durationMs= */ 0)
+        }
+        .asCompletableFuture()
+    }
+    // If there are infinitely more callbacks, render finishes anyway.
+    withTimeout(5.seconds) {
+      renderer.sceneRenderConfiguration.executeCallbacksAfterRender.set(true)
+      renderer.requestRenderAndWait(trigger = null)
+    }
+    assertTrue(executeCallbacksCount > 1)
+  }
+
+  @Test
+  fun testLayoutlibCallbacks_disabled() = runBlocking {
+    var executeCallbacksCount = 0
+    fakeCallback = {
       executeCallbacksCount++
       CompletableFuture.completedFuture(ExecuteCallbacksResult.EMPTY)
     }
 
-    // DO_NOT_EXECUTE should be the default
-    assertEquals(
-      LayoutlibCallbacksConfig.DO_NOT_EXECUTE,
-      renderer.sceneRenderConfiguration.layoutlibCallbacksConfig.get(),
-    )
-    renderer.requestRenderAndWait(trigger = null)
-    assertEquals(1, taskRenderCount.get())
-    assertEquals(0, executeCallbacksCount)
+    // Not executing should be the default
+    assertFalse(renderer.sceneRenderConfiguration.executeCallbacksAfterRender.get())
 
-    // EXECUTE_BEFORE_RENDERING
-    delay(10)
-    renderer.sceneRenderConfiguration.layoutlibCallbacksConfig.set(
-      LayoutlibCallbacksConfig.EXECUTE_BEFORE_RENDERING
-    )
+    // When inflation happens, callbacks should be executed anyway
+    renderer.sceneRenderConfiguration.needsInflation.set(true)
     renderer.requestRenderAndWait(trigger = null)
-    assertEquals(2, taskRenderCount.get())
+    assertEquals(1, taskInflateCount.get())
+    assertEquals(1, taskRenderCount.get())
     assertEquals(1, executeCallbacksCount)
 
-    // EXECUTE_AND_RERENDER
-    delay(10)
-    renderer.sceneRenderConfiguration.layoutlibCallbacksConfig.set(
-      LayoutlibCallbacksConfig.EXECUTE_AND_RERENDER
-    )
+    // When inflation does not happen and flag is false, then no callbacks should be executed
+    renderer.sceneRenderConfiguration.needsInflation.set(false)
     renderer.requestRenderAndWait(trigger = null)
-    assertEquals(4, taskRenderCount.get())
+    assertEquals(1, taskInflateCount.get())
+    assertEquals(2, taskRenderCount.get())
+    assertEquals(1, executeCallbacksCount)
+  }
+
+  @Test
+  fun testLayoutlibCallbacks_enabled() = runBlocking {
+    var executeCallbacksCount = 0
+    fakeCallback = {
+      executeCallbacksCount++
+      CompletableFuture.completedFuture(ExecuteCallbacksResult.EMPTY)
+    }
+
+    // When inflation happens and flag is true, callbacks should be called two times
+    renderer.sceneRenderConfiguration.needsInflation.set(true)
+    renderer.sceneRenderConfiguration.executeCallbacksAfterRender.set(true)
+    renderer.requestRenderAndWait(trigger = null)
+    assertEquals(1, taskInflateCount.get())
+    assertEquals(1, taskRenderCount.get())
     assertEquals(2, executeCallbacksCount)
+
+    // When inflation does not happen and flag is true, callbacks should be called once
+    renderer.sceneRenderConfiguration.needsInflation.set(false)
+    renderer.sceneRenderConfiguration.executeCallbacksAfterRender.set(true)
+    renderer.requestRenderAndWait(trigger = null)
+    assertEquals(1, taskInflateCount.get())
+    assertEquals(2, taskRenderCount.get())
+    assertEquals(3, executeCallbacksCount)
+
+    // Flag should be set to false after used
+    assertFalse(renderer.sceneRenderConfiguration.executeCallbacksAfterRender.get())
   }
 
   // Regression test for b/389598837
