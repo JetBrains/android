@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import json
 import os
@@ -6,6 +7,7 @@ import shlex
 import subprocess
 import sys
 import tempfile
+import xml.etree.ElementTree as ET
 
 
 # Background: while iterating on IntelliJ Platform updates, we occasionally
@@ -29,6 +31,15 @@ def main():
     revision = find_latest_manifest_revision()
     run('git', '-C', '.repo/manifests', 'fetch', 'origin', revision)
     manifest_content = run('git', '-C', '.repo/manifests', 'show', f'{revision}:default.xml')
+
+    # Unfortunately, when syncing to a pinned manifest, repo does not fetch the pinned
+    # revisions directly. Instead it fetches the upstream branch and assumes that the pinned
+    # revisions are included in that branch. So, we fetch the pinned revisions ourselves instead.
+    manifest_xml = ET.fromstring(manifest_content)
+    projects = manifest_xml.findall('project')
+    print(f'Fetching pinned revisions in {len(projects)} projects.')
+    with ThreadPoolExecutor() as executor:
+        executor.map(fetch_revision, projects)
 
     # Sync.
     with tempfile.NamedTemporaryFile(suffix='-intellij-update-draft-manifest.xml') as manifest:
@@ -55,6 +66,17 @@ def find_latest_manifest_revision():
     if len(info) != 1:
         sys.exit(f'ERROR: expected exactly one matching Gerrit change (found {len(info)})')
     return info[0]['current_revision']
+
+
+def fetch_revision(project: ET.Element):
+    if project.get('clone-depth') is not None:
+        return  # Repo sync already fetches pinned revisions correctly for shallow clones.
+    path = project.get('path')
+    if path is None or not Path(path).is_dir():
+        return  # Missing project? This can happen for OS-specific projects, for example.
+    revision = project.get('revision') or 'studio-main'
+    remote = project.get('remote') or 'goog'
+    run('git', '-C', path, 'fetch', remote, revision)
 
 
 def find_repo_root(cd: Path) -> Path:
