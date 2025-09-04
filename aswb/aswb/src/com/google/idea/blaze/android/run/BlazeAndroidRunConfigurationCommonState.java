@@ -35,11 +35,14 @@ import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.ui.UiUtil;
+import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import java.awt.Component;
 import java.util.List;
+import javax.annotation.Nullable;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import org.jdom.Element;
 
@@ -48,6 +51,10 @@ public class BlazeAndroidRunConfigurationCommonState implements RunConfiguration
   private static final String DEPLOY_TARGET_STATES_TAG = "android-deploy-target-states";
   private static final String USER_BLAZE_FLAG_TAG = "blaze-user-flag";
   private static final String USER_EXE_FLAG_TAG = "blaze-user-exe-flag";
+  private static final String AUTO_SELECT_ANDROID_PLATFORM_TAG = "auto-select-android-platform";
+
+  private static final BoolExperiment autoSelectAndroidPlatformUiEnabled =
+      new BoolExperiment("aswb.auto.select.android.platform.ui.enabled", false);
 
   // "-c dbg" defines both the copt and strip flags below; however, we want to allow users to
   // override -c (to fastbuild or opt) without entirely compromising the generation of debug info.
@@ -55,6 +62,7 @@ public class BlazeAndroidRunConfigurationCommonState implements RunConfiguration
       ImmutableList.of("--copt=-g", "--fission=no", "--strip=never", "-c", "dbg");
 
   private final RunConfigurationFlagsState blazeFlags;
+  private boolean autoSelectAndroidPlatform = false;
   private final RunConfigurationFlagsState exeFlags;
   private final DebuggerSettingsState debuggerSettings;
 
@@ -69,6 +77,14 @@ public class BlazeAndroidRunConfigurationCommonState implements RunConfiguration
 
   public RunConfigurationFlagsState getBlazeFlagsState() {
     return blazeFlags;
+  }
+
+  public boolean isAutoSelectAndroidPlatform() {
+    return autoSelectAndroidPlatform;
+  }
+
+  public void setAutoSelectAndroidPlatform(boolean autoSelectAndroidPlatform) {
+    this.autoSelectAndroidPlatform = autoSelectAndroidPlatform;
   }
 
   public RunConfigurationFlagsState getExeFlagsState() {
@@ -134,6 +150,10 @@ public class BlazeAndroidRunConfigurationCommonState implements RunConfiguration
   @Override
   public void readExternal(Element element) throws InvalidDataException {
     blazeFlags.readExternal(element);
+    String platformSelection = element.getAttributeValue(AUTO_SELECT_ANDROID_PLATFORM_TAG);
+    if (platformSelection != null) {
+      autoSelectAndroidPlatform = Boolean.parseBoolean(platformSelection);
+    }
     exeFlags.readExternal(element);
     debuggerSettings.readExternal(element);
   }
@@ -141,6 +161,8 @@ public class BlazeAndroidRunConfigurationCommonState implements RunConfiguration
   @Override
   public void writeExternal(Element element) throws WriteExternalException {
     blazeFlags.writeExternal(element);
+    element.setAttribute(
+        AUTO_SELECT_ANDROID_PLATFORM_TAG, String.valueOf(autoSelectAndroidPlatform));
     exeFlags.writeExternal(element);
     debuggerSettings.writeExternal(element);
 
@@ -157,12 +179,19 @@ public class BlazeAndroidRunConfigurationCommonState implements RunConfiguration
       implements RunConfigurationStateEditor {
 
     private final RunConfigurationStateEditor blazeFlagsEditor;
+    @Nullable private final JCheckBox autoSelectAndroidPlatformCheckBox;
     private final RunConfigurationStateEditor exeFlagsEditor;
     private final RunConfigurationStateEditor debuggerSettingsEditor;
 
     BlazeAndroidRunConfigurationCommonStateEditor(
         BlazeAndroidRunConfigurationCommonState state, Project project) {
       blazeFlagsEditor = state.blazeFlags.getEditor(project);
+      if (autoSelectAndroidPlatformUiEnabled.getValue()) {
+        autoSelectAndroidPlatformCheckBox =
+            new JCheckBox("Automatically build for target Android platform");
+      } else {
+        autoSelectAndroidPlatformCheckBox = null;
+      }
       exeFlagsEditor = state.exeFlags.getEditor(project);
       debuggerSettingsEditor = state.debuggerSettings.getEditor(project);
     }
@@ -172,6 +201,9 @@ public class BlazeAndroidRunConfigurationCommonState implements RunConfiguration
       BlazeAndroidRunConfigurationCommonState state =
           (BlazeAndroidRunConfigurationCommonState) genericState;
       blazeFlagsEditor.resetEditorFrom(state.blazeFlags);
+      if (autoSelectAndroidPlatformCheckBox != null) {
+        autoSelectAndroidPlatformCheckBox.setSelected(state.isAutoSelectAndroidPlatform());
+      }
       exeFlagsEditor.resetEditorFrom(state.exeFlags);
       debuggerSettingsEditor.resetEditorFrom(state.debuggerSettings);
     }
@@ -181,23 +213,30 @@ public class BlazeAndroidRunConfigurationCommonState implements RunConfiguration
       BlazeAndroidRunConfigurationCommonState state =
           (BlazeAndroidRunConfigurationCommonState) genericState;
       blazeFlagsEditor.applyEditorTo(state.blazeFlags);
+      if (autoSelectAndroidPlatformCheckBox != null) {
+        state.setAutoSelectAndroidPlatform(autoSelectAndroidPlatformCheckBox.isSelected());
+      }
       exeFlagsEditor.applyEditorTo(state.exeFlags);
       debuggerSettingsEditor.applyEditorTo(state.debuggerSettings);
     }
 
     @Override
     public JComponent createComponent() {
-      List<Component> result =
-          Lists.newArrayList(
-              blazeFlagsEditor.createComponent(),
-              exeFlagsEditor.createComponent(),
-              debuggerSettingsEditor.createComponent());
+      List<Component> result = Lists.newArrayList(blazeFlagsEditor.createComponent());
+      if (autoSelectAndroidPlatformCheckBox != null) {
+        result.add(autoSelectAndroidPlatformCheckBox);
+      }
+      result.add(exeFlagsEditor.createComponent());
+      result.add(debuggerSettingsEditor.createComponent());
       return UiUtil.createBox(result);
     }
 
     @Override
     public void setComponentEnabled(boolean enabled) {
       blazeFlagsEditor.setComponentEnabled(enabled);
+      if (autoSelectAndroidPlatformCheckBox != null) {
+        autoSelectAndroidPlatformCheckBox.setEnabled(enabled);
+      }
       exeFlagsEditor.setComponentEnabled(enabled);
       debuggerSettingsEditor.setComponentEnabled(enabled);
     }
