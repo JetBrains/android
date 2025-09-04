@@ -201,6 +201,7 @@ studiobot.inline.code.completion.file.context.enabled=PREVIEW
 studiobot.inline.code.completion.include.last.action=PREVIEW
 studiobot.local.models.enabled=PREVIEW
 studiobot.mcp.host.enabled=COMPLETE:2025
+studiobot.mcp.ui.servers.enabled=INTERNAL
 studiobot.open.files.context=PREVIEW
 studiobot.project.facts.context.enabled=INTERNAL
 studiobot.prompt.library.chat.lookup=COMPLETE:2025
