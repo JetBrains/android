@@ -85,7 +85,7 @@ class VisualLintIssueNodeTest {
         model.treeReader.components.first().children,
         issueProvider,
       )
-    val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
+    val node = VisualLintIssueNode(issue, null, CommonIssueTestParentNode(rule.projectRule.project))
     val navigation = node.getNavigatable()
     assertNotNull(navigation)
 
@@ -141,7 +141,7 @@ class VisualLintIssueNodeTest {
         model.treeReader.components.first().children,
         issueProvider,
       )
-    val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
+    val node = VisualLintIssueNode(issue, null, CommonIssueTestParentNode(rule.projectRule.project))
     assertInstanceOf<SelectWindowSizeDevicesNavigatable>(node.getNavigatable())
   }
 
@@ -170,7 +170,7 @@ class VisualLintIssueNodeTest {
         model.treeReader.components.first().children,
         issueProvider,
       )
-    val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
+    val node = VisualLintIssueNode(issue, null, CommonIssueTestParentNode(rule.projectRule.project))
     val navigation = node.getNavigatable()
     assertNotNull(navigation)
 
@@ -227,7 +227,7 @@ class VisualLintIssueNodeTest {
         model.treeReader.components.first().children,
         issueProvider,
       )
-    val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
+    val node = VisualLintIssueNode(issue, null, CommonIssueTestParentNode(rule.projectRule.project))
     assertInstanceOf<SelectWearDevicesNavigatable>(node.getNavigatable())
   }
 
@@ -247,7 +247,8 @@ class VisualLintIssueNodeTest {
         .components(mutableListOf(component))
         .type(VisualLintErrorType.BOUNDS)
         .build()
-    val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
+    val node = VisualLintIssueNode(issue, file, CommonIssueTestParentNode(rule.projectRule.project))
+    assertEquals(file, node.file)
     assertEquals(0, node.getChildren().size)
     assertEquals(0, navigatable.compareTo(node.getNavigatable() as OpenFileDescriptor))
   }
@@ -280,8 +281,8 @@ class VisualLintIssueNodeTest {
         .type(VisualLintErrorType.BOUNDS)
         .build()
     val parentNode = CommonIssueTestParentNode(rule.projectRule.project)
-    val node1 = VisualLintIssueNode(issue1, parentNode)
-    val node2 = VisualLintIssueNode(issue2, parentNode)
+    val node1 = VisualLintIssueNode(issue1, file, parentNode)
+    val node2 = VisualLintIssueNode(issue2, file, parentNode)
     assertTrue(node1 == node2)
   }
 
