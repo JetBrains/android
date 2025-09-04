@@ -150,7 +150,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_8_10_2 -> Version.parse("1.6.21")
         VERSION_8_11_1 -> Version.parse("1.6.21")
         VERSION_8_13 -> Version.parse("1.6.21")
-        VERSION_FOR_DEV -> Version.parse("2.0.0")
+        VERSION_FOR_DEV -> Version.parse("2.2.10")
       }
 
     fun `androidx-navigation-safeargs-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
@@ -256,6 +256,8 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
     val WELL_KNOWN_GRADLE_PLUGIN_TABLE = mapOf(
       "org.jetbrains.kotlin:kotlin-gradle-plugin" to ::`kotlin-gradle-plugin-compatibility-info`,
       "org.jetbrains.kotlin.android" to ::`kotlin-gradle-plugin-compatibility-info`,
+      "org.jetbrains.kotlin:compose-compiler-gradle-plugin" to ::`kotlin-gradle-plugin-compatibility-info`,
+      "org.jetbrains.kotlin.plugin.compose" to ::`kotlin-gradle-plugin-compatibility-info`,
 
       "androidx.navigation:navigation-safe-args-gradle-plugin" to ::`androidx-navigation-safeargs-gradle-plugin-compatibility-info`,
       "androidx.navigation.safeargs" to ::`androidx-navigation-safeargs-gradle-plugin-compatibility-info`,

@@ -304,6 +304,7 @@ class AgpUpgradeRefactoringProcessor(
     REWRITE_DEPRECATED_OPERATORS.RefactoringProcessor(this),
     MIGRATE_TEST_COVERAGE_ENABLED_TO_UNIT_AND_ANDROID_COVERAGE.RefactoringProcessor(this),
     ShadersDefaultRefactoringProcessor(this),
+    Kotlin20RefactoringProcessor(this),
     UseAndroidXDefaultRefactoringProcessor(this),
     ResValuesDefaultRefactoringProcessor(this),
     BlockAidlProcessor(this),
