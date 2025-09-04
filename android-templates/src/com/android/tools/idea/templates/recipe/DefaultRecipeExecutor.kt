@@ -579,26 +579,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     buildModel.android().viewBinding().enabled().setValue(value)
   }
 
-  /** Sets Compose Options field values */
-  override fun setComposeOptions(kotlinCompilerExtensionVersion: String?) {
-    val buildModel = moduleGradleBuildModel ?: return
-    val composeOptionsModel = buildModel.android().composeOptions()
-
-    if (kotlinCompilerExtensionVersion != null) {
-      composeOptionsModel
-        .kotlinCompilerExtensionVersion()
-        .setValueIfNone(kotlinCompilerExtensionVersion)
-    }
-
-    buildModel.android().defaultConfig().vectorDrawables().useSupportLibrary().setValue(true)
-    buildModel
-      .android()
-      .packaging()
-      .resources()
-      .excludes()
-      .setValueIfNone("/META-INF/{AL2.0,LGPL2.1}")
-  }
-
   /** Sets Cpp Options field values */
   override fun setCppOptions(cppFlags: String, cppPath: String, cppVersion: String) {
     val buildModel = moduleGradleBuildModel ?: return

@@ -142,8 +142,6 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
 
   override fun setViewBinding(value: Boolean) {}
 
-  override fun setComposeOptions(kotlinCompilerExtensionVersion: String?) {}
-
   override fun setCppOptions(cppFlags: String, cppPath: String, cppVersion: String) {}
 
   override fun requireJavaVersion(version: String, kotlinSupport: Boolean) {}
