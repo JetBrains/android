@@ -344,6 +344,15 @@ JObject JClass::NewObject(JNIEnv* jni_env, jmethodID constructor, ...) const {
   return result;
 }
 
+JObjectArray JClass::NewObjectArray(int32_t length, jobject initialElement) const {
+  JNIEnv* jni_env = GetJni();
+  return JObjectArray(jni_env, jni_env->NewObjectArray(length, ref(), initialElement));
+}
+
+JObjectArray JClass::NewObjectArray(JNIEnv* jni_env, int32_t length, jobject initialElement) const {
+  return JObjectArray(jni_env, jni_env->NewObjectArray(length, ref(), initialElement));
+}
+
 JObject JClass::CallStaticObjectMethod(jmethodID method, ...) const {
   JNIEnv* jni_env = GetJni();
   va_list args;
@@ -435,10 +444,6 @@ void JString::InitializeStatics(Jni jni) {
 
 JClass JString::string_class_;
 jmethodID JString::value_of_method_ = nullptr;
-
-JObjectArray JClass::NewObjectArray(JNIEnv* jni_env, int32_t length, jobject initialElement) const {
-  return JObjectArray(jni_env, jni_env->NewObjectArray(length, ref(), initialElement));
-}
 
 JClass Jni::GetClass(const char* name) const {
   jclass clazz = jni_env_->FindClass(name);
