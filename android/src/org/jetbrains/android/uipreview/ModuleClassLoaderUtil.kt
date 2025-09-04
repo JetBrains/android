@@ -94,11 +94,11 @@ val Module.externalLibraries: List<Path>
  * the list of external libraries will be the list of external libraries for its Android counterpart if it is present.
  * Otherwise, it will be an empty list.
  */
-private val Module.externalLibrariesForCommon: List<Path>
-  get() = if (isAndroidModule()) {
+private val BuildTargetReference.externalLibrariesForCommon: List<Path>
+  get() = if (module.isAndroidModule()) {
     listOf()
   } else {
-    findAndroidModule()?.externalLibraries.orEmpty()
+    module.findAndroidModule()?.externalLibraries.orEmpty()
   }
 
 /**
@@ -149,7 +149,7 @@ internal class ModuleClassLoaderImpl(buildTargetReference: BuildTargetReference,
    * Hence, we are adding them here.
    */
   val externalLibraries = buildTargetReference.module.externalLibraries +
-                          buildTargetReference.module.externalLibrariesForCommon
+                          buildTargetReference.externalLibrariesForCommon
 
   /**
    * Class loader for classes and resources contained in [externalLibraries].
