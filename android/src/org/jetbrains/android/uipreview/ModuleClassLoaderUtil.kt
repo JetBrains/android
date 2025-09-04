@@ -98,7 +98,9 @@ private val BuildTargetReference.externalLibrariesForCommon: List<Path>
   get() = if (module.isAndroidModule()) {
     listOf()
   } else {
-    module.findAndroidModule()?.externalLibraries.orEmpty()
+    module.findAndroidModule()
+      ?.let { error("Not expected to happen. Common to Android module transition should have been applied when obtaining the reference") }
+      ?: emptyList()
   }
 
 /**
