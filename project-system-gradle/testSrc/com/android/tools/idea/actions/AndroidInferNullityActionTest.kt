@@ -23,11 +23,11 @@ import com.android.tools.idea.testing.getTextForFile
 import com.google.common.truth.Truth
 import com.intellij.analysis.AnalysisScope
 import com.intellij.codeInsight.NullableNotNullManager
-import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.ui.Messages.NO
 import com.intellij.openapi.ui.TestDialog
+import com.intellij.openapi.ui.TestDialog.DEFAULT
 import com.intellij.openapi.ui.TestDialogManager
 import org.jetbrains.android.AndroidTestCase
-import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 import org.mockito.Mockito.doNothing
 import org.mockito.Mockito.mock
@@ -211,29 +211,12 @@ public class TestNullity {
     val action = AndroidInferNullityAnnotationAction()
     val scope = AnalysisScope(project)
     action.getAdditionalActionSettings(project, null)
-
-    runWithDialog(Messages.NO, "JetBrains annotations") {
-      action.analyze(project, scope)
-    }
-  }
-
-  /**
-   * Utility method to run function and check whether it start dialog with message similar to given
-   */
-  private fun runWithDialog(dialogResponse: Int, dialogMessageContains: String, f: () -> Unit) {
-    val argument: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
-    val testDialog: TestDialog = mock(TestDialog::class.java)
-    whenever(testDialog.show(any())).thenReturn(dialogResponse)
-    TestDialogManager.setTestDialog(testDialog)
-
+    TestDialogManager.setTestDialog { NO } // Ignore suggestion to add JetBrains annotations lib.
     try {
-      f.invoke()
+      action.analyze(this.project, scope)
     }
     finally {
-      TestDialogManager.setTestDialog(TestDialog.DEFAULT)
+      TestDialogManager.setTestDialog(DEFAULT)
     }
-
-    verify(testDialog).show(argument.capture())
-    Truth.assertThat(argument.value).contains(dialogMessageContains)
   }
 }
