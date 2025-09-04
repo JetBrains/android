@@ -128,16 +128,19 @@ private class DesignerCommonIssueDetailPanel(
     descriptionPane.addHyperlinkListener(issue.hyperlinkListener)
     descriptionPane.alignmentX = LEFT_ALIGNMENT
     descriptionPane.readHTML("<html><body>${issue.description}</body></html>")
-
+    var alignment = BorderLayout.SOUTH
+    if (issue is VisualLintRenderIssue) {
+      alignment = BorderLayout.NORTH
+    }
     val contentPanel =
-      JPanel(BorderLayout()).apply { add(descriptionPane, BorderLayout.NORTH) }
+      JPanel(BorderLayout()).apply { add(descriptionPane, alignment) }
 
     if (issue is VisualLintRenderIssue) {
       contentPanel.addVisualRenderIssue(issue)
     }
 
     if (StudioFlags.COMPOSE_RENDER_ERROR_FIX_WITH_AI.get()) {
-      addFixWithAiButton(contentPanel)
+      addFixWithAiButton(contentPanel, offSetBottom = true)
     }
 
     return JBScrollPane(
@@ -187,7 +190,7 @@ private class DesignerCommonIssueDetailPanel(
   private fun JPanel.addVisualRenderIssue(issue: VisualLintRenderIssue) {
     val affectedFilePanel = createAffectedFilePanel(issue)
     if (StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.get()) {
-      addFixWithAiButton(affectedFilePanel)
+      addFixWithAiButton(affectedFilePanel,  offSetBottom = false)
     }
     add(affectedFilePanel, BorderLayout.CENTER)
   }
@@ -230,13 +233,13 @@ private class DesignerCommonIssueDetailPanel(
     }.apply { alignmentX = LEFT_ALIGNMENT }
   }
 
-  private fun addFixWithAiButton(panel: JPanel) {
+  private fun addFixWithAiButton(panel: JPanel, offSetBottom: Boolean) {
     fixWithAiActionProvider(issue)?.let {
       val actionToolbar = createToolbar(panel, it)
       val toolbarWrapper =
         JPanel(FlowLayout(FlowLayout.LEFT, 0, 0)).apply {
           alignmentX = LEFT_ALIGNMENT
-          border = JBUI.Borders.emptyTop(8)
+          border = if (offSetBottom) JBUI.Borders.emptyBottom(8) else JBUI.Borders.emptyTop(8)
           add(actionToolbar.component)
           add(Box.createVerticalGlue())
         }
