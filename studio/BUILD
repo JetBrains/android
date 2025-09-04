@@ -823,10 +823,11 @@ studio_plugin(
     name = "com.android.altlang.soong",
     directory = "soong-plugin",
     libs = [
-        "//tools/vendor/google/alt-lang/soong/plugin:libblueprint-lexer-parser",
+        "//tools/vendor/google/alt-lang/soong/parser:libblueprint-lexer-parser",
     ],
     modules = {
         "soong-plugin.jar": [
+            "//tools/vendor/google/alt-lang/soong/parser:blueprint-parser",
             "//tools/vendor/google/alt-lang/soong/parser-prereqs:soong-parser-prereqs",
             "//tools/vendor/google/alt-lang/soong/plugin:soong-plugin",
         ],

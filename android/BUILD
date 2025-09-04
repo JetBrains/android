@@ -427,7 +427,7 @@ filegroup(
         "//tools/base/sdklib:schema-generated",
         "//tools/data-binding:compilerCommon.antlr.shaded",
         "//tools/data-binding:compilerCommon.antlr_runtime.shaded",
-        "//tools/vendor/google/alt-lang/soong/plugin:libblueprint-lexer-parser",
+        "//tools/vendor/google/alt-lang/soong/parser:libblueprint-lexer-parser",
         "//tools/vendor/google/asfp/base:studio-intellijext",
         "//tools/vendor/google/directaccess-client:directaccess_client_proto",
         "//tools/vendor/google/firebase:libfirebase_java_proto",
