@@ -190,6 +190,9 @@
         class="com.android.tools.idea.actions.ResetUserIdAction"
         text="Reset Data Sharing User Identifier"
         description="Reset Data Sharing User Identifier"/>
+    <group overrides="true" class="com.intellij.openapi.actionSystem.EmptyActionGroup" id="Java.ProjectTemplate.Group"/>
+    <action overrides="true" class="com.intellij.openapi.actionSystem.EmptyAction" id="SaveProjectAsTemplate"/>
+    <action overrides="true" class="com.intellij.openapi.actionSystem.EmptyAction" id="ManageProjectTemplates"/>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
