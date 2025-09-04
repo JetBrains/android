@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#pragma once
-
 #include "codec_input_buffer.h"
 
 #include "log.h"
