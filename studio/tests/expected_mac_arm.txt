@@ -2319,7 +2319,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/instantapps-api-1.8.jar
 Android Studio Preview.app/Contents/plugins/android/lib/javacpp-1.5.9-macosx-arm64.jar
 Android Studio Preview.app/Contents/plugins/android/lib/javacpp-1.5.9.jar
 Android Studio Preview.app/Contents/plugins/android/lib/javacpp-platform-1.5.9.jar
-Android Studio Preview.app/Contents/plugins/android/lib/javapoet-1.10.0.jar
+Android Studio Preview.app/Contents/plugins/android/lib/javapoet-1.13.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/javax.inject-1.jar
 Android Studio Preview.app/Contents/plugins/android/lib/javax.servlet-api-3.0.1.jar
 Android Studio Preview.app/Contents/plugins/android/lib/jetifier-core-1.0.0-beta10.jar
