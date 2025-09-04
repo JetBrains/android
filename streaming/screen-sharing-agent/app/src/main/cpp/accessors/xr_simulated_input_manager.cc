@@ -66,25 +66,25 @@ void XrSimulatedInputManager::InitializeStatics(Jni jni) {
 void XrSimulatedInputManager::InjectHeadRotation(Jni jni, const float data[3]) {
   Log::D("XrSimulatedInputManager::InjectHeadRotation([%f, %f, %f])", data[0], data[1], data[2]);
   InitializeStatics(jni);
-  xr_simulated_input_manager_.CallVoidMethod(jni, inject_head_rotation_method_, JFloatArray::Create(jni, 3, data).ref());
+  xr_simulated_input_manager_.CallVoidMethod(jni, inject_head_rotation_method_, JFloatArray(jni, 3, data).ref());
 }
 
 void XrSimulatedInputManager::InjectHeadMovement(Jni jni, const float data[3]) {
   Log::D("XrSimulatedInputManager::InjectHeadMovement([%f, %f, %f])", data[0], data[1], data[2]);
   InitializeStatics(jni);
-  xr_simulated_input_manager_.CallVoidMethod(jni, inject_head_movement_method_, JFloatArray::Create(jni, 3, data).ref());
+  xr_simulated_input_manager_.CallVoidMethod(jni, inject_head_movement_method_, JFloatArray(jni, 3, data).ref());
 }
 
 void XrSimulatedInputManager::InjectHeadAngularVelocity(Jni jni, const float data[3]) {
   Log::D("XrSimulatedInputManager::InjectHeadAngularVelocity([%f, %f, %f])", data[0], data[1], data[2]);
   InitializeStatics(jni);
-  xr_simulated_input_manager_.CallVoidMethod(jni, inject_head_angular_velocity_method_, JFloatArray::Create(jni, 3, data).ref());
+  xr_simulated_input_manager_.CallVoidMethod(jni, inject_head_angular_velocity_method_, JFloatArray(jni, 3, data).ref());
 }
 
 void XrSimulatedInputManager::InjectHeadMovementVelocity(Jni jni, const float data[3]) {
   Log::D("XrSimulatedInputManager::InjectHeadMovementVelocity([%f, %f, %f])", data[0], data[1], data[2]);
   InitializeStatics(jni);
-  xr_simulated_input_manager_.CallVoidMethod(jni, inject_head_movement_velocity_method_, JFloatArray::Create(jni, 3, data).ref());
+  xr_simulated_input_manager_.CallVoidMethod(jni, inject_head_movement_velocity_method_, JFloatArray(jni, 3, data).ref());
 }
 
 void XrSimulatedInputManager::Recenter(Jni jni) {
@@ -159,7 +159,7 @@ int32_t XrSimulatedInputManager::environment_ = UNKNOWN_ENVIRONMENT;
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_android_tools_screensharing_XrSimulatedInputStateCallback_onPassthroughCoefficientChange(
-    JNIEnv* jni_env, jobject thiz, jfloat passthrough_coefficient) {
+    JNIEnv* jni_env, jobject thiz, jfloat passthrough_coefficient) {  //nolint:unparam
   Log::D("XrSimulatedInputStateCallback.onPassthroughCoefficientChange(%.3g)", passthrough_coefficient);
   if (passthrough_coefficient >= 0 && passthrough_coefficient <= 1) {
     XrSimulatedInputManager::OnPassthroughCoefficientChanged(passthrough_coefficient);
@@ -168,7 +168,8 @@ Java_com_android_tools_screensharing_XrSimulatedInputStateCallback_onPassthrough
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_android_tools_screensharing_XrSimulatedInputStateCallback_onEnvironmentChange(JNIEnv* jni_env, jobject thiz, jbyte environment) {
+Java_com_android_tools_screensharing_XrSimulatedInputStateCallback_onEnvironmentChange(
+    JNIEnv* jni_env, jobject thiz, jbyte environment) {  //nolint:unparam
   Log::D("XrSimulatedInputStateCallback.onEnvironmentChange(%d)", environment);
   if (environment >= 0) {
     XrSimulatedInputManager::OnEnvironmentChanged(environment);

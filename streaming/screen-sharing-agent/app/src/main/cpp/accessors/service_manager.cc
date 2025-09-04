@@ -77,7 +77,7 @@ JObject ServiceManager::GetServiceInternal(Jni jni, const char* name, bool wait_
 extern "C"
 JNIEXPORT jobject JNICALL
 Java_com_android_tools_screensharing_ServiceManager_getServiceAsInterface(
-    JNIEnv* jni_env, jclass clazz, jstring name, jstring type, jboolean wait_if_necessary, jboolean allow_null) {
+    JNIEnv* jni_env, jclass clazz, jstring name, jstring type, jboolean wait_if_necessary, jboolean allow_null) {  //nolint:unparam
   Jni jni(jni_env);
   return ServiceManager::GetServiceAsInterface(
       jni, JString(jni, name).GetValue().c_str(), JString(jni, type).GetValue().c_str(), wait_if_necessary, allow_null).Release();

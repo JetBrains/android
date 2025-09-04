@@ -203,40 +203,7 @@ public:
   }
 };
 
-class JShortArray : public JRef<JShortArray, jshortArray> {
-public:
-  using JRef::JRef;
-  JShortArray(JNIEnv* jni_env, int32_t length);
-
-  void GetRegion(int32_t start, int32_t len, int16_t* buf) const {
-    GetRegion(GetJni(), start, len, buf);
-  }
-  void GetRegion(JNIEnv* jni_env, int32_t start, int32_t len, int16_t* buf) const;
-
-  int32_t GetLength() {
-    if (length_ < 0) {
-      length_ = JRef::GetLength();
-    }
-    return length_;
-  }
-
-private:
-  int32_t length_ = -1;
-};
-
-class JObjectArray : public JRef<JObjectArray, jobjectArray> {
-public:
-  using JRef::JRef;
-
-  [[nodiscard]] JObject GetElement(int32_t index) const {
-    return GetElement(GetJni(), index);
-  }
-  [[nodiscard]] JObject GetElement(JNIEnv* jni_env, int32_t index) const;
-  void SetElement(int32_t index, const JObject& element) const {
-    SetElement(GetJni(), index, element);
-  }
-  void SetElement(JNIEnv* jni_env, int32_t index, const JObject& element) const;
-};
+class JObjectArray;
 
 // Object oriented wrapper around jclass.
 class JClass : public JRef<JClass, jclass> {
@@ -284,9 +251,7 @@ public:
 
   [[nodiscard]] JObject NewObject(jmethodID constructor, ...) const;
   [[nodiscard]] JObject NewObject(JNIEnv* jni_env, jmethodID constructor, ...) const;
-  [[nodiscard]] JObjectArray NewObjectArray(int32_t length, jobject initialElement) const {
-    return NewObjectArray(GetJni(), length, initialElement);
-  }
+  [[nodiscard]] JObjectArray NewObjectArray(int32_t length, jobject initialElement) const;
   [[nodiscard]] JObjectArray NewObjectArray(JNIEnv* jni_env, int32_t length, jobject initialElement) const;
   JObject CallStaticObjectMethod(jmethodID method, ...) const;
   JObject CallStaticObjectMethod(JNIEnv* jni_env, jmethodID method, ...) const;
@@ -324,26 +289,61 @@ private:
   static jmethodID value_of_method_;
 };
 
+class JObjectArray : public JRef<JObjectArray, jobjectArray> {
+public:
+  using JRef::JRef;
+
+  [[nodiscard]] JObject GetElement(int32_t index) const {
+    return GetElement(GetJni(), index);
+  }
+  [[nodiscard]] JObject GetElement(JNIEnv* jni_env, int32_t index) const;
+  void SetElement(int32_t index, const JObject& element) const {
+    SetElement(GetJni(), index, element);
+  }
+  void SetElement(JNIEnv* jni_env, int32_t index, const JObject& element) const;
+};
+
 class JCharArray : public JRef<JCharArray, jcharArray> {
 public:
   using JRef::JRef;
 
-  static JCharArray Create(JNIEnv* jni_env, int32_t length);
-  static JCharArray Create(JNIEnv* jni_env, int32_t length, const uint16_t* chars);
-  void SetRegion(int32_t start, int32_t len, const uint16_t* chars) const {
-    SetRegion(GetJni(), start, len, chars);
+  JCharArray(JNIEnv* jni_env, int32_t length);
+  JCharArray(JNIEnv* jni_env, int32_t length, const uint16_t* elements);
+  void SetRegion(int32_t start, int32_t len, const uint16_t* elements) const {
+    SetRegion(GetJni(), start, len, elements);
   }
-  void SetRegion(JNIEnv* jni_env, int32_t start, int32_t len, const uint16_t* chars) const {
-    jni_env->SetCharArrayRegion(ref(), start, len, chars);
+  void SetRegion(JNIEnv* jni_env, int32_t start, int32_t len, const uint16_t* elements) const {
+    jni_env->SetCharArrayRegion(ref(), start, len, elements);
   }
+};
+
+class JShortArray : public JRef<JShortArray, jshortArray> {
+public:
+  using JRef::JRef;
+  JShortArray(JNIEnv* jni_env, int32_t length);
+
+  void GetRegion(int32_t start, int32_t len, int16_t* buf) const {
+    GetRegion(GetJni(), start, len, buf);
+  }
+  void GetRegion(JNIEnv* jni_env, int32_t start, int32_t len, int16_t* buf) const;
+
+  int32_t GetLength() {
+    if (length_ < 0) {
+      length_ = JRef::GetLength();
+    }
+    return length_;
+  }
+
+private:
+  int32_t length_ = -1;
 };
 
 class JFloatArray : public JRef<JFloatArray, jfloatArray> {
 public:
   using JRef::JRef;
 
-  static JFloatArray Create(JNIEnv* jni_env, int32_t length);
-  static JFloatArray Create(JNIEnv* jni_env, int32_t length, const float* elements);
+  JFloatArray(JNIEnv* jni_env, int32_t length);
+  JFloatArray(JNIEnv* jni_env, int32_t length, const float* elements);
   void SetRegion(int32_t start, int32_t len, const float* elements) const {
     SetRegion(GetJni(), start, len, elements);
   }
