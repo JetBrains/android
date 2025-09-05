@@ -3,6 +3,7 @@ package com.google.idea.blaze.base.bazel;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.intellij.openapi.project.Project;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.VisibleForTesting;
 
 public final class LocalBazelInvoker extends AbstractLocalInvoker {
@@ -12,7 +13,7 @@ public final class LocalBazelInvoker extends AbstractLocalInvoker {
     Capability.RETURN_PROCESS_HANDLER);
 
 
-  public LocalBazelInvoker(Project project, BuildSystem buildSystem, String binaryPath) {
+  public LocalBazelInvoker(Project project, BuildSystem buildSystem, Supplier<String> binaryPath) {
     super(project, buildSystem, binaryPath);
   }
 

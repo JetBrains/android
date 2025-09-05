@@ -31,6 +31,7 @@ import com.google.idea.blaze.base.scope.scopes.TimingScope;
 import com.google.idea.blaze.base.sync.SyncScope.SyncFailedException;
 import com.intellij.openapi.project.Project;
 import java.util.List;
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 /**
@@ -39,11 +40,12 @@ import javax.annotation.Nullable;
  */
 public abstract class AbstractBuildInvoker implements BuildInvoker {
   protected final Project project;
-  private final String binaryPath;
+  private final Supplier<String> binaryPath;
   private final BuildSystem buildSystem;
   private BlazeInfo blazeInfo;
 
-  public AbstractBuildInvoker(Project project, BuildSystem buildSystem, String binaryPath) {
+  public AbstractBuildInvoker(
+      Project project, BuildSystem buildSystem, Supplier<String> binaryPath) {
     this.project = project;
     this.buildSystem = buildSystem;
     this.binaryPath = binaryPath;
@@ -51,7 +53,7 @@ public abstract class AbstractBuildInvoker implements BuildInvoker {
 
   @Override
   public String getBinaryPath() {
-    return this.binaryPath;
+    return this.binaryPath.get();
   }
 
   @Override
