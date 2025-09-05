@@ -1580,7 +1580,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarDebug/createBasicBarDebugBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicBarDebug
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarDebug/createBasicBarDebugApksFromBundleListingFileRedirect/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         AndroidTestArtifact
             Name                          : ANDROID_TEST
@@ -1815,7 +1814,6 @@ IdeVariants
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleBasicBarDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarDebugAndroidTest/createBasicBarDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/basicBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             TestOptions
                 AnimationsDisabled            : false
@@ -2511,7 +2509,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarDebug/createBasicOtherBarDebugBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicOtherBarDebug
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarDebug/createBasicOtherBarDebugApksFromBundleListingFileRedirect/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicOtherBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         AndroidTestArtifact
             Name                          : ANDROID_TEST
@@ -2746,7 +2743,6 @@ IdeVariants
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleBasicOtherBarDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicOtherBarDebugAndroidTest/createBasicOtherBarDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/basicOtherBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             TestOptions
                 AnimationsDisabled            : false
@@ -3443,7 +3439,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarDebug/createPaidBarDebugBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidBarDebug
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarDebug/createPaidBarDebugApksFromBundleListingFileRedirect/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         AndroidTestArtifact
             Name                          : ANDROID_TEST
@@ -3678,7 +3673,6 @@ IdeVariants
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assemblePaidBarDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidBarDebugAndroidTest/createPaidBarDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/paidBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             TestOptions
                 AnimationsDisabled            : false
@@ -4378,7 +4372,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarDebug/createPaidOtherBarDebugBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidOtherBarDebug
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarDebug/createPaidOtherBarDebugApksFromBundleListingFileRedirect/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidOtherBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         AndroidTestArtifact
             Name                          : ANDROID_TEST
@@ -4613,7 +4606,6 @@ IdeVariants
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assemblePaidOtherBarDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidOtherBarDebugAndroidTest/createPaidOtherBarDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/paidOtherBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             TestOptions
                 AnimationsDisabled            : false
@@ -5309,7 +5301,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarRelease/createBasicBarReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicBarRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarRelease/createBasicBarReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/release [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
     IdeVariant
         Name                          : basicOtherBarRelease
@@ -5673,7 +5664,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarRelease/createBasicOtherBarReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicOtherBarRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarRelease/createBasicOtherBarReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicOtherBar/release [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
     IdeVariant
         Name                          : paidBarRelease
@@ -6038,7 +6028,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarRelease/createPaidBarReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidBarRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarRelease/createPaidBarReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidBar/release [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
     IdeVariant
         Name                          : paidOtherBarRelease
@@ -6406,7 +6395,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarRelease/createPaidOtherBarReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidOtherBarRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarRelease/createPaidOtherBarReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidOtherBar/release [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
     IdeVariant
         Name                          : basicBarSpecialRelease
@@ -6763,7 +6751,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarSpecialRelease/createBasicBarSpecialReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicBarSpecialRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarSpecialRelease/createBasicBarSpecialReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/specialRelease [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
     IdeVariant
         Name                          : basicOtherBarSpecialRelease
@@ -7123,7 +7110,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarSpecialRelease/createBasicOtherBarSpecialReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicOtherBarSpecialRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarSpecialRelease/createBasicOtherBarSpecialReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicOtherBar/specialRelease [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
     IdeVariant
         Name                          : paidBarSpecialRelease
@@ -7484,7 +7470,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarSpecialRelease/createPaidBarSpecialReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidBarSpecialRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarSpecialRelease/createPaidBarSpecialReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidBar/specialRelease [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
     IdeVariant
         Name                          : paidOtherBarSpecialRelease
@@ -7848,5 +7833,4 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarSpecialRelease/createPaidOtherBarSpecialReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidOtherBarSpecialRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarSpecialRelease/createPaidOtherBarSpecialReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidOtherBar/specialRelease [-]
             DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt

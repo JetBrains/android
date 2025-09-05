@@ -23,7 +23,6 @@ MODULE                        : MainActivity.app
             NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 : com.example.mainactivity
-            - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/local/debug [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/localDebug/out [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/kapt/localDebug [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/kaptKotlin/localDebug [-]
@@ -106,7 +105,6 @@ MODULE                        : MainActivity.app
             - ClassOutputs                : <ROOT>/app/build/tmp/kapt3/classes/localDebugUnitTest [-]
             - ClassOutputs                : <ROOT>/app/build/tmp/kotlin-classes/localDebugUnitTest [-]
         ApplicationId                 : com.example.mainactivity.test
-        - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/androidTest/local/debug [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/localDebugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/kapt/localDebugAndroidTest [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/kaptKotlin/localDebugAndroidTest [-]
@@ -440,7 +438,6 @@ MODULE                        : MainActivity.lib
             NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 :
-            - GeneratedResourceFolders    : <ROOT>/lib/build/generated/res/resValues/debug [-]
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -587,7 +584,6 @@ MODULE                        : MainActivity.lib
             - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             - ClassOutputs                : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.example.lib.test
-        - GeneratedResourceFolders    : <ROOT>/lib/build/generated/res/resValues/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies

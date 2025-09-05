@@ -109,7 +109,6 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/basicBar/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestBar [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestBasic [-]
@@ -117,8 +116,6 @@ PROJECT                       : project
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestBasicBarDebug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/basicBar/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/baselineProfiles [-]
@@ -296,7 +293,6 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/basicBar/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/bar [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/basic [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/basicBar [-]
@@ -306,8 +302,6 @@ PROJECT                       : project
             JavaSource                    : file://<PROJECT>/app/src/main/java
             JavaResource                  : file://<PROJECT>/app/src/main/res
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/basicBar/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/bar/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/bar/baselineProfiles [-]
@@ -388,7 +382,6 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/basicBarDebug/compileBasicBarDebugJavaWithJavac/classes
             -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/basicBarDebug/generateBasicBarDebugRFile/R.jar!/
-            -                             : file://<PROJECT>/app/build/generated/res/resValues/basicBar/debug
         BUILD_TASKS
                 CLEAN                         : :app:generateBasicBarDebugSources
                 ASSEMBLE                      : :app:assembleBasicBarDebug
@@ -647,12 +640,9 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTest/baselineProfiles [-]
@@ -715,12 +705,9 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/src/main
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/debug/baselineProfiles [-]
@@ -971,12 +958,9 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/baselineProfiles [-]
@@ -1100,14 +1084,11 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/main
             JavaSource                    : file://<PROJECT>/lib/src/main/java
             JavaResource                  : file://<PROJECT>/lib/src/main/res
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/baselineProfiles [-]
@@ -1158,7 +1139,6 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/lib/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : jar://<PROJECT>/lib/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
-            -                             : file://<PROJECT>/lib/build/generated/res/resValues/debug
         BUILD_TASKS
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
@@ -1381,12 +1361,9 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/src/androidTest/baselineProfiles [-]
@@ -1501,12 +1478,9 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/deep/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/deep/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/deep/src/androidTest/baselineProfiles [-]
@@ -1568,12 +1542,9 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/src/main
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/deep/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/deep/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/deep/src/debug/baselineProfiles [-]
@@ -1699,12 +1670,9 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/src/main
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/src/debug/baselineProfiles [-]
@@ -1883,14 +1851,11 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/res/resValues/androidTest/basic/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/src/androidTestBasic [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/src/androidTestBasicDebug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/build/generated/res/resValues/androidTest/basic/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/androidTest/baselineProfiles [-]
@@ -2017,12 +1982,9 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/deep/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/deep/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/deep/src/androidTest/baselineProfiles [-]
@@ -2084,12 +2046,9 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/src/main
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/deep/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/deep/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/deep/src/debug/baselineProfiles [-]
@@ -2215,14 +2174,11 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/res/resValues/basic/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/src/basic [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/src/basicDebug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/src/main
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/build/generated/res/resValues/basic/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/basic/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/basic/baselineProfiles [-]
@@ -2369,12 +2325,9 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/trans/deep2/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/trans/deep2/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/trans/deep2/src/androidTest/baselineProfiles [-]
@@ -2436,12 +2389,9 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/src/main
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/trans/deep2/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/trans/deep2/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/trans/deep2/src/debug/baselineProfiles [-]

@@ -24,7 +24,6 @@ MODULE                        : project.app
             NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 : com.example.psd.sample.app.defaultSuffix.barSuffix
-            - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/basicBar/debug [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -180,7 +179,6 @@ MODULE                        : project.app
             - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/processBasicBarDebugResources/R.jar [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/basicBarDebugUnitTest/compileBasicBarDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.psd.sample.app.default.test
-        - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/androidTest/basicBar/debug [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
@@ -822,7 +820,6 @@ MODULE                        : project.dyn_feature
             NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 :
-            - GeneratedResourceFolders    : <ROOT>/dyn_feature/build/generated/res/resValues/debug [-]
             - GeneratedSourceFolders      : <ROOT>/dyn_feature/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -839,7 +836,6 @@ MODULE                        : project.dyn_feature
             - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
             - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.dyn_feature.test
-        - GeneratedResourceFolders    : <ROOT>/dyn_feature/build/generated/res/resValues/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
@@ -917,7 +913,6 @@ MODULE                        : project.lib
             NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 :
-            - GeneratedResourceFolders    : <ROOT>/lib/build/generated/res/resValues/debug [-]
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -1058,7 +1053,6 @@ MODULE                        : project.lib
             - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.projectwithappandlib.lib.test
-        - GeneratedResourceFolders    : <ROOT>/lib/build/generated/res/resValues/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
@@ -1527,7 +1521,6 @@ MODULE                        : project.nested1
             NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 :
-            - GeneratedResourceFolders    : <ROOT>/nested1/build/generated/res/resValues/debug [-]
             - GeneratedSourceFolders      : <ROOT>/nested1/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -1544,7 +1537,6 @@ MODULE                        : project.nested1
             - ClassOutputs                : <ROOT>/nested1/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/nested1/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.nested1.test
-        - GeneratedResourceFolders    : <ROOT>/nested1/build/generated/res/resValues/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/nested1/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
@@ -1617,7 +1609,6 @@ MODULE                        : project.nested1.deep
             NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 :
-            - GeneratedResourceFolders    : <ROOT>/nested1/deep/build/generated/res/resValues/debug [-]
             - GeneratedSourceFolders      : <ROOT>/nested1/deep/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -1634,7 +1625,6 @@ MODULE                        : project.nested1.deep
             - ClassOutputs                : <ROOT>/nested1/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/nested1/deep/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.nested1.deep.test
-        - GeneratedResourceFolders    : <ROOT>/nested1/deep/build/generated/res/resValues/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/nested1/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
@@ -1713,7 +1703,6 @@ MODULE                        : project.nested2
             NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 :
-            - GeneratedResourceFolders    : <ROOT>/nested2/build/generated/res/resValues/basic/debug [-]
             - GeneratedSourceFolders      : <ROOT>/nested2/build/generated/ap_generated_sources/basicDebug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -1730,7 +1719,6 @@ MODULE                        : project.nested2
             - ClassOutputs                : <ROOT>/nested2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicDebugUnitTest/generateBasicDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/nested2/build/intermediates/javac/basicDebugUnitTest/compileBasicDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.nested2.test
-        - GeneratedResourceFolders    : <ROOT>/nested2/build/generated/res/resValues/androidTest/basic/debug [-]
         - GeneratedSourceFolders      : <ROOT>/nested2/build/generated/ap_generated_sources/basicDebugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
@@ -1823,7 +1811,6 @@ MODULE                        : project.nested2.deep
             NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 :
-            - GeneratedResourceFolders    : <ROOT>/nested2/deep/build/generated/res/resValues/debug [-]
             - GeneratedSourceFolders      : <ROOT>/nested2/deep/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -1840,7 +1827,6 @@ MODULE                        : project.nested2.deep
             - ClassOutputs                : <ROOT>/nested2/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/nested2/deep/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.nested2.deep.test
-        - GeneratedResourceFolders    : <ROOT>/nested2/deep/build/generated/res/resValues/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/nested2/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
@@ -1917,7 +1903,6 @@ MODULE                        : project.nested2.trans.deep2
             NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 :
-            - GeneratedResourceFolders    : <ROOT>/nested2/trans/deep2/build/generated/res/resValues/debug [-]
             - GeneratedSourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -1934,7 +1919,6 @@ MODULE                        : project.nested2.trans.deep2
             - ClassOutputs                : <ROOT>/nested2/trans/deep2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.nested2.trans.deep2.test
-        - GeneratedResourceFolders    : <ROOT>/nested2/trans/deep2/build/generated/res/resValues/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies

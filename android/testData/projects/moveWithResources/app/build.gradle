@@ -12,6 +12,10 @@ android {
 
         resValue("string", "dynamic_hello_world", "Hello World!")
     }
+
+  buildFeatures {
+    resValues = true
+  }
 }
 
 dependencies {

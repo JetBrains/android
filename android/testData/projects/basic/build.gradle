@@ -115,6 +115,7 @@ android {
 
     buildFeatures {
       buildConfig true
+      resValues = true
     }
 
     // Override the versionCode of the release version

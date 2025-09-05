@@ -149,12 +149,9 @@ PROJECT                       : project
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/ads-sdk-implementation/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/ads-sdk-implementation/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/ads-sdk-implementation/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/ads-sdk-implementation/src/androidTest/baselineProfiles [-]
@@ -248,15 +245,12 @@ PROJECT                       : project
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation/src/main
             JavaResource                  : file://<PROJECT>/ads-sdk-implementation/src/main/assets
             JavaSource                    : file://<PROJECT>/ads-sdk-implementation/src/main/java
             JavaResource                  : file://<PROJECT>/ads-sdk-implementation/src/main/res
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/ads-sdk-implementation/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/ads-sdk-implementation/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/ads-sdk-implementation/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/ads-sdk-implementation/src/debug/baselineProfiles [-]
@@ -282,7 +276,6 @@ PROJECT                       : project
             -                             : file://<PROJECT>/ads-sdk-implementation/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : file://<PROJECT>/ads-sdk-implementation/build/tmp/kotlin-classes/debug
             -                             : jar://<PROJECT>/ads-sdk-implementation/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
-            -                             : file://<PROJECT>/ads-sdk-implementation/build/generated/res/resValues/debug
         BUILD_TASKS
                 CLEAN                         : :ads-sdk-implementation:generateDebugSources
                 ASSEMBLE                      : :ads-sdk-implementation:assembleDebug
@@ -550,13 +543,10 @@ PROJECT                       : project
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app-with-dynamic-feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app-with-dynamic-feature/src/androidTest
             JavaSource (test)             : file://<PROJECT>/app-with-dynamic-feature/src/androidTest/java
         CONENT_ENTRY                  : file://<PROJECT>/app-with-dynamic-feature/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app-with-dynamic-feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app-with-dynamic-feature/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app-with-dynamic-feature/src/androidTest/baselineProfiles [-]
@@ -668,7 +658,6 @@ PROJECT                       : project
             -                             : file://<PROJECT>/app-with-dynamic-feature/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
             -                             : file://<PROJECT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debugAndroidTest
             -                             : jar://<PROJECT>/app-with-dynamic-feature/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar!/
-            -                             : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
                 CLEAN                         : :app-with-dynamic-feature:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app-with-dynamic-feature:assembleDebugAndroidTest
@@ -730,14 +719,11 @@ PROJECT                       : project
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app-with-dynamic-feature/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app-with-dynamic-feature/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app-with-dynamic-feature/src/main
             JavaSource                    : file://<PROJECT>/app-with-dynamic-feature/src/main/java
             JavaResource                  : file://<PROJECT>/app-with-dynamic-feature/src/main/res
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app-with-dynamic-feature/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app-with-dynamic-feature/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app-with-dynamic-feature/src/debug/baselineProfiles [-]
@@ -792,7 +778,6 @@ PROJECT                       : project
             -                             : file://<PROJECT>/app-with-dynamic-feature/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : file://<PROJECT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debug
             -                             : jar://<PROJECT>/app-with-dynamic-feature/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
-            -                             : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/resValues/debug
         BUILD_TASKS
                 CLEAN                         : :app-with-dynamic-feature:generateDebugSources
                 ASSEMBLE                      : :app-with-dynamic-feature:assembleDebug, :app-with-dynamic-feature:buildPrivacySandboxSdkApksForDebug, :app-with-dynamic-feature:extractApksFromSdkSplitsForDebug, :app-with-dynamic-feature:generateDebugAdditionalSplitForPrivacySandboxDeployment
@@ -1012,13 +997,10 @@ PROJECT                       : project
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest
             JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/baselineProfiles [-]
@@ -1128,7 +1110,6 @@ PROJECT                       : project
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugAndroidTest
             -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar!/
-            -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebugAndroidTest
@@ -1190,14 +1171,11 @@ PROJECT                       : project
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/main
             JavaSource                    : file://<PROJECT>/app/src/main/java
             JavaResource                  : file://<PROJECT>/app/src/main/res
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/baselineProfiles [-]
@@ -1252,7 +1230,6 @@ PROJECT                       : project
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debug
             -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
-            -                             : file://<PROJECT>/app/build/generated/res/resValues/debug
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
@@ -1524,12 +1501,9 @@ PROJECT                       : project
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature/src/androidTest/baselineProfiles [-]
@@ -1618,13 +1592,10 @@ PROJECT                       : project
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/feature/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature/src/main
             JavaSource                    : file://<PROJECT>/feature/src/main/java
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature/src/debug/baselineProfiles [-]
@@ -1649,7 +1620,6 @@ PROJECT                       : project
             -                             : file://<PROJECT>/feature/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : file://<PROJECT>/feature/build/tmp/kotlin-classes/debug
             -                             : jar://<PROJECT>/feature/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
-            -                             : file://<PROJECT>/feature/build/generated/res/resValues/debug
         BUILD_TASKS
                 CLEAN                         : :feature:generateDebugSources
                 ASSEMBLE                      : :feature:assembleDebug

@@ -48,7 +48,7 @@ public class UnusedResourcesGradleTest {
   public void testGroovy() {
     final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.UNUSED_RESOURCES_GROOVY);
     openPreparedTestProject(preparedProject, project -> {
-      assertThat(getTextForFile(project, "mipmap/build.gradle")).contains("resValue");
+      assertThat(getTextForFile(project, "mipmap/build.gradle")).contains("resValue \"string\", \"APP_KEY\", \"abc\"");
 
       UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, null, true);
       processor.run();
@@ -60,7 +60,7 @@ public class UnusedResourcesGradleTest {
         "</resources>\n");
 
       String appBuildGradleText = getTextForFile(project, "mipmap/build.gradle");
-      assertThat(appBuildGradleText).doesNotContain("resValue");
+      assertThat(appBuildGradleText).doesNotContain("resValue \"string\", \"APP_KEY\", \"abc\"");
       assertThat(appBuildGradleText).contains("android");
     });
   }
@@ -69,7 +69,7 @@ public class UnusedResourcesGradleTest {
   public void testGroovyMultiModule() {
     final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.UNUSED_RESOURCES_MULTI_MODULE);
     openPreparedTestProject(preparedProject, project -> {
-      assertThat(getTextForFile(project, "app/build.gradle")).contains("resValue");
+      assertThat(getTextForFile(project, "app/build.gradle")).contains("resValue \"string\", \"APP_KEY\", \"abc\"");
 
       UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, null, true);
       processor.run();
@@ -82,7 +82,7 @@ public class UnusedResourcesGradleTest {
         "</resources>\n");
 
       String appBuildGradleText = getTextForFile(project, "app/build.gradle");
-      assertThat(appBuildGradleText).doesNotContain("resValue");
+      assertThat(appBuildGradleText).doesNotContain("resValue \"string\", \"APP_KEY\", \"abc\"");
       assertThat(appBuildGradleText).contains("android");
     });
   }
@@ -158,7 +158,7 @@ public class UnusedResourcesGradleTest {
     // Like testGroovy, but this one verifies analysis and updating of build.gradle.kts files instead.
     final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.UNUSED_RESOURCES_KTS);
     openPreparedTestProject(preparedProject, project -> {
-      assertThat(getTextForFile(project, "mipmap/build.gradle.kts")).contains("resValue");
+      assertThat(getTextForFile(project, "mipmap/build.gradle.kts")).contains("resValue(\"string\", \"APP_KEY\", \"abc\")");
 
       UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, null, true);
       processor.run();
@@ -170,7 +170,7 @@ public class UnusedResourcesGradleTest {
         "</resources>\n");
 
       String appBuildGradleKtsText = getTextForFile(project, "mipmap/build.gradle.kts");
-      assertThat(appBuildGradleKtsText).doesNotContain("resValue");
+      assertThat(appBuildGradleKtsText).doesNotContain("resValue(\"string\", \"APP_KEY\", \"abc\")");
       assertThat(appBuildGradleKtsText).contains("android");
     });
   }

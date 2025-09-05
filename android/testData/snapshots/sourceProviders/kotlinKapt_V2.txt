@@ -552,8 +552,6 @@ MODULE: MainActivity.app
                     file://./app/build/generated/source/kapt/localDebug
                     file://./app/build/generated/ap_generated_sources/localDebug/out
                     file://./app/build/generated/source/kaptKotlin/localDebug
-                ResDirectoryUrls:
-                    file://./app/build/generated/res/resValues/local/debug
         GeneratedHostTestSources:
             GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -568,8 +566,6 @@ MODULE: MainActivity.app
                     file://./app/build/generated/source/kapt/localDebugAndroidTest
                     file://./app/build/generated/ap_generated_sources/localDebugAndroidTest/out
                     file://./app/build/generated/source/kaptKotlin/localDebugAndroidTest
-                ResDirectoryUrls:
-                    file://./app/build/generated/res/resValues/androidTest/local/debug
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -1590,8 +1586,6 @@ MODULE: MainActivity.lib
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./lib/build/generated/ap_generated_sources/debug/out
-                ResDirectoryUrls:
-                    file://./lib/build/generated/res/resValues/debug
         GeneratedHostTestSources:
             GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -1602,8 +1596,6 @@ MODULE: MainActivity.lib
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./lib/build/generated/ap_generated_sources/debugAndroidTest/out
-                ResDirectoryUrls:
-                    file://./lib/build/generated/res/resValues/androidTest/debug
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES

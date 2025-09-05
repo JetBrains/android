@@ -754,8 +754,6 @@ MODULE: Kotlin_Multiplatform.androidLib
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./androidLib/build/generated/ap_generated_sources/typeoneModetwoDebug/out
-                ResDirectoryUrls:
-                    file://./androidLib/build/generated/res/resValues/typeoneModetwo/debug
         GeneratedHostTestSources:
             GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -766,8 +764,6 @@ MODULE: Kotlin_Multiplatform.androidLib
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./androidLib/build/generated/ap_generated_sources/typeoneModetwoDebugAndroidTest/out
-                ResDirectoryUrls:
-                    file://./androidLib/build/generated/res/resValues/androidTest/typeoneModetwo/debug
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -2120,8 +2116,6 @@ MODULE: Kotlin_Multiplatform.app
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./app/build/generated/ap_generated_sources/debug/out
-                ResDirectoryUrls:
-                    file://./app/build/generated/res/resValues/debug
         GeneratedHostTestSources:
             GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -2132,8 +2126,6 @@ MODULE: Kotlin_Multiplatform.app
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./app/build/generated/ap_generated_sources/debugAndroidTest/out
-                ResDirectoryUrls:
-                    file://./app/build/generated/res/resValues/androidTest/debug
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES

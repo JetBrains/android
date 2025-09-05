@@ -109,12 +109,9 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/baselineProfiles [-]
@@ -176,12 +173,9 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/main
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/baselineProfiles [-]
@@ -360,13 +354,10 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/benchmark/build/generated/ap_generated_sources/benchmark/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/benchmark/build/generated/res/resValues/benchmark [-]
         CONENT_ENTRY                  : file://<PROJECT>/benchmark/src/benchmark [-]
         CONENT_ENTRY                  : file://<PROJECT>/benchmark/src/main
             JavaSource                    : file://<PROJECT>/benchmark/src/main/java
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/benchmark/build/generated/ap_generated_sources/benchmark/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/build/generated/res/resValues/benchmark [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/src/benchmark/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/src/benchmark/baselineProfiles [-]
@@ -430,7 +421,6 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/benchmark/build/intermediates/javac/benchmark/compileBenchmarkJavaWithJavac/classes
             -                             : jar://<PROJECT>/benchmark/build/intermediates/compile_r_class_jar/benchmark/generateBenchmarkRFile/R.jar!/
-            -                             : file://<PROJECT>/benchmark/build/generated/res/resValues/benchmark
         BUILD_TASKS
                 CLEAN                         : :benchmark:generateBenchmarkSources
                 ASSEMBLE                      : :benchmark:assembleBenchmark
@@ -519,13 +509,10 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/test/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/test/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/test/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/test/src/main
             JavaSource                    : file://<PROJECT>/test/src/main/java
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/test/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test/src/debug/baselineProfiles [-]
@@ -589,7 +576,6 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/test/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : jar://<PROJECT>/test/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
-            -                             : file://<PROJECT>/test/build/generated/res/resValues/debug
         BUILD_TASKS
                 CLEAN                         : :test:generateDebugSources
                 ASSEMBLE                      : :test:assembleDebug
@@ -678,13 +664,10 @@ PROJECT                       : project
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/test2/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/test2/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/test2/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/test2/src/main
             JavaSource                    : file://<PROJECT>/test2/src/main/java
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/test2/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test2/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test2/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/test2/src/debug/baselineProfiles [-]
@@ -748,7 +731,6 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/test2/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : jar://<PROJECT>/test2/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
-            -                             : file://<PROJECT>/test2/build/generated/res/resValues/debug
         BUILD_TASKS
                 CLEAN                         : :test2:generateDebugSources
                 ASSEMBLE                      : :test2:assembleDebug

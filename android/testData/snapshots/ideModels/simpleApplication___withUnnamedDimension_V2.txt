@@ -1383,7 +1383,6 @@ MODULE                        : project.app
                     BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/exampleDebug/createExampleDebugBundleListingFileRedirect/redirect.txt [-]
                     ApkFromBundleTaskName         : extractApksForExampleDebug
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/exampleDebug/createExampleDebugApksFromBundleListingFileRedirect/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/example/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
@@ -1626,7 +1625,6 @@ MODULE                        : project.app
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleExampleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/exampleDebugAndroidTest/createExampleDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/example/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
                     AnimationsDisabled            : false

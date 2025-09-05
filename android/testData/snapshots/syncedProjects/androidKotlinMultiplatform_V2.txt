@@ -109,7 +109,6 @@ PROJECT                       : Kotlin Multiplatform
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/build/generated/res/resValues/androidTest/typeoneModetwo/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/androidTestDebug [-]
         CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/androidTestModetwo [-]
@@ -117,8 +116,6 @@ PROJECT                       : Kotlin Multiplatform
         CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwo [-]
         CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwoDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/build/generated/res/resValues/androidTest/typeoneModetwo/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTest/baselineProfiles [-]
@@ -205,7 +202,6 @@ PROJECT                       : Kotlin Multiplatform
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/build/generated/res/resValues/typeoneModetwo/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/main
             JavaSource                    : file://<PROJECT>/androidLib/src/main/java
@@ -215,8 +211,6 @@ PROJECT                       : Kotlin Multiplatform
         CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/typeoneModetwo [-]
         CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/typeoneModetwoDebug [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/build/generated/res/resValues/typeoneModetwo/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/debug/baselineProfiles [-]
@@ -260,7 +254,6 @@ PROJECT                       : Kotlin Multiplatform
         Classes
             -                             : file://<PROJECT>/androidLib/build/intermediates/javac/typeoneModetwoDebug/compileTypeoneModetwoDebugJavaWithJavac/classes
             -                             : jar://<PROJECT>/androidLib/build/intermediates/compile_r_class_jar/typeoneModetwoDebug/generateTypeoneModetwoDebugRFile/R.jar!/
-            -                             : file://<PROJECT>/androidLib/build/generated/res/resValues/typeoneModetwo/debug
         BUILD_TASKS
                 CLEAN                         : :androidLib:generateTypeoneModetwoDebugSources
                 ASSEMBLE                      : :androidLib:assembleTypeoneModetwoDebug
@@ -453,12 +446,9 @@ PROJECT                       : Kotlin Multiplatform
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/baselineProfiles [-]
@@ -531,13 +521,10 @@ PROJECT                       : Kotlin Multiplatform
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/main
             JavaSource                    : file://<PROJECT>/app/src/main/java
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/baselineProfiles [-]
@@ -563,7 +550,6 @@ PROJECT                       : Kotlin Multiplatform
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
-            -                             : file://<PROJECT>/app/build/generated/res/resValues/debug
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug

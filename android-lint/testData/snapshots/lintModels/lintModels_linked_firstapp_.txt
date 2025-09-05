@@ -23,7 +23,6 @@ MODULE                        : My_First_App.app
             NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 : com.example.firstapp
-            - GeneratedResourceFolders    : <ROOT>/firstapp/app/build/generated/res/resValues/debug [-]
             - GeneratedSourceFolders      : <ROOT>/firstapp/app/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -190,7 +189,6 @@ MODULE                        : My_First_App.app
             - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             - ClassOutputs                : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.example.firstapp.test
-        - GeneratedResourceFolders    : <ROOT>/firstapp/app/build/generated/res/resValues/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/firstapp/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
@@ -670,7 +668,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
             NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 :
-            - GeneratedResourceFolders    : <ROOT>/shared/mysharedlibrary/build/generated/res/resValues/debug [-]
             - GeneratedSourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -825,7 +822,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
             - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.example.mysharedlibrary.test
-        - GeneratedResourceFolders    : <ROOT>/shared/mysharedlibrary/build/generated/res/resValues/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies

@@ -23,7 +23,6 @@ MODULE                        : TestCompositeLib1.app
             NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 : com.test.composite1
-            - GeneratedResourceFolders    : <ROOT>/TestCompositeLib1/app/build/generated/res/resValues/debug [-]
             - GeneratedSourceFolders      : <ROOT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -202,7 +201,6 @@ MODULE                        : TestCompositeLib1.app
             - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.test.composite1.test
-        - GeneratedResourceFolders    : <ROOT>/TestCompositeLib1/app/build/generated/res/resValues/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
@@ -686,7 +684,6 @@ MODULE                        : TestCompositeLib1.lib
             NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 :
-            - GeneratedResourceFolders    : <ROOT>/TestCompositeLib1/lib/build/generated/res/resValues/debug [-]
             - GeneratedSourceFolders      : <ROOT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -849,7 +846,6 @@ MODULE                        : TestCompositeLib1.lib
             - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.test.composite1.test
-        - GeneratedResourceFolders    : <ROOT>/TestCompositeLib1/lib/build/generated/res/resValues/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
@@ -1342,7 +1338,6 @@ MODULE                        : TestCompositeLib3.app
             NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 : com.test.composite3
-            - GeneratedResourceFolders    : <ROOT>/TestCompositeLib3/app/build/generated/res/resValues/debug [-]
             - GeneratedSourceFolders      : <ROOT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -1513,7 +1508,6 @@ MODULE                        : TestCompositeLib3.app
             - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.test.composite3.test
-        - GeneratedResourceFolders    : <ROOT>/TestCompositeLib3/app/build/generated/res/resValues/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
@@ -1993,7 +1987,6 @@ MODULE                        : TestCompositeLib3.lib
             NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 :
-            - GeneratedResourceFolders    : <ROOT>/TestCompositeLib3/lib/build/generated/res/resValues/debug [-]
             - GeneratedSourceFolders      : <ROOT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -2134,7 +2127,6 @@ MODULE                        : TestCompositeLib3.lib
             - ClassOutputs                : <ROOT>/TestCompositeLib3/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/TestCompositeLib3/lib/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.test.composite3.test
-        - GeneratedResourceFolders    : <ROOT>/TestCompositeLib3/lib/build/generated/res/resValues/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
@@ -2616,7 +2608,6 @@ MODULE                        : project.app
             NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 : com.test.compositeapp
-            - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/debug [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -2795,7 +2786,6 @@ MODULE                        : project.app
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             - ClassOutputs                : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.test.compositeapp.test
-        - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
@@ -3279,7 +3269,6 @@ MODULE                        : project.lib
             NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 :
-            - GeneratedResourceFolders    : <ROOT>/lib/build/generated/res/resValues/debug [-]
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -3430,7 +3419,6 @@ MODULE                        : project.lib
             - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             - ClassOutputs                : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.test.composite0.test
-        - GeneratedResourceFolders    : <ROOT>/lib/build/generated/res/resValues/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies

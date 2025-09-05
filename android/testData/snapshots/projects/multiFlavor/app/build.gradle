@@ -81,6 +81,9 @@ android {
         }
     }
 
+    buildFeatures {
+      resValues = true
+    }
 }
 
 dependencies {

@@ -61,11 +61,6 @@ Task                          : :app:generateDebugRFile
     TaskType                      : com.android.build.gradle.internal.res.GenerateLibraryRFileTask
     PrimaryTaskCategory           : ANDROID_RESOURCES
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
-Task                          : :app:generateDebugResValues
-    TaskType                      : com.android.build.gradle.tasks.GenerateResValues
-    PrimaryTaskCategory           : ANDROID_RESOURCES
-    SecondaryTaskCategories       : SOURCE_GENERATION
-    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:generateDebugResources
     TaskType                      : com.android.build.gradle.internal.tasks.ValidateResourcesTask
     PrimaryTaskCategory           : VERIFICATION
@@ -258,11 +253,6 @@ Task                          : :lib:generateDebugAssets
 Task                          : :lib:generateDebugRFile
     TaskType                      : com.android.build.gradle.internal.res.GenerateLibraryRFileTask
     PrimaryTaskCategory           : ANDROID_RESOURCES
-    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
-Task                          : :lib:generateDebugResValues
-    TaskType                      : com.android.build.gradle.tasks.GenerateResValues
-    PrimaryTaskCategory           : ANDROID_RESOURCES
-    SecondaryTaskCategories       : SOURCE_GENERATION
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:generateDebugResources
     TaskType                      : com.android.build.gradle.internal.tasks.ValidateResourcesTask

@@ -129,7 +129,6 @@ PROJECT                       : MainActivity
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/localDebugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/local/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kapt/localDebugAndroidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kaptKotlin/localDebugAndroidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest
@@ -138,8 +137,6 @@ PROJECT                       : MainActivity
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestLocal [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestLocalDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/localDebugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/local/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/kapt/localDebugAndroidTest [-]
             Generated                     : true
@@ -245,7 +242,6 @@ PROJECT                       : MainActivity
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/localDebugAndroidTest
             -                             : file://<PROJECT>/app/build/tmp/kapt3/classes/localDebugAndroidTest
             -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/localDebugAndroidTest/generateLocalDebugAndroidTestRFile/R.jar!/
-            -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/local/debug
         BUILD_TASKS
                 CLEAN                         : :app:generateLocalDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleLocalDebugAndroidTest
@@ -307,7 +303,6 @@ PROJECT                       : MainActivity
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/localDebug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/local/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kapt/localDebug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kaptKotlin/localDebug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
@@ -317,8 +312,6 @@ PROJECT                       : MainActivity
             JavaSource                    : file://<PROJECT>/app/src/main/java
             JavaResource                  : file://<PROJECT>/app/src/main/res
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/localDebug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/local/debug [-]
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/kapt/localDebug [-]
             Generated                     : true
@@ -380,7 +373,6 @@ PROJECT                       : MainActivity
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/localDebug
             -                             : file://<PROJECT>/app/build/tmp/kapt3/classes/localDebug
             -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/localDebug/generateLocalDebugRFile/R.jar!/
-            -                             : file://<PROJECT>/app/build/generated/res/resValues/local/debug
         BUILD_TASKS
                 CLEAN                         : :app:generateLocalDebugSources
                 ASSEMBLE                      : :app:assembleLocalDebug
@@ -819,12 +811,9 @@ PROJECT                       : MainActivity
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/baselineProfiles [-]
@@ -974,12 +963,9 @@ PROJECT                       : MainActivity
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/main
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/baselineProfiles [-]

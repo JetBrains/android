@@ -13,6 +13,9 @@ android {
     applicationId = "com.example.android.app"
     resValue("string", "APP_KEY", "abc")
   }
+  buildFeatures {
+    resValues = true
+  }
 }
 
 repositories {}

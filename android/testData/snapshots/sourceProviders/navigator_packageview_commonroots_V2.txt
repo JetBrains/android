@@ -332,8 +332,6 @@ MODULE: project
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./build/generated/ap_generated_sources/debug/out
-                ResDirectoryUrls:
-                    file://./build/generated/res/resValues/debug
         GeneratedHostTestSources:
             GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -344,8 +342,6 @@ MODULE: project
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./build/generated/ap_generated_sources/debugAndroidTest/out
-                ResDirectoryUrls:
-                    file://./build/generated/res/resValues/androidTest/debug
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
