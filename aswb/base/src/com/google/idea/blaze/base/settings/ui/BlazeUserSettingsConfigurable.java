@@ -30,12 +30,7 @@ import com.google.idea.common.settings.ConfigurableSetting.ComponentFactory;
 import com.google.idea.common.settings.SearchableText;
 import com.google.idea.common.settings.SettingComponent.LabeledComponent;
 import com.google.idea.common.settings.SettingComponent.SimpleComponent;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ApplicationNamesInfo;
-import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.UnnamedConfigurable;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridConstraints;
@@ -175,44 +170,8 @@ public class BlazeUserSettingsConfigurable extends AutoConfigurable {
         FileSelectorWithStoredHistory::setTextWithHistory);
   }
 
-  private String initialBlazeBinaryPath;
-  private String initialBazelBinaryPath;
-
   private BlazeUserSettingsConfigurable() {
     super(SETTINGS);
-    BlazeUserSettings settings = BlazeUserSettings.getInstance();
-    initialBlazeBinaryPath = settings.getBlazeBinaryPath();
-    initialBazelBinaryPath = settings.getBazelBinaryPath();
-  }
-
-  @Override
-  public void apply() throws ConfigurationException {
-    super.apply();
-    BlazeUserSettings settings = BlazeUserSettings.getInstance();
-    String newBlazeBinaryPath = settings.getBlazeBinaryPath();
-    String newBazelBinaryPath = settings.getBazelBinaryPath();
-    if (!initialBlazeBinaryPath.equals(newBlazeBinaryPath)
-        || !initialBazelBinaryPath.equals(newBazelBinaryPath)) {
-      ApplicationManager.getApplication()
-        .invokeLater(
-          () -> {
-            int result =
-              Messages.showOkCancelDialog(
-                "A restart is required for the new build binary location to take effect.",
-                "Restart " + ApplicationNamesInfo.getInstance().getFullProductName(),
-                "Restart Now",
-                "Later",
-                Messages.getInformationIcon());
-            if (result == Messages.OK) {
-              ApplicationManager.getApplication()
-                .exit(/* force= */ true, /* exitConfirmed= */ true, /* restart= */ true);
-            }
-          },
-          ModalityState.any());
-
-      initialBlazeBinaryPath = newBlazeBinaryPath;
-      initialBazelBinaryPath = newBazelBinaryPath;
-    }
   }
 
   @Override
