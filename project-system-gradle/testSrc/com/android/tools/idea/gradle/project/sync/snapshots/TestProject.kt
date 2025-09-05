@@ -83,7 +83,13 @@ enum class TestProject(
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST },
     patch = { projectRoot ->
       projectRoot.resolve("gradle.properties").replaceContent { content ->
-        content.plus("org.gradle.java.installations.paths=${JdkConstants.JDK_11_PATH}")
+        content.plus("""
+
+          org.gradle.java.installations.paths=${JdkConstants.JDK_11_PATH}
+
+          # opt out of default behavior change, so snapshot doesnt change with flag flip
+          android.r8.proguardAndroidTxt.disallowed=false
+          """.trimIndent())
       }
     }
   ),
