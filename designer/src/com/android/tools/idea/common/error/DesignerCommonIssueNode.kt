@@ -32,6 +32,7 @@ import com.intellij.ide.util.treeView.NodeDescriptor
 import com.intellij.ide.util.treeView.PresentableNodeDescriptor
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.notebook.editor.BackedVirtualFile
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
@@ -174,7 +175,7 @@ class NodeProviderImpl(private val rootNode: DesignerCommonIssueNode) : NodeProv
         val nodeToAdd =
           if (oldIssueNode == null || oldIssueNode.parent != parentNode) {
             when (issue) {
-              is VisualLintRenderIssue -> VisualLintIssueNode(issue, file, parentNode)
+              is VisualLintRenderIssue -> VisualLintIssueNode(issue, parentNode)
               else -> IssueNode(file, issue, parentNode)
             }
           } else {
@@ -435,9 +436,8 @@ open class IssueNode(
 
 class VisualLintIssueNode(
   private val visualLintIssue: VisualLintRenderIssue,
-  file: VirtualFile?,
   parent: DesignerCommonIssueNode?,
-) : IssueNode(file, visualLintIssue, parent) {
+) : IssueNode(null, visualLintIssue, parent) {
 
   override fun getLeafState() = LeafState.DEFAULT
 
