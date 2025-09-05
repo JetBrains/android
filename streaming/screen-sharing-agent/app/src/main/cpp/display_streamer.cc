@@ -312,10 +312,6 @@ void DisplayStreamer::Run() {
         // Write an empty video packet.
         int64_t timestamp = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
         packet_header.origination_timestamp_us = timestamp;
-        if (presentation_timestamp_offset_ == 0) {
-          presentation_timestamp_offset_ = timestamp;
-        }
-        packet_header.presentation_timestamp_us = timestamp - presentation_timestamp_offset_;
         packet_header.packet_size = 0;
         if (Log::IsEnabled(Log::Level::VERBOSE)) {
           Log::V("Display %d: writing an video packet", display_id_);
