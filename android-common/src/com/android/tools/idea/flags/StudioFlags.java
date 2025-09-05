@@ -2319,6 +2319,11 @@ public final class StudioFlags {
                     "Enable the Agent Changes Drawer",
                     "Enables the 'Agent Changes Drawer' for viewing and reviewing changes made by agent tool calls.");
 
+  public static final Flag<Boolean> GEMINI_WEB_SEARCH_TOOL_ENABLED =
+    new BooleanFlag(STUDIOBOT, "web.search.tool",
+                    "Enable web search tool",
+                    "Enables the 'Web Search Tool' as builtin tools.");
+
   public enum DasherSupportMode {
     /**
      * Don't include any special treatment for dasher users.
