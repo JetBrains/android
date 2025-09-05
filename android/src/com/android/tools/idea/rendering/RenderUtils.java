@@ -54,11 +54,11 @@ public class RenderUtils {
             targetData.clearAllCaches(configuration.getConfigModule().getModuleKey());
           }
 
-        // Reset resources for the current module and all the dependencies
-        AndroidFacet facet = AndroidFacet.getInstance(module);
-        Stream.concat(AndroidDependenciesCache.getAllAndroidDependencies(module, true).stream(), Stream.of(facet))
-          .filter(Objects::nonNull)
-          .forEach(f -> StudioResourceRepositoryManager.getInstance(f).resetAllCaches());
+          // Reset resources for the current module and all the dependencies
+          AndroidFacet facet = AndroidFacet.getInstance(module);
+          Stream.concat(AndroidDependenciesCache.getAllAndroidDependencies(module, true).stream(), Stream.of(facet))
+            .filter(Objects::nonNull)
+            .forEach(f -> StudioResourceRepositoryManager.getInstance(f).resetAllCaches());
         }
       });
   }
