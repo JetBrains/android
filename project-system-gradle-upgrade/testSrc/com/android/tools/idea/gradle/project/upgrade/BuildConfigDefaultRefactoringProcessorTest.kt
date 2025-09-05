@@ -19,16 +19,30 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.buildMainSourceProviderStub
+import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.google.common.truth.Truth.assertThat
+import org.junit.Before
 
 @RunsInEdt
 class BuildConfigDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   override val projectRule = AndroidProjectRule.withAndroidModel(
     AndroidProjectBuilder(includeBuildConfigSources = { true }).withMainSourceProvider { buildMainSourceProviderStub() }
   )
+  private lateinit var gradlePropertiesFile : VirtualFile
+
+  @Before
+  fun setUpGradlePropertiesFile() {
+    com.intellij.openapi.application.runWriteAction {
+      gradlePropertiesFile = projectRule.fixture.tempDirFixture.createFile("gradle.properties")
+      assertTrue(gradlePropertiesFile.isWritable)
+    }
+  }
+
 
   @Test // TODO(xof): fix redirect
   fun testReadMoreUrl() {
@@ -40,13 +54,21 @@ class BuildConfigDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCas
   fun testEmptyProject() {
     val processor = BuildConfigDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     writeToBuildFile(TestFileName("BuildConfigDefault/NoBuildConfigDeclaration"))
+    assertTrue(processor.isEnabled)
     processor.run()
     verifyFileContents(buildFile, TestFileName("BuildConfigDefault/NoBuildConfigDeclaration"))
+    assertThat(gradlePropertiesFile.load()).contains("android.defaults.buildfeatures.buildconfig=true")
   }
 
   @Test
   fun testIsEnabledFor800Alpha09() {
     val processor = BuildConfigDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0-alpha09"))
     assertTrue(processor.isEnabled)
+    processor.run()
+    assertThat(gradlePropertiesFile.load()).contains("android.defaults.buildfeatures.buildconfig=true")
   }
+
+  fun VirtualFile.load():String = VfsUtilCore.loadText(this).normalize()
+
+  fun String.normalize() = replace("[ \\t]+".toRegex(), "").trim { it <= ' ' }
 }

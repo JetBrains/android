@@ -68,6 +68,8 @@ class BuildConfigDefaultRefactoringProcessorSyncedTest {
         UsefulTestCase.assertSize(1, usages)
         processor.run()
         Assert.assertEquals(appBuildGradleText, VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) }))
+        Assert.assertTrue(VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
+                            .contains("android.defaults.buildfeatures.buildconfig=true"))
       }
   }
 
@@ -89,6 +91,8 @@ class BuildConfigDefaultRefactoringProcessorSyncedTest {
           processor.run()
           Assert.assertEquals(appBuildGradleText, VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) }))
           Assert.assertEquals(gradlePropertiesText, VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) }))
+          Assert.assertTrue(VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
+                              .contains("android.defaults.buildfeatures.buildconfig=false"))
         }
     })
   }
@@ -111,6 +115,8 @@ class BuildConfigDefaultRefactoringProcessorSyncedTest {
           processor.run()
           Assert.assertEquals(appBuildGradleText, VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) }))
           Assert.assertEquals(gradlePropertiesText, VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) }))
+          Assert.assertTrue(VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
+                              .contains("android.defaults.buildfeatures.buildconfig=true"))
         }
     })
   }

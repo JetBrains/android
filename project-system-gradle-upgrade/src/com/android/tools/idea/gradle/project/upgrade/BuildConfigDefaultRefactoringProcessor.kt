@@ -16,54 +16,25 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.dsl.utils.FN_GRADLE_PROPERTIES
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
-import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiDirectory
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiManager
-import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
-import com.intellij.usageView.UsageInfo
-import com.intellij.usageView.UsageViewDescriptor
-import com.intellij.usages.impl.rules.UsageType
 
-class BuildConfigDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
+class BuildConfigDefaultRefactoringProcessor : AbstractBooleanPropertyDefaultRefactoringProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override var necessityInfo = PointNecessity(AgpVersion.parse("8.0.0-alpha09"))
+  override val upgradeEventKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.BUILD_CONFIG_DEFAULT
+  override val propertyKey = "android.defaults.buildfeatures.buildconfig"
+  override val oldDefault = true
+  override var necessityInfo = PointNecessity(DEFAULT_CHANGED)
 
-  override fun findComponentUsages(): Array<out UsageInfo> {
-    val usages = mutableListOf<UsageInfo>()
-    val baseDir = project.baseDir ?: return usages.toTypedArray()
-    val gradlePropertiesVirtualFile = baseDir.findChild("gradle.properties")
-    if (gradlePropertiesVirtualFile != null && gradlePropertiesVirtualFile.exists()) {
-      val gradlePropertiesPsiFile = PsiManager.getInstance(project).findFile(gradlePropertiesVirtualFile)
-      if (gradlePropertiesPsiFile is PropertiesFile) {
-        val property = gradlePropertiesPsiFile.findPropertyByKey("android.defaults.buildfeatures.buildconfig")
-        if (property == null) {
-          val wrappedPsiElement = WrappedPsiElement(gradlePropertiesPsiFile, this, INSERT_PROPERTY)
-          usages.add(BuildConfigUsageInfo(wrappedPsiElement))
-        }
-      }
-    }
-    else if (baseDir.exists()) {
-      val baseDirPsiDirectory = PsiManager.getInstance(project).findDirectory(baseDir)
-      if (baseDirPsiDirectory is PsiElement) {
-        val wrappedPsiElement = WrappedPsiElement(baseDirPsiDirectory, this, INSERT_PROPERTY)
-        usages.add(BuildConfigUsageInfo(wrappedPsiElement))
-      }
-    }
-    return usages.toTypedArray()
-  }
+  override val insertPropertyText = AgpUpgradeBundle.message("buildConfigDefaultRefactoringProcessor.enable.usageType")
+  override val tooltip = AgpUpgradeBundle.message("buildConfigBuildFeature.enable.tooltipText")
+  override val usageViewHeader = AgpUpgradeBundle.message("buildConfigDefaultRefactoringProcessor.usageView.header")
+  override val readMoreUrlRedirect = ReadMoreUrlRedirect("build-config-default")
 
-  override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
-    builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.BUILD_CONFIG_DEFAULT)
-
+  override fun getRefactoringId() = "com.android.tools.agp.upgrade.buildConfigDefault"
   override fun getCommandName() = AgpUpgradeBundle.message("buildConfigDefaultRefactoringProcessor.commandName")
-
   override fun getShortDescription() = """
     The default value for buildFeatures.buildConfig is changing, meaning that
     the Android Gradle Plugin will no longer generate BuildConfig classes by default.
@@ -73,38 +44,7 @@ class BuildConfigDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPro
     project's gradle.properties file after this upgrade.
   """.trimIndent()
 
-  override fun getRefactoringId() = "com.android.tools.agp.upgrade.buildConfigDefault"
-
-  override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
-    return object : UsageViewDescriptorAdapter() {
-      override fun getElements(): Array<PsiElement> {
-        return PsiElement.EMPTY_ARRAY
-      }
-
-      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("buildConfigDefaultRefactoringProcessor.usageView.header")
-    }
-  }
-
-  override val readMoreUrlRedirect = ReadMoreUrlRedirect("build-config-default")
-
   companion object {
-    val INSERT_PROPERTY = UsageType(AgpUpgradeBundle.messagePointer("buildConfigDefaultRefactoringProcessor.enable.usageType"))
-    val DEFAULT_CHANGED = AgpVersion.parse("8.0.0-alpha02")
-  }
-}
-
-class BuildConfigUsageInfo(private val wrappedElement: WrappedPsiElement): GradleBuildModelUsageInfo(wrappedElement) {
-  override fun getTooltipText(): String = AgpUpgradeBundle.message("buildConfigBuildFeature.enable.tooltipText")
-
-  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    val (propertiesFile, psiFile) = when (val realElement = wrappedElement.realElement) {
-      is PropertiesFile -> realElement to (realElement as? PsiFile ?: return)
-      is PsiDirectory -> (realElement.findFile(FN_GRADLE_PROPERTIES) ?: realElement.createFile (FN_GRADLE_PROPERTIES)).let {
-        (it as? PropertiesFile ?: return) to (it as? PsiFile ?: return)
-      }
-      else -> return
-    }
-    otherAffectedFiles.add(psiFile)
-    propertiesFile.addProperty("android.defaults.buildfeatures.buildconfig", "true")
+    val DEFAULT_CHANGED: AgpVersion = AgpVersion.parse("8.0.0-alpha02")
   }
 }

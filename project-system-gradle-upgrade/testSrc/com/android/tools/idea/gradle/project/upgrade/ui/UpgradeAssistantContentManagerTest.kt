@@ -215,8 +215,8 @@ class UpgradeAssistantContentManagerTest {
       """
         Upgrade
           Accept the new R8 default of full mode
-          Preserve transitive R classes
           Enable buildConfig build feature
+          Preserve transitive R classes
           Preserve constant R class values
           Upgrade AGP dependency from $supportedAgpVersion to $latestAgpVersion
       """.trimIndent()
@@ -675,8 +675,8 @@ class UpgradeAssistantContentManagerTest {
           Upgrade
             Upgrade project JDK for running Gradle
             Accept the new R8 default of full mode
-            Preserve transitive R classes
             Enable buildConfig build feature
+            Preserve transitive R classes
             Preserve constant R class values
             Upgrade AGP dependency from 7.3.0 to 8.0.0
       """.trimIndent()

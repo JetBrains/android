@@ -286,10 +286,10 @@ class AgpUpgradeRefactoringProcessor(
     // AGP 8.x
     R8FullModeDefaultRefactoringProcessor(this),
     RenderScriptDefaultRefactoringProcessor(this),
+    BuildConfigDefaultRefactoringProcessor(this),
     AndroidManifestPackageToNamespaceRefactoringProcessor(this),
     AidlDefaultRefactoringProcessor(this),
     NonTransitiveRClassDefaultRefactoringProcessor(this),
-    BuildConfigDefaultRefactoringProcessor(this),
     NonConstantRClassDefaultRefactoringProcessor(this),
     REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(this),
     // AGP 9.x
