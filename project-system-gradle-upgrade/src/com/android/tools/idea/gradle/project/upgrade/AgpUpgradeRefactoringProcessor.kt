@@ -326,6 +326,7 @@ class AgpUpgradeRefactoringProcessor(
     EnforceUniquePackageNameRefactoringProcessor(this),
     DependencyConstraintsRefactoringProcessor(this), // AGP 9.0.0-alpha02
     BuiltInKotlinDefaultRefactoringProcessor(this), // AGP 9.0.0-alpha03
+    NewDslDefaultRefactoringProcessor(this), // AGP 9.0.0-alpha04
     AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor(this),
     AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(this),
     RemoveImplementationPropertiesRefactoringProcessor(this),
