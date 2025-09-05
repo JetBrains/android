@@ -15,13 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.legacy
 
-import com.android.ddmlib.ByteBufferUtil
 import com.android.ddmlib.Client
 import com.android.ddmlib.DebugViewDumpHandler
-import com.android.ddmlib.DebugViewDumpHandler.CHUNK_VULW
-import com.android.ddmlib.FakeClientBuilder
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.internal.jdwp.chunkhandler.JdwpPacket
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -48,7 +44,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.ArgumentMatcher
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.ArgumentMatchers.eq
@@ -178,21 +173,25 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
 
   @Test
   fun testGetAllWindowIds() {
-    val requestMatcher: ArgumentMatcher<JdwpPacket> = ArgumentMatcher {
-      it.payload.getInt(0) == CHUNK_VULW
-    }
     val window1 = "myWindowNumberOne"
     val window2 = "theOtherWindow"
-    val responseBytes = ByteBuffer.allocate(window1.length * 2 + window2.length * 2 + 4 * 3)
-    responseBytes.putInt(2)
-    responseBytes.putInt(window1.length)
-    ByteBufferUtil.putString(responseBytes, window1)
-    responseBytes.putInt(window2.length)
-    ByteBufferUtil.putString(responseBytes, window2)
-
+    val client = mock<Client>()
+    whenever(client.listViewRoots(org.mockito.kotlin.any())).thenAnswer { invocation ->
+      val responseBytes =
+        ByteBuffer.allocate(window1.length * 2 + window2.length * 2 + Int.SIZE_BYTES * 3).apply {
+          putInt(2)
+          putInt(window1.length)
+          put(window1.toByteArray(Charsets.UTF_16BE))
+          putInt(window2.length)
+          put(window2.toByteArray(Charsets.UTF_16BE))
+          rewind()
+        }
+      invocation
+        .getArgument(0, DebugViewDumpHandler::class.java)
+        .handleChunk(client, DebugViewDumpHandler.CHUNK_VULW, responseBytes, true, 1)
+    }
     val legacyClient = legacyRule.client
-    legacyClient.treeLoader.ddmClientOverride =
-      FakeClientBuilder().registerResponse(requestMatcher, CHUNK_VULW, responseBytes).build()
+    legacyClient.treeLoader.ddmClientOverride = client
     val result = legacyClient.treeLoader.getAllWindowIds(null)
     assertThat(result).containsExactly(window1, window2)
     val launchMonitor = legacyClient.launchMonitor

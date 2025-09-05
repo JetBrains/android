@@ -17,10 +17,8 @@ package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.flags.junit.FlagRule
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.AdbServiceRule
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -115,13 +113,6 @@ class LegacyDeviceRule(
 ) : ExternalResource() {
   private val projectRule = AndroidProjectRule.withSdk()
 
-  /**
-   * `LegacyDeviceRule` doesn't play well with `adblib` since
-   * `clientInstance.treeLoader.ddmClientOverride` is set to `FakeClientBuilder` which depends on
-   * `ClientImpl` etc., and cannot be used with adblib-ddmlib compatibility layer.
-   */
-  private val flagRule = FlagRule(StudioFlags.ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE, false)
-
   private val commandHandler =
     FakeShellCommandHandler().apply {
       extraCommands.add(SimpleCommand("am get-config", config))
@@ -192,7 +183,7 @@ class LegacyDeviceRule(
   }
 
   override fun apply(base: Statement, description: Description): Statement {
-    val innerRules = listOf(disposableRule, adbServiceRule, adbRule, projectRule, flagRule)
+    val innerRules = listOf(disposableRule, adbServiceRule, adbRule, projectRule)
     return innerRules.fold(super.apply(base, description)) { stmt: Statement, rule: TestRule ->
       rule.apply(stmt, description)
     }
