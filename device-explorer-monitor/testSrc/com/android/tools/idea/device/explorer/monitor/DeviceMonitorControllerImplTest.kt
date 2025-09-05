@@ -24,7 +24,6 @@ import com.android.fakeadbserver.ShellProtocolType.SHELL
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.fakeadbserver.services.StatusWriter
-import com.android.flags.junit.FlagRule
 import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.device.explorer.common.DeviceExplorerSettings
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorControllerImpl.Companion.getProjectController
@@ -35,7 +34,6 @@ import com.android.tools.idea.device.explorer.monitor.mocks.MockProjectApplicati
 import com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessService
 import com.android.tools.idea.device.explorer.monitor.processes.isPidOnly
 import com.android.tools.idea.device.explorer.monitor.processes.safeProcessName
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -62,9 +60,6 @@ import org.mockito.Mockito.mock
 private const val TIMEOUT_SECONDS: Long = 30
 
 class DeviceMonitorControllerImplTest {
-  // TODO(b/417970989): Remove this when we migrate device-explorer-monitor back to adblib
-  private val flagRule = FlagRule(StudioFlags.ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE, false)
-
   private val androidProjectRule = AndroidProjectRule.withSdk()
 
   private val project: Project
@@ -77,8 +72,7 @@ class DeviceMonitorControllerImplTest {
   }
 
   @get:Rule
-  val ruleChain: RuleChain =
-    RuleChain.outerRule(flagRule).around(androidProjectRule).around(fakeAdbRule)
+  val ruleChain: RuleChain = RuleChain.outerRule(androidProjectRule).around(fakeAdbRule)
 
   private lateinit var model: DeviceMonitorModel
   private lateinit var service: AdbDeviceService
