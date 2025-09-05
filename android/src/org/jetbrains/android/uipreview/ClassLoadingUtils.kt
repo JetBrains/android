@@ -18,6 +18,7 @@ package org.jetbrains.android.uipreview
 import com.android.SdkConstants
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.google.common.io.Files
 import com.intellij.openapi.module.Module
 import com.intellij.psi.util.CachedValueProvider
@@ -35,12 +36,11 @@ private fun Module.getExternalLibraryJars(): Sequence<File> {
 /**
  * Returns the list of [Path]s to external JAR files referenced by the class loader.
  */
-fun Module?.getLibraryDependenciesJars(): List<Path> {
-  if (this == null || this.isDisposed) {
-    return emptyList()
-  }
-  return CachedValuesManager.getManager(project).getCachedValue(this) {
-    val libraries = getExternalLibraryJars()
+fun BuildTargetReference?.getLibraryDependenciesJars(): List<Path> {
+  val module = this?.moduleIfNotDisposed ?: return emptyList()
+  // TODO: solodkyy - This is wrong in the general case and it is going to work with Gradle only.
+  return CachedValuesManager.getManager(project).getCachedValue(module) {
+    val libraries = module.getExternalLibraryJars()
       .filter { file: File -> SdkConstants.EXT_JAR == Files.getFileExtension(file.name) && file.exists() }
       .mapNotNull { it.toPath() }
       .toList()

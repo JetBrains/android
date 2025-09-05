@@ -82,7 +82,7 @@ private val additionalLibraries: List<Path>
     return arrayListOf(File(layoutlibDistributionPath, relativeCoroutineLibPath).toPath())
   }
 
-val Module.externalLibraries: List<Path>
+val BuildTargetReference.externalLibraries: List<Path>
   get() = additionalLibraries + getLibraryDependenciesJars()
 
 /**
@@ -132,7 +132,7 @@ internal class ModuleClassLoaderImpl(buildTargetReference: BuildTargetReference,
    * For common source sets, external libraries required for rendering the preview might come from the Android counterpart.
    * Hence, we are adding them here.
    */
-  val externalLibraries = buildTargetReference.module.externalLibraries
+  val externalLibraries = buildTargetReference.externalLibraries
 
   /**
    * Class loader for classes and resources contained in [externalLibraries].

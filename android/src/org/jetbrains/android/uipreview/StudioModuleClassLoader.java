@@ -294,7 +294,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
     if (module == null) return true;
 
     Set<Path> currentlyLoadedLibraries = new HashSet<>(myImpl.getExternalLibraries());
-    List<Path> moduleLibraries = ModuleClassLoaderUtil.getExternalLibraries(module);
+    List<Path> moduleLibraries = ModuleClassLoaderUtil.getExternalLibraries(myBuildTargetReference);
 
     return currentlyLoadedLibraries.size() == moduleLibraries.size() &&
            currentlyLoadedLibraries.containsAll(moduleLibraries);
