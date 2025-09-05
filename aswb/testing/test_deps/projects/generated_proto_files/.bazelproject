@@ -1,0 +1,4 @@
+directories:
+  generated_proto_files/project/java/com/example
+
+android_sdk_platform: android-34
