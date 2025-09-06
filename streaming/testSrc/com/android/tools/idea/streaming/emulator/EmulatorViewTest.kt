@@ -798,6 +798,29 @@ class EmulatorViewTest {
   }
 
   @Test
+  fun testFocusTraversalKeysAreSentToDeviceWhenHardwareInputEnabled() {
+    fakeUi = FakeUi(createEmulatorDisplayPanel(), 2.0)
+    fakeUi.root.size = Dimension(200, 300)
+    fakeUi.layoutAndDispatchEvents()
+    getStreamScreenshotCallAndWaitForFrame()
+    fakeUi.render()
+    fakeUi.keyboard.setFocus(view)
+    emulatorViewRule.executeAction("android.streaming.hardware.input", view)
+
+    fakeUi.keyboard.press(VK_SHIFT)
+    val call = fakeEmulator.getNextGrpcCall(2.seconds)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
+    assertThat(shortDebugString(call.getNextRequest(2.seconds))).isEqualTo("key_event { key: \"Shift\" }")
+
+    fakeUi.keyboard.pressAndRelease(VK_TAB)
+    assertThat(shortDebugString(call.getNextRequest(2.seconds))).isEqualTo("key_event { key: \"Tab\" }")
+    assertThat(shortDebugString(call.getNextRequest(2.seconds))).isEqualTo("key_event { eventType: keyup key: \"Tab\" }")
+
+    fakeUi.keyboard.release(VK_SHIFT)
+    assertThat(shortDebugString(call.getNextRequest(2.seconds))).isEqualTo("key_event { eventType: keyup key: \"Shift\" }")
+  }
+
+  @Test
   fun testKeyPreprocessingNotSkippedForActionTogglingHardwareInput() {
     createEmulatorDisplayPanel()
     emulatorViewRule.executeAction("android.streaming.hardware.input", view)
