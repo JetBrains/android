@@ -60,10 +60,10 @@ class EmulatorViewRule : TestRule {
   val project: Project
     get() = projectRule.project
 
-  fun newEmulatorView(avdCreator: ((Path) -> Path)? = null): EmulatorView =
-      newEmulatorDisplayPanel(avdCreator).displayView
+  fun newEmulatorView(avdCreator: ((Path) -> Path)? = null, displayId: Int = PRIMARY_DISPLAY_ID): EmulatorView =
+    newEmulatorDisplayPanel(avdCreator, displayId).displayView
 
-  fun newEmulatorDisplayPanel(avdCreator: ((Path) -> Path)? = null): EmulatorDisplayPanel {
+  fun newEmulatorDisplayPanel(avdCreator: ((Path) -> Path)? = null, displayId: Int = PRIMARY_DISPLAY_ID): EmulatorDisplayPanel {
     val catalog = RunningEmulatorCatalog.getInstance()
     val tempFolder = emulatorRule.avdRoot
     val avdCreator = avdCreator ?: { path -> FakeEmulator.createPhoneAvd(path) }
@@ -72,7 +72,7 @@ class EmulatorViewRule : TestRule {
     fakeEmulator.start()
     val emulators = runBlocking { catalog.updateNow().await() }
     val emulatorController = emulators.find { it.emulatorId.grpcPort == fakeEmulator.grpcPort }!!
-    val displayPanel = EmulatorDisplayPanel(disposable, emulatorController, project, PRIMARY_DISPLAY_ID, null, false, true)
+    val displayPanel = EmulatorDisplayPanel(disposable, emulatorController, project, displayId, null, false, true)
     waitForCondition(5.seconds) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     return displayPanel
   }
