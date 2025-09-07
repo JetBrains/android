@@ -48,7 +48,7 @@ public class FileServer implements AutoCloseable {
   private final Map<String, Path> fileMap;
 
   private final Map<String, List<URI>> requestHistory;
-
+  
   public FileServer() {
     fileMap = new HashMap<>();
     requestHistory = new HashMap<>();
@@ -88,12 +88,19 @@ public class FileServer implements AutoCloseable {
    * Registers a file to be served by this server.
    */
   public void registerFile(String httpPath, Path file) {
-    System.out.printf("Registered \"%s\" to point to %s%n", httpPath, file.getFileName());
+    TestLogger.log("Registered \"%s\" to point to %s%n", httpPath, file.getFileName());
     fileMap.put(httpPath, file);
   }
 
   static class HandleHttpRequest implements HttpHandler {
     private final FileServer fileServer;
+
+    private static final Map<String, String> CONTENT_TYPE_MAP =
+      Map.ofEntries(
+        Map.entry("xml", "application/xml; charset=" + StandardCharsets.UTF_8.name()),
+        Map.entry("json", "application/json"),
+        Map.entry("jar", "application/java-archive"),
+        Map.entry("zip", "application/zip"));
 
     public HandleHttpRequest(FileServer fileServer) {
       this.fileServer = fileServer;
@@ -115,10 +122,7 @@ public class FileServer implements AutoCloseable {
     }
 
     private void addHistory(String path, URI requestUri) {
-      if (!fileServer.requestHistory.containsKey(path)) {
-        fileServer.requestHistory.put(path, new ArrayList<>());
-      }
-      fileServer.requestHistory.get(path).add(requestUri);
+      fileServer.requestHistory.computeIfAbsent(path, k -> new ArrayList<>()).add(requestUri);
     }
 
     /**
@@ -129,9 +133,9 @@ public class FileServer implements AutoCloseable {
       byte[] bytes = response.getBytes(charset);
       exchange.sendResponseHeaders(httpCode, bytes.length);
 
-      OutputStream os = exchange.getResponseBody();
-      os.write(bytes);
-      os.close();
+      try (OutputStream os = exchange.getResponseBody()) {
+        os.write(bytes);
+      }   
     }
 
     /**
@@ -139,45 +143,31 @@ public class FileServer implements AutoCloseable {
      */
     private void respondWithFile(HttpExchange exchange, Path path) throws IOException {
       String fileName = path.getFileName().toString().toLowerCase();
-      if (fileName.endsWith(".xml")) {
-        Charset charset = StandardCharsets.UTF_8;
-        String content = Files.readString(path, charset);
-        byte[] bytes = content.getBytes(charset);
+      String extension = "";
 
-        exchange.getResponseHeaders().set("Content-Type", "application/xml; charset=" + charset.name());
-        exchange.sendResponseHeaders(200, bytes.length);
-        OutputStream os = exchange.getResponseBody();
-        os.write(bytes);
-        os.close();
+      int i = fileName.lastIndexOf('.');
+      if (i > 0) {
+        extension = fileName.substring(i + 1);
       }
-      else if (fileName.endsWith(".json")) {
-        byte[] bytes = Files.readAllBytes(path);
 
-        exchange.getResponseHeaders().set("Content-Type", "application/json");
-        exchange.sendResponseHeaders(200, bytes.length);
-        OutputStream os = exchange.getResponseBody();
-        os.write(bytes);
-        os.close();
-      }
-      else if (fileName.endsWith(".jar")) {
-        byte[] bytes = Files.readAllBytes(path);
+      String contentType = CONTENT_TYPE_MAP.get(extension);
 
-        exchange.getResponseHeaders().set("Content-Type", "application/java-archive");
-        exchange.sendResponseHeaders(200, bytes.length);
-        OutputStream os = exchange.getResponseBody();
-        os.write(bytes);
-        os.close();
-      }
-      else if (fileName.endsWith(".zip")) {
-        byte[] bytes = Files.readAllBytes(path);
+      if (contentType != null) {
+        byte[] bytes;
+        if ("xml".equals(extension)) {
+          Charset charset = StandardCharsets.UTF_8;
+          String content = Files.readString(path, charset);
+          bytes = content.getBytes(charset);
+        } else {
+          bytes = Files.readAllBytes(path);
+        }
 
-        exchange.getResponseHeaders().set("Content-Type", "application/zip");
+        exchange.getResponseHeaders().set("Content-Type", contentType);
         exchange.sendResponseHeaders(200, bytes.length);
-        OutputStream os = exchange.getResponseBody();
-        os.write(bytes);
-        os.close();
-      }
-      else {
+        try (OutputStream os = exchange.getResponseBody()) {
+          os.write(bytes);
+        }
+      } else {
         throw new IllegalArgumentException("Unrecognized file type: " + fileName);
       }
     }
