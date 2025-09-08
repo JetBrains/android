@@ -30,7 +30,8 @@ class DeclaredDependenciesModelBuilder : ToolingModelBuilder {
 
     project.configurations.forEach { configuration ->
       if (CONFIGURATIONS_OF_INTEREST.contains(configuration.name)) {
-        configuration.dependencies.forEach { dependency ->
+        configuration.dependencies.filter { it !is ProjectDependency }
+          .forEach { dependency ->
           configurationsToCoordinates.getOrPut(configuration.name) { mutableListOf<Coordinates>() }
             .add(dependency.coordinates())
         }
