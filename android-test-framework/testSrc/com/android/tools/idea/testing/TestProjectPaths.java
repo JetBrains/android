@@ -27,7 +27,6 @@ public final class TestProjectPaths {
   public static final String DEPENDENT_MODULES = "projects/dependentModules";
   public static final String DEPENDENT_NATIVE_MODULES = "projects/dependentNativeModules";
   public static final String DYNAMIC_APP = "projects/dynamicApp";
-  public static final String DYNAMIC_APP_WITH_VARIANTS = "projects/dynamicAppWithVariants";
   public static final String ETR_WITH_ANDROIDX = "projects/EtrWithAndroidx";
   public static final String ETR_WITHOUT_ANDROIDX = "projects/EtrTestProject";
   public static final String HELLO_JNI = "projects/helloJni";

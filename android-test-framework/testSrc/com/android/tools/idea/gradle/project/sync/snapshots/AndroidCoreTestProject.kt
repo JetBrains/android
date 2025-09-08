@@ -71,7 +71,20 @@ enum class AndroidCoreTestProject(
   DEPENDENT_MODULES(TestProjectPaths.DEPENDENT_MODULES),
   DEPENDENT_NATIVE_MODULES(TestProjectPaths.DEPENDENT_NATIVE_MODULES),
   DYNAMIC_APP(TestProjectPaths.DYNAMIC_APP),
-  DYNAMIC_APP_WITH_VARIANTS(TestProjectPaths.DYNAMIC_APP_WITH_VARIANTS),
+  DYNAMIC_APP_WITH_VARIANTS(TestProjectPaths.DYNAMIC_APP, patch = { root ->
+    val variants = """
+      flavorDimensions "dim1", "dim2"
+      productFlavors {
+        fl1 { dimension "dim1" }
+        fl2 { dimension "dim1" }
+        ab { dimension "dim2" }
+        xy { dimension "dim2" }
+      }
+    """.trimIndent()
+    root.resolve("app/build.gradle").appendText("\n\nandroid { ${variants.prependIndent("  ")} }\n")
+    root.resolve("feature1/build.gradle").appendText("\n\nandroid { ${variants.prependIndent("  ")} }\n")
+    root.resolve("dependsOnFeature1/build.gradle").appendText("\n\nandroid { ${variants.prependIndent("  ")} }\n")
+  }),
   HELLO_JNI(TestProjectPaths.HELLO_JNI),
   INSTANT_APP_WITH_DYNAMIC_FEATURES(TestProjectPaths.INSTANT_APP_WITH_DYNAMIC_FEATURES),
   KOTLIN_GRADLE_DSL(TestProjectPaths.KOTLIN_GRADLE_DSL),
