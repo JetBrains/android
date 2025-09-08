@@ -15,26 +15,19 @@
  */
 package com.android.tools.idea.run.activity
 
-import com.android.adblib.CoroutineScopeCache
 import com.android.adblib.DeviceSelector
+import com.android.adblib.activityManager
 import com.android.adblib.connectedDevicesTracker
 import com.android.adblib.device
-import com.android.adblib.shellCommand
-import com.android.adblib.utils.ByteArrayShellCollector
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
-import com.android.server.am.Capabilities
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.execution.common.AndroidExecutionException
-import com.google.protobuf.InvalidProtocolBufferException
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import java.time.Duration
 
-
-private val activityManagerCapabilitiesKey = CoroutineScopeCache.Key<HashSet<String>>(
-  "ActivityManagerCapabilities")
 
 class ActivityManagerCapabilities(val project: Project) {
 
@@ -57,35 +50,10 @@ class ActivityManagerCapabilities(val project: Project) {
       val deviceSelector = DeviceSelector.fromSerialNumber(device.serialNumber)
       val connectedDevice = AdbLibService.getSession(project).connectedDevicesTracker.device(deviceSelector)
 
-      // Use device cache if available
-      connectedDevice?.cache?.getOrPutSuspending(activityManagerCapabilitiesKey) { retrieveCapabilities(deviceSelector) }
-      ?: retrieveCapabilities(deviceSelector)
+      connectedDevice?.activityManager?.capabilities()?.capabilities
     }.getOrElse { throwable ->
       throw Exception("Error retrieving capabilities from the device ${device.serialNumber}", throwable)
     }
-    return caps.contains(capability)
-  }
-
-  private suspend fun retrieveCapabilities(deviceSelector: DeviceSelector): HashSet<String> {
-    val result = AdbLibService.getSession(project).deviceServices
-      .shellCommand(deviceSelector, "am capabilities --protobuf")
-      .withCollector(ByteArrayShellCollector())
-      .executeAsSingleOutput { it }
-
-    val protoCapabilities = try {
-      Capabilities.parseFrom(result.stdout)
-    }
-    catch (e: InvalidProtocolBufferException) {
-      // If "am" does not support "capabilities" command it returns something like
-      // "Unknown command: capabilities". Failing to parse means the device has
-      // no know capabilities.
-      return HashSet()
-    }
-
-    val capabilities: HashSet<String> = HashSet()
-    for (capability in protoCapabilities.valuesList) {
-      capabilities.add(capability.name)
-    }
-    return capabilities
+    return caps?.contains(capability) ?: false
   }
 }
