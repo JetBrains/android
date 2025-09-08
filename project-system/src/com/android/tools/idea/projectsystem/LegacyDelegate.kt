@@ -23,7 +23,6 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import org.jetbrains.android.facet.AndroidFacet
-import java.io.File
 
 /** [IdeaSourceProvider] for legacy Android projects without [SourceProvider].  */
 @Suppress("DEPRECATION")
@@ -33,18 +32,20 @@ class LegacyDelegate constructor(private val facet: AndroidFacet) : NamedIdeaSou
 
   override val scopeType: ScopeType = ScopeType.MAIN
 
-  private val manifestFileUrl: String get() = manifestFile?.url ?: let {
-    val moduleDirPath: String = File(facet.module.moduleFilePath).parent
-    VfsUtilCore.pathToUrl(
-      FileUtil.toSystemIndependentName(
-        moduleDirPath + facet.properties.MANIFEST_FILE_RELATIVE_PATH))
+  private val manifestFileUrl: String? get() = manifestFile?.url ?: let {
+    val moduleDirPath: String? = VfsUtil.getParentDir(facet.module.moduleFilePath)
+    moduleDirPath?.let {
+      VfsUtilCore.pathToUrl(
+        FileUtil.toSystemIndependentName(
+          it + facet.properties.MANIFEST_FILE_RELATIVE_PATH))
+    }
   }
 
   private val manifestDirectory: VirtualFile?
-    get() = VirtualFileManager.getInstance().findFileByUrl(manifestDirectoryUrl)
+    get() = manifestDirectoryUrl?.let { VirtualFileManager.getInstance().findFileByUrl(it) }
 
-  private val manifestDirectoryUrl: String
-    get() = VfsUtil.getParentDir(manifestFileUrl) ?: error("Invalid manifestFileUrl: $manifestFileUrl")
+  private val manifestDirectoryUrl: String?
+    get() = VfsUtil.getParentDir(manifestFileUrl)
 
   private val manifestFile: VirtualFile?
     // Not calling AndroidRootUtil.getMainContentRoot(myFacet) because that method can
@@ -69,13 +70,13 @@ class LegacyDelegate constructor(private val facet: AndroidFacet) : NamedIdeaSou
     }
 
   override val manifestFileUrls: Collection<String>
-    get() = listOf(manifestFileUrl)
+    get() = listOfNotNull(manifestFileUrl)
 
   override val manifestFiles: Collection<VirtualFile>
     get() = listOfNotNull(manifestFile)
 
   override val manifestDirectoryUrls: Collection<String>
-    get() = listOf(manifestDirectoryUrl)
+    get() = listOfNotNull(manifestDirectoryUrl)
 
   override val manifestDirectories: Collection<VirtualFile>
     get() = listOfNotNull(manifestDirectory)
