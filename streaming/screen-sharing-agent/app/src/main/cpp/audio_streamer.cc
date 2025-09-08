@@ -138,7 +138,7 @@ void AudioStreamer::Run() {
       Log::V("Audio: writing %s", packet_header.ToDebugString().c_str());
     }
     auto res = writer_->Write(&packet_header, AudioPacketHeader::SIZE, codec_buffer.buffer(), codec_buffer.size());
-    if (res != SocketWriter::Result::SUCCESS && res != SocketWriter::Result::SUCCESS_AFTER_BLOCKING) {
+    if (res == SocketWriter::Result::DISCONNECTED) {
       continue_streaming = false;
     }
   }
