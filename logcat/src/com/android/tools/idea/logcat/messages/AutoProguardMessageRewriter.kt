@@ -18,20 +18,24 @@ package com.android.tools.idea.logcat.messages
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.logcat.util.LogcatUsageTracker
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.r8.retrace.RetraceCommand
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level.PROJECT
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessModuleDir
 import com.intellij.util.Alarm
 import com.intellij.util.io.directoryStreamIfExists
 import java.nio.file.Path
+import kotlin.io.path.fileSize
 import kotlin.io.path.isDirectory
 import kotlin.io.path.notExists
 import kotlin.io.path.useLines
+import kotlin.time.measureTimedValue
 import org.jetbrains.annotations.VisibleForTesting
 
 private val exceptionLinePattern = Regex("\n\\s*at .+\\(r8-map-id-(?<mapId>.+):\\d+\\)\n")
@@ -62,12 +66,27 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
 
   fun rewrite(message: String, applicationId: String): String {
     if (StudioFlags.LOGCAT_AUTO_DEOBFUSCATE.get()) {
-      val match = exceptionLinePattern.find(message) ?: return message
-      val id = match.groups["mapId"]?.value ?: return message
-      val retracer = getAutoRetracer(id, applicationId)
-      val result = retracer?.rewrite(message) ?: message
-      if (result != message) {
-        return result
+      try {
+        val match = exceptionLinePattern.find(message) ?: return message
+        val id = match.groups["mapId"]?.value ?: return message
+        val modules = project.getProjectSystem().findModulesWithApplicationId(applicationId)
+        if (modules.isEmpty()) {
+          LogcatUsageTracker.logRetraceAppNotFound()
+          return message
+        }
+        val retracer = getAutoRetracer(id, modules)
+        if (retracer == null) {
+          LogcatUsageTracker.logRetraceMappingNotFound()
+          return message
+        }
+
+        val (retraced, duration) = measureTimedValue { retracer.builder.rewrite(message) }
+        val result = if (retraced != message) "SUCCESS" else "NOOP"
+        LogcatUsageTracker.logRetrace(result, duration, retracer.mappingSize, retracer.isCached)
+        return retraced
+      } catch (e: Throwable) {
+        LogcatUsageTracker.logRetraceException(e)
+        throw e
       }
     }
     return message
@@ -80,18 +99,18 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
    *    <module-dir>/build/outputs/mapping/<variant>/mapping.txt
    * ```
    */
-  private fun getAutoRetracer(id: String, applicationId: String): RetraceCommand.Builder? {
+  private fun getAutoRetracer(id: String, modules: Collection<Module>): AutoRetracer? {
     synchronized(lock) {
       val retracer = autoRetracer
       if (retracer?.id == id) {
         rescheduleCachePurge()
-        return retracer.builder
+        return retracer.copy(isCached = true)
       }
-      val mapping = findMapping(applicationId, id) ?: return null
+      val mapping = findMapping(modules, id) ?: return null
       val builder = createRetracer(mapping)
-      autoRetracer = AutoRetracer(id, builder, mapping)
+      autoRetracer = AutoRetracer(id, builder, mapping, false)
       rescheduleCachePurge()
-      return builder
+      return autoRetracer
     }
   }
 
@@ -103,8 +122,7 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
     )
   }
 
-  private fun findMapping(applicationId: String, mapId: String): Path? {
-    val modules = project.getProjectSystem().findModulesWithApplicationId(applicationId)
+  private fun findMapping(modules: Collection<Module>, mapId: String): Path? {
     val moduleDirs =
       modules.mapNotNull { it.getModuleSystem().getHolderModule().guessModuleDir()?.toNioPath() }
 
@@ -117,7 +135,14 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
   override fun dispose() {}
 
   @VisibleForTesting
-  class AutoRetracer(val id: String, val builder: RetraceCommand.Builder, val mapping: Path)
+  data class AutoRetracer(
+    val id: String,
+    val builder: RetraceCommand.Builder,
+    val mapping: Path,
+    // Mapping file might have changed, but we still have a valid cached retracer
+    val isCached: Boolean,
+    val mappingSize: Long = mapping.fileSize(),
+  )
 }
 
 /**

@@ -20,6 +20,9 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.LOGCAT
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.LOGCAT_USAGE
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.StackRetraceEvent
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.STACK_RETRACED
+import kotlin.time.Duration
 
 /** A convenience container for usage tracing methods. */
 internal object LogcatUsageTracker {
@@ -29,6 +32,44 @@ internal object LogcatUsageTracker {
         .setCategory(LOGCAT)
         .setKind(LOGCAT_USAGE)
         .setLogcatUsageEvent(logcatUsageEvent)
+    )
+  }
+
+  fun logRetraceMappingNotFound() {
+    log(
+      LogcatUsageEvent.newBuilder()
+        .setType(STACK_RETRACED)
+        .setStackRetrace(StackRetraceEvent.newBuilder().setResultString("MAPPING_NOT_FOUND"))
+    )
+  }
+
+  fun logRetraceAppNotFound() {
+    log(
+      LogcatUsageEvent.newBuilder()
+        .setType(STACK_RETRACED)
+        .setStackRetrace(StackRetraceEvent.newBuilder().setResultString("APP_NOT_FOUND"))
+    )
+  }
+
+  fun logRetraceException(e: Throwable) {
+    log(
+      LogcatUsageEvent.newBuilder()
+        .setType(STACK_RETRACED)
+        .setStackRetrace(StackRetraceEvent.newBuilder().setResultString(e.javaClass.simpleName))
+    )
+  }
+
+  fun logRetrace(result: String, duration: Duration, mappingFileSize: Long, isCached: Boolean) {
+    log(
+      LogcatUsageEvent.newBuilder()
+        .setType(STACK_RETRACED)
+        .setStackRetrace(
+          StackRetraceEvent.newBuilder()
+            .setResultString(result)
+            .setRetraceTimeMs(duration.inWholeMilliseconds)
+            .setIsMappingCached(isCached)
+            .setMappingFileSize(mappingFileSize)
+        )
     )
   }
 }

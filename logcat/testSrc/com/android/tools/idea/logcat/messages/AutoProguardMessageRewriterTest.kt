@@ -16,7 +16,9 @@
 package com.android.tools.idea.logcat.messages
 
 import com.android.testutils.TestResources
+import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.logcat.util.logcatEvents
 import com.android.tools.idea.logcat.util.waitForCondition
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -25,6 +27,7 @@ import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.StackRetraceEvent
 import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.guessModuleDir
@@ -32,6 +35,7 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.util.io.createParentDirectories
 import com.intellij.util.io.delete
 import java.nio.file.Path
+import kotlin.io.path.fileSize
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
 import kotlin.test.fail
@@ -93,7 +97,10 @@ class AutoProguardMessageRewriterTest {
         AndroidProjectBuilder(applicationIdFor = { "app2" }),
       ),
     )
-  @get:Rule val rule = RuleChain(projectRule)
+
+  private val usageTrackerRule = UsageTrackerRule()
+
+  @get:Rule val rule = RuleChain(projectRule, usageTrackerRule)
 
   @After
   fun tearDown() {
@@ -101,21 +108,25 @@ class AutoProguardMessageRewriterTest {
   }
 
   @Test
-  fun rewrite_autoMapping() {
+  fun rewrite_success() {
     val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
     val mapId = "map-id-12345"
-    copyMapToModule(findModules("app1").first(), "release", mapId)
+
+    val mappingFile = copyMapToModule(findModules("app1").first(), "release", mapId)
 
     val text = rewriter.rewrite(MESSAGE.withMapId(mapId), "app1")
 
     assertThat(text).isEqualTo(CLEAR_MESSAGE)
+    assertThat(usageTrackerRule.retraceEvents())
+      .containsExactly(stackRetraceEvent(mappingFile.fileSize(), isCached = false))
   }
 
   @Test
-  fun rewrite_autoMapping_cachesValue() {
+  fun rewrite_cachesValue() {
     val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
     val mapId = "map-id-12345"
     val mappingFile = copyMapToModule(findModules("app1").first(), "release", mapId)
+    val mappingFileSize = mappingFile.fileSize()
     val message = MESSAGE.withMapId(mapId)
     rewriter.rewrite(message, "app1")
     mappingFile.delete()
@@ -123,24 +134,32 @@ class AutoProguardMessageRewriterTest {
     val text = rewriter.rewrite(message, "app1")
 
     assertThat(text).isEqualTo(CLEAR_MESSAGE)
+    assertThat(usageTrackerRule.retraceEvents())
+      .containsExactly(
+        stackRetraceEvent(mappingFileSize, isCached = false),
+        stackRetraceEvent(mappingFileSize, isCached = true),
+      )
+      .inOrder()
   }
 
   @Test
-  fun rewrite_autoMapping_multipleVariants() {
+  fun rewrite_multipleVariants() {
     val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
     val incorrectMapId = "incorrect-map-id"
     val correctMapId = "correct-map-id"
     val module = findModules("app1").first()
     copyMapToModule(module, "release1", incorrectMapId)
-    copyMapToModule(module, "release2", correctMapId)
+    val mappingFile = copyMapToModule(module, "release2", correctMapId)
 
     val text = rewriter.rewrite(MESSAGE.withMapId(correctMapId), "app1")
 
     assertThat(text).isEqualTo(CLEAR_MESSAGE)
+    assertThat(usageTrackerRule.retraceEvents())
+      .containsExactly(stackRetraceEvent(mappingFile.fileSize(), isCached = false))
   }
 
   @Test
-  fun rewrite_autoMapping_multipleModules() {
+  fun rewrite_multipleModules() {
     val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
     val mapId = "map-id"
     val module = findModules("app2").first()
@@ -152,18 +171,46 @@ class AutoProguardMessageRewriterTest {
   }
 
   @Test
-  fun rewrite_autoMapping_multipleModulesOfSameAppId() {
+  fun rewrite_multipleModulesOfSameAppId() {
     val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
     val incorrectMapId = "incorrect-map-id"
     val correctMapId = "correct-map-id"
     val module1 = findModules("app2")[0]
     val module2 = findModules("app2")[1]
     copyMapToModule(module1, "release", incorrectMapId)
-    copyMapToModule(module2, "release", correctMapId)
+    val mappingFile = copyMapToModule(module2, "release", correctMapId)
 
     val text = rewriter.rewrite(MESSAGE.withMapId(correctMapId), "app2")
 
     assertThat(text).isEqualTo(CLEAR_MESSAGE)
+    assertThat(usageTrackerRule.retraceEvents())
+      .containsExactly(stackRetraceEvent(mappingFile.fileSize(), isCached = false))
+  }
+
+  @Test
+  fun rewrite_noMapping() {
+    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
+    copyMapToModule(findModules("app1").first(), "release", "map-id-12345")
+    val message = MESSAGE.withMapId("map-id-missing")
+
+    val text = rewriter.rewrite(message, "app1")
+
+    assertThat(text).isEqualTo(message)
+    assertThat(usageTrackerRule.retraceEvents())
+      .containsExactly(stackRetraceEvent("MAPPING_NOT_FOUND"))
+  }
+
+  @Test
+  fun rewrite_noApp() {
+    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
+    val mapId = "map-id-12345"
+    copyMapToModule(findModules("app1").first(), "release", mapId)
+    val message = MESSAGE.withMapId(mapId)
+
+    val text = rewriter.rewrite(message, "unknown-app")
+
+    assertThat(text).isEqualTo(message)
+    assertThat(usageTrackerRule.retraceEvents()).containsExactly(stackRetraceEvent("APP_NOT_FOUND"))
   }
 
   @Test
@@ -196,3 +243,21 @@ private fun copyMapToModule(module: Module?, variant: String, mapId: String): Pa
 }
 
 private fun String.withMapId(mapId: String) = replace("MAP_ID", mapId)
+
+private fun UsageTrackerRule.retraceEvents() =
+  logcatEvents()
+    .mapNotNull { it.stackRetrace }
+    .map { it.takeIf { !it.hasRetraceTimeMs() } ?: it.toBuilder().setRetraceTimeMs(0).build() }
+
+private fun stackRetraceEvent(mappingFileSize: Long, isCached: Boolean): StackRetraceEvent {
+  return StackRetraceEvent.newBuilder()
+    .setResultString("SUCCESS")
+    .setMappingFileSize(mappingFileSize)
+    .setIsMappingCached(isCached)
+    .setRetraceTimeMs(0) // We override this to zero in `UsageTrackerRule.retraceEvents`
+    .build()
+}
+
+private fun stackRetraceEvent(result: String): StackRetraceEvent {
+  return StackRetraceEvent.newBuilder().setResultString(result).build()
+}
