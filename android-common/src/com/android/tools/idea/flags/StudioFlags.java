@@ -2353,6 +2353,11 @@ public final class StudioFlags {
                     "Enable web search tool",
                     "Enables the 'Web Search Tool' as builtin tools.");
 
+  public static final Flag<Boolean> GEMINI_SEND_DURING_RESPONSE_ENABLED =
+    new BooleanFlag(STUDIOBOT, "send.during.response",
+                    "Enable sending queries while a response is streaming.",
+                    "Enables sending queries while a response is streaming. It may be queued or interrupt the stream.");
+
   public enum DasherSupportMode {
     /**
      * Don't include any special treatment for dasher users.
