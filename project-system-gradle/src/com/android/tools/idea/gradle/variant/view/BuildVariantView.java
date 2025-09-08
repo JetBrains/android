@@ -418,6 +418,7 @@ public class BuildVariantView {
 
       ComboBox<BuildVariantItem> editor = new ComboBox<>(items);
       editor.setSelectedItem(selected);
+      editor.setSwingPopup(false);
 
       editor.setBorder(JBUI.Borders.empty());
       editor.addItemListener(e -> {
