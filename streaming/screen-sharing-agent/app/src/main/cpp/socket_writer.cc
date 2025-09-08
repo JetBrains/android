@@ -38,9 +38,9 @@ SocketWriter::SocketWriter(int socket_fd, std::string&& socket_name, int32_t tim
   assert(socket_fd > 0);
 }
 
-SocketWriter::SocketWriter(SocketWriter&& other)
+SocketWriter::SocketWriter(SocketWriter&& other) noexcept
     : socket_fd_(other.socket_fd_),
-      socket_name_(other.socket_name_),
+      socket_name_(std::move(other.socket_name_)),
       timeout_millis_(other.timeout_millis_) {
   other.socket_fd_ = -1;
 }
