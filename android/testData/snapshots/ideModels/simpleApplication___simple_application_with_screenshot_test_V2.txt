@@ -2379,8 +2379,8 @@ MODULE                        : project.app
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
             minor                         : 2
-            patch                         : 0
-            versionString                 : 2.2.0
+            patch                         : 10
+            versionString                 : 2.2.10
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
