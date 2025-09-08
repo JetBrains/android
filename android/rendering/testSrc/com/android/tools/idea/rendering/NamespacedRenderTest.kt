@@ -19,7 +19,6 @@ import com.android.tools.idea.rendering.RenderTestUtil.checkRendering
 import com.android.tools.idea.rendering.RenderTestUtil.withRenderTask
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
-import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.IndexingTestUtil.Companion.waitUntilIndexesAreReady
 import org.jetbrains.android.AndroidTestBase
@@ -37,7 +36,7 @@ class NamespacedRenderTest {
     get() = projectRule.project
 
   private val facet: AndroidFacet
-    get() = projectRule.findGradleModule(":app")!!.androidFacet!!
+    get() = projectRule.mainAndroidFacet(":app")
 
   @Before
   fun setUp() {

@@ -41,7 +41,7 @@ class NamespacedRenderTestWithAppCompat {
     projectRule.loadProject(TestProjectPaths.NAMESPACES_WITH_APPCOMPAT)
     projectRule.generateSources()
     waitUntilIndexesAreReady(project)
-    resourceIdManger = TestResourceIdManager.getManager(projectRule.findGradleModule(":app")!!)
+    resourceIdManger = TestResourceIdManager.getManager(projectRule.getModule("app.main"))
     // Disable final IDs for this test, so it can use light classes to resolve resources.
     // Final IDs being enabled/disabled are covered by other tests, namely ModuleClassLoaderTest and
     // LibraryResourceClassLoaderTest.
@@ -58,7 +58,7 @@ class NamespacedRenderTestWithAppCompat {
     val layout =
       project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
     RenderTestUtil.checkRendering(
-      projectRule.androidFacet(":app"),
+      projectRule.mainAndroidFacet(":app"),
       layout,
       projectRule.resolveTestDataPath("/layouts/namespaced_with_appcompat/activity_main.png").path,
     )

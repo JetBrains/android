@@ -16,12 +16,10 @@
 package com.android.tools.idea.customview.preview
 
 import com.android.tools.idea.preview.rendering.createRenderTaskFuture
-import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createNoSecurityRenderService
 import com.android.tools.idea.testing.AndroidGradleProjectRule
-import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.guessProjectDir
 import org.junit.After
@@ -74,12 +72,7 @@ class CustomViewRenderTest {
       CustomViewLightVirtualFile("custom_preview.xml", fileContent, virtualFile)
 
     val renderTask =
-      createRenderTaskFuture(
-          projectRule.gradleModule(":app").getMainModule().androidFacet!!,
-          customPreviewXml,
-          true,
-        )
-        .get()
+      createRenderTaskFuture(projectRule.mainAndroidFacet(":app"), customPreviewXml, true).get()
     val renderResult = renderTask.render().get()
     val image = renderResult!!.renderedImage
 

@@ -21,7 +21,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
 import com.android.tools.idea.gradle.util.BuildMode
-import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createNoSecurityRenderService
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
@@ -32,7 +31,6 @@ import com.android.tools.idea.testing.TestLoggerRule
 import com.android.tools.idea.testing.buildAndWait
 import com.android.tools.idea.testing.withCompileSdk
 import com.android.tools.idea.testing.withTargetSdk
-import com.android.tools.idea.util.androidFacet
 import com.android.tools.rendering.RenderService
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
@@ -108,8 +106,7 @@ open class ComposeGradleProjectRule(
       .around(EdtRule())
       .around(FlagRule(StudioFlags.GRADLE_SAVE_LOG_TO_FILE, true))
 
-  fun androidFacet(gradlePath: String) =
-    projectRule.gradleModule(gradlePath).getMainModule().androidFacet ?: error("No Android facet")
+  fun androidFacet(gradlePath: String) = projectRule.mainAndroidFacet(gradlePath)
 
   override fun apply(base: Statement, description: Description): Statement =
     delegate.apply(base, description)
