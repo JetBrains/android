@@ -42,6 +42,8 @@ import org.jetbrains.kotlin.codegen.`when`.WhenByEnumsMapping.MAPPING_ARRAY_FIEL
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
 import java.util.concurrent.TimeUnit
+import kotlin.metadata.internal.common.BuiltInExtensionsAccessor.fqName
+import kotlin.metadata.jvm.KotlinClassMetadata
 
 private val logger = LogWrapper(Logger.getInstance(LiveEditOutputBuilder ::class.java))
 private val debug = LiveEditLogger("LiveEditOutputBuilder")
@@ -56,7 +58,6 @@ internal class LiveEditOutputBuilder(val unrestricted: Boolean = false) {
                                 compiledFiles: List<OutputFile>,
                                 irCache: IrClassCache,
                                 inlineCandidateCache: SourceInlineCandidateCache,
-
                                 outputs: LiveEditCompilerOutput.Builder) {
     val startTimeNs = System.nanoTime()
     val classFiles = compiledFiles.filter { it.relativePath.endsWith(".class") }
@@ -67,13 +68,11 @@ internal class LiveEditOutputBuilder(val unrestricted: Boolean = false) {
 
     val keyMetaFiles = classFiles.filter(::isKeyMeta)
 
-    val declaredClasses = getDeclaredClassNames(sourceFile)
-
     val irClasses = mutableListOf<IrClass>()
     val modifiedMethods = mutableListOf<IrMethod>()
     val requiresReinit = mutableListOf<IrClass>()
     for (classFile in classFiles.filterNot { it in keyMetaFiles }) {
-      val changes = handleClassFile(applicationLiveEditServices, classFile, sourceFile, declaredClasses, irCache, inlineCandidateCache,
+      val changes = handleClassFile(applicationLiveEditServices, classFile, sourceFile, irCache, inlineCandidateCache,
                                     outputs)
       irClasses.add(changes.clazz)
 
@@ -158,7 +157,6 @@ internal class LiveEditOutputBuilder(val unrestricted: Boolean = false) {
   private fun handleClassFile(applicationLiveEditServices: ApplicationLiveEditServices,
                               classFile: OutputFile,
                               sourceFile: KtFile,
-                              declaredClasses: Set<String>,
                               irCache: IrClassCache,
                               inlineCandidateCache: SourceInlineCandidateCache,
                               output: LiveEditCompilerOutput.Builder): ChangeInfo {
@@ -173,7 +171,15 @@ internal class LiveEditOutputBuilder(val unrestricted: Boolean = false) {
     output.addIrClass(newClass)
 
     val isFirstDiff = newClass.name !in irCache
-    val classType = if (newClass.name in declaredClasses) LiveEditClassType.NORMAL_CLASS else LiveEditClassType.SUPPORT_CLASS
+
+    val metadata = parseMetadata(newClass)
+    val classType = if (metadata is KotlinClassMetadata.SyntheticClass) {
+      println("support: " + newClass.name)
+      LiveEditClassType.SUPPORT_CLASS
+    } else {
+      println("normal: " + newClass.name)
+      LiveEditClassType.NORMAL_CLASS
+    }
 
     // Live Edit supports adding new synthetic classes in order to handle the lambda classes that Compose generates
     if (oldClass == null) {
