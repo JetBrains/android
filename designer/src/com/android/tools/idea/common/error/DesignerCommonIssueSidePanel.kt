@@ -80,7 +80,7 @@ class DesignerCommonIssueSidePanel(
           override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
             fileToEditorMap.remove(file)?.let { EditorFactory.getInstance().releaseEditor(it) }
           }
-        }
+        },
       )
   }
 
@@ -120,8 +120,7 @@ private class DesignerCommonIssueDetailPanel(
     }
   }
 
-  private fun createTitle() =
-    JBLabel(issue.summary).apply { font = font.deriveFont(Font.BOLD) }
+  private fun createTitle() = JBLabel(issue.summary).apply { font = font.deriveFont(Font.BOLD) }
 
   private fun createContent(): JComponent {
     val descriptionPane = DescriptionEditorPane()
@@ -132,8 +131,7 @@ private class DesignerCommonIssueDetailPanel(
     if (issue is VisualLintRenderIssue) {
       alignment = BorderLayout.NORTH
     }
-    val contentPanel =
-      JPanel(BorderLayout()).apply { add(descriptionPane, alignment) }
+    val contentPanel = JPanel(BorderLayout()).apply { add(descriptionPane, alignment) }
 
     if (issue is VisualLintRenderIssue) {
       contentPanel.addVisualRenderIssue(issue)
@@ -144,10 +142,11 @@ private class DesignerCommonIssueDetailPanel(
     }
 
     return JBScrollPane(
-      contentPanel,
-      ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-      ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER,
-    ).apply { border = JBUI.Borders.emptyTop(12) }
+        contentPanel,
+        ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER,
+      )
+      .apply { border = JBUI.Borders.emptyTop(12) }
   }
 
   private fun createBottomPanel(
@@ -161,10 +160,7 @@ private class DesignerCommonIssueDetailPanel(
     }
   }
 
-  private fun createMessageTip(
-    tip: MessageTip,
-    hyperlinkListener: HyperlinkListener?,
-  ): JComponent {
+  private fun createMessageTip(tip: MessageTip, hyperlinkListener: HyperlinkListener?): JComponent {
     return JBPanel<JBPanel<*>>(HorizontalLayout(1)).apply {
       add(
         JBLabel(tip.icon).apply {
@@ -190,7 +186,7 @@ private class DesignerCommonIssueDetailPanel(
   private fun JPanel.addVisualRenderIssue(issue: VisualLintRenderIssue) {
     val affectedFilePanel = createAffectedFilePanel(issue)
     if (StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.get()) {
-      addFixWithAiButton(affectedFilePanel,  offSetBottom = false)
+      addFixWithAiButton(affectedFilePanel, offSetBottom = false)
     }
     add(affectedFilePanel, BorderLayout.CENTER)
   }
@@ -221,16 +217,17 @@ private class DesignerCommonIssueDetailPanel(
 
   private fun createAffectedFileLink(projectBasePath: String, file: VirtualFile): ActionLink {
     val pathToDisplay =
-      FileUtilRt.getRelativePath(projectBasePath, file.path, File.separatorChar, true)
-        ?: file.path
-    return object : ActionLink(
-      pathToDisplay,
-      { OpenFileDescriptor(project, file).navigateInEditor(project, true) }
-    ) {
-      override fun getToolTipText(): String? {
-        return if (size.width < minimumSize.width) pathToDisplay else null
+      FileUtilRt.getRelativePath(projectBasePath, file.path, File.separatorChar, true) ?: file.path
+    return object :
+        ActionLink(
+          pathToDisplay,
+          { OpenFileDescriptor(project, file).navigateInEditor(project, true) },
+        ) {
+        override fun getToolTipText(): String? {
+          return if (size.width < minimumSize.width) pathToDisplay else null
+        }
       }
-    }.apply { alignmentX = LEFT_ALIGNMENT }
+      .apply { alignmentX = LEFT_ALIGNMENT }
   }
 
   private fun addFixWithAiButton(panel: JPanel, offSetBottom: Boolean) {
