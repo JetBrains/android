@@ -27,9 +27,11 @@ import com.android.tools.idea.wear.dwf.dom.raw.overrideCurrentWFFVersion
 import com.android.tools.wear.wff.WFFVersion.WFFVersion3
 import com.android.tools.wear.wff.WFFVersion.WFFVersion4
 import com.google.common.truth.Truth.assertThat
+import com.intellij.codeInsight.intention.impl.QuickEditAction
 import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.fixtures.InjectionTestFixture
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -249,6 +251,53 @@ class ReferenceTagReferenceTest {
         "REFERENCE.partImageRef",
         "[REFERENCE.partImageRef]",
       )
+  }
+
+  // Regression test for b/443685010
+  @Test
+  fun `references are supported in quick edit fragments`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <Scene>
+            <PartText>
+              <Reference name="partTextRef" />
+            </PartText>
+            <PartImage>
+              <Reference name="partImageRef" />
+            </PartImage>
+            <Parameter expression="[REFERENCE.part${caret}TextRef]" />
+          </Scene>
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+    val injectionTestFixture = InjectionTestFixture(fixture)
+    val quickEditHandler =
+      QuickEditAction()
+        .invokeImpl(
+          fixture.project,
+          injectionTestFixture.topLevelEditor,
+          injectionTestFixture.topLevelFile,
+        )
+    val fragmentFile = quickEditHandler.newFile
+    fixture.openFileInEditor(fragmentFile.virtualFile)
+
+    val reference =
+      fixture
+        .findElementByText("[REFERENCE.partTextRef]", WFFExpressionLiteralExpr::class.java)
+        .referenceTagReference
+
+    assertThat(reference).isNotNull()
+    val resolved = reference?.resolve()
+    assertThat(resolved).isNotNull()
+    assertThat(resolved).isInstanceOf(XmlTag::class.java)
+    assertThat(fixture.completeBasic().flatMap { it.allLookupStrings })
+      .containsAllOf("[REFERENCE.partTextRef]", "[REFERENCE.partImageRef]")
   }
 
   private val WFFExpressionLiteralExpr.referenceTagReference

@@ -95,7 +95,7 @@ private fun referenceTagRefence(
   watchFaceFile: XmlFile,
 ): ReferenceTagReference? {
   if (!literalExpr.isIdOrDataSource()) return null
-  val module = literalExpr.getModuleSystem()?.module ?: return null
+  val module = watchFaceFile.getModuleSystem()?.module ?: return null
   val currentWFFVersion = CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module)
   if (currentWFFVersion == null || currentWFFVersion.wffVersion < WFFVersion4) return null
   return ReferenceTagReference(literalExpr, watchFaceFile)
