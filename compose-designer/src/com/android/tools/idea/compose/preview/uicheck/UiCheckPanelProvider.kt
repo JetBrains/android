@@ -88,7 +88,7 @@ class UiCheckPanelProvider(
     if (StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.get() && issue is VisualLintRenderIssue)
       return ComposeStudioBotActionFactory.EP_NAME.extensionList
         .firstOrNull()
-        ?.fixVisualLintIssuesAction(listOf(issue))
+        ?.fixVisualLintIssuesAction()
     return null
   }
 }

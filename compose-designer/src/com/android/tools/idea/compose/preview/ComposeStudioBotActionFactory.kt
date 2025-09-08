@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.common.error.Issue
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.extensions.ExtensionPointName
 
@@ -31,7 +30,7 @@ interface ComposeStudioBotActionFactory {
   fun transformPreviewAction(): AnAction?
 
   /** An action to fix visual lint issues found by UI Check for a Compose Preview. */
-  fun fixVisualLintIssuesAction(visualLintIssues: List<VisualLintRenderIssue>): AnAction?
+  fun fixVisualLintIssuesAction(): AnAction?
 
   /** An action to fix render issues in Compose Previews. */
   fun fixComposeRenderIssueAction(renderIssues: List<Issue>): AnAction?

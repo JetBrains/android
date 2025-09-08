@@ -20,7 +20,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
@@ -298,8 +297,7 @@ class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
 
   override fun transformPreviewAction() = fakeAction("transformPreview")
 
-  override fun fixVisualLintIssuesAction(visualLintIssues: List<VisualLintRenderIssue>) =
-    fakeAction("fixVisualLintIssues")
+  override fun fixVisualLintIssuesAction() = fakeAction("fixVisualLintIssues")
 
   override fun fixComposeRenderIssueAction(renderIssues: List<Issue>): AnAction? =
     fakeAction("fixComposeRender")
