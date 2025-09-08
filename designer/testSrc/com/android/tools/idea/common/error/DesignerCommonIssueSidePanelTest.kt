@@ -16,16 +16,23 @@
 package com.android.tools.idea.common.error
 
 import com.android.tools.adtui.swing.findDescendant
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.visuallint.VisualLintErrorType
 import com.android.utils.HtmlBuilder
+import com.intellij.ide.DataManager
+import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.profile.codeInspection.ui.DescriptionEditorPane
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndGet
@@ -41,6 +48,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 class DesignerCommonIssueSidePanelTest {
 
@@ -81,6 +89,54 @@ class DesignerCommonIssueSidePanelTest {
     }
     assertTrue(hasContent)
     assertTrue(panel.hasFirstComponent())
+  }
+
+  @Test
+  fun testVirtualFileIsProvidedToAction() {
+    StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.override(true)
+
+    val file = rule.fixture.addFileToProject("path/to/file.xml", "<root/>")
+
+    val model: NlModel = mock()
+    whenever(model.virtualFile).thenReturn(file.virtualFile)
+
+    val issue =
+      VisualLintRenderIssue.builder()
+        .summary("summary")
+        .severity(HighlightSeverity.WARNING)
+        .contentDescriptionProvider { HtmlBuilder() }
+        .model(model)
+        .components(mutableListOf())
+        .type(VisualLintErrorType.BOUNDS)
+        .build()
+
+    // Creating panel with action that captures the virtual file
+    var capturedFile: VirtualFile? = null
+    val panel =
+      DesignerCommonIssueSidePanel(rule.project, rule.testRootDisposable) { _ ->
+        object : AnAction() {
+          override fun actionPerformed(e: AnActionEvent) {
+            capturedFile = e.getData(CommonDataKeys.VIRTUAL_FILE)
+          }
+        }
+      }
+    panel.loadIssueNode(createIssueNode(issue))
+
+    // Setting up data provider
+    val provider = EdtNoGetDataProvider { sink ->
+      DataSink.uiDataSnapshot(sink, panel.getFirstSplitterComponent())
+    }
+    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(
+      provider,
+      rule.testRootDisposable,
+    )
+
+    // Performing action
+    val actionToolbar = panel.findDescendant(ActionToolbar::class.java)!!
+    val action = actionToolbar.actionGroup.getChildren(null).first()
+    action.actionPerformed(TestActionEvent.createTestEvent(action))
+
+    assertEquals(file.virtualFile, capturedFile)
   }
 
   @Test
@@ -133,7 +189,7 @@ class DesignerCommonIssueSidePanelTest {
             currentActionEvent = e
             assertTrue(
               "The provided issue is not of type VisualLintRenderIssue. Issue: $issue",
-              issue is VisualLintRenderIssue
+              issue is VisualLintRenderIssue,
             )
             currentVisualLintIssue = issue as VisualLintRenderIssue
           }

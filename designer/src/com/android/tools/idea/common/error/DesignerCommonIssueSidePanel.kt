@@ -22,7 +22,10 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
@@ -101,6 +104,8 @@ class DesignerCommonIssueSidePanel(
   }
 
   @TestOnly fun hasFirstComponent() = splitter.firstComponent != null
+
+  @TestOnly fun getFirstSplitterComponent(): JComponent? = splitter.firstComponent
 }
 
 /** The side panel to show the details of issue detail in [DesignerCommonIssuePanel]. */
@@ -109,7 +114,7 @@ private class DesignerCommonIssueDetailPanel(
   private val project: Project,
   private val issue: Issue,
   private val fixWithAiActionProvider: (Issue) -> AnAction?,
-) : JPanel(BorderLayout()) {
+) : JPanel(BorderLayout()), UiDataProvider {
 
   init {
     border = JBUI.Borders.empty(18, 12, 0, 0)
@@ -118,6 +123,10 @@ private class DesignerCommonIssueDetailPanel(
     createBottomPanel(issue.messageTips, issue.hyperlinkListener)?.let {
       add(it, BorderLayout.SOUTH)
     }
+  }
+
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[PlatformDataKeys.VIRTUAL_FILE] = issue.source.files.firstOrNull()
   }
 
   private fun createTitle() = JBLabel(issue.summary).apply { font = font.deriveFont(Font.BOLD) }
