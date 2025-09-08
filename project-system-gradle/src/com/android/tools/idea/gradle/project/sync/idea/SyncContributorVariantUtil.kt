@@ -76,7 +76,7 @@ internal fun SyncContributorAndroidProjectContext.getSourceSetDataForBasicAndroi
         it.sourceProvider?.let { sourceSets += createSourceSetDataForSourceProvider(IdeArtifactName.MAIN, it, isProduction = true, versions) }
       }
 
-      if (useContainer) {
+      if (testArtifactsAndSourceSetsInMaps) {
         (it.deviceTestArtifacts + it.hostTestArtifacts).entries.forEach { (name, artifact) ->
           val artifactName = convertArtifactName(name)
           processBasicArtifact(artifact, artifactName, isProduction = false)
@@ -126,7 +126,7 @@ internal fun SyncContributorAndroidProjectContext.getSourceSetDataForAndroidProj
     .filter { it.name == selectedVariantName }
     .forEach { variant ->
       sourceSets += createSourceSetDataForAndroidArtifact(IdeArtifactName.MAIN, variant.mainArtifact, isProduction = true)
-      if (useContainer) {
+      if (testArtifactsAndSourceSetsInMaps) {
         variant.deviceTestArtifacts.entries.forEach { (name, artifact) ->
           sourceSets += createSourceSetDataForAndroidArtifact(convertArtifactName(name), artifact, isProduction = false)
         }
@@ -154,9 +154,9 @@ internal fun SyncContributorAndroidProjectContext.getSelectedVariantArtifact(sou
   return when(sourceSetArtifactName) {
     IdeArtifactName.MAIN -> selectedVariant.mainArtifact
     IdeArtifactName.TEST_FIXTURES -> selectedVariant.testFixturesArtifact
-    IdeArtifactName.UNIT_TEST -> if (useContainer) selectedVariant.hostTestArtifacts[ARTIFACT_NAME_UNIT_TEST] else selectedVariant.unitTestArtifact
-    IdeArtifactName.ANDROID_TEST -> if (useContainer) selectedVariant.deviceTestArtifacts[ARTIFACT_NAME_ANDROID_TEST] else selectedVariant.androidTestArtifact
-    IdeArtifactName.SCREENSHOT_TEST -> if (useContainer) selectedVariant.hostTestArtifacts[ARTIFACT_NAME_SCREENSHOT_TEST] else error("ScreenshotTest are not available")
+    IdeArtifactName.UNIT_TEST -> if (testArtifactsAndSourceSetsInMaps) selectedVariant.hostTestArtifacts[ARTIFACT_NAME_UNIT_TEST] else selectedVariant.unitTestArtifact
+    IdeArtifactName.ANDROID_TEST -> if (testArtifactsAndSourceSetsInMaps) selectedVariant.deviceTestArtifacts[ARTIFACT_NAME_ANDROID_TEST] else selectedVariant.androidTestArtifact
+    IdeArtifactName.SCREENSHOT_TEST -> if (testArtifactsAndSourceSetsInMaps) selectedVariant.hostTestArtifacts[ARTIFACT_NAME_SCREENSHOT_TEST] else error("ScreenshotTest are not available")
   }
 }
 

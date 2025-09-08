@@ -219,14 +219,14 @@ sealed class VariantDependenciesCompat(
 ) {
   class FlatList(variantDependencies: VariantDependenciesFlatList, modelVersions: ModelVersions) : VariantDependenciesCompat(
     ArtifactDependenciesCompat.FlatList(variantDependencies.mainArtifact),
-    if (modelVersions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]) {
+    if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
       variantDependencies.deviceTestArtifacts.map { (k, v) ->
         convertArtifactName(k) to ArtifactDependenciesCompat.FlatList(v)
       }.toMap()
     } else {
       emptyMap()
     },
-    if (modelVersions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]) {
+    if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
       variantDependencies.hostTestArtifacts.map { (k, v) ->
         convertArtifactName(k) to ArtifactDependenciesCompat.FlatList(v)
       }.toMap()
@@ -241,7 +241,7 @@ sealed class VariantDependenciesCompat(
 
   class AdjacencyList(variantDependencies: VariantDependenciesAdjacencyList, modelVersions: ModelVersions) : VariantDependenciesCompat(
     ArtifactDependenciesCompat.AdjacencyList(variantDependencies.mainArtifact),
-    if (modelVersions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]) {
+    if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
       variantDependencies.deviceTestArtifacts.map { (k, v) ->
         convertArtifactName(k) to ArtifactDependenciesCompat.AdjacencyList(v)
       }.toMap()
@@ -250,7 +250,7 @@ sealed class VariantDependenciesCompat(
         mapOf(IdeArtifactName.ANDROID_TEST to ArtifactDependenciesCompat.AdjacencyList(it))
                                                    } ?: emptyMap()
     },
-    if (modelVersions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]) {
+    if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
       variantDependencies.hostTestArtifacts.map { (k, v) ->
         convertArtifactName(k) to ArtifactDependenciesCompat.AdjacencyList(v)
       }.toMap()
@@ -270,7 +270,7 @@ sealed class VariantDependenciesCompat(
   )
   class GraphItemList(variantDependencies: VariantDependencies, modelVersions: ModelVersions) : VariantDependenciesCompat(
     ArtifactDependenciesCompat.GraphItemList(variantDependencies.mainArtifact),
-    if (modelVersions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]) {
+    if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
       variantDependencies.deviceTestArtifacts.map { (k, v) ->
         convertArtifactName(k) to ArtifactDependenciesCompat.GraphItemList(v)
       }.toMap()
@@ -280,7 +280,7 @@ sealed class VariantDependenciesCompat(
       } ?: emptyMap()
 
     },
-    if (modelVersions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]) {
+    if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
       variantDependencies.hostTestArtifacts.map { (k, v) ->
         convertArtifactName(k) to ArtifactDependenciesCompat.GraphItemList(v)
       }.toMap()

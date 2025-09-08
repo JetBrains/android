@@ -389,7 +389,7 @@ fun modelCacheV2Impl(
       productFlavor = productFlavorFrom(productFlavor),
       sourceProvider = container?.sourceProvider?.let { it: SourceProvider -> sourceProviderFrom(it) },
       extraSourceProviders = mutableListOf<IdeExtraSourceProviderImpl>().apply {
-        if (modelVersions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]) {
+        if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
           container?.deviceTestSourceProviders?.values?.forEach { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
           container?.hostTestSourceProviders?.values?.forEach { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
         } else {
@@ -407,7 +407,7 @@ fun modelCacheV2Impl(
     return IdeSourceProviderContainerImpl(
       sourceProvider = container?.sourceProvider?.let { it: SourceProvider -> sourceProviderFrom(it) },
       extraSourceProviders = mutableListOf<IdeExtraSourceProviderImpl>().apply {
-        if (modelVersions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]) {
+        if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
           container?.deviceTestSourceProviders?.values?.forEach { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
           container?.hostTestSourceProviders?.values?.forEach { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
         } else {
@@ -453,7 +453,7 @@ fun modelCacheV2Impl(
       buildType = buildTypeFrom(buildType),
       sourceProvider = container?.sourceProvider?.let { sourceProviderFrom(it) },
       extraSourceProviders = mutableListOf<IdeExtraSourceProviderImpl>().apply {
-        if (modelVersions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]) {
+        if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
           container?.deviceTestSourceProviders?.values?.forEach { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
           container?.hostTestSourceProviders?.values?.forEach { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
         } else {
@@ -983,7 +983,7 @@ fun modelCacheV2Impl(
   }
 
   fun hostTestArtifactsFrom(variant: Variant, basicVariant: BasicVariant): List<IdeJavaArtifactCoreImpl> {
-    return if (modelVersions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]) {
+    return if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
       variant.hostTestArtifacts.map { (k, v) ->
         javaArtifactFrom(convertArtifactName(k), basicVariant.hostTestArtifacts[k]!!, v)
       }
@@ -1044,7 +1044,7 @@ fun modelCacheV2Impl(
     fallbackDesugaredMethodsFiles: List<File>,
     legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
   ): List<IdeAndroidArtifactCoreImpl> {
-    return if (modelVersions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]) {
+    return if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
       variant.deviceTestArtifacts.map { (k, v) ->
         androidArtifactFrom(convertArtifactName(k), basicVariant.deviceTestArtifacts[k]!!, variantName, legacyAndroidGradlePluginProperties,
                             fallbackDesugaredMethodsFiles, v)

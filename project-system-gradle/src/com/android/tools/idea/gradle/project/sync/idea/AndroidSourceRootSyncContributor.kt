@@ -175,9 +175,7 @@ internal class SyncContributorAndroidProjectContext(
   val ideAndroidProject = context.getProjectModel(projectModel, IdeAndroidProject::class.java)!! as IdeAndroidProjectImpl
   val ideDeclaredDependencies = context.getProjectModel(projectModel, DeclaredDependencies::class.java)!!.toIdeDeclaredDependencies()
 
-  // TODO(b/410774404): HAS_SCREENSHOT_TESTS_SUPPORT is not the best name for even though it's what indicates the availability in the
-  // new fields. Consider renaming.
-  val useContainer: Boolean = versions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]
+  val testArtifactsAndSourceSetsInMaps: Boolean = versions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]
   val sdk: SdkDependency?  =
     AndroidSdks.getInstance().findSuitableAndroidSdk(androidDsl.compileTarget)?.let {
       SdkDependency(SdkId(it.name, AndroidSdkType.SDK_NAME))
