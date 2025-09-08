@@ -32,6 +32,8 @@ class VitalsLoginFeature : LoginFeature {
   override val title = "Android Vitals"
   override val infoUrl = "https://play.google.com/console/developers/app/vitals/"
   override val infoUrlDisplayText = "Go to Play Console"
+  override val permissionInfoUrl =
+    "https://d.android.com/r/studio-ui/app-quality-insights/permissions"
   override val settingsAction = null
   override val description =
     "See metrics and data about the apps in your Google Play Developer account. Used in " +
