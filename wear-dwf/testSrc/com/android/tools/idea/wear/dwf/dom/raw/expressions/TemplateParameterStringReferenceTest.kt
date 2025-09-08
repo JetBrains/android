@@ -27,10 +27,12 @@ import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
+import com.intellij.codeInsight.intention.impl.QuickEditAction
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.fixtures.InjectionTestFixture
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -294,14 +296,56 @@ class TemplateParameterStringReferenceTest {
     fixture.checkHighlighting(true, false, false)
   }
 
+  // Regression test for b/443685010
+  @Test
+  fun `string resource references are supported in quick edit fragments`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <Template>%s
+            <Parameter expression="gree${caret}ting" />
+          </Template>
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+    val injectionTestFixture = InjectionTestFixture(fixture)
+    val quickEditHandler =
+      QuickEditAction()
+        .invokeImpl(
+          fixture.project,
+          injectionTestFixture.topLevelEditor,
+          injectionTestFixture.topLevelFile,
+        )
+    val fragmentFile = quickEditHandler.newFile
+    fixture.openFileInEditor(fragmentFile.virtualFile)
+
+    val reference =
+      fixture
+        .findElementByText("greeting", WFFExpressionLiteralExpr::class.java)
+        .templateParameterReference
+
+    assertThat(reference).isNotNull()
+    val resolved = reference?.resolve()
+    assertThat(resolved).isNotNull()
+    assertThat(resolved).isInstanceOf(ResourceReferencePsiElement::class.java)
+    val lookupStrings = fixture.completeBasic().map { it.lookupString }
+    assertThat(lookupStrings).containsAllOf("greeting", "title", "my_parameter")
+  }
+
   private fun findTemplateParameterStringReferenceAtCaret(): TemplateParameterStringReference? {
     val injectedElement =
       InjectedLanguageManager.getInstance(projectRule.project)
         .findInjectedElementAt(fixture.file, fixture.caretOffset)
     return injectedElement
       ?.parentOfType<WFFExpressionLiteralExpr>(withSelf = true)
-      ?.references
-      ?.filterIsInstance<TemplateParameterStringReference>()
-      ?.singleOrNull()
+      ?.templateParameterReference
   }
+
+  private val WFFExpressionLiteralExpr.templateParameterReference
+    get() = references.filterIsInstance<TemplateParameterStringReference>().firstOrNull()
 }

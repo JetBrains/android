@@ -22,8 +22,10 @@ import com.android.resources.ResourceVisibility
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.getResourceItems
 import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver
+import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.wear.dwf.dom.raw.removeSurroundingQuotes
 import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReferenceBase
 import org.jetbrains.android.dom.resources.ResourceValue
@@ -55,16 +57,23 @@ class TemplateParameterStringReference(private val psiElement: PsiElement) :
 
   override fun getVariants(): Array<out Any?> {
     val withPrefix = false
+    val facet =
+      AndroidFacet.getInstance(psiElement)
+        ?: InjectedLanguageManager.getInstance(psiElement.project)
+          .getInjectionHost(psiElement)
+          ?.androidFacet
+        ?: return emptyArray()
+
     val resourceValues =
-      StudioResourceRepositoryManager.getInstance(element)
-        ?.moduleResources
-        ?.getResourceItems(
+      StudioResourceRepositoryManager.getInstance(facet)
+        .moduleResources
+        .getResourceItems(
           // The namespace RES_AUTO as declarative watch faces can only reference project resources
           ResourceNamespace.RES_AUTO,
           ResourceType.STRING,
           ResourceVisibility.PUBLIC,
         )
-        ?.mapNotNull { ResourceValue.reference(it, withPrefix) } ?: emptyList()
+        .mapNotNull { ResourceValue.reference(it, withPrefix) }
 
     return resourceValues.map { LookupElementBuilder.create(it.toString()) }.toTypedArray()
   }
