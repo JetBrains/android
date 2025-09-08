@@ -259,17 +259,12 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
   private class DisabledItemListCellRenderer extends DefaultListCellRenderer {
     @Override
     public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-      String txt = (String)value;
-      setText(txt);
-
+      // calling parent getListCellRendererComponent set all proper attributes to item renderer
+      Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       if (shouldDisableDebuggable() && disabledItems.contains(myBuildVariantsListModel.get(index))) {
-        setForeground(Color.GRAY);
+        c.setForeground(Color.GRAY);
       }
-      else {
-        setForeground(list.getForeground());
-      }
-
-      return this;
+      return c;
     }
   }
 
