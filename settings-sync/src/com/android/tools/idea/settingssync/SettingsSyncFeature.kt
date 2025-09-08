@@ -50,6 +50,9 @@ class SettingsSyncFeature : LoginFeature {
 
   override val infoUrlDisplayText: String? = null
 
+  override val permissionInfoUrl: String =
+    "https://d.android.com/r/studio-ui/settings-sync/permissions"
+
   override val settingsAction: AnAction =
     object : AnAction("Configure Backup and Sync") {
       override fun actionPerformed(e: AnActionEvent) {
