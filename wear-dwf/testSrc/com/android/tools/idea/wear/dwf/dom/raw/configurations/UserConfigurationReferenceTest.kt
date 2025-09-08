@@ -25,10 +25,12 @@ import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionLiteralExpr
 import com.android.tools.idea.wear.dwf.dom.raw.findInjectedExpressionLiteralAtCaret
 import com.google.common.truth.Truth.assertThat
+import com.intellij.codeInsight.intention.impl.QuickEditAction
 import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.fixtures.InjectionTestFixture
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -671,6 +673,54 @@ class UserConfigurationReferenceTest {
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
 
     assertThat(fixture.completeBasic().map { it.lookupString }).isEmpty()
+  }
+
+  // Regression test for b/443685010
+  @Test
+  fun `user configurations are supported in quick edit fragments`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <UserConfigurations>
+            <BooleanConfiguration id="boolean_configuration" />
+            <ListConfiguration id="list_configuration" />
+          </UserConfigurations>
+          <Scene>
+             <Parameter expression="[CONFIGURATION.boolean_${caret}configuration]" />
+          </Scene>
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+    val injectionTestFixture = InjectionTestFixture(fixture)
+    val quickEditHandler =
+      QuickEditAction()
+        .invokeImpl(
+          fixture.project,
+          injectionTestFixture.topLevelEditor,
+          injectionTestFixture.topLevelFile,
+        )
+    val fragmentFile = quickEditHandler.newFile
+    fixture.openFileInEditor(fragmentFile.virtualFile)
+
+    val reference =
+      fixture
+        .findElementByText(
+          "[CONFIGURATION.boolean_configuration]",
+          WFFExpressionLiteralExpr::class.java,
+        )
+        .userConfigurationReference
+
+    assertThat(reference).isNotNull()
+    val resolved = reference?.resolve()
+    assertThat(resolved).isNotNull()
+    assertThat(resolved).isInstanceOf(XmlTag::class.java)
+    assertThat(fixture.completeBasic().flatMap { it.allLookupStrings })
+      .containsAllOf("[CONFIGURATION.boolean_configuration]", "[CONFIGURATION.list_configuration]")
   }
 
   private val WFFExpressionLiteralExpr.userConfigurationReference
