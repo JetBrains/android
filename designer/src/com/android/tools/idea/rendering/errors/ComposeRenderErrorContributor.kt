@@ -22,6 +22,8 @@ import com.android.utils.HtmlBuilder
 import com.intellij.lang.annotation.HighlightSeverity
 import java.util.concurrent.TimeoutException
 import javax.swing.event.HyperlinkListener
+import java.io.StringWriter
+import java.io.PrintWriter
 
 object ComposeRenderErrorContributor {
 
@@ -37,14 +39,35 @@ object ComposeRenderErrorContributor {
       throwable.message?.startsWith("CompositionLocal") == true &&
       throwable.message?.endsWith("not present") == true
 
-  private fun isViewModelStackTrace(throwable: Throwable?): Boolean =
-    throwable?.let { throwable ->
-      throwable.stackTrace.any {
-        (it.methodName == "viewModel" ||
-          it.className.endsWith("ViewModelProvider") ||
-          it.className.endsWith("ViewModelKt")) && it.className.startsWith("androidx.lifecycle")
-      }
+  private fun isViewModelStackTraceInternal(stackTrace: String): Boolean {
+    return stackTrace.lines().any { line ->
+      line.trim().startsWith("at") &&
+        line.contains("androidx.lifecycle") &&
+        (line.contains("viewModel") || line.contains("ViewModelProvider") || line.contains("ViewModelKt"))
+    }
+  }
+
+  /**
+   * Returns true if the given [stackTrace] corresponds to a failure when instantiating a ViewModel.
+   * This is used to detect when a @Preview fails to render because a ViewModel is being used.
+   */
+  @JvmStatic
+  fun isViewModelStackTrace(stackTrace: String): Boolean {
+    return isViewModelStackTraceInternal(stackTrace)
+  }
+
+  /**
+   * Returns true if the given [throwable] corresponds to a failure when instantiating a ViewModel.
+   * This is used to detect when a @Preview fails to render because a ViewModel is being used.
+   */
+  @JvmStatic
+  fun isViewModelStackTrace(throwable: Throwable?): Boolean {
+    return throwable?.let {
+      val stringWriter = StringWriter()
+      it.printStackTrace(PrintWriter(stringWriter))
+      isViewModelStackTraceInternal(stringWriter.toString())
     } ?: false
+  }
 
   /**
    * Returns true if the [Throwable] represents a failure to instantiate a Preview Composable. This
