@@ -317,7 +317,7 @@ void DisplayStreamer::Run() {
           Log::V("Display %d: writing an video packet", display_id_);
         }
         auto res = writer_->Write(&packet_header, VideoPacketHeader::SIZE);
-        if (res != SocketWriter::Result::SUCCESS && res != SocketWriter::Result::SUCCESS_AFTER_BLOCKING) {
+        if (res == SocketWriter::Result::DISCONNECTED) {
           stop_reason = FrameStreamStopReason::END_OF_STREAM;
         }
       }
@@ -396,7 +396,7 @@ DisplayStreamer::FrameStreamStopReason DisplayStreamer::ProcessFramesUntilCodecS
     auto res = writer_->Write(packet_header, VideoPacketHeader::SIZE, codec_buffer.buffer(), codec_buffer.size());
     if (res == SocketWriter::Result::SUCCESS_AFTER_BLOCKING) {
       request_sync_frame = true;
-    } else if (res != SocketWriter::Result::SUCCESS) {
+    } else if (res == SocketWriter::Result::DISCONNECTED) {
       continue_streaming = false;
     }
     if (!codec_buffer.IsConfig()) {
