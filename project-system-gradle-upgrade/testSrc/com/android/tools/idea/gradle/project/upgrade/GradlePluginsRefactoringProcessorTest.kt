@@ -205,6 +205,24 @@ class GradlePluginsRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
+  fun testSafeArgsVersionInLiteral90() {
+    writeToBuildFile(TestFileName("GradlePlugins/SafeArgsVersionInLiteral"))
+    val processor = GradlePluginsRefactoringProcessor(project, AgpVersion.parse("3.4.0"), AgpVersion.parse("9.0.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("GradlePlugins/SafeArgsVersionInLiteral90Expected"))
+  }
+
+  @Test
+  fun testSafeArgsVersionInDsl90() {
+    writeToBuildFile(TestFileName("GradlePlugins/SafeArgsVersionInDsl"))
+    val processor = GradlePluginsRefactoringProcessor(project, AgpVersion.parse("3.4.0"), AgpVersion.parse("9.0.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("GradlePlugins/SafeArgsVersionInDsl90Expected"))
+  }
+
+  @Test
   fun testAndroidJUnit5VersionTo400() {
     writeToBuildFile(TestFileName("GradlePlugins/AndroidJUnit5Version"))
     val processor = GradlePluginsRefactoringProcessor(project, AgpVersion.parse("3.6.0"), AgpVersion.parse("4.0.0"))
