@@ -312,6 +312,7 @@ studio_plugin(
             "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
             "//tools/vendor/google/android-keys:android-keys",
             "//tools/vendor/google/focus-plugin:declarative-gradle.focus-plugin",
+            "//tools/vendor/google/marketing:marketing",
         ],
         "artwork.jar": [
             "//tools/adt/idea/artwork:intellij.android.artwork",
