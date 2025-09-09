@@ -171,8 +171,7 @@ map<int32_t, WindowManager::DisplayRotationTracker> WindowManager::rotation_trac
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_android_tools_screensharing_RotationWatcher_onRotationChanged(
-    JNIEnv* jni_env, jobject thiz, jint display_id, jint rotation) {  //nolint:unparam
+Java_com_android_tools_screensharing_RotationWatcher_onRotationChanged(JNIEnv* jni_env, jobject thiz, jint display_id, jint rotation) {
   Log::D("RotationWatcher.onRotationChanged(%d, %d)", display_id, rotation);
   WindowManager::OnRotationChanged(display_id, rotation);
 }

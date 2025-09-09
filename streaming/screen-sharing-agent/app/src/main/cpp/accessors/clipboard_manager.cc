@@ -93,7 +93,7 @@ void ClipboardManager::OnPrimaryClipChanged() {
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_android_tools_screensharing_ClipboardListener_dispatchPrimaryClipChanged(JNIEnv* env, jobject thiz) {  //nolint:unparam
+Java_com_android_tools_screensharing_ClipboardListener_dispatchPrimaryClipChanged(JNIEnv* env, jobject thiz) {
   ClipboardManager* clipboard_manager = clipboard_manager_instance;
   if (clipboard_manager != nullptr) {
     clipboard_manager->OnPrimaryClipChanged();

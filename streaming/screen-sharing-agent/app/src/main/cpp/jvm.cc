@@ -392,6 +392,10 @@ void JClass::CallStaticVoidMethod(JNIEnv* jni_env, jmethodID method, ...) const 
   va_end(args);
 }
 
+JObjectArray JClass::NewObjectArray(JNIEnv* jni_env, int32_t length, jobject initialElement) const {
+  return JObjectArray(jni_env, jni_env->NewObjectArray(length, ref(), initialElement));
+}
+
 JString::JString(JNIEnv* jni_env, const char* value)
     : JRef(jni_env, value == nullptr ? nullptr : jni_env->NewStringUTF(value)) {
 }
@@ -436,16 +440,13 @@ void JString::InitializeStatics(Jni jni) {
 JClass JString::string_class_;
 jmethodID JString::value_of_method_ = nullptr;
 
-JObjectArray JClass::NewObjectArray(JNIEnv* jni_env, int32_t length, jobject initialElement) const {
-  return JObjectArray(jni_env, jni_env->NewObjectArray(length, ref(), initialElement));
+JShortArray::JShortArray(JNIEnv* jni_env, int32_t length)
+    : JRef(jni_env, jni_env->NewShortArray(length)),
+      length_(length) {
 }
 
-JClass Jni::GetClass(const char* name) const {
-  jclass clazz = jni_env_->FindClass(name);
-  if (clazz == nullptr) {
-    Log::Fatal(CLASS_NOT_FOUND, "Unable to find the %s class", name);
-  }
-  return JClass(jni_env_, clazz);
+void JShortArray::GetRegion(JNIEnv* jni_env, int32_t start, int32_t len, int16_t* buf) const {
+  jni_env->GetShortArrayRegion(ref(), start, len, buf);
 }
 
 JObject JObjectArray::GetElement(JNIEnv* jni_env, int32_t index) const {
@@ -456,31 +457,32 @@ void JObjectArray::SetElement(JNIEnv* jni_env, int32_t index, const JObject& ele
   jni_env->SetObjectArrayElement(ref(), index, element);
 }
 
-JCharArray::JCharArray(JNIEnv* jni_env, int32_t length)
-    : JRef(jni_env, jni_env->NewShortArray(length)) {
+JClass Jni::GetClass(const char* name) const {
+  jclass clazz = jni_env_->FindClass(name);
+  if (clazz == nullptr) {
+    Log::Fatal(CLASS_NOT_FOUND, "Unable to find the %s class", name);
+  }
+  return JClass(jni_env_, clazz);
 }
 
-JCharArray::JCharArray(JNIEnv* jni_env, int32_t length, const uint16_t* elements)
-    : JRef(jni_env, jni_env->NewShortArray(length)) {
-  SetRegion(jni_env, 0, length, elements);
+JCharArray JCharArray::Create(JNIEnv* jni_env, int32_t length) {
+  return JCharArray(jni_env, jni_env->NewCharArray(length));
 }
 
-JShortArray::JShortArray(JNIEnv* jni_env, int32_t length)
-    : JRef(jni_env, jni_env->NewShortArray(length)),
-      length_(length) {
+JCharArray JCharArray::Create(JNIEnv* jni_env, int32_t length, const uint16_t* chars) {
+  JCharArray array = Create(jni_env, length);
+  array.SetRegion(jni_env, 0, length, chars);
+  return array;
 }
 
-void JShortArray::GetRegion(JNIEnv* jni_env, int32_t start, int32_t len, int16_t* buf) const {
-  jni_env->GetShortArrayRegion(ref(), start, len, buf);
+JFloatArray JFloatArray::Create(JNIEnv* jni_env, int32_t length) {
+  return JFloatArray(jni_env, jni_env->NewFloatArray(length));
 }
 
-JFloatArray::JFloatArray(JNIEnv* jni_env, int32_t length)
-  : JRef(jni_env, jni_env->NewFloatArray(length)) {
-}
-
-JFloatArray::JFloatArray(JNIEnv* jni_env, int32_t length, const float* elements)
-    : JRef(jni_env, jni_env->NewFloatArray(length)) {
-      SetRegion(jni_env, 0, length, elements);
+JFloatArray JFloatArray::Create(JNIEnv* jni_env, int32_t length, const float* elements) {
+  JFloatArray array = Create(jni_env, length);
+  array.SetRegion(jni_env, 0, length, elements);
+  return array;
 }
 
 std::vector<int64_t> Jni::GetElements(jlongArray array) const {

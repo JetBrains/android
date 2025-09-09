@@ -23,7 +23,7 @@ using namespace screensharing;
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_android_tools_screensharing_Main_nativeMain(JNIEnv* jni_env, jclass thisClass, jobjectArray argArray) {  //nolint:unparam
+Java_com_android_tools_screensharing_Main_nativeMain(JNIEnv* jni_env, jclass thisClass, jobjectArray argArray) {
   Log::I("Screen sharing agent started");
   Jvm::Initialize(jni_env);
 

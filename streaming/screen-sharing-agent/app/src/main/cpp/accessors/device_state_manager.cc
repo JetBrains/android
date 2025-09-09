@@ -306,7 +306,7 @@ bool DeviceStateManager::state_overridden_ = false;
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_android_tools_screensharing_DeviceStateManagerCallback_onDeviceStateInfoChanged(
-    JNIEnv* jni_env, jobject thiz, jobject info) {  //nolint:unparam
+    JNIEnv* jni_env, jobject thiz, jobject info) {
   Jni jni = Jni(jni_env);
   JObject device_state_info(jni, std::move(info));
   DeviceStateManager::OnDeviceStateChanged(jni, device_state_info);
