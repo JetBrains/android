@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.ui.mainView
 
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.stdui.CommonButton
+import com.android.tools.adtui.stdui.CommonToggleButton
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.ExportDialogParams
 import com.android.tools.idea.sqlite.model.ExportDialogParams.ExportDatabaseDialogParams
@@ -78,7 +79,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   private val refreshSchemaButton = CommonButton(AllIcons.Actions.Refresh)
   private val runSqlButton = CommonButton(StudioIcons.DatabaseInspector.NEW_QUERY)
   private val keepConnectionsOpenButton =
-    CommonButton(StudioIcons.DatabaseInspector.KEEP_DATABASES_OPEN)
+    CommonToggleButton(StudioIcons.DatabaseInspector.KEEP_DATABASES_OPEN)
   private val exportButton = CommonButton(AllIcons.ToolbarDecorator.Export)
 
   val component = rootPanel
@@ -100,6 +101,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   }
 
   fun updateKeepConnectionOpenButton(enabled: Boolean) {
+    keepConnectionsOpenButton.isSelected = enabled
     if (enabled) {
       keepConnectionsOpenButton.icon = StudioIcons.DatabaseInspector.KEEP_DATABASES_OPEN
     } else {

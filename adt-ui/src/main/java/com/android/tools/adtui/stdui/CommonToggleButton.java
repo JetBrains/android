@@ -15,12 +15,17 @@
  */
 package com.android.tools.adtui.stdui;
 
-import javax.swing.*;
+import javax.swing.Icon;
+import javax.swing.JToggleButton;
 
 public class CommonToggleButton extends JToggleButton {
 
   public CommonToggleButton(String text, Icon icon) {
     super(text, icon);
+  }
+
+  public CommonToggleButton(Icon icon) {
+    super(icon);
   }
 
   @Override

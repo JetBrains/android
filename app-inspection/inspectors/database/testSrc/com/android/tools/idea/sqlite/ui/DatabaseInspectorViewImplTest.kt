@@ -37,8 +37,8 @@ import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.ui.treeStructure.Tree
 import icons.StudioIcons
 import java.awt.Dimension
-import javax.swing.JButton
 import javax.swing.JPanel
+import javax.swing.JToggleButton
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
 
@@ -463,7 +463,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Prepare
     val button =
       TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" }
-        as JButton
+        as JToggleButton
 
     // Assert
     assertEquals(StudioIcons.DatabaseInspector.KEEP_DATABASES_OPEN, button.icon)
@@ -489,7 +489,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
       SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file2")))
     val keepConnectionsOpenButton =
       TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" }
-        as JButton
+        as JToggleButton
 
     // Act
     view.updateDatabases(
@@ -520,7 +520,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val liveDatabaseId = SqliteDatabaseId.fromLiveDatabase("", 0)
     val keepConnectionsOpenButton =
       TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" }
-        as JButton
+        as JToggleButton
 
     // Act
     view.updateDatabases(
@@ -546,7 +546,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val liveDatabaseId = SqliteDatabaseId.fromLiveDatabase("", 0)
     val keepConnectionsOpenButton =
       TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" }
-        as JButton
+        as JToggleButton
 
     // Act
     view.updateDatabases(
