@@ -53,7 +53,7 @@ class ZoomToSelectionAction(
   override fun actionPerformed(e: AnActionEvent) {
     val surface = e.getRequiredData(DESIGN_SURFACE) as NlDesignSurface
     val sceneView = surface.getSceneViewAt(x, y) ?: return
-    var zoomTarget: Rectangle = zoomTargetProvider(sceneView, x, y, logger) ?: return
+    val zoomTarget = zoomTargetProvider(sceneView, x, y, logger) ?: return
     surface.zoomAndCenter(sceneView, zoomTarget)
   }
 }
