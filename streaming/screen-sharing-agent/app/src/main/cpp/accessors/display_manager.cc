@@ -38,7 +38,7 @@ void DisplayManager::InitializeStatics(Jni jni) {
     display_manager_global_class_ = jni.GetClass("android/hardware/display/DisplayManagerGlobal");
     jmethodID get_instance_method =
         display_manager_global_class_.GetStaticMethod("getInstance", "()Landroid/hardware/display/DisplayManagerGlobal;");
-    display_manager_global_ = display_manager_global_class_.CallStaticObjectMethod(get_instance_method);
+    display_manager_global_ = display_manager_global_class_.CallStaticObjectMethod(jni, get_instance_method);
 
     get_display_info_method_ = display_manager_global_class_.GetMethod("getDisplayInfo", "(I)Landroid/view/DisplayInfo;");
     get_display_ids_method_ = display_manager_global_class_.GetMethod("getDisplayIds", "()[I");

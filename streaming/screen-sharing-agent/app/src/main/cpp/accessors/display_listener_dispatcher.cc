@@ -51,15 +51,15 @@ void DisplayListenerDispatcher::Start() {
 
 void DisplayListenerDispatcher::Run() {
   JClass looper_class = jni_.GetClass("android/os/Looper");
-  looper_class.CallStaticVoidMethod(looper_class.GetStaticMethod("prepare", "()V"));
+  looper_class.CallStaticVoidMethod(jni_, looper_class.GetStaticMethod("prepare", "()V"));
 
   // Store the looper so that it can be stopped later.
-  JObject looper = looper_class.CallStaticObjectMethod(looper_class.GetStaticMethod("myLooper", "()Landroid/os/Looper;"));
+  JObject looper = looper_class.CallStaticObjectMethod(jni_, looper_class.GetStaticMethod("myLooper", "()Landroid/os/Looper;"));
   looper.MakeGlobal();
   looper_promise_.set_value(std::move(looper));
 
   JClass display_listener_class = jni_.GetClass("com/android/tools/screensharing/DisplayListener");
-  JObject listener = display_listener_class.NewObject(display_listener_class.GetConstructor("()V"));
+  JObject listener = display_listener_class.NewObject(jni_, display_listener_class.GetConstructor("()V"));
 
   if (Agent::feature_level() >= 35) {
     jmethodID register_display_listener_method = DisplayManager::display_manager_global_class_.GetMethod(
@@ -97,7 +97,7 @@ void DisplayListenerDispatcher::Run() {
         "(Landroid/hardware/display/DisplayManager$DisplayListener;Landroid/os/Handler;)V");
     DisplayManager::display_manager_global_.CallVoidMethod(jni_, register_display_listener_method, listener.ref(), nullptr);
   }
-  looper_class.CallStaticVoidMethod(looper_class.GetStaticMethod("loop", "()V"));
+  looper_class.CallStaticVoidMethod(jni_, looper_class.GetStaticMethod(jni_, "loop", "()V"));
 }
 
 void DisplayListenerDispatcher::Stop() {

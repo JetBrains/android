@@ -87,7 +87,7 @@ string GetVideoEncoderDetails(const CodecInfo& codec_info, int32_t width, int32_
   Jni jni = Jvm::GetJni();
   JClass clazz = jni.GetClass("com/android/tools/screensharing/CodecInfo");
   jmethodID method = clazz.GetStaticMethod("getVideoEncoderDetails", "(Ljava/lang/String;Ljava/lang/String;II)Ljava/lang/String;");
-  JObject details = clazz.CallStaticObjectMethod(method, JString(jni, codec_name).ref(), JString(jni, mime_type).ref(), width, height);
+  JObject details = clazz.CallStaticObjectMethod(jni, method, JString(jni, codec_name).ref(), JString(jni, mime_type).ref(), width, height);
   if (details.IsNull()) {
     return "Failed to obtain parameters of " + codec_info.name;
   }

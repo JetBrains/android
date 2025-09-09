@@ -80,7 +80,7 @@ CodecInfo* SelectVideoEncoder(const string& mime_type) {
   JClass clazz = jni.GetClass("com/android/tools/screensharing/CodecInfo");
   jmethodID method = clazz.GetStaticMethod("selectVideoEncoderForType",
                                            "(Ljava/lang/String;)Lcom/android/tools/screensharing/CodecInfo;");
-  JObject codec_info = clazz.CallStaticObjectMethod(method, JString(jni, mime_type).ref());
+  JObject codec_info = clazz.CallStaticObjectMethod(jni, method, JString(jni, mime_type).ref());
   if (codec_info.IsNull()) {
     Log::Fatal(VIDEO_ENCODER_NOT_FOUND, "No video encoder is available for %s", mime_type.c_str());
   }

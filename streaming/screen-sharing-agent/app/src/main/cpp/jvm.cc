@@ -74,14 +74,6 @@ JObject JObject::CallObjectMethod(JNIEnv* jni_env, jmethodID method, ...) const 
   return result;
 }
 
-bool JObject::CallBooleanMethod(jmethodID method, ...) const {
-  va_list args;
-  va_start(args, method);
-  jboolean result = GetJni()->CallBooleanMethodV(ref_, method, args);
-  va_end(args);
-  return result != JNI_FALSE;
-}
-
 bool JObject::CallBooleanMethod(JNIEnv* jni_env, jmethodID method, ...) const {
   va_list args;
   va_start(args, method);
@@ -106,26 +98,10 @@ int32_t JObject::CallIntMethod(JNIEnv* jni_env, jmethodID method, ...) const {
   return result;
 }
 
-int8_t JObject::CallByteMethod(jmethodID method, ...) const {
-  va_list args;
-  va_start(args, method);
-  int8_t result = GetJni()->CallIntMethodV(ref_, method, args);
-  va_end(args);
-  return result;
-}
-
 int8_t JObject::CallByteMethod(JNIEnv* jni_env, jmethodID method, ...) const {
   va_list args;
   va_start(args, method);
   int8_t result = jni_env->CallByteMethodV(ref_, method, args);
-  va_end(args);
-  return result;
-}
-
-float JObject::CallFloatMethod(jmethodID method, ...) const {
-  va_list args;
-  va_start(args, method);
-  float result = GetJni()->CallIntMethodV(ref_, method, args);
   va_end(args);
   return result;
 }
@@ -318,15 +294,6 @@ string JClass::GetName(JNIEnv* jni_env) const {
   return JString(jni_env, name).GetValue();
 }
 
-JObject JClass::NewObject(jmethodID constructor, ...) const {
-  JNIEnv* jni_env = GetJni();
-  va_list args;
-  va_start(args, constructor);
-  JObject result(jni_env, jni_env->NewObjectV(ref(), constructor, args));
-  va_end(args);
-  return result;
-}
-
 JObject JClass::NewObject(JNIEnv* jni_env, jmethodID constructor, ...) const {
   va_list args;
   va_start(args, constructor);
@@ -352,28 +319,10 @@ JObjectArray JClass::NewObjectArray(JNIEnv* jni_env, int32_t length, jobject ini
   return JObjectArray(jni_env, jni_env->NewObjectArray(length, ref(), initial_element));
 }
 
-JObject JClass::CallStaticObjectMethod(jmethodID method, ...) const {
-  JNIEnv* jni_env = GetJni();
-  va_list args;
-  va_start(args, method);
-  JObject result(jni_env, jni_env->CallStaticObjectMethodV(ref(), method, args));
-  va_end(args);
-  return result;
-}
-
 JObject JClass::CallStaticObjectMethod(JNIEnv* jni_env, jmethodID method, ...) const {
   va_list args;
   va_start(args, method);
   JObject result(jni_env, jni_env->CallStaticObjectMethodV(ref(), method, args));
-  va_end(args);
-  return result;
-}
-
-int32_t JClass::CallStaticIntMethod(jmethodID method, ...) const {
-  JNIEnv* jni_env = GetJni();
-  va_list args;
-  va_start(args, method);
-  int32_t result = jni_env->CallStaticIntMethodV(ref(), method, args);
   va_end(args);
   return result;
 }
@@ -384,13 +333,6 @@ int32_t JClass::CallStaticIntMethod(JNIEnv* jni_env, jmethodID method, ...) cons
   int32_t result = jni_env->CallStaticIntMethodV(ref(), method, args);
   va_end(args);
   return result;
-}
-
-void JClass::CallStaticVoidMethod(jmethodID method, ...) const {
-  va_list args;
-  va_start(args, method);
-  GetJni()->CallStaticVoidMethodV(ref(), method, args);
-  va_end(args);
 }
 
 void JClass::CallStaticVoidMethod(JNIEnv* jni_env, jmethodID method, ...) const {
@@ -522,8 +464,9 @@ string JThrowable::Describe() const {
 }
 
 int32_t JNumber::IntValue() {
-  InitializeStatics(GetJni());
-  return CallIntMethod(int_value_method_);
+  Jni jni = GetJni();
+  InitializeStatics(jni);
+  return CallIntMethod(jni, int_value_method_);
 }
 
 void JNumber::InitializeStatics(Jni jni) {
@@ -539,7 +482,7 @@ jmethodID JNumber::int_value_method_ = nullptr;
 JIterator JIterable::Iterator() {
   JNIEnv* jni = GetJni();
   InitializeStatics(jni);
-  return JIterator(CallObjectMethod(iterator_method_));
+  return JIterator(CallObjectMethod(jni, iterator_method_));
 }
 
 void JIterable::InitializeStatics(Jni jni) {
@@ -591,7 +534,7 @@ void Jvm::DetachCurrentThread() {
   jni->ExceptionClear();
   JClass system = jni.GetClass("java/lang/System");
   jmethodID exit_method = system.GetStaticMethod(jni, "exit", "(I)V");
-  system.CallStaticVoidMethod(exit_method, exitCode);
+  system.CallStaticVoidMethod(jni, exit_method, exitCode);
   assert(false);
 }
 

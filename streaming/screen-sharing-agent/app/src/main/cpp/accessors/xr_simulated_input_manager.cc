@@ -49,15 +49,16 @@ void XrSimulatedInputManager::InitializeStatics(Jni jni) {
     inject_head_angular_velocity_method_ = clazz.GetMethod("injectHeadAngularVelocity", "([F)V");
     inject_head_movement_velocity_method_ = clazz.GetMethod("injectHeadMovementVelocity", "([F)V");
     recenter_method_ = clazz.GetMethod("recenter", "()V");
-    set_passthrough_coefficient_method_ = clazz.GetMethod("setPassthroughCoefficient", "(F)V");
-    set_environment_method_ = clazz.GetMethod("setEnvironment", "(B)V");
-    jmethodID register_listener_method = clazz.GetMethod("registerListener", "(Landroid/services/xr/simulatedinputmanager/IXrSimulatedInputStateCallback;)V");
+    set_passthrough_coefficient_method_ = clazz.GetMethod(jni, "setPassthroughCoefficient", "(F)V");
+    set_environment_method_ = clazz.GetMethod(jni, "setEnvironment", "(B)V");
+    jmethodID register_listener_method = clazz.GetMethod(
+        jni, "registerListener", "(Landroid/services/xr/simulatedinputmanager/IXrSimulatedInputStateCallback;)V");
     JClass callback_class = jni.GetClass("com/android/tools/screensharing/XrSimulatedInputStateCallback");
-    JObject callback = callback_class.NewObject(callback_class.GetConstructor("()V"));
+    JObject callback = callback_class.NewObject(jni, callback_class.GetConstructor(jni, "()V"));
     xr_simulated_input_manager_.CallVoidMethod(jni, register_listener_method, callback.ref());
     // Obtain a fresh passthrough coefficient and environment after setting up the callback.
     passthrough_coefficient_ = xr_simulated_input_manager_.CallFloatMethod(jni, clazz.GetMethod("getPassthroughCoefficient", "()F"));
-    environment_ = xr_simulated_input_manager_.CallByteMethod(jni, clazz.GetMethod("getEnvironment", "()B"));
+    environment_ = xr_simulated_input_manager_.CallByteMethod(jni, clazz.GetMethod(jni, "getEnvironment", "()B"));
     Log::D("XrSimulatedInputManager::InitializeStatics: passthrough_coefficient_=%.3g environment=%d", passthrough_coefficient_, environment_);
     xr_simulated_input_manager_.MakeGlobal();
   }

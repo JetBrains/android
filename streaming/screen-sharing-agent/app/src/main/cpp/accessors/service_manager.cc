@@ -51,7 +51,7 @@ JObject ServiceManager::GetServiceAsInterface(Jni jni, const char* name, const c
   JClass stub_class = jni.GetClass(stub_class_name.c_str());
   string method_signature = string("(Landroid/os/IBinder;)L") + type + ";";
   jmethodID as_interface_method = stub_class.GetStaticMethod("asInterface", method_signature.c_str());
-  auto service = stub_class.CallStaticObjectMethod(as_interface_method, binder.ref());
+  auto service = stub_class.CallStaticObjectMethod(jni, as_interface_method, binder.ref());
   if (service.IsNull() && !allow_null) {
     auto last_slash = strrchr(type, '/');
     auto type_name = last_slash == nullptr ? type : last_slash + 1;

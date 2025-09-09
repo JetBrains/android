@@ -153,7 +153,7 @@ bool DeviceStateManager::InitializeStatics(Jni jni) {
       JClass clazz = device_state_manager_.GetClass();
       get_device_state_info_method_ = clazz.GetMethod("getDeviceStateInfo", "()Landroid/hardware/devicestate/DeviceStateInfo;");
 
-      JObject device_state_info = device_state_manager_.CallObjectMethod(get_device_state_info_method_);
+      JObject device_state_info = device_state_manager_.CallObjectMethod(jni, get_device_state_info_method_);
       if (device_state_info.IsNull()) {
         // May happen if the initial state hasn't been committed.
         Log::W(jni.GetAndClearException(), "Device state is not available");
@@ -197,7 +197,7 @@ bool DeviceStateManager::InitializeStatics(Jni jni) {
           // Don't do it on Xiaomi API 34 to avoid a crash due to
           // "SecurityException: The calling process has already registered an IDeviceStateManagerCallback"
           clazz = jni.GetClass("com/android/tools/screensharing/DeviceStateManagerCallback");
-          JObject callback = clazz.NewObject(clazz.GetConstructor("()V"));
+          JObject callback = clazz.NewObject(jni, clazz.GetConstructor("()V"));
           if (registerCallbackReturnsStateInfo) {
             device_state_info2 = device_state_manager_.CallObjectMethod(jni, register_callback_method, callback.ref());
           } else {

@@ -96,13 +96,10 @@ public:
   [[nodiscard]] JClass GetClass(JNIEnv* jni) const;
   JObject CallObjectMethod(jmethodID method, ...) const;
   JObject CallObjectMethod(JNIEnv* jni_env, jmethodID method, ...) const;
-  bool CallBooleanMethod(jmethodID method, ...) const;
   bool CallBooleanMethod(JNIEnv* jni_env, jmethodID method, ...) const;
   int32_t CallIntMethod(jmethodID method, ...) const;
   int32_t CallIntMethod(JNIEnv* jni_env, jmethodID method, ...) const;
-  int8_t CallByteMethod(jmethodID method, ...) const;
   int8_t CallByteMethod(JNIEnv* jni_env, jmethodID method, ...) const;
-  float CallFloatMethod(jmethodID method, ...) const;
   float CallFloatMethod(JNIEnv* jni_env, jmethodID method, ...) const;
   void CallVoidMethod(jmethodID method, ...) const;
   void CallVoidMethod(JNIEnv* jni_env, jmethodID method, ...) const;
@@ -249,15 +246,11 @@ public:
   }
   [[nodiscard]] jmethodID FindStaticMethod(JNIEnv* jni_env, const char* name, const char* signature) const;
 
-  [[nodiscard]] JObject NewObject(jmethodID constructor, ...) const;
   [[nodiscard]] JObject NewObject(JNIEnv* jni_env, jmethodID constructor, ...) const;
   [[nodiscard]] JObjectArray NewObjectArray(int32_t length, jobject initial_element) const;
   [[nodiscard]] JObjectArray NewObjectArray(JNIEnv* jni_env, int32_t length, jobject initial_element) const;
-  JObject CallStaticObjectMethod(jmethodID method, ...) const;
   JObject CallStaticObjectMethod(JNIEnv* jni_env, jmethodID method, ...) const;
-  int32_t CallStaticIntMethod(jmethodID method, ...) const;
   int32_t CallStaticIntMethod(JNIEnv* jni_env, jmethodID method, ...) const;
-  void CallStaticVoidMethod(jmethodID method, ...) const;
   void CallStaticVoidMethod(JNIEnv* jni_env, jmethodID method, ...) const;
 
   [[nodiscard]] JClass GetSuperclass(JNIEnv* jni_env) const;
@@ -385,10 +378,10 @@ public:
       : JObject::JObject(std::move(iterator)) {}
 
   [[nodiscard]] bool HasNext() {
-    return CallBooleanMethod(has_next_method_);
+    return CallBooleanMethod(GetJni(), has_next_method_);
   }
   [[nodiscard]] JObject Next() {
-    return CallObjectMethod(next_method_);
+    return CallObjectMethod(GetJni(), next_method_);
   }
 
 private:

@@ -41,32 +41,33 @@ void DisplayControl::InitializeStatics(Jni jni) {
       // SurfaceControl doesn't have the necessary method. Load libandroid_servers.so and use DisplayControl instead.
       class_.Release();
       JClass class_loader_class = jni.GetClass("java/lang/ClassLoader");
-      jmethodID get_system_class_loader_method = class_loader_class.GetStaticMethod("getSystemClassLoader", "()Ljava/lang/ClassLoader;");
-      JObject system_class_loader = class_loader_class.CallStaticObjectMethod(get_system_class_loader_method);
-      jmethodID load_class_method = class_loader_class.GetMethod("loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
+      jmethodID get_system_class_loader_method =
+          class_loader_class.GetStaticMethod(jni, "getSystemClassLoader", "()Ljava/lang/ClassLoader;");
+      JObject system_class_loader = class_loader_class.CallStaticObjectMethod(jni, get_system_class_loader_method);
+      jmethodID load_class_method = class_loader_class.GetMethod(jni, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
       JClass class_loader_factory_class = jni.GetClass("com/android/internal/os/ClassLoaderFactory");
       jmethodID create_class_loader_method = class_loader_factory_class.GetStaticMethod(
-          "createClassLoader",
+          jni, "createClassLoader",
           "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/ClassLoader;IZLjava/lang/String;)Ljava/lang/ClassLoader;");
       JObject class_loader = class_loader_factory_class.CallStaticObjectMethod(
-          create_class_loader_method, JString(jni, "/system/framework/services.jar").ref(), nullptr, nullptr, system_class_loader.ref(),
-          0, JNI_TRUE, nullptr);
+          jni, create_class_loader_method, JString(jni, "/system/framework/services.jar").ref(), nullptr, nullptr,
+          system_class_loader.ref(), 0, JNI_TRUE, nullptr);
       JClass display_control_class =
-          JClass(class_loader.CallObjectMethod(load_class_method, JString(jni, "com.android.server.display.DisplayControl").ref()));
+          JClass(class_loader.CallObjectMethod(jni, load_class_method, JString(jni, "com.android.server.display.DisplayControl").ref()));
 
       JClass runtime_class = jni.GetClass("java/lang/Runtime");
-      jmethodID get_runtime_method = runtime_class.GetStaticMethod("getRuntime", "()Ljava/lang/Runtime;");
-      JObject runtime = runtime_class.CallStaticObjectMethod(get_runtime_method);
-      jmethodID load_library0_method = runtime_class.GetMethod("loadLibrary0", "(Ljava/lang/Class;Ljava/lang/String;)V");
-      runtime.CallVoidMethod(load_library0_method, display_control_class.ref(), JString(jni, "android_servers").ref());
+      jmethodID get_runtime_method = runtime_class.GetStaticMethod(jni, "getRuntime", "()Ljava/lang/Runtime;");
+      JObject runtime = runtime_class.CallStaticObjectMethod(jni, get_runtime_method);
+      jmethodID load_library0_method = runtime_class.GetMethod(jni, "loadLibrary0", "(Ljava/lang/Class;Ljava/lang/String;)V");
+      runtime.CallVoidMethod(jni, load_library0_method, display_control_class.ref(), JString(jni, "android_servers").ref());
       JThrowable exception = jni.GetAndClearException();
       if (exception.IsNotNull()) {
         Log::W(std::move(exception), "Unable to load libandroid_servers.so");
         return;
       }
       class_ = std::move(display_control_class);
-      get_physical_display_token_method_ = class_.GetStaticMethod("getPhysicalDisplayToken", "(J)Landroid/os/IBinder;");
-      get_physical_display_ids_method_ = class_.GetStaticMethod("getPhysicalDisplayIds", "()[J");
+      get_physical_display_token_method_ = class_.GetStaticMethod(jni, "getPhysicalDisplayToken", "(J)Landroid/os/IBinder;");
+      get_physical_display_ids_method_ = class_.GetStaticMethod(jni, "getPhysicalDisplayIds", "()[J");
     }
     class_.MakeGlobal();
     Log::D("DisplayControl::InitializeStatics: get_physical_display_token_method_=%p, get_physical_display_ids_method_=%p",

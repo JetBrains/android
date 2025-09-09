@@ -46,7 +46,7 @@ constexpr int AudioManager_GET_DEVICES_INPUTS = 1;
 int32_t GetRemoteSubmixDeviceId(Jni jni) {
   JClass audio_manager_class = jni.GetClass("android/media/AudioManager");
   jmethodID method = audio_manager_class.GetStaticMethod("getDevicesStatic", "(I)[Landroid/media/AudioDeviceInfo;");
-  JObjectArray devices(audio_manager_class.CallStaticObjectMethod(method, AudioManager_GET_DEVICES_INPUTS));
+  JObjectArray devices(audio_manager_class.CallStaticObjectMethod(jni, method, AudioManager_GET_DEVICES_INPUTS));
   auto length = devices.GetLength();
   jmethodID get_type_method;
   jmethodID get_id_method;
@@ -57,7 +57,7 @@ int32_t GetRemoteSubmixDeviceId(Jni jni) {
       get_type_method = audio_device_info_class.GetMethod("getType", "()I");
       get_id_method = audio_device_info_class.GetMethod("getId", "()I");
     }
-    if (device.CallIntMethod(get_type_method) == TYPE_REMOTE_SUBMIX) {
+    if (device.CallIntMethod(jni, get_type_method) == TYPE_REMOTE_SUBMIX) {
       return device.CallIntMethod(get_id_method);
     }
   }

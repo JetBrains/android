@@ -46,7 +46,7 @@ JObject MotionEvent::ToJava() const {
     return obj;
   }
   if (action_button && set_action_button_method_) {
-    obj.CallVoidMethod(set_action_button_method_, action_button);
+    obj.CallVoidMethod(jni_, set_action_button_method_, action_button);
   }
   return obj;
 }

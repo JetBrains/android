@@ -42,57 +42,57 @@ constexpr int AudioTimestamp_TIMEBASE_MONOTONIC = 0;
 JObject CreateAudioRecord(Jni jni, int32_t audio_sample_rate) {
   // Create an AudioAttributes object representing an unused usage type.
   JClass audio_attributes_builder_class = jni.GetClass("android/media/AudioAttributes$Builder");
-  JObject audio_attributes_builder = audio_attributes_builder_class.NewObject(audio_attributes_builder_class.GetConstructor());
+  JObject audio_attributes_builder = audio_attributes_builder_class.NewObject(jni, audio_attributes_builder_class.GetConstructor());
   int unused_usage = Agent::feature_level() > 35 || (Agent::feature_level() == 35 && Agent::device_manufacturer() == "Google") ?
       AudioAttributes_USAGE_SPEAKER_CLEANUP : AudioAttributes_USAGE_VEHICLE_STATUS;
   jmethodID set_system_usage_method =
-      audio_attributes_builder_class.GetMethod("setSystemUsage", "(I)Landroid/media/AudioAttributes$Builder;");
-  audio_attributes_builder.CallObjectMethod(set_system_usage_method, unused_usage);
-  jmethodID build_method = audio_attributes_builder_class.GetMethod("build", "()Landroid/media/AudioAttributes;");
-  JObject attributes = audio_attributes_builder.CallObjectMethod(build_method);
+      audio_attributes_builder_class.GetMethod(jni, "setSystemUsage", "(I)Landroid/media/AudioAttributes$Builder;");
+  audio_attributes_builder.CallObjectMethod(jni, set_system_usage_method, unused_usage);
+  jmethodID build_method = audio_attributes_builder_class.GetMethod(jni, "build", "()Landroid/media/AudioAttributes;");
+  JObject attributes = audio_attributes_builder.CallObjectMethod(jni, build_method);
 
   // Create an AudioMixingRule that includes all audio types except the unused one.
   JClass mixing_rule_builder_class = jni.GetClass("android/media/audiopolicy/AudioMixingRule$Builder");
-  JObject mixing_rule_builder = mixing_rule_builder_class.NewObject(mixing_rule_builder_class.GetConstructor());
-  jmethodID exclude_rule_method =
-      mixing_rule_builder_class.GetMethod("excludeRule",
-                                          "(Landroid/media/AudioAttributes;I)Landroid/media/audiopolicy/AudioMixingRule$Builder;");
-  mixing_rule_builder.CallObjectMethod(exclude_rule_method, attributes.ref(), AudioMixingRule_RULE_MATCH_ATTRIBUTE_USAGE);
-  build_method = mixing_rule_builder_class.GetMethod("build", "()Landroid/media/audiopolicy/AudioMixingRule;");
+  JObject mixing_rule_builder = mixing_rule_builder_class.NewObject(jni, mixing_rule_builder_class.GetConstructor());
+  jmethodID exclude_rule_method = mixing_rule_builder_class.GetMethod(
+      jni, "excludeRule", "(Landroid/media/AudioAttributes;I)Landroid/media/audiopolicy/AudioMixingRule$Builder;");
+  mixing_rule_builder.CallObjectMethod(jni, exclude_rule_method, attributes.ref(), AudioMixingRule_RULE_MATCH_ATTRIBUTE_USAGE);
+  build_method = mixing_rule_builder_class.GetMethod(jni, "build", "()Landroid/media/audiopolicy/AudioMixingRule;");
   JObject mixing_rule = mixing_rule_builder.CallObjectMethod(build_method);
 
   // Create an AudioFormat.
   JClass format_builder_class = jni.GetClass("android/media/AudioFormat$Builder");
-  JObject format_builder = format_builder_class.NewObject(format_builder_class.GetConstructor());
-  jmethodID set_sample_rate_method = format_builder_class.GetMethod("setSampleRate", "(I)Landroid/media/AudioFormat$Builder;");
-  format_builder.CallObjectMethod(set_sample_rate_method, audio_sample_rate);
-  jmethodID set_encoding_method = format_builder_class.GetMethod("setEncoding", "(I)Landroid/media/AudioFormat$Builder;");
-  format_builder.CallObjectMethod(set_encoding_method, AudioFormat_ENCODING_PCM_16BIT);
-  jmethodID set_channel_mask_method = format_builder_class.GetMethod("setChannelMask", "(I)Landroid/media/AudioFormat$Builder;");
-  format_builder.CallObjectMethod(set_channel_mask_method, AudioFormat_CHANNEL_OUT_STEREO);
-  build_method = format_builder_class.GetMethod("build", "()Landroid/media/AudioFormat;");
-  JObject format = format_builder.CallObjectMethod(build_method);
+  JObject format_builder = format_builder_class.NewObject(jni, format_builder_class.GetConstructor());
+  jmethodID set_sample_rate_method = format_builder_class.GetMethod(jni, "setSampleRate", "(I)Landroid/media/AudioFormat$Builder;");
+  format_builder.CallObjectMethod(jni, set_sample_rate_method, audio_sample_rate);
+  jmethodID set_encoding_method = format_builder_class.GetMethod(jni, "setEncoding", "(I)Landroid/media/AudioFormat$Builder;");
+  format_builder.CallObjectMethod(jni, set_encoding_method, AudioFormat_ENCODING_PCM_16BIT);
+  jmethodID set_channel_mask_method = format_builder_class.GetMethod(jni, "setChannelMask", "(I)Landroid/media/AudioFormat$Builder;");
+  format_builder.CallObjectMethod(jni, set_channel_mask_method, AudioFormat_CHANNEL_OUT_STEREO);
+  build_method = format_builder_class.GetMethod(jni, "build", "()Landroid/media/AudioFormat;");
+  JObject format = format_builder.CallObjectMethod(jni, build_method);
 
   // Create an AudioMix.
   JClass mix_builder_class = jni.GetClass("android/media/audiopolicy/AudioMix$Builder");
-  JObject mix_builder =
-      mix_builder_class.NewObject(mix_builder_class.GetConstructor("(Landroid/media/audiopolicy/AudioMixingRule;)V"), mixing_rule.ref());
-  jmethodID set_format_method =
-      mix_builder_class.GetMethod("setFormat", "(Landroid/media/AudioFormat;)Landroid/media/audiopolicy/AudioMix$Builder;");
-  mix_builder.CallObjectMethod(set_format_method, format.ref());
-  jmethodID set_route_flags_method = mix_builder_class.GetMethod("setRouteFlags", "(I)Landroid/media/audiopolicy/AudioMix$Builder;");
-  mix_builder.CallObjectMethod(set_route_flags_method, AudioMix_ROUTE_FLAG_LOOP_BACK);
-  build_method = mix_builder_class.GetMethod("build", "()Landroid/media/audiopolicy/AudioMix;");
-  JObject mix = mix_builder.CallObjectMethod(build_method);
+  JObject mix_builder = mix_builder_class.NewObject(
+      jni, mix_builder_class.GetConstructor("(Landroid/media/audiopolicy/AudioMixingRule;)V"), mixing_rule.ref());
+  jmethodID set_format_method = mix_builder_class.GetMethod(
+      jni, "setFormat", "(Landroid/media/AudioFormat;)Landroid/media/audiopolicy/AudioMix$Builder;");
+  mix_builder.CallObjectMethod(jni, set_format_method, format.ref());
+  jmethodID set_route_flags_method = mix_builder_class.GetMethod(jni, "setRouteFlags", "(I)Landroid/media/audiopolicy/AudioMix$Builder;");
+  mix_builder.CallObjectMethod(jni, set_route_flags_method, AudioMix_ROUTE_FLAG_LOOP_BACK);
+  build_method = mix_builder_class.GetMethod(jni, "build", "()Landroid/media/audiopolicy/AudioMix;");
+  JObject mix = mix_builder.CallObjectMethod(jni, build_method);
 
   // Create an AudioPolicy.
   JClass policy_builder_class = jni.GetClass("android/media/audiopolicy/AudioPolicy$Builder");
-  JObject policy_builder = policy_builder_class.NewObject(policy_builder_class.GetConstructor("(Landroid/content/Context;)V"), nullptr);
-  jmethodID add_mix_method =
-      policy_builder_class.GetMethod("addMix", "(Landroid/media/audiopolicy/AudioMix;)Landroid/media/audiopolicy/AudioPolicy$Builder;");
-  policy_builder.CallObjectMethod(add_mix_method, mix.ref());
-  build_method = policy_builder_class.GetMethod("build", "()Landroid/media/audiopolicy/AudioPolicy;");
-  JObject policy = policy_builder.CallObjectMethod(build_method);
+  JObject policy_builder = policy_builder_class.NewObject(
+      jni, policy_builder_class.GetConstructor("(Landroid/content/Context;)V"), nullptr);
+  jmethodID add_mix_method = policy_builder_class.GetMethod(
+      jni, "addMix", "(Landroid/media/audiopolicy/AudioMix;)Landroid/media/audiopolicy/AudioPolicy$Builder;");
+  policy_builder.CallObjectMethod(jni, add_mix_method, mix.ref());
+  build_method = policy_builder_class.GetMethod(jni, "build", "()Landroid/media/audiopolicy/AudioPolicy;");
+  JObject policy = policy_builder.CallObjectMethod(jni, build_method);
   if (policy.IsNull()) {
     JThrowable exception = jni.GetAndClearException();
     if (exception.IsNotNull()) {
@@ -104,7 +104,7 @@ JObject CreateAudioRecord(Jni jni, int32_t audio_sample_rate) {
   JClass audio_manager_class = jni.GetClass("android/media/AudioManager");
   jmethodID register_audio_policy_method =
       audio_manager_class.GetStaticMethod("registerAudioPolicyStatic", "(Landroid/media/audiopolicy/AudioPolicy;)I");
-  int32_t res = audio_manager_class.CallStaticIntMethod(register_audio_policy_method, policy.ref());
+  int32_t res = audio_manager_class.CallStaticIntMethod(jni, register_audio_policy_method, policy.ref());
   if (res != 0) {
     Log::W("Unable to register audio policy: %d", res);
     return JObject();
@@ -134,8 +134,8 @@ AudioRecord::AudioRecord(Jni jni, int32_t audio_sample_rate)
   read_method_ = clazz.GetMethod("read", "([SII)I");
   get_timestamp_method_ = clazz.GetMethod("getTimestamp", "(Landroid/media/AudioTimestamp;I)I");
   JClass audio_timestamp_class = jni.GetClass("android/media/AudioTimestamp");
-  audio_timestamp_ = audio_timestamp_class.NewObject(audio_timestamp_class.GetConstructor());
-  audio_timestamp_nano_time_field_ = audio_timestamp_class.GetFieldId("nanoTime", "J");
+  audio_timestamp_ = audio_timestamp_class.NewObject(jni, audio_timestamp_class.GetConstructor());
+  audio_timestamp_nano_time_field_ = audio_timestamp_class.GetFieldId(jni, "nanoTime", "J");
 }
 
 AudioRecord::~AudioRecord() {
