@@ -17,6 +17,7 @@ package com.android.tools.idea.preview.actions
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -40,10 +41,8 @@ class ZoomToSelectionAction(
   private val logger = Logger.getInstance(ZoomToSelectionAction::class.java)
 
   override fun update(e: AnActionEvent) {
-    val surface = e.getData(DESIGN_SURFACE) as? NlDesignSurface
-    val sceneView = surface?.getSceneViewAt(x, y)
     e.presentation.isEnabledAndVisible =
-      (sceneView?.sceneManager as? LayoutlibSceneManager)?.renderResult != null
+      (e.getData(SCENE_VIEW)?.sceneManager as? LayoutlibSceneManager)?.renderResult != null
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread {
@@ -51,8 +50,8 @@ class ZoomToSelectionAction(
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val surface = e.getRequiredData(DESIGN_SURFACE) as NlDesignSurface
-    val sceneView = surface.getSceneViewAt(x, y) ?: return
+    val surface = e.getData(DESIGN_SURFACE) as NlDesignSurface
+    val sceneView = e.getData(SCENE_VIEW) ?: return
     val zoomTarget = zoomTargetProvider(sceneView, x, y, logger) ?: return
     surface.zoomAndCenter(sceneView, zoomTarget)
   }

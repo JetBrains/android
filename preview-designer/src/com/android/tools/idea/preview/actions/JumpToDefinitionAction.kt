@@ -16,7 +16,7 @@
 package com.android.tools.idea.preview.actions
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -38,10 +38,8 @@ class JumpToDefinitionAction(
 ) : AnAction(message("action.jump.to.definition")) {
 
   override fun update(e: AnActionEvent) {
-    val surface = e.getData(DESIGN_SURFACE)
-    val sceneView = surface?.getSceneViewAt(x, y)
     e.presentation.isEnabledAndVisible =
-      (sceneView?.sceneManager as? LayoutlibSceneManager)?.renderResult != null
+      (e.getData(SCENE_VIEW)?.sceneManager as? LayoutlibSceneManager)?.renderResult != null
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread {
@@ -49,8 +47,7 @@ class JumpToDefinitionAction(
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val surface = e.getRequiredData(DESIGN_SURFACE)
-    val sceneView = surface.getSceneViewAt(x, y) ?: return
+    val sceneView = e.getData(SCENE_VIEW) ?: return
     sceneView.createCoroutineScope().launch {
       navigationHandler
         .findNavigatablesWithCoordinates(
