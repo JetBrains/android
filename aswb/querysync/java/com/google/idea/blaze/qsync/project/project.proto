@@ -31,11 +31,6 @@ message Module {
   string name = 1;
   ModuleType type = 2;
   repeated ContentEntry content_entries = 3;
-  /**
-   * Libraries for this module. The entries in this set refer to names of
-   * libraries in the containing project proto.
-   */
-  repeated string library_name = 4;
 
   // TODO these two are temporary. They should be better represented, reflecting
   //  the IJ project model API, and the syncPlugin.updateProjectStructure call
