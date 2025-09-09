@@ -502,10 +502,13 @@ java_library(
     ],
 )
 
-java_library(
+aswb_library(
     name = "integration_test_utils",
     testonly = 1,
-    srcs = glob(["tests/utils/integration/**/*.java"]),
+    srcs = glob([
+        "tests/utils/integration/**/*.java",
+        "tests/utils/integration/**/*.kt",
+    ]),
     data = [
         "//tools/adt/idea/aswb/base/tests/utils/testdata/java/com/test",
         "//tools/adt/idea/aswb/base/tests/utils/testdata/java/com/test:test_srcs",

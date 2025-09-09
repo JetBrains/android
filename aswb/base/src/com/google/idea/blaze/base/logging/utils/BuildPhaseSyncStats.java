@@ -36,7 +36,7 @@ public abstract class BuildPhaseSyncStats {
 
   public abstract boolean syncSharded();
 
-  public abstract int shardCount();
+  public abstract long shardCount();
 
   public abstract boolean parallelBuilds();
 
@@ -73,7 +73,7 @@ public abstract class BuildPhaseSyncStats {
 
     public abstract Builder setSyncSharded(boolean syncSharded);
 
-    public abstract Builder setShardCount(int value);
+    public abstract Builder setShardCount(long value);
 
     public abstract Builder setParallelBuilds(boolean value);
 

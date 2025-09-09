@@ -63,7 +63,7 @@ public abstract class SyncStats {
 
   public abstract ImmutableList<BuildPhaseSyncStats> buildPhaseStats();
 
-  public abstract int targetMapSize();
+  public abstract long targetMapSize();
 
   public abstract int libraryCount();
 
@@ -123,7 +123,7 @@ public abstract class SyncStats {
 
     public abstract Builder setBlazeProjectFiles(List<WorkspacePath> blazeProjectFiles);
 
-    public abstract Builder setTargetMapSize(int targetMapSize);
+    public abstract Builder setTargetMapSize(long targetMapSize);
 
     abstract ImmutableList.Builder<BuildPhaseSyncStats> buildPhaseStatsBuilder();
 
