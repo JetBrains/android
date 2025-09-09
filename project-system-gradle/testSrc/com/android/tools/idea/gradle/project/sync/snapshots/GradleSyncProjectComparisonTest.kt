@@ -135,7 +135,8 @@ data class ProjectStructureSnapshotTestDef(
       ProjectStructureSnapshotTestDef(TestProject.APP_WITH_BUILD_FEATURES_ENABLED),
       ProjectStructureSnapshotTestDef(TestProject.DEPENDENT_MODULES_ONLY_APP_RUNTIME, compatibleWith = setOf(AGP_CURRENT)),
       ProjectStructureSnapshotTestDef(TestProject.BUILD_CONFIG_AS_BYTECODE_ENABLED),
-      ProjectStructureSnapshotTestDef(TestProject.TEST_STATIC_DIR)
+      ProjectStructureSnapshotTestDef(TestProject.TEST_STATIC_DIR),
+      ProjectStructureSnapshotTestDef(TestProject.TEST_SUITES),
     )
   }
 }

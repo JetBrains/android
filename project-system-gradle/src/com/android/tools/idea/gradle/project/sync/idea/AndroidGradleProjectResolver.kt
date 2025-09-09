@@ -415,6 +415,12 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, screenshotTest.name, prodModule, setOf(buildConfigClassPath))
       }
 
+      if (StudioFlags.AGP_TEST_SUITES_ENABLED.get()) {
+        variant.testSuiteArtifacts.forEach { testSuite ->
+          createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, testSuite.suiteName, prodModule, isTestSuite = true)
+        }
+      }
+
       // Setup testData nodes for testing sources used by Gradle test runners.
       createAndSetupTestDataNode(moduleNode, androidModel)
 
@@ -466,9 +472,24 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     artifactName: IdeArtifactName,
     productionModule: GradleSourceSetData?,
     buildConfigClassPaths: Set<File?>? = null
+  ): GradleSourceSetData =
+    createAndSetupGradleSourceSetDataNode(
+      parentDataNode,
+      gradleModule,
+      getModuleName(artifactName),
+      productionModule,
+      buildConfigClassPaths
+    )
+
+  private fun createAndSetupGradleSourceSetDataNode(
+    parentDataNode: DataNode<ModuleData>,
+    gradleModule: IdeaModule,
+    readableArtifactName: String,
+    productionModule: GradleSourceSetData?,
+    buildConfigClassPaths: Set<File?>? = null,
+    isTestSuite: Boolean = false
   ): GradleSourceSetData {
-    val moduleId = computeModuleIdForArtifact(resolverCtx, gradleModule, artifactName)
-    val readableArtifactName = getModuleName(artifactName)
+    val moduleId = computeModuleIdForArtifact(resolverCtx, gradleModule, readableArtifactName)
     val moduleExternalName = gradleModule.name + ":" + readableArtifactName
     val moduleInternalName = parentDataNode.data.internalName + "." + readableArtifactName
     val sourceSetData = GradleSourceSetData(
@@ -478,6 +499,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     if (productionModule != null) {
       sourceSetData.productionModuleId = productionModule.internalName
     }
+    sourceSetData.setProperty("TestSuite", isTestSuite.toString())
     val dataNode = parentDataNode.createChild(GradleSourceSetData.KEY, sourceSetData)
     if (buildConfigClassPaths != null) {
       val nonNullClassPaths = buildConfigClassPaths.filterNotNull().toSet()
@@ -940,9 +962,9 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     private fun computeModuleIdForArtifact(
       resolverCtx: ProjectResolverContext,
       gradleModule: IdeaModule,
-      artifactName: IdeArtifactName
+      readableArtifactName: String
     ): String {
-      return GradleProjectResolverUtil.getModuleId(resolverCtx, gradleModule) + ":" + getModuleName(artifactName)
+      return GradleProjectResolverUtil.getModuleId(resolverCtx, gradleModule) + ":" + readableArtifactName
     }
 
     /**

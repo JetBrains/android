@@ -499,6 +499,10 @@ enum class TestProject(
       it.resolve("gradle.properties").appendText("\nandroid.r8.gradual.support=true")
     },
     switchVariant = TemplateBasedTestProject.VariantSelection(":app", "release")
+  ),
+  TEST_SUITES(
+    TestProjectToSnapshotPaths.TEST_SUITES,
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT }
   );
 
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"

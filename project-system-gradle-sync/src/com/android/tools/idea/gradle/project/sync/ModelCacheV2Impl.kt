@@ -132,6 +132,8 @@ import com.android.tools.idea.gradle.model.impl.throwingIdeDependencies
 import com.google.common.collect.Lists
 import java.io.File
 
+const val TEST_SUITE_ASSETS_CUSTOM_SOURCE_DIRECTORY = "assets (test suite)"
+
 // NOTE: The implementation is structured as a collection of nested functions to ensure no recursive dependencies are possible between
 //       models unless explicitly handled by nesting. The same structure expressed as classes allows recursive data structures and thus we
 //       cannot validate the structure at compile time.
@@ -182,24 +184,37 @@ fun modelCacheV2Impl(
     )
   }
 
-  fun sourceProviderFrom(name: String, providers: Collection<File>): IdeSourceProvider {
+  fun sourceProviderFrom(name: String, providers: Collection<File>, source: TestSuiteSource): IdeSourceProvider {
     fun File.makeRelativeAndDeduplicate(): String = relativeToOrSelf(providers.first()).path.deduplicate()
     return IdeSourceProvider(
       name = name.deduplicate(),
       // so far, we only support a single source in test APK, but this will need to be revisited.
       folder = providers.first(),
       manifestFile = null,
-      javaDirectories = providers.map { it.makeRelativeAndDeduplicate() },
-      kotlinDirectories = providers.map { it.makeRelativeAndDeduplicate() },
+      javaDirectories = if (source.type == SourceType.HOST_JAR) providers.map {
+        it.resolve("java").makeRelativeAndDeduplicate()
+      }
+      else emptyList(),
+      kotlinDirectories = if (source.type == SourceType.HOST_JAR) providers.map {
+        it.resolve("kotlin").makeRelativeAndDeduplicate()
+      }
+      else emptyList(),
       resourcesDirectories = emptyList(),
       aidlDirectories = emptyList(),
       renderscriptDirectories = emptyList(),
       resDirectories = emptyList(),
-      assetsDirectories = providers.map { it.makeRelativeAndDeduplicate() },
+      assetsDirectories = emptyList(),
       jniLibsDirectories = emptyList(),
       shadersDirectories = emptyList(),
       mlModelsDirectories = emptyList(),
-      customSourceDirectories = emptyList(),
+      // It's unclear which source type test suite assets should belong to, as they are neither
+      // Android 'assets' nor Java 'resources'. For now let's map them to a custom source
+      // directory.
+      // TODO(b445644926)
+      customSourceDirectories = if (source.type == SourceType.ASSETS) providers.map {
+        IdeCustomSourceDirectoryImpl(TEST_SUITE_ASSETS_CUSTOM_SOURCE_DIRECTORY, it, it.makeRelativeAndDeduplicate())
+      }
+      else emptyList(),
       baselineProfileDirectories = emptyList()
     )
   }
@@ -208,12 +223,11 @@ fun modelCacheV2Impl(
     // FIXME merge
     TODO("FIXME merge")
     //return if (source.folders?.isNotEmpty() ?: false) {
-    //  sourceProviderFrom(source.name, source.folders!!)
+    //  sourceProviderFrom(source.name, source.folders!!, source)
     //} else {
     //  sourceProviderFrom(source.sourceProvider!!)
     //}
   }
-
 
   fun classFieldFrom(classField: ClassField): IdeClassFieldImpl {
     return IdeClassFieldImpl(
@@ -1474,7 +1488,6 @@ fun modelCacheV2Impl(
     val agpFlags: IdeAndroidGradlePluginProjectFlagsImpl = androidGradlePluginProjectFlagsFrom(project.flags, gradlePropertiesModel, legacyAndroidGradlePluginProperties)
     val desugarLibConfig = project.takeIf { modelVersions[ModelFeature.HAS_DESUGAR_LIB_CONFIG] }?.desugarLibConfig.orEmpty()
     val lintJar = project.takeIf { modelVersions[ModelFeature.HAS_LINT_JAR_IN_ANDROID_PROJECT] }?.lintJar?.deduplicateFile()
-
 
     return ModelResult.create {
       if (syncTestMode == SyncTestMode.TEST_EXCEPTION_HANDLING) error("**internal error for tests**")

@@ -100,6 +100,7 @@ abstract class PhasedSyncSnapshotTestBase {
       TestProject.COMPATIBILITY_TESTS_AS_36,
       TestProject.TWO_JARS,
       TestProject.ANDROID_KOTLIN_MULTIPLATFORM,
+      TestProject.TEST_SUITES,
     )
   }
 }

@@ -49,6 +49,7 @@ public final class TestProjectToSnapshotPaths {
   public static final String STATIC_FOLDER_TEST = "projects/staticDirTest";
   public static final String TEST_FIXTURES = "projects/testFixtures";
   public static final String TEST_ONLY_MODULE = "projects/testOnlyModule";
+  public static final String TEST_SUITES = "projects/testSuites";
   public static final String TRANSITIVE_DEPENDENCIES = "projects/transitiveDependencies";
   public static final String TWO_JARS = "projects/two_jars";
   public static final String WITH_GRADLE_METADATA = "projects/withGradleMetadata";
