@@ -335,8 +335,8 @@ class JFloatArray : public JRef<JFloatArray, jfloatArray> {
 public:
   using JRef::JRef;
 
-  static JFloatArray Create(JNIEnv* jni_env, int32_t length);
-  static JFloatArray Create(JNIEnv* jni_env, int32_t length, const float* elements);
+  JFloatArray(JNIEnv* jni_env, int32_t length);
+  JFloatArray(JNIEnv* jni_env, int32_t length, const float* elements);
   void SetRegion(int32_t start, int32_t len, const float* elements) const {
     SetRegion(GetJni(), start, len, elements);
   }

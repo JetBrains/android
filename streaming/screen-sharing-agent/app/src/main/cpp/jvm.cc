@@ -412,14 +412,13 @@ void JShortArray::GetRegion(JNIEnv* jni_env, int32_t start, int32_t len, int16_t
   jni_env->GetShortArrayRegion(ref(), start, len, buf);
 }
 
-JFloatArray JFloatArray::Create(JNIEnv* jni_env, int32_t length) {
-  return JFloatArray(jni_env, jni_env->NewFloatArray(length));
+JFloatArray::JFloatArray(JNIEnv* jni_env, int32_t length)
+    : JRef(jni_env, jni_env->NewFloatArray(length)) {
 }
 
-JFloatArray JFloatArray::Create(JNIEnv* jni_env, int32_t length, const float* elements) {
-  JFloatArray array = Create(jni_env, length);
-  array.SetRegion(jni_env, 0, length, elements);
-  return array;
+JFloatArray::JFloatArray(JNIEnv* jni_env, int32_t length, const float* elements)
+    : JRef(jni_env, jni_env->NewFloatArray(length)) {
+  SetRegion(jni_env, 0, length, elements);
 }
 
 JClass Jni::GetClass(const char* name) const {
