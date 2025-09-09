@@ -87,7 +87,7 @@ private fun ProcessListRow(selectedProcess: Common.Process, process: Common.Proc
       LeftAlignedColumnText(processName, StudioIconsCompose.Common.AndroidHead, rowScope = this)
       if(isRunning){
         logger.warn("Found running project process: ${process.pid}, ${
-          if(process.isProfileable()) TaskBasedUxStrings.PROFILEABLE_PROCESS_TITLE 
+          if(process.isProfileable()) TaskBasedUxStrings.PROFILEABLE_PROCESS_TITLE
           else TaskBasedUxStrings.DEBUGGABLE_PROCESS_TITLE
         }")
       }
