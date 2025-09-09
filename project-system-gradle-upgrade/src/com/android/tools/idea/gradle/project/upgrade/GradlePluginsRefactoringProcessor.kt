@@ -159,7 +159,9 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
           Version.parse("2.0.0")
         // AGP 7.1 removed an incubating API used by safeargs.
         VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_7_5, VERSION_8_0, VERSION_8_2, VERSION_8_4, VERSION_8_6, VERSION_8_7, VERSION_8_9,
-        VERSION_8_10_2, VERSION_8_11_1, VERSION_8_13, VERSION_FOR_DEV -> Version.parse("2.4.1")
+        VERSION_8_10_2, VERSION_8_11_1, VERSION_8_13 -> Version.parse("2.4.1")
+        // AGP 9.0's built-in-Kotlin was not supported by safeargs' Kotlin detection
+        VERSION_FOR_DEV -> Version.parse("2.9.5")
       }
 
     // compatibility information from b/174686925 and https://github.com/mannodermaus/android-junit5/releases
