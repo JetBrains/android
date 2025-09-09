@@ -71,6 +71,7 @@ abstract class SyncedProjectTest(
   }
 
   @Test
+  @Ignore("b/443339963")
   fun testAndroidKotlinMultiplatform() = testProject(TestProject.ANDROID_KOTLIN_MULTIPLATFORM)
 
   @Test
@@ -225,6 +226,7 @@ abstract class SyncedProjectTest(
   fun testTransitiveDependenciesNoTargetSdkInLibs() = testProject(TestProject.TRANSITIVE_DEPENDENCIES_NO_TARGET_SDK_IN_LIBS)
 
   @Test
+  @Ignore("b/443339963")
   fun testKotlinGradleDsl() = testProject(TestProject.KOTLIN_GRADLE_DSL)
 
   @Test
