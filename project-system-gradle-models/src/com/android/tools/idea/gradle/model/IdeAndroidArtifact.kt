@@ -94,6 +94,8 @@ interface IdeAndroidArtifactCore : Serializable, IdeBaseArtifactCore {
   val desugaredMethodsFiles: Collection<File>
 
   val generatedAssetFolders: Collection<File>
+
+  val mappingR8TextFile: File?
 }
 
 interface IdeAndroidArtifact : IdeAndroidArtifactCore, IdeBaseArtifact

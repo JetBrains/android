@@ -970,7 +970,8 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
     desugaredMethodsFiles = emptyList(),
     generatedClassPaths = emptyMap(),
     bytecodeTransforms = null,
-    generatedAssetFolders = listOf()
+    generatedAssetFolders = listOf(),
+    mappingR8TextFile = null
   )
 }
 
@@ -1035,7 +1036,8 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
     desugaredMethodsFiles = emptyList(),
     generatedClassPaths = emptyMap(),
     bytecodeTransforms = null,
-    generatedAssetFolders = listOf()
+    generatedAssetFolders = listOf(),
+    mappingR8TextFile = null
   )
 }
 
@@ -1219,7 +1221,8 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
     desugaredMethodsFiles = emptyList(),
     generatedClassPaths = emptyMap(),
     bytecodeTransforms = null,
-    generatedAssetFolders = listOf()
+    generatedAssetFolders = listOf(),
+    mappingR8TextFile = null
   )
 }
 

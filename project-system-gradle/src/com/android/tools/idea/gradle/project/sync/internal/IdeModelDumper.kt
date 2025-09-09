@@ -468,6 +468,8 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       prop("SigningConfigName") { ideAndroidArtifact.signingConfigName }
       prop("IsSigned") { ideAndroidArtifact.isSigned.toString() }
       prop("CodeShrinker") { ideAndroidArtifact.codeShrinker.toString() }
+      prop("MappingR8File") { ideAndroidArtifact.mappingR8TextFile?.path?.toPrintablePath() }
+
       dump(ideAndroidArtifact.buildInformation)
       ideAndroidArtifact.generatedResourceFolders.forEach { prop("GeneratedResourceFolders") { it.path.toPrintablePath() } }
       ideAndroidArtifact.generatedAssetFolders.forEach { prop("GeneratedAssetFolders") { it.path.toPrintablePath() } }

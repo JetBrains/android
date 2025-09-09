@@ -104,6 +104,7 @@ enum class ModelFeature(
   HAS_SOURCES_LIST_AND_JAVADOC_IN_VARIANT_DEPENDENCIES(ModelVersion(14, 0)),
   HAS_BUILD_AWARE_PROJECT_GRAPH(ModelVersion(15, 0)),
   HAS_TEST_SUITES(ModelVersion(16, 0)),
+  HAS_R8_MAPPING_FILE_PATH(ModelVersion(18, 0)),
   ;
 
   init {
