@@ -17,7 +17,9 @@ package com.android.tools.idea.testartifacts.testsuite
 
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeTestSuiteSource
+import com.android.tools.idea.gradle.model.impl.IdeCustomSourceDirectoryImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestSuiteSourceImpl
+import com.android.tools.idea.gradle.project.sync.TEST_SUITE_ASSETS_CUSTOM_SOURCE_DIRECTORY
 import java.io.File
 
 object TestSuiteTestUtils {
@@ -38,11 +40,17 @@ object TestSuiteTestUtils {
           aidlDirectories = emptyList(),
           renderscriptDirectories = emptyList(),
           resDirectories = emptyList(),
-          assetsDirectories = listOf(""),
+          assetsDirectories = emptyList(),
           jniLibsDirectories = emptyList(),
           shadersDirectories = emptyList(),
           mlModelsDirectories = emptyList(),
-          customSourceDirectories = emptyList(),
+          customSourceDirectories = listOf(
+            IdeCustomSourceDirectoryImpl(
+              sourceTypeName = TEST_SUITE_ASSETS_CUSTOM_SOURCE_DIRECTORY,
+              myFolder = testSuitePath,
+              path = "."
+            )
+          ),
           baselineProfileDirectories = emptyList(),
         )
     )

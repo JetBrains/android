@@ -48,6 +48,10 @@ private fun getProjectSpecificResyncIssues(testProject: TestProject) = when(test
     // This is incorrectly missing from the old sync content roots
     "project</>app</>src</>debug"
   )
+  TestProject.TEST_SUITES -> setOf(
+    // TODO(b/445376814): Understand why they are different
+    "MODULE (project.app.second)/CONENT_ENTRY"
+  )
   else -> emptySet()
 }
 

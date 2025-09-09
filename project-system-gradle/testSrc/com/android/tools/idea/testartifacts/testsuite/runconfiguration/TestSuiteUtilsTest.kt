@@ -18,11 +18,13 @@ package com.android.tools.idea.testartifacts.testsuite.runconfiguration
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeTestSuiteSource
+import com.android.tools.idea.gradle.model.impl.IdeCustomSourceDirectoryImpl
 import com.android.tools.idea.gradle.model.impl.IdeJUnitEngineInfoImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestSuiteImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestSuiteTargetImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestSuiteVariantTargetImpl
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.sync.TEST_SUITE_ASSETS_CUSTOM_SOURCE_DIRECTORY
 import com.android.tools.idea.testartifacts.testsuite.TestSuiteTestUtils.createAssetsTestSuiteSource
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
@@ -154,9 +156,10 @@ class TestSuiteUtilsTest {
     assertEquals(IdeTestSuiteSource.SourceType.ASSETS, testSuite.sources.first().type)
     assertEquals("assets", testSuite.sources.first().name)
 
+    val folder = rule.fixture.project.guessProjectDir()!!.resolveFromRootOrRelative("app/src/myTestSuite")!!.toIoFile()
     assertEquals(IdeSourceProvider(
       name = "assets",
-      folder = rule.fixture.project.guessProjectDir()!!.resolveFromRootOrRelative("app/src/myTestSuite")!!.toIoFile(),
+      folder = folder,
       manifestFile = "AndroidManifest.xml",
       javaDirectories = emptyList(),
       kotlinDirectories = emptyList(),
@@ -164,11 +167,17 @@ class TestSuiteUtilsTest {
       aidlDirectories = emptyList(),
       renderscriptDirectories = emptyList(),
       resDirectories = emptyList(),
-      assetsDirectories = listOf("."),
+      assetsDirectories = emptyList(),
       jniLibsDirectories = emptyList(),
       shadersDirectories = emptyList(),
       mlModelsDirectories = emptyList(),
-      customSourceDirectories = emptyList(),
+      customSourceDirectories = listOf(
+        IdeCustomSourceDirectoryImpl(
+          sourceTypeName = TEST_SUITE_ASSETS_CUSTOM_SOURCE_DIRECTORY,
+          myFolder = folder,
+          path = "."
+        )
+      ),
       baselineProfileDirectories = emptyList()
     ), testSuite.sources.first().sourceProvider)
   }

@@ -528,6 +528,9 @@ private fun ProjectDumper.dump(linkedAndroidGradleModuleGroup: LinkedAndroidGrad
     prop("androidTest") { linkedAndroidGradleModuleGroup.androidTest?.moduleName }
     prop("testFixtures") { linkedAndroidGradleModuleGroup.testFixtures?.moduleName }
     prop("screenshotTest") { linkedAndroidGradleModuleGroup.screenshotTest?.moduleName }
+    if (linkedAndroidGradleModuleGroup.testSuites.isNotEmpty()) {
+      prop("testSuites") { linkedAndroidGradleModuleGroup.testSuites.map { it.moduleName }.sorted().joinToString(", ") }
+    }
   }
 }
 

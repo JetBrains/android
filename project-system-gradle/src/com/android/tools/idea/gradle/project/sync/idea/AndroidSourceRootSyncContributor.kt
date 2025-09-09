@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
+import com.android.tools.idea.gradle.model.impl.IdeTestSuiteImpl
 import com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity
 import com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity
 import com.android.tools.idea.gradle.project.entities.gradleAndroidModel
@@ -114,6 +115,7 @@ import org.jetbrains.plugins.gradle.service.syncAction.virtualFileUrl
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 import java.nio.file.Path
+import kotlin.collections.plus
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 
 private val LOG = logger<AndroidSourceRootSyncContributor>()
@@ -408,22 +410,27 @@ internal class AndroidSourceRootSyncContributor : GradleSyncContributor {
       with(it) {
         LOG.debug("Setting up project ${projectModel.path}")
         val sourceSetModuleEntitiesByArtifact = getAllSourceSetModuleEntities(updatedEntities)
-        if (sourceSetModuleEntitiesByArtifact.isEmpty()) (return@flatMap emptyList()).also {
+
+        val knownArtifactsModuleEntitiesByArtifact = sourceSetModuleEntitiesByArtifact.knownArtifacts
+        val knownArtifactsModuleEntities = knownArtifactsModuleEntitiesByArtifact.values.toList()
+        if (knownArtifactsModuleEntities.isEmpty()) {
           LOG.debug("No source sets found for ${projectModel.path}")
+          return@flatMap emptyList()
         }
-        val sourceSetModules = sourceSetModuleEntitiesByArtifact.values
+
+        val testSuiteSourceSetModules = sourceSetModuleEntitiesByArtifact.testSuites.values.toList()
 
         updatedEntities.modifyModuleEntity(holderModuleEntity) {
           setJavaSettingsForHolderModule(this)
           setSdkForHolderModule(this)
           createOrUpdateAndroidGradleFacet(updatedEntities, this)
           createOrUpdateAndroidFacet(updatedEntities, this)
-          linkModuleGroup(this, sourceSetModuleEntitiesByArtifact)
+          linkModuleGroup(this, knownArtifactsModuleEntitiesByArtifact, testSuiteSourceSetModules)
           setExcludeDirectoriesForHolderModule(updatedEntities)
           // There seems to be a bug in workspace model implementation that requires doing this to update list of changed props
           this.facets = facets
         }
-        sourceSetModules
+        knownArtifactsModuleEntities + testSuiteSourceSetModules
       }
     }
     val knownSourceSetEntitySources = newModuleEntities.map { it.entitySource }.toSet()
@@ -480,18 +487,23 @@ private fun SyncContributorAndroidProjectContext.setExcludeDirectoriesForHolderM
   }
 }
 
+private class AllSourceSetModuleEntities(
+  val knownArtifacts: Map<IdeArtifactName, ModuleEntityBuilder>,
+  val testSuites: Map<String, ModuleEntityBuilder>
+)
+
 // helpers
 private fun SyncContributorAndroidProjectContext.getAllSourceSetModuleEntities(
   storage: EntityStorage,
-): Map<IdeArtifactName, ModuleEntityBuilder> {
+): AllSourceSetModuleEntities {
   val allSourceSets = getAllSourceSetsFromModels()
 
+  val projectModuleName = resolveModuleName()
   val moduleEntitiesMap = mutableMapOf<String, ModuleEntityBuilder>()
   val mainSourceSetName = IdeArtifactName.MAIN.toWellKnownSourceSet().sourceSetName
   LOG.debug("Configuring module " + holderModuleEntity.name)
 
-
-  return allSourceSets.associate  { (sourceSetArtifactName, typeToDirsMap) ->
+  val knownArtifactsSources = allSourceSets.associate { (sourceSetArtifactName, typeToDirsMap) ->
     // For each source set in the project, create entity source and the actual entities.
     val sourceSetName = sourceSetArtifactName.toWellKnownSourceSet().sourceSetName
     val entitySource = AndroidGradleSourceSetEntitySource(projectEntitySource, sourceSetName)
@@ -510,14 +522,69 @@ private fun SyncContributorAndroidProjectContext.getAllSourceSetModuleEntities(
     newModuleEntity.contentRoots += createContentRootEntities(moduleName, entitySource, typeToDirsMap)
     newModuleEntity.javaSettings = createJavaModuleSettingsEntity(entitySource, sourceSetArtifactName)
     sourceSetArtifactName to newModuleEntity
+  }.toMutableMap()
+
+  val testSuitesEnabled = StudioFlags.AGP_TEST_SUITES_ENABLED.get() && versions[ModelFeature.HAS_TEST_SUITES]
+  val testSuiteSources = if (testSuitesEnabled) {
+    val testSuites = getTestSuitesTargetingVariant(basicAndroidProject, ideAndroidProject, variantName)
+    testSuites.associateBy { it.name }.mapValues {
+      configureTestSuiteSourceSetModuleEntity(
+        it.value, moduleEntitiesMap, projectModuleName, mainSourceSetName
+      )
+    }
   }
+  else {
+    emptyMap()
+  }
+
+  return AllSourceSetModuleEntities(knownArtifactsSources, testSuiteSources)
+}
+
+private fun getTestSuitesTargetingVariant(
+  basicAndroidProject: BasicAndroidProject,
+  ideAndroidProject: IdeAndroidProjectImpl,
+  variantName: String
+): List<IdeTestSuiteImpl> {
+  val variant = basicAndroidProject.variants.first { it.name == variantName }
+  return variant.testSuiteArtifacts.keys.map { testSuiteName ->
+    ideAndroidProject.testSuites.first { it.name == testSuiteName }
+  }
+}
+
+private fun SyncContributorAndroidProjectContext.configureTestSuiteSourceSetModuleEntity(
+  testSuite: IdeTestSuiteImpl,
+  moduleEntitiesMap: MutableMap<String, ModuleEntityBuilder>,
+  projectModuleName: String,
+  mainSourceSetName: String
+): ModuleEntityBuilder {
+  val allSourcesForTestSuite: Map<out ExternalSystemSourceType?, Set<File>> = getTestSuiteSourceSetDataForBasicAndroidProject(
+    testSuite.sources)
+
+  // For each test suite in the project, create entity source and the actual entities.
+  val sourceSetName = testSuite.name
+  val entitySource = AndroidGradleSourceSetEntitySource(projectEntitySource, sourceSetName)
+  val moduleName = "$projectModuleName.$sourceSetName"
+  LOG.debug("Configuring source set for $moduleName: $allSourcesForTestSuite")
+  val newModuleEntity = findOrCreateModuleEntity(
+    moduleName,
+    entitySource,
+    moduleEntitiesMap,
+    productionModuleName = "$projectModuleName.$mainSourceSetName".takeIf { it != moduleName } // Only set for test modules
+  )
+
+  // Create the content roots and associate it with the module
+  newModuleEntity.contentRoots += createContentRootEntities(moduleName, entitySource, allSourcesForTestSuite)
+
+  return newModuleEntity
 }
 
 private fun SyncContributorAndroidProjectContext.linkModuleGroup(
   holderModuleEntity: ModuleEntityBuilder,
-  sourceSetModules: Map<IdeArtifactName, ModuleEntityBuilder>) {
-  val androidModuleGroup = getModuleGroup(sourceSetModules)
-  val linkedModules = sourceSetModules.values + holderModuleEntity
+  sourceSetModules: Map<IdeArtifactName, ModuleEntityBuilder>,
+  testSuiteModules: List<ModuleEntityBuilder>
+) {
+  val androidModuleGroup = getModuleGroup(sourceSetModules, testSuiteModules)
+  val linkedModules = sourceSetModules.values + testSuiteModules + holderModuleEntity
   registerModuleActions(linkedModules.associate {
     it.name to { moduleInstance ->
       moduleInstance.putUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP, androidModuleGroup)
@@ -540,7 +607,8 @@ private fun SyncContributorAndroidProjectContext.linkModuleGroup(
 
 
 private fun SyncContributorAndroidProjectContext.getModuleGroup(
-  sourceSetModules: Map<IdeArtifactName, ModuleEntityBuilder>
+  sourceSetModules: Map<IdeArtifactName, ModuleEntityBuilder>,
+  testSuiteModules: List<ModuleEntityBuilder>
 ): LinkedAndroidGradleModuleGroup {
   val modulePointerManager = ModulePointerManager.getInstance(project)
   return LinkedAndroidGradleModuleGroup(
@@ -549,7 +617,8 @@ private fun SyncContributorAndroidProjectContext.getModuleGroup(
     sourceSetModules[IdeArtifactName.UNIT_TEST]?.let { modulePointerManager.create(it.name) },
     sourceSetModules[IdeArtifactName.ANDROID_TEST]?.let { modulePointerManager.create(it.name) },
     sourceSetModules[IdeArtifactName.TEST_FIXTURES]?.let { modulePointerManager.create(it.name) },
-    sourceSetModules[IdeArtifactName.SCREENSHOT_TEST]?.let { modulePointerManager.create(it.name) }
+    sourceSetModules[IdeArtifactName.SCREENSHOT_TEST]?.let { modulePointerManager.create(it.name) },
+    testSuiteModules.map { modulePointerManager.create(it.name) }
   )
 }
 
@@ -761,6 +830,26 @@ private fun IExternalSystemSourceType.toJpsModuleSourceRootType():  JpsModuleSou
     ExternalSystemSourceType.TEST_RESOURCE, ExternalSystemSourceType.TEST_RESOURCE_GENERATED -> JavaResourceRootType.TEST_RESOURCE
     ExternalSystemSourceType.EXCLUDED -> null
   }
+}
+
+// copied from platform and modified to have the sync contributor context
+internal fun SyncContributorProjectContext.resolveModuleName(): String {
+  val moduleName = resolveGradleProjectQualifiedName()
+  val buildSrcGroup = context.getBuildSrcGroup(buildModel.name, buildModel.buildIdentifier)
+  if (buildSrcGroup.isNullOrBlank()) {
+    return moduleName
+  }
+  return "$buildSrcGroup.$moduleName"
+}
+
+private fun SyncContributorProjectContext.resolveGradleProjectQualifiedName(): String {
+  if (projectModel.path == ":") {
+    return buildModel.name
+  }
+  if (projectModel.path.startsWith(":")) {
+    return buildModel.name + projectModel.path.replace(":", ".")
+  }
+  return projectModel.path.replace(":", ".")
 }
 
 internal fun SyncContributorProjectContext.resolveHolderModuleName(): String {

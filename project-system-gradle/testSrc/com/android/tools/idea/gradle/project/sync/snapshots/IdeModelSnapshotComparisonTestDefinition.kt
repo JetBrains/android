@@ -142,7 +142,8 @@ data class IdeModelSnapshotComparisonTestDefinition(
       IdeModelSnapshotComparisonTestDefinition(TestProject.INDEPENDENT_MODULES_ONLY_RUNTIME, skipV1toV2Comparison = true),
       IdeModelSnapshotComparisonTestDefinition(TestProject.BUILD_CONFIG_AS_BYTECODE_ENABLED),
       IdeModelSnapshotComparisonTestDefinition(TestProject.TEST_STATIC_DIR),
-      IdeModelSnapshotComparisonTestDefinition(TestProject.SIMPLE_APPLICATION_OPTIMIZATION_ENABLED)
+      IdeModelSnapshotComparisonTestDefinition(TestProject.SIMPLE_APPLICATION_OPTIMIZATION_ENABLED),
+      IdeModelSnapshotComparisonTestDefinition(TestProject.TEST_SUITES)
     )
   }
 

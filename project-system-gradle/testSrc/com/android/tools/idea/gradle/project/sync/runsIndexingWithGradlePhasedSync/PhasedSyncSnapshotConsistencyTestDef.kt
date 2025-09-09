@@ -123,6 +123,10 @@ fun getProjectSpecificIssues(testProject: TestProject) = when(testProject.templa
       // TODO(b/384022658): Generated class libraries aren't supported
       "LIBRARY (Gradle: buildConfigGeneratedClasses [=])",
     )
+    TestProject.TEST_SUITES -> setOf(
+      // TODO(b/445376814): Understand why they are different
+      "MODULE (project.app.second)/CONENT_ENTRY"
+    )
 
     else -> emptySet()
   }

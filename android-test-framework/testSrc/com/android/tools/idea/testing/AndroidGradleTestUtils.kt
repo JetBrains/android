@@ -65,6 +65,7 @@ import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeMultiVariantDataImpl
+import com.android.tools.idea.gradle.model.IdeTestSuiteVariantTarget
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
@@ -503,7 +504,7 @@ data class AndroidProjectBuilder(
   val hostTestArtifactsStub: AndroidProjectStubBuilder.(variant: String) -> List<IdeJavaArtifactCoreImpl> =
     { variant -> listOf(buildUnitTestArtifactStub(variant)) },
   val testSuiteArtifactsStub: AndroidProjectStubBuilder.(variant: String) -> List<IdeTestSuiteVariantTargetImpl> =
-    { variant -> listOf(buildTestSuiteArtifactStub(variant)) },
+    { variant -> emptyList() },
   val testFixturesArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactCoreImpl? =
     { variant -> null },
   val androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency> = { emptyList() },
@@ -1850,33 +1851,54 @@ private fun createAndroidModuleDataNode(
     null -> {}
   }
 
-  fun IdeBaseArtifactCore.setup() {
-    val sourceSetModuleName = ModuleUtil.getModuleName(this.name)
+  fun setupSourceSetDataNode(
+    sourceSetModuleName: String,
+    sourceSet: IdeModuleSourceSet,
+    isTestSuite: Boolean = false
+  ) {
     val sourceSetModuleId = moduleDataNode.data.id + ":" + sourceSetModuleName
-    val sourceSetDataDataNode = DataNode<GradleSourceSetData>(
+    val sourceSetData = GradleSourceSetData(
+      sourceSetModuleId,
+      moduleDataNode.data.externalName + ":" + sourceSetModuleName,
+      moduleDataNode.data.internalName + "." + sourceSetModuleName,
+      moduleDataNode.data.moduleFileDirectoryPath,
+      moduleDataNode.data.linkedExternalProjectPath
+    )
+    sourceSetData.setProperty("TestSuite", isTestSuite.toString())
+    val sourceSetDataDataNode = DataNode(
       GradleSourceSetData.KEY,
-      GradleSourceSetData(
-        sourceSetModuleId,
-        moduleDataNode.data.externalName + ":" + sourceSetModuleName,
-        moduleDataNode.data.internalName + "." + sourceSetModuleName,
-        moduleDataNode.data.moduleFileDirectoryPath,
-        moduleDataNode.data.linkedExternalProjectPath
-      ),
+      sourceSetData,
       null
     )
     moduleDataNode.addChild(sourceSetDataDataNode)
     mappingRecorder.add(
       moduleDataNode.data.id,
-      GradleSourceSetProjectPath(toSystemIndependentName(gradleRoot.path), gradlePath, name.toWellKnownSourceSet()),
+      GradleSourceSetProjectPath(toSystemIndependentName(gradleRoot.path), gradlePath, sourceSet),
       sourceSetDataDataNode
     )
   }
 
   val selectedVariant = gradleAndroidModel.selectedVariantCore
-  selectedVariant.mainArtifact.setup()
-  selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.setup()
-  selectedVariant.hostTestArtifacts.forEach { it.setup() }
-  selectedVariant.testFixturesArtifact?.setup()
+  selectedVariant.mainArtifact.name.let {
+    setupSourceSetDataNode(ModuleUtil.getModuleName(it), it.toWellKnownSourceSet())
+  }
+  selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.name?.let {
+    setupSourceSetDataNode(ModuleUtil.getModuleName(it), it.toWellKnownSourceSet())
+  }
+  selectedVariant.hostTestArtifacts.forEach { artifact ->
+    artifact.name.let {
+      setupSourceSetDataNode(ModuleUtil.getModuleName(it), it.toWellKnownSourceSet())
+    }
+  }
+  selectedVariant.testFixturesArtifact?.name?.let {
+    setupSourceSetDataNode(ModuleUtil.getModuleName(it), it.toWellKnownSourceSet())
+  }
+  selectedVariant.testSuiteArtifacts.forEach { testSuite ->
+    testSuite.suiteName.let {
+      val sourceSet = IdeModuleSourceSetImpl(it, canBeConsumed = false)
+      setupSourceSetDataNode(it, sourceSet, true)
+    }
+  }
   return moduleDataNode
 }
 
