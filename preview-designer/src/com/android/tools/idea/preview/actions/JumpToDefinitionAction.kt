@@ -53,7 +53,13 @@ class JumpToDefinitionAction(
     val sceneView = surface.getSceneViewAt(x, y) ?: return
     AndroidCoroutineScope(sceneView).launch {
       navigationHandler
-        .findNavigatablesWithCoordinates(sceneView, x, y, true, false)
+        .findNavigatablesWithCoordinates(
+          sceneView = sceneView,
+          x = x,
+          y = y,
+          requestFocus = true,
+          shouldFindAllNavigatables = false,
+        )
         .map { it.navigatable }
         .firstOrNull()
         ?.let {
