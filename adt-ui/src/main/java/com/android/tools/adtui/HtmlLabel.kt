@@ -29,21 +29,46 @@ import java.net.URI
 import java.net.URISyntaxException
 import javax.swing.JEditorPane
 import javax.swing.event.HyperlinkEvent
+import javax.swing.event.HyperlinkListener
 
 class HtmlLabel : JEditorPane() {
-  init {
-    addHyperlinkListener(
-      object : HyperlinkAdapter() {
-        override fun hyperlinkActivated(event: HyperlinkEvent) {
-          if (event.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-            val uri = event.description
-            try {
-              BrowserLauncher.instance.browse(URI(uri))
-            } catch (_: URISyntaxException) {}
-          }
+
+  private val defaultHyperlinkListener =
+    object : HyperlinkAdapter() {
+      override fun hyperlinkActivated(event: HyperlinkEvent) {
+        if (event.eventType == HyperlinkEvent.EventType.ACTIVATED) {
+          val uri = event.description
+          try {
+            BrowserLauncher.instance.browse(URI(uri))
+          } catch (_: URISyntaxException) {}
         }
       }
-    )
+    }
+
+  init {
+    addHyperlinkListener(defaultHyperlinkListener)
+  }
+
+  /**
+   * Adds a hyperlink listener, while disabling the default link activation mechanism.
+   * Use the overloaded [addHyperlinkListener] method if you wish to preserve the default mechanism.
+   */
+  override fun addHyperlinkListener(listener: HyperlinkListener?) {
+    if (listener == null) return
+    // Remove the default listener as a custom one is being added.
+    removeHyperlinkListener(defaultHyperlinkListener)
+    super.addHyperlinkListener(listener)
+  }
+
+  /**
+   * Adds hyperlink listener. If [disableDefaultLinkHandling] is true, the default browser
+   * launching mechanism is removed.
+   */
+  fun addHyperlinkListener(listener: HyperlinkListener, disableDefaultLinkHandling: Boolean) {
+    if (disableDefaultLinkHandling) {
+      removeHyperlinkListener(defaultHyperlinkListener)
+    }
+    super.addHyperlinkListener(listener)
   }
 
   override fun getMaximumSize(): Dimension? = preferredSize
