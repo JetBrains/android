@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
+import com.android.tools.idea.gradle.model.IdeTestSuiteVariantTarget
 import com.android.tools.idea.gradle.model.IdeUnknownLibrary
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
@@ -318,6 +319,12 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
 fun DataNode<ModuleData>.findSourceSetDataForArtifact(ideBaseArtifact: IdeBaseArtifactCore): DataNode<GradleSourceSetData> {
   return ExternalSystemApiUtil.findChild(this, GradleSourceSetData.KEY) {
     it.data.externalName.substringAfterLast(":") == ModuleUtil.getModuleName(ideBaseArtifact.name)
+  } ?: throw ExternalSystemException("Missing GradleSourceSetData data for artifact!")
+}
+
+fun DataNode<ModuleData>.findSourceSetDataForArtifact(ideTestSuiteVariantTarget: IdeTestSuiteVariantTarget): DataNode<GradleSourceSetData> {
+  return ExternalSystemApiUtil.findChild(this, GradleSourceSetData.KEY) {
+    it.data.getProperty("TestSuite").toBoolean() && it.data.externalName.substringAfterLast(":") == ideTestSuiteVariantTarget.suiteName
   } ?: throw ExternalSystemException("Missing GradleSourceSetData data for artifact!")
 }
 

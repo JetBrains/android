@@ -36,12 +36,15 @@ data class LinkedAndroidGradleModuleGroup(
   val unitTest: ModulePointer?,
   val androidTest: ModulePointer?,
   val testFixtures: ModulePointer?,
-  val screenshotTest: ModulePointer?
+  val screenshotTest: ModulePointer?,
+  val testSuites: List<ModulePointer>
 ) {
-  fun getModules() = listOfNotNull(holder, main, unitTest, androidTest, testFixtures, screenshotTest).mapNotNull { it.module }
+  fun getModules() = listOfNotNull(holder, main, unitTest, androidTest, testFixtures, screenshotTest,
+                                   *testSuites.toTypedArray()).mapNotNull { it.module }
   override fun toString(): String =
     "holder=${holder.moduleName}, main=${main.moduleName}, unitTest=${unitTest?.moduleName}, " +
-    "androidTest=${androidTest?.moduleName}, testFixtures=${testFixtures?.moduleName}, screenshotTest=${screenshotTest?.moduleName}"
+    "androidTest=${androidTest?.moduleName}, testFixtures=${testFixtures?.moduleName}, screenshotTest=${screenshotTest?.moduleName}" +
+    { if (testSuites.isNotEmpty()) ", testSuites=${testSuites.map { it.moduleName }}" else "" }
 }
 
 /**
@@ -62,6 +65,10 @@ fun Module.isScreenshotTestModule() : Boolean = getScreenshotTestModule() == thi
 fun Module.getScreenshotTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.screenshotTest?.module
 fun Module.isTestFixturesModule() : Boolean = getTestFixturesModule() == this
 fun Module.getTestFixturesModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.testFixtures?.module
+fun Module.getTestSuiteModules(): List<Module> = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.testSuites?.mapNotNull { it.module }
+                                                 ?: emptyList()
+
+fun Module.isTestSuiteModule(): Boolean = getTestSuiteModules().contains(this)
 
 private fun ModulePointer.getMandatoryModuleOrLog(originalModule: Module): Module? = module.also {
   if (it == null) {
@@ -71,7 +78,7 @@ private fun ModulePointer.getMandatoryModuleOrLog(originalModule: Module): Modul
 
 /**
  * Utility method to find out if a module is derived from an Android Gradle project. This will return true
- * if the given module is the module representing any of the Android source sets (main/unitTest/androidTest/screenshotTest/testFixtures)
+ * if the given module is the module representing any of the Android source sets (main/unitTest/androidTest/screenshotTest/testFixtures/testSuites)
  * or the holder module used as the parent of these source set modules.
  */
 fun Module.isLinkedAndroidModule() = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP) != null

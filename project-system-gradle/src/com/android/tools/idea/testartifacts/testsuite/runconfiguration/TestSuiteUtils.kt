@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.model.IdeTestSuite
 import com.android.tools.idea.gradle.model.IdeTestSuiteSource
 import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.sync.TEST_SUITE_ASSETS_CUSTOM_SOURCE_DIRECTORY
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -76,8 +77,8 @@ object TestSuiteUtils {
     for (source in sources) {
       when (source.type) {
         IdeTestSuiteSource.SourceType.ASSETS -> {
-          for (assetsSourceDirectory in source.sourceProvider.assetsDirectories) {
-            if (FileUtil.isAncestor(assetsSourceDirectory, file, true)) {
+          for (customSourceDirectory in source.sourceProvider.customSourceDirectories) {
+            if (FileUtil.isAncestor(customSourceDirectory.directory, file, true)) {
               return true
             }
           }
@@ -112,9 +113,9 @@ object TestSuiteUtils {
    */
   private fun getTestSuiteRoot(testSuite: IdeTestSuite): File? {
     for (source in testSuite.sources) {
-      source.sourceProvider.assetsDirectories.find { it.isDirectory && it.name == testSuite.name }?.let { return it }
-      source.sourceProvider.javaDirectories.find { it.isDirectory && it.name == testSuite.name }?.let { return it }
-      source.sourceProvider.kotlinDirectories.find { it.isDirectory && it.name == testSuite.name }?.let { return it }
+      source.sourceProvider.customSourceDirectories.find { it.sourceTypeName == TEST_SUITE_ASSETS_CUSTOM_SOURCE_DIRECTORY && it.directory.isDirectory && it.directory.name == testSuite.name }?.let { return it.directory }
+      source.sourceProvider.javaDirectories.find { it.parentFile.isDirectory && it.parentFile.name == testSuite.name }?.let { return it.parentFile }
+      source.sourceProvider.kotlinDirectories.find { it.parentFile.isDirectory && it.parentFile.name == testSuite.name }?.let { return it.parentFile }
     }
 
     return null

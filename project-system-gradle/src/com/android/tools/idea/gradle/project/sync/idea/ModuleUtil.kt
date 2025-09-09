@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSet
@@ -71,11 +72,27 @@ object ModuleUtil {
       IdeArtifactName.values().associate { getModuleName(it) to it }
     }
 
-    val ideArtifactNameToModule = ExternalSystemApiUtil.findAll(this, GradleSourceSetData.KEY).mapNotNull {
+    val testSuiteModules = mutableListOf<Module>()
+    val ideArtifactNameToModule = mutableMapOf<IdeArtifactName, Module>()
+
+    ExternalSystemApiUtil.findAll(this, GradleSourceSetData.KEY).forEach {
+      val module = dataToModuleMap(it.data) ?: return@forEach
+
+      if (StudioFlags.AGP_TEST_SUITES_ENABLED.get()) {
+        val isTestSuite = it.data.getProperty("TestSuite").toBoolean()
+        if (isTestSuite) {
+          testSuiteModules.add(module)
+          return@forEach
+        }
+      }
+
       val sourceSetName = it.data.externalName.substringAfterLast(":")
-      val ideArtifactName = possibleSourceSetNames[sourceSetName] ?: return@mapNotNull null
-      ideArtifactName to dataToModuleMap(it.data)
-    }.toMap()
+      val ideArtifactName = possibleSourceSetNames[sourceSetName]
+      if (ideArtifactName != null) {
+        ideArtifactNameToModule[ideArtifactName] = module
+        return@forEach
+      }
+    }
 
     val mainModule = ideArtifactNameToModule[IdeArtifactName.MAIN] ?: run {
       logger<ModuleUtil>().info("Android module (${holderModule.name}) is missing a main source set")
@@ -89,7 +106,8 @@ object ModuleUtil {
       ideArtifactNameToModule[IdeArtifactName.UNIT_TEST]?.let { modulePointerManager.create(it) },
       ideArtifactNameToModule[IdeArtifactName.ANDROID_TEST]?.let { modulePointerManager.create(it) },
       ideArtifactNameToModule[IdeArtifactName.TEST_FIXTURES]?.let { modulePointerManager.create(it) },
-      ideArtifactNameToModule[IdeArtifactName.SCREENSHOT_TEST]?.let { modulePointerManager.create(it) }
+      ideArtifactNameToModule[IdeArtifactName.SCREENSHOT_TEST]?.let { modulePointerManager.create(it) },
+      testSuiteModules.map { modulePointerManager.create(it) }
     )
     androidModuleGroup.getModules().forEach { module ->
       module.putUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP, androidModuleGroup)

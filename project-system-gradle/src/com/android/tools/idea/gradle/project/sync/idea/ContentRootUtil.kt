@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.IdeTestSuite
+import com.android.tools.idea.gradle.model.impl.IdeTestSuiteVariantTargetImpl
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.model.activeSourceProviders
 import com.android.tools.idea.gradle.project.model.testFixturesSourceProviders
@@ -46,7 +49,7 @@ import java.io.File
  * Processes all sources contained within this [SourceProvider] using the given [processor]. This
  * [processor] is called with the absolute path to the file and the type of the source.
  */
-private fun IdeSourceProvider.processAll(
+fun IdeSourceProvider.processAll(
   forTest: Boolean = false,
   processor: (String, ExternalSystemSourceType?) -> Unit
 ) {
@@ -77,6 +80,25 @@ fun DataNode<ModuleData>.setupAndroidContentEntriesPerSourceSet(androidModel: Gr
     return contentRoots.map { sourceSetDataNode.createChild(ProjectKeys.CONTENT_ROOT, it) }
   }
 
+  fun createTestSuiteContentRoots(ideTestSuite: IdeTestSuite): Collection<ContentRootData> {
+    val newContentRoots = mutableListOf<ContentRootData>()
+
+    for (source in ideTestSuite.sources) {
+      source.sourceProvider.processAll(forTest = true) { path, sourceType ->
+        newContentRoots.add(createContentRootData(path, sourceType))
+      }
+    }
+
+    return newContentRoots
+  }
+
+  fun populateTestSuiteContentEntries(ideTestSuite: IdeTestSuite,
+                                      ideTestSuiteVariantTarget: IdeTestSuiteVariantTargetImpl): List<DataNode<ContentRootData>> {
+    val sourceSetDataNode = findSourceSetDataForArtifact(ideTestSuiteVariantTarget)
+    val contentRoots = createTestSuiteContentRoots(ideTestSuite)
+    return contentRoots.map { sourceSetDataNode.createChild(ProjectKeys.CONTENT_ROOT, it) }
+  }
+
   val sourceSetContentRoots =
     mutableSetOf(populateContentEntries (variant.mainArtifact,  androidModel.activeSourceProviders)).apply {
       variant.hostTestArtifacts.forEach { add(populateContentEntries(it, androidModel.getTestSourceProviders(it.name))) }
@@ -84,11 +106,21 @@ fun DataNode<ModuleData>.setupAndroidContentEntriesPerSourceSet(androidModel: Gr
         .find { it.name == IdeArtifactName.ANDROID_TEST }
         ?.let { add(populateContentEntries(it, androidModel.getTestSourceProviders(it.name))) }
       add(populateContentEntries(variant.testFixturesArtifact, androidModel.testFixturesSourceProviders))
-    }.flatten()
+    }
+
+  if (StudioFlags.AGP_TEST_SUITES_ENABLED.get()) {
+    for (testSuite in androidModel.androidProject.testSuites) {
+      // Ignore test suites not enabled for this variant
+      val testSuiteArtifacts = variant.testSuiteArtifacts.find { it.suiteName == testSuite.name }
+      if (testSuiteArtifacts != null) {
+        populateTestSuiteContentEntries(testSuite, testSuiteArtifacts)
+      }
+    }
+  }
 
   val holderModuleRoots = findAll(ProjectKeys.CONTENT_ROOT)
 
-  maybeMoveDuplicateHolderContentRootsToSourceSets(holderModuleRoots, sourceSetContentRoots)
+  maybeMoveDuplicateHolderContentRootsToSourceSets(holderModuleRoots, sourceSetContentRoots.flatten())
 }
 
 private fun maybeMoveDuplicateHolderContentRootsToSourceSets(
@@ -118,17 +150,13 @@ private fun collectContentRootDataForArtifact(
 
   val newContentRoots = mutableListOf<ContentRootData>()
 
-  // Function passed in to the methods below to register each source path with a ContentRootData object.
-  fun addSourceFolder(path: @SystemDependent String, sourceType: ExternalSystemSourceType?) {
-    val contentRootData = ContentRootData(GradleConstants.SYSTEM_ID, path)
-    if (sourceType != null) {
-      contentRootData.storePath(sourceType, path)
-    }
-    newContentRoots.add(contentRootData)
+  fun Collection<File>.processAs(type: ExternalSystemSourceType) = forEach {
+    newContentRoots.add(createContentRootData(it.absolutePath, type))
   }
 
-  fun Collection<File>.processAs(type: ExternalSystemSourceType) = forEach { addSourceFolder(it.absolutePath, type) }
-  fun Collection<String>.processAs(type: ExternalSystemSourceType) = forEach { addSourceFolder(it, type) }
+  fun Collection<String>.processAs(type: ExternalSystemSourceType) = forEach {
+    newContentRoots.add(createContentRootData(it, type))
+  }
 
   val generatedSourceFolderPaths = getGeneratedSourceFoldersToUse(
     artifact, androidModel.androidProject
@@ -139,7 +167,7 @@ private fun collectContentRootDataForArtifact(
       // In order to prevent duplicate root warnings and to ensure this kapt path is marked generated we ensure it is not added as
       // a source root.
       if (!generatedSourceFolderPaths.contains(path)) {
-        addSourceFolder(path, sourceType)
+        newContentRoots.add(createContentRootData(path, sourceType))
       }
     }
   }
@@ -151,5 +179,13 @@ private fun collectContentRootDataForArtifact(
   }
 
   return newContentRoots
+}
+
+private fun createContentRootData(path: @SystemDependent String, sourceType: ExternalSystemSourceType?): ContentRootData {
+  val contentRootData = ContentRootData(GradleConstants.SYSTEM_ID, path)
+  if (sourceType != null) {
+    contentRootData.storePath(sourceType, path)
+  }
+  return contentRootData
 }
 

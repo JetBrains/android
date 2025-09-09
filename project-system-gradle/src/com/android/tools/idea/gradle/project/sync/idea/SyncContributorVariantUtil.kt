@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.model.ARTIFACT_NAME_SCREENSHOT_TEST
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_UNIT_TEST
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toPrintableName
+import com.android.tools.idea.gradle.model.impl.IdeTestSuiteSourceImpl
 import com.android.tools.idea.gradle.project.sync.ModelFeature
 import com.android.tools.idea.gradle.project.sync.ModelVersions
 import com.android.tools.idea.gradle.project.sync.Modules
@@ -33,8 +34,8 @@ import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.isAaptGenerate
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.isDataBindingGeneratedBaseClassesFolder
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.isSafeArgGeneratedSourcesFolder
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
-import org.jetbrains.plugins.gradle.model.GradleLightProject
 import java.io.File
+import org.jetbrains.plugins.gradle.model.GradleLightProject
 
 /** Returns all source sets (main and for a selected variant) for a given gradle project. */
 internal fun SyncContributorAndroidProjectContext.getAllSourceSetsFromModels(): Set<SourceSetData> {
@@ -119,6 +120,16 @@ internal fun SyncContributorAndroidProjectContext.getSourceSetDataForBasicAndroi
   return sourceSets
 }
 
+internal fun SyncContributorAndroidProjectContext.getTestSuiteSourceSetDataForBasicAndroidProject(
+  sources: List<IdeTestSuiteSourceImpl>
+): Map<out ExternalSystemSourceType?, Set<File>> {
+  return sources
+    .map(::createTestSuiteSourceSetData) // Create a map for each source
+    .flatMap { it.entries } // Flatten into a single list of all map entries
+    .groupBy({ it.key }, { it.value }) // Group entries by source type
+    .mapValues { (_, fileSets) -> fileSets.flatten().toSet() } // Merge the sets of files for each source type
+}
+
 @Suppress("DEPRECATION") // Need to be backwards compatible here
 internal fun SyncContributorAndroidProjectContext.getSourceSetDataForAndroidProject(selectedVariantName: String): List<SourceSetData>{
   val sourceSets = mutableListOf<SourceSetData>()
@@ -159,6 +170,16 @@ internal fun SyncContributorAndroidProjectContext.getSelectedVariantArtifact(sou
     IdeArtifactName.ANDROID_TEST -> if (testArtifactsAndSourceSetsInMaps) selectedVariant.deviceTestArtifacts[ARTIFACT_NAME_ANDROID_TEST] else selectedVariant.androidTestArtifact
     IdeArtifactName.SCREENSHOT_TEST -> if (testArtifactsAndSourceSetsInMaps) selectedVariant.hostTestArtifacts[ARTIFACT_NAME_SCREENSHOT_TEST] else error("ScreenshotTest are not available")
   }
+}
+
+private fun SyncContributorAndroidProjectContext.createTestSuiteSourceSetData(
+  testSuiteSource: IdeTestSuiteSourceImpl
+): Map<out ExternalSystemSourceType?, Set<File>> {
+  val sourceSetData = mutableMapOf<ExternalSystemSourceType?, MutableSet<File>>()
+  testSuiteSource.sourceProvider.processAll(forTest = true) { path, sourceType ->
+    sourceSetData.getOrPut(sourceType) { mutableSetOf() }.add(File(path))
+  }
+  return sourceSetData
 }
 
 private fun SyncContributorAndroidProjectContext.createSourceSetDataForSourceProvider(name: IdeArtifactName,
