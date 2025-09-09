@@ -478,6 +478,24 @@ enum class TestProject(
   TEST_STATIC_DIR(
     TestProjectToSnapshotPaths.STATIC_FOLDER_TEST,
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT }
+  ),
+
+  SIMPLE_APPLICATION_OPTIMIZATION_ENABLED(
+    TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+    testName = "optimization_enabled",
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    patch = {
+      it.resolve("app/build.gradle").replaceContent { original ->
+        original.replace("minifyEnabled false", """
+         optimization {
+            enable = true
+         }
+        """.trimIndent()
+        )
+      }
+      it.resolve("gradle.properties").appendText("\nandroid.r8.gradual.support=true")
+    },
+    switchVariant = TemplateBasedTestProject.VariantSelection(":app", "release")
   );
 
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"

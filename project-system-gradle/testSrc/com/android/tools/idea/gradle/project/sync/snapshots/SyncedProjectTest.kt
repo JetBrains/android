@@ -37,8 +37,6 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.IconManager
 import com.intellij.ui.icons.CoreIconManager
 import java.io.File
-import org.gradle.util.GradleVersion
-import org.junit.Assume.assumeTrue
 import org.junit.Ignore
 import org.junit.Test
 
@@ -292,6 +290,9 @@ abstract class SyncedProjectTest(
 
   @Test
   fun testAddTestStaticDir() = testProject(TestProject.TEST_STATIC_DIR)
+
+  @Test
+  fun testSimpleApplication_optimization_enabled() = testProject(TestProject.SIMPLE_APPLICATION_OPTIMIZATION_ENABLED)
 
   override fun getTestDefs(testProject: TestProject): List<SyncedProjectTestDef> {
     return tests[testProject].orEmpty()

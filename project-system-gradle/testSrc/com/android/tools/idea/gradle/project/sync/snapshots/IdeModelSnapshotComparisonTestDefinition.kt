@@ -18,38 +18,11 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
 import com.android.tools.idea.gradle.project.sync.internal.dumpAndroidIdeModel
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_31
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_33
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_33_WITH_5_3_1
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35_JDK_8
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_40
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_41
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_42
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_70
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_71
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_72
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_72_V1
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_73
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_74
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_80
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_81
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_82
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_83
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_84
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_85
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_86
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_87
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_88
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_89
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_8_10_1
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_8_11
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_8_12
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_GRADLE_SNAPSHOT
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_KOTLIN_SNAPSHOT
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_DECLARATIVE_GRADLE_SNAPSHOT
 import com.android.tools.idea.testing.ModelVersion
 import com.android.tools.idea.testing.SnapshotContext
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
@@ -168,7 +141,8 @@ data class IdeModelSnapshotComparisonTestDefinition(
       IdeModelSnapshotComparisonTestDefinition(TestProject.DEPENDENT_MODULES_ONLY_APP_RUNTIME, skipV1toV2Comparison = true),
       IdeModelSnapshotComparisonTestDefinition(TestProject.INDEPENDENT_MODULES_ONLY_RUNTIME, skipV1toV2Comparison = true),
       IdeModelSnapshotComparisonTestDefinition(TestProject.BUILD_CONFIG_AS_BYTECODE_ENABLED),
-      IdeModelSnapshotComparisonTestDefinition(TestProject.TEST_STATIC_DIR)
+      IdeModelSnapshotComparisonTestDefinition(TestProject.TEST_STATIC_DIR),
+      IdeModelSnapshotComparisonTestDefinition(TestProject.SIMPLE_APPLICATION_OPTIMIZATION_ENABLED)
     )
   }
 
