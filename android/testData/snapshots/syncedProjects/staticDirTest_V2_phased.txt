@@ -442,6 +442,26 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugScreenshotTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/screenshot
             JavaSource (test)             : file://<PROJECT>/app/src/screenshot/java
