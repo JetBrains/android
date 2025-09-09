@@ -2116,6 +2116,11 @@ public final class StudioFlags {
                     "Enable the AGENTS.md Files macro in the context drawer",
                     "This macro attaches AGENTS.md or GEMINI.md Files under directories of the current file and its recursive parents.");
 
+  public static final Flag<Boolean> STUDIOBOT_KNOWLEDGE_BASE_RAG =
+    new BooleanFlag(STUDIOBOT, "knowledge.base.rag",
+                    "Enable the Knowledge Base (KB) indexer and search tools",
+                    "KB consists of Android developer docs including libraries.");
+
   public static final Flag<Boolean> STUDIOBOT_ASK_GEMINI_INCLUDE_BUILD_FILES_IN_CONTEXT =
     new BooleanFlag(STUDIOBOT, "askgemini.include.build.files.in.context",
                     "Allow build files in 'Ask Gemini' context",
