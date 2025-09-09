@@ -61,6 +61,7 @@ import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.tree.TreeModelAdapter
 import com.intellij.util.ui.tree.TreeUtil
+import io.ktor.util.escapeHTML
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import java.awt.event.FocusAdapter
@@ -390,10 +391,10 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
         detailsPanel.add(label)
       }
       selectedStep is UpgradeAssistantWindowModel.StepUiPresentation -> {
-        val text = StringBuilder("<div><b>${selectedStep.pageHeader}</b></div>")
+        val text = StringBuilder("<div><b>${selectedStep.pageHeader.escapeHTML()}</b></div>")
         val paragraph = selectedStep.helpLinkUrl != null || selectedStep.shortDescription != null
         if (paragraph) text.append("<p>")
-        selectedStep.shortDescription?.let { description ->
+        selectedStep.shortDescription?.escapeHTML()?.let { description ->
           text.append(description.replace("\n", "<br>"))
           selectedStep.helpLinkUrl?.let { text.append("  ") }
         }
