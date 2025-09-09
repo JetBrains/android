@@ -19,6 +19,7 @@ import com.android.flags.BooleanFlag;
 import com.android.flags.DebugFlag;
 import com.android.flags.EnumFlag;
 import com.android.flags.Flag;
+import com.android.flags.FlagDefault;
 import com.android.flags.FlagGroup;
 import com.android.flags.FlagValueContainer;
 import com.android.flags.Flags;
@@ -105,7 +106,13 @@ public final class StudioFlags {
     "configuration.level",
     "Sets the flag configuration level",
     "Changes the configuration level that controls the flag defaults. Changing the value of this flag requires restarting Android Studio",
-    FeatureConfiguration.Companion.getCurrent());
+    new FlagDefault<>("Delayed default for FeatureConfiguration") { // use a FlagDefault to avoid calling getCurrent() during cinit
+      @Override
+      public FeatureConfiguration get() {
+        return FeatureConfiguration.Companion.getCurrent();
+      }
+    },
+    FeatureConfiguration.class);
 
   //region Studio.Diagnostic
   private static final FlagGroup STUDIO_DIAGNOSTIC = new FlagGroup(FLAGS, "studio.diagnostic", "Android Studio Diagnostics");
