@@ -1494,9 +1494,7 @@ class ComposePreviewRepresentation(
    * includes the compose framework).
    */
   private fun usePrivateClassLoader() =
-    mode.value is PreviewMode.Interactive ||
-      mode.value is PreviewMode.AnimationInspection ||
-      composePreviewFlowManager.previewsCount() == 1
+    mode.value is PreviewMode.Interactive || mode.value is PreviewMode.AnimationInspection
 
   override fun invalidate() {
     invalidated.set(true)
