@@ -223,16 +223,6 @@ private fun cancelJobOnDispose(disposable: Disposable, job: Job) {
   if (!registered) onDispose()
 }
 
-private val APPLICATION_SCOPE: Key<CoroutineScope> = Key.create(::APPLICATION_SCOPE.qualifiedName<AndroidCoroutinesAware>())
-
-/** Returns a singleton coroutine scope that is tied to the [com.intellij.openapi.application.Application]'s lifecycle. */
-val applicationCoroutineScope: CoroutineScope
-  get() {
-    return ApplicationManager.getApplication().let {
-      (it as UserDataHolderEx).putUserDataIfAbsent(APPLICATION_SCOPE, AndroidCoroutineScope(service<ApplicationCoroutineScopeDisposable>()))
-    }
-  }
-
 private val PROJECT_SCOPE: Key<CoroutineScope> = Key.create(::PROJECT_SCOPE.qualifiedName<AndroidCoroutinesAware>())
 
 @Suppress("IncorrectParentDisposable")
