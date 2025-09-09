@@ -452,14 +452,13 @@ void JObjectArray::SetElement(JNIEnv* jni_env, int32_t index, const JObject& ele
   jni_env->SetObjectArrayElement(ref(), index, element);
 }
 
-JCharArray JCharArray::Create(JNIEnv* jni_env, int32_t length) {
-  return JCharArray(jni_env, jni_env->NewCharArray(length));
+JCharArray::JCharArray(JNIEnv* jni_env, int32_t length)
+    : JRef(jni_env, jni_env->NewCharArray(length)) {
 }
 
-JCharArray JCharArray::Create(JNIEnv* jni_env, int32_t length, const uint16_t* chars) {
-  JCharArray array = Create(jni_env, length);
-  array.SetRegion(jni_env, 0, length, chars);
-  return array;
+JCharArray::JCharArray(JNIEnv* jni_env, int32_t length, const uint16_t* elements)
+    : JRef(jni_env, jni_env->NewCharArray(length)) {
+  SetRegion(jni_env, 0, length, elements);
 }
 
 JShortArray::JShortArray(JNIEnv* jni_env, int32_t length)

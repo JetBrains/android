@@ -307,13 +307,13 @@ class JCharArray : public JRef<JCharArray, jcharArray> {
 public:
   using JRef::JRef;
 
-  static JCharArray Create(JNIEnv* jni_env, int32_t length);
-  static JCharArray Create(JNIEnv* jni_env, int32_t length, const uint16_t* chars);
-  void SetRegion(int32_t start, int32_t len, const uint16_t* chars) const {
-    SetRegion(GetJni(), start, len, chars);
+  JCharArray(JNIEnv* jni_env, int32_t length);
+  JCharArray(JNIEnv* jni_env, int32_t length, const uint16_t* elements);
+  void SetRegion(int32_t start, int32_t len, const uint16_t* elements) const {
+    SetRegion(GetJni(), start, len, elements);
   }
-  void SetRegion(JNIEnv* jni_env, int32_t start, int32_t len, const uint16_t* chars) const {
-    jni_env->SetCharArrayRegion(ref(), start, len, chars);
+  void SetRegion(JNIEnv* jni_env, int32_t start, int32_t len, const uint16_t* elements) const {
+    jni_env->SetCharArrayRegion(ref(), start, len, elements);
   }
 };
 
