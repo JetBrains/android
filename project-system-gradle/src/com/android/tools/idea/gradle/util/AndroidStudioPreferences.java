@@ -28,7 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.idea.core.script.k1.settings.KotlinScriptingSettingsImpl;
-import org.jetbrains.kotlin.idea.core.script.v1.IdeScriptDefinitionProvider;
+import org.jetbrains.kotlin.scripting.definitions.ScriptDefinitionProvider;
 
 public final class AndroidStudioPreferences {
   private static final List<String> PROJECT_PREFERENCES_TO_REMOVE = Arrays.asList(
@@ -55,12 +55,14 @@ public final class AndroidStudioPreferences {
     // Tests do not rely on this but it causes test flakiness as it can be executed after test finish during project disposal.
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       // Disable KotlinScriptingSettings.autoReloadConfigurations flag, avoiding unexpected re-sync project with kotlin scripts
-      IdeScriptDefinitionProvider.Companion.getInstance(project).getDefinitions().forEach(scriptDefinition -> {
-        KotlinScriptingSettingsImpl settings = KotlinScriptingSettingsImpl.Companion.getInstance(project);
+      var iterator = ScriptDefinitionProvider.Companion.getInstance(project).getCurrentDefinitions().iterator();
+      var settings = KotlinScriptingSettingsImpl.Companion.getInstance(project);
+      while (iterator.hasNext()) {
+        var scriptDefinition = iterator.next();
         if (settings.isScriptDefinitionEnabled(scriptDefinition) && settings.autoReloadConfigurations(scriptDefinition)) {
           settings.setAutoReloadConfigurations(scriptDefinition, false);
         }
-      });
+      }
     }
 
     // Note: This unregisters the extensions when the predicate returns False.
