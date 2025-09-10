@@ -23,4 +23,9 @@
     <extensionPoint qualifiedName="com.android.screenshottest.screenshotTestResultListenerToken"
                     interface="com.android.screenshottest.ScreenshotTestResultListenerToken"/>
   </extensionPoints>
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.screenshottest.screenshotTestProjectSystem"
+                    interface="com.android.screenshottest.ScreenshotTestBuildSystemAdapter"
+                    dynamic="true"/>
+  </extensionPoints>
 </idea-plugin>

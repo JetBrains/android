@@ -17,6 +17,7 @@ package com.android.screenshottest.run
 
 
 import com.android.flags.junit.FlagRule
+import com.android.screenshottest.action.UpdateReferenceImagesAction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths

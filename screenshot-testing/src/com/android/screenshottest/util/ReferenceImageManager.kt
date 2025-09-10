@@ -15,8 +15,7 @@
  */
 package com.android.screenshottest.util
 
-// TODO merge
-//import com.android.screenshottest.ScreenshotTestBuildSystemAdapter
+import com.android.screenshottest.ScreenshotTestBuildSystemAdapter
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -46,41 +45,39 @@ private const val REFERENCE_SUBDIRECTORY = "reference"
  * @return A list of data objects that failed to copy.
  */
 fun copyReferenceImages(module: Module, imagesToCopy: List<ImageData>): List<ImageData> {
-  // TODO merge
-  return TODO()
-  //val failures = mutableListOf<ImageData>()
-  //try {
-  //  val projectSystem = ScreenshotTestBuildSystemAdapter.EP_NAME.extensionList.firstOrNull()
-  //    ?: throw IllegalStateException("ScreenshotTestBuildSystemAdapter extension not found.")
-  //  val variantName = projectSystem.getSelectedVariantName(module)
-  //    ?: throw IllegalStateException("Variant name not found")
-  //  val modulePathStr = projectSystem.getLinkedExternalProjectPath(module)
-  //    ?: throw IllegalStateException("Could not determine module project path.")
-  //
-  //  val referenceRoot = getReferenceImageRoot(File(modulePathStr), variantName)
-  //
-  //  imagesToCopy.forEach { imageData ->
-  //    try {
-  //      imageData.loadedImagePaths.forEach { (imagePath, simpleClassName) ->
-  //        val sourceFile = File(imagePath)
-  //        val destinationFile = referenceRoot.resolve(simpleClassName).resolve(sourceFile.name).toFile()
-  //        destinationFile.parentFile.mkdirs()
-  //        sourceFile.copyTo(destinationFile, overwrite = true)
-  //        LOG.info("Copied ${sourceFile.path} to ${destinationFile.path}")
-  //      }
-  //    } catch (e: IOException) {
-  //      LOG.error("Failed to copy screenshot reference image due to an I/O error for: ${imageData.previewData}", e)
-  //      failures.add(imageData)
-  //    }
-  //  }
-  //
-  //  LocalFileSystem.getInstance().refreshIoFiles(listOf(referenceRoot.toFile()), true, true, null)
-  //} catch (e: IllegalStateException) {
-  //  LOG.error("Failed to copy screenshot reference images during setup due to invalid project state or configuration.", e)
-  //  // If setup fails, all items are considered failures.
-  //  return imagesToCopy
-  //}
-  //return failures
+  val failures = mutableListOf<ImageData>()
+  try {
+    val projectSystem = ScreenshotTestBuildSystemAdapter.EP_NAME.extensionList.firstOrNull()
+      ?: throw IllegalStateException("ScreenshotTestBuildSystemAdapter extension not found.")
+    val variantName = projectSystem.getSelectedVariantName(module)
+      ?: throw IllegalStateException("Variant name not found")
+    val modulePathStr = projectSystem.getLinkedExternalProjectPath(module)
+      ?: throw IllegalStateException("Could not determine module project path.")
+
+    val referenceRoot = getReferenceImageRoot(File(modulePathStr), variantName)
+
+    imagesToCopy.forEach { imageData ->
+      try {
+        imageData.loadedImagePaths.forEach { (imagePath, simpleClassName) ->
+          val sourceFile = File(imagePath)
+          val destinationFile = referenceRoot.resolve(simpleClassName).resolve(sourceFile.name).toFile()
+          destinationFile.parentFile.mkdirs()
+          sourceFile.copyTo(destinationFile, overwrite = true)
+          LOG.info("Copied ${sourceFile.path} to ${destinationFile.path}")
+        }
+      } catch (e: IOException) {
+        LOG.error("Failed to copy screenshot reference image due to an I/O error for: ${imageData.previewData}", e)
+        failures.add(imageData)
+      }
+    }
+
+    LocalFileSystem.getInstance().refreshIoFiles(listOf(referenceRoot.toFile()), true, true, null)
+  } catch (e: IllegalStateException) {
+    LOG.error("Failed to copy screenshot reference images during setup due to invalid project state or configuration.", e)
+    // If setup fails, all items are considered failures.
+    return imagesToCopy
+  }
+  return failures
 }
 
 /**
