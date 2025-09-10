@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.sqlite.ui
 
-import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.stdui.CommonButton
+import com.android.tools.adtui.swing.findDescendant
+import com.android.tools.adtui.swing.getDescendant
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.ExportDialogParams
 import com.android.tools.idea.sqlite.model.ExportDialogParams.ExportDatabaseDialogParams
@@ -39,11 +40,12 @@ import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPopupMenu
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.treeStructure.Tree
 import java.awt.event.ActionEvent
@@ -53,6 +55,7 @@ import java.awt.event.MouseEvent.BUTTON1
 import java.awt.event.MouseEvent.BUTTON3
 import java.awt.event.MouseEvent.MOUSE_PRESSED
 import javax.swing.AbstractButton
+import javax.swing.JComponent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
 import org.mockito.AdditionalAnswers.answer
@@ -65,7 +68,6 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 
-private const val EXPORT_TO_FILE_ENABLED_DEFAULT = true
 private const val TABLE_ACTION_PANEL_COMPONENT_NAME = "table-actions-panel"
 private const val EXPORT_BUTTON_COMPONENT_NAME = "export-button"
 
@@ -184,16 +186,14 @@ class ExportToFileUiTest : LightPlatformTestCase() {
     val listener = mock(DatabaseInspectorView.Listener::class.java)
     view.listeners.add(listener)
 
-    val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
+    val tree = view.component.getDescendant<Tree>()
     view.updateDatabases(
       listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0))
     )
 
     // Interact with the UI
     val exportButton =
-      TreeWalker(view.component).descendants().filterIsInstance(CommonButton::class.java).single {
-        it.name == EXPORT_BUTTON_COMPONENT_NAME
-      }
+      view.component.getDescendant<CommonButton> { it.name == EXPORT_BUTTON_COMPONENT_NAME }
     val nodePath =
       (0 until tree.rowCount)
         .map { tree.getPathForRow(it) }
@@ -210,12 +210,8 @@ class ExportToFileUiTest : LightPlatformTestCase() {
 
   private fun findExportButtonInActionPanel(tableView: TableViewImpl): CommonButton? {
     val actionPanel =
-      TreeWalker(tableView.component).descendants().first {
-        it.name == TABLE_ACTION_PANEL_COMPONENT_NAME
-      }
-    return TreeWalker(actionPanel).descendants().filterIsInstance<CommonButton>().firstOrNull {
-      it.name == EXPORT_BUTTON_COMPONENT_NAME
-    }
+      tableView.component.getDescendant<JComponent> { it.name == TABLE_ACTION_PANEL_COMPONENT_NAME }
+    return actionPanel.findDescendant<CommonButton> { it.name == EXPORT_BUTTON_COMPONENT_NAME }
   }
 
   private fun AbstractButton.simulateClick() {
@@ -223,7 +219,10 @@ class ExportToFileUiTest : LightPlatformTestCase() {
   }
 
   private fun DefaultActionGroup.invokeSingleOption() {
-    this.childActionsOrStubs.single().actionPerformed(mock(AnActionEvent::class.java))
+    ActionUtil.performActionDumbAwareWithCallbacks(
+      childActionsOrStubs.single(),
+      TestActionEvent.createTestEvent(),
+    )
   }
 
   private fun Tree.simulateClick(nodePath: TreePath, button: Int) {

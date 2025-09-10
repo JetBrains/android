@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.sqlite.ui
 
-import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.swing.findDescendant
+import com.android.tools.adtui.swing.getDescendant
 import com.android.tools.idea.sqlite.controllers.TabId
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.SqliteAffinity
@@ -37,6 +38,7 @@ import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.ui.treeStructure.Tree
 import icons.StudioIcons
 import java.awt.Dimension
+import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JToggleButton
 import javax.swing.tree.DefaultMutableTreeNode
@@ -55,10 +57,10 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
   fun testUpdateDatabaseRemovesTableNode() {
     // Prepare
-    val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
+    val tree = view.component.getDescendant<Tree>()
 
-    val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
-    val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
+    val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
+    val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
     view.updateDatabases(
@@ -74,10 +76,10 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
   fun testUpdateDatabaseAddsTableNode() {
     // Prepare
-    val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
+    val tree = view.component.getDescendant<Tree>()
 
-    val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
-    val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
+    val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
+    val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
     view.updateDatabases(
@@ -106,17 +108,17 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
   fun testUpdateDatabaseAddsColumn() {
     // Prepare
-    val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
+    val tree = view.component.getDescendant<Tree>()
 
-    val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
-    val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
+    val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
+    val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
     view.updateDatabases(
       listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0))
     )
 
-    val column3 = SqliteColumn("c3", SqliteAffinity.TEXT, false, false)
+    val column3 = SqliteColumn("c3", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
     val table2 = SqliteTable("t1", listOf(column1, column2, column3), null, false)
 
     // Act
@@ -131,10 +133,10 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
   fun testUpdateDatabaseRemovesColumn() {
     // Prepare
-    val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
+    val tree = view.component.getDescendant<Tree>()
 
-    val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
-    val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
+    val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
+    val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
     view.updateDatabases(
@@ -155,10 +157,10 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
   fun testUpdateDatabaseReplacesOldTableForNewTable() {
     // Prepare
-    val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
+    val tree = view.component.getDescendant<Tree>()
 
-    val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
-    val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
+    val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
+    val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
     view.updateDatabases(
@@ -185,17 +187,18 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
   fun testUpdateDatabaseReplacesOldColumnForNewColumn() {
     // Prepare
-    val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
+    val tree = view.component.getDescendant<Tree>()
 
-    val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
-    val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
+    val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
+    val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
     view.updateDatabases(
       listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0))
     )
 
-    val newColumn = SqliteColumn("c3", SqliteAffinity.TEXT, false, false)
+    val newColumn =
+      SqliteColumn("c3", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
     val table1AfterRemove = SqliteTable("t1", listOf(column1), null, false)
     val finalTable = SqliteTable("t1", listOf(column1, newColumn), null, false)
 
@@ -214,10 +217,10 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
   fun testUpdateDatabaseAddsTableAccordingToIndex() {
     // Prepare
-    val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
+    val tree = view.component.getDescendant<Tree>()
 
-    val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
-    val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
+    val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
+    val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
     view.updateDatabases(
@@ -246,17 +249,17 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
   fun testUpdateDatabaseAddsColumnAccordingToIndex() {
     // Prepare
-    val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
+    val tree = view.component.getDescendant<Tree>()
 
-    val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
-    val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
+    val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
+    val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
     view.updateDatabases(
       listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0))
     )
 
-    val column3 = SqliteColumn("c3", SqliteAffinity.TEXT, false, false)
+    val column3 = SqliteColumn("c3", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
     val table2 = SqliteTable("t1", listOf(column3, column1, column2), null, false)
 
     // Act
@@ -272,13 +275,11 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
   fun testEmptyStateIsShownInitially() {
     // Prepare
     val emptyStateRightPanel =
-      TreeWalker(view.component).descendants().first { it.name == "right-panel-empty-state" }
+      view.component.getDescendant<JComponent> { it.name == "right-panel-empty-state" }
     val syncSchemaButton =
-      TreeWalker(view.component).descendants().first { it.name == "refresh-schema-button" }
-    val runSqlButton =
-      TreeWalker(view.component).descendants().first { it.name == "run-sql-button" }
-    val tree =
-      TreeWalker(view.component).descendants().first { it.name == "left-panel-tree" } as Tree
+      view.component.getDescendant<JComponent> { it.name == "refresh-schema-button" }
+    val runSqlButton = view.component.getDescendant<JComponent> { it.name == "run-sql-button" }
+    val tree = view.component.getDescendant<Tree> { it.name == "left-panel-tree" }
 
     // Assert
     assertTrue(emptyStateRightPanel.isVisible)
@@ -291,8 +292,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
   fun testTreeEmptyStateIsHiddenAfterOpeningADatabase() {
     // Prepare
-    val tree =
-      TreeWalker(view.component).descendants().first { it.name == "left-panel-tree" } as Tree
+    val tree = view.component.getDescendant<Tree> { it.name == "left-panel-tree" }
 
     // Act
     view.updateDatabases(
@@ -307,11 +307,11 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
     // Assert
     val tabsPanelAfterAddingDb =
-      TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-tabs-panel" }
+      view.component.findDescendant<JComponent> { it.name == "right-panel-tabs-panel" }
     val syncSchemaButtonAfterAddingDb =
-      TreeWalker(view.component).descendants().first { it.name == "refresh-schema-button" }
+      view.component.getDescendant<JComponent> { it.name == "refresh-schema-button" }
     val runSqlButtonAfterAddingDb =
-      TreeWalker(view.component).descendants().first { it.name == "run-sql-button" }
+      view.component.getDescendant<JComponent> { it.name == "run-sql-button" }
     val treeRootAfterAddingDb = tree.model.root
 
     assertNull(tabsPanelAfterAddingDb)
@@ -336,9 +336,9 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
     // Assert
     val emptyStateRightPanelAfterAddingTab =
-      TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-empty-state" }
+      view.component.findDescendant<JComponent> { it.name == "right-panel-empty-state" }
     val tabsPanelAfterAddingTab =
-      TreeWalker(view.component).descendants().first { it.name == "right-panel-tabs-panel" }
+      view.component.findDescendant<JComponent> { it.name == "right-panel-tabs-panel" }
 
     assertNull(emptyStateRightPanelAfterAddingTab)
     assertNotNull(tabsPanelAfterAddingTab)
@@ -362,9 +362,9 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
     // Assert
     val emptyStateRightPanelAfterAddingTab =
-      TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-empty-state" }
+      view.component.findDescendant<JComponent> { it.name == "right-panel-empty-state" }
     val tabsPanelAfterAddingTab =
-      TreeWalker(view.component).descendants().first { it.name == "right-panel-tabs-panel" }
+      view.component.findDescendant<JComponent> { it.name == "right-panel-tabs-panel" }
 
     assertNull(emptyStateRightPanelAfterAddingTab)
     assertNotNull(tabsPanelAfterAddingTab)
@@ -374,9 +374,9 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
     // Assert
     val emptyStateRightPanelAfterRemovingTab =
-      TreeWalker(view.component).descendants().first { it.name == "right-panel-empty-state" }
+      view.component.findDescendant<JComponent> { it.name == "right-panel-empty-state" }
     val tabsPanelAfterRemovingTab =
-      TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-tabs-panel" }
+      view.component.findDescendant<JComponent> { it.name == "right-panel-tabs-panel" }
 
     assertNotNull(emptyStateRightPanelAfterRemovingTab)
     assertNull(tabsPanelAfterRemovingTab)
@@ -384,8 +384,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
   fun testEmptyStateIsShownAfterOpenDatabasesAreRemoved() {
     // Prepare
-    val tree =
-      TreeWalker(view.component).descendants().first { it.name == "left-panel-tree" } as Tree
+    val tree = view.component.getDescendant<Tree> { it.name == "left-panel-tree" }
 
     // Act
     view.updateDatabases(
@@ -403,13 +402,13 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
     // Assert
     val emptyStateRightPanelAfterRemovingDb =
-      TreeWalker(view.component).descendants().first { it.name == "right-panel-empty-state" }
+      view.component.findDescendant<JComponent> { it.name == "right-panel-empty-state" }
     val tabsPanelAfterRemovingDb =
-      TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-tabs-panel" }
+      view.component.findDescendant<JComponent> { it.name == "right-panel-tabs-panel" }
     val syncSchemaButtonAfterRemovingDb =
-      TreeWalker(view.component).descendants().first { it.name == "refresh-schema-button" }
+      view.component.getDescendant<JComponent> { it.name == "refresh-schema-button" }
     val runSqlButtonAfterRemovingDb =
-      TreeWalker(view.component).descendants().first { it.name == "run-sql-button" }
+      view.component.getDescendant<JComponent> { it.name == "run-sql-button" }
     val treeRootAfterRemovingDb = tree.model.root
 
     assertNotNull(emptyStateRightPanelAfterRemovingDb)
@@ -449,11 +448,8 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
     // Assert
     val emptyStateRightPanel =
-      TreeWalker(view.component).descendants().firstOrNull() {
-        it.name == "right-panel-empty-state"
-      }
-    val tabsPanel =
-      TreeWalker(view.component).descendants().first { it.name == "right-panel-tabs-panel" }
+      view.component.findDescendant<JComponent> { it.name == "right-panel-empty-state" }
+    val tabsPanel = view.component.getDescendant<JComponent> { it.name == "right-panel-tabs-panel" }
 
     assertNull(emptyStateRightPanel)
     assertTrue(tabsPanel.isVisible)
@@ -462,8 +458,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
   fun testUpdateKeepConnectionOpenButton() {
     // Prepare
     val button =
-      TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" }
-        as JToggleButton
+      view.component.getDescendant<JToggleButton> { it.name == "keep-connections-open-button" }
 
     // Assert
     assertEquals(StudioIcons.DatabaseInspector.KEEP_DATABASES_OPEN, button.icon)
@@ -488,8 +483,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val fileDatabaseId2 =
       SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file2")))
     val keepConnectionsOpenButton =
-      TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" }
-        as JToggleButton
+      view.component.getDescendant<JToggleButton> { it.name == "keep-connections-open-button" }
 
     // Act
     view.updateDatabases(
@@ -519,8 +513,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Prepare
     val liveDatabaseId = SqliteDatabaseId.fromLiveDatabase("", 0)
     val keepConnectionsOpenButton =
-      TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" }
-        as JToggleButton
+      view.component.getDescendant<JToggleButton> { it.name == "keep-connections-open-button" }
 
     // Act
     view.updateDatabases(
@@ -545,8 +538,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
       SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file2")))
     val liveDatabaseId = SqliteDatabaseId.fromLiveDatabase("", 0)
     val keepConnectionsOpenButton =
-      TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" }
-        as JToggleButton
+      view.component.getDescendant<JToggleButton> { it.name == "keep-connections-open-button" }
 
     // Act
     view.updateDatabases(
@@ -594,8 +586,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val fileDatabaseId1 =
       SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file1")))
 
-    val tree =
-      TreeWalker(view.component).descendants().first { it.name == "left-panel-tree" } as Tree
+    val tree = view.component.findDescendant<JComponent> { it.name == "left-panel-tree" } as Tree
     val diffOperations =
       listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(fileDatabaseId1, true), null, 0))
 
