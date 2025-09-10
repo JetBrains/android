@@ -66,6 +66,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.concurrency.annotations.RequiresReadLock;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -425,6 +426,12 @@ public class LiveEditProjectMonitor implements Disposable {
     }
     
     if (!shouldLiveEdit()) {
+      return;
+    }
+
+    if (file instanceof LightVirtualFile) {
+      // Ignore any in-memory file changes.
+      LOGGER.info("Ignoring LightVirtualFiles %s", file.getName());
       return;
     }
 
