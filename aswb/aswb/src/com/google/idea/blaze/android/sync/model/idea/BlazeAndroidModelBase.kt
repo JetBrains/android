@@ -17,7 +17,6 @@ package com.google.idea.blaze.android.sync.model.idea
 
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.model.ClassJarProvider
 import com.android.tools.lint.detector.api.Desugaring
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.idea.blaze.base.model.BlazeProjectData
@@ -28,7 +27,6 @@ import com.google.idea.blaze.base.sync.libraries.LintCollector
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import java.io.File
-import kotlin.collections.Set
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -74,10 +72,6 @@ abstract class BlazeAndroidModelBase protected constructor(
 
   override val targetSdkVersion: AndroidVersion?
     get() = null
-
-  val classJarProvider: ClassJarProvider
-    // @Override #api212, moved in #api213
-    get() = BlazeClassJarProvider(project)
 
   override val desugaring: Set<Desugaring>
     get() = Desugaring.FULL

@@ -38,6 +38,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
+import java.nio.file.Path
 
 /**
  * A project system specific set of services required by UI tools to manage builds and fetch build artifacts needed for rendering.
@@ -79,10 +80,16 @@ interface BuildSystemFilePreviewServices<P : AndroidProjectSystem, R : BuildTarg
    */
   interface RenderingServices {
     /**
-     * An instance of [ClassFileFinder] associated with a [BuildTargetReference] for which this instance of [RenderingServices] was
-     * obtained.
+     * An instance of [ClassFileFinder] that can find classes built by targets within the project scope, i.e. not classes coming from
+     * external dependencies.
      */
     val classFileFinder: ClassFileFinder?
+
+    /**
+     * The list of all jars on the runtime classpath whose classes are not returned by the [classFileFinder], i.e. they are not produced by
+     * targets in the project scope.
+     */
+    val externalLibraries: Iterable<Path>
   }
 
   /**

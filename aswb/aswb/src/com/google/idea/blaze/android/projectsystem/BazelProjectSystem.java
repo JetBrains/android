@@ -19,10 +19,7 @@ import static com.android.tools.idea.projectsystem.SourceProvidersKt.emptySource
 import static com.google.idea.blaze.base.sync.data.BlazeDataStorage.WORKSPACE_MODULE_NAME;
 import static org.jetbrains.android.facet.SourceProviderUtil.createSourceProvidersForLegacyModule;
 
-import com.android.tools.apk.analyzer.AaptInvoker;
-import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.CommonTestType;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
@@ -35,13 +32,11 @@ import com.android.tools.idea.projectsystem.SourceProvidersFactory;
 import com.android.tools.idea.projectsystem.SourceProvidersImpl;
 import com.android.tools.idea.res.AndroidInnerClassFinder;
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.android.resources.BlazeLightResourceClassService;
 import com.google.idea.blaze.android.sync.model.idea.BlazeAndroidModel;
-import com.google.idea.blaze.android.sync.model.idea.BlazeClassJarProvider;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.intellij.facet.ProjectFacetManager;
@@ -51,7 +46,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElementFinder;
 import com.intellij.psi.search.GlobalSearchScope;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -59,9 +53,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -168,11 +160,6 @@ public class BazelProjectSystem implements AndroidProjectSystem {
         }
       }
     };
-  }
-
-  @Override
-  public ClassJarProvider getClassJarProvider() {
-    return new BlazeClassJarProvider(project);
   }
 
   @Override

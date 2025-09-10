@@ -40,6 +40,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.EverythingGlobalScope
 import com.intellij.serviceContainer.AlreadyDisposedException
 import com.intellij.testFramework.ExtensionTestUtil
+import java.nio.file.Path
 import org.jetbrains.annotations.TestOnly
 
 /**
@@ -65,6 +66,8 @@ class FakeBuildSystemFilePreviewServices(
           return classFiles[fqcn]?.let { ClassContentForTests(it)}
         }
       }
+      override val externalLibraries: Iterable<Path>
+        get() = emptyList()
     }
   }
 

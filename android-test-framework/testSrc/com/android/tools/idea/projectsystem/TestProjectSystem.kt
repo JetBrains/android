@@ -19,7 +19,6 @@ import com.android.ide.common.repository.WellKnownMavenArtifactId
 import com.android.ide.common.resources.AndroidManifestPackageNameUtils
 import com.android.ide.common.util.PathString
 import com.android.projectmodel.ExternalAndroidLibrary
-import com.android.tools.idea.model.ClassJarProvider
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildMode
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
@@ -49,9 +48,8 @@ import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.ui.AppUIUtil
-import org.jetbrains.android.facet.AndroidFacet
-import java.io.File
 import java.util.concurrent.CountDownLatch
+import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * This implementation of AndroidProjectSystem is used during integration tests and includes methods
@@ -341,12 +339,6 @@ class TestProjectSystem @JvmOverloads constructor(
       override fun findRClassPackage(qualifiedName: String): PsiPackage? = null
       override fun getAllLightRClasses() = emptyList<PsiClass>()
       override fun getLightRClassesDefinedByModule(module: Module) = emptyList<PsiClass>()
-    }
-  }
-
-  override fun getClassJarProvider(): ClassJarProvider {
-    return object: ClassJarProvider {
-      override fun getModuleExternalLibraries(module: Module): List<File> = emptyList()
     }
   }
 

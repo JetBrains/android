@@ -20,14 +20,13 @@ import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeUnknownLibrary
 import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
-import com.android.tools.idea.model.ClassJarProvider
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VfsUtilCore
-import org.jetbrains.android.facet.AndroidRootUtil.getExternalLibraries
 import java.io.File
+import org.jetbrains.android.facet.AndroidRootUtil.getExternalLibraries
 
-class AndroidGradleClassJarProvider : ClassJarProvider {
-  override fun getModuleExternalLibraries(module: Module): List<File> {
+object AndroidGradleClassJarProvider {
+  fun getModuleExternalLibraries(module: Module): List<File> {
     val gradleModule = GradleAndroidDependencyModel.get(module)
                        ?: return getExternalLibraries(module).map(VfsUtilCore::virtualToIoFile)
     return gradleModule.mainArtifactWithDependencies.runtimeClasspath.libraries.flatMap { library ->

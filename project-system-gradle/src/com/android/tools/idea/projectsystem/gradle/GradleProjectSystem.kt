@@ -17,7 +17,6 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.execution.common.debug.utils.FacetFinder
-import com.android.tools.idea.gradle.AndroidGradleClassJarProvider
 import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeJavaArtifactCore
@@ -29,7 +28,6 @@ import com.android.tools.idea.gradle.run.PostBuildModel
 import com.android.tools.idea.gradle.run.PostBuildModelProvider
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGeneratedSourceFoldersToUse
-import com.android.tools.idea.model.ClassJarProvider
 import com.android.tools.idea.project.FacetBasedApplicationProjectContext
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
@@ -78,6 +76,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
+import java.io.File
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.PersistentSet
 import kotlinx.collections.immutable.persistentMapOf
@@ -85,7 +84,6 @@ import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.toPersistentSet
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
-import java.io.File
 
 open class GradleProjectSystem(override val project: Project) : AndroidProjectSystem {
   private val moduleHierarchyProvider: GradleModuleHierarchyProvider = GradleModuleHierarchyProvider.getInstance(project)
@@ -211,10 +209,6 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
         ProjectRootModificationTracker.getInstance(project)
       )
     }
-  }
-
-  override fun getClassJarProvider(): ClassJarProvider {
-    return AndroidGradleClassJarProvider()
   }
 
   /**

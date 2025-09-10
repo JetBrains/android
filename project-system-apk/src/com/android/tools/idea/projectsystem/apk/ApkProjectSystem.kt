@@ -17,7 +17,6 @@ package com.android.tools.idea.projectsystem.apk
 
 import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.execution.common.debug.utils.FacetFinder
-import com.android.tools.idea.model.ClassJarProvider
 import com.android.tools.idea.project.DefaultProjectSystem
 import com.android.tools.idea.project.FacetBasedApplicationProjectContext
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
@@ -40,7 +39,6 @@ import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.FileSystemApkProvider
 import com.android.tools.idea.run.NonGradleApplicationIdProvider
 import com.android.tools.idea.run.ValidationError
-import com.android.tools.idea.util.toVirtualFile
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.execution.configurations.ModuleBasedConfiguration
@@ -50,21 +48,17 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.roots.ModuleRootManager
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
 import com.intellij.ui.AppUIUtil
+import java.io.File
 import kotlinx.collections.immutable.toImmutableSet
 import org.jetbrains.android.facet.AndroidFacet
-import java.io.File
 
 class ApkProjectSystem(override val project: Project) : AndroidProjectSystem {
   private val delegate = DefaultProjectSystem(project)
 
   override fun getBuildManager(): ProjectSystemBuildManager =
     delegate.getBuildManager()
-
-  override fun getClassJarProvider(): ClassJarProvider =
-    delegate.getClassJarProvider()
 
   override fun findModulesWithApplicationId(applicationId: String): Collection<Module> =
     delegate.findModulesWithApplicationId(applicationId)

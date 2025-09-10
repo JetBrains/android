@@ -69,9 +69,8 @@ internal class GradleApplicationLiveEditServices(private val module: Module): Ap
   val classFileFinder = GradleClassFileFinder.createWithoutTests(module)
 
   data class GradleCompilationDependencies(val module: Module): ApplicationLiveEditServices.CompilationDependencies {
-    private val classJarProvider = AndroidGradleClassJarProvider()
     override fun getExternalLibraries(): List<Path> {
-      return classJarProvider.getModuleExternalLibraries(module).map { it.toPath() }
+      return AndroidGradleClassJarProvider.getModuleExternalLibraries(module).map { it.toPath() }
     }
 
     override fun getBootClasspath(): List<Path> {

@@ -15,13 +15,22 @@
  */
 package com.android.tools.idea.rendering.tokens;
 
+import static java.util.Collections.emptyList;
+
 import com.android.tools.idea.projectsystem.ClassFileFinder;
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.RenderingServices;
+import java.nio.file.Path;
+import org.jetbrains.annotations.NotNull;
 
 final class BazelRenderingServices implements RenderingServices {
   @Override
   public ClassFileFinder getClassFileFinder() {
     // TODO: b/438210219 - Inject the output JARs
     return null;
+  }
+
+  @Override
+  public @NotNull Iterable<@NotNull Path> getExternalLibraries() {
+    return emptyList();
   }
 }

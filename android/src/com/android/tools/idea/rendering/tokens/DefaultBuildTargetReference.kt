@@ -78,6 +78,12 @@ class DefaultBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Def
           val moduleSystem = module.getModuleSystem()
           return moduleSystem.moduleClassFileFinder
         }
+
+      override val externalLibraries: Iterable<Path>
+        get() {
+          return AndroidRootUtil.getExternalLibraries(buildTargetReference.moduleIfNotDisposed ?: return emptyList())
+            .map { VfsUtilCore.virtualToIoFile(it).toPath() }
+        }
     }
   }
 

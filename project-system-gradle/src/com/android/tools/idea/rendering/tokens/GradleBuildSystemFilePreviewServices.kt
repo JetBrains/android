@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.rendering.tokens
 
+import com.android.SdkConstants
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.gradle.AndroidGradleClassJarProvider
 import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildListener
@@ -24,6 +26,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.GradleToken
+import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -43,6 +46,7 @@ import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Bu
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.run.deployment.liveedit.tokens.GradleApplicationLiveEditServices
 import com.android.tools.idea.util.findAndroidModule
+import com.google.common.io.Files
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
@@ -56,7 +60,9 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.serviceContainer.AlreadyDisposedException
+import java.io.File
 import java.lang.ref.WeakReference
+import java.nio.file.Path
 import java.util.WeakHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.jvm.jvmName
@@ -124,6 +130,18 @@ class GradleBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Grad
               )
             }
             else -> null
+          }
+        }
+      override val externalLibraries: Iterable<Path>
+        get() {
+          val module = buildTargetReference.moduleIfNotDisposed ?: return emptyList()
+          val project = module.project
+          return CachedValuesManager.getManager(project).getCachedValue(module) {
+            val libraries = AndroidGradleClassJarProvider.getModuleExternalLibraries(module)
+              .filter { file: File -> SdkConstants.EXT_JAR == Files.getFileExtension(file.name) && file.exists() }
+              .mapNotNull { it.toPath() }
+              .toList()
+            CachedValueProvider.Result.create(libraries, ProjectSyncModificationTracker.getInstance(project))
           }
         }
     }

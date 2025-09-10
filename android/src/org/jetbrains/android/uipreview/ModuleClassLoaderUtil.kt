@@ -27,6 +27,7 @@ import com.android.tools.rendering.classloading.loaders.MultiLoader
 import com.android.tools.idea.rendering.classloading.loaders.MultiLoaderWithAffinity
 import com.android.tools.idea.rendering.classloading.loaders.NameRemapperLoader
 import com.android.tools.idea.rendering.classloading.loaders.RecyclerViewAdapterLoader
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Companion.getBuildSystemFilePreviewServices
 import com.android.tools.idea.util.findAndroidModule
 import com.android.tools.idea.util.isAndroidModule
 import com.android.utils.cache.ChangeTracker
@@ -83,7 +84,7 @@ private val additionalLibraries: List<Path>
   }
 
 val BuildTargetReference.externalLibraries: List<Path>
-  get() = additionalLibraries + getLibraryDependenciesJars()
+  get() = additionalLibraries + this.getBuildSystemFilePreviewServices().getRenderingServices(this).externalLibraries
 
 /**
  * Package name used to "re-package" certain classes that would conflict with the ones in the Studio class loader.
