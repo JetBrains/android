@@ -136,16 +136,16 @@ class ScreenshotTestRunLineMarkerContributorTest {
     val fun1Info = contributor.getSlowInfo(function1)
     val fun2Info = contributor.getSlowInfo(function2)
     val classInfo = contributor.getSlowInfo(classElement)
-    val firstAction1 = fun1Info!!.actions.firstOrNull()
-    val firstAction2 = fun2Info!!.actions.firstOrNull()
+    val lastAction1 = fun1Info!!.actions.lastOrNull()
+    val lastAction2 = fun2Info!!.actions.lastOrNull()
 
     assertNotNull(fun1Info)
     assertNotNull(fun2Info)
     assertNotNull(classInfo)
-    assertTrue(firstAction1 is UpdateReferenceImagesAction)
-    assertTrue(firstAction2 is UpdateReferenceImagesAction)
-    assertEquals("Add/Update Reference Images", firstAction1!!.templateText)
-    assertEquals("Add/Update Reference Images", firstAction2!!.templateText)
+    assertTrue(lastAction1 is UpdateReferenceImagesAction)
+    assertTrue(lastAction2 is UpdateReferenceImagesAction)
+    assertEquals("Add/Update Reference Images", lastAction1!!.templateText)
+    assertEquals("Add/Update Reference Images", lastAction2!!.templateText)
   }
 
   @Test
@@ -210,16 +210,16 @@ class ScreenshotTestRunLineMarkerContributorTest {
     val fun1Info = contributor.getSlowInfo(function1)
     val fun2Info = contributor.getSlowInfo(function2)
     val classInfo = contributor.getSlowInfo(classElement)
-    val firstAction1 = fun1Info!!.actions.firstOrNull()
-    val firstAction2 = fun2Info!!.actions.firstOrNull()
+    val lastAction1 = fun1Info!!.actions.lastOrNull()
+    val lastAction2 = fun2Info!!.actions.lastOrNull()
 
     assertNotNull(fun1Info)
     assertNotNull(fun2Info)
     assertNotNull(classInfo)
-    assertTrue(firstAction1 is UpdateReferenceImagesAction)
-    assertTrue(firstAction2 is UpdateReferenceImagesAction)
-    assertEquals("Add/Update Reference Images", firstAction1!!.templateText)
-    assertEquals("Add/Update Reference Images", firstAction2!!.templateText)
+    assertTrue(lastAction1 is UpdateReferenceImagesAction)
+    assertTrue(lastAction2 is UpdateReferenceImagesAction)
+    assertEquals("Add/Update Reference Images", lastAction1!!.templateText)
+    assertEquals("Add/Update Reference Images", lastAction2!!.templateText)
   }
 
   @Test
@@ -248,12 +248,12 @@ class ScreenshotTestRunLineMarkerContributorTest {
     val classElement = file!!.findClassdentifier("PreviewScreenshotTest")
     val fun1Info = contributor.getSlowInfo(function1)
     val classInfo = contributor.getSlowInfo(classElement)
-    val firstAction1 = fun1Info!!.actions.firstOrNull()
+    val lastAction1 = fun1Info!!.actions.lastOrNull()
 
     assertNotNull(fun1Info)
     assertNotNull(classInfo)
-    assertTrue(firstAction1 is UpdateReferenceImagesAction)
-    assertEquals("Add/Update Reference Images", firstAction1!!.templateText)
+    assertTrue(lastAction1 is UpdateReferenceImagesAction)
+    assertEquals("Add/Update Reference Images", lastAction1!!.templateText)
   }
 
   @Test

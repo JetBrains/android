@@ -41,7 +41,7 @@ class ScreenshotTestRunLineMarkerContributor: RunLineMarkerContributor() {
 
     val declaration = element.getStrictParentOfType<KtNamedDeclaration>()?.takeIf { it.nameIdentifier == element } ?: return null
     if (isValidKtMethodIdentifier(declaration) || isValidKtTestClassIdentifier(declaration)) {
-      val actions = arrayOf(UpdateReferenceImagesAction(), *ExecutorAction.getActions())
+      val actions = arrayOf(*ExecutorAction.getActions(), UpdateReferenceImagesAction())
       return Info(AllIcons.RunConfigurations.TestState.Run, actions) { "Run screenshot tests" }
     }
     return null
