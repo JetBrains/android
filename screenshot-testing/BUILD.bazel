@@ -126,7 +126,11 @@ jvm_library(
     ),
     module_name = "intellij.android.screenshot-test.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = ["//android/screenshot-testing:screenshot-test"],
+    runtime_deps = [
+        # do not sort,
+        "//android/screenshot-testing:screenshot-test",
+        "//platform/lang-core",
+    ],
 )
 
 jvm_library(
@@ -184,6 +188,8 @@ jvm_library(
         "@lib//:kotlinc-kotlin-compiler-common",
         "@lib//:studio-test-platform",
         "@lib//:studio-platform-provided",
+        "//platform/lang-core",
+        "//platform/lang-core:lang-core_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.screenshot-test.tests` end
