@@ -104,6 +104,13 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
     return new AndroidStudioInstallation(options.testFileSystem, workDir, workDir.resolve(studioDir), options.androidStudioFlavor, options.disableFirstRun);
   }
 
+  static public AndroidStudioInstallation fromDir(TestFileSystem testFileSystem) throws IOException {
+    Path workDir = TestUtils.getBinPath("tools/adt/idea/studio/android-studio");
+    Path studioDir = workDir.resolve(getStudioDirectory(workDir));
+    TestLogger.log("studioDir: %s", studioDir);
+    return new AndroidStudioInstallation(testFileSystem, workDir, studioDir, AndroidStudioFlavor.UNKNOWN, true);
+  }
+
   static public AndroidStudioInstallation fromDir(TestFileSystem testFileSystem, Path studioDir) throws IOException {
     Path workDir = Files.createTempDirectory(testFileSystem.getRoot(), "android-studio");
     return new AndroidStudioInstallation(testFileSystem, workDir, studioDir, AndroidStudioFlavor.UNKNOWN, true);

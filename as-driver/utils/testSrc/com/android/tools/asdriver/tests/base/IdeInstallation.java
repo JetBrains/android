@@ -168,6 +168,8 @@ public abstract class IdeInstallation<T extends Ide> {
   }
 
   protected void createVmOptions(StringBuilder vmOptions) throws IOException {
+    // On linux, the Ide is not able to resolve the home directory correctly for some builds. So setting it explicitly
+    vmOptions.append(String.format("-Didea.home.path=%s%n", studioDir));
     vmOptions.append(String.format("-Didea.config.path=%s%n", configDir));
     vmOptions.append(String.format("-Didea.plugins.path=%s%n", pluginsDir));
     vmOptions.append(String.format("-Didea.system.path=%s/system%n", workDir));

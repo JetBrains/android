@@ -22,6 +22,8 @@ import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.testlib.Display;
 import com.android.tools.testlib.TestFileSystem;
 import com.intellij.openapi.util.SystemInfo;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,7 +41,7 @@ public class StartUpTest {
   @Test
   public void startUpTest() throws Exception {
     TestFileSystem fileSystem = new TestFileSystem(tempFolder.getRoot().toPath());
-    AndroidStudioInstallation install = AndroidStudioInstallation.fromZip(fileSystem);
+    AndroidStudioInstallation install = AndroidStudioInstallation.fromDir(fileSystem);
     if (SystemInfo.isMac) {
       install.addVmOption("-Djava.awt.headless=true");
     }
@@ -56,7 +58,10 @@ public class StartUpTest {
         assertThat(javaHome).doesNotContain("/Contents/Home");
         javaHome += "/Contents/Home";
       }
-      assertThat(studio.getSystemProperty("java.home")).isEqualTo(javaHome);
+      // Java Home will point to the run files directory(which is a symlink) for the test's AndroidStudioInstallation instance
+      // The Ide will resolve java.home property to a real path
+      // So to verify that both paths refer to the same directory, we use Files.isSameFile() to compare them
+      assertThat(Files.isSameFile(Path.of(studio.getSystemProperty("java.home"), "bin/java"), Path.of(javaHome, "bin/java"))).isTrue();
 
       // Wait for plugin manager to load all plugins
       Matcher matcher = install.getIdeaLog().waitForMatchingLine(".*PluginManager - Loaded bundled plugins:(.*)", 10, TimeUnit.SECONDS);

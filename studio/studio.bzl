@@ -895,6 +895,7 @@ def _studio_runner(ctx, name, target_to_file, out):
         progress_message = "Copying files",
         use_default_shell_env = True,
     )
+    return files
 
 platform_by_name = {platform.name: platform for platform in [LINUX, MAC, MAC_ARM, WIN]}
 
@@ -919,13 +920,16 @@ def _android_studio_impl(ctx):
 
     host_platform = platform_by_name[ctx.attr.host_platform_name]
     script = ctx.actions.declare_file("%s/%s.py" % (ctx.attr.name, ctx.attr.name))
-    _studio_runner(ctx, ctx.attr.name, all_files[host_platform], script)
+    studio_files = _studio_runner(ctx, ctx.attr.name, all_files[host_platform], script)
 
     # Leave everything that is not the main zips as implicit outputs
-    return DefaultInfo(
-        executable = script,
-        files = depset([script, ctx.outputs.manifest, ctx.outputs.update_message]),
-    )
+    return [
+        DefaultInfo(
+            executable = script,
+            files = depset([script, ctx.outputs.manifest, ctx.outputs.update_message]),
+        ),
+        OutputGroupInfo(files = depset(studio_files)),
+    ]
 
 _android_studio = rule(
     attrs = {
@@ -1084,6 +1088,12 @@ def android_studio(
             }),
             plugins = plugins,
             **kwargs
+        )
+        native.filegroup(
+            name = name + suffix + "_files",
+            srcs = [":" + name + suffix],
+            output_group = "files",
+            visibility = ["//visibility:public"],
         )
 
 def _android_studio_configuration_impl(ctx):
