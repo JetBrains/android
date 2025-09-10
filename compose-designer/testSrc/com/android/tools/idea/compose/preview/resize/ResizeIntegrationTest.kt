@@ -35,7 +35,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.DataSink
@@ -58,7 +57,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -77,12 +75,6 @@ class ResizeIntegrationTest {
   private lateinit var surface: NlDesignSurface
   private lateinit var fakeUi: FakeUi
   private lateinit var previewView: ComposePreviewView
-
-  @Before
-  fun setUp() {
-    // Create VisualLintService early to avoid it being created at the time of project disposal
-    VisualLintService.getInstance(projectRule.project)
-  }
 
   @Test
   fun `resize and save integration test`() = runTest {

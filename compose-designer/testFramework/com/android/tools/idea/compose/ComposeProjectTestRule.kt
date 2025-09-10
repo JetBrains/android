@@ -21,6 +21,7 @@ import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
 import com.android.tools.idea.testing.TestLoggerRule
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
@@ -40,6 +41,8 @@ private class ComposeProjectRuleImpl(private val projectRule: AndroidProjectRule
     (projectRule.module.getModuleSystem() as? DefaultModuleSystem)?.let { it.usesCompose = true }
     projectRule.fixture.stubComposableAnnotation()
     projectRule.fixture.stubPreviewAnnotation()
+    // Create VisualLintService early to avoid it being created at the time of project disposal
+    VisualLintService.getInstance(projectRule.project)
   }
 
   override fun after(description: Description) {}

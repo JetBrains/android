@@ -66,7 +66,6 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.So
 import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.util.TestToolWindowManager
 import com.google.common.base.Preconditions.checkState
 import com.google.common.truth.Truth.assertThat
@@ -166,9 +165,6 @@ class ComposePreviewRepresentationTest {
     )
     ToolWindowManager.getInstance(project)
       .registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
-
-    // Create VisualLintService early to avoid it being created at the time of project disposal
-    VisualLintService.getInstance(project)
   }
 
   @After
