@@ -61,7 +61,10 @@ jvm_library(
   name = "screenshot-test-tests",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
-  runtime_deps = ["//android/screenshot-testing:screenshot-test"],
+  runtime_deps = [
+    "//android/screenshot-testing:screenshot-test",
+    "//platform/lang-core",
+  ],
   plugins = ["@lib//:compose-plugin"]
 )
 
@@ -95,6 +98,7 @@ jvm_library(
     "@lib//:kotlinc-kotlin-compiler-common",
     "@lib//:studio-test-platform",
     "@lib//:studio-platform-provided",
+    "//platform/lang-core",
   ],
   runtime_deps = [":screenshot-test-tests"],
   plugins = ["@lib//:compose-plugin"]
