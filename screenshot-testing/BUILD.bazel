@@ -45,6 +45,10 @@ jvm_library(
     "//images",
     "//platform/diff-impl",
     "//platform/core-ui",
+    "//platform/external-system-api:externalSystem",
+    "//platform/external-system-impl:externalSystem-impl",
+    "//libraries/guava",
+    "//android/android:core",
   ],
   plugins = ["@lib//:compose-plugin"]
 )
@@ -99,6 +103,8 @@ jvm_library(
     "@lib//:studio-test-platform",
     "@lib//:studio-platform-provided",
     "//platform/lang-core",
+    "//platform/external-system-api:externalSystem",
+    "//plugins/gradle",
   ],
   runtime_deps = [":screenshot-test-tests"],
   plugins = ["@lib//:compose-plugin"]

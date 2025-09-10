@@ -17,4 +17,7 @@
   <extensions defaultExtensionNs="com.android.screenshottest">
     <screenshotTestResultListenerToken implementation="com.android.screenshottest.gradle.ScreenshotTestResultListenerGradleToken"/>
   </extensions>
+  <extensions defaultExtensionNs="com.android.screenshottest">
+    <screenshotTestProjectSystem implementation="com.android.screenshottest.gradle.GradleScreenshotTestBuildSystemAdapter"/>
+  </extensions>
 </idea-plugin>
