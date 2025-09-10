@@ -34,7 +34,6 @@ import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD
 import com.android.tools.preview.ParametrizedComposePreviewElementInstance
@@ -70,9 +69,6 @@ class ParametrizedPreviewTest {
   fun setUp() {
     Logger.getInstance(ComposePreviewRepresentation::class.java).setLevel(LogLevel.ALL)
     Logger.getInstance(RenderingBuildStatus::class.java).setLevel(LogLevel.ALL)
-
-    // Create VisualLintService early to avoid it being created at the time of project disposal
-    VisualLintService.getInstance(projectRule.project)
   }
 
   /** Checks the rendering of the default `@Preview` in the Compose template. */
