@@ -48,8 +48,13 @@ private const val INCOMPLETE_METADATA =
         "category1",
         "category2"
       ],
-      "tags": []
+      "tags": [],
+      "codepoint": 59530
     }
+  ],
+  "categories": [
+    "category1",
+    "category2"
   ]
 }"""
 
@@ -126,7 +131,8 @@ private fun createMaterialIconsMetadata(): MaterialIconsMetadata =
     host = "",
     urlPattern = "",
     families = arrayOf("Style 1", "Style 2"),
-    icons = createMaterialMetadataIconArray()
+    icons = createMaterialMetadataIconArray(),
+    categories = arrayOf("category1", "category2", "category3")
   )
 
 private fun createMaterialMetadataIconArray(): Array<MaterialMetadataIcon> = arrayOf(
@@ -135,14 +141,16 @@ private fun createMaterialMetadataIconArray(): Array<MaterialMetadataIcon> = arr
     version = 1,
     unsupportedFamilies = emptyArray(),
     categories = arrayOf("category1", "category2"),
-    tags = emptyArray()
+    tags = emptyArray(),
+    unicode = 59530
   ),
   MaterialMetadataIcon(
     name = "my_icon_2",
     version = 1,
     unsupportedFamilies = emptyArray(),
     categories = arrayOf("category1", "category3"),
-    tags = emptyArray()
+    tags = emptyArray(),
+    unicode = 0
   )
 )
 
@@ -166,7 +174,7 @@ private fun createMaterialVdIcons(dir: File): MaterialVdIcons {
 
     override fun getIcons(style: String,
                           category: String): List<VdIcon> {
-     throw UnsupportedOperationException()
+      throw UnsupportedOperationException()
     }
 
     override fun getAllIcons(style: String): List<VdIcon> = when (style) {

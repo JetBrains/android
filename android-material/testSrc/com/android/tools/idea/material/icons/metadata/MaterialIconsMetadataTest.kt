@@ -20,6 +20,7 @@ import com.google.common.truth.Truth
 import com.google.gson.JsonSyntaxException
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.io.FileUtil
+import com.jetbrains.rd.generator.nova.array
 import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -62,8 +63,12 @@ class MaterialIconsMetadataTest {
       "        \"plaît\",\n" +
       "        \"respond\",\n" +
       "        \"répondez\"\n" +
-      "      ]\n" +
+      "      ],\n" +
+      "      \"codepoint\": 59530\n" +
       "    }\n" +
+      "  ],\n" +
+      "  \"categories\": [\n" +
+      "     \"maps\"\n" +
       "  ]\n" +
       "}"
     )
@@ -101,15 +106,16 @@ class MaterialIconsMetadataTest {
   @Test
   fun testParseToStringAndBack() {
     val iconsMetadata = arrayOf(
-      MaterialMetadataIcon("icon_1", 1, emptyArray(), arrayOf("category_1"), emptyArray()),
-      MaterialMetadataIcon("icon_2", 1, emptyArray(), arrayOf("category_2"), emptyArray())
+      MaterialMetadataIcon("icon_1", 1, emptyArray(), arrayOf("category_1"), emptyArray(), unicode = 0),
+      MaterialMetadataIcon("icon_2", 1, emptyArray(), arrayOf("category_2"), emptyArray(), unicode = 0)
     )
     // Create an instance of MaterialIconsMetadata
     val metadataObject = MaterialIconsMetadata(
       host = "my_host",
       urlPattern = "my_pattern",
       families = arrayOf("Style 1", "Style 2"),
-      icons = iconsMetadata
+      icons = iconsMetadata,
+      categories = arrayOf("category_1", "category_2")
     )
     // Create a Json String
     MaterialIconsMetadata.writeAsJson(metadataObject, testMetadataFile.toPath(), thisLogger())

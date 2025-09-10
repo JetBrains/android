@@ -108,7 +108,8 @@ class MaterialVdIconsLoaderTest {
           version = 1,
           categories = emptyArray(),
           unsupportedFamilies = emptyArray(),
-          tags = emptyArray()
+          tags = emptyArray(),
+          unicode = 0
         )
       )
     }.toTypedArray()
@@ -116,7 +117,8 @@ class MaterialVdIconsLoaderTest {
       host = "",
       urlPattern = "",
       families = arrayOf("style 1", "style 2"),
-      icons = iconsMetadataArray
+      icons = iconsMetadataArray,
+      categories = emptyArray()
     )
     val icons = MaterialVdIconsLoader(metadata, TempFileUrlProvider("withMissingFile")).loadAll(metadata)
     // The check should still pass since the non-existing icon shouldn't load and is skipped.
@@ -264,7 +266,8 @@ private fun createMaterialIconsMetadata(): MaterialIconsMetadata =
     host = "",
     urlPattern = "",
     families = arrayOf("style 1", "style 2"),
-    icons = createMaterialMetadataIconArray()
+    icons = createMaterialMetadataIconArray(),
+    categories = emptyArray()
   )
 
 private fun createMaterialMetadataIconArray(): Array<MaterialMetadataIcon> = arrayOf(
@@ -273,14 +276,16 @@ private fun createMaterialMetadataIconArray(): Array<MaterialMetadataIcon> = arr
     version = 1,
     unsupportedFamilies = emptyArray(),
     categories = arrayOf("category1", "category2"),
-    tags = emptyArray()
+    tags = emptyArray(),
+    unicode = 0
   ),
   MaterialMetadataIcon(
     name = "my_icon_2",
     version = 1,
     unsupportedFamilies = emptyArray(),
     categories = arrayOf("category1", "category3"),
-    tags = emptyArray()
+    tags = emptyArray(),
+    unicode = 0
   )
 )
 

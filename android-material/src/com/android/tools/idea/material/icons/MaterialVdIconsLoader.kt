@@ -59,21 +59,16 @@ interface MaterialVdIcons {
 
 /** Write implementation of [MaterialVdIcons]. */
 class MaterialVdIconsImpl : MaterialVdIcons {
-  /**
-   * Class representing the full name of an icon. [category] is optional.
-   */
+  /** Class representing the full name of an icon. [category] is optional. */
   data class IconCoordinates(val style: String, val category: String?, val name: String)
 
   private val modelLock: ReentrantReadWriteLock = ReentrantReadWriteLock()
 
   /** Styles seen by this model. */
-  @GuardedBy("modelLock")
-  private val _styles: MutableSet<String> = mutableSetOf<String>()
+  @GuardedBy("modelLock") private val _styles: MutableSet<String> = mutableSetOf<String>()
 
   /** Icons loaded by this model so far. */
-  @GuardedBy("modelLock")
-  private val loadedIcons =
-    mutableMapOf<IconCoordinates, VdIcon>()
+  @GuardedBy("modelLock") private val loadedIcons = mutableMapOf<IconCoordinates, VdIcon>()
 
   override val styles: Set<String>
     get() = modelLock.read { _styles.toSet() }
@@ -120,9 +115,7 @@ class MaterialVdIconsLoader(
   private val metadata: MaterialIconsMetadata,
   private val urlProvider: MaterialIconsUrlProvider = BundledIconsUrlProvider(),
 ) {
-  /**
-   * Model containing the current icons information managed by this loader.
-   */
+  /** Model containing the current icons information managed by this loader. */
   private val model = MaterialVdIconsImpl()
 
   /**
@@ -154,7 +147,7 @@ class MaterialVdIconsLoader(
         // find them
         val expectedFileName =
           getIconFileNameWithoutExtension(iconName = iconMetadata.name, styleName = style) +
-          SdkConstants.DOT_XML
+            SdkConstants.DOT_XML
         val vdIcon =
           loadVdIcon(styleName = style, iconName = iconMetadata.name, fileName = expectedFileName)
 
@@ -167,24 +160,23 @@ class MaterialVdIconsLoader(
                 name = iconMetadata.name,
               ) to vdIcon
             }
-          }
-          else {
+          } else {
             listOf(
               MaterialVdIconsImpl.IconCoordinates(
                 style = style,
                 category = null,
                 name = iconMetadata.name,
-              ) to vdIcon)
+              ) to vdIcon
+            )
           }
-        }
-        else emptyList()
+        } else emptyList()
       }
     model.addIcons(loadedIcons)
 
     return model
   }
 
-  private fun loadVdIcon(styleName: String, iconName: String, fileName: String): VdIcon? {
+  fun loadVdIcon(styleName: String, iconName: String, fileName: String): VdIcon? {
     val iconUrl = urlProvider.getIconUrl(styleName, iconName, fileName)
     if (iconUrl == null) {
       LOG.warn(

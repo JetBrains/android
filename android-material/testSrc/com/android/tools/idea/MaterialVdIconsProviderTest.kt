@@ -164,7 +164,8 @@ private const val SIMPLE_METADATA =
   "        \"category1\",\n" +
   "        \"category2\"\n" +
   "      ],\n" +
-  "      \"tags\": []\n" +
+  "      \"tags\": [],\n" +
+  "      \"codepoint\": 59530\n"+
   "    }\n" +
   "  ]\n" +
   "}"

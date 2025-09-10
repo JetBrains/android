@@ -23,6 +23,9 @@ iml_module(
     name = "intellij.android.android-material.tests",
     iml_files = ["intellij.android.android-material.tests.iml"],
     test_class = "com.android.tools.idea.MaterialTestSuite",
+    test_data = [
+        "//prebuilts/studio/sdk:platforms/latest",
+    ],
     # do not sort: must match IML order
     test_deps = [
         "//tools/adt/idea/.idea/libraries:junit4",

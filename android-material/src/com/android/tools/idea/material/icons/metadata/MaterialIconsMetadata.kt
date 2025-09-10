@@ -35,22 +35,25 @@ import java.nio.file.Path
 import kotlin.io.path.isDirectory
 
 /**
- * Metadata for the Material design icons, based on the metadata file obtained from http://fonts.google.com/metadata/icons.
+ * Metadata for the Material design icons, based on the metadata file obtained from
+ * http://fonts.google.com/metadata/icons.
  */
 data class MaterialIconsMetadata(
   val host: String,
-  @SerializedName("asset_url_pattern")
-  val urlPattern: String,
+  @SerializedName("asset_url_pattern") val urlPattern: String,
   val families: Array<String>,
-  val icons: Array<MaterialMetadataIcon>
+  val icons: Array<MaterialMetadataIcon>,
+  val categories: Array<String>,
 ) {
   companion object {
-    val EMPTY = MaterialIconsMetadata(
-      host = "fonts.gstatic.com",
-      urlPattern = "/s/i/{family}/{icon}/v{version}/{asset}",
-      families = emptyArray(),
-      icons = emptyArray()
-    )
+    val EMPTY =
+      MaterialIconsMetadata(
+        host = "fonts.gstatic.com",
+        urlPattern = "/s/i/{family}/{icon}/v{version}/{asset}",
+        families = emptyArray(),
+        icons = emptyArray(),
+        categories = emptyArray(),
+      )
 
     /**
      * Parses the file resolved by the [url] into [MaterialIconsMetadata].
@@ -59,17 +62,16 @@ data class MaterialIconsMetadata(
      */
     fun parse(url: URL): Result<MaterialIconsMetadata> =
       try {
-        Result.success(BufferedReader(InputStreamReader(url.openStream(), Charsets.UTF_8)).use { reader ->
-          getGson().fromJson(reader, MaterialIconsMetadata::class.java)
-        })
-      }
-      catch (t: Throwable) {
+        Result.success(
+          BufferedReader(InputStreamReader(url.openStream(), Charsets.UTF_8)).use { reader ->
+            getGson().fromJson(reader, MaterialIconsMetadata::class.java)
+          }
+        )
+      } catch (t: Throwable) {
         Result.failure(t)
       }
 
-    /**
-     * Writes the metadata as a serialized Json text.
-     */
+    /** Writes the metadata as a serialized Json text. */
     fun writeAsJson(metadata: MaterialIconsMetadata, target: Path, logger: Logger) {
       if (target.isDirectory()) {
         logger.error("Given path is a directory")
@@ -79,8 +81,7 @@ data class MaterialIconsMetadata(
         Files.newBufferedWriter(target, Charsets.UTF_8).use { writer ->
           getGson().toJson(metadata, writer)
         }
-      }
-      catch (e: Exception) {
+      } catch (e: Exception) {
         when (e) {
           is IOException,
           is JsonIOException -> logger.warn("Error saving metadata file", e)
@@ -89,16 +90,15 @@ data class MaterialIconsMetadata(
       }
     }
 
-    private fun getGson(): Gson = GsonBuilder()
-      .registerTypeAdapter(MaterialIconsMetadata::class.java, MetadataDeserializer())
-      .registerTypeAdapter(MaterialMetadataIcon::class.java, IconDeserializer())
-      .generateNonExecutableJson()
-      .create()
+    private fun getGson(): Gson =
+      GsonBuilder()
+        .registerTypeAdapter(MaterialIconsMetadata::class.java, MetadataDeserializer())
+        .registerTypeAdapter(MaterialMetadataIcon::class.java, IconDeserializer())
+        .generateNonExecutableJson()
+        .create()
   }
 
-  /**
-   * Override equals to compare arrays by content.
-   */
+  /** Override equals to compare arrays by content. */
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (javaClass != other?.javaClass) return false
@@ -109,33 +109,34 @@ data class MaterialIconsMetadata(
     if (urlPattern != other.urlPattern) return false
     if (!families.contentEquals(other.families)) return false
     if (!icons.contentEquals(other.icons)) return false
+    if (!categories.contentEquals(other.categories)) return false
 
     return true
   }
 
-  /**
-   * Override hashcode to compare arrays by content.
-   */
+  /** Override hashcode to compare arrays by content. */
   override fun hashCode(): Int {
-    return HashCodes.mix(host.hashCode(), urlPattern.hashCode(), families.contentHashCode(), icons.contentHashCode())
+    return HashCodes.mix(
+      host.hashCode(),
+      urlPattern.hashCode(),
+      families.contentHashCode(),
+      icons.contentHashCode(),
+      categories.contentHashCode(),
+    )
   }
 }
 
-/**
- * Metadata of each icon within [MaterialIconsMetadata.icons].
- */
+/** Metadata of each icon within [MaterialIconsMetadata.icons]. */
 data class MaterialMetadataIcon(
   val name: String,
   val version: Int,
-  @SerializedName("unsupported_families")
-  val unsupportedFamilies: Array<String>,
+  @SerializedName("unsupported_families") val unsupportedFamilies: Array<String>,
   val categories: Array<String>,
-  val tags: Array<String>
+  val tags: Array<String>,
+  @SerializedName("codepoint") val unicode: Int,
 ) {
 
-  /**
-   * Override equals to compare arrays by content.
-   */
+  /** Override equals to compare arrays by content. */
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (javaClass != other?.javaClass) return false
@@ -147,58 +148,81 @@ data class MaterialMetadataIcon(
     if (!unsupportedFamilies.contentEquals(other.unsupportedFamilies)) return false
     if (!categories.contentEquals(other.categories)) return false
     if (!tags.contentEquals(other.tags)) return false
+    if (unicode != other.unicode) return false
 
     return true
   }
 
-  /**
-   * Override hashcode to compare arrays by content.
-   */
+  /** Override hashcode to compare arrays by content. */
   override fun hashCode(): Int {
     return HashCodes.mix(
-      name.hashCode(), version, unsupportedFamilies.contentHashCode(), categories.contentHashCode(), tags.contentHashCode())
+      name.hashCode(),
+      version,
+      unsupportedFamilies.contentHashCode(),
+      categories.contentHashCode(),
+      tags.contentHashCode(),
+      unicode,
+    )
   }
 }
 
-/**
- * [JsonDeserializer] for [MaterialIconsMetadata].
- */
+/** [JsonDeserializer] for [MaterialIconsMetadata]. */
 private class MetadataDeserializer : JsonDeserializer<MaterialIconsMetadata?> {
   private val hostKey = "host"
   private val urlPatternKey = "asset_url_pattern"
   private val familiesKey = "families"
   private val iconsKey = "icons"
 
-  override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): MaterialIconsMetadata? {
+  override fun deserialize(
+    json: JsonElement?,
+    typeOfT: Type?,
+    context: JsonDeserializationContext?,
+  ): MaterialIconsMetadata? {
     if (json == null || typeOfT == null || context == null) return null
     val jsonObject = json.asJsonObject
     val host = jsonObject[hostKey].asString
     val urlPattern = jsonObject[urlPatternKey].asString
-    val families = context.deserialize<Array<String>>(jsonObject[familiesKey], Array<String>::class.java)
-    val icons = context.deserialize<Array<MaterialMetadataIcon>>(jsonObject[iconsKey], Array<MaterialMetadataIcon>::class.java)
-    return MaterialIconsMetadata(host, urlPattern, families, icons)
+    val families =
+      context.deserialize<Array<String>>(jsonObject[familiesKey], Array<String>::class.java)
+    val icons =
+      context.deserialize<Array<MaterialMetadataIcon>>(
+        jsonObject[iconsKey],
+        Array<MaterialMetadataIcon>::class.java,
+      )
+    val categories: Array<String> =
+      icons.flatMap { it.categories.toList() }.distinct().sorted().toTypedArray()
+    return MaterialIconsMetadata(host, urlPattern, families, icons, categories)
   }
 }
 
-/**
- * [JsonDeserializer] for [MaterialMetadataIcon].
- */
+/** [JsonDeserializer] for [MaterialMetadataIcon]. */
 private class IconDeserializer : JsonDeserializer<MaterialMetadataIcon?> {
   private val nameKey = "name"
   private val versionKey = "version"
   private val unsupportedFamiliesKey = "unsupported_families"
   private val categoriesKey = "categories"
   private val tagsKey = "tags"
+  private val unicodeKey = "codepoint"
 
-  override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): MaterialMetadataIcon? {
+  override fun deserialize(
+    json: JsonElement?,
+    typeOfT: Type?,
+    context: JsonDeserializationContext?,
+  ): MaterialMetadataIcon? {
     if (json == null || typeOfT == null || context == null) return null
     val jsonObject = json.asJsonObject
     val name = jsonObject[nameKey].asString
     val version = jsonObject[versionKey].asInt
-    val unsupportedFamilies = context.deserialize<Array<String>>(jsonObject[unsupportedFamiliesKey], Array<String>::class.java)
-    val categories = context.deserialize<Array<String>>(jsonObject[categoriesKey], Array<String>::class.java)
+    val unsupportedFamilies =
+      context.deserialize<Array<String>>(
+        jsonObject[unsupportedFamiliesKey],
+        Array<String>::class.java,
+      )
+    val categories =
+      context.deserialize<Array<String>>(jsonObject[categoriesKey], Array<String>::class.java)
     val tags = context.deserialize<Array<String>>(jsonObject[tagsKey], Array<String>::class.java)
+    val unicode = jsonObject[unicodeKey].asInt
 
-    return MaterialMetadataIcon(name, version, unsupportedFamilies, categories, tags)
+    return MaterialMetadataIcon(name, version, unsupportedFamilies, categories, tags, unicode)
   }
 }

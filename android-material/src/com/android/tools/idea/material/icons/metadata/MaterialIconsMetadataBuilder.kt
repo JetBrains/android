@@ -51,6 +51,10 @@ class MaterialIconsMetadataBuilder(
    * Create a copy of [MaterialMetadataIcon] containing the current list of icons added into this instance through [addIconMetadata].
    */
   fun build(): MaterialIconsMetadata {
-    return MaterialIconsMetadata(host, urlPattern, families, iconsSet.toTypedArray())
+    return MaterialIconsMetadata(host, urlPattern, families, iconsSet.toTypedArray(), computeCategories())
+  }
+
+  private fun computeCategories(): Array<String> {
+    return iconsSet.toList().flatMap { it.categories.toList() }.distinct().sorted().toTypedArray()
   }
 }

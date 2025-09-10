@@ -65,16 +65,19 @@ private const val OLD_METADATA_CONTENT = """)]}'
       "version": 1,
       "unsupported_families": [],
       "categories": [],
-      "tags": []
+      "tags": [],
+      "codepoint": 59530
     },
     {
       "name": "my_icon_2",
       "version": 1,
       "unsupported_families": [],
       "categories": [],
-      "tags": []
+      "tags": [],
+      "codepoint": 59574
     }
-  ]
+  ],
+  "categories": []
 }
 """
 private const val NEW_METADATA_CONTENT = """)]}'
@@ -94,9 +97,11 @@ private const val NEW_METADATA_CONTENT = """)]}'
         "plaît",
         "respond",
         "répondez"
-      ]
+      ],
+      "codepoint": 59530
     }
-  ]
+  ],
+  "categories": []
 }
 """
 

@@ -16,7 +16,8 @@
         "category1",
         "category2"
       ],
-      "tags": []
+      "tags": [],
+      "codepoint": 59530
     },
     {
       "name": "my_icon_2",
@@ -26,7 +27,13 @@
         "category1",
         "category3"
       ],
-      "tags": []
+      "tags": [],
+      "codepoint": 59574
     }
+  ],
+  "categories": [
+      "category1",
+      "category2",
+      "category3"
   ]
 }

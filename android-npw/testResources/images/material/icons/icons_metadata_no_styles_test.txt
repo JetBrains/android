@@ -12,7 +12,8 @@
       "unsupported_families": [],
       "categories": [
       ],
-      "tags": []
+      "tags": [],
+      "codepoint": 59530
     },
     {
       "name": "my_icon_2",
@@ -20,7 +21,9 @@
       "unsupported_families": [],
       "categories": [
       ],
-      "tags": []
+      "tags": [],
+      "codepoint": 59574
     }
-  ]
+  ],
+  "categories": []
 }
