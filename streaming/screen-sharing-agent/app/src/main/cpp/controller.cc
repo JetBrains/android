@@ -710,7 +710,10 @@ bool Controller::ControlDisplayPower(Jni jni, int state) {
       }
     }
     else {
-      vector<int64_t> display_ids = DisplayControl::GetPhysicalDisplayIds(jni);
+      vector<int64_t> display_ids;
+      if (Agent::feature_level() >= 29) {
+        display_ids = DisplayControl::GetPhysicalDisplayIds(jni);
+      }
       if (display_ids.empty()) {
         JObject display_token = SurfaceControl::GetInternalDisplayToken(jni);
         if (display_token.IsNull()) {
