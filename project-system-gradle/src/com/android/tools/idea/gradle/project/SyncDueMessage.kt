@@ -50,6 +50,7 @@ import org.jetbrains.android.util.AndroidBundle
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import kotlin.collections.distinctBy
 
 @VisibleForTesting
 const val SYNC_DUE_BUT_AUTO_SYNC_DISABLED_ID = "Syncing project is recommended"
@@ -331,12 +332,18 @@ object SyncDueMessage {
       return null
     }
     return AndroidBundle.message("gradle.settings.autoSync.note.specific", if (ProjectManager.getInstance().openProjects.size == 1) {
-      "this project"
+      "this project."
     }
     else {
-      snoozedProjects.joinToString(prefix = "projects: ") {
-        "\"${it.name}\""
-      }
+      // If project names aren't unique - show paths for clarity.
+      val showProjectPaths = snoozedProjects.distinctBy { it.name }.count() != snoozedProjects.size
+      snoozedProjects.joinToString(
+          prefix = if (snoozedProjects.size == 1) "project " else "projects: ",
+          postfix = if (!showProjectPaths) "." else "",
+          separator = if (!showProjectPaths) ", " else ""
+        ) { project ->
+          (if (showProjectPaths) "<br />&nbsp;&nbsp;&nbsp;" else "") + "\"${project.name}\"" + (if (showProjectPaths) " (${project.basePath})" else "")
+        }
     })
   }
 

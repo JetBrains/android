@@ -17,8 +17,8 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags.SHOW_GRADLE_AUTO_SYNC_SETTING_IN_NON_EXPERIMENTAL_UI
-import com.android.tools.idea.gradle.project.SYNC_DUE_DIALOG_SHOWN
 import com.android.tools.idea.gradle.project.SYNC_DUE_APP_WIDE_SNOOZE_EXPIRATION_DATE
+import com.android.tools.idea.gradle.project.SYNC_DUE_DIALOG_SHOWN
 import com.android.tools.idea.gradle.project.SyncDueMessage
 import com.android.tools.idea.gradle.project.sync.AutoSyncBehavior
 import com.android.tools.idea.gradle.project.sync.AutoSyncSettingStore
@@ -36,9 +36,9 @@ import com.intellij.ui.EnumComboBoxModel
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.panel
-import org.jetbrains.android.util.AndroidBundle
-import javax.swing.JLabel
+import javax.swing.JEditorPane
 import javax.swing.JList
+import org.jetbrains.android.util.AndroidBundle
 
 /**
  * This is a replacement for [Settings | Build, Execution, Deployment | Build Tools] area, which offers IDEA sync project control
@@ -55,7 +55,7 @@ class AndroidStudioBuildToolsConfigurable : BoundSearchableConfigurable(
 ) {
 
   private lateinit var autoSyncBehaviorComboBox: ComboBox<AutoSyncBehavior>
-  private lateinit var autoSyncBehaviorNote: JLabel
+  private lateinit var autoSyncBehaviorNote: JEditorPane
   private var autoSyncBehaviorAwaitingSetting: AutoSyncBehavior? = null
   private val showAutoSyncControl = SHOW_GRADLE_AUTO_SYNC_SETTING_IN_NON_EXPERIMENTAL_UI.get()
 
@@ -114,7 +114,7 @@ class AndroidStudioBuildToolsConfigurable : BoundSearchableConfigurable(
         }).component
       }
       row {
-        autoSyncBehaviorNote = label(SyncDueMessage.getSnoozedProjectsSummaryNote().orEmpty())
+        autoSyncBehaviorNote = text(SyncDueMessage.getSnoozedProjectsSummaryNote().orEmpty())
           .component
       }
     }
