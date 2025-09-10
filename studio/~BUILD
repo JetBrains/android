@@ -1233,6 +1233,7 @@ iml_module(
 
 iml_test(
     name = "StartUpTest",
+    data = ["//tools/adt/idea/studio:android-studio_files"],
     module = ":intellij.android.studio.integration",
     tags_linux = ["block-network"],
     tags_mac = [
