@@ -2854,7 +2854,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 CodeName                      :
                 ApiString                     :
             MaxSdkVersion                 : 0
-            ProguardFiles                 : <ROOT>/kmpFirstLib/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
+            ProguardFiles                 : <ROOT>/kmpFirstLib/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
             MainArtifact
                 Name                          : MAIN
@@ -3653,7 +3653,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                 CodeName                      :
                 ApiString                     :
             MaxSdkVersion                 : 0
-            ProguardFiles                 : <ROOT>/kmpSecondLib/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
+            ProguardFiles                 : <ROOT>/kmpSecondLib/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileAndroidMain

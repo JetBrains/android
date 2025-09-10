@@ -86,9 +86,6 @@ enum class TestProject(
         content.plus("""
 
           org.gradle.java.installations.paths=${JdkConstants.JDK_11_PATH}
-
-          # opt out of default behavior change, so snapshot doesnt change with flag flip
-          android.r8.proguardAndroidTxt.disallowed=false
           """.trimIndent())
       }
     }
