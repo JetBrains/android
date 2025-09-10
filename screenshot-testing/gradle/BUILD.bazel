@@ -23,6 +23,11 @@ jvm_library(
     "//platform/util",
     "//android/project-system",
     "@lib//:kotlin-stdlib",
+    "//platform/external-system-api:externalSystem",
+    "//plugins/gradle",
+    "//platform/lang-impl",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
   ]
 )
 ### auto-generated section `build intellij.android.screenshot-test.gradle` end

@@ -15,6 +15,7 @@
  */
 package com.android.screenshottest.run
 
+import com.android.screenshottest.action.UpdateReferenceImagesAction
 import com.android.tools.idea.projectsystem.isScreenshotTestFile
 import com.intellij.execution.lineMarker.ExecutorAction
 import com.intellij.execution.lineMarker.RunLineMarkerContributor

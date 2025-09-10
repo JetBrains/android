@@ -11,6 +11,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.gradle",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/screenshot-testing:intellij.android.screenshot-test",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
