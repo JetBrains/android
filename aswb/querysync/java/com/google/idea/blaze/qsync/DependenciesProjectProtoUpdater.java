@@ -90,7 +90,11 @@ public class DependenciesProjectProtoUpdater implements ProjectProtoTransform {
     ImmutableSetMultimap.Builder<BuildArtifact, ArtifactMetadata.Extractor<?>> builder =
         ImmutableSetMultimap.builder();
     for (ProjectProtoUpdateOperation op : updateOperations) {
-      builder.putAll(op.getRequiredArtifacts(forTarget));
+      for (var entry : op.getRequiredArtifacts(forTarget).entrySet()) {
+        for (var extractor : entry.getValue()) {
+          builder.put(entry.getKey(), extractor);
+        }
+      }
     }
     return builder.build();
   }
