@@ -41,6 +41,7 @@ iml_module(
                 "//prebuilts/studio/sdk:cmake",  # Needed for the C++ templates in TemplateDiffTest
                 "//prebuilts/studio/sdk:ndk",  # Needed for the C++ templates in TemplateDiffTest
                 "//tools/data-binding:data_binding_runtime.zip",  # Needed for some templates that use view binding in TemplateDiffTest
+                ":agp_latest",
             ],
             "test_filter": "com.android.tools.idea.templates.diff.activity.TemplateDiffTest",
         },
@@ -48,10 +49,17 @@ iml_module(
             "test_filter": "com.android.tools.idea.templates.KotlinBomPlatformDependencyTest",
             # b/399316550 flaky on windows, gradle daemon not found?
             "tags": ["noci:studio-win"],
+            "data": [
+                "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+                "//prebuilts/studio/sdk:build-tools/35.0.0",
+                "//tools/base/build-system/previous-versions:8.12.0",
+                "//tools/base/build-system:gradle-distrib-8.13",
+            ],
         },
         "other": {
             "data": [
                 "//tools/adt/idea/android/testData",
+                ":agp_latest",
             ],
         },
     },
@@ -59,12 +67,8 @@ iml_module(
     test_data = [
         ":test_deps",
         "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
-        "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/android-35",
         "//tools/adt/idea/android/testData:projects",
-        "//tools/base/build-system:android_gradle_plugin.zip",
-        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
-        "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
         "//tools/base/journeys/journeys-gradle-plugin:journeys-gradle-plugin.zip",
     ] + glob(["testData/**"]),
@@ -110,6 +114,16 @@ iml_module(
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.gradle",
         "@intellij//:org.jetbrains.kotlin",
+    ],
+)
+
+filegroup(
+    name = "agp_latest",
+    srcs = [
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//tools/base/build-system:android_gradle_plugin.zip",
+        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+        "//tools/base/build-system:gradle-distrib",
     ],
 )
 

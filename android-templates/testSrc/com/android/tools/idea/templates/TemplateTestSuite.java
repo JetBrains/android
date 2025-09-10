@@ -23,15 +23,25 @@ import org.junit.runner.RunWith;
 @RunWith(JarTestSuiteRunner.class)
 public class TemplateTestSuite extends IdeaTestSuiteBase {
   public static final String DATA_BINDING_RUNTIME_ZIP = "tools/data-binding/data_binding_runtime.zip";
+  public static final String LATEST_AGP = "tools/base/build-system/android_gradle_plugin.zip";
+  public static final String LATEST_AGP_RUNTIME = "tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest";
+  public static final String AGP_8_12_0_DEPENDENCIES = "tools/base/build-system/previous-versions/8.12.0.manifest";
 
   static {
     linkIntoOfflineMavenRepo("tools/adt/idea/android-templates/test_deps.manifest");
-    unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip");
-    unzipIntoOfflineMavenRepo(
-      "tools/base/journeys/journeys-gradle-plugin/journeys-gradle-plugin.zip"
-    );
 
-    linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest");
+    if (TestUtils.workspaceFileExists(AGP_8_12_0_DEPENDENCIES)) {
+      linkIntoOfflineMavenRepo(AGP_8_12_0_DEPENDENCIES);
+    }
+    else if (TestUtils.workspaceFileExists(LATEST_AGP)) {
+      unzipIntoOfflineMavenRepo(LATEST_AGP);
+      linkIntoOfflineMavenRepo(LATEST_AGP_RUNTIME);
+    }
+    else {
+      throw new RuntimeException("No AGP defined for the test.");
+    }
+
+    unzipIntoOfflineMavenRepo("tools/base/journeys/journeys-gradle-plugin/journeys-gradle-plugin.zip");
     linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
 
     if (TestUtils.workspaceFileExists(DATA_BINDING_RUNTIME_ZIP)) {
