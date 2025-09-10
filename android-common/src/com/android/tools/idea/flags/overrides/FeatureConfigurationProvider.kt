@@ -72,6 +72,7 @@ class FeatureConfigurationProvider private constructor(
     /**
      * The default provider for feature flags.
      */
+    @JvmStatic
     val currentFlags: FeatureConfigurationProvider by lazy {
       loadValues()
     }

@@ -62,7 +62,7 @@ public final class StudioFlags {
       userOverrides = new LazyStudioFlagSettings();
     }
     return new Flags(
-      FeatureConfigurationProvider.Companion.getCurrentFlags(),
+      FeatureConfigurationProvider.getCurrentFlags(),
       userOverrides,
       new PropertyOverrides(),
       new MendelOverrides(),
@@ -109,7 +109,7 @@ public final class StudioFlags {
     new FlagDefault<>("Delayed default for FeatureConfiguration") { // use a FlagDefault to avoid calling getCurrent() during cinit
       @Override
       public FeatureConfiguration get() {
-        return FeatureConfiguration.Companion.getCurrent();
+        return FeatureConfiguration.getCurrent();
       }
     },
     FeatureConfiguration.class);

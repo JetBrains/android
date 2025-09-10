@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.flags
 
+import com.android.tools.idea.flags.FeatureConfiguration.INTERNAL
+import com.android.tools.idea.flags.FeatureConfiguration.NIGHTLY
+import com.android.tools.idea.flags.FeatureConfiguration.PREVIEW
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
@@ -83,6 +86,7 @@ enum class FeatureConfiguration(val stabilityLevel: Int) {
      *
      * This is computed based on the name of the application
      */
+    @JvmStatic
     val current: FeatureConfiguration by lazy {
       computeConfiguration()
     }
