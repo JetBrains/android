@@ -27,8 +27,9 @@ import com.google.idea.blaze.android.projectsystem.BazelToken
 import com.google.idea.blaze.android.run.BazelApplicationProjectContext
 import com.google.idea.blaze.base.settings.Blaze
 import com.google.idea.blaze.base.settings.BlazeImportSettings
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiFile
+import java.nio.file.Path
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.psi.KtFile
 
@@ -47,12 +48,19 @@ class BazelBuildSystemLiveEditServices :
     bazelApplicationProjectContext: BazelApplicationProjectContext
   ): ApplicationLiveEditServices {
     return object: ApplicationLiveEditServices {
+      private val compilationDependencies = object: ApplicationLiveEditServices.CompilationDependencies {
+        override fun getExternalLibraries(): List<Path> = emptyList()
+        override fun getBootClasspath(): List<Path> = emptyList()
+      }
+
       override fun getClassContent(
         file: VirtualFile,
         className: String,
       ): ClassContent? {
         throw UnsupportedOperationException()
       }
+
+      override fun getCompilationDependencies(file: PsiFile): ApplicationLiveEditServices.CompilationDependencies? = compilationDependencies
 
       override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration {
         throw UnsupportedOperationException()

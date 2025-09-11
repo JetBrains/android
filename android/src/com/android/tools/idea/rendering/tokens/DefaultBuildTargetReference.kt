@@ -30,12 +30,16 @@ import com.android.tools.idea.run.deployment.liveedit.tokens.DesugarConfigs
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiFile
 import com.intellij.serviceContainer.AlreadyDisposedException
 import com.intellij.util.application
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.psi.KtFile
 import java.nio.file.Path
+import org.jetbrains.android.facet.AndroidRootUtil
+import org.jetbrains.kotlin.idea.base.util.module
 
 /**
  * An implementation of [BuildSystemFilePreviewServices] for the [DefaultProjectSystem].
@@ -81,11 +85,27 @@ class DefaultBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Def
     if (application.isUnitTestMode) {
       return ApplicationLiveEditServices.LegacyForTests(buildTargetReference.project);
     }
+
+    data class CompilationDependenciesImpl(val module: Module): ApplicationLiveEditServices.CompilationDependencies {
+      override fun getExternalLibraries(): List<Path> {
+        return AndroidRootUtil.getExternalLibraries(module)
+          .map { VfsUtilCore.virtualToIoFile(it).toPath() }
+      }
+
+      override fun getBootClasspath(): List<Path> {
+        return emptyList()
+      }
+    }
+
     return object: ApplicationLiveEditServices {
       override fun getClassContent(
         file: VirtualFile,
         className: String,
       ): ClassContent? = null
+
+      override fun getCompilationDependencies(file: PsiFile): ApplicationLiveEditServices.CompilationDependencies? {
+        return file.module?.let { CompilationDependenciesImpl(it)}
+      }
 
       override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration = CompilerConfiguration.EMPTY
       override fun getDesugarConfigs() = DesugarConfigs.NotKnown("No Desugar config.")

@@ -60,9 +60,6 @@ import java.io.File
 class ApkProjectSystem(override val project: Project) : AndroidProjectSystem {
   private val delegate = DefaultProjectSystem(project)
 
-  override fun getBootClasspath(module: Module): Collection<String> =
-    delegate.getBootClasspath(module)
-
   override fun getBuildManager(): ProjectSystemBuildManager =
     delegate.getBuildManager()
 

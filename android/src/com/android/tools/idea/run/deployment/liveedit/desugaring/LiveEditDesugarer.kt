@@ -16,8 +16,6 @@
 package com.android.tools.idea.run.deployment.liveedit.desugaring
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiledClass
 import com.android.tools.idea.run.deployment.liveedit.LiveEditLogger
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.desugarFailure
@@ -28,11 +26,9 @@ import com.android.tools.r8.ClassFileResourceProvider
 import com.android.tools.r8.CompilationFailedException
 import com.android.tools.r8.D8
 import com.android.tools.r8.D8Command
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import java.nio.file.Files
-import java.nio.file.Paths
 
 typealias ApiLevel = Int
 typealias MinApiLevel = Int
@@ -90,26 +86,18 @@ internal class LiveEditDesugar(private val applicationLiveEditServices: Applicat
     }
   }
 
-  private fun getAndroidJar(module: Module?) : List<ClassFileResourceProvider> {
-    if (module == null) {
-      logger.log("Cannot retrieve android.jar (no module)")
-      return emptyList()
-    }
+  private fun getAndroidJar(module: ApplicationLiveEditServices.CompilationDependencies) : List<ClassFileResourceProvider> {
+    val paths = module.getBootClasspath()
 
-    val strings = module.project.getProjectSystem().getBootClasspath(module)
+    logger.log("Android.jar = $paths")
 
-    logger.log("Android.jar = $strings")
-
-    return strings.map{
-      jarResourceCacheManager.getResourceCache(Paths.get(it))
+    return paths.map{
+      jarResourceCacheManager.getResourceCache(it)
     }
   }
 
-  private fun getClassPathResourceProvider(module: Module?) : List<ClassFileResourceProvider> {
-    if (module == null) {
-      throw desugarFailure("Cannot retrieve classpath (no module)")
-    }
-    val classPath = module!!.project.getProjectSystem().getClassJarProvider().getModuleExternalLibraries(module).mapNotNull { it.toPath() }
+  private fun getClassPathResourceProvider(module: ApplicationLiveEditServices.CompilationDependencies) : List<ClassFileResourceProvider> {
+    val classPath = module.getExternalLibraries()
 
     logger.log("Classpath = $classPath")
 
@@ -122,21 +110,17 @@ internal class LiveEditDesugar(private val applicationLiveEditServices: Applicat
   private fun desugarClasses(classes : List<LiveEditCompiledClass>, version : MinApiLevel) : Map<ClassName, ByteCode> {
 
     // We batch class desugaring on a per-module basis to re-use common class desugaring configuration.
-    // 1/ Group classes per-module name and desugar via R8
+    // 1/ Group classes by the set of compilation dependencies and desugar via R8
     // 2/ Write back desugared classes where they belong
 
     // 1
-    val modulesSet = mutableMapOf<String, MutableList<LiveEditCompiledClass>>()
+    val modulesSet = mutableMapOf<ApplicationLiveEditServices.CompilationDependencies, MutableList<LiveEditCompiledClass>>()
     classes.forEach{
-      if (it.module == null) {
+      if (it.compilationDependencies == null) {
         throw desugarFailure("Cannot process class '${it.name}' without module")
-        return@forEach
       }
-      val moduleName = it.module.name
-      if (!modulesSet.contains(moduleName)) {
-        modulesSet[moduleName] = ArrayList()
-      }
-      modulesSet[moduleName]!!.add(it)
+      val compilationDependencies = it.compilationDependencies
+      modulesSet.getOrPut(compilationDependencies) { mutableListOf() }.add(it)
     }
 
     // We store all desugared classes in there.
@@ -146,12 +130,8 @@ internal class LiveEditDesugar(private val applicationLiveEditServices: Applicat
       val moduleName = it.key
       val compiledClasses = it.value
       logger.log("Batch for module: $moduleName")
-      val module = it.value[0].module
-      if (module == null) {
-        throw desugarFailure("Unable to desugar, no Module associated with $moduleName")
-      }
-
-      allDesugaredClasses.putAll(desugarClassesForModule(compiledClasses, module!!, version))
+      val module = it.key
+      allDesugaredClasses.putAll(desugarClassesForModule(compiledClasses, module, version))
     }
 
     return allDesugaredClasses
@@ -167,7 +147,11 @@ internal class LiveEditDesugar(private val applicationLiveEditServices: Applicat
     return false
   }
 
-  private fun desugarClassesForModule(classes : List<LiveEditCompiledClass>, module: Module, minApiLevel: MinApiLevel) : Map<String, ByteArray>{
+  private fun desugarClassesForModule(
+    classes: List<LiveEditCompiledClass>,
+    module: ApplicationLiveEditServices.CompilationDependencies,
+    minApiLevel: MinApiLevel
+  ): Map<String, ByteArray> {
      val memClassFileProvider = R8MemoryProgramResourceProvider(classes, logger)
      val memClassFileConsumer = R8MemoryClassFileConsumer(logger)
 

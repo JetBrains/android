@@ -269,11 +269,6 @@ public class BazelProjectSystem implements AndroidProjectSystem {
   }
 
   @Override
-  public Collection<String> getBootClasspath(@NotNull Module module) {
-    return AndroidPlatforms.getInstance(module).getTarget().getBootClasspath();
-  }
-
-  @Override
   public boolean isAndroidProject() {
     return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID);
   }

@@ -18,8 +18,6 @@ package com.android.tools.idea.run.deployment.liveedit
 import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.enableLiveEdit
-import com.android.tools.idea.run.deployment.liveedit.analysis.initialCache
-import com.android.tools.idea.run.deployment.liveedit.analysis.modifyKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.postDeploymentStateCompile
 import com.android.tools.idea.testing.AndroidProjectRule
 import org.junit.After

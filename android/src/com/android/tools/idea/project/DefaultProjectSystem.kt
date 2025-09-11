@@ -82,10 +82,6 @@ class DefaultProjectSystem(override val project: Project) : AndroidProjectSystem
 
   override fun isAndroidProjectViewSupported(): Boolean = true
 
-  override fun getBootClasspath(module: Module): Collection<String> {
-    throw IllegalStateException("Not implemented")
-  }
-
   override fun allowsFileCreation() = false
 
   override fun getSyncManager(): ProjectSystemSyncManager = object: ProjectSystemSyncManager {

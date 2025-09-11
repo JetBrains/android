@@ -39,10 +39,8 @@ import com.intellij.util.containers.addIfNotNull
 import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.codegen.`when`.WhenByEnumsMapping.MAPPINGS_CLASS_NAME_POSTFIX
 import org.jetbrains.kotlin.codegen.`when`.WhenByEnumsMapping.MAPPING_ARRAY_FIELD_PREFIX
-import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
 import java.util.concurrent.TimeUnit
-import kotlin.metadata.internal.common.BuiltInExtensionsAccessor.fqName
 import kotlin.metadata.jvm.KotlinClassMetadata
 
 private val logger = LogWrapper(Logger.getInstance(LiveEditOutputBuilder ::class.java))
@@ -188,7 +186,14 @@ internal class LiveEditOutputBuilder(val unrestricted: Boolean = false) {
       }
 
       inlineCandidateCache.computeIfAbsent(newClass.name) { SourceInlineCandidate(sourceFile, it) }.setByteCode(classBytes)
-      output.addClass(LiveEditCompiledClass(newClass.name, classBytes, sourceFile.module, LiveEditClassType.SUPPORT_CLASS))
+      output.addClass(
+        LiveEditCompiledClass(
+          name = newClass.name,
+          data = classBytes,
+          compilationDependencies = applicationLiveEditServices.getCompilationDependencies(sourceFile),
+          type = LiveEditClassType.SUPPORT_CLASS
+        )
+      )
 
       return ChangeInfo(newClass, newClass.methods, false)
     }
@@ -200,7 +205,14 @@ internal class LiveEditOutputBuilder(val unrestricted: Boolean = false) {
     if (diff != null || isFirstDiff) {
       // Update the inline cache for all classes, both normal and support.
       inlineCandidateCache.computeIfAbsent(newClass.name) { SourceInlineCandidate(sourceFile, it) }.setByteCode(classBytes)
-      output.addClass(LiveEditCompiledClass(newClass.name, classBytes, sourceFile.module, classType))
+      output.addClass(
+        LiveEditCompiledClass(
+          name = newClass.name,
+          data = classBytes,
+          compilationDependencies = applicationLiveEditServices.getCompilationDependencies(sourceFile),
+          type = classType
+        )
+      )
     }
 
     // If we have no diff, we don't need to check for incompatible changes or resolve group IDs.

@@ -83,10 +83,6 @@ class TestProjectSystem @JvmOverloads constructor(
     return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
   }
 
-  override fun getBootClasspath(module: Module): Collection<String> {
-    return emptyList()
-  }
-
   /**
    * Injects this project system into the [project] it was created for.
    */

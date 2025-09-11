@@ -1480,8 +1480,6 @@ fun setupTestProjectFromAndroidModel(
     // build is requested.
     private val buildManager = TestProjectSystemBuildManager(ensureClockAdvancesWhileBuilding = true)
     override fun getBuildManager(): ProjectSystemBuildManager = buildManager
-
-    override fun getBootClasspath(module: Module): Collection<String> = emptyList()
   })
   setupTestProjectFromAndroidModelCore(
     project,

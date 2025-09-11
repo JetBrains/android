@@ -107,10 +107,6 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
 
   override fun isAndroidProjectViewSupported(): Boolean = true
 
-  override fun getBootClasspath(module: Module): Collection<String> {
-    return GradleAndroidModel.get(module)?.androidProject?.bootClasspath ?: emptyList()
-  }
-
   override fun getSyncManager(): ProjectSystemSyncManager = mySyncManager
   override fun getBuildManager(): ProjectSystemBuildManager = myBuildManager
 
