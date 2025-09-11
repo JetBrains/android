@@ -22,28 +22,54 @@ import com.android.utils.HtmlBuilder
 import com.intellij.lang.annotation.HighlightSeverity
 import java.util.concurrent.TimeoutException
 import javax.swing.event.HyperlinkListener
-import java.io.StringWriter
-import java.io.PrintWriter
 
 object ComposeRenderErrorContributor {
-
   /**
    * Returns true if the [Throwable] represents a failure to find a CompositionLocal. We are only
    * catching the missing CompositionLocal errors coming from the androidx library by matching the
-   * error message they provide. If a developer provides their own error this will not catch it by
-   * design as they might want to have their own messagez. In androidx this error message is defined
+   * error message they provide. If a developer provides their own error, this will not catch it by
+   * design as they might want to have their own messages. In androidx this error message is defined
    * here: androidx/compose/ui/platform/CompositionLocals.kt, in function noLocalProvidedFor.
    */
-  private fun isCompositionLocalStackTrace(throwable: Throwable?): Boolean =
-    throwable is IllegalStateException &&
-      throwable.message?.startsWith("CompositionLocal") == true &&
-      throwable.message?.endsWith("not present") == true
+  private fun isCompositionLocalStackTraceInternal(stackTrace: String): Boolean {
+    val firstLine = stackTrace.lineSequence().firstOrNull() ?: return false
+    val prefix = "java.lang.IllegalStateException: "
+    if (!firstLine.startsWith(prefix)) {
+      return false
+    }
+    val message = firstLine.substringAfter(prefix)
+    // The expected error message format is "CompositionLocal <name> not present"
+    return message.startsWith("CompositionLocal") && message.endsWith("not present")
+  }
+
+  /**
+   * Returns true if the given [throwable] corresponds to a failure of finding a CompositionLocal.
+   * This is used to detect when a @Preview fails to render because a CompositionLocal is not
+   * provided.
+   */
+  @JvmStatic
+  fun isCompositionLocalStackTrace(throwable: Throwable?): Boolean {
+    return throwable is IllegalStateException &&
+      isCompositionLocalStackTraceInternal(throwable.stackTraceToString())
+  }
+
+  /**
+   * Returns true if the given [stackTrace] corresponds to a failure of finding a CompositionLocal.
+   * This is used to detect when a @Preview fails to render because a CompositionLocal is not
+   * provided.
+   */
+  @JvmStatic
+  fun isCompositionLocalStackTrace(stackTrace: String): Boolean {
+    return isCompositionLocalStackTraceInternal(stackTrace)
+  }
 
   private fun isViewModelStackTraceInternal(stackTrace: String): Boolean {
     return stackTrace.lines().any { line ->
       line.trim().startsWith("at") &&
         line.contains("androidx.lifecycle") &&
-        (line.contains("viewModel") || line.contains("ViewModelProvider") || line.contains("ViewModelKt"))
+        (line.contains("viewModel") ||
+          line.contains("ViewModelProvider") ||
+          line.contains("ViewModelKt"))
     }
   }
 
@@ -62,11 +88,7 @@ object ComposeRenderErrorContributor {
    */
   @JvmStatic
   fun isViewModelStackTrace(throwable: Throwable?): Boolean {
-    return throwable?.let {
-      val stringWriter = StringWriter()
-      it.printStackTrace(PrintWriter(stringWriter))
-      isViewModelStackTraceInternal(stringWriter.toString())
-    } ?: false
+    return throwable?.let { isViewModelStackTraceInternal(it.stackTraceToString()) } ?: false
   }
 
   /**
@@ -75,7 +97,7 @@ object ComposeRenderErrorContributor {
    */
   private fun isComposeNotFoundThrowable(throwable: Throwable?): Boolean {
     return throwable is NoSuchMethodException &&
-      throwable.getStackTrace()[1].methodName.startsWith("invokeComposableViaReflection")
+      throwable.stackTrace[1].methodName.startsWith("invokeComposableViaReflection")
   }
 
   /**
