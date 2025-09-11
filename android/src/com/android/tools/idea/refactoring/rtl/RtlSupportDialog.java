@@ -19,14 +19,13 @@ package com.android.tools.idea.refactoring.rtl;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.util.text.TextWithMnemonic;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Insets;
-import java.lang.reflect.Method;
-import java.util.ResourceBundle;
 import javax.swing.AbstractButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -109,7 +108,7 @@ public class RtlSupportDialog extends DialogWrapper {
     myPanel.add(panel1, BorderLayout.NORTH);
     final JTextArea textArea1 = new JTextArea();
     textArea1.setBackground(UIManager.getColor("Button.background"));
-    textArea1.setText(getMessageFromBundle("messages/AndroidBundle", "android.refactoring.rtl.addsupport.dialog.label.text"));
+    textArea1.setText(AndroidBundle.message("android.refactoring.rtl.addsupport.dialog.label.text"));
     panel1.add(textArea1,
                new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
@@ -117,14 +116,12 @@ public class RtlSupportDialog extends DialogWrapper {
     panel2.setLayout(new GridLayoutManager(3, 1, new Insets(0, 0, 0, 0), -1, -1));
     myPanel.add(panel2, BorderLayout.CENTER);
     myAndroidManifestCheckBox = new JCheckBox();
-    loadButtonText(myAndroidManifestCheckBox, getMessageFromBundle("messages/AndroidBundle",
-                                                                                         "android.refactoring.rtl.addsupport.dialog.option.label.update.manifest.text"));
+    loadButtonText(myAndroidManifestCheckBox, AndroidBundle.message("android.refactoring.rtl.addsupport.dialog.option.label.update.manifest.text"));
     panel2.add(myAndroidManifestCheckBox, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                               GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     myLayoutsCheckBox = new JCheckBox();
-    loadButtonText(myLayoutsCheckBox, getMessageFromBundle("messages/AndroidBundle",
-                                                                                 "android.refactoring.rtl.addsupport.dialog.option.label.update.layouts.text"));
+    loadButtonText(myLayoutsCheckBox, AndroidBundle.message("android.refactoring.rtl.addsupport.dialog.option.label.update.layouts.text"));
     panel2.add(myLayoutsCheckBox, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                       GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
@@ -135,66 +132,30 @@ public class RtlSupportDialog extends DialogWrapper {
                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0,
                                            false));
     panel3.setBorder(IdeBorderFactory.PlainSmallWithIndent.createTitledBorder(null,
-                                                                              getMessageFromBundle("messages/AndroidBundle",
-                                                                                                              "android.refactoring.rtl.addsupport.dialog.option.label.layouts.options.txt"),
+                                                                              AndroidBundle.message("android.refactoring.rtl.addsupport.dialog.option.label.layouts.options.txt"),
                                                                               TitledBorder.DEFAULT_JUSTIFICATION,
                                                                               TitledBorder.DEFAULT_POSITION, null, null));
     myReplaceLeftRightPropertiesCheckBox = new JCheckBox();
-    loadButtonText(myReplaceLeftRightPropertiesCheckBox, getMessageFromBundle("messages/AndroidBundle",
-                                                                                                    "android.refactoring.rtl.addsupport.dialog.option.label.layouts.options.replace.leftright.txt"));
+    loadButtonText(myReplaceLeftRightPropertiesCheckBox, AndroidBundle.message("android.refactoring.rtl.addsupport.dialog.option.label.layouts.options.replace.leftright.txt"));
     panel3.add(myReplaceLeftRightPropertiesCheckBox, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK |
                                                                          GridConstraints.SIZEPOLICY_CAN_GROW,
                                                                          GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(251, 23),
                                                                          null, 0, false));
     myGenerateV17VersionsCheckBox = new JCheckBox();
-    loadButtonText(myGenerateV17VersionsCheckBox, getMessageFromBundle("messages/AndroidBundle",
-                                                                                             "android.refactoring.rtl.addsupport.dialog.option.label.layouts.options.generate.v17.txt"));
+    loadButtonText(myGenerateV17VersionsCheckBox, AndroidBundle.message("android.refactoring.rtl.addsupport.dialog.option.label.layouts.options.generate.v17.txt"));
     panel3.add(myGenerateV17VersionsCheckBox, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK |
                                                                   GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
                                                                   null, new Dimension(251, 23), null, 0, false));
   }
 
-  private static Method cachedGetBundleMethod = null;
-
-  private String getMessageFromBundle(String path, String key) {
-    ResourceBundle bundle;
-    try {
-      Class<?> thisClass = this.getClass();
-      if (cachedGetBundleMethod == null) {
-        Class<?> dynamicBundleClass = thisClass.getClassLoader().loadClass("com.intellij.DynamicBundle");
-        cachedGetBundleMethod = dynamicBundleClass.getMethod("getBundle", String.class, Class.class);
-      }
-      bundle = (ResourceBundle)cachedGetBundleMethod.invoke(null, path, thisClass);
-    }
-    catch (Exception e) {
-      bundle = ResourceBundle.getBundle(path);
-    }
-    return bundle.getString(key);
-  }
-
   private void loadButtonText(AbstractButton component, String text) {
-    StringBuffer result = new StringBuffer();
-    boolean haveMnemonic = false;
-    char mnemonic = '\0';
-    int mnemonicIndex = -1;
-    for (int i = 0; i < text.length(); i++) {
-      if (text.charAt(i) == '&') {
-        i++;
-        if (i == text.length()) break;
-        if (!haveMnemonic && text.charAt(i) != '&') {
-          haveMnemonic = true;
-          mnemonic = text.charAt(i);
-          mnemonicIndex = result.length();
-        }
-      }
-      result.append(text.charAt(i));
-    }
-    component.setText(result.toString());
-    if (haveMnemonic) {
-      component.setMnemonic(mnemonic);
-      component.setDisplayedMnemonicIndex(mnemonicIndex);
+    TextWithMnemonic textWithMnemonic = TextWithMnemonic.parse(text);
+    component.setText(text);
+    if (textWithMnemonic.hasMnemonic()) {
+      component.setMnemonic(textWithMnemonic.getMnemonicCode());
+      component.setDisplayedMnemonicIndex(textWithMnemonic.getMnemonicIndex());
     }
   }
 }

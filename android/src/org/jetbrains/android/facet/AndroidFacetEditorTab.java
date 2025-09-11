@@ -33,6 +33,7 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.TextWithMnemonic;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -57,11 +58,9 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.ResourceBundle;
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -152,8 +151,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
                                                     GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
     myIsLibraryProjectCheckbox = new JCheckBox();
     myIsLibraryProjectCheckbox.setSelected(false);
-    loadButtonText(myIsLibraryProjectCheckbox,
-                              getMessageFromBundle("messages/AndroidBundle", "android.facet.editor.is.library.checkbox"));
+    loadButtonText(myIsLibraryProjectCheckbox, AndroidBundle.message("android.facet.editor.is.library.checkbox"));
     myContentPanel.add(myIsLibraryProjectCheckbox, new GridConstraints(0, 0, 1, 3, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK |
                                                                        GridConstraints.SIZEPOLICY_CAN_GROW,
@@ -227,9 +225,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
                                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK |
                                                                     GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
     myAptAutogenerationOptionsPanel.setBorder(IdeBorderFactory.PlainSmallWithIndent.createTitledBorder(BorderFactory.createEtchedBorder(),
-                                                                                                       getMessageFromBundle(
-                                                                                                         "messages/AndroidBundle",
-                                                                                                         "android.apt.settings.title"),
+                                                                                                       AndroidBundle.message("android.apt.settings.title"),
                                                                                                        TitledBorder.DEFAULT_JUSTIFICATION,
                                                                                                        TitledBorder.DEFAULT_POSITION, null,
                                                                                                        null));
@@ -241,7 +237,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                             null, null, null, 0, false));
     myRGenPathLabel = new JLabel();
-    loadLabelText(myRGenPathLabel, getMessageFromBundle("messages/AndroidBundle", "android.dest.directory.title"));
+    loadLabelText(myRGenPathLabel, AndroidBundle.message("android.dest.directory.title"));
     myAaptCompilerPanel.add(myRGenPathLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                                  GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
                                                                  null, null, 0, false));
@@ -250,15 +246,13 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
                                                                  GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED,
                                                                  null, null, null, 0, false));
     myCompileResourcesByIdeRadio = new JRadioButton();
-    loadButtonText(myCompileResourcesByIdeRadio,
-                              getMessageFromBundle("messages/AndroidBundle", "android.facet.settings.compile.resources.by.ide"));
+    loadButtonText(myCompileResourcesByIdeRadio, AndroidBundle.message("android.facet.settings.compile.resources.by.ide"));
     myAptAutogenerationOptionsPanel.add(myCompileResourcesByIdeRadio,
                                         new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                             GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     myRunProcessResourcesRadio = new JRadioButton();
-    loadButtonText(myRunProcessResourcesRadio,
-                              getMessageFromBundle("messages/AndroidBundle", "copy.resources.from.artifacts.setting"));
+    loadButtonText(myRunProcessResourcesRadio, AndroidBundle.message("copy.resources.from.artifacts.setting"));
     myAptAutogenerationOptionsPanel.add(myRunProcessResourcesRadio,
                                         new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
@@ -275,7 +269,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
                                                                TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null,
                                                                null));
     myAidlGenPathLabel = new JLabel();
-    loadLabelText(myAidlGenPathLabel, getMessageFromBundle("messages/AndroidBundle", "android.dest.directory.title"));
+    loadLabelText(myAidlGenPathLabel, AndroidBundle.message("android.dest.directory.title"));
     myAidlAutogenerationOptionsPanel.add(myAidlGenPathLabel,
                                          new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                              GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
@@ -302,20 +296,17 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0,
                                            false));
     panel4.setBorder(IdeBorderFactory.PlainSmallWithIndent.createTitledBorder(BorderFactory.createEtchedBorder(),
-                                                                              getMessageFromBundle("messages/AndroidBundle",
-                                                                                                              "android.apk.settings.title"),
+                                                                              AndroidBundle.message("android.apk.settings.title"),
                                                                               TitledBorder.DEFAULT_JUSTIFICATION,
                                                                               TitledBorder.DEFAULT_POSITION, null, null));
     myUseAptResDirectoryFromPathRadio = new JRadioButton();
-    loadButtonText(myUseAptResDirectoryFromPathRadio,
-                              getMessageFromBundle("messages/AndroidBundle", "android.generate.r.java.by.res.dir"));
+    loadButtonText(myUseAptResDirectoryFromPathRadio, AndroidBundle.message("android.generate.r.java.by.res.dir"));
     panel4.add(myUseAptResDirectoryFromPathRadio, new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK |
                                                                       GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
                                                                       null, null, null, 0, false));
     myUseCustomSourceDirectoryRadio = new JRadioButton();
-    loadButtonText(myUseCustomSourceDirectoryRadio,
-                              getMessageFromBundle("messages/AndroidBundle", "android.use.custom.r.java.source.dir"));
+    loadButtonText(myUseCustomSourceDirectoryRadio, AndroidBundle.message("android.use.custom.r.java.source.dir"));
     panel4.add(myUseCustomSourceDirectoryRadio, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK |
                                                                     GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
@@ -330,8 +321,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
                new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     myUseCustomManifestPackage = new JBCheckBox();
-    loadButtonText(myUseCustomManifestPackage,
-                              getMessageFromBundle("messages/AndroidBundle", "android.aapt.use.custom.package.name"));
+    loadButtonText(myUseCustomManifestPackage, AndroidBundle.message("android.aapt.use.custom.package.name"));
     panel4.add(myUseCustomManifestPackage,
                new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
@@ -358,15 +348,13 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     panel3.add(spacer5, new GridConstraints(5, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
                                             GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
     myIncludeTestCodeAndCheckBox = new JCheckBox();
-    loadButtonText(myIncludeTestCodeAndCheckBox,
-                              getMessageFromBundle("messages/AndroidBundle", "android.facet.settings.pack.test.sources"));
+    loadButtonText(myIncludeTestCodeAndCheckBox, AndroidBundle.message("android.facet.settings.pack.test.sources"));
     panel3.add(myIncludeTestCodeAndCheckBox, new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK |
                                                                  GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
                                                                  null, null, null, 0, false));
     myCustomKeystoreLabel = new JBLabel();
-    loadLabelText(myCustomKeystoreLabel, getMessageFromBundle("messages/AndroidBundle",
-                                                                                    "android.facet.settings.custom.debug.keystore.label"));
+    loadLabelText(myCustomKeystoreLabel, AndroidBundle.message("android.facet.settings.custom.debug.keystore.label"));
     panel3.add(myCustomKeystoreLabel,
                new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
@@ -375,8 +363,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
                                                                GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
                                                                null, null, 0, false));
     myApkPathLabel = new JLabel();
-    loadLabelText(myApkPathLabel,
-                             getMessageFromBundle("messages/AndroidBundle", "android.facet.settings.apk.path.label"));
+    loadLabelText(myApkPathLabel, AndroidBundle.message("android.facet.settings.apk.path.label"));
     panel3.add(myApkPathLabel,
                new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
@@ -394,8 +381,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     panel5.setLayout(new GridLayoutManager(4, 2, new Insets(0, 0, 4, 0), -1, -1));
     myTabbedPane.addTab("ProGuard", panel5);
     myRunProguardCheckBox = new JBCheckBox();
-    loadButtonText(myRunProguardCheckBox,
-                              getMessageFromBundle("messages/AndroidBundle", "android.facet.settings.run.proguard"));
+    loadButtonText(myRunProguardCheckBox, AndroidBundle.message("android.facet.settings.run.proguard"));
     panel5.add(myRunProguardCheckBox, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                           GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
                                                           null, 0, false));
@@ -456,69 +442,21 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     buttonGroup.add(myRunProcessResourcesRadio);
   }
 
-  private static Method cachedGetBundleMethod = null;
-
-  private String getMessageFromBundle(String path, String key) {
-    ResourceBundle bundle;
-    try {
-      Class<?> thisClass = this.getClass();
-      if (cachedGetBundleMethod == null) {
-        Class<?> dynamicBundleClass = thisClass.getClassLoader().loadClass("com.intellij.DynamicBundle");
-        cachedGetBundleMethod = dynamicBundleClass.getMethod("getBundle", String.class, Class.class);
-      }
-      bundle = (ResourceBundle)cachedGetBundleMethod.invoke(null, path, thisClass);
-    }
-    catch (Exception e) {
-      bundle = ResourceBundle.getBundle(path);
-    }
-    return bundle.getString(key);
-  }
-
   private void loadLabelText(JLabel component, String text) {
-    StringBuffer result = new StringBuffer();
-    boolean haveMnemonic = false;
-    char mnemonic = '\0';
-    int mnemonicIndex = -1;
-    for (int i = 0; i < text.length(); i++) {
-      if (text.charAt(i) == '&') {
-        i++;
-        if (i == text.length()) break;
-        if (!haveMnemonic && text.charAt(i) != '&') {
-          haveMnemonic = true;
-          mnemonic = text.charAt(i);
-          mnemonicIndex = result.length();
-        }
-      }
-      result.append(text.charAt(i));
-    }
-    component.setText(result.toString());
-    if (haveMnemonic) {
-      component.setDisplayedMnemonic(mnemonic);
-      component.setDisplayedMnemonicIndex(mnemonicIndex);
+    TextWithMnemonic textWithMnemonic = TextWithMnemonic.parse(text);
+    component.setText(text);
+    if (textWithMnemonic.hasMnemonic()) {
+      component.setDisplayedMnemonic(textWithMnemonic.getMnemonicCode());
+      component.setDisplayedMnemonicIndex(textWithMnemonic.getMnemonicIndex());
     }
   }
 
   private void loadButtonText(AbstractButton component, String text) {
-    StringBuffer result = new StringBuffer();
-    boolean haveMnemonic = false;
-    char mnemonic = '\0';
-    int mnemonicIndex = -1;
-    for (int i = 0; i < text.length(); i++) {
-      if (text.charAt(i) == '&') {
-        i++;
-        if (i == text.length()) break;
-        if (!haveMnemonic && text.charAt(i) != '&') {
-          haveMnemonic = true;
-          mnemonic = text.charAt(i);
-          mnemonicIndex = result.length();
-        }
-      }
-      result.append(text.charAt(i));
-    }
-    component.setText(result.toString());
-    if (haveMnemonic) {
-      component.setMnemonic(mnemonic);
-      component.setDisplayedMnemonicIndex(mnemonicIndex);
+    TextWithMnemonic textWithMnemonic = TextWithMnemonic.parse(text);
+    component.setText(text);
+    if (textWithMnemonic.hasMnemonic()) {
+      component.setMnemonic(textWithMnemonic.getMnemonicCode());
+      component.setDisplayedMnemonicIndex(textWithMnemonic.getMnemonicIndex());
     }
   }
 

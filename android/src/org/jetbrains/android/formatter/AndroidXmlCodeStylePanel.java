@@ -3,10 +3,12 @@ package org.jetbrains.android.formatter;
 import com.intellij.application.options.CodeStyleAbstractPanel;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.xml.XMLLanguage;
+import com.intellij.openapi.application.ApplicationBundle;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.editor.highlighter.EditorHighlighter;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.ui.VerticalFlowLayout;
+import com.intellij.openapi.util.text.TextWithMnemonic;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBCheckBox;
@@ -20,10 +22,8 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ResourceBundle;
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -244,7 +244,7 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
                                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                                 null, null, null, 0, false));
       final JBLabel jBLabel1 = new JBLabel();
-      loadLabelText(jBLabel1, getMessageFromBundle("messages/ApplicationBundle", "label.wrap.attributes"));
+      loadLabelText(jBLabel1, ApplicationBundle.message("label.wrap.attributes"));
       myPanel.add(jBLabel1,
                   new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
                                       GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
@@ -273,51 +273,15 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
       jBLabel1.setLabelFor(myWrapAttributesCombo);
     }
 
-    private static Method cachedGetBundleMethod = null;
-
-    private String getMessageFromBundle(String path, String key) {
-      ResourceBundle bundle;
-      try {
-        Class<?> thisClass = this.getClass();
-        if (cachedGetBundleMethod == null) {
-          Class<?> dynamicBundleClass = thisClass.getClassLoader().loadClass("com.intellij.DynamicBundle");
-          cachedGetBundleMethod = dynamicBundleClass.getMethod("getBundle", String.class, Class.class);
-        }
-        bundle = (ResourceBundle)cachedGetBundleMethod.invoke(null, path, thisClass);
-      }
-      catch (Exception e) {
-        bundle = ResourceBundle.getBundle(path);
-      }
-      return bundle.getString(key);
-    }
-
-    /**
-     * @noinspection ALL
-     */
     private void loadLabelText(JLabel component, String text) {
-      StringBuffer result = new StringBuffer();
-      boolean haveMnemonic = false;
-      char mnemonic = '\0';
-      int mnemonicIndex = -1;
-      for (int i = 0; i < text.length(); i++) {
-        if (text.charAt(i) == '&') {
-          i++;
-          if (i == text.length()) break;
-          if (!haveMnemonic && text.charAt(i) != '&') {
-            haveMnemonic = true;
-            mnemonic = text.charAt(i);
-            mnemonicIndex = result.length();
-          }
-        }
-        result.append(text.charAt(i));
-      }
-      component.setText(result.toString());
-      if (haveMnemonic) {
-        component.setDisplayedMnemonic(mnemonic);
-        component.setDisplayedMnemonicIndex(mnemonicIndex);
+      TextWithMnemonic textWithMnemonic = TextWithMnemonic.parse(text);
+      component.setText(text);
+      if (textWithMnemonic.hasMnemonic()) {
+        component.setDisplayedMnemonic(textWithMnemonic.getMnemonicCode());
+        component.setDisplayedMnemonicIndex(textWithMnemonic.getMnemonicIndex());
       }
     }
-}
+  }
 
   private static class LayoutCodeStylePanel extends MyFileSpecificPanel<AndroidXmlCodeStyleSettings.LayoutSettings> {
     private JPanel myPanel;
