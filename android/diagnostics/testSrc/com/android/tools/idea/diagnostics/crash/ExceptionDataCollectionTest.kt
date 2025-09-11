@@ -162,6 +162,12 @@ internal class ExceptionDataCollectionTest : LightPlatformTestCase() {
 
     val sig3 = ExceptionDataCollection.calculateSignature(ex3)
     assertThat(sig3).isEqualTo(ex3Sig)
+
+    val sig4 = ExceptionDataCollection.calculateSignature(ex4)
+    assertThat(sig4).isEqualTo(ex4Sig)
+
+    val sig5 = ExceptionDataCollection.calculateSignature(ex5)
+    assertThat(sig5).isEqualTo(ex5Sig)
   }
 
   fun testCalculateSignatueMissingStack() {
@@ -206,7 +212,7 @@ internal class ExceptionDataCollectionTest : LightPlatformTestCase() {
       "\tat com.intellij.ide.actions.GotoActionAction.lambda\$performAction\$2(GotoActionAction.java:108)\n" +
       "\tat java.desktop/java.awt.EventDispatchThread.run(EventDispatchThread.java:90)\n"
     val ex2 = ExceptionTestUtils.createExceptionFromDesc(ex2Description)
-    const val ex2Sig = "java.lang.Exception at com.intellij.diagnostic.DropAnErrorAction.actionPerformed-2f166b9f"
+    const val ex2Sig = "java.lang.Exception at com.intellij.diagnostic.DropAnErrorAction.actionPerformed-b039f534"
 
     const val exNoStackDescription =
       "java.lang.Exception: sample message\n"
@@ -219,5 +225,19 @@ internal class ExceptionDataCollectionTest : LightPlatformTestCase() {
 
     val ex3 = ExceptionTestUtils.createExceptionFromDesc(ex3Description)
     val ex3Sig = "java.lang.Exception at com.android.SomeClass.someMethod-d3f18885"
+
+    const val ex4Description =
+      "java.lang.RuntimeException: exception just for calculate signature\n" +
+      "\tat example.module/com.android.SomeClass.someMethod(FileName.java:100)\n" +
+      "\tat example.other.module/com.android.OtherClass.utilityFunction(OtherModule.java:26)\n"
+    val ex4 = ExceptionTestUtils.createExceptionFromDesc(ex4Description)
+    val ex4Sig = "java.lang.RuntimeException at example.module/com.android.SomeClass.someMethod-150e5d0d"
+
+    const val ex5Description =
+      "java.lang.RuntimeException: exception just for calculate signature with module version\n" +
+      "\tat example.module@21.0.8/com.android.SomeClass.someMethod(FileName.java:100)\n" +
+      "\tat example.other.module/com.android.OtherClass.utilityFunction(OtherModule.java:26)\n"
+    val ex5= ExceptionTestUtils.createExceptionFromDesc(ex5Description)
+    val ex5Sig = "java.lang.RuntimeException at example.module@21.0.8/com.android.SomeClass.someMethod-f0f5ebef"
   }
 }

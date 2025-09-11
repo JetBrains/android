@@ -101,13 +101,22 @@ class ExceptionDataCollection {
         if (matchResult != null)
           methodName = matchResult.groupValues[1]
 
-        return@joinTo if (methodName != "")
-          "${it.className}.$methodName"
+        return@joinTo if (methodName != "") {
+          val modulePart = it.moduleName?.let { moduleName ->
+            if (it.moduleVersion != null) "$moduleName@${it.moduleVersion}/"
+            else "$moduleName/"
+          }
+          "$modulePart${it.className}.$methodName"
+        }
         else
           ""
       }
       val className = if (isLoggerError) LOGGER_ERROR_MESSAGE_EXCEPTION else rootCause.javaClass.name
-      val signaturePrefix = "$className at ${stackTrace[0].className}.${stackTrace[0].methodName}"
+      val modulePart = stackTrace[0].moduleName?.let { moduleName ->
+        if (stackTrace[0].moduleVersion != null) "$moduleName@${stackTrace[0].moduleVersion}/"
+        else "$moduleName/"
+      } ?: ""
+      val signaturePrefix = "$className at $modulePart${stackTrace[0].className}.${stackTrace[0].methodName}"
       sb.append(signaturePrefix)
       val hashBytes = digest.digest(sb.toString().toByteArray(Charset.forName("UTF-8")))
       val hash = hashBytes.joinToString("") { it.toInt().and(0xff).toString(16).padStart(2, '0') }.substring(0, 8)
@@ -175,7 +184,8 @@ class ExceptionDataCollection {
     }
 
     if (LogLevelConfigurationManager.getInstance().getCategories().isNotEmpty()) {
-      LOG.info("Cannot register appenders: debug/trace logging enabled through " + LogLevelConfigurationManager::class.java.simpleName + ".")
+      LOG.info(
+        "Cannot register appenders: debug/trace logging enabled through " + LogLevelConfigurationManager::class.java.simpleName + ".")
       return emptyList()
     }
 
@@ -253,7 +263,8 @@ class ExceptionDataCollection {
 
   private fun tryReconfigureExistingHandlers(): Boolean {
     if (LogLevelConfigurationManager.getInstance().getCategories().isNotEmpty()) {
-      LOG.info("Cannot register appenders: debug/trace logging enabled through " + LogLevelConfigurationManager::class.java.simpleName + ".")
+      LOG.info(
+        "Cannot register appenders: debug/trace logging enabled through " + LogLevelConfigurationManager::class.java.simpleName + ".")
       return false
     }
     val rootLogger = java.util.logging.Logger.getLogger("")
@@ -476,8 +487,8 @@ class ExceptionDataCollection {
    *     MissingCrashedThreadStack if " " is used.
    */
   private fun CompilerInternalError.extractKotlinCompilerInternalErrorExceptionName(): String {
-      val rootExceptionName = message.orEmpty().trim().substringBefore(delimiter = ":", missingDelimiterValue = "UnknownRootException")
-      return "${CompilerInternalError::class.java.name}_$rootExceptionName"
+    val rootExceptionName = message.orEmpty().trim().substringBefore(delimiter = ":", missingDelimiterValue = "UnknownRootException")
+    return "${CompilerInternalError::class.java.name}_$rootExceptionName"
   }
 
   fun requiresConfirmation(t: Throwable): Boolean {

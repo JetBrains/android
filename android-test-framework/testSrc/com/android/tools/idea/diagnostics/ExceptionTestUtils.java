@@ -106,8 +106,9 @@ public class ExceptionTestUtils {
     }
 
     List<StackTraceElement> frames = new ArrayList<>();
-    Pattern outerPattern = Pattern.compile("\tat (.*)\\.([^.]*)\\((.*)\\)");
+    Pattern outerPattern = Pattern.compile("\tat (?:([^/]+)/)?(.*)\\.([^.]*)\\((.*)\\)");
     Pattern innerPattern = Pattern.compile("(.*):(\\d*)");
+    Pattern modulePattern = Pattern.compile("^([^@]+)(?:@(.*))?$");
     while (iterator.hasNext()) {
       String line = iterator.next();
       if (line.isEmpty()) {
@@ -117,26 +118,42 @@ public class ExceptionTestUtils {
       if (!outerMatcher.matches()) {
         throw new RuntimeException(
           "Line " + line + " does not match expected stacktrace pattern");
-      } else {
-        String clz = outerMatcher.group(1);
-        String method = outerMatcher.group(2);
-        String inner = outerMatcher.group(3);
+      }
+      else {
+        String modulePart = outerMatcher.group(1);
+        String clz = outerMatcher.group(2);
+        String method = outerMatcher.group(3);
+        String inner = outerMatcher.group(4);
+        String moduleName = null;
+        String moduleVersion = null;
+        if (modulePart != null) {
+          Matcher moduleMatcher = modulePattern.matcher(modulePart);
+          if (!moduleMatcher.matches()) {
+            throw new RuntimeException(
+              "modulePart " + modulePart + " does not match expected module part pattern");
+          } else {
+            moduleName = moduleMatcher.group(1);
+            moduleVersion = moduleMatcher.group(2);
+          }
+
+        }
         switch (inner) {
           case "Native Method":
-            frames.add(new StackTraceElement(clz, method, null, -2));
+            frames.add(new StackTraceElement(null, moduleName, moduleVersion, clz, method, null, -2));
             break;
           case "Unknown Source":
-            frames.add(new StackTraceElement(clz, method, null, -1));
+            frames.add(new StackTraceElement(null, moduleName, moduleVersion, clz, method, null, -1));
             break;
           default:
             Matcher innerMatcher = innerPattern.matcher(inner);
             if (!innerMatcher.matches()) {
               throw new RuntimeException("Trace parameter list " + inner
                                          + " does not match expected pattern");
-            } else {
+            }
+            else {
               String file = innerMatcher.group(1);
               int lineNum = Integer.parseInt(innerMatcher.group(2));
-              frames.add(new StackTraceElement(clz, method, file, lineNum));
+              frames.add(new StackTraceElement(null, moduleName, moduleVersion, clz, method, file, lineNum));
             }
             break;
         }
