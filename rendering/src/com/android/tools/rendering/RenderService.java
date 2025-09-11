@@ -422,11 +422,9 @@ final public class RenderService implements Disposable {
 
     /**
      * Disables the security manager for the {@link RenderTask}.
-     * Bazel has its own security manager. We allow rendering tests to disable the security manager by calling this method. If this method
-     * is not called from a test method, it will throw an {@link IllegalStateException}
+     * This should only be called when running with a JDK (version 24 or above) that does not support a security manager.
+     * We also allow rendering tests to disable this security manager since Bazel has its own security manager.
      */
-    @TestOnly
-    @VisibleForTesting
     @NotNull
     public RenderTaskBuilder disableSecurityManager() {
       this.isSecurityManagerEnabled = false;
