@@ -234,7 +234,7 @@ private class AndroidDependenciesSetupContext(
     (library.compileJarFiles + library.resFolder).distinct()
       .forEach { binaryPath ->
       if (binaryPath.name == FD_RES) {
-        val annotationsFile = binaryPath.parentFile.resolve(FN_ANNOTATIONS_ZIP)
+        val annotationsFile = binaryPath.parentFile?.resolve(FN_ANNOTATIONS_ZIP) ?: return@forEach
         if (annotationsFile.isFile) {
           libraryData.addPath(LibraryPathType.ANNOTATION, annotationsFile.absolutePath)
         }
@@ -242,7 +242,9 @@ private class AndroidDependenciesSetupContext(
       else if ((libraryName.startsWith(ANDROIDX_ANNOTATIONS_ARTIFACT) ||
                 libraryName.startsWith(ANNOTATIONS_LIB_ARTIFACT)) &&
                binaryPath.name.endsWith(DOT_JAR)) {
-        val annotationsFile = binaryPath.let { it.parentFile.resolve(it.name.removeSuffix(DOT_JAR) + "-" + FN_ANNOTATIONS_ZIP)}
+        val annotationsFile = binaryPath.let {
+          it.parentFile?.resolve(it.name.removeSuffix(DOT_JAR) + "-" + FN_ANNOTATIONS_ZIP) ?: return@forEach
+        }
         if (annotationsFile.isFile) {
           libraryData.addPath(LibraryPathType.ANNOTATION, annotationsFile.absolutePath)
         }
