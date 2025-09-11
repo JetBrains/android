@@ -84,7 +84,7 @@ private class ComposeGradleProjectRuleImpl(
 
 /**
  * A [TestRule] providing the same behaviour as [AndroidGradleProjectRule] but with the correct
- * setup for rendeering Compose elements.
+ * setup for rendering Compose elements.
  */
 open class ComposeGradleProjectRule(
   projectPath: String,
