@@ -51,13 +51,6 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.EDT
-import org.intellij.images.ui.ImageComponent
-import org.intellij.images.ui.ImageComponentDecorator
-import org.junit.After
-import org.junit.Assume.assumeFalse
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.image.BufferedImage
@@ -66,6 +59,13 @@ import javax.swing.JComboBox
 import javax.swing.UIManager
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import org.intellij.images.ui.ImageComponent
+import org.intellij.images.ui.ImageComponentDecorator
+import org.junit.After
+import org.junit.Assume.assumeFalse
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 /** Tests for [ScreenshotViewer]. */
 @RunsInEdt
@@ -297,6 +297,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testComboBoxDefaultsToDisplayShapeIfAvailable() {
+    settings.nonFramingDecorationId = ScreenshotDecorationOption.DISPLAY_SHAPE_CLIP.id
     val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.WEAR, "Watch", PRIMARY_DISPLAY_ID, Dimension(454, 454), 320,
                                           isRoundDisplay = true)
     val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
@@ -307,7 +308,8 @@ class ScreenshotViewerTest {
   }
 
   @Test
-  fun testComboBoxDefaultsToPlayStoreCompatibleIfDisplayShapeIsNotAvailable() {
+  fun testComboBoxDefaultsToPlayStoreCompatibleIfAvailable() {
+    settings.nonFramingDecorationId = ScreenshotDecorationOption.PLAY_COMPATIBLE.id
     val screenshotImage = ScreenshotImage(createImage(360, 360), 0, DeviceType.WEAR, "Watch", PRIMARY_DISPLAY_ID, Dimension(454, 454), 320)
     val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
@@ -318,6 +320,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testComboBoxDefaultsToRectangularIfPlayStoreCompatibleAndDisplayShapeAreNotAvailable() {
+    settings.nonFramingDecorationId = ScreenshotDecorationOption.PLAY_COMPATIBLE.id
     val screenshotImage = ScreenshotImage(createImage(360, 360), 0, DeviceType.HANDHELD, "Phone", PRIMARY_DISPLAY_ID, Dimension(1080, 2400), 420)
     val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
@@ -346,6 +349,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testSave_Wear() {
+    settings.nonFramingDecorationId = ScreenshotDecorationOption.RECTANGULAR.id
     val screenshotImage = ScreenshotImage(createImage(384, 384), 0, DeviceType.WEAR, "Watch", PRIMARY_DISPLAY_ID, Dimension(454, 454), 320,
                                           isRoundDisplay = true)
     val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
@@ -357,12 +361,14 @@ class ScreenshotViewerTest {
 
     EDT.dispatchAllInvocationEvents()
     dispatchAllEventsInIdeEventQueue()
+    assertThat(settings.nonFramingDecorationId == ScreenshotDecorationOption.PLAY_COMPATIBLE.id)
     assertThat(usageTrackerRule.screenshotEvents()).containsExactly(
       DeviceScreenshotEvent.newBuilder()
         .setDeviceType(DeviceScreenshotEvent.DeviceType.WEAR)
         .setDecorationOption(DeviceScreenshotEvent.DecorationOption.PLAY_COMPATIBLE)
         .build()
     )
+
   }
 
   @Test

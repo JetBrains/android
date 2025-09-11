@@ -25,6 +25,7 @@ import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.StoragePathMacros.NON_ROAMABLE_FILE
 import com.intellij.openapi.components.service
 import com.intellij.util.xmlb.XmlSerializerUtil
+import org.jetbrains.annotations.VisibleForTesting
 
 /** Settings for screenshots of Android devices. */
 @Service
@@ -34,6 +35,8 @@ class DeviceScreenshotSettings : PersistentStateComponent<DeviceScreenshotSettin
   internal var saveConfig: SaveConfiguration = SaveConfiguration().apply { filenameTemplate = "Screenshot_<yyyy><MM><dd>_<HH><mm><ss>" }
   internal var scale: Double = 1.0
   internal var frameScreenshot: Boolean = false
+  @VisibleForTesting
+  var nonFramingDecorationId: Int = ScreenshotDecorationOption.PLAY_COMPATIBLE.id
   internal var screenshotCount: Int = 0
 
   override fun getState(): DeviceScreenshotSettings = this

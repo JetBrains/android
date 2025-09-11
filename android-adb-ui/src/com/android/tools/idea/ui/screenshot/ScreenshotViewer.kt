@@ -58,11 +58,6 @@ import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ExceptionUtil.getMessage
 import com.intellij.util.ui.components.BorderLayoutPanel
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.launch
-import org.intellij.images.editor.ImageFileEditor
-import org.jetbrains.android.util.runOnDisposalOfAnyOf
-import org.jetbrains.annotations.NonNls
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.color.ICC_ColorSpace
@@ -91,6 +86,11 @@ import javax.swing.JComponent
 import javax.swing.JEditorPane
 import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
+import org.intellij.images.editor.ImageFileEditor
+import org.jetbrains.android.util.runOnDisposalOfAnyOf
+import org.jetbrains.annotations.NonNls
 
 /**
  * A dialog that shows a captured screenshot.
@@ -134,6 +134,7 @@ class ScreenshotViewer(
     get() = saveConfigResolver.expandSaveLocation (saveConfig.saveLocation)
   private var scale = settings.scale
   private var frameScreenshot = settings.frameScreenshot
+  private var nonFramingDecorationId = settings.nonFramingDecorationId
   private lateinit var dialogPanel: DialogPanel
   private lateinit var saveLocationText: JEditorPane
 
@@ -196,13 +197,20 @@ class ScreenshotViewer(
     when {
       frameScreenshot && decorationComboBox.itemCount > defaultFramingOption + frameOptionStartIndex ->
           decorationComboBox.setSelectedIndex(defaultFramingOption + frameOptionStartIndex) // Select the default framing option.
-      isPlayCompatibleWearScreenshot -> decorationComboBox.setSelectedItem(ScreenshotDecorationOption.PLAY_COMPATIBLE)
-      canClipDeviceMask -> decorationComboBox.setSelectedItem(ScreenshotDecorationOption.DISPLAY_SHAPE_CLIP)
+      nonFramingDecorationId == ScreenshotDecorationOption.DISPLAY_SHAPE_CLIP.id && canClipDeviceMask ->
+          decorationComboBox.setSelectedItem(ScreenshotDecorationOption.DISPLAY_SHAPE_CLIP)
+      nonFramingDecorationId == ScreenshotDecorationOption.PLAY_COMPATIBLE.id && isPlayCompatibleWearScreenshot ->
+          decorationComboBox.setSelectedItem(ScreenshotDecorationOption.PLAY_COMPATIBLE)
       else -> decorationComboBox.setSelectedItem(ScreenshotDecorationOption.RECTANGULAR)
     }
 
     val decorationListener = ActionListener {
-      frameScreenshot = (decorationOptions.selectedItem as ScreenshotDecorationOption).framingOption != null
+      val decorationOption = decorationOptions.selectedItem as ScreenshotDecorationOption
+      frameScreenshot = decorationOption.framingOption != null
+      val id = decorationOption.id
+      if (id >= 0) {
+        nonFramingDecorationId = id
+      }
       processScreenshot()
     }
     decorationComboBox.addActionListener(decorationListener)
@@ -271,6 +279,7 @@ class ScreenshotViewer(
     dialogPanel.apply()
     settings.scale = scale
     settings.frameScreenshot = frameScreenshot
+    settings.nonFramingDecorationId = nonFramingDecorationId
   }
 
   override fun getHelpId(): String =
@@ -523,10 +532,13 @@ class ScreenshotViewer(
       // The 1:1 image aspect ratio is enforced, however.
       val isPlayCompatibleWearScreenshot = screenshotImage.isWear && screenshotImage.width == screenshotImage.height
 
+      val settings = DeviceScreenshotSettings.getInstance()
       return when {
         frameScreenshot && defaultFramingOption != null -> ScreenshotDecorationOption(defaultFramingOption)
-        canClipDeviceMask -> ScreenshotDecorationOption.DISPLAY_SHAPE_CLIP
-        isPlayCompatibleWearScreenshot -> ScreenshotDecorationOption.PLAY_COMPATIBLE
+        settings.nonFramingDecorationId == ScreenshotDecorationOption.DISPLAY_SHAPE_CLIP.id && canClipDeviceMask ->
+            ScreenshotDecorationOption.DISPLAY_SHAPE_CLIP
+        settings.nonFramingDecorationId == ScreenshotDecorationOption.PLAY_COMPATIBLE.id && isPlayCompatibleWearScreenshot ->
+            ScreenshotDecorationOption.PLAY_COMPATIBLE
         else -> ScreenshotDecorationOption.RECTANGULAR
       }
     }

@@ -26,6 +26,19 @@ class ScreenshotDecorationOption
 
   constructor(framingOption: FramingOption) : this(null, null, framingOption)
 
+  /**
+   * The numerical ID of the decoration option if [framingOption] is null, otherwise -1.
+   */
+  val id: Int
+    get() {
+      return when (this) {
+        RECTANGULAR -> 0
+        DISPLAY_SHAPE_CLIP -> 1
+        PLAY_COMPATIBLE -> 2
+        else -> -1
+      }
+    }
+
   override fun toString(): String {
     return framingOption?.displayName ?: clipAction.toString()
   }

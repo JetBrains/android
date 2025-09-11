@@ -37,9 +37,9 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.platform.ide.progress.withModalProgress
 import com.intellij.util.ExceptionUtil.getMessage
 import icons.StudioIcons
+import java.io.IOException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
-import java.io.IOException
 
 /** Captures a screenshot of a device display. */
 class ScreenshotAction : DumbAwareAction(
@@ -73,7 +73,11 @@ class ScreenshotAction : DumbAwareAction(
           val screenshotDecorator = screenshotParameters.screenshotDecorator
           val framingOptions = screenshotParameters.getFramingOptions(screenshotImage)
           val decoration = ScreenshotViewer.getDefaultDecoration(screenshotImage, screenshotDecorator, framingOptions.firstOrNull())
-          val processedImage = ImageUtils.scale(screenshotDecorator.decorate(screenshotImage, decoration), getScreenshotScale())
+          val decoratedImage = when (decoration) {
+            ScreenshotDecorationOption.RECTANGULAR -> screenshotImage.image
+            else -> screenshotDecorator.decorate(screenshotImage, decoration)
+          }
+          val processedImage = ImageUtils.scale(decoratedImage, getScreenshotScale())
           val file = FileUtil.createTempFile("screenshot", DOT_PNG).toPath()
           processedImage.writeImage("PNG", file)
           val backingFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?:

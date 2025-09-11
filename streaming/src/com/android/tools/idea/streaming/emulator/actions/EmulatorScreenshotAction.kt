@@ -31,6 +31,7 @@ import com.android.tools.idea.ui.DISPLAY_INFO_PROVIDER_KEY
 import com.android.tools.idea.ui.DisplayInfoProvider
 import com.android.tools.idea.ui.screenshot.DialogLocationArbiter
 import com.android.tools.idea.ui.screenshot.FramingOption
+import com.android.tools.idea.ui.screenshot.ScreenshotDecorationOption
 import com.android.tools.idea.ui.screenshot.ScreenshotDecorator
 import com.android.tools.idea.ui.screenshot.ScreenshotImage
 import com.android.tools.idea.ui.screenshot.ScreenshotProvider
@@ -90,7 +91,11 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
             val screenshotDecorator = EmulatorScreenshotDecorator(skin)
             val framingOptions = if (displayId == PRIMARY_DISPLAY_ID && skin != null) listOf(AvdFrame()) else listOf()
             val decoration = ScreenshotViewer.getDefaultDecoration(screenshotImage, screenshotDecorator, framingOptions.firstOrNull())
-            val processedImage = ImageUtils.scale(screenshotDecorator.decorate(screenshotImage, decoration), getScreenshotScale())
+            val decoratedImage = when (decoration) {
+              ScreenshotDecorationOption.RECTANGULAR -> screenshotImage.image
+              else -> screenshotDecorator.decorate(screenshotImage, decoration)
+            }
+            val processedImage = ImageUtils.scale(decoratedImage, getScreenshotScale())
             val file = FileUtil.createTempFile("screenshot", DOT_PNG).toPath()
             processedImage.writeImage("PNG", file)
             val backingFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?:

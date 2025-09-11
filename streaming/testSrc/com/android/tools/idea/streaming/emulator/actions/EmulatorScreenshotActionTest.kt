@@ -38,6 +38,7 @@ import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.ui.screenshot.DeviceScreenshotSettings
+import com.android.tools.idea.ui.screenshot.ScreenshotDecorationOption
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
@@ -86,6 +87,7 @@ class EmulatorScreenshotActionTest {
   private val fakeUi: FakeUi by lazy { FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable) }
   private val project get() = projectRule.project
   private val testRootDisposable get() = projectRule.disposable
+  private val settings by lazy { DeviceScreenshotSettings.getInstance() }
 
   @Before
   fun setUp() {
@@ -114,8 +116,7 @@ class EmulatorScreenshotActionTest {
     val ui = FakeUi(screenshotViewer.rootPane)
     val clipComboBox = ui.getComponent<JComboBox<*>>()
 
-    screenshotViewer.waitForUpdateAndGetImage()
-    assertThat(clipComboBox.selectedItem?.toString()).isEqualTo("Display Shape")
+    assertThat(clipComboBox.selectedItem?.toString()).isEqualTo("Rectangular")
     assertAppearance(screenshotViewer.waitForUpdateAndGetImage(), "WithoutFrame")
 
     clipComboBox.selectFirstMatch("Show Device Frame")
@@ -124,6 +125,7 @@ class EmulatorScreenshotActionTest {
 
   @Test
   fun testActionFoldableOpen() {
+    settings.nonFramingDecorationId = ScreenshotDecorationOption.DISPLAY_SHAPE_CLIP.id
     avdFolder = FakeEmulator.createFoldableAvd(emulatorRule.avdRoot)
     waitForDisplayViews(1)
 
@@ -140,6 +142,7 @@ class EmulatorScreenshotActionTest {
 
   @Test
   fun testActionFoldableClosed() {
+    settings.nonFramingDecorationId = ScreenshotDecorationOption.DISPLAY_SHAPE_CLIP.id
     avdFolder = FakeEmulator.createFoldableAvd(emulatorRule.avdRoot)
     emulator.setPosture(Posture.PostureValue.POSTURE_CLOSED)
     waitForDisplayViews(1)
@@ -261,13 +264,13 @@ class EmulatorScreenshotActionTest {
       TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/${name}.png")
 }
 
-private fun ScreenshotViewer.waitForUpdateAndGetImage(expectTransparentCorner: Boolean = true): BufferedImage {
+private fun ScreenshotViewer.waitForUpdateAndGetImage(expectTransparentCorner: Boolean? = null): BufferedImage {
   EDT.dispatchAllInvocationEvents()
   PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   val fileEditor = fileEditor()
   waitForCondition(2.seconds) {
-    fileEditor.imageEditor.document.value?.let {
-      (!expectTransparentCorner || it.isCornerTransparent()) && it.isSame(fileEditor.file.readImage())
+    fileEditor.imageEditor.document.value?.let { image ->
+      expectTransparentCorner?.let { it == image.isCornerTransparent() } ?: true && image.isSame(fileEditor.file.readImage())
     } ?: false
   }
   return fileEditor.imageEditor.document.value
