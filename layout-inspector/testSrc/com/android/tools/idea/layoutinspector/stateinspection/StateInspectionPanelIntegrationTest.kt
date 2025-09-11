@@ -46,7 +46,6 @@ import javax.swing.JLabel
 import javax.swing.SwingUtilities
 import kotlin.io.path.readText
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -122,7 +121,7 @@ class StateInspectionPanelIntegrationTest {
   }
 
   @Test
-  fun testPanelWithStateReadsOnDemand() = runTest {
+  fun testPanelWithStateReadsOnDemand() {
     inspectorRule.inspector.treeSettings.observeStateReadsForAll = false
     val state = FakeInspectorStateReads(inspectionRule.composeInspector)
     state.createFakeStateReadsForOnDemand()
@@ -177,9 +176,8 @@ class StateInspectionPanelIntegrationTest {
       val file = "${TEST_DATA_PATH}/$dataFile"
       expectedText = TestUtils.resolveWorkspacePathUnchecked(file).readText()
     }
-    val editor = getUserData(STATE_READ_EDITOR_KEY)
-    val actualText = editor!!.document.text
-    assertThat(actualText).isEqualTo(expectedText)
+    val editor = getUserData(STATE_READ_EDITOR_KEY)!!
+    waitForCondition(10.seconds) { editor.document.text == expectedText }
   }
 
   private fun StateInspectionPanel.buttonWithIcon(icon: Icon): ActionButton =
