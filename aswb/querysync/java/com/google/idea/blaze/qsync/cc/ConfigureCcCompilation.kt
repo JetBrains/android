@@ -108,7 +108,7 @@ class ConfigureCcCompilation(private val artifactState: State, private val updat
       ?: return
     val toolchain =
       Preconditions.checkNotNull(
-        artifactState.ccToolchainMap().get(ccInfo.toolchainId()), ccInfo.toolchainId());
+        artifactState.ccToolchainMap().get(ccInfo.toolchainId()), ccInfo.toolchainId())!!
 
     val targetFlags =
       buildList {
