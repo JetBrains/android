@@ -327,9 +327,7 @@ private fun SyncContributorAndroidProjectDependenciesContext.populateDependencie
   val dependencyModelFactory = GradleAndroidDependencyModel.createFactory(androidProjectContext.project, libraryResolver = ideLibraryModelResolver)
 
   allKnownModuleEntities.forEach { entity ->
-    val gradleAndroidModelData = androidProjectContext.gradleAndroidModelDataFactory(entity.name).copy(
-      variants = listOf(ideVariant) // Just pass the resolved variant and discard the rest.
-    )
+    val gradleAndroidModelData = androidProjectContext.gradleAndroidModelDataFactory(entity.name, listOf(ideVariant)) // Just pass the resolved variant and discard the rest.
     updatedEntities.modifyModuleEntity(entity) {
       gradleAndroidModel = GradleAndroidModelEntity(
         entitySource = this@modifyModuleEntity.entitySource,

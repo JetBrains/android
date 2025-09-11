@@ -64,6 +64,10 @@ private val PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES_FOR_NON_ANDROID_MODULES =
     // These are still present in the KMP holder modules, and not set up by phased sync, so we need to filter them out here
     "/FACET (Android)",
     "/EXCLUDE_FOLDER", // TODO(b/384022658)
+
+    // Kapt model is not handled correctly for non-Android
+    "</>kaptKotlin</>",
+    "</>kapt</>",
   )
 
 fun getProjectSpecificIssues(testProject: TestProject) = when(testProject.template) {
@@ -82,8 +86,6 @@ fun getProjectSpecificIssues(testProject: TestProject) = when(testProject.templa
     // TODO(b/384022658): Info from KaptGradleModel is missing for phased sync entities for now
     TestProject.KOTLIN_KAPT,
     TestProject.NEW_SYNC_KOTLIN_TEST -> setOf(
-      "</>kaptKotlin</>",
-      "</>kapt</>",
       // TODO(b/384022658): Generated class libraries aren't supported
       "LIBRARY (Gradle: kaptGeneratedClasses [=])",
       // TODO(b/384022658): Module level libraries are set up differently in some cases
@@ -140,11 +142,6 @@ private fun getProjectSpecificIdeModelIssues(testProject: TestProject) = when(te
   TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML -> setOf(
     // TODO(b/384022658): Manifest index affects these values so they fail to populate correctly in some cases
     "/CurrentVariantReportedVersions"
-  )
-  // TODO(b/384022658): Info from KaptGradleModel is missing for phased sync entities for now
-  TestProject.KOTLIN_KAPT,
-  TestProject.NEW_SYNC_KOTLIN_TEST -> setOf(
-    "generated/source/kaptKotlin",
   )
   // TODO(b/428221750) BytecodeTransforms is missing for phased sync entities
   TestProject.BASIC_WITH_EMPTY_SETTINGS_FILE -> setOf(
