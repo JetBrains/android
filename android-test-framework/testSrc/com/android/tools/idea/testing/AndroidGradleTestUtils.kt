@@ -342,29 +342,29 @@ data class AndroidLibraryDependency(val library: IdeAndroidLibraryImpl) {
     fun fromAddress(address: String): AndroidLibraryDependency {
       val folder = File("libraryFolder").resolve(address.replace(':', '-'))
       return AndroidLibraryDependency(
-        IdeAndroidLibraryImpl.create(
+        IdeAndroidLibraryImpl(
           address,
           Component.parse(address),
           "Gradle: $address",
           folder = folder,
-          manifest = folder.resolve("AndroidManifest.xml").path,
-          compileJarFiles = listOf(folder.resolve("file.jar").path),
-          runtimeJarFiles = listOf(folder.resolve("api.jar").path),
-          resFolder = folder.resolve("res").path,
+          manifest = folder.resolve("AndroidManifest.xml"),
+          compileJarFiles = listOf(folder.resolve("file.jar")),
+          runtimeJarFiles = listOf(folder.resolve("api.jar")),
+          resFolder = folder.resolve("res"),
           resStaticLibrary = folder.resolve("res.apk"),
-          assetsFolder = folder.resolve("assets").path,
-          jniFolder = folder.resolve("jni").path,
-          aidlFolder = folder.resolve("aidl").path,
-          renderscriptFolder = folder.resolve("renderscriptFolder").path,
-          proguardRules = folder.resolve("proguardRules").path,
-          lintJar = folder.resolve("lint.jar").path,
-          srcJars = listOf(folder.resolve("src.jar").path, folder.resolve("sample.jar").path),
-          docJar = folder.resolve("doc.jar").path,
-          externalAnnotations = folder.resolve("externalAnnotations").path,
-          publicResources = folder.resolve("publicResources").path,
+          assetsFolder = folder.resolve("assets"),
+          jniFolder = folder.resolve("jni"),
+          aidlFolder = folder.resolve("aidl"),
+          renderscriptFolder = folder.resolve("renderscriptFolder"),
+          proguardRules = folder.resolve("proguardRules"),
+          lintJar = folder.resolve("lint.jar"),
+          srcJars = listOf(folder.resolve("src.jar"), folder.resolve("sample.jar")),
+          docJar = folder.resolve("doc.jar"),
+          externalAnnotations = folder.resolve("externalAnnotations"),
+          publicResources = folder.resolve("publicResources"),
           artifact = folder.resolve("artifactFile"),
-          symbolFile = folder.resolve("symbolFile").path
-        ) { this }
+          symbolFile = folder.resolve("symbolFile")
+        )
       )
     }
   }
