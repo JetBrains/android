@@ -2,7 +2,6 @@
 
 package org.jetbrains.android.exportSignedPackage;
 
-import static com.android.tools.idea.io.IdeFileUtils.getDesktopDirectoryVirtualFile;
 import static icons.StudioIcons.Common.WARNING_INLINE;
 
 import com.android.annotations.concurrency.Slow;
@@ -20,15 +19,11 @@ import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.CollectionComboBoxModel;
-import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
@@ -36,13 +31,11 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ModalityUiUtil;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Insets;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
@@ -51,7 +44,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -266,9 +258,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     myContentPanel.add(myGradlePanel, new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                           GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myGradleWarning = new JBLabel();
-    loadLabelText(myGradleWarning,
-                             getMessageFromBundle("messages/AndroidBundle", "android.export.package.bundle.gradle.error"));
+    myGradleWarning = new JBLabel("");
     myGradlePanel.add(myGradleWarning, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                            GridConstraints.SIZEPOLICY_FIXED, null, null, null, 2, false));
@@ -277,48 +267,6 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     myKeyStorePasswordLabel.setLabelFor(myKeyStorePasswordField);
     myKeyAliasLabel.setLabelFor(myKeyAliasField);
     myKeyPasswordLabel.setLabelFor(myKeyPasswordField);
-  }
-
-  private static Method cachedGetBundleMethod = null;
-
-  private String getMessageFromBundle(String path, String key) {
-    ResourceBundle bundle;
-    try {
-      Class<?> thisClass = this.getClass();
-      if (cachedGetBundleMethod == null) {
-        Class<?> dynamicBundleClass = thisClass.getClassLoader().loadClass("com.intellij.DynamicBundle");
-        cachedGetBundleMethod = dynamicBundleClass.getMethod("getBundle", String.class, Class.class);
-      }
-      bundle = (ResourceBundle)cachedGetBundleMethod.invoke(null, path, thisClass);
-    }
-    catch (Exception e) {
-      bundle = ResourceBundle.getBundle(path);
-    }
-    return bundle.getString(key);
-  }
-
-  private void loadLabelText(JLabel component, String text) {
-    StringBuffer result = new StringBuffer();
-    boolean haveMnemonic = false;
-    char mnemonic = '\0';
-    int mnemonicIndex = -1;
-    for (int i = 0; i < text.length(); i++) {
-      if (text.charAt(i) == '&') {
-        i++;
-        if (i == text.length()) break;
-        if (!haveMnemonic && text.charAt(i) != '&') {
-          haveMnemonic = true;
-          mnemonic = text.charAt(i);
-          mnemonicIndex = result.length();
-        }
-      }
-      result.append(text.charAt(i));
-    }
-    component.setText(result.toString());
-    if (haveMnemonic) {
-      component.setDisplayedMnemonic(mnemonic);
-      component.setDisplayedMnemonicIndex(mnemonicIndex);
-    }
   }
 
   @NotNull
@@ -351,6 +299,12 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     myKeyStorePathLabel.setVisible(!showError);
 
     // gradle error fields
+    if (showError) {
+      String name = mySelection == null ? "(unnamed selection)" : mySelection.getModule().getName();
+      myGradleWarning.setText(AndroidBundle.message("android.export.package.bundle.gradle.error", name));
+    } else {
+      myGradleWarning.setText("");
+    }
     myGradlePanel.setVisible(showError);
   }
 
@@ -551,7 +505,8 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   @Override
   protected void commitForNext() throws CommitStepException {
     if (!isGradleValid(myWizard.getTargetType())) {
-      throw new CommitStepException(AndroidBundle.message("android.export.package.bundle.gradle.error"));
+      String name = mySelection == null ? "(unnamed selection)" : mySelection.getModule().getName();
+      throw new CommitStepException(AndroidBundle.message("android.export.package.bundle.gradle.error", name));
     }
 
     String keyStoreLocation = myKeyStorePathField.getText().trim();
