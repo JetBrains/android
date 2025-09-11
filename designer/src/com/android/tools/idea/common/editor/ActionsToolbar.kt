@@ -42,6 +42,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
+import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -74,6 +75,12 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
 
   private var eastToolbar: ActionToolbar? = null
   private val dynamicGroup = DefaultActionGroup()
+
+  /**
+   * Last selection used to produce the current toolbar actions in [updateActions]. If the actions
+   * have not changed, [updateActions] will return early without doing any work.
+   */
+  private var lastSelection = WeakReference<List<NlComponent>>(null)
   private val configuration: Configuration?
   private var layoutType: DesignerEditorFileType? = null
   private var toolbarActionGroups: ToolbarActionGroups? = null
@@ -215,15 +222,21 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
   }
 
   private fun updateActions(newSelection: List<NlComponent>) {
-    if (surface.focusedSceneView != null) {
-      // TODO: Perform caching
-      val selectionToolbar = surface.layoutType.getSelectionContextToolbar(surface, newSelection)
-      if (selectionToolbar.childrenCount > 0) {
+    if (lastSelection.get() != newSelection) {
+      lastSelection = WeakReference(newSelection)
+      if (surface.focusedSceneView != null) {
+        // The selection has changed, so we need to update the context-specific actions.
+        val selectionToolbar = surface.layoutType.getSelectionContextToolbar(surface, newSelection)
+        // copyFromGroup will clear the group if selectionToolbar is empty, which is the correct
+        // behavior when changing to a selection with no contextual actions.
         dynamicGroup.copyFromGroup(selectionToolbar)
+        updateBottomActionBarBorder()
+        centerToolbar?.reset()
       }
-      updateBottomActionBarBorder()
-      centerToolbar?.reset()
     }
+
+    // We always want to refresh the state of the actions, even if the selection is the same.
+    // For example, a property of the selected view may have changed, affecting an action's state.
     refreshToolbarState()
   }
 
