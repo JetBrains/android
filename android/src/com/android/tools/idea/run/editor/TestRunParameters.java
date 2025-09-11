@@ -28,7 +28,6 @@ import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.Token;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
@@ -51,6 +50,7 @@ import com.intellij.openapi.ui.ComponentWithBrowseButton;
 import com.intellij.openapi.ui.LabeledComponent;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.util.text.TextWithMnemonic;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiPackage;
@@ -66,13 +66,10 @@ import com.intellij.util.containers.ContainerUtil;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Insets;
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
-import java.util.ResourceBundle;
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -290,28 +287,23 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     myContentPanel = new JPanel();
     myContentPanel.setLayout(new GridLayoutManager(7, 6, new Insets(0, 0, 0, 0), -1, -1));
     myAllInPackageTestButton = new JRadioButton();
-    myAllInPackageTestButton.setActionCommand(
-      getMessageFromBundle("messages/ExecutionBundle", "jnit.configuration.all.tests.in.package.radio"));
-    loadButtonText(myAllInPackageTestButton,
-                              getMessageFromBundle("messages/AndroidBundle", "android.run.configuration.all.in.package.radio"));
+    myAllInPackageTestButton.setActionCommand(ExecutionBundle.message("jnit.configuration.all.tests.in.package.radio"));
+    loadButtonText(myAllInPackageTestButton, AndroidBundle.message("android.run.configuration.all.in.package.radio"));
     myContentPanel.add(myAllInPackageTestButton, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                                      GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
                                                                      null, null, null, 0, false));
     myClassTestButton = new JRadioButton();
-    myClassTestButton.setActionCommand(getMessageFromBundle("messages/ExecutionBundle", "junit.configuration.test.class.radio"));
+    myClassTestButton.setActionCommand(ExecutionBundle.message("junit.configuration.test.class.radio"));
     myClassTestButton.setEnabled(true);
     myClassTestButton.setSelected(false);
-    loadButtonText(myClassTestButton,
-                              getMessageFromBundle("messages/AndroidBundle", "android.run.configuration.class.radio"));
+    loadButtonText(myClassTestButton, AndroidBundle.message("android.run.configuration.class.radio"));
     myContentPanel.add(myClassTestButton, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                               GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
                                                               null, null, 0, false));
     myMethodTestButton = new JRadioButton();
-    myMethodTestButton.setActionCommand(
-      getMessageFromBundle("messages/ExecutionBundle", "junit.configuration.test.method.radio"));
+    myMethodTestButton.setActionCommand(ExecutionBundle.message("junit.configuration.test.method.radio"));
     myMethodTestButton.setSelected(false);
-    loadButtonText(myMethodTestButton,
-                              getMessageFromBundle("messages/AndroidBundle", "android.run.configuration.method.radio"));
+    loadButtonText(myMethodTestButton, AndroidBundle.message("android.run.configuration.method.radio"));
     myContentPanel.add(myMethodTestButton, new GridConstraints(0, 4, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                                GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
                                                                null, null, 0, false));
@@ -319,8 +311,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     jBLabel1.setHorizontalAlignment(2);
     jBLabel1.setHorizontalTextPosition(2);
     jBLabel1.setIconTextGap(4);
-    loadLabelText(jBLabel1,
-                             getMessageFromBundle("messages/ExecutionBundle", "junit.configuration.configure.junit.test.label"));
+    loadLabelText(jBLabel1, ExecutionBundle.message("junit.configuration.configure.junit.test.label"));
     myContentPanel.add(jBLabel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                      GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
                                                      0, false));
@@ -329,15 +320,14 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, 1, null,
                                                     null, null, 0, false));
     myAllInModuleTestButton = new JRadioButton();
-    loadButtonText(myAllInModuleTestButton,
-                              getMessageFromBundle("messages/AndroidBundle", "android.run.configuration.all.in.module.radio"));
+    loadButtonText(myAllInModuleTestButton, AndroidBundle.message("android.run.configuration.all.in.module.radio"));
     myContentPanel.add(myAllInModuleTestButton, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
                                                                     null, null, null, 0, false));
     myTestPackageComponent = new LabeledComponent();
     myTestPackageComponent.setComponentClass("javax.swing.JPanel");
     myTestPackageComponent.setLabelLocation("West");
-    myTestPackageComponent.setText(getMessageFromBundle("messages/AndroidBundle", "android.run.configuration.package.label"));
+    myTestPackageComponent.setText(AndroidBundle.message("android.run.configuration.package.label"));
     myContentPanel.add(myTestPackageComponent,
                        new GridConstraints(1, 0, 1, 6, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
@@ -345,7 +335,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     myTestClassComponent = new LabeledComponent();
     myTestClassComponent.setComponentClass("javax.swing.JPanel");
     myTestClassComponent.setLabelLocation("West");
-    myTestClassComponent.setText(getMessageFromBundle("messages/AndroidBundle", "android.run.configuration.class.label"));
+    myTestClassComponent.setText(AndroidBundle.message("android.run.configuration.class.label"));
     myContentPanel.add(myTestClassComponent, new GridConstraints(2, 0, 1, 6, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK |
                                                                  GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
@@ -353,7 +343,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     myTestMethodComponent = new LabeledComponent();
     myTestMethodComponent.setComponentClass("javax.swing.JPanel");
     myTestMethodComponent.setLabelLocation("West");
-    myTestMethodComponent.setText(getMessageFromBundle("messages/AndroidBundle", "android.run.configuration.method.label"));
+    myTestMethodComponent.setText(AndroidBundle.message("android.run.configuration.method.label"));
     myContentPanel.add(myTestMethodComponent,
                        new GridConstraints(3, 0, 1, 6, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
@@ -370,8 +360,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     myInstrumentationClassComponent.setComponentClass("javax.swing.JPanel");
     myInstrumentationClassComponent.setEnabled(true);
     myInstrumentationClassComponent.setLabelLocation("West");
-    myInstrumentationClassComponent.setText(
-      getMessageFromBundle("messages/AndroidBundle", "android.test.run.configuration.instrumentation.label"));
+    myInstrumentationClassComponent.setText(AndroidBundle.message("android.test.run.configuration.instrumentation.label"));
     myContentPanel.add(myInstrumentationClassComponent,
                        new GridConstraints(5, 0, 1, 6, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
@@ -392,69 +381,21 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     buttonGroup.add(myMethodTestButton);
   }
 
-  private static Method cachedGetBundleMethod = null;
-
-  private String getMessageFromBundle(String path, String key) {
-    ResourceBundle bundle;
-    try {
-      Class<?> thisClass = this.getClass();
-      if (cachedGetBundleMethod == null) {
-        Class<?> dynamicBundleClass = thisClass.getClassLoader().loadClass("com.intellij.DynamicBundle");
-        cachedGetBundleMethod = dynamicBundleClass.getMethod("getBundle", String.class, Class.class);
-      }
-      bundle = (ResourceBundle)cachedGetBundleMethod.invoke(null, path, thisClass);
-    }
-    catch (Exception e) {
-      bundle = ResourceBundle.getBundle(path);
-    }
-    return bundle.getString(key);
-  }
-
   private void loadLabelText(JLabel component, String text) {
-    StringBuffer result = new StringBuffer();
-    boolean haveMnemonic = false;
-    char mnemonic = '\0';
-    int mnemonicIndex = -1;
-    for (int i = 0; i < text.length(); i++) {
-      if (text.charAt(i) == '&') {
-        i++;
-        if (i == text.length()) break;
-        if (!haveMnemonic && text.charAt(i) != '&') {
-          haveMnemonic = true;
-          mnemonic = text.charAt(i);
-          mnemonicIndex = result.length();
-        }
-      }
-      result.append(text.charAt(i));
-    }
-    component.setText(result.toString());
-    if (haveMnemonic) {
-      component.setDisplayedMnemonic(mnemonic);
-      component.setDisplayedMnemonicIndex(mnemonicIndex);
+    TextWithMnemonic textWithMnemonic = TextWithMnemonic.parse(text);
+    component.setText(textWithMnemonic.getText());
+    if (textWithMnemonic.hasMnemonic()) {
+      component.setDisplayedMnemonic(textWithMnemonic.getMnemonicCode());
+      component.setDisplayedMnemonicIndex(textWithMnemonic.getMnemonicIndex());
     }
   }
 
   private void loadButtonText(AbstractButton component, String text) {
-    StringBuffer result = new StringBuffer();
-    boolean haveMnemonic = false;
-    char mnemonic = '\0';
-    int mnemonicIndex = -1;
-    for (int i = 0; i < text.length(); i++) {
-      if (text.charAt(i) == '&') {
-        i++;
-        if (i == text.length()) break;
-        if (!haveMnemonic && text.charAt(i) != '&') {
-          haveMnemonic = true;
-          mnemonic = text.charAt(i);
-          mnemonicIndex = result.length();
-        }
-      }
-      result.append(text.charAt(i));
-    }
-    component.setText(result.toString());
-    if (haveMnemonic) {
-      component.setMnemonic(mnemonic);
-      component.setDisplayedMnemonicIndex(mnemonicIndex);
+    TextWithMnemonic textWithMnemonic = TextWithMnemonic.parse(text);
+    component.setText(textWithMnemonic.getText());
+    if (textWithMnemonic.hasMnemonic()) {
+      component.setMnemonic(textWithMnemonic.getMnemonicCode());
+      component.setDisplayedMnemonicIndex(textWithMnemonic.getMnemonicIndex());
     }
   }
 

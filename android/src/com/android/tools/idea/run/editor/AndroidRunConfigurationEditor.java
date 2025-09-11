@@ -31,6 +31,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.text.TextWithMnemonic;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.PanelWithAnchor;
 import com.intellij.ui.components.JBLabel;
@@ -44,9 +45,7 @@ import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.lang.reflect.Method;
 import java.util.List;
-import java.util.ResourceBundle;
 import java.util.function.Function;
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
@@ -55,6 +54,7 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -251,7 +251,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
                                                   null, null, 0, false));
     final JPanel panel1 = new JPanel();
     panel1.setLayout(new GridLayoutManager(6, 3, new Insets(0, 0, 0, 0), -1, -1));
-    myTabbedPane.addTab(getMessageFromBundle("messages/AndroidBundle", "android.run.configuration.general.tab.title"), panel1);
+    myTabbedPane.addTab(AndroidBundle.message("android.run.configuration.general.tab.title"), panel1);
     myModuleJBLabel = new JBLabel();
     myModuleJBLabel.setText("Module:");
     myModuleJBLabel.setDisplayedMnemonic('M');
@@ -278,7 +278,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
                                             GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
     final JPanel panel2 = new JPanel();
     panel2.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
-    myTabbedPane.addTab(getMessageFromBundle("messages/AndroidBundle", "android.run.configuration.misc.tab.title"), panel2);
+    myTabbedPane.addTab(AndroidBundle.message("android.run.configuration.misc.tab.title"), panel2);
     final Spacer spacer4 = new Spacer();
     panel2.add(spacer4, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
                                             GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
@@ -295,8 +295,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     panel3.add(spacer5, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                             GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
     myClearLogCheckBox = new JCheckBox();
-    loadButtonText(myClearLogCheckBox, getMessageFromBundle("messages/AndroidBundle",
-                                                                                  "android.run.configuration.logcat.skip.content.label"));
+    loadButtonText(myClearLogCheckBox, AndroidBundle.message("android.run.configuration.logcat.skip.content.label"));
     panel3.add(myClearLogCheckBox, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                        GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
@@ -310,45 +309,12 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myModuleJBLabel.setLabelFor(myModulesComboBox);
   }
 
-  private static Method cachedGetBundleMethod = null;
-
-  private String getMessageFromBundle(String path, String key) {
-    ResourceBundle bundle;
-    try {
-      Class<?> thisClass = this.getClass();
-      if (cachedGetBundleMethod == null) {
-        Class<?> dynamicBundleClass = thisClass.getClassLoader().loadClass("com.intellij.DynamicBundle");
-        cachedGetBundleMethod = dynamicBundleClass.getMethod("getBundle", String.class, Class.class);
-      }
-      bundle = (ResourceBundle)cachedGetBundleMethod.invoke(null, path, thisClass);
-    }
-    catch (Exception e) {
-      bundle = ResourceBundle.getBundle(path);
-    }
-    return bundle.getString(key);
-  }
-
   private void loadButtonText(AbstractButton component, String text) {
-    StringBuffer result = new StringBuffer();
-    boolean haveMnemonic = false;
-    char mnemonic = '\0';
-    int mnemonicIndex = -1;
-    for (int i = 0; i < text.length(); i++) {
-      if (text.charAt(i) == '&') {
-        i++;
-        if (i == text.length()) break;
-        if (!haveMnemonic && text.charAt(i) != '&') {
-          haveMnemonic = true;
-          mnemonic = text.charAt(i);
-          mnemonicIndex = result.length();
-        }
-      }
-      result.append(text.charAt(i));
-    }
-    component.setText(result.toString());
-    if (haveMnemonic) {
-      component.setMnemonic(mnemonic);
-      component.setDisplayedMnemonicIndex(mnemonicIndex);
+    TextWithMnemonic textWithMnemonic = TextWithMnemonic.parse(text);
+    component.setText(text);
+    if (textWithMnemonic.hasMnemonic()) {
+      component.setMnemonic(textWithMnemonic.getMnemonicIndex());
+      component.setDisplayedMnemonicIndex(textWithMnemonic.getMnemonicIndex());
     }
   }
 }
