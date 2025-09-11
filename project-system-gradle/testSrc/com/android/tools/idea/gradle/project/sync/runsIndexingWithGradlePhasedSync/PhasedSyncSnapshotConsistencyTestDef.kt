@@ -33,7 +33,6 @@ private val PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES = setOf(
   "/FACET (Kotlin)",
 
   // Individual issues
-  "/EXCLUDE_FOLDER", // TODO(b/384022658)
   "/Classes" // TODO(b/384022658)
 )
 
@@ -64,6 +63,7 @@ private val PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES_FOR_NON_ANDROID_MODULES =
     "/FACET (Android-Gradle)",
     // These are still present in the KMP holder modules, and not set up by phased sync, so we need to filter them out here
     "/FACET (Android)",
+    "/EXCLUDE_FOLDER", // TODO(b/384022658)
   )
 
 fun getProjectSpecificIssues(testProject: TestProject) = when(testProject.template) {

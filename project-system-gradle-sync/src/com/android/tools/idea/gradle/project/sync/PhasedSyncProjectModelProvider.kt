@@ -36,6 +36,8 @@ import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
+import org.gradle.tooling.model.idea.IdeaModule
+import org.gradle.tooling.model.idea.IdeaProject
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
 
@@ -108,37 +110,24 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
         }
       }
     }).filterNotNull().forEach { (gradleProject, data) ->
-        modelConsumer.consumeProjectModel(gradleProject, gradleProject, BasicGradleProject::class.java)
-        modelConsumer.consumeProjectModel(gradleProject, data.versions, Versions::class.java)
-        modelConsumer.consumeProjectModel(gradleProject, data.basicAndroidProject, BasicAndroidProject::class.java)
-        modelConsumer.consumeProjectModel(gradleProject, data.androidProject, AndroidProject::class.java)
-        modelConsumer.consumeProjectModel(gradleProject, data.androidDsl, AndroidDsl::class.java)
-        modelConsumer.consumeProjectModel(gradleProject, data.declaredDependencies, DeclaredDependencies::class.java)
-        modelConsumer.consumeProjectModel(gradleProject, data.gradlePluginModel, GradlePluginModel::class.java)
-        modelConsumer.consumeProjectModel(gradleProject, data.ideAndroidProject, IdeAndroidProject::class.java)
-        cachedModels.data[gradleProject] = CachedAndroidProjectData(
-          data.selectedVariantName,
-          data.ideAndroidProject.projectType,
-          data.shouldSkipRuntimeClassPathForLibraries,
-          data.declaredDependencies.allOutgoingProjectDependencies
-        )
-      }
-    buildModels.map { it.rootProject }.distinct().forEach { projectModel ->
-      runCatching {
-        controller.findModel(projectModel, BuildMap::class.java)?.let {
-          modelConsumer.consumeProjectModel(projectModel, it, BuildMap::class.java)
-        }
-        val basicModelsMap = projectModel.getAllChildren { it.children.toList() }.associateBy { it.path }
-
-        controller.findModel(projectModel, GradleProject::class.java)?.let {
-          it.getAllChildren { it.children.toList() }.forEach {
-            modelConsumer.consumeProjectModel(basicModelsMap[it.path]!!, it, GradleProject::class.java)
-          }
-        }
-      }.onFailure {
-        exceptionsPerProject += projectModel to it
-      }
+      modelConsumer.consumeProjectModel(gradleProject, gradleProject, BasicGradleProject::class.java)
+      modelConsumer.consumeProjectModel(gradleProject, data.versions, Versions::class.java)
+      modelConsumer.consumeProjectModel(gradleProject, data.basicAndroidProject, BasicAndroidProject::class.java)
+      modelConsumer.consumeProjectModel(gradleProject, data.androidProject, AndroidProject::class.java)
+      modelConsumer.consumeProjectModel(gradleProject, data.androidDsl, AndroidDsl::class.java)
+      modelConsumer.consumeProjectModel(gradleProject, data.declaredDependencies, DeclaredDependencies::class.java)
+      modelConsumer.consumeProjectModel(gradleProject, data.gradlePluginModel, GradlePluginModel::class.java)
+      modelConsumer.consumeProjectModel(gradleProject, data.ideAndroidProject, IdeAndroidProject::class.java)
+      cachedModels.data[gradleProject] = CachedAndroidProjectData(
+        data.selectedVariantName,
+        data.ideAndroidProject.projectType,
+        data.shouldSkipRuntimeClassPathForLibraries,
+        data.declaredDependencies.allOutgoingProjectDependencies
+      )
     }
+    populateGradleProjectAndBuildMapModel(controller, buildModels, modelConsumer, exceptionsPerProject)
+    populateIdeaModuleModel(controller, buildModels, modelConsumer)
+
     exceptionsPerProject
       .groupBy ({ it.first }) { it.second }
       .filter { (_, exceptions) -> exceptions.isNotEmpty()}
@@ -146,9 +135,52 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
         // TODO: Explicitly fetch sync issues as well
         val issuesAndExceptions = IdeAndroidSyncIssuesAndExceptions(syncIssues = emptyList(), exceptions = exceptions)
         modelConsumer.consumeProjectModel(gradleProject, issuesAndExceptions, IdeAndroidSyncIssuesAndExceptions::class.java)
+      }
+  }
+}
+
+private fun populateGradleProjectAndBuildMapModel(
+  controller: BuildController,
+  buildModels: MutableCollection<out GradleBuild>,
+  modelConsumer: ProjectImportModelProvider.GradleModelConsumer,
+  exceptionsPerProject: MutableList<Pair<BasicGradleProject, Throwable>>
+) {
+  buildModels.map { it.rootProject }.distinct().forEach { projectModel ->
+    runCatching {
+      controller.findModel(projectModel, BuildMap::class.java)?.let {
+        modelConsumer.consumeProjectModel(projectModel, it, BuildMap::class.java)
+      }
+      val basicModelsMap = projectModel.getAllChildren { it.children.toList() }.associateBy { it.path }
+
+      controller.findModel(projectModel, GradleProject::class.java)?.let {
+        it.getAllChildren { it.children.toList() }.forEach {
+          modelConsumer.consumeProjectModel(basicModelsMap[it.path]!!, it, GradleProject::class.java)
+        }
+      }
+    }.onFailure {
+      exceptionsPerProject += projectModel to it
     }
   }
 }
+
+private fun populateIdeaModuleModel(
+  controller: BuildController,
+  buildModels: MutableCollection<out GradleBuild>,
+  modelConsumer: ProjectImportModelProvider.GradleModelConsumer
+) {
+  buildModels.mapNotNull { buildModel ->
+    val modulesByPathMap = controller.findModel(buildModel, IdeaProject::class.java)?.let {
+      it.getAllChildren().associateBy { it.gradleProject.path }
+    } ?: return@mapNotNull null
+
+    buildModel.getAllChildren().forEach { gradleProject ->
+      modulesByPathMap[gradleProject.path]?.let {
+        modelConsumer.consumeProjectModel(gradleProject, it, IdeaModule::class.java)
+      }
+    }
+  }
+}
+
 
 
 private val LOG = logger<PhasedSyncProjectModelProvider>()
@@ -187,8 +219,11 @@ private data class AndroidProjectData(
   val shouldSkipRuntimeClassPathForLibraries: Boolean
 )
 
+private fun IdeaProject.getAllChildren() = modules.flatMap { it.getAllChildren { it.children.filterIsInstance<IdeaModule>().toList() }}
 
-private fun <T> T.getAllChildren(childrenFunction: (T) -> List<T>): List<T> {
+private fun GradleBuild.getAllChildren() = rootProject.getAllChildren { it.children.toList() }
+
+private fun <T> T.getAllChildren(childrenFunction: (T) -> List<out T>): List<T> {
   val result = mutableListOf<T>(this)
   val stack = ArrayDeque<T>(result)
   while(stack.isNotEmpty()) {

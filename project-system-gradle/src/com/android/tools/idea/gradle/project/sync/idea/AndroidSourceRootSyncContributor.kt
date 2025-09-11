@@ -93,6 +93,7 @@ import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_SOURCE_ROOT_E
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_TEST_RESOURCE_ROOT_ENTITY_TYPE_ID
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_TEST_ROOT_ENTITY_TYPE_ID
 import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.idea.IdeaModule
 import org.jetbrains.android.sdk.AndroidSdkType
 import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.jps.model.java.JavaResourceRootType
@@ -171,6 +172,7 @@ internal class SyncContributorAndroidProjectContext(
   val androidDsl = context.getProjectModel(projectModel, AndroidDsl::class.java)!!
   val gradlePluginModel = context.getProjectModel(projectModel, GradlePluginModel::class.java)!!
   val gradleProject = context.getProjectModel(projectModel, GradleProject::class.java)!!
+  val ideaModule =  context.getProjectModel(projectModel, IdeaModule::class.java)!!
 
   // Need to use Impl version because GradleAndroidModelData expects an immutable implementation.
   val ideAndroidProject = context.getProjectModel(projectModel, IdeAndroidProject::class.java)!! as IdeAndroidProjectImpl
@@ -374,6 +376,7 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
           createOrUpdateAndroidGradleFacet(updatedEntities, this)
           createOrUpdateAndroidFacet(updatedEntities, this)
           linkModuleGroup(this, sourceSetModuleEntitiesByArtifact)
+          setExcludeDirectoriesForHolderModule(updatedEntities)
           // There seems to be a bug in workspace model implementation that requires doing this to update list of changed props
           this.facets = facets
         }
@@ -420,6 +423,18 @@ private fun SyncContributorAndroidProjectContext.setSdkForHolderModule(holderMod
   // Remove the existing SDK and replace it with the Android SDK (if it exists, otherwise just inherit the SDK)
   holderModuleEntity.dependencies.removeAll { it is InheritedSdkDependency || it is SdkDependency }
   holderModuleEntity.dependencies += sdk ?: InheritedSdkDependency
+}
+
+private fun SyncContributorAndroidProjectContext.setExcludeDirectoriesForHolderModule(storage: MutableEntityStorage) {
+  // Not using content root index in this case because it specifically avoids settings the project root as a root, but we want that
+  val typeToDirsMap = mapOf(
+    ExternalSystemSourceType.EXCLUDED to ideaModule.contentRoots.flatMap { it.excludeDirectories }.toSet()
+  )
+  val contentRootUrl = typeToDirsMap.values.flatten().reduce { acc, file -> findCommonAncestor(acc, file) }
+
+  storage.modifyModuleEntity(holderModuleEntity) {
+    contentRoots = listOf(createContentRootEntity(name, entitySource, contentRootUrl, typeToDirsMap))
+  }
 }
 
 // helpers
