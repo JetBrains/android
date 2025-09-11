@@ -153,6 +153,8 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
     openTabs[tabId] = tab
   }
 
+  override fun getTabNames() = openTabs.mapTo(mutableSetOf()) { it.value.text }
+
   override fun focusTab(tabId: TabId) {
     tabs.select(openTabs[tabId]!!, true)
   }

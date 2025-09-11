@@ -86,7 +86,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancelAndJoin
-import org.jetbrains.concurrency.any
 import org.mockito.InOrder
 import org.mockito.Mockito
 import org.mockito.Mockito.inOrder
@@ -263,7 +262,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     verify(databaseInspectorView)
       .openTab(
         TabId.AdHocQueryTab(1),
-        "New Query [1]",
+        "New Query",
         StudioIcons.DatabaseInspector.TABLE,
         viewsFactory.sqliteEvaluatorView.component,
       )
@@ -355,7 +354,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     verify(databaseInspectorView)
       .openTab(
         TabId.AdHocQueryTab(1),
-        "New Query [1]",
+        "New Query",
         StudioIcons.DatabaseInspector.TABLE,
         viewsFactory.sqliteEvaluatorView.component,
       )
@@ -1992,6 +1991,28 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       // Assert
       verifyNoMoreInteractions(offlineModeManager)
     }
+
+  fun testTabNames() {
+    val listener = databaseInspectorView.viewListeners.single()
+    listener.openSqliteEvaluatorTabActionInvoked()
+    listener.openSqliteEvaluatorTabActionInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    assertThat(databaseInspectorView.getTabNames()).containsExactly("New Query", "New Query [2]")
+  }
+
+  fun testTabNames_reusesIndices() {
+    val listener = databaseInspectorView.viewListeners.single()
+    listener.openSqliteEvaluatorTabActionInvoked()
+    listener.openSqliteEvaluatorTabActionInvoked()
+    listener.openSqliteEvaluatorTabActionInvoked()
+    listener.closeTabActionInvoked(TabId.AdHocQueryTab(1))
+    listener.closeTabActionInvoked(TabId.AdHocQueryTab(2))
+    listener.openSqliteEvaluatorTabActionInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    assertThat(databaseInspectorView.getTabNames()).containsExactly("New Query [3]", "New Query")
+  }
 
   private fun runWithState(offlineModeEnabled: Boolean, block: () -> Unit) {
     val originalState = DatabaseInspectorSettings.getInstance().isOfflineModeEnabled

@@ -72,6 +72,7 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.text.UniqueNameGenerator
 import icons.StudioIcons
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
@@ -623,12 +624,12 @@ class DatabaseInspectorControllerImpl(
         viewFactory.createTableView(),
       )
 
-    view.openTab(
-      tabId,
-      "New Query [$evaluatorTabCount]",
-      StudioIcons.DatabaseInspector.TABLE,
-      sqliteEvaluatorView.component,
-    )
+    val tabNames = view.getTabNames()
+    val name =
+      UniqueNameGenerator.generateUniqueName("New Query", "", "", " [", "]") {
+        !tabNames.contains(it)
+      }
+    view.openTab(tabId, name, StudioIcons.DatabaseInspector.TABLE, sqliteEvaluatorView.component)
 
     val sqliteEvaluatorController =
       SqliteEvaluatorController(

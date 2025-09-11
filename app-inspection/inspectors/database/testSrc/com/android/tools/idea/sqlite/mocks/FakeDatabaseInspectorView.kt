@@ -21,7 +21,6 @@ import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView.Listener
 import com.android.tools.idea.sqlite.ui.mainView.SchemaDiffOperation
 import com.android.tools.idea.sqlite.ui.mainView.ViewDatabase
-import java.util.ArrayList
 import javax.swing.Icon
 import javax.swing.JComponent
 import org.mockito.Mockito.mock
@@ -29,6 +28,7 @@ import org.mockito.Mockito.mock
 open class FakeDatabaseInspectorView : DatabaseInspectorView {
   val viewListeners = ArrayList<Listener>()
   var lastDisplayedResultSetTabId: TabId? = null
+  private val tabs = mutableMapOf<TabId, String>()
 
   val errorInvocations = mutableListOf<Pair<String, Throwable?>>()
 
@@ -51,13 +51,18 @@ open class FakeDatabaseInspectorView : DatabaseInspectorView {
 
   override fun openTab(tabId: TabId, tabName: String, tabIcon: Icon, component: JComponent) {
     lastDisplayedResultSetTabId = tabId
+    tabs[tabId] = tabName
   }
+
+  override fun getTabNames() = tabs.values.toSet()
 
   override fun reportSyncProgress(message: String) {}
 
   override fun focusTab(tabId: TabId) {}
 
-  override fun closeTab(tabId: TabId) {}
+  override fun closeTab(tabId: TabId) {
+    tabs.remove(tabId)
+  }
 
   override fun updateKeepConnectionOpenButton(keepOpen: Boolean) {}
 
