@@ -34,8 +34,10 @@ internal class AndroidJavaDocExternalFilter(project: Project?) : JavaDocExternal
   public override fun doBuildFromStream(url: String, input: Reader, data: StringBuilder) {
     try {
       // Looking up a method, field or constructor? If so we can use the builtin support.
-      if (ourAnchorSuffix.matcher(url).find()) super.doBuildFromStream(url, input, data)
-      else BufferedReader(input).filterTo(data)
+      if (ourAnchorSuffix.matcher(url).find()) {
+        super.doBuildFromStream(url, input, data)
+        data.fixEmptyReturnsTable()
+      } else BufferedReader(input).filterTo(data)
     } catch (e: Exception) {
       LOG.error(e.message, e, "URL: $url")
     }
@@ -137,4 +139,14 @@ internal class AndroidJavaDocExternalFilter(project: Project?) : JavaDocExternal
       }
     }
   }
+}
+
+internal fun StringBuilder.fixEmptyReturnsTable() {
+  var htmlContent = this.toString()
+  val emptyTdRegex = Regex("<td[^>]*?>\\s*?(<p>\\s*?</p>)?\\s*?</td>", RegexOption.IGNORE_CASE)
+
+  htmlContent = emptyTdRegex.replace(htmlContent, "")
+
+  this.setLength(0)
+  this.append(htmlContent)
 }
