@@ -650,6 +650,10 @@ public class LiveEditProjectMonitor implements Disposable {
         logLiveEditEvent(event);
       }
 
+      // Even though we have UI to properly display the errors, it is important that we log
+      // LiveUpdateException at least ONCE. This is useful for bug reports as well as test flakes
+      // where we have an unexpected update error.
+      LOGGER.warning("Live Edit Update Error %s %s", e.getMessage(), e.getDetails());
       return true;
     }
 
