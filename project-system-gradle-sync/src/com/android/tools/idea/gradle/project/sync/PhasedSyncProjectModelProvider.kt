@@ -38,6 +38,7 @@ import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
+import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
 
@@ -99,6 +100,7 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
               androidDsl,
               controller.findModel(gradleProject, DeclaredDependencies::class.java)!!,
               controller.findModel(gradleProject, GradlePluginModel::class.java)!!,
+              controller.findModel(gradleProject, KaptGradleModel::class.java),
               ideAndroidProject,
               selectedVariantName,
               shouldSkipRuntimeClasspathForLibraries(androidProject.flags, gradlePropertiesModel)
@@ -109,6 +111,7 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
         }
       }
     }).filterNotNull().forEach { (gradleProject, data) ->
+      // Required models
       modelConsumer.consumeProjectModel(gradleProject, gradleProject, BasicGradleProject::class.java)
       modelConsumer.consumeProjectModel(gradleProject, data.versions, Versions::class.java)
       modelConsumer.consumeProjectModel(gradleProject, data.basicAndroidProject, BasicAndroidProject::class.java)
@@ -117,6 +120,9 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
       modelConsumer.consumeProjectModel(gradleProject, data.declaredDependencies, DeclaredDependencies::class.java)
       modelConsumer.consumeProjectModel(gradleProject, data.gradlePluginModel, GradlePluginModel::class.java)
       modelConsumer.consumeProjectModel(gradleProject, data.ideAndroidProject, IdeAndroidProject::class.java)
+
+      // Optional models
+      data.kaptGradleModel?.let { modelConsumer.consumeProjectModel(gradleProject, it, KaptGradleModel::class.java) }
       cachedModels.data[gradleProject] = CachedAndroidProjectData(
         data.selectedVariantName,
         data.ideAndroidProject.projectType,
@@ -213,6 +219,7 @@ private data class AndroidProjectData(
   val androidDsl: AndroidDsl,
   val declaredDependencies: DeclaredDependencies,
   val gradlePluginModel: GradlePluginModel,
+  val kaptGradleModel: KaptGradleModel?,
   val ideAndroidProject: IdeAndroidProject,
   val selectedVariantName: String,
   val shouldSkipRuntimeClassPathForLibraries: Boolean
