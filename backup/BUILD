@@ -67,6 +67,7 @@ iml_module(
     ],
     test_friends = ["//tools/adt/idea/backup:intellij.android.backup"],
     test_srcs = ["testSrc"],
+    test_tags = ["manual"],  # TODO(b/443995043)
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = ["@intellij//:com.intellij.java"],
