@@ -54,14 +54,14 @@ private class ComposeProjectRuleImpl(private val projectRule: AndroidProjectRule
  */
 class ComposeProjectRule(
   private val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()
-) : TestRule {
-  val project: Project
+) : ComposeProjectBasedTestRule {
+  override val project: Project
     get() = projectRule.project
 
   val module
     get() = projectRule.module
 
-  val fixture: CodeInsightTestFixture
+  override val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
 
   private val implRule = ComposeProjectRuleImpl(projectRule)
@@ -72,7 +72,8 @@ class ComposeProjectRule(
   val testRootDisposable
     get() = projectRule.testRootDisposable
 
-  val delegate = RuleChain.outerRule(TestLoggerRule()).around(projectRule).around(implRule)
+  private val delegate: RuleChain =
+    RuleChain.outerRule(TestLoggerRule()).around(projectRule).around(implRule)
 
   override fun apply(base: Statement, description: Description): Statement =
     delegate.apply(base, description)

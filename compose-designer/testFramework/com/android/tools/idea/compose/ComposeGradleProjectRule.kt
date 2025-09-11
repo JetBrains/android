@@ -95,11 +95,11 @@ open class ComposeGradleProjectRule(
         AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT.withTargetSdk(COMPILE_SDK_VERSION)
           .withCompileSdk(COMPILE_SDK_VERSION)
     ),
-) : TestRule {
-  val project: Project
+) : ComposeProjectBasedTestRule {
+  override val project: Project
     get() = projectRule.project
 
-  val fixture: CodeInsightTestFixture
+  override val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
 
   protected open val delegate: RuleChain =
