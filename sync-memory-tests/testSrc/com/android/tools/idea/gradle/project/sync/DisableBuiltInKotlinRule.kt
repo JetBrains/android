@@ -24,3 +24,11 @@ class DisableBuiltInKotlinRule : ExternalResource() {
     }
   }
 }
+
+class DisableNewDslRule : ExternalResource() {
+  override fun before() {
+    mutateGradleProperties {
+      this.properties.setProperty("android.newDsl", false.toString())
+    }
+  }
+}
