@@ -27,14 +27,13 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import java.awt.Insets;
-import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ResourceBundle;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -115,51 +114,9 @@ final class DeviceFileExplorerConfigurable implements SearchableConfigurable {
     myContentPanel.add(spacer1, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
                                                     GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
     final JLabel label1 = new JLabel();
-    loadLabelText(label1, getMessageFromBundle("messages/AndroidBundle", "label.download.location"));
+    label1.setText(AndroidBundle.message("label.download.location"));
     myContentPanel.add(label1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                    GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
                                                    false));
-  }
-
-  private static Method cachedGetBundleMethod = null;
-
-  private String getMessageFromBundle(String path, String key) {
-    ResourceBundle bundle;
-    try {
-      Class<?> thisClass = this.getClass();
-      if (cachedGetBundleMethod == null) {
-        Class<?> dynamicBundleClass = thisClass.getClassLoader().loadClass("com.intellij.DynamicBundle");
-        cachedGetBundleMethod = dynamicBundleClass.getMethod("getBundle", String.class, Class.class);
-      }
-      bundle = (ResourceBundle)cachedGetBundleMethod.invoke(null, path, thisClass);
-    }
-    catch (Exception e) {
-      bundle = ResourceBundle.getBundle(path);
-    }
-    return bundle.getString(key);
-  }
-
-  private void loadLabelText(JLabel component, String text) {
-    StringBuffer result = new StringBuffer();
-    boolean haveMnemonic = false;
-    char mnemonic = '\0';
-    int mnemonicIndex = -1;
-    for (int i = 0; i < text.length(); i++) {
-      if (text.charAt(i) == '&') {
-        i++;
-        if (i == text.length()) break;
-        if (!haveMnemonic && text.charAt(i) != '&') {
-          haveMnemonic = true;
-          mnemonic = text.charAt(i);
-          mnemonicIndex = result.length();
-        }
-      }
-      result.append(text.charAt(i));
-    }
-    component.setText(result.toString());
-    if (haveMnemonic) {
-      component.setDisplayedMnemonic(mnemonic);
-      component.setDisplayedMnemonicIndex(mnemonicIndex);
-    }
   }
 }

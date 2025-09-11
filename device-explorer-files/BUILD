@@ -24,6 +24,7 @@ iml_module(
         "//tools/base/adblib:studio.android.sdktools.adblib",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
+        "//tools/adt/idea/android:intellij.android.core",
     ],
 )
 
