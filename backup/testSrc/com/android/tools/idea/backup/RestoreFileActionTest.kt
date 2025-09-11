@@ -16,12 +16,15 @@
 package com.android.tools.idea.backup
 
 import com.android.backup.BackupMetadata
-import com.android.backup.BackupType
+import com.android.backup.BackupType.CLOUD
 import com.android.flags.junit.FlagRule
-import com.android.testutils.retryUntilPassing
+import com.android.tools.idea.backup.BackupManager.Source.PROJECT_VIEW
 import com.android.tools.idea.backup.testing.FakeActionHelper
+import com.android.tools.idea.backup.testing.FakeBackupManager
+import com.android.tools.idea.backup.testing.FakeBackupManager.RestoreModalInvocation
 import com.android.tools.idea.backup.testing.FakeDialogFactory
 import com.android.tools.idea.backup.testing.FakeDialogFactory.DialogData
+import com.android.tools.idea.backup.testing.waitForRestoreInvocations
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.testing.ProjectServiceRule
@@ -30,6 +33,7 @@ import com.android.tools.idea.util.toVirtualFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -37,22 +41,11 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TemporaryDirectory
 import com.intellij.testFramework.TestActionEvent
-import com.intellij.testFramework.runInEdtAndWait
-import java.nio.file.Path
-import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.kotlin.any
-import org.mockito.kotlin.argWhere
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.verifyBlocking
-import org.mockito.kotlin.verifyNoInteractions
-import org.mockito.kotlin.verifyNoMoreInteractions
-import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class RestoreFileActionTest {
@@ -61,19 +54,8 @@ class RestoreFileActionTest {
   private val project
     get() = projectRule.project
 
-  private val mockBackupManager =
-    mock<BackupManager>().apply {
-      runBlocking {
-        whenever(isInstalled(any(), any())).thenReturn(true)
-        whenever(chooseRestoreFile()).thenReturn(Path.of("file.backup"))
-        whenever(getMetadata(argWhere { x -> x.fileName.endsWith("file.backup") }))
-          .thenReturn(BackupMetadata("com.app", BackupType.DEVICE_TO_DEVICE))
-        whenever(
-            getMetadata(argWhere { x -> x.fileName.endsWith("file_no_application_id.backup") })
-          )
-          .thenReturn(null)
-      }
-    }
+  private val fakeBackupManager =
+    FakeBackupManager().apply { backupMetaData = BackupMetadata("com.app", CLOUD) }
 
   private val fakeDialogFactory = FakeDialogFactory()
 
@@ -86,7 +68,7 @@ class RestoreFileActionTest {
       projectRule,
       WaitForIndexRule(projectRule),
       FlagRule(StudioFlags.BACKUP_ENABLED, true),
-      ProjectServiceRule(projectRule, BackupManager::class.java, mockBackupManager),
+      ProjectServiceRule(projectRule, BackupManager::class.java, fakeBackupManager),
       temporaryFolder,
     )
 
@@ -126,20 +108,18 @@ class RestoreFileActionTest {
   }
 
   @Test
-  fun actionPerformed() {
+  fun actionPerformed_success() {
     val actionHelper = FakeActionHelper("com.app", 1, "serial")
     val action = RestoreFileAction(actionHelper = actionHelper, dialogFactory = fakeDialogFactory)
     val backupFile = temporaryFolder.newFile("file.backup").toVirtualFile()!!
     val event = testEvent(project, "serial", backupFile)
 
-    action.actionPerformed(event)
+    ActionUtil.performAction(action, event)
 
-    runInEdtAndWait {}
-
-    retryUntilPassing(3.seconds) {
-      verifyBlocking(mockBackupManager) { getMetadata(backupFile.toNioPath()) }
-      assertThat(fakeDialogFactory.dialogs).isEmpty()
-    }
+    fakeBackupManager.waitForRestoreInvocations(1)
+    assertThat(fakeBackupManager.restoreModalInvocations)
+      .containsExactly(RestoreModalInvocation("serial", backupFile.toNioPath(), PROJECT_VIEW, true))
+    assertThat(fakeDialogFactory.dialogs).isEmpty()
   }
 
   @Test
@@ -149,34 +129,28 @@ class RestoreFileActionTest {
     val backupFile = temporaryFolder.newFile("file.backup").toVirtualFile()!!
     val event = testEvent(project, "serial", backupFile)
 
-    action.actionPerformed(event)
+    ActionUtil.performAction(action, event)
 
-    runInEdtAndWait {}
-
-    retryUntilPassing(3.seconds) {
-      verifyNoInteractions(mockBackupManager)
-      assertThat(fakeDialogFactory.dialogs)
-        .containsExactly(DialogData("Cannot Restore App Data", "Incompatible run configuration"))
-    }
+    fakeDialogFactory.waitForDialogs(1)
+    assertThat(fakeBackupManager.restoreModalInvocations).isEmpty()
+    assertThat(fakeDialogFactory.dialogs)
+      .containsExactly(DialogData("Cannot Restore App Data", "Incompatible run configuration"))
   }
 
   @Test
   fun actionPerformed_invalidFileApplicationId() {
+    fakeBackupManager.backupMetaData = null
     val actionHelper = FakeActionHelper("com.app", 1, "serial")
     val action = RestoreFileAction(actionHelper = actionHelper, dialogFactory = fakeDialogFactory)
-    val backupFile = temporaryFolder.newFile("file_no_application_id.backup").toVirtualFile()!!
+    val backupFile = temporaryFolder.newFile("file.backup").toVirtualFile()!!
     val event = testEvent(project, "serial", backupFile)
 
-    action.actionPerformed(event)
+    ActionUtil.performAction(action, event)
 
-    runInEdtAndWait {}
-
-    retryUntilPassing(3.seconds) {
-      verifyBlocking(mockBackupManager) { getMetadata(backupFile.toNioPath()) }
-      verifyNoMoreInteractions(mockBackupManager)
-      assertThat(fakeDialogFactory.dialogs)
-        .containsExactly(DialogData("Cannot Restore App Data", "Backup file is invalid"))
-    }
+    fakeDialogFactory.waitForDialogs(1)
+    assertThat(fakeBackupManager.restoreModalInvocations).isEmpty()
+    assertThat(fakeDialogFactory.dialogs)
+      .containsExactly(DialogData("Cannot Restore App Data", "Backup file is invalid"))
   }
 
   @Test
@@ -186,21 +160,17 @@ class RestoreFileActionTest {
     val backupFile = temporaryFolder.newFile("file.backup").toVirtualFile()!!
     val event = testEvent(project, "serial", backupFile)
 
-    action.actionPerformed(event)
+    ActionUtil.performAction(action, event)
 
-    runInEdtAndWait {}
-
-    retryUntilPassing(3.seconds) {
-      verifyBlocking(mockBackupManager) { getMetadata(backupFile.toNioPath()) }
-      verifyNoMoreInteractions(mockBackupManager)
-      assertThat(fakeDialogFactory.dialogs)
-        .containsExactly(
-          DialogData(
-            "Cannot Restore App Data",
-            """Application id in file does not match run app: "com.app" != "com.app.mismatching"""",
-          )
+    fakeDialogFactory.waitForDialogs(1)
+    assertThat(fakeBackupManager.restoreModalInvocations).isEmpty()
+    assertThat(fakeDialogFactory.dialogs)
+      .containsExactly(
+        DialogData(
+          "Cannot Restore App Data",
+          """Application id in file does not match run app: "com.app" != "com.app.mismatching"""",
         )
-    }
+      )
   }
 
   @Test
@@ -210,16 +180,12 @@ class RestoreFileActionTest {
     val backupFile = temporaryFolder.newFile("file.backup").toVirtualFile()!!
     val event = testEvent(project, "serial", backupFile)
 
-    action.actionPerformed(event)
+    ActionUtil.performAction(action, event)
 
-    runInEdtAndWait {}
-
-    retryUntilPassing(3.seconds) {
-      verifyBlocking(mockBackupManager) { getMetadata(backupFile.toNioPath()) }
-      verifyNoMoreInteractions(mockBackupManager)
-      assertThat(fakeDialogFactory.dialogs)
-        .containsExactly(DialogData("Cannot Restore App Data", "Selected device is not running"))
-    }
+    fakeDialogFactory.waitForDialogs(1)
+    assertThat(fakeBackupManager.restoreModalInvocations).isEmpty()
+    assertThat(fakeDialogFactory.dialogs)
+      .containsExactly(DialogData("Cannot Restore App Data", "Selected device is not running"))
   }
 
   @Test
@@ -229,18 +195,14 @@ class RestoreFileActionTest {
     val backupFile = temporaryFolder.newFile("file.backup").toVirtualFile()!!
     val event = testEvent(project, "serial", backupFile)
 
-    action.actionPerformed(event)
+    ActionUtil.performAction(action, event)
 
-    runInEdtAndWait {}
-
-    retryUntilPassing(3.seconds) {
-      verifyBlocking(mockBackupManager) { getMetadata(backupFile.toNioPath()) }
-      verifyNoMoreInteractions(mockBackupManager)
-      assertThat(fakeDialogFactory.dialogs)
-        .containsExactly(
-          DialogData("Cannot Restore App Data", "Action is not supported for multiple devices")
-        )
-    }
+    fakeDialogFactory.waitForDialogs(1)
+    assertThat(fakeBackupManager.restoreModalInvocations).isEmpty()
+    assertThat(fakeDialogFactory.dialogs)
+      .containsExactly(
+        DialogData("Cannot Restore App Data", "Action is not supported for multiple devices")
+      )
   }
 
   @Test
@@ -250,16 +212,12 @@ class RestoreFileActionTest {
     val backupFile = temporaryFolder.newFile("file.backup").toVirtualFile()!!
     val event = testEvent(project, "serial", backupFile)
 
-    action.actionPerformed(event)
+    ActionUtil.performAction(action, event)
 
-    runInEdtAndWait {}
-
-    retryUntilPassing(3.seconds) {
-      verifyBlocking(mockBackupManager) { getMetadata(backupFile.toNioPath()) }
-      verifyNoMoreInteractions(mockBackupManager)
-      assertThat(fakeDialogFactory.dialogs)
-        .containsExactly(DialogData("Cannot Restore App Data", "Selected device is not running"))
-    }
+    fakeDialogFactory.waitForDialogs(1)
+    assertThat(fakeBackupManager.restoreModalInvocations).isEmpty()
+    assertThat(fakeDialogFactory.dialogs)
+      .containsExactly(DialogData("Cannot Restore App Data", "Selected device is not running"))
   }
 
   private fun testEvent(

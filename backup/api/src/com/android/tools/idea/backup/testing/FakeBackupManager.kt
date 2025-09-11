@@ -37,6 +37,7 @@ class FakeBackupManager : BackupManager {
   var deviceCheckResult: String? = null
   val showBackupDialogInvocations = mutableListOf<ShowBackupDialogInvocation>()
   val restoreModalInvocations = mutableListOf<RestoreModalInvocation>()
+  var backupMetaData: BackupMetadata? = null
 
   @UiThread
   override fun showBackupDialog(
@@ -76,7 +77,7 @@ class FakeBackupManager : BackupManager {
     return Path.of("file.backup")
   }
 
-  override suspend fun getMetadata(backupFile: Path): BackupMetadata? = null
+  override suspend fun getMetadata(backupFile: Path): BackupMetadata? = backupMetaData
 
   override suspend fun getForegroundApplicationId(serialNumber: String) = "com.app"
 
