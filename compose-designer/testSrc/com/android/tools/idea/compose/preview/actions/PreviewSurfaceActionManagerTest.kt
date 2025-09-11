@@ -55,9 +55,8 @@ import org.mockito.kotlin.whenever
 // DeployToDeviceAction(),
 // TransformPreviewAction(),
 // FixVisualLintIssuesAction(),
-// AlignUiToTargetImageAction(),
 // in wrappers
-private const val EXPECTED_NUMBER_OF_ACTIONS = 10
+private const val EXPECTED_NUMBER_OF_ACTIONS = 9
 
 // SavePreviewInNewSize()
 // EnableUiCheckAction(),
@@ -88,14 +87,12 @@ class PreviewSurfaceActionManagerTest {
   @After
   fun tearDown() {
     StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI.clearOverride()
-    StudioFlags.COMPOSE_CRITIQUE_AGENT_CODE_REWRITE.clearOverride()
     StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.clearOverride()
   }
 
   @Test
   fun testAvailableActionsOnPreviewContextMenu() {
     StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI.override(true)
-    StudioFlags.COMPOSE_CRITIQUE_AGENT_CODE_REWRITE.override(true)
     StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.override(true)
     ExtensionTestUtil.maskExtensions(
       ComposeStudioBotActionFactory.EP_NAME,
@@ -142,11 +139,6 @@ class PreviewSurfaceActionManagerTest {
     val fixVisualLintIssuesAction =
       (actions[8] as ShowGroupUnderConditionWrapper).getChildren(null).single()
     assertThat(fixVisualLintIssuesAction.templatePresentation.text).isEqualTo("fixVisualLintIssues")
-
-    // Align Ui to Image action.
-    val alignUiImageAction =
-      (actions[9] as ShowGroupUnderConditionWrapper).getChildren(null).single()
-    assertThat(alignUiImageAction.templatePresentation.text).isEqualTo("alignUi")
   }
 
   @Test
@@ -301,8 +293,6 @@ class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
 
   override fun fixComposeRenderIssueAction(renderIssues: List<Issue>): AnAction? =
     fakeAction("fixComposeRender")
-
-  override fun alignUiToTargetImageAction(): AnAction? = fakeAction("alignUi")
 
   override fun previewAgentsDropDownAction(): AnAction? = fakeAction("previewAgents")
 }

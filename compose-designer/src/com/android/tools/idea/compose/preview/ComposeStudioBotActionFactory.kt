@@ -36,12 +36,6 @@ interface ComposeStudioBotActionFactory {
   fun fixComposeRenderIssueAction(renderIssues: List<Issue>): AnAction?
 
   /**
-   * An action to analyze UI images, critique them, and then rewrite the corresponding code to match
-   * the target design.
-   */
-  fun alignUiToTargetImageAction(): AnAction?
-
-  /**
    * Dropdown action to list Gemini agent-based actions that are not specific to a single existing
    * previews. It's expected to be displayed in the surface toolbar as opposed to individual preview
    * toolbars.

@@ -1600,10 +1600,6 @@ public final class StudioFlags {
     "Uses agentic approach when performing transform UI with Gemini."
     );
 
-  public static final Flag<Boolean> COMPOSE_CRITIQUE_AGENT_CODE_REWRITE = new BooleanFlag(
-    COMPOSE, "critique.agent.code.rewrite", "Enable action to rewrite UI from Image",
-    "Enables a context-menu action to analyze UI images and rewrite corresponding code to match the target design.");
-
   public static final Flag<Boolean> COMPOSE_PREVIEW_AI_AGENTS_DROPDOWN = new BooleanFlag(
     COMPOSE, "ai.agents.dropdown", "Enable dropdown action to list Compose Preview AI agent actions",
     "Enables a dropdown action that lists actions that trigger AI agent flows related to Compose Previews.");
