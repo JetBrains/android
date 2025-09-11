@@ -15,13 +15,13 @@
  */
 package com.android.tools.compose.debug;
 
+import com.android.tools.compose.ComposeBundle;
 import com.intellij.openapi.options.ConfigurableUi;
+import com.intellij.openapi.util.text.TextWithMnemonic;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import java.awt.Insets;
-import java.lang.reflect.Method;
-import java.util.ResourceBundle;
 import javax.swing.AbstractButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -60,8 +60,7 @@ public class ComposeDebuggerSettingsUi implements ConfigurableUi<ComposeDebugger
     myPanel = new JPanel();
     myPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
     filterComposeInternalClasses = new JCheckBox();
-    loadButtonText(filterComposeInternalClasses,
-                              getMessageFromBundle("messages/ComposeBundle", "filter.ignore.compose.runtime.classes"));
+    loadButtonText(filterComposeInternalClasses, ComposeBundle.message("filter.ignore.compose.runtime.classes"));
     myPanel.add(filterComposeInternalClasses, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK |
                                                                   GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
@@ -71,45 +70,12 @@ public class ComposeDebuggerSettingsUi implements ConfigurableUi<ComposeDebugger
                                              GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
   }
 
-  private static Method cachedGetBundleMethod = null;
-
-  private String getMessageFromBundle(String path, String key) {
-    ResourceBundle bundle;
-    try {
-      Class<?> thisClass = this.getClass();
-      if (cachedGetBundleMethod == null) {
-        Class<?> dynamicBundleClass = thisClass.getClassLoader().loadClass("com.intellij.DynamicBundle");
-        cachedGetBundleMethod = dynamicBundleClass.getMethod("getBundle", String.class, Class.class);
-      }
-      bundle = (ResourceBundle)cachedGetBundleMethod.invoke(null, path, thisClass);
-    }
-    catch (Exception e) {
-      bundle = ResourceBundle.getBundle(path);
-    }
-    return bundle.getString(key);
-  }
-
   private void loadButtonText(AbstractButton component, String text) {
-    StringBuffer result = new StringBuffer();
-    boolean haveMnemonic = false;
-    char mnemonic = '\0';
-    int mnemonicIndex = -1;
-    for (int i = 0; i < text.length(); i++) {
-      if (text.charAt(i) == '&') {
-        i++;
-        if (i == text.length()) break;
-        if (!haveMnemonic && text.charAt(i) != '&') {
-          haveMnemonic = true;
-          mnemonic = text.charAt(i);
-          mnemonicIndex = result.length();
-        }
-      }
-      result.append(text.charAt(i));
-    }
-    component.setText(result.toString());
-    if (haveMnemonic) {
-      component.setMnemonic(mnemonic);
-      component.setDisplayedMnemonicIndex(mnemonicIndex);
+    TextWithMnemonic textWithMnemonic = TextWithMnemonic.parse(text);
+    component.setText(text);
+    if (textWithMnemonic.hasMnemonic()) {
+      component.setMnemonic(textWithMnemonic.getMnemonicCode());
+      component.setDisplayedMnemonicIndex(textWithMnemonic.getMnemonicIndex());
     }
   }
 }
