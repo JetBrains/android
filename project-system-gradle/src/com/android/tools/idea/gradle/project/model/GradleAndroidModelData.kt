@@ -41,7 +41,7 @@ import java.io.File
 /**
  * Suffix for the cached sync files version to allow for changes between development versions that have the same version
  */
-private const val ourAndroidSyncVersionSuffix = "2024-01-16/1"
+private const val ourAndroidSyncVersionSuffix = "2025-09-11/1"
 
 /**
  * Version of the cached sync files, used to ensure caches were written by this version of Studio to avoid untested behavior.
