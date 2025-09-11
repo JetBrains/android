@@ -33,7 +33,6 @@ import com.intellij.codeInsight.navigation.SingleTargetElementInfo
 import com.intellij.codeInsight.navigation.targetPresentation
 import com.intellij.model.Pointer
 import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.openapi.project.Project
 import com.intellij.platform.backend.documentation.DocumentationResult
 import com.intellij.platform.backend.documentation.DocumentationTarget
 import com.intellij.pom.Navigatable
@@ -46,7 +45,6 @@ import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.io.InputStreamReader
-import java.io.Reader
 import java.net.URI
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -128,7 +126,8 @@ sealed class AndroidSdkDocumentationTarget<T>(
    * [JavaDocExternalFilter.doBuildFromStream] to do this work.
    */
   protected open fun filter(reader: BufferedReader, stringBuilder: StringBuilder) {
-    MyFilter(targetElement.project).filterFromStream(reader, stringBuilder)
+    val androidReader = AndroidJavaDocExternalFilter(targetElement.project)
+    androidReader.doBuildFromStream(url, reader, stringBuilder)
   }
 
   /** Creates a new instance of this class with the given parameters. */
@@ -213,14 +212,6 @@ sealed class AndroidSdkDocumentationTarget<T>(
           .get("privateDoNotAccessOrElseSafeHtmlWrappedValue")
           .asString
     return ByteArrayInputStream(safeHtml.toByteArray())
-  }
-
-  /** This class exists only to expose [JavaDocExternalFilter.doBuildFromStream]. */
-  private inner class MyFilter(project: Project) : JavaDocExternalFilter(project) {
-    /** Exposes [JavaDocExternalFilter.doBuildFromStream]. */
-    fun filterFromStream(reader: Reader, stringBuilder: StringBuilder) {
-      doBuildFromStream(url, reader, stringBuilder, true, true)
-    }
   }
 
   private fun logFetchStats(fetchStats: FetchStats, numDisplayedHtmlBytes: Int) {
