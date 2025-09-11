@@ -90,7 +90,7 @@ class AddProjectGenSrcs(
     if (!projectDefinition.isIncluded(javaInfo.label())) {
       return emptyList()
     }
-    return javaInfo.genSrcs().filter { JAVA_SRC_EXTENSIONS.contains(it.getExtension()) }
+    return javaInfo.genSrcs().filter { JAVA_SRC_EXTENSIONS.contains(it.getExtension()) || PROTO_EXTENSIONS.contains(it.getExtension()) }
   }
 
   override fun getRequiredArtifacts(forTarget: TargetBuildInfo): Map<BuildArtifact, Collection<ArtifactMetadata.Extractor<*>>> {
@@ -211,5 +211,6 @@ class AddProjectGenSrcs(
 
   companion object {
     private val JAVA_SRC_EXTENSIONS = setOf("java", "kt")
+    private val PROTO_EXTENSIONS = setOf("proto")
   }
 }
