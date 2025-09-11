@@ -64,7 +64,7 @@ public class HighlightInfos {
     assertNotNull(document);
     PsiFile psiFile = PsiDocumentManager.getInstance(project).getPsiFile(document);
     assertNotNull(psiFile);
-    DaemonCodeAnalyzer.getInstance(project).restart(psiFile);
+    DaemonCodeAnalyzer.getInstance(project).restart(psiFile, "HighlightInfos.getHighlightInfos");
     List<HighlightInfo> highlightInfos = CodeInsightTestFixtureImpl.instantiateAndRun(psiFile, editor, EMPTY_INT_ARRAY, true);
     return highlightInfos.stream().filter(info -> info != null).filter(filter).collect(Collectors.toList());
   }
