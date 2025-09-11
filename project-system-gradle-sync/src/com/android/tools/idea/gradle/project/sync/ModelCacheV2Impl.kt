@@ -842,7 +842,8 @@ fun modelCacheV2Impl(
       generatedClassPaths = if (modelVersions[ModelFeature.HAS_GENERATED_CLASSPATHS]) artifact.generatedClassPaths else emptyMap(),
       bytecodeTransforms = if (modelVersions[ModelFeature.HAS_BYTECODE_TRANSFORMS]) artifact.bytecodeTransformations.toIdeModels().toList() else null,
       generatedAssetFolders = if (modelVersions[ModelFeature.HAS_GENERATED_ASSETS]) artifact.generatedAssetsFolders.deduplicateFiles().distinct() else listOf(),
-      mappingR8TextFile = if (modelVersions[ModelFeature.HAS_R8_MAPPING_FILE_PATH]) artifact.mappingR8TextFile else null
+      mappingR8TextFile = if (modelVersions[ModelFeature.HAS_R8_MAPPING_FILE_PATH]) artifact.mappingR8TextFile else null,
+      mappingR8PartitionFile = if (modelVersions[ModelFeature.HAS_R8_PARTITION_FILE_PATH]) artifact.mappingR8PartitionFile else null,
     )
   }
 

@@ -1165,6 +1165,7 @@ MODULE                        : project.app
                 IsSigned                      : false
                 CodeShrinker                  : R8
                 MappingR8File                 : <ROOT>/app/build/outputs/mapping/release/mapping.txt [-]
+                PartitionR8File               : <ROOT>/app/build/outputs/mapping/release/mapping.prt [-]
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleRelease
                     AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/release/createReleaseApkListingFileRedirect/redirect.txt [-]

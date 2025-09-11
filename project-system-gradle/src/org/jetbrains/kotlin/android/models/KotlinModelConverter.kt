@@ -495,7 +495,8 @@ class KotlinModelConverter {
       generatedClassPaths = emptyMap(),
       bytecodeTransforms = null,
       generatedAssetFolders = emptyList(),
-      mappingR8TextFile = null
+      mappingR8TextFile = null,
+      mappingR8PartitionFile = null,
     )
 
     val unitTestArtifact = unitTestAndroidCompilation?.let {
@@ -561,7 +562,8 @@ class KotlinModelConverter {
         generatedClassPaths = emptyMap(),
         bytecodeTransforms = null,
         generatedAssetFolders = emptyList(),
-        mappingR8TextFile = null
+        mappingR8TextFile = null,
+        mappingR8PartitionFile = null,
       )
     }
 

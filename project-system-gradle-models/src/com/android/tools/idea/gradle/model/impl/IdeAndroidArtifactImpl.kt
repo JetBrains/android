@@ -50,7 +50,8 @@ data class IdeAndroidArtifactCoreImpl(
   override val generatedClassPaths: Map<String, FileImpl>,
   override val bytecodeTransforms: List<IdeBytecodeTransformationImpl>?,
   override val generatedAssetFolders: List<FileImpl>,
-  override val mappingR8TextFile: File?
+  override val mappingR8TextFile: File?,
+  override val mappingR8PartitionFile: File?,
 ) : IdeAndroidArtifactCore {
   constructor(
     name: IdeArtifactName,
@@ -80,6 +81,7 @@ data class IdeAndroidArtifactCoreImpl(
     bytecodeTransforms: List<IdeBytecodeTransformationImpl>?,
     generatedAssetFolders: List<File>,
     mappingR8TextFile: File?,
+    mappingR8PartitionFile: File?,
     unused: String = "" // to prevent clash
   ) : this(
     name,
@@ -108,7 +110,8 @@ data class IdeAndroidArtifactCoreImpl(
     generatedClassPaths.toImpl(),
     bytecodeTransforms,
     generatedAssetFolders.toImpl(),
-    mappingR8TextFile
+    mappingR8TextFile,
+    mappingR8PartitionFile
   )
 }
 
@@ -145,6 +148,7 @@ data class IdeAndroidArtifactImpl(
   override val desugaredMethodsFiles: List<FileImpl> = core.desugaredMethodsFiles
   override val generatedAssetFolders: List<FileImpl> = core.generatedAssetFolders
   override val mappingR8TextFile: File? = core.mappingR8TextFile
+  override val mappingR8PartitionFile: File? = core.mappingR8PartitionFile
 
   override val compileClasspath: IdeDependencies = IdeDependencies(core.compileClasspathCore, resolver)
   override val runtimeClasspath: IdeDependencies = IdeDependencies(core.runtimeClasspathCore, resolver)

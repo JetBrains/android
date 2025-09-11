@@ -105,6 +105,7 @@ enum class ModelFeature(
   HAS_BUILD_AWARE_PROJECT_GRAPH(ModelVersion(15, 0)),
   HAS_TEST_SUITES(ModelVersion(16, 0)),
   HAS_R8_MAPPING_FILE_PATH(ModelVersion(18, 0)),
+  HAS_R8_PARTITION_FILE_PATH(ModelVersion(19, 0)),
   ;
 
   init {
