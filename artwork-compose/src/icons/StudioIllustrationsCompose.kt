@@ -30,6 +30,7 @@ object StudioIllustrationsCompose {
     val FirebaseIcon: IntelliJIconKey = IntelliJIconKey("/studio/illustrations/common/firebase-icon.svg", "/studio/illustrations/common/firebase-icon.svg", StudioIllustrationsCompose.javaClass) // 16x16
     val FirebaseLogo: IntelliJIconKey = IntelliJIconKey("/studio/illustrations/common/firebase-logo.svg", "/studio/illustrations/common/firebase-logo.svg", StudioIllustrationsCompose.javaClass) // 117x32
     val GoogleLogo: IntelliJIconKey = IntelliJIconKey("/studio/illustrations/common/google-logo.svg", "/studio/illustrations/common/google-logo.svg", StudioIllustrationsCompose.javaClass) // 16x16
+    val Newsletter: IntelliJIconKey = IntelliJIconKey("/studio/illustrations/common/newsletter.svg", "/studio/illustrations/common/newsletter.svg", StudioIllustrationsCompose.javaClass) // 72x72
     val PlayConsoleIcon: IntelliJIconKey = IntelliJIconKey("/studio/illustrations/common/play-console-icon.svg", "/studio/illustrations/common/play-console-icon.svg", StudioIllustrationsCompose.javaClass) // 16x16
     val PlayConsole: IntelliJIconKey = IntelliJIconKey("/studio/illustrations/common/play-console.svg", "/studio/illustrations/common/play-console.svg", StudioIllustrationsCompose.javaClass) // 300x97
     val PlayStore: IntelliJIconKey = IntelliJIconKey("/studio/illustrations/common/play-store.svg", "/studio/illustrations/common/play-store.svg", StudioIllustrationsCompose.javaClass) // 16x16
