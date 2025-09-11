@@ -45,7 +45,13 @@ class AndroidJavaDocExternalFilterTest {
 
     for (inputFile in inputFiles) {
       val inputReader = fileReader("input/$inputFile")
-      val builtDoc = buildString { filter.doBuildFromStream(POINT_URL, inputReader, this) }
+      val url =
+        if (inputFile == "ReturnsTableWithEmptyParagraph.html") {
+          POINT_URL + "#someMethod"
+        } else {
+          POINT_URL
+        }
+      val builtDoc = buildString { filter.doBuildFromStream(url, inputReader, this) }
 
       val outputFile = inputFile.toOutputFile()
       val expected = StringUtil.convertLineSeparators(fileReader("output/$outputFile").readText())
