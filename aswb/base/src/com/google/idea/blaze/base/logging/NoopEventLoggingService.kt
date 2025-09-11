@@ -24,10 +24,10 @@ import com.intellij.openapi.project.Project
 
 /** An [EventLoggingService] that does nothing, used in case there isn't one registered. */
 class NoopEventLoggingService : EventLoggingService() {
-  override fun log(project: Project, syncStats: SyncStats) {}
-  override fun log(project: Project, querySyncStats: QuerySyncActionStats) {}
-  override fun log(project: Project, querySyncAutoConversionStats: QuerySyncAutoConversionStats) {}
-  override fun log(aiEvent: AiEvent) {}
-  override fun logCommand(caller: Any?, command: Command) {}
-  override fun logHighlightStats(project: Project, highlightStats: HighlightStats) {}
+  override fun log(project: Project, syncStats: SyncStats) = Unit
+  override fun log(project: Project, querySyncStats: QuerySyncActionStats) = Unit
+  override fun log(project: Project, querySyncAutoConversionStats: QuerySyncAutoConversionStats) = Unit
+  override fun log(aiEvent: AiEvent) = Unit
+  override fun logCommand(caller: Any?, command: Command) = Unit
+  override fun log(project: Project, highlightStats: HighlightStats) = Unit
 }

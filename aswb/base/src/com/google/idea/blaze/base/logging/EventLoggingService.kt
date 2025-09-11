@@ -57,7 +57,7 @@ abstract class EventLoggingService {
       durationInNanos: Long? = null
   ) {}
 
-  abstract fun logHighlightStats(project: Project, highlightStats: HighlightStats)
+  abstract fun log(project: Project, highlightStats: HighlightStats)
 
   /** Information about an external command that was launched from the IDE. */
   data class Command(
@@ -72,15 +72,8 @@ abstract class EventLoggingService {
   companion object {
     @JvmStatic
     fun getInstance(): EventLoggingService {
-      // This method is intentionally written with an explicit if/return
-      // statement. Using a more idiomatic single-expression function or
-      // an elvis operator was found to cause a subtle Kotlin compiler bug
-      // where the return type was erased to `Any` for Java callers.
-      val service = ApplicationManager.getApplication().getService(EventLoggingService::class.java)
-      if (service != null) {
-        return service
-      }
-      return NoopEventLoggingService()
+      return ApplicationManager.getApplication().getService(EventLoggingService::class.java)
+             ?: NoopEventLoggingService()
     }
   }
 }

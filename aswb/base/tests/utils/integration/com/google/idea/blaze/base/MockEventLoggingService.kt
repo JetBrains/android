@@ -65,7 +65,7 @@ class MockEventLoggingService(parentDisposable: Disposable) : EventLoggingServic
     aiEvents.add(aiEvent)
   }
 
-  override fun logCommand(caller: Any?, command: Command) {}
+  override fun logCommand(caller: Any?, command: Command) = Unit
 
-  override fun logHighlightStats(project: Project, highlightStats: HighlightStats) {}
+  override fun log(project: Project, highlightStats: HighlightStats) = Unit
 }
