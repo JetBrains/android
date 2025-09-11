@@ -82,6 +82,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
@@ -312,6 +313,14 @@ class LayoutInspectorTreePanelTest {
     }
 
     fileOpenCaptureRule.checkEditor("demo.xml", 9, "<TextView")
+  }
+
+  @RunsInEdt
+  @Test
+  fun testGotoDeclarationOnlyHasKeyboardShortCuts() {
+    // Register the shortcuts from the ActionManager:
+    LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    GotoDeclarationAction.shortcutSet.shortcuts.none { it !is KeyboardShortcut }
   }
 
   @RunsInEdt

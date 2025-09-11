@@ -47,7 +47,9 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.actionSystem.IdeActions
+import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -147,9 +149,13 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
     val gotoDeclarationAction =
       ActionManager.getInstance().getAction(IdeActions.ACTION_GOTO_DECLARATION)
+    val shortcuts =
+      gotoDeclarationAction.shortcutSet.shortcuts
+        .filterIsInstance<KeyboardShortcut>()
+        .toTypedArray()
     if (gotoDeclarationAction != null) {
       GotoDeclarationAction.registerCustomShortcutSet(
-        gotoDeclarationAction.shortcutSet,
+        CustomShortcutSet(*shortcuts),
         componentTreePanel,
         parentDisposable,
       )
