@@ -6,12 +6,11 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.util.text.TextWithMnemonic;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
-import java.lang.reflect.Method;
-import java.util.ResourceBundle;
 import javax.swing.border.TitledBorder;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
@@ -126,8 +125,7 @@ public abstract class NewKeyForm {
     myContentPanel = new JPanel();
     myContentPanel.setLayout(new GridLayoutManager(5, 4, new Insets(0, 0, 0, 0), -1, -1));
     final JLabel label1 = new JLabel();
-    loadLabelText(label1,
-                             getMessageFromBundle("messages/AndroidBundle", "android.export.package.new.key.alias.label"));
+    loadLabelText(label1, AndroidBundle.message("android.export.package.new.key.alias.label"));
     myContentPanel.add(label1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                    GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
                                                    false));
@@ -139,7 +137,7 @@ public abstract class NewKeyForm {
                                                          GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
                                                          new Dimension(150, -1), null, 0, false));
     final JLabel label2 = new JLabel();
-    loadLabelText(label2, getMessageFromBundle("messages/AndroidBundle", "android.key.password.label"));
+    loadLabelText(label2, AndroidBundle.message("android.key.password.label"));
     myContentPanel.add(label2, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                    GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
                                                    false));
@@ -148,8 +146,7 @@ public abstract class NewKeyForm {
                                                                GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
                                                                new Dimension(150, -1), null, 0, false));
     final JLabel label3 = new JLabel();
-    loadLabelText(label3,
-                             getMessageFromBundle("messages/AndroidBundle", "android.export.package.key.validity.label"));
+    loadLabelText(label3, AndroidBundle.message("android.export.package.key.validity.label"));
     myContentPanel.add(label3, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                    GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
                                                    false));
@@ -167,8 +164,7 @@ public abstract class NewKeyForm {
                                                                                           TitledBorder.DEFAULT_JUSTIFICATION,
                                                                                           TitledBorder.DEFAULT_POSITION, null, null));
     final JLabel label4 = new JLabel();
-    loadLabelText(label4, getMessageFromBundle("messages/AndroidBundle",
-                                                                     "android.export.package.key.certificate.name.label"));
+    loadLabelText(label4, AndroidBundle.message("android.export.package.key.certificate.name.label"));
     myCertificatePanel.add(label4, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                        GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
                                                        0, false));
@@ -178,8 +174,7 @@ public abstract class NewKeyForm {
                                                GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
                                                new Dimension(150, -1), null, 0, false));
     final JLabel label5 = new JLabel();
-    loadLabelText(label5,
-                             getMessageFromBundle("messages/AndroidBundle", "android.export.package.organization.unit.label"));
+    loadLabelText(label5, AndroidBundle.message("android.export.package.organization.unit.label"));
     myCertificatePanel.add(label5, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                        GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
                                                        0, false));
@@ -189,7 +184,7 @@ public abstract class NewKeyForm {
                                                GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
                                                new Dimension(150, -1), null, 0, false));
     final JLabel label6 = new JLabel();
-    loadLabelText(label6, getMessageFromBundle("messages/AndroidBundle", "android.export.package.city.label"));
+    loadLabelText(label6, AndroidBundle.message("android.export.package.city.label"));
     myCertificatePanel.add(label6, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                        GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
                                                        0, false));
@@ -198,7 +193,7 @@ public abstract class NewKeyForm {
                                                             GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
                                                             new Dimension(150, -1), null, 0, false));
     final JLabel label7 = new JLabel();
-    loadLabelText(label7, getMessageFromBundle("messages/AndroidBundle", "android.export.package.state.label"));
+    loadLabelText(label7, AndroidBundle.message("android.export.package.state.label"));
     myCertificatePanel.add(label7, new GridConstraints(4, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                        GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
                                                        0, false));
@@ -208,8 +203,7 @@ public abstract class NewKeyForm {
                                                GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
                                                new Dimension(150, -1), null, 0, false));
     final JLabel label8 = new JLabel();
-    loadLabelText(label8,
-                             getMessageFromBundle("messages/AndroidBundle", "android.export.package.country.code.label"));
+    loadLabelText(label8, AndroidBundle.message("android.export.package.country.code.label"));
     myCertificatePanel.add(label8, new GridConstraints(5, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                        GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
                                                        0, false));
@@ -218,8 +212,7 @@ public abstract class NewKeyForm {
                                                                    GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED,
                                                                    null, new Dimension(150, -1), null, 0, false));
     final JLabel label9 = new JLabel();
-    loadLabelText(label9,
-                             getMessageFromBundle("messages/AndroidBundle", "android.export.package.organization.label"));
+    loadLabelText(label9, AndroidBundle.message("android.export.package.organization.label"));
     myCertificatePanel.add(label9, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                        GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
                                                        0, false));
@@ -229,7 +222,7 @@ public abstract class NewKeyForm {
                                                GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
                                                new Dimension(150, -1), null, 0, false));
     final JLabel label10 = new JLabel();
-    loadLabelText(label10, getMessageFromBundle("messages/AndroidBundle", "android.confirm.password.label"));
+    loadLabelText(label10, AndroidBundle.message("android.confirm.password.label"));
     myContentPanel.add(label10, new GridConstraints(1, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
                                                     false));
@@ -250,45 +243,12 @@ public abstract class NewKeyForm {
     label10.setLabelFor(myConfirmKeyPasswordField);
   }
 
-  private static Method cachedGetBundleMethod = null;
-
-  private String getMessageFromBundle(String path, String key) {
-    ResourceBundle bundle;
-    try {
-      Class<?> thisClass = this.getClass();
-      if (cachedGetBundleMethod == null) {
-        Class<?> dynamicBundleClass = thisClass.getClassLoader().loadClass("com.intellij.DynamicBundle");
-        cachedGetBundleMethod = dynamicBundleClass.getMethod("getBundle", String.class, Class.class);
-      }
-      bundle = (ResourceBundle)cachedGetBundleMethod.invoke(null, path, thisClass);
-    }
-    catch (Exception e) {
-      bundle = ResourceBundle.getBundle(path);
-    }
-    return bundle.getString(key);
-  }
-
   private void loadLabelText(JLabel component, String text) {
-    StringBuffer result = new StringBuffer();
-    boolean haveMnemonic = false;
-    char mnemonic = '\0';
-    int mnemonicIndex = -1;
-    for (int i = 0; i < text.length(); i++) {
-      if (text.charAt(i) == '&') {
-        i++;
-        if (i == text.length()) break;
-        if (!haveMnemonic && text.charAt(i) != '&') {
-          haveMnemonic = true;
-          mnemonic = text.charAt(i);
-          mnemonicIndex = result.length();
-        }
-      }
-      result.append(text.charAt(i));
-    }
-    component.setText(result.toString());
-    if (haveMnemonic) {
-      component.setDisplayedMnemonic(mnemonic);
-      component.setDisplayedMnemonicIndex(mnemonicIndex);
+    TextWithMnemonic textWithMnemonic = TextWithMnemonic.parse(text);
+    component.setText(textWithMnemonic.getText());
+    if (textWithMnemonic.hasMnemonic()) {
+      component.setDisplayedMnemonic(textWithMnemonic.getMnemonicCode());
+      component.setDisplayedMnemonicIndex(textWithMnemonic.getMnemonicIndex());
     }
   }
 

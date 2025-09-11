@@ -26,12 +26,11 @@ import com.intellij.uiDesigner.core.Spacer;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
-import java.lang.reflect.Method;
 import java.util.Locale;
-import java.util.ResourceBundle;
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.text.StyleContext;
+import org.jetbrains.android.util.AndroidBundle;
 
 public class ChooseBundleOrApkStep extends ExportSignedPackageWizardStep {
   public static final String DOC_URL = "https://d.android.com/r/studio-ui/dynamic-delivery/overview.html";
@@ -93,8 +92,7 @@ public class ChooseBundleOrApkStep extends ExportSignedPackageWizardStep {
                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                           GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     final JBLabel jBLabel1 = new JBLabel();
-    loadLabelText(jBLabel1,
-                             getMessageFromBundle("messages/AndroidBundle", "android.export.package.bundle.description"));
+    jBLabel1.setText(AndroidBundle.message("android.export.package.bundle.description"));
     myBundlePanel.add(jBLabel1, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 2,
                                                     false));
@@ -151,47 +149,5 @@ public class ChooseBundleOrApkStep extends ExportSignedPackageWizardStep {
                             ? new Font(font.getFamily(), font.getStyle(), font.getSize())
                             : new StyleContext().getFont(font.getFamily(), font.getStyle(), font.getSize());
     return fontWithFallback instanceof FontUIResource ? fontWithFallback : new FontUIResource(fontWithFallback);
-  }
-
-  private static Method cachedGetBundleMethod = null;
-
-  private String getMessageFromBundle(String path, String key) {
-    ResourceBundle bundle;
-    try {
-      Class<?> thisClass = this.getClass();
-      if (cachedGetBundleMethod == null) {
-        Class<?> dynamicBundleClass = thisClass.getClassLoader().loadClass("com.intellij.DynamicBundle");
-        cachedGetBundleMethod = dynamicBundleClass.getMethod("getBundle", String.class, Class.class);
-      }
-      bundle = (ResourceBundle)cachedGetBundleMethod.invoke(null, path, thisClass);
-    }
-    catch (Exception e) {
-      bundle = ResourceBundle.getBundle(path);
-    }
-    return bundle.getString(key);
-  }
-
-  private void loadLabelText(JLabel component, String text) {
-    StringBuffer result = new StringBuffer();
-    boolean haveMnemonic = false;
-    char mnemonic = '\0';
-    int mnemonicIndex = -1;
-    for (int i = 0; i < text.length(); i++) {
-      if (text.charAt(i) == '&') {
-        i++;
-        if (i == text.length()) break;
-        if (!haveMnemonic && text.charAt(i) != '&') {
-          haveMnemonic = true;
-          mnemonic = text.charAt(i);
-          mnemonicIndex = result.length();
-        }
-      }
-      result.append(text.charAt(i));
-    }
-    component.setText(result.toString());
-    if (haveMnemonic) {
-      component.setDisplayedMnemonic(mnemonic);
-      component.setDisplayedMnemonicIndex(mnemonicIndex);
-    }
   }
 }

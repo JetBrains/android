@@ -29,21 +29,21 @@ import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.util.text.TextWithMnemonic;
 import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.PortField;
 import com.intellij.ui.RawCommandLineEditor;
+import com.intellij.ui.UIBundle;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.Function;
 import java.awt.Dimension;
 import java.awt.Insets;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
-import java.util.ResourceBundle;
 import java.util.function.Predicate;
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
@@ -218,24 +218,24 @@ public class ProxySettingsDialog extends DialogWrapper {
                                                                               TitledBorder.DEFAULT_POSITION, null, null));
     final JLabel label1 = new JLabel();
     label1.setHorizontalAlignment(4);
-    loadLabelText(label1, getMessageFromBundle("messages/UIBundle", "proxy.manual.host"));
+    loadLabelText(label1, UIBundle.message("proxy.manual.host"));
     panel1.add(label1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                            GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 1, false));
     myHttpProxyAuthCheckBox = new JCheckBox();
     myHttpProxyAuthCheckBox.setMargin(new Insets(2, 1, 2, 2));
     myHttpProxyAuthCheckBox.setSelected(false);
-    loadButtonText(myHttpProxyAuthCheckBox, getMessageFromBundle("messages/UIBundle", "proxy.manual.auth"));
+    loadButtonText(myHttpProxyAuthCheckBox, UIBundle.message("proxy.manual.auth"));
     panel1.add(myHttpProxyAuthCheckBox, new GridConstraints(3, 0, 1, 4, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                             GridConstraints.SIZEPOLICY_FIXED, null, null, null, 1, false));
     final JLabel label2 = new JLabel();
     label2.setHorizontalAlignment(4);
-    loadLabelText(label2, getMessageFromBundle("messages/UIBundle", "auth.login.label"));
+    loadLabelText(label2, UIBundle.message("auth.login.label"));
     panel1.add(label2, new GridConstraints(4, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                            GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 2, false));
     final JLabel label3 = new JLabel();
     label3.setHorizontalAlignment(4);
-    loadLabelText(label3, getMessageFromBundle("messages/UIBundle", "proxy.manual.exclude"));
+    loadLabelText(label3, UIBundle.message("proxy.manual.exclude"));
     panel1.add(label3, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                            GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 1, false));
     myHttpProxyLoginTextField = new JTextField();
@@ -256,7 +256,7 @@ public class ProxySettingsDialog extends DialogWrapper {
                                                           GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     final JLabel label4 = new JLabel();
     label4.setHorizontalAlignment(4);
-    loadLabelText(label4, getMessageFromBundle("messages/UIBundle", "proxy.manual.port"));
+    loadLabelText(label4, UIBundle.message("proxy.manual.port"));
     panel1.add(label4, new GridConstraints(1, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                            GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 2, false));
     myHttpProxyPortTextField = new PortField();
@@ -272,7 +272,7 @@ public class ProxySettingsDialog extends DialogWrapper {
                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     final JLabel label6 = new JLabel();
     label6.setHorizontalAlignment(4);
-    loadLabelText(label6, getMessageFromBundle("messages/UIBundle", "auth.password.label"));
+    loadLabelText(label6, UIBundle.message("auth.password.label"));
     panel1.add(label6, new GridConstraints(4, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                            GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 4, false));
     final JLabel label7 = new JLabel();
@@ -292,21 +292,21 @@ public class ProxySettingsDialog extends DialogWrapper {
                                                                                          TitledBorder.DEFAULT_POSITION, null, null));
     final JLabel label8 = new JLabel();
     label8.setHorizontalAlignment(4);
-    loadLabelText(label8, getMessageFromBundle("messages/UIBundle", "proxy.manual.host"));
+    loadLabelText(label8, UIBundle.message("proxy.manual.host"));
     myHttpsProxyPanel.add(label8, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                       GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
                                                       1, false));
     myHttpsProxyAuthCheckBox = new JCheckBox();
     myHttpsProxyAuthCheckBox.setMargin(new Insets(2, 1, 2, 2));
     myHttpsProxyAuthCheckBox.setSelected(false);
-    loadButtonText(myHttpsProxyAuthCheckBox, getMessageFromBundle("messages/UIBundle", "proxy.manual.auth"));
+    loadButtonText(myHttpsProxyAuthCheckBox, UIBundle.message("proxy.manual.auth"));
     myHttpsProxyPanel.add(myHttpsProxyAuthCheckBox, new GridConstraints(3, 0, 1, 4, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK |
                                                                         GridConstraints.SIZEPOLICY_CAN_GROW,
                                                                         GridConstraints.SIZEPOLICY_FIXED, null, null, null, 1, false));
     final JLabel label9 = new JLabel();
     label9.setHorizontalAlignment(4);
-    loadLabelText(label9, getMessageFromBundle("messages/UIBundle", "proxy.manual.exclude"));
+    loadLabelText(label9, UIBundle.message("proxy.manual.exclude"));
     myHttpsProxyPanel.add(label9, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                       GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
                                                       1, false));
@@ -331,7 +331,7 @@ public class ProxySettingsDialog extends DialogWrapper {
                                               GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     final JLabel label10 = new JLabel();
     label10.setHorizontalAlignment(4);
-    loadLabelText(label10, getMessageFromBundle("messages/UIBundle", "proxy.manual.port"));
+    loadLabelText(label10, UIBundle.message("proxy.manual.port"));
     myHttpsProxyPanel.add(label10, new GridConstraints(1, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                        GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
                                                        2, false));
@@ -349,13 +349,13 @@ public class ProxySettingsDialog extends DialogWrapper {
                                                        0, false));
     final JLabel label12 = new JLabel();
     label12.setHorizontalAlignment(4);
-    loadLabelText(label12, getMessageFromBundle("messages/UIBundle", "auth.password.label"));
+    loadLabelText(label12, UIBundle.message("auth.password.label"));
     myHttpsProxyPanel.add(label12, new GridConstraints(4, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                        GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
                                                        4, false));
     final JLabel label13 = new JLabel();
     label13.setHorizontalAlignment(4);
-    loadLabelText(label13, getMessageFromBundle("messages/UIBundle", "auth.login.label"));
+    loadLabelText(label13, UIBundle.message("auth.login.label"));
     myHttpsProxyPanel.add(label13, new GridConstraints(4, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                        GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
                                                        2, false));
@@ -394,69 +394,21 @@ public class ProxySettingsDialog extends DialogWrapper {
     label13.setLabelFor(myHttpsProxyLoginTextField);
   }
 
-  private static Method cachedGetBundleMethod = null;
-
-  private String getMessageFromBundle(String path, String key) {
-    ResourceBundle bundle;
-    try {
-      Class<?> thisClass = this.getClass();
-      if (cachedGetBundleMethod == null) {
-        Class<?> dynamicBundleClass = thisClass.getClassLoader().loadClass("com.intellij.DynamicBundle");
-        cachedGetBundleMethod = dynamicBundleClass.getMethod("getBundle", String.class, Class.class);
-      }
-      bundle = (ResourceBundle)cachedGetBundleMethod.invoke(null, path, thisClass);
-    }
-    catch (Exception e) {
-      bundle = ResourceBundle.getBundle(path);
-    }
-    return bundle.getString(key);
-  }
-
   private void loadLabelText(JLabel component, String text) {
-    StringBuffer result = new StringBuffer();
-    boolean haveMnemonic = false;
-    char mnemonic = '\0';
-    int mnemonicIndex = -1;
-    for (int i = 0; i < text.length(); i++) {
-      if (text.charAt(i) == '&') {
-        i++;
-        if (i == text.length()) break;
-        if (!haveMnemonic && text.charAt(i) != '&') {
-          haveMnemonic = true;
-          mnemonic = text.charAt(i);
-          mnemonicIndex = result.length();
-        }
-      }
-      result.append(text.charAt(i));
-    }
-    component.setText(result.toString());
-    if (haveMnemonic) {
-      component.setDisplayedMnemonic(mnemonic);
-      component.setDisplayedMnemonicIndex(mnemonicIndex);
+    TextWithMnemonic textWithMnemonic = TextWithMnemonic.parse(text);
+    component.setText(textWithMnemonic.getText());
+    if (textWithMnemonic.hasMnemonic()) {
+      component.setDisplayedMnemonic(textWithMnemonic.getMnemonicCode());
+      component.setDisplayedMnemonicIndex(textWithMnemonic.getMnemonicIndex());
     }
   }
 
   private void loadButtonText(AbstractButton component, String text) {
-    StringBuffer result = new StringBuffer();
-    boolean haveMnemonic = false;
-    char mnemonic = '\0';
-    int mnemonicIndex = -1;
-    for (int i = 0; i < text.length(); i++) {
-      if (text.charAt(i) == '&') {
-        i++;
-        if (i == text.length()) break;
-        if (!haveMnemonic && text.charAt(i) != '&') {
-          haveMnemonic = true;
-          mnemonic = text.charAt(i);
-          mnemonicIndex = result.length();
-        }
-      }
-      result.append(text.charAt(i));
-    }
-    component.setText(result.toString());
-    if (haveMnemonic) {
-      component.setMnemonic(mnemonic);
-      component.setDisplayedMnemonicIndex(mnemonicIndex);
+    TextWithMnemonic textWithMnemonic = TextWithMnemonic.parse(text);
+    component.setText(textWithMnemonic.getText());
+    if (textWithMnemonic.hasMnemonic()) {
+      component.setMnemonic(textWithMnemonic.getMnemonicCode());
+      component.setDisplayedMnemonicIndex(textWithMnemonic.getMnemonicIndex());
     }
   }
 
