@@ -21,13 +21,15 @@ import com.intellij.openapi.diagnostic.Logger
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.exists
+import kotlin.io.path.isDirectory
 
 
 fun hasAndroidManifest(contentRoot: Path): Boolean {
   return try {
     Files.list(contentRoot).anyMatch { childProjectDir ->
-      childProjectDir.resolve("src/main/AndroidManifest.xml").exists()
-      || childProjectDir.resolve("src/androidMain/AndroidManifest.xml").exists()
+      childProjectDir.isDirectory()
+      && (childProjectDir.hasAndroidManifestImpl()
+      || Files.list(childProjectDir).anyMatch { grandChildProjectDir -> grandChildProjectDir.hasAndroidManifestImpl() })
     }
   }
   catch (e: Exception) {
@@ -35,3 +37,7 @@ fun hasAndroidManifest(contentRoot: Path): Boolean {
     false
   }
 }
+
+private fun Path.hasAndroidManifestImpl(): Boolean =
+  resolve("src/main/AndroidManifest.xml").exists()
+  || resolve("src/androidMain/AndroidManifest.xml").exists()
