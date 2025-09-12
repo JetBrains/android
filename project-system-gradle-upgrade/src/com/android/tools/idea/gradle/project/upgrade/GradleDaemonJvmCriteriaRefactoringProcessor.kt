@@ -105,7 +105,7 @@ class GradleDaemonJvmCriteriaRefactoringProcessor : AgpUpgradeComponentRefactori
     private val externalProjectPath: @SystemIndependent String,
   ) : GradleBuildModelUsageInfo(element) {
     override fun getTooltipText(): String = AndroidBundle.message(
-      "project.upgrade.gradleVersionUsageInfo.tooltipText", javaVersion.feature)
+      "project.upgrade.gradleDaemonJvmCriteria.enable.tooltipText", javaVersion.feature)
 
     override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
       GradleDaemonJvmCriteriaTemplatesManager.generatePropertiesFile(javaVersion, externalProjectPath)

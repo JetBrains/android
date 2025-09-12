@@ -64,7 +64,7 @@ class DeprecatedLibraryTargetSdkRefactoringProcessor : AgpUpgradeComponentRefact
   override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor = object : UsageViewDescriptorAdapter() {
     override fun getElements(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
     override fun getProcessedElementsHeader() =
-      AndroidBundle.message("android.refactoring.migrateto.resourceview.header")
+      AndroidBundle.message("project.upgrade.deprecatedLibraryTargetSdk.commandName")
   }
 
   companion object {
