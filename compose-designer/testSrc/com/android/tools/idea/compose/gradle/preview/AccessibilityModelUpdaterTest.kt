@@ -40,6 +40,10 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import java.awt.BorderLayout
+import java.awt.Dimension
+import javax.swing.JPanel
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
@@ -47,17 +51,12 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.awt.BorderLayout
-import java.awt.Dimension
-import javax.swing.JPanel
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * Returns a string with the form "file line:column" for the given [RangeMarker]. This is easier to
  * maintain in tests that using the absolute offset.
  */
 private fun OpenFileDescriptor.toFileLineAndColumn(): String {
-  val rangeMarker = this.rangeMarker!!
   val line = rangeMarker.document.getLineNumber(this.offset)
   val column = this.offset - rangeMarker.document.getLineStartOffset(line)
 
@@ -164,7 +163,7 @@ class AccessibilityModelUpdaterTest {
     assertEquals(139, textViewComponent.w)
     assertEquals(210, textViewComponent.y)
     val textViewNavigatable = textViewComponent.navigatable as OpenFileDescriptor
-    textViewNavigatable.rangeMarker!!.document.getLineNumber(textViewNavigatable.offset)
+    textViewNavigatable.rangeMarker.document.getLineNumber(textViewNavigatable.offset)
     assertEquals("MainActivity.kt 49:12", textViewNavigatable.toFileLineAndColumn())
 
     children = children[1].children
