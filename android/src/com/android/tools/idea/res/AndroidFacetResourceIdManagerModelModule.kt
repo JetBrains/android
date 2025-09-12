@@ -16,6 +16,7 @@
 package com.android.tools.idea.res
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.res.ResourceNamespacing
 import com.android.tools.res.ids.ResourceIdManagerModelModule
 import com.intellij.openapi.module.Module
@@ -39,4 +40,7 @@ class AndroidFacetResourceIdManagerModelModule(module: Module) : ResourceIdManag
 
   override val useRBytecodeParsing: Boolean
     get() = StudioFlags.USE_BYTECODE_R_CLASS_PARSING.get()
+
+  override val applicationRClassConstantIds: Boolean
+    get() = androidFacet.getModuleSystem().applicationRClassConstantIds
 }

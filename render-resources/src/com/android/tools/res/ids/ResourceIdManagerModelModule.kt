@@ -28,6 +28,9 @@ interface ResourceIdManagerModelModule {
    */
   val useRBytecodeParsing: Boolean
 
+  /** Whether the R class in applications and dynamic features are constant. */
+  val applicationRClassConstantIds: Boolean
+
   companion object {
     @JvmOverloads
     @JvmStatic
@@ -35,6 +38,7 @@ interface ResourceIdManagerModelModule {
       override val isAppOrFeature: Boolean = true
       override val namespacing: ResourceNamespacing = ResourceNamespacing.DISABLED
       override val useRBytecodeParsing: Boolean = useRBytecodeParsing
+      override val applicationRClassConstantIds: Boolean = true
     }
   }
 }

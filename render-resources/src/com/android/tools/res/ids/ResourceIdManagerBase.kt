@@ -427,7 +427,7 @@ open class ResourceIdManagerBase internal constructor(
 
   override val finalIdsUsed: Boolean
     get() {
-      return module.isAppOrFeature && module.namespacing == ResourceNamespacing.DISABLED
+      return module.isAppOrFeature && module.namespacing == ResourceNamespacing.DISABLED && module.applicationRClassConstantIds
     }
 
   @Synchronized
