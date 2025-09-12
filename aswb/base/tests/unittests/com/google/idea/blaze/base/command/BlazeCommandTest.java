@@ -47,7 +47,9 @@ public class BlazeCommandTest extends BlazeTestCase {
   @Test
   public void addedFlagsShouldGoAtStart() {
     List<String> flagsCommand =
-        BlazeCommand.builder(FakeBuildInvoker.builder().binaryPath("/usr/bin/blaze").build(), BlazeCommandName.RUN)
+        BlazeCommand.builder(
+          FakeBuildInvoker.builder().invokeCommand(ImmutableList.of("/usr/bin/blaze")).build(),
+          BlazeCommandName.RUN)
             .addTargets(Label.create("//a:b"))
             .addBlazeFlags("--flag1", "--flag2")
             .addExeFlags("--exeFlag1", "--exeFlag2")
@@ -60,7 +62,9 @@ public class BlazeCommandTest extends BlazeTestCase {
   @Test
   public void targetsShouldGoAfterBlazeFlagsAndDoubleHyphen() {
     List<String> command =
-        BlazeCommand.builder(FakeBuildInvoker.builder().binaryPath("/usr/bin/blaze").build(), BlazeCommandName.RUN)
+        BlazeCommand.builder(
+          FakeBuildInvoker.builder().invokeCommand(ImmutableList.of("/usr/bin/blaze")).build(),
+          BlazeCommandName.RUN)
             .addTargets(Label.create("//a:b"), Label.create("//c:d"))
             .addBlazeFlags("--flag1", "--flag2")
             .addExeFlags("--exeFlag1", "--exeFlag2")
@@ -75,7 +79,10 @@ public class BlazeCommandTest extends BlazeTestCase {
   @Test
   public void exeFlagsShouldGoLast() {
     List<String> command =
-        BlazeCommand.builder(FakeBuildInvoker.builder().binaryPath("/usr/bin/blaze").build(), BlazeCommandName.RUN)
+        BlazeCommand.builder(
+          FakeBuildInvoker.builder().invokeCommand(
+            ImmutableList.of("/usr/bin/blaze")).build(),
+          BlazeCommandName.RUN)
             .addTargets(Label.create("//a:b"), Label.create("//c:d"))
             .addBlazeFlags("--flag1", "--flag2")
             .addExeFlags("--exeFlag1", "--exeFlag2")
@@ -88,7 +95,10 @@ public class BlazeCommandTest extends BlazeTestCase {
   @Test
   public void maintainUserOrderingOfTargets() {
     List<String> command =
-        BlazeCommand.builder(FakeBuildInvoker.builder().binaryPath("/usr/bin/blaze").build(), BlazeCommandName.RUN)
+        BlazeCommand.builder(
+          FakeBuildInvoker.builder().invokeCommand(
+            ImmutableList.of("/usr/bin/blaze")).build(),
+          BlazeCommandName.RUN)
             .addTargets(
                 Label.create("//a:b"),
                 TargetExpression.fromStringSafe("-//e:f"),
@@ -118,7 +128,10 @@ public class BlazeCommandTest extends BlazeTestCase {
   @Test
   public void binaryAndCommandShouldComeFirst() {
     List<String> command =
-        BlazeCommand.builder(FakeBuildInvoker.builder().binaryPath("/usr/bin/blaze").build(), BlazeCommandName.BUILD)
+        BlazeCommand.builder(
+          FakeBuildInvoker.builder().invokeCommand(
+            ImmutableList.of("/usr/bin/blaze")).build(),
+          BlazeCommandName.BUILD)
             .addBlazeFlags("--flag")
             .addExeFlags("--exeFlag")
             .build()
