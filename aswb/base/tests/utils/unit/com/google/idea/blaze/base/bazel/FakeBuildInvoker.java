@@ -30,6 +30,7 @@ import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.exception.BuildException;
 import com.intellij.execution.process.ProcessHandler;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nullable;
 
@@ -40,7 +41,7 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
   public static Builder builder() {
     return new AutoValue_FakeBuildInvoker.Builder()
         .type(BuildBinaryType.NONE)
-        .binaryPath("")
+        .invokeCommand(ImmutableList.of(""))
         .capabilities(ImmutableSet.of())
         .buildSystem(FakeBuildSystem.builder(BuildSystemName.Blaze).build());
   }
@@ -49,7 +50,7 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
   public abstract BuildBinaryType getType();
 
   @Override
-  public abstract String getBinaryPath();
+  public abstract List<String> getInvokeCommand();
 
   @Override
   public boolean getCanOverrideBinaryPath() {
@@ -142,7 +143,7 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
 
     public abstract Builder type(BuildBinaryType type);
 
-    public abstract Builder binaryPath(String binaryPath);
+    public abstract Builder invokeCommand(List<String> invokeCommand);
 
     public abstract Builder capabilities(com.google.common.collect.ImmutableSet<Capability> value);
 

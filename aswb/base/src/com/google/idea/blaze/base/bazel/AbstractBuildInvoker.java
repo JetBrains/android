@@ -40,20 +40,20 @@ import javax.annotation.Nullable;
  */
 public abstract class AbstractBuildInvoker implements BuildInvoker {
   protected final Project project;
-  private final Supplier<String> binaryPath;
+  private final Supplier<List<String>> invokeCommand;
   private final BuildSystem buildSystem;
   private BlazeInfo blazeInfo;
 
   public AbstractBuildInvoker(
-      Project project, BuildSystem buildSystem, Supplier<String> binaryPath) {
+      Project project, BuildSystem buildSystem, Supplier<List<String>> invokeCommand) {
     this.project = project;
     this.buildSystem = buildSystem;
-    this.binaryPath = binaryPath;
+    this.invokeCommand = invokeCommand;
   }
 
   @Override
-  public String getBinaryPath() {
-    return this.binaryPath.get();
+  public List<String> getInvokeCommand() {
+    return this.invokeCommand.get();
   }
 
   @Override
@@ -78,7 +78,7 @@ public abstract class AbstractBuildInvoker implements BuildInvoker {
       return result.result();
     }
     throw new SyncFailedException(
-      String.format("Failed to run `%s info`", getBinaryPath()), result.exception());
+      String.format("Failed to run `%s info`", getInvokeCommand()), result.exception());
   }
 
   private ListenableFuture<BlazeInfo> runBlazeInfo(BlazeContext blazeContext) {

@@ -53,6 +53,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.List;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
@@ -61,10 +62,10 @@ public abstract class AbstractLocalInvoker extends AbstractBuildInvoker {
   private static final Logger logger = Logger.getInstance(AbstractLocalInvoker.class);
 
   protected AbstractLocalInvoker(
-      Project project,
-      BuildSystem buildSystem,
-      Supplier<String> binaryPath) {
-    super(project, buildSystem, binaryPath);
+    Project project,
+    BuildSystem buildSystem,
+    Supplier<List<String>> invokeCommand) {
+    super(project, buildSystem, invokeCommand);
   }
 
   @Override

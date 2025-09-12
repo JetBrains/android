@@ -430,8 +430,8 @@ public class BlazeBuildTargetSharderTest extends BlazeTestCase {
     }
 
     @Override
-    public String getBinaryPath() {
-      return "";
+    public List<String> getInvokeCommand() {
+      return ImmutableList.of("");
     }
 
     @Override
