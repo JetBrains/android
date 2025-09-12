@@ -102,21 +102,23 @@ class ExceptionDataCollection {
           methodName = matchResult.groupValues[1]
 
         return@joinTo if (methodName != "") {
-          val modulePart = it.moduleName?.let { moduleName ->
+          val classLoaderName = it.classLoaderName?.let { "$it/" }?: ""
+          var modulePart = it.moduleName?.let { moduleName ->
             if (it.moduleVersion != null) "$moduleName@${it.moduleVersion}/"
             else "$moduleName/"
-          }
-          "$modulePart${it.className}.$methodName"
+          }?: ""
+          "$classLoaderName$modulePart${it.className}.$methodName"
         }
         else
           ""
       }
       val className = if (isLoggerError) LOGGER_ERROR_MESSAGE_EXCEPTION else rootCause.javaClass.name
+      val classLoaderName = stackTrace[0].classLoaderName?.let { "${stackTrace[0].classLoaderName}/" } ?: ""
       val modulePart = stackTrace[0].moduleName?.let { moduleName ->
         if (stackTrace[0].moduleVersion != null) "$moduleName@${stackTrace[0].moduleVersion}/"
         else "$moduleName/"
       } ?: ""
-      val signaturePrefix = "$className at $modulePart${stackTrace[0].className}.${stackTrace[0].methodName}"
+      val signaturePrefix = "$className at $classLoaderName$modulePart${stackTrace[0].className}.${stackTrace[0].methodName}"
       sb.append(signaturePrefix)
       val hashBytes = digest.digest(sb.toString().toByteArray(Charset.forName("UTF-8")))
       val hash = hashBytes.joinToString("") { it.toInt().and(0xff).toString(16).padStart(2, '0') }.substring(0, 8)

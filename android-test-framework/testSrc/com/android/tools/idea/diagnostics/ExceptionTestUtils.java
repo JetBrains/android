@@ -106,9 +106,18 @@ public class ExceptionTestUtils {
     }
 
     List<StackTraceElement> frames = new ArrayList<>();
-    Pattern outerPattern = Pattern.compile("\tat (?:([^/]+)/)?(.*)\\.([^.]*)\\((.*)\\)");
+    Pattern outerPattern = Pattern.compile("\tat (?:([^$/]+)/)?(?:([^$/]+)/)?(.*)\\.([^.]*)\\((.*)\\)");
+    // Group 1: Class Loader name (in case no class loader at all, this group will be module part, and group 2 will be null) (optional)
+    // Group 2: Module part (both module name and version e.g. java.desktop@21.0.8) (optional)
+    // Group 3: Class name
+    // Group 4: Method name
+    // Group 5: Inner part (e.g., "Native Method", "Unknown Source", "File.java:123")
     Pattern innerPattern = Pattern.compile("(.*):(\\d*)");
+    // Group 1: File name
+    // Group 2: Line number
     Pattern modulePattern = Pattern.compile("^([^@]+)(?:@(.*))?$");
+    // Group 1: Module name
+    // Group 2: Module version (optional)
     while (iterator.hasNext()) {
       String line = iterator.next();
       if (line.isEmpty()) {
@@ -120,29 +129,35 @@ public class ExceptionTestUtils {
           "Line " + line + " does not match expected stacktrace pattern");
       }
       else {
-        String modulePart = outerMatcher.group(1);
-        String clz = outerMatcher.group(2);
-        String method = outerMatcher.group(3);
-        String inner = outerMatcher.group(4);
+        String classLoaderOrModulePart = outerMatcher.group(1);
+        String modulePartIfClassLoaderPresent = outerMatcher.group(2);
+        String clz = outerMatcher.group(3);
+        String method = outerMatcher.group(4);
+        String inner = outerMatcher.group(5);
         String moduleName = null;
         String moduleVersion = null;
-        if (modulePart != null) {
-          Matcher moduleMatcher = modulePattern.matcher(modulePart);
-          if (!moduleMatcher.matches()) {
-            throw new RuntimeException(
-              "modulePart " + modulePart + " does not match expected module part pattern");
-          } else {
-            moduleName = moduleMatcher.group(1);
-            moduleVersion = moduleMatcher.group(2);
-          }
+        String actualClassLoaderName = null;
+        Matcher moduleMatcher = null;
 
+        if (classLoaderOrModulePart != null) {
+          if (modulePartIfClassLoaderPresent != null) {
+            moduleMatcher = modulePattern.matcher(modulePartIfClassLoaderPresent);
+            actualClassLoaderName = classLoaderOrModulePart;
+          }
+          else {
+            moduleMatcher = modulePattern.matcher(classLoaderOrModulePart);
+          }
+        }
+        if (moduleMatcher != null && moduleMatcher.matches()) {
+          moduleName = moduleMatcher.group(1);
+          moduleVersion = moduleMatcher.group(2);
         }
         switch (inner) {
           case "Native Method":
-            frames.add(new StackTraceElement(null, moduleName, moduleVersion, clz, method, null, -2));
+            frames.add(new StackTraceElement(actualClassLoaderName, moduleName, moduleVersion, clz, method, null, -2));
             break;
           case "Unknown Source":
-            frames.add(new StackTraceElement(null, moduleName, moduleVersion, clz, method, null, -1));
+            frames.add(new StackTraceElement(actualClassLoaderName, moduleName, moduleVersion, clz, method, null, -1));
             break;
           default:
             Matcher innerMatcher = innerPattern.matcher(inner);
@@ -153,7 +168,7 @@ public class ExceptionTestUtils {
             else {
               String file = innerMatcher.group(1);
               int lineNum = Integer.parseInt(innerMatcher.group(2));
-              frames.add(new StackTraceElement(null, moduleName, moduleVersion, clz, method, file, lineNum));
+              frames.add(new StackTraceElement(actualClassLoaderName, moduleName, moduleVersion, clz, method, file, lineNum));
             }
             break;
         }

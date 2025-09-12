@@ -212,7 +212,7 @@ internal class ExceptionDataCollectionTest : LightPlatformTestCase() {
       "\tat com.intellij.ide.actions.GotoActionAction.lambda\$performAction\$2(GotoActionAction.java:108)\n" +
       "\tat java.desktop/java.awt.EventDispatchThread.run(EventDispatchThread.java:90)\n"
     val ex2 = ExceptionTestUtils.createExceptionFromDesc(ex2Description)
-    const val ex2Sig = "java.lang.Exception at com.intellij.diagnostic.DropAnErrorAction.actionPerformed-b039f534"
+    const val ex2Sig = "java.lang.Exception at com.intellij.diagnostic.DropAnErrorAction.actionPerformed-2f166b9f"
 
     const val exNoStackDescription =
       "java.lang.Exception: sample message\n"
@@ -227,17 +227,24 @@ internal class ExceptionDataCollectionTest : LightPlatformTestCase() {
     val ex3Sig = "java.lang.Exception at com.android.SomeClass.someMethod-d3f18885"
 
     const val ex4Description =
-      "java.lang.RuntimeException: exception just for calculate signature\n" +
-      "\tat example.module/com.android.SomeClass.someMethod(FileName.java:100)\n" +
-      "\tat example.other.module/com.android.OtherClass.utilityFunction(OtherModule.java:26)\n"
+      "java.lang.OutOfMemoryError: <elided>\n" +
+      "\tat java.desktop/sun.java2d.metal.MTLSurfaceData.initSurfaceNow(Unknown Source)\n" +
+      "\tat java.desktop/sun.java2d.metal.MTLSurfaceData\$1.run(Unknown Source)\n" +
+      "\tat java.desktop/sun.java2d.metal.MTLRenderQueue\$QueueFlusher.run(Unknown Source)\n" +
+      "\tat java.base/java.lang.Thread.run(Unknown Source)\n"
     val ex4 = ExceptionTestUtils.createExceptionFromDesc(ex4Description)
-    val ex4Sig = "java.lang.RuntimeException at example.module/com.android.SomeClass.someMethod-150e5d0d"
+    val ex4Sig = "java.lang.OutOfMemoryError at java.desktop/sun.java2d.metal.MTLSurfaceData.initSurfaceNow-8edba189"
 
     const val ex5Description =
-      "java.lang.RuntimeException: exception just for calculate signature with module version\n" +
-      "\tat example.module@21.0.8/com.android.SomeClass.someMethod(FileName.java:100)\n" +
-      "\tat example.other.module/com.android.OtherClass.utilityFunction(OtherModule.java:26)\n"
+      "java.lang.RuntimeException: AWT-EventQueue-0\" RUNNABLE Frozen for 12secs\n" +
+      "\tat app/jcef/org.cef.callback.CefSchemeRegistrar_N.N_AddCustomScheme(Native Method)\n" +
+      "\tat app/jcef/org.cef.callback.CefSchemeRegistrar_N.addCustomScheme(CefSchemeRegistrar_N.java:13)\n" +
+      "\tat com.intellij.ui.jcef.JBCefSourceSchemeHandlerFactory.registerCustomScheme(JBCefSourceSchemeHandlerFactory.java:16)\n" +
+      "\tat com.intellij.ui.jcef.JBCefApp\$MyCefAppHandler.onRegisterCustomSchemes(JBCefApp.java:566)\n" +
+      "\tat app/jcef/org.cef.CefApp.N_Initialize(Native Method)\n" +
+      "\tat app/jcef/org.cef.CefApp\$3.lambda\$run\$0(CefApp.java:452)\n" +
+      "\tat app/jcef/org.cef.CefApp\$3\$\$Lambda\$5988/0x0000000101c23900.call(Unknown Source)\n"
     val ex5= ExceptionTestUtils.createExceptionFromDesc(ex5Description)
-    val ex5Sig = "java.lang.RuntimeException at example.module@21.0.8/com.android.SomeClass.someMethod-f0f5ebef"
+    val ex5Sig = "java.lang.RuntimeException at app/jcef/org.cef.callback.CefSchemeRegistrar_N.N_AddCustomScheme-7b65b85f"
   }
 }
