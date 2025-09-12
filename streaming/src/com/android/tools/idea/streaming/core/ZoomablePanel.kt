@@ -69,8 +69,10 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyChangeList
    */
   private var fractionalScaleRange: Double = 0.0
 
+  /** Returns the size of the content at 100% zoom.*/
   protected abstract fun computeActualSize(): Dimension
 
+  /** Returns true if the panel contains zoomable content. */
   protected abstract fun canZoom(): Boolean
 
   protected open fun onScreenScaleChanged() {}
