@@ -83,7 +83,7 @@ public class GraphToProjectConverterTest {
             Path.of("java/com/multiple/BNotThis.java"),
             Path.of("java/com/multiple/nest/BNorThis.java"));
 
-    ImmutableList<Path> chosenFiles = converter.chooseTopLevelFiles(files, buildFiles);
+    final var chosenFiles = converter.chooseTopLevelFiles(files, buildFiles);
 
     assertThat(chosenFiles)
         .containsExactly(
@@ -123,7 +123,7 @@ public class GraphToProjectConverterTest {
 
     GraphToProjectConverter converter =
         GraphToProjectConvertersForTests.builder().setFileExistenceCheck(presentFiles::contains).build();
-    ImmutableList<Path> chosenFiles = converter.chooseTopLevelFiles(files, buildFiles);
+    final var chosenFiles = converter.chooseTopLevelFiles(files, buildFiles);
 
     assertThat(chosenFiles)
         .containsExactly(
@@ -219,7 +219,7 @@ public class GraphToProjectConverterTest {
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
-    ImmutableMap<Path, ImmutableMap<Path, String>> rootSources =
+    final var rootSources =
         converter.calculateJavaRootSources(context, sourcePackages.keySet(), packages);
     assertThat(rootSources.keySet()).containsExactly(Path.of("java/com/test"));
     assertThat(rootSources.get(Path.of("java/com/test"))).containsExactly(Path.of(""), "com.test");
@@ -238,7 +238,7 @@ public class GraphToProjectConverterTest {
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
-    ImmutableMap<Path, ImmutableMap<Path, String>> rootSources =
+    final var rootSources =
         converter.calculateJavaRootSources(context, sourcePackages.keySet(), packages);
     assertThat(rootSources.keySet()).containsExactly(Path.of("java/com/test"));
     assertThat(rootSources.get(Path.of("java/com/test"))).containsExactly(Path.of(""), "com.test");
@@ -259,7 +259,7 @@ public class GraphToProjectConverterTest {
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
-    ImmutableMap<Path, ImmutableMap<Path, String>> rootSources =
+    final var rootSources =
         converter.calculateJavaRootSources(context, sourcePackages.keySet(), packages);
     assertThat(rootSources.keySet()).containsExactly(Path.of("java/com/test"));
     assertThat(rootSources.get(Path.of("java/com/test"))).containsExactly(Path.of(""), "com.test");
@@ -280,7 +280,7 @@ public class GraphToProjectConverterTest {
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
-    ImmutableMap<Path, ImmutableMap<Path, String>> rootSources =
+    final var rootSources =
         converter.calculateJavaRootSources(context, sourcePackages.keySet(), packages);
     assertThat(rootSources.keySet())
         .containsExactly(Path.of("java/com/app"), Path.of("java/com/lib"));
@@ -304,7 +304,7 @@ public class GraphToProjectConverterTest {
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
-    ImmutableMap<Path, ImmutableMap<Path, String>> rootSources =
+    final var rootSources =
         converter.calculateJavaRootSources(context, sourcePackages.keySet(), packages);
     assertThat(rootSources.keySet()).containsExactly(Path.of("java/com/test"));
     assertThat(rootSources.get(Path.of("java/com/test")))
@@ -329,7 +329,7 @@ public class GraphToProjectConverterTest {
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
-    ImmutableMap<Path, ImmutableMap<Path, String>> rootSources =
+    final var rootSources =
         converter.calculateJavaRootSources(context, sourcePackages.keySet(), packages);
     assertThat(rootSources.keySet()).containsExactly(Path.of("java/com/test"));
     assertThat(rootSources.get(Path.of("java/com/test"))).containsExactly(Path.of(""), "com.test");
@@ -350,7 +350,7 @@ public class GraphToProjectConverterTest {
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
-    ImmutableMap<Path, ImmutableMap<Path, String>> rootSources =
+    final var rootSources =
         converter.calculateJavaRootSources(context, sourcePackages.keySet(), packages);
     assertThat(rootSources.keySet()).containsExactly(Path.of("java/com/test"));
     assertThat(rootSources.get(Path.of("java/com/test"))).containsExactly(Path.of(""), "com.test");
@@ -371,7 +371,7 @@ public class GraphToProjectConverterTest {
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
-    ImmutableMap<Path, ImmutableMap<Path, String>> rootSources =
+    final var rootSources =
         converter.calculateJavaRootSources(context, sourcePackages.keySet(), packages);
     assertThat(rootSources.keySet()).containsExactly(Path.of("java/com/test"));
     assertThat(rootSources.get(Path.of("java/com/test")))
@@ -397,7 +397,7 @@ public class GraphToProjectConverterTest {
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
-    ImmutableMap<Path, ImmutableMap<Path, String>> rootSources =
+    final var rootSources =
         converter.calculateJavaRootSources(context, sourcePackages.keySet(), packages);
     assertThat(rootSources.keySet()).containsExactly(Path.of("third_party"));
     assertThat(rootSources.get(Path.of("third_party")))
@@ -422,7 +422,7 @@ public class GraphToProjectConverterTest {
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
-    ImmutableMap<Path, ImmutableMap<Path, String>> rootSources =
+    final var rootSources =
         converter.calculateJavaRootSources(context, sourcePackages.keySet(), packages);
     assertThat(rootSources.keySet()).containsExactly(Path.of("java/com/test"));
     assertThat(rootSources.get(Path.of("java/com/test")))
@@ -674,10 +674,10 @@ public class GraphToProjectConverterTest {
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
-    ImmutableMultimap<Path, Path> additionalProtoSourceFolders =
+    final var additionalProtoSourceFolders =
         converter.nonJavaSourceFolders(ImmutableSet.of(Path.of("myproject/protos/test.proto")));
     assertThat(additionalProtoSourceFolders)
-        .containsExactly(Path.of("myproject"), Path.of("protos"));
+        .containsExactly(Path.of("myproject"), ImmutableList.of(Path.of("protos")));
   }
 
   @Test
@@ -693,7 +693,7 @@ public class GraphToProjectConverterTest {
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
-    ImmutableMultimap<Path, Path> additionalProtoSourceFolders =
+    final var additionalProtoSourceFolders =
         converter.nonJavaSourceFolders(
             ImmutableSet.of(Path.of("myproject/excluded/protos/excluded.proto")));
     assertThat(additionalProtoSourceFolders).isEmpty();

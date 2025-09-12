@@ -47,7 +47,7 @@ public class ProjectProtos {
         new GraphToProjectConverter(
             EMPTY_PACKAGE_READER,
             new PackageReader.ParallelReader.SingleThreadedForTests(),
-            Predicates.alwaysTrue(),
+            v -> true,
             NOOP_CONTEXT,
             ProjectDefinition.builder()
                 .setProjectIncludes(ImmutableSet.of(workspaceImportDirectory))

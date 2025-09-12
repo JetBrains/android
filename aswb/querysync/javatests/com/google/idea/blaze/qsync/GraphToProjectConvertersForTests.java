@@ -86,7 +86,7 @@ abstract class GraphToProjectConvertersForTests {
       return new GraphToProjectConverter(
           info.packageReader(),
           new PackageReader.ParallelReader.SingleThreadedForTests(),
-          info.fileExistenceCheck(),
+          v -> info.fileExistenceCheck().test(v),
           NOOP_CONTEXT,
           ProjectDefinition.builder()
               .setProjectIncludes(info.projectIncludes())
