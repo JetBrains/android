@@ -33,11 +33,11 @@ class EnforceUniquePackageNameRefactoringProcessor : AbstractBooleanPropertyDefa
   override val oldDefault = false
 
   override val upgradeEventKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.UNIQUE_PACKAGE_NAMES
-  override val insertPropertyText = AgpUpgradeBundle.message("project.upgrade.enforceUniquePackageNames.enable.usageType")!!
-  override val tooltip = AgpUpgradeBundle.message("project.upgrade.enforceUniquePackageNames.tooltipText")!!
-  override val usageViewHeader = AgpUpgradeBundle.message("project.upgrade.enforceUniquePackageNames.usageView.header")!!
+  override val insertPropertyText = AgpUpgradeBundle.message("project.upgrade.enforceUniquePackageNames.enable.usageType")
+  override val tooltip = AgpUpgradeBundle.message("project.upgrade.enforceUniquePackageNames.tooltipText")
+  override val usageViewHeader = AgpUpgradeBundle.message("project.upgrade.enforceUniquePackageNames.usageView.header")
   override val necessityInfo = PointNecessity(AgpVersion.parse("9.0.0-alpha01"))
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.enforceUniquePackageNames"
-  override fun getCommandName() = AgpUpgradeBundle.message("project.upgrade.enforceUniquePackageNames.commandName")!!
-  override fun getShortDescription() = AgpUpgradeBundle.message("project.upgrade.enforceUniquePackageNames.shortDescription")!!
+  override fun getCommandName() = AgpUpgradeBundle.message("project.upgrade.enforceUniquePackageNames.commandName")
+  override fun getShortDescription() = AgpUpgradeBundle.message("project.upgrade.enforceUniquePackageNames.shortDescription")
 }

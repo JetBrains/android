@@ -31,11 +31,11 @@ class AppCompileTimeRClassDefaultRefactoringProcessor : AbstractBooleanPropertyD
   override val propertyKey = "android.enableAppCompileTimeRClass"
   override val oldDefault = false
   override val upgradeEventKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.ENABLE_APP_COMPILE_TIME_R_CLASS
-  override val insertPropertyText = AgpUpgradeBundle.message("project.upgrade.appCompileTimeRClass.enable.usageType")!!
-  override val tooltip = AgpUpgradeBundle.message("project.upgrade.appCompileTimeRClass.tooltipText")!!
-  override val usageViewHeader = AgpUpgradeBundle.message("project.upgrade.appCompileTimeRClass.usageView.header")!!
+  override val insertPropertyText = AgpUpgradeBundle.message("project.upgrade.appCompileTimeRClass.enable.usageType")
+  override val tooltip = AgpUpgradeBundle.message("project.upgrade.appCompileTimeRClass.tooltipText")
+  override val usageViewHeader = AgpUpgradeBundle.message("project.upgrade.appCompileTimeRClass.usageView.header")
   override val necessityInfo = PointNecessity(AgpVersion.parse("9.0.0-alpha01"))
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.appCompileTimeRClass"
-  override fun getCommandName() = AgpUpgradeBundle.message("project.upgrade.appCompileTimeRClass.commandName")!!
-  override fun getShortDescription() = AgpUpgradeBundle.message("project.upgrade.appCompileTimeRClass.shortDescription")!!
+  override fun getCommandName() = AgpUpgradeBundle.message("project.upgrade.appCompileTimeRClass.commandName")
+  override fun getShortDescription() = AgpUpgradeBundle.message("project.upgrade.appCompileTimeRClass.shortDescription")
 }

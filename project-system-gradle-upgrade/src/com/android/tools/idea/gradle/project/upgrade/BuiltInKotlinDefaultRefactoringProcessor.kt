@@ -37,11 +37,11 @@ class BuiltInKotlinDefaultRefactoringProcessor : AbstractBooleanPropertyDefaultR
   override val oldDefault = false
   override val necessityInfo = PointNecessity(AgpVersion.parse("9.0.0-alpha03"))
 
-  override val insertPropertyText = AgpUpgradeBundle.message("project.upgrade.builtInKotlin.default.usageType")!!
-  override val tooltip = AgpUpgradeBundle.message("project.upgrade.builtInKotlin.default.usageType")!!
-  override val usageViewHeader = AgpUpgradeBundle.message("project.upgrade.builtInKotlin.default.commandName")!!
+  override val insertPropertyText = AgpUpgradeBundle.message("project.upgrade.builtInKotlin.default.usageType")
+  override val tooltip = AgpUpgradeBundle.message("project.upgrade.builtInKotlin.default.usageType")
+  override val usageViewHeader = AgpUpgradeBundle.message("project.upgrade.builtInKotlin.default.commandName")
 
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.builtInKotlin.default"
-  override fun getCommandName() = AgpUpgradeBundle.message("project.upgrade.builtInKotlin.default.commandName")!!
-  override fun getShortDescription() = AgpUpgradeBundle.message("project.upgrade.builtInKotlin.default.shortDescription")!!
+  override fun getCommandName() = AgpUpgradeBundle.message("project.upgrade.builtInKotlin.default.commandName")
+  override fun getShortDescription() = AgpUpgradeBundle.message("project.upgrade.builtInKotlin.default.shortDescription")
 }
