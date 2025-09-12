@@ -1,4 +1,5 @@
 # Default ignored files
+/caches/deviceStreaming.xml
 /kotlin-statistics.xml
 /shelf/
 /workspace.xml
