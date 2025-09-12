@@ -49,52 +49,6 @@ data class IdeAndroidLibraryImpl(
   override val artifact: FileImpl?,
   override val symbolFile: FileImpl
 ) : IdeUnresolvedAndroidLibrary, Serializable {
-  constructor(
-    artifactAddress: String,
-    component: Component?,
-    name: String,
-    folder: File,
-    manifest: File,
-    compileJarFiles: List<File>,
-    runtimeJarFiles: List<File>,
-    resFolder: File,
-    resStaticLibrary: File?,
-    assetsFolder: File,
-    jniFolder: File,
-    aidlFolder: File,
-    renderscriptFolder: File,
-    proguardRules: File,
-    lintJar: File?,
-    srcJars: List<File>,
-    docJar: File?,
-    externalAnnotations: File,
-    publicResources: File,
-    artifact: File?,
-    symbolFile: File
-  ) : this(
-    artifactAddress,
-    component,
-    name,
-    folder.toImpl(),
-    manifest.path.translate(folder),
-    compileJarFiles.map { it.path.translate(folder) },
-    runtimeJarFiles.map { it.path.translate(folder) },
-    resFolder.path.translate(folder),
-    resStaticLibrary?.path?.translate(folder),
-    assetsFolder.path.translate(folder),
-    jniFolder.path.translate(folder),
-    aidlFolder.path.translate(folder),
-    renderscriptFolder.path.translate(folder),
-    proguardRules.path.translate(folder),
-    lintJar?.path?.translate(folder),
-    srcJars.map { it.path.translate(folder) },
-    docJar?.path?.translate(folder),
-    externalAnnotations.path.translate(folder),
-    publicResources.path.translate(folder),
-    artifact?.path?.translate(folder),
-    symbolFile.path.translate(folder)
-  )
-
   // Used for serialization by the IDE.
   @VisibleForTesting
   constructor() : this(
