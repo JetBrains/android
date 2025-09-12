@@ -74,7 +74,7 @@ class ShadersDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcess
     return usages.toTypedArray()
   }
 
-  override fun getCommandName() = AgpUpgradeBundle.message("project.upgrade.shadersDefaultRefactoringProcessor.commandName")
+  override fun getCommandName() = AgpUpgradeBundle.message("shadersDefaultRefactoringProcessor.commandName")
 
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.SHADERS_DEFAULT)
@@ -85,7 +85,7 @@ class ShadersDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcess
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("project.upgrade.shadersDefaultRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("shadersDefaultRefactoringProcessor.usageView.header")
     }
   }
 
@@ -93,7 +93,7 @@ class ShadersDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcess
 
   companion object {
     val INSERT_SHADERS_DIRECTIVE =
-      UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.shadersDefaultRefactoringProcessor.enable.usageType"))
+      UsageType(AgpUpgradeBundle.messagePointer("shadersDefaultRefactoringProcessor.enable.usageType"))
   }
 }
 
@@ -101,7 +101,7 @@ class ShadersEnableUsageInfo(
   element: WrappedPsiElement,
   private val resultModel: GradlePropertyModel,
 ): GradleBuildModelUsageInfo(element) {
-  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.shadersBuildFeature.enable.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("shadersBuildFeature.enable.tooltipText")
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     resultModel.setValue(true)

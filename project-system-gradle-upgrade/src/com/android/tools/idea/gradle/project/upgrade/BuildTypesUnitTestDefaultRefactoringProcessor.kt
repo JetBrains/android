@@ -41,13 +41,13 @@ class BuildTypesUnitTestDefaultRefactoringProcessor : AbstractBooleanPropertyDef
   override val propertyKey = "android.onlyEnableUnitTestForTheTestedBuildType"
   override val oldDefault = false
   override val upgradeEventKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.ONLY_ENABLE_UNIT_TEST_BY_DEFAULT_FOR_THE_TESTED_BUILD_TYPE
-  override val insertPropertyText = AgpUpgradeBundle.message("project.upgrade.buildTypesUnitTest.enable.usageType")
-  override val tooltip = AgpUpgradeBundle.message("project.upgrade.buildTypesUnitTest.tooltipText")
-  override val usageViewHeader = AgpUpgradeBundle.message("project.upgrade.buildTypesUnitTest.usageView.header")
+  override val insertPropertyText = AgpUpgradeBundle.message("buildTypesUnitTest.enable.usageType")
+  override val tooltip = AgpUpgradeBundle.message("buildTypesUnitTest.tooltipText")
+  override val usageViewHeader = AgpUpgradeBundle.message("buildTypesUnitTest.usageView.header")
   override val necessityInfo = PointNecessity(AgpVersion.parse("9.0.0-alpha01"))
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.onlyEnableUnitTestForTheTestedBuildType"
-  override fun getCommandName() = AgpUpgradeBundle.message("project.upgrade.buildTypesUnitTest.commandName")
-  override fun getShortDescription() = AgpUpgradeBundle.message("project.upgrade.buildTypesUnitTest.shortDescription")
+  override fun getCommandName() = AgpUpgradeBundle.message("buildTypesUnitTest.commandName")
+  override fun getShortDescription() = AgpUpgradeBundle.message("buildTypesUnitTest.shortDescription")
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = ArrayList<UsageInfo>()
 
@@ -92,6 +92,6 @@ class BuildTypesUnitTestDefaultRefactoringProcessor : AbstractBooleanPropertyDef
   }
 
   companion object {
-    val INSERT_PROPERTY = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.buildTypesUnitTest.enable.usageType"))
+    val INSERT_PROPERTY = UsageType(AgpUpgradeBundle.messagePointer("buildTypesUnitTest.enable.usageType"))
   }
 }

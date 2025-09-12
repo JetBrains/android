@@ -97,7 +97,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GRADLE_PLUGINS)
 
   override fun getCommandName(): String =
-    AgpUpgradeBundle.message("project.upgrade.gradlePluginsRefactoringProcessor.commandName")
+    AgpUpgradeBundle.message("gradlePluginsRefactoringProcessor.commandName")
 
   override fun getShortDescription(): String =
     """
@@ -115,14 +115,14 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
       }
 
       override fun getProcessedElementsHeader() =
-        AgpUpgradeBundle.message("project.upgrade.gradlePluginsRefactoringProcessor.usageView.header")
+        AgpUpgradeBundle.message("gradlePluginsRefactoringProcessor.usageView.header")
     }
   }
 
   @Suppress("FunctionName")
   companion object {
     val WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE =
-      UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.gradlePluginsRefactoringProcessor.wellKnownGradlePluginUsageType"))
+      UsageType(AgpUpgradeBundle.messagePointer("gradlePluginsRefactoringProcessor.wellKnownGradlePluginUsageType"))
 
     fun `kotlin-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {

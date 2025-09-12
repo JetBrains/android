@@ -21,19 +21,19 @@ import com.intellij.usages.impl.rules.UsageType
 
 val SOURCE_SET_JNI_INFO = RemovePropertiesInfo(
   propertyModelListGetter = { android().sourceSets().map { sourceSet -> sourceSet.jni() } },
-  tooltipTextSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.sourceSetJniUsageInfo.tooltipText"),
-  usageType = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.sourceSetJniUsageInfo.usageType"))
+  tooltipTextSupplier = AgpUpgradeBundle.messagePointer("sourceSetJniUsageInfo.tooltipText"),
+  usageType = UsageType(AgpUpgradeBundle.messagePointer("sourceSetJniUsageInfo.usageType"))
 )
 
 val REMOVE_SOURCE_SET_JNI_INFO = PropertiesOperationsRefactoringInfo(
   optionalFromVersion = AgpVersion.parse("7.0.0-alpha06"),
   requiredFromVersion = AgpVersion.parse("8.0.0"),
-  commandNameSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.removeSourceSetJniRefactoringProcessor.commandName"),
+  commandNameSupplier = AgpUpgradeBundle.messagePointer("removeSourceSetJniRefactoringProcessor.commandName"),
   shortDescriptionSupplier = { """
     The jni block in an android sourceSet does nothing, and will be removed
     in Android Gradle Plugin version 8.0.0.
   """.trimIndent() },
-  processedElementsHeaderSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.removeSourceSetJniRefactoringProcessor.usageView.header"),
+  processedElementsHeaderSupplier = AgpUpgradeBundle.messagePointer("removeSourceSetJniRefactoringProcessor.usageView.header"),
   componentKind = UpgradeAssistantComponentKind.REMOVE_SOURCE_SET_JNI,
   propertiesOperationInfos = listOf(SOURCE_SET_JNI_INFO)
 )

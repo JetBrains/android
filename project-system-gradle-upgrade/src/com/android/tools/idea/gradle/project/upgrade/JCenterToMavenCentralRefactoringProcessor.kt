@@ -74,7 +74,7 @@ class JCenterToMavenCentralRefactoringProcessor : AgpUpgradeComponentRefactoring
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.JCENTER_TO_MAVEN_CENTRAL)
 
   @Suppress("DialogTitleCapitalization")
-  override fun getCommandName(): String = AgpUpgradeBundle.message("project.upgrade.jcenterToMavenCentral.commandName")
+  override fun getCommandName(): String = AgpUpgradeBundle.message("jcenterToMavenCentral.commandName")
 
   override fun getShortDescription() = """
     As of Gradle 9.0 and the Android Gradle Plugin version 9.0.0, the `jcenter()`
@@ -92,7 +92,7 @@ class JCenterToMavenCentralRefactoringProcessor : AgpUpgradeComponentRefactoring
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader(): String = AgpUpgradeBundle.message("project.upgrade.jcenterToMavenCentral.usageView.header")
+      override fun getProcessedElementsHeader(): String = AgpUpgradeBundle.message("jcenterToMavenCentral.usageView.header")
     }
   }
 
@@ -102,8 +102,8 @@ class JCenterToMavenCentralRefactoringProcessor : AgpUpgradeComponentRefactoring
     val SUPPORTED_FROM = AgpVersion.parse("3.2.0")
     val GRADLE_SUPPORT_REMOVED = AgpVersion.parse("9.0.0-alpha01")
 
-    val REMOVE_JCENTER = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.jcenterToMavenCentral.removeJCenter.usageType"))
-    val INSERT_MAVEN_CENTRAL = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.jcenterToMavenCentral.insertMavenCentral.usageType"))
+    val REMOVE_JCENTER = UsageType(AgpUpgradeBundle.messagePointer("jcenterToMavenCentral.removeJCenter.usageType"))
+    val INSERT_MAVEN_CENTRAL = UsageType(AgpUpgradeBundle.messagePointer("jcenterToMavenCentral.insertMavenCentral.usageType"))
   }
 }
 
@@ -112,7 +112,7 @@ class RemoveRepositoryUsageInfo(wrappedPsiElement: WrappedPsiElement, private va
     repositoriesModel.removeRepository(repositoryModel)
   }
 
-  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.jcenterToMavenCentral.removeJCenter.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("jcenterToMavenCentral.removeJCenter.tooltipText")
 }
 
 class AddMavenCentralRepositoryUsageInfo(wrappedPsiElement: WrappedPsiElement, private val repositoriesModel: RepositoriesModel): GradleBuildModelUsageInfo(wrappedPsiElement) {
@@ -120,5 +120,5 @@ class AddMavenCentralRepositoryUsageInfo(wrappedPsiElement: WrappedPsiElement, p
     repositoriesModel.addRepositoryByMethodName("mavenCentral")
   }
 
-  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.jcenterToMavenCentral.insertMavenCentral.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("jcenterToMavenCentral.insertMavenCentral.tooltipText")
 }

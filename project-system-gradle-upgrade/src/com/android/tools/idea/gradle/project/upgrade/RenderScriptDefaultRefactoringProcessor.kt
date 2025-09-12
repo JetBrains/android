@@ -70,7 +70,7 @@ class RenderScriptDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPr
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.RENDER_SCRIPT_DEFAULT)
 
-  override fun getCommandName() = AgpUpgradeBundle.message("project.upgrade.renderScriptDefaultRefactoringProcessor.commandName")
+  override fun getCommandName() = AgpUpgradeBundle.message("renderScriptDefaultRefactoringProcessor.commandName")
 
   override fun getShortDescription() = """
     The default value for buildFeatures.renderScript has changed, and some
@@ -87,14 +87,14 @@ class RenderScriptDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPr
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("project.upgrade.renderScriptDefaultRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("renderScriptDefaultRefactoringProcessor.usageView.header")
     }
   }
 
   override val readMoreUrlRedirect = ReadMoreUrlRedirect("render-script-default")
 
   companion object {
-    val INSERT_RENDER_SCRIPT_DIRECTIVE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.renderScriptDefaultRefactoringProcessor.enable.usageType"))
+    val INSERT_RENDER_SCRIPT_DIRECTIVE = UsageType(AgpUpgradeBundle.messagePointer("renderScriptDefaultRefactoringProcessor.enable.usageType"))
     val DEFAULT_CHANGED = AgpVersion.parse("8.0.0-alpha02")
   }
 }
@@ -103,7 +103,7 @@ class RenderScriptEnableUsageInfo(
   element: WrappedPsiElement,
   private val resultModel: GradlePropertyModel,
 ): GradleBuildModelUsageInfo(element) {
-  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.renderScriptBuildFeature.enable.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("renderScriptBuildFeature.enable.tooltipText")
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     resultModel.setValue(true)

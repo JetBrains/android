@@ -57,7 +57,7 @@ class AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor :
     return extractNativeLibs
   }
 
-  override fun getCommandName(): String = AgpUpgradeBundle.message("project.upgrade.androidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor.commandName")
+  override fun getCommandName(): String = AgpUpgradeBundle.message("androidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor.commandName")
 
   override val readMoreUrlRedirect = ReadMoreUrlRedirect("extract-native-libs-deprecated")
 
@@ -102,13 +102,13 @@ class AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor :
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("project.upgrade.androidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("androidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor.usageView.header")
     }
   }
 
   companion object {
-    val REMOVE_MANIFEST_EXTRACT_NATIVE_LIBS = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.androidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor.removeExtractNativeLibs.usageType"))
-    val ADD_DSL_USE_LEGACY_PACKAGING = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.androidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor.addUseLegacyPackaging.usageType"))
+    val REMOVE_MANIFEST_EXTRACT_NATIVE_LIBS = UsageType(AgpUpgradeBundle.messagePointer("androidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor.removeExtractNativeLibs.usageType"))
+    val ADD_DSL_USE_LEGACY_PACKAGING = UsageType(AgpUpgradeBundle.messagePointer("androidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor.addUseLegacyPackaging.usageType"))
   }
 }
 
@@ -121,7 +121,7 @@ class AndroidManifestExtractNativeLibsInfo(element: WrappedPsiElement): GradleBu
     }
   }
 
-  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.androidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor.removeExtractNativeLibs.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("androidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor.removeExtractNativeLibs.tooltipText")
 }
 
 class AddUseLegacyPackagingInfo(
@@ -133,5 +133,5 @@ class AddUseLegacyPackagingInfo(
     model.android().packaging().jniLibs().useLegacyPackaging().setValue(value)
   }
 
-  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.androidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor.addUseLegacyPackaging.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("androidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor.addUseLegacyPackaging.tooltipText")
 }

@@ -161,7 +161,7 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
             null -> return
             else -> element.psiElement
           }
-          val presentableText = AgpUpgradeBundle.message("project.upgrade.agpVersionRefactoringProcessor.target.presentableText")
+          val presentableText = AgpUpgradeBundle.message("agpVersionRefactoringProcessor.target.presentableText")
           psiElement?.let {
             usages.add(AgpVersionUsageInfo(WrappedPsiElement(it, this, USAGE_TYPE, presentableText), current, new, resultModel))
           }
@@ -184,7 +184,7 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
             }
             // This text gets used in the `target` display of the preview, and so needs to conform with our user interface
             // (having this be more of a verb than a noun).
-            val presentableText = AgpUpgradeBundle.message("project.upgrade.agpVersionRefactoringProcessor.target.presentableText")
+            val presentableText = AgpUpgradeBundle.message("agpVersionRefactoringProcessor.target.presentableText")
             psiElement?.let {
               usages.add(AgpVersionUsageInfo(WrappedPsiElement(it, this, USAGE_TYPE, presentableText), current, new, resultModel))
             }
@@ -206,7 +206,7 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
             }
             // it would be weird for there to be an AGP dependency in buildSrc without there being one in the main project, but just in
             // case...
-            val presentableText = AgpUpgradeBundle.message("project.upgrade.agpVersionRefactoringProcessor.target.presentableText")
+            val presentableText = AgpUpgradeBundle.message("agpVersionRefactoringProcessor.target.presentableText")
             psiElement?.let {
               usages.add(AgpVersionUsageInfo(WrappedPsiElement(it, this, USAGE_TYPE, presentableText), current, new, resultModel))
             }
@@ -218,7 +218,7 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
               is FakeArtifactElement -> element.realExpression.psiElement
               else -> element.psiElement
             }
-            val presentableText = AgpUpgradeBundle.message("project.upgrade.agpVersionRefactoringProcessor.target.presentableText")
+            val presentableText = AgpUpgradeBundle.message("agpVersionRefactoringProcessor.target.presentableText")
             psiElement?.let {
               val wrappedElement = WrappedPsiElement(it, this, USAGE_TYPE, presentableText)
               usages.add(LintVersionUsageInfo(wrappedElement, current.toLintVersion(), new.toLintVersion(), resultModel))
@@ -240,7 +240,7 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(UpgradeAssistantComponentKind.AGP_CLASSPATH_DEPENDENCY)
 
-  override fun getCommandName(): String = AgpUpgradeBundle.message("project.upgrade.agpVersionRefactoringProcessor.commandName", current, new)
+  override fun getCommandName(): String = AgpUpgradeBundle.message("agpVersionRefactoringProcessor.commandName", current, new)
 
   override fun getShortDescription(): String =
     """
@@ -259,12 +259,12 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("project.upgrade.agpVersionRefactoringProcessor.usageView.header", current, new)
+      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("agpVersionRefactoringProcessor.usageView.header", current, new)
     }
   }
 
   companion object {
-    val USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.agpVersionRefactoringProcessor.usageType"))
+    val USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("agpVersionRefactoringProcessor.usageType"))
   }
 }
 
@@ -274,7 +274,7 @@ class AgpVersionUsageInfo(
   val new: AgpVersion,
   private val resultModel: GradlePropertyModel
 ) : GradleBuildModelUsageInfo(element) {
-  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.agpVersionUsageInfo.tooltipText", current, new)
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("agpVersionUsageInfo.tooltipText", current, new)
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     resultModel.setValue(new.toString())
@@ -287,7 +287,7 @@ class LintVersionUsageInfo(
   val new: Version,
   private val resultModel: GradlePropertyModel
 ) : GradleBuildModelUsageInfo(element) {
-  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.lintVersionUsageInfo.tooltipText", current, new)
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("lintVersionUsageInfo.tooltipText", current, new)
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     resultModel.setValue(new.toString())

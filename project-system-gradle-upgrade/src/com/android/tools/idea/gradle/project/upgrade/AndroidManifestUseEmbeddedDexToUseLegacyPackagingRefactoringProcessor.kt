@@ -58,7 +58,7 @@ class AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor : Ag
   }
 
   override fun getCommandName(): String = AgpUpgradeBundle.message(
-    "project.upgrade.androidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor.commandName")
+    "androidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor.commandName")
 
   override val readMoreUrlRedirect = ReadMoreUrlRedirect("use-embedded-dex-deprecated")
 
@@ -99,13 +99,13 @@ class AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor : Ag
       }
 
       override fun getProcessedElementsHeader() = AgpUpgradeBundle.message(
-        "project.upgrade.androidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor.usageView.header")
+        "androidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor.usageView.header")
     }
   }
 
   companion object {
     val ADD_DSL_USE_LEGACY_PACKAGING = UsageType(AgpUpgradeBundle.messagePointer(
-      "project.upgrade.androidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor.addUseLegacyPackaging.usageType"))
+      "androidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor.addUseLegacyPackaging.usageType"))
   }
 }
 
@@ -119,5 +119,5 @@ class AddDexUseLegacyPackagingInfo(
   }
 
   override fun getTooltipText(): String = AgpUpgradeBundle.message(
-    "project.upgrade.androidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor.addUseLegacyPackaging.tooltipText")
+    "androidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor.addUseLegacyPackaging.tooltipText")
 }

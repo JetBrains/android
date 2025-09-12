@@ -58,7 +58,7 @@ class RedundantPropertiesRefactoringProcessor: AgpUpgradeComponentRefactoringPro
     else -> Version.parse("30.0.3")
   }
 
-  override fun getCommandName(): String = AgpUpgradeBundle.message("project.upgrade.redundantPropertiesRefactoringProcessor.commandName")
+  override fun getCommandName(): String = AgpUpgradeBundle.message("redundantPropertiesRefactoringProcessor.commandName")
 
   override fun getShortDescription(): String =
     """
@@ -76,12 +76,12 @@ class RedundantPropertiesRefactoringProcessor: AgpUpgradeComponentRefactoringPro
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("project.upgrade.redundantPropertiesRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("redundantPropertiesRefactoringProcessor.usageView.header")
     }
   }
 
   companion object {
-    val REDUNDANT_PROPERTY_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.redundantProperties.usageType"))
+    val REDUNDANT_PROPERTY_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("redundantProperties.usageType"))
   }
 }
 
@@ -93,5 +93,5 @@ class RemoveRedundantPropertyUsageInfo(
     model.delete()
   }
 
-  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.redundantProperties.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("redundantProperties.tooltipText")
 }

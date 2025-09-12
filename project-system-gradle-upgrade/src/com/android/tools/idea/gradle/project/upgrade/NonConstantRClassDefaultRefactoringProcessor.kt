@@ -62,7 +62,7 @@ class NonConstantRClassDefaultRefactoringProcessor : AgpUpgradeComponentRefactor
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.NON_CONSTANT_R_CLASS_DEFAULT)
 
-  override fun getCommandName(): String = AgpUpgradeBundle.message("project.upgrade.nonConstantRClassDefaultRefactoringProcessor.commandName")
+  override fun getCommandName(): String = AgpUpgradeBundle.message("nonConstantRClassDefaultRefactoringProcessor.commandName")
 
   override fun getShortDescription() = """
     R classes in applications and tests previously used constant values that can be
@@ -82,12 +82,12 @@ class NonConstantRClassDefaultRefactoringProcessor : AgpUpgradeComponentRefactor
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("project.upgrade.nonConstantRClassDefaultRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("nonConstantRClassDefaultRefactoringProcessor.usageView.header")
     }
   }
 
   companion object {
-    val INSERT_PROPERTY = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.nonConstantRClassDefaultRefactoringProcessor.usageType"))
+    val INSERT_PROPERTY = UsageType(AgpUpgradeBundle.messagePointer("nonConstantRClassDefaultRefactoringProcessor.usageType"))
   }
 }
 
@@ -106,5 +106,5 @@ class NonConstantRClassUsageInfo(
     propertiesFile.addProperty("android.nonFinalResIds", "false")
   }
 
-  override fun getTooltipText() = AgpUpgradeBundle.message("project.upgrade.nonConstantRClassUsageInfo.tooltipText")
+  override fun getTooltipText() = AgpUpgradeBundle.message("nonConstantRClassUsageInfo.tooltipText")
 }

@@ -55,7 +55,7 @@ class DeprecatedLibraryTargetSdkRefactoringProcessor : AgpUpgradeComponentRefact
     return usages
   }
 
-  override fun getCommandName() = AgpUpgradeBundle.message("project.upgrade.deprecatedLibraryTargetSdk.commandName")
+  override fun getCommandName() = AgpUpgradeBundle.message("deprecatedLibraryTargetSdk.commandName")
 
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REMOVE_DEPRECATED_LIBRARY_TARGET_SDK)
@@ -63,11 +63,11 @@ class DeprecatedLibraryTargetSdkRefactoringProcessor : AgpUpgradeComponentRefact
   override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor = object : UsageViewDescriptorAdapter() {
     override fun getElements(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
     override fun getProcessedElementsHeader() =
-      AgpUpgradeBundle.message("project.upgrade.deprecatedLibraryTargetSdk.commandName")
+      AgpUpgradeBundle.message("deprecatedLibraryTargetSdk.commandName")
   }
 
   companion object {
-    val REMOVE_DEPRECATED_PROPERTY_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.deprecatedLibraryTargetSdk.usageType"))
+    val REMOVE_DEPRECATED_PROPERTY_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("deprecatedLibraryTargetSdk.usageType"))
   }
 
   class RefactoringUsageInfo(
@@ -76,7 +76,7 @@ class DeprecatedLibraryTargetSdkRefactoringProcessor : AgpUpgradeComponentRefact
     val sdkVersion: Int
 
   ) : GradleBuildModelUsageInfo(element) {
-    override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.deprecatedLibraryTargetSdk.tooltipText")
+    override fun getTooltipText(): String = AgpUpgradeBundle.message("deprecatedLibraryTargetSdk.tooltipText")
 
     override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
       val androidModel = buildModel.android()

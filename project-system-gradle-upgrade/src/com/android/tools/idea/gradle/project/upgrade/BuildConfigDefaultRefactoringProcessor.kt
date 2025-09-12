@@ -62,7 +62,7 @@ class BuildConfigDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPro
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.BUILD_CONFIG_DEFAULT)
 
-  override fun getCommandName() = AgpUpgradeBundle.message("project.upgrade.buildConfigDefaultRefactoringProcessor.commandName")
+  override fun getCommandName() = AgpUpgradeBundle.message("buildConfigDefaultRefactoringProcessor.commandName")
 
   override fun getShortDescription() = """
     The default value for buildFeatures.buildConfig is changing, meaning that
@@ -81,20 +81,20 @@ class BuildConfigDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPro
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("project.upgrade.buildConfigDefaultRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("buildConfigDefaultRefactoringProcessor.usageView.header")
     }
   }
 
   override val readMoreUrlRedirect = ReadMoreUrlRedirect("build-config-default")
 
   companion object {
-    val INSERT_PROPERTY = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.buildConfigDefaultRefactoringProcessor.enable.usageType"))
+    val INSERT_PROPERTY = UsageType(AgpUpgradeBundle.messagePointer("buildConfigDefaultRefactoringProcessor.enable.usageType"))
     val DEFAULT_CHANGED = AgpVersion.parse("8.0.0-alpha02")
   }
 }
 
 class BuildConfigUsageInfo(private val wrappedElement: WrappedPsiElement): GradleBuildModelUsageInfo(wrappedElement) {
-  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.buildConfigBuildFeature.enable.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("buildConfigBuildFeature.enable.tooltipText")
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     val (propertiesFile, psiFile) = when (val realElement = wrappedElement.realElement) {

@@ -62,7 +62,7 @@ class ResValuesDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProce
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.RES_VALUES_DEFAULT)
 
-  override fun getCommandName() = AgpUpgradeBundle.message("project.upgrade.resValuesDefaultRefactoringProcessor.commandName")
+  override fun getCommandName() = AgpUpgradeBundle.message("resValuesDefaultRefactoringProcessor.commandName")
 
   override fun getShortDescription() = """
     The default value for buildfeatures.resvalues is changing, meaning that
@@ -81,7 +81,7 @@ class ResValuesDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("project.upgrade.resValuesDefaultRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("resValuesDefaultRefactoringProcessor.usageView.header")
     }
   }
 
@@ -89,12 +89,12 @@ class ResValuesDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProce
   //override val readMoreUrlRedirect = ReadMoreUrlRedirect("res-values-default")
 
   companion object {
-    val INSERT_PROPERTY = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.resValuesDefaultRefactoringProcessor.enable.usageType"))
+    val INSERT_PROPERTY = UsageType(AgpUpgradeBundle.messagePointer("resValuesDefaultRefactoringProcessor.enable.usageType"))
   }
 }
 
 class ResValuesUsageInfo(private val wrappedElement: WrappedPsiElement): GradleBuildModelUsageInfo(wrappedElement) {
-  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.resValuesBuildFeature.enable.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("resValuesBuildFeature.enable.tooltipText")
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     val (propertiesFile, psiFile) = when (val realElement = wrappedElement.realElement) {

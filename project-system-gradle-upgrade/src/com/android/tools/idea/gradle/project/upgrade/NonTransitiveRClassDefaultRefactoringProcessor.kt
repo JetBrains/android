@@ -63,7 +63,7 @@ class NonTransitiveRClassDefaultRefactoringProcessor : AgpUpgradeComponentRefact
     // TODO(xof): do the metrics dance
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.NON_TRANSITIVE_R_CLASS_DEFAULT)
 
-  override fun getCommandName(): String = AgpUpgradeBundle.message("project.upgrade.nonTransitiveRClassDefaultRefactoringProcessor.commandName")
+  override fun getCommandName(): String = AgpUpgradeBundle.message("nonTransitiveRClassDefaultRefactoringProcessor.commandName")
 
   override fun getShortDescription() = """
     R classes in this project are transitive, pulling in information from their
@@ -83,12 +83,12 @@ class NonTransitiveRClassDefaultRefactoringProcessor : AgpUpgradeComponentRefact
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("project.upgrade.nonTransitiveRClassDefaultRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("nonTransitiveRClassDefaultRefactoringProcessor.usageView.header")
     }
   }
 
   companion object {
-    val INSERT_PROPERTY = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.nonTransitiveRClassDefaultRefactoringProcessor.usageType"))
+    val INSERT_PROPERTY = UsageType(AgpUpgradeBundle.messagePointer("nonTransitiveRClassDefaultRefactoringProcessor.usageType"))
   }
 }
 
@@ -107,5 +107,5 @@ class NonTransitiveRClassUsageInfo(
     propertiesFile.addProperty("android.nonTransitiveRClass", "false")
   }
 
-  override fun getTooltipText() = AgpUpgradeBundle.message("project.upgrade.nonTransitiveRClassUsageInfo.tooltipText")
+  override fun getTooltipText() = AgpUpgradeBundle.message("nonTransitiveRClassUsageInfo.tooltipText")
 }

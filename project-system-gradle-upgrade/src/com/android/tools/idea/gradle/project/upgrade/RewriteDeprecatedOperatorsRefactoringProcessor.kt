@@ -22,14 +22,14 @@ import com.intellij.usages.impl.rules.UsageType
 val REWRITE_DEPRECATED_OPERATORS = PropertiesOperationsRefactoringInfo(
   optionalFromVersion = AgpVersion.parse("7.1.0-alpha06"),
   requiredFromVersion = AgpVersion.parse("9.0.0-alpha01"),
-  commandNameSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.rewriteDeprecatedOperatorsRefactoringProcessor.commandName"),
+  commandNameSupplier = AgpUpgradeBundle.messagePointer("rewriteDeprecatedOperatorsRefactoringProcessor.commandName"),
   shortDescriptionSupplier = {
     """
       A number of Dsl operators and methods have been deprecated for removal in
       AGP 9.0.0, replaced by simpler property operations.
     """.trimIndent()
   },
-  processedElementsHeaderSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.rewriteDeprecatedOperatorsRefactoringProcessor.usageView.header"),
+  processedElementsHeaderSupplier = AgpUpgradeBundle.messagePointer("rewriteDeprecatedOperatorsRefactoringProcessor.usageView.header"),
   componentKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REWRITE_DEPRECATED_OPERATORS,
   propertiesOperationInfos = listOf(
     RewriteObsoletePropertiesInfo(
@@ -72,8 +72,8 @@ val REWRITE_DEPRECATED_OPERATORS = PropertiesOperationsRefactoringInfo(
           )
         }
       },
-      tooltipTextSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.deprecatedOperatorUsageInfo.rewrite.tooltipText"),
-      usageType = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.rewriteDeprecatedOperatorsRefactoringProcessor.rewrite.usageType")),
+      tooltipTextSupplier = AgpUpgradeBundle.messagePointer("deprecatedOperatorUsageInfo.rewrite.tooltipText"),
+      usageType = UsageType(AgpUpgradeBundle.messagePointer("rewriteDeprecatedOperatorsRefactoringProcessor.rewrite.usageType")),
     )
   )
 )

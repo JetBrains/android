@@ -350,10 +350,10 @@ class AgpUpgradeRefactoringProcessor(
         return targets.toArray(PsiElement.EMPTY_ARRAY)
       }
 
-      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("project.upgrade.agpUpgradeRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("agpUpgradeRefactoringProcessor.usageView.header")
 
       /** see [ComponentGroupingRuleProvider] for an explanation of this override */
-      override fun getCodeReferencesText(usagesCount: Int, filesCount: Int) = AgpUpgradeBundle.message("project.upgrade.references.text")
+      override fun getCodeReferencesText(usagesCount: Int, filesCount: Int) = AgpUpgradeBundle.message("references.text")
     }
   }
 
@@ -424,7 +424,7 @@ class AgpUpgradeRefactoringProcessor(
 
   private fun createPresentation(descriptor: UsageViewDescriptor, usages: Array<Usage>): UsageViewPresentation {
     val presentation = UsageViewPresentation()
-    presentation.tabText = AgpUpgradeBundle.message("project.upgrade.usageView.tabText")
+    presentation.tabText = AgpUpgradeBundle.message("usageView.tabText")
     presentation.targetsNodeText = descriptor.processedElementsHeader
     presentation.isShowReadOnlyStatusAsRed = true
     presentation.isShowCancelButton = true
@@ -596,8 +596,8 @@ class AgpUpgradeRefactoringProcessor(
           previewExecutedCallback?.invoke()
         }
       }
-      val canNotMakeString = AgpUpgradeBundle.message("project.upgrade.usageView.need.reRun")
-      val label = AgpUpgradeBundle.message("project.upgrade.usageView.doAction")
+      val canNotMakeString = AgpUpgradeBundle.message("usageView.need.reRun")
+      val label = AgpUpgradeBundle.message("usageView.doAction")
       usageView.addPerformOperationAction(refactoringRunnable, commandName, canNotMakeString, label, false)
     }
     usageView.setRerunAction(object : AbstractAction() {
@@ -653,7 +653,7 @@ class AgpUpgradeRefactoringProcessor(
     })
   }
 
-  var myCommandName: String = AgpUpgradeBundle.message("project.upgrade.agpUpgradeRefactoringProcessor.commandName", current, new)
+  var myCommandName: String = AgpUpgradeBundle.message("agpUpgradeRefactoringProcessor.commandName", current, new)
 
   override fun getCommandName() = myCommandName
 
@@ -712,8 +712,8 @@ internal fun notifyCancelledUpgrade(project: Project, current: AgpVersion) {
   // TODO(xof): this is now only called from the forced upgrade flow, where this notification is probably not the right one: we should
   //  probably re-show the forced upgrade modal dialog instead.
   val notification = UpgradeSuggestion(
-    AgpUpgradeBundle.message("project.upgrade.notifyCancelledUpgrade.title"),
-    AgpUpgradeBundle.message("project.upgrade.notifyCancelledUpgrade.body"),
+    AgpUpgradeBundle.message("notifyCancelledUpgrade.title"),
+    AgpUpgradeBundle.message("notifyCancelledUpgrade.body"),
     project,
     current
   )

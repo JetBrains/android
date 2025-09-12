@@ -31,12 +31,12 @@ class NewDslDefaultRefactoringProcessor : AbstractBooleanPropertyDefaultRefactor
   override val oldDefault: Boolean = false
   override val upgradeEventKind: UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind =
     UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.NEWDSL_DEFAULT
-  override val insertPropertyText: String = AgpUpgradeBundle.message("project.upgrade.newDsl.usage.name")
-  override val tooltip: String = AgpUpgradeBundle.message("project.upgrade.newDsl.usage.tooltipText")
-  override val usageViewHeader: String = AgpUpgradeBundle.message("project.upgrade.newDsl.usageViewHeader")
+  override val insertPropertyText: String = AgpUpgradeBundle.message("newDsl.usage.name")
+  override val tooltip: String = AgpUpgradeBundle.message("newDsl.usage.tooltipText")
+  override val usageViewHeader: String = AgpUpgradeBundle.message("newDsl.usageViewHeader")
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.android.newDsl.default"
   override val necessityInfo: AgpUpgradeComponentNecessityInfo = PointNecessity(DEFAULT_CHANGED)
-  override fun getCommandName(): String = AgpUpgradeBundle.message("project.upgrade.newDsl.commandName")
+  override fun getCommandName(): String = AgpUpgradeBundle.message("newDsl.commandName")
 
   companion object {
     val DEFAULT_CHANGED = AgpVersion.parse("9.0.0-alpha04")

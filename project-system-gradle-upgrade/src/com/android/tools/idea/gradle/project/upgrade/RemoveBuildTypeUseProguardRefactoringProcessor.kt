@@ -21,20 +21,20 @@ import com.intellij.usages.impl.rules.UsageType
 
 val BUILD_TYPE_USE_PROGUARD_INFO = RemovePropertiesInfo(
   propertyModelListGetter = { android().buildTypes().map { buildType -> buildType.useProguard() } },
-  tooltipTextSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.removeBuildTypeUseProguard.tooltipText"),
-  usageType = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.removeBuildTypeUseProguard.usageType"))
+  tooltipTextSupplier = AgpUpgradeBundle.messagePointer("removeBuildTypeUseProguard.tooltipText"),
+  usageType = UsageType(AgpUpgradeBundle.messagePointer("removeBuildTypeUseProguard.usageType"))
 )
 
 val REMOVE_BUILD_TYPE_USE_PROGUARD_INFO = PropertiesOperationsRefactoringInfo(
   optionalFromVersion = AgpVersion.parse("3.5.0"),
   requiredFromVersion = AgpVersion.parse("7.0.0-alpha14"),
-  commandNameSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.removeBuildTypeUseProguardRefactoringProcessor.commandName"),
+  commandNameSupplier = AgpUpgradeBundle.messagePointer("removeBuildTypeUseProguardRefactoringProcessor.commandName"),
   shortDescriptionSupplier = { """
     The useProguard setting for build types is not supported in Android
     Gradle Plugin version 7.0.0 and higher; from that version the R8 minifier
     is used unconditionally.
   """.trimIndent()},
-  processedElementsHeaderSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.removeBuildTypeUseProguardRefactoringProcessor.usageView.header"),
+  processedElementsHeaderSupplier = AgpUpgradeBundle.messagePointer("removeBuildTypeUseProguardRefactoringProcessor.usageView.header"),
   componentKind = UpgradeAssistantComponentKind.REMOVE_BUILD_TYPE_USE_PROGUARD,
   propertiesOperationInfos = listOf(BUILD_TYPE_USE_PROGUARD_INFO)
 )

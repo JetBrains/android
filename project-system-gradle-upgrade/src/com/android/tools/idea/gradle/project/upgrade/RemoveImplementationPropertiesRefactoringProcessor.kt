@@ -63,7 +63,7 @@ class RemoveImplementationPropertiesRefactoringProcessor: AgpUpgradeComponentRef
     return usages.toTypedArray()
   }
 
-  override fun getCommandName(): String = AgpUpgradeBundle.message("project.upgrade.removeImplementationPropertiesRefactoringProcessor.commandName")
+  override fun getCommandName(): String = AgpUpgradeBundle.message("removeImplementationPropertiesRefactoringProcessor.commandName")
 
   override fun getShortDescription(): String? =
     """
@@ -82,12 +82,12 @@ class RemoveImplementationPropertiesRefactoringProcessor: AgpUpgradeComponentRef
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("project.upgrade.removeImplementationPropertiesRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("removeImplementationPropertiesRefactoringProcessor.usageView.header")
     }
   }
 
   companion object {
-    val REMOVE_IMPLEMENTATION_PROPERTY_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.removeImplementationProperty.usageType"))
+    val REMOVE_IMPLEMENTATION_PROPERTY_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("removeImplementationProperty.usageType"))
   }
 }
 
@@ -99,7 +99,7 @@ class RemoveImplementationPropertyUsageInfo(
     model.delete()
   }
 
-  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.removeImplementationProperty.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("removeImplementationProperty.tooltipText")
 }
 
 val GradleBuildModel.moduleKind: ModuleKind?

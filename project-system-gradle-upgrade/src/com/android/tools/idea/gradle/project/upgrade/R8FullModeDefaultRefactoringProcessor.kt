@@ -94,10 +94,10 @@ class R8FullModeDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProc
       .setR8FullModeDefaultSettings(r8FullModeSettings)
   }
 
-  override fun getCommandName() = AgpUpgradeBundle.message("project.upgrade.r8FullModeDefaultRefactoringProcessor.commandName")
+  override fun getCommandName() = AgpUpgradeBundle.message("r8FullModeDefaultRefactoringProcessor.commandName")
 
   override val groupingName
-    get() = AgpUpgradeBundle.message("project.upgrade.r8FullModeDefaultRefactoringProcessor.groupingName")
+    get() = AgpUpgradeBundle.message("r8FullModeDefaultRefactoringProcessor.groupingName")
 
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.R8FullModeDefault"
 
@@ -107,7 +107,7 @@ class R8FullModeDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProc
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("project.upgrade.r8FullModeDefaultRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("r8FullModeDefaultRefactoringProcessor.usageView.header")
     }
   }
 
@@ -126,8 +126,8 @@ class R8FullModeDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProc
     """.trimIndent()
 
   enum class NoPropertyPresentAction(val supplier: Supplier<String>) {
-    ACCEPT_NEW_DEFAULT(AgpUpgradeBundle.messagePointer("project.upgrade.noPropertyPresentAction.acceptNewDefault")),
-    INSERT_OLD_DEFAULT(AgpUpgradeBundle.messagePointer("project.upgrade.noPropertyPresentAction.insertOldDefault")),
+    ACCEPT_NEW_DEFAULT(AgpUpgradeBundle.messagePointer("noPropertyPresentAction.acceptNewDefault")),
+    INSERT_OLD_DEFAULT(AgpUpgradeBundle.messagePointer("noPropertyPresentAction.insertOldDefault")),
     ;
 
     override fun toString() = supplier.get()
@@ -136,9 +136,9 @@ class R8FullModeDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProc
   companion object {
     val ACTIVATED_VERSION = AgpVersion.parse("8.0.0-alpha01")
 
-    val EXISTING_PROPERTY_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.r8FullModeDefaultRefactoringProcessor.existingDirectiveUsageType"))
-    val ACCEPT_NEW_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.r8FullModeDefaultRefactoringProcessor.acceptNewUsageType"))
-    val INSERT_OLD_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.r8FullModeDefaultRefactoringProcessor.insertOldUsageType"))
+    val EXISTING_PROPERTY_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("r8FullModeDefaultRefactoringProcessor.existingDirectiveUsageType"))
+    val ACCEPT_NEW_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("r8FullModeDefaultRefactoringProcessor.acceptNewUsageType"))
+    val INSERT_OLD_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("r8FullModeDefaultRefactoringProcessor.insertOldUsageType"))
   }
 }
 
@@ -164,9 +164,9 @@ class R8FullModeUsageInfo(
 
   override fun getTooltipText() = when (existing) {
     false -> when (noPropertyPresentAction) {
-      ACCEPT_NEW_DEFAULT -> AgpUpgradeBundle.message("project.upgrade.r8FullModeDefaultUsageInfo.tooltipText.acceptNewDefault")
-      INSERT_OLD_DEFAULT -> AgpUpgradeBundle.message("project.upgrade.r8FullModeDefaultUsageInfo.tooltipText.insertOldDefault")
+      ACCEPT_NEW_DEFAULT -> AgpUpgradeBundle.message("r8FullModeDefaultUsageInfo.tooltipText.acceptNewDefault")
+      INSERT_OLD_DEFAULT -> AgpUpgradeBundle.message("r8FullModeDefaultUsageInfo.tooltipText.insertOldDefault")
     }
-    true -> AgpUpgradeBundle.message("project.upgrade.r8FullModeDefaultUsageInfo.tooltipText.existing")
+    true -> AgpUpgradeBundle.message("r8FullModeDefaultUsageInfo.tooltipText.existing")
   }
 }

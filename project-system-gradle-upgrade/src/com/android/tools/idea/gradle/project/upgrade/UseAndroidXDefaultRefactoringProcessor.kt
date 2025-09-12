@@ -30,12 +30,12 @@ class UseAndroidXDefaultRefactoringProcessor: AbstractBooleanPropertyDefaultRefa
   override val propertyKey = "android.useAndroidX"
   override val oldDefault = false
   override val upgradeEventKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.USE_ANDROIDX_DEFAULT
-  override val insertPropertyText = AgpUpgradeBundle.message("project.upgrade.useAndroidXDefaultRefactoringProcessor.enable.usageType")
-  override val tooltip = AgpUpgradeBundle.message("project.upgrade.useAndroidXDefaultRefactoringProcessor.tooltipText")
-  override val usageViewHeader = AgpUpgradeBundle.message("project.upgrade.useAndroidXDefaultRefactoringProcessor.usageView.header")
+  override val insertPropertyText = AgpUpgradeBundle.message("useAndroidXDefaultRefactoringProcessor.enable.usageType")
+  override val tooltip = AgpUpgradeBundle.message("useAndroidXDefaultRefactoringProcessor.tooltipText")
+  override val usageViewHeader = AgpUpgradeBundle.message("useAndroidXDefaultRefactoringProcessor.usageView.header")
   override val necessityInfo = PointNecessity(AgpVersion.parse("9.0.0-alpha01"))
   override val readMoreUrlRedirect = ReadMoreUrlRedirect("use-androidx-default")
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.useAndroidX"
-  override fun getCommandName() = AgpUpgradeBundle.message("project.upgrade.useAndroidXDefaultRefactoringProcessor.commandName")
-  override fun getShortDescription() = AgpUpgradeBundle.message("project.upgrade.useAndroidXDefaultRefactoringProcessor.shortDescription")
+  override fun getCommandName() = AgpUpgradeBundle.message("useAndroidXDefaultRefactoringProcessor.commandName")
+  override fun getShortDescription() = AgpUpgradeBundle.message("useAndroidXDefaultRefactoringProcessor.shortDescription")
 }

@@ -31,13 +31,13 @@ class DisallowUsesSdkInManifestDefaultRefactoringProcessor: AbstractBooleanPrope
   override val propertyKey = "android.usesSdkInManifest.disallowed"
   override val oldDefault = false
   override val upgradeEventKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.USES_SDK_IN_MANIFEST_DISALLOWED_DEFAULT
-  override val insertPropertyText = AgpUpgradeBundle.message("project.upgrade.disallowUsesSdkInManifest.enable.usageType")
-  override val tooltip = AgpUpgradeBundle.message("project.upgrade.disallowUsesSdkInManifest.tooltipText")
-  override val usageViewHeader = AgpUpgradeBundle.message("project.upgrade.disallowUsesSdkInManifest.usageView.header")
+  override val insertPropertyText = AgpUpgradeBundle.message("disallowUsesSdkInManifest.enable.usageType")
+  override val tooltip = AgpUpgradeBundle.message("disallowUsesSdkInManifest.tooltipText")
+  override val usageViewHeader = AgpUpgradeBundle.message("disallowUsesSdkInManifest.usageView.header")
   override val necessityInfo = PointNecessity(DEFAULT_CHANGED)
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.usesSdkInManifestDisallowed"
-  override fun getCommandName() = AgpUpgradeBundle.message("project.upgrade.disallowUsesSdkInManifest.commandName")
-  override fun getShortDescription() = AgpUpgradeBundle.message("project.upgrade.disallowUsesSdkInManifest.shortDescription")
+  override fun getCommandName() = AgpUpgradeBundle.message("disallowUsesSdkInManifest.commandName")
+  override fun getShortDescription() = AgpUpgradeBundle.message("disallowUsesSdkInManifest.shortDescription")
 
   companion object {
     val DEFAULT_CHANGED = AgpVersion.parse("9.0.0-alpha01")
