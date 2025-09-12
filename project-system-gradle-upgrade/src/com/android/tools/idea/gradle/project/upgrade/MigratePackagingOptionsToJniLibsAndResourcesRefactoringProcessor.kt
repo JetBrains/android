@@ -136,5 +136,5 @@ class SplitPropertiesUsageInfo(
     }
   }
 
-  override fun getTooltipText(): String = ""
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.migratePackagingOptionsRefactoringProcessor.split.tooltipText")
 }
