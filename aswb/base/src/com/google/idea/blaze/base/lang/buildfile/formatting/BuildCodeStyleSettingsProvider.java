@@ -20,6 +20,7 @@ import com.google.idea.blaze.base.lang.buildfile.language.BuildFileType;
 import com.intellij.application.options.CodeStyleAbstractConfigurable;
 import com.intellij.application.options.CodeStyleAbstractPanel;
 import com.intellij.application.options.TabbedLanguageCodeStylePanel;
+import com.intellij.lang.Language;
 import com.intellij.psi.codeStyle.CodeStyleConfigurable;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsProvider;
@@ -63,5 +64,10 @@ public class BuildCodeStyleSettingsProvider extends CodeStyleSettingsProvider {
   @Override
   public String getConfigurableDisplayName() {
     return BuildFileType.INSTANCE.getDescription();
+  }
+
+  @Override
+  public @Nullable Language getLanguage() {
+    return BuildFileType.INSTANCE.getLanguage();
   }
 }
