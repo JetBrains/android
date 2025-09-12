@@ -91,6 +91,7 @@ iml_module(
         "//tools/adt/idea/screenshot-testing/gradle:intellij.android.screenshot-test.gradle",
         "//tools/adt/idea/settings-sync:intellij.android.settings-sync",
         "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
+        "//tools/vendor/google/marketing",
     ],
     # do not sort: must match IML order
     deps = [
