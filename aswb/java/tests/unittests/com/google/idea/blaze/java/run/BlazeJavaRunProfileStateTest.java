@@ -147,6 +147,7 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
     assertThat(
             BlazeJavaRunProfileState.getBlazeCommandBuilder(
                     project,
+                    FakeBuildInvoker.builder().binaryPath("/usr/bin/blaze").build(),
                     configuration,
                     ImmutableList.of(),
                     ExecutorType.RUN,
@@ -174,6 +175,7 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
     assertThat(
             BlazeJavaRunProfileState.getBlazeCommandBuilder(
                     project,
+                    FakeBuildInvoker.builder().binaryPath("/usr/bin/blaze").build(),
                     configuration,
                     ImmutableList.of(),
                     ExecutorType.DEBUG,
@@ -201,6 +203,7 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
     assertThat(
             BlazeJavaRunProfileState.getBlazeCommandBuilder(
                     project,
+                    FakeBuildInvoker.builder().binaryPath("/usr/bin/blaze").build(),
                     configuration,
                     ImmutableList.of(),
                     ExecutorType.DEBUG,
@@ -228,6 +231,7 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
     assertThat(
             BlazeJavaRunProfileState.getBlazeCommandBuilder(
                     project,
+                    FakeBuildInvoker.builder().binaryPath("/usr/bin/blaze").build(),
                     configuration,
                     ImmutableList.of(),
                     ExecutorType.DEBUG,
@@ -240,7 +244,7 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
   @Test
   public void getBashCommandsToRunScript() throws Exception {
     BlazeCommand.Builder commandBuilder =
-        BlazeCommand.builder("/usr/bin/blaze", BlazeCommandName.BUILD)
+        BlazeCommand.builder(FakeBuildInvoker.builder().binaryPath("/usr/bin/blaze").build(), BlazeCommandName.BUILD)
             .addTargets(Label.create("//label:java_binary_rule"));
     List<String> command =
         HotSwapCommandBuilder.getBashCommandsToRunScript(getProject(), commandBuilder);
