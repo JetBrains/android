@@ -18,6 +18,11 @@ public final class LocalBazelInvoker extends AbstractLocalInvoker {
   }
 
   @Override
+  public boolean getCanOverrideBinaryPath() {
+    return true;
+  }
+
+  @Override
   public ImmutableSet<Capability> getCapabilities() {
     return CAPABILITIES;
   }
