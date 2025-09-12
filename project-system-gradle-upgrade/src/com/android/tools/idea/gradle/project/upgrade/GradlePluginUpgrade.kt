@@ -49,7 +49,6 @@ import com.intellij.openapi.vcs.FileStatus
 import com.intellij.openapi.vcs.FileStatusManager
 import com.intellij.util.SystemProperties
 import com.jetbrains.rd.util.first
-import org.jetbrains.android.util.AndroidBundle
 import java.util.concurrent.TimeUnit
 
 private val LOG = Logger.getInstance(LOG_CATEGORY)
@@ -122,10 +121,10 @@ fun recommendPluginUpgrade(project: Project, current: AgpVersion, strongly: Bool
   if (existing.isEmpty()) {
     val notification = when (strongly) {
       false -> UpgradeSuggestion(
-        AndroidBundle.message("project.upgrade.notification.title"), AndroidBundle.message("project.upgrade.notification.body", current), project, current)
+        AgpUpgradeBundle.message("project.upgrade.notification.title"), AgpUpgradeBundle.message("project.upgrade.notification.body", current), project, current)
       true -> DeprecatedAgpUpgradeWarning(
-        AndroidBundle.message("project.upgrade.deprecated.notification.title"),
-        AndroidBundle.message("project.upgrade.deprecated.notification.body", current, GRADLE_PLUGIN_NEXT_MINIMUM_VERSION),
+        AgpUpgradeBundle.message("project.upgrade.deprecated.notification.title"),
+        AgpUpgradeBundle.message("project.upgrade.deprecated.notification.body", current, GRADLE_PLUGIN_NEXT_MINIMUM_VERSION),
         project,
         current
       )

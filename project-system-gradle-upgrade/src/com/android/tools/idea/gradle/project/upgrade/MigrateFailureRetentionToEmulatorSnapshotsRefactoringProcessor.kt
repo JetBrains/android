@@ -19,19 +19,18 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind
 import com.intellij.usages.impl.rules.UsageType
-import org.jetbrains.android.util.AndroidBundle
 
 val MIGRATE_FAILURE_RETENTION_TO_EMULATOR_SNAPSHOTS =
   PropertiesOperationsRefactoringInfo(
     optionalFromVersion = AgpVersion.parse("7.0.0-alpha13"),
     requiredFromVersion = AgpVersion.parse("9.0.0-alpha01"),
-    commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToEmulatorSnapshotsRefactoringProcessor.commandName"),
+    commandNameSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.migrateToEmulatorSnapshotsRefactoringProcessor.commandName"),
     shortDescriptionSupplier = { """
         Configuration related to retention of snapshots from the emulator is
         now performed using the emulatorSnapshots block.
       """.trimIndent()
     },
-    processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToEmulatorSnapshotsRefactoringProcessor.usageView.header"),
+    processedElementsHeaderSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.migrateToEmulatorSnapshotsRefactoringProcessor.usageView.header"),
     componentKind = UpgradeAssistantComponentKind.MIGRATE_TO_EMULATOR_SNAPSHOTS,
     propertiesOperationInfos = listOf(
       MovePropertiesInfo(
@@ -39,13 +38,13 @@ val MIGRATE_FAILURE_RETENTION_TO_EMULATOR_SNAPSHOTS =
           Pair({ failureRetention().enable() }, { emulatorSnapshots().enableForTestFailures() }),
           Pair({ failureRetention().maxSnapshots() }, { emulatorSnapshots().maxSnapshotsForTestFailures() }),
         ),
-        tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.emulatorSnapshotsUsageInfo.move.tooltipText"),
-        usageType = UsageType(AndroidBundle.messagePointer("project.upgrade.migrateToEmulatorSnapshotsRefactoringProcessor.move.usageType")),
+        tooltipTextSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.emulatorSnapshotsUsageInfo.move.tooltipText"),
+        usageType = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.migrateToEmulatorSnapshotsRefactoringProcessor.move.usageType")),
       ),
       RemovePropertiesInfo(
         propertyModelListGetter = { listOf(failureRetention()) },
-        tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.emulatorSnapshotsUsageInfo.remove.tooltipText"),
-        usageType = UsageType(AndroidBundle.messagePointer("project.upgrade.migrateToEmulatorSnapshotsRefactoringProcessor.remove.usageType")),
+        tooltipTextSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.emulatorSnapshotsUsageInfo.remove.tooltipText"),
+        usageType = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.migrateToEmulatorSnapshotsRefactoringProcessor.remove.usageType")),
       ),
     ),
   )

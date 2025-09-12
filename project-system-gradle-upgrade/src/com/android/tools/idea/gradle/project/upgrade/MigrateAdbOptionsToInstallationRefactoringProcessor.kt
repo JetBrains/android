@@ -18,20 +18,19 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.ide.common.repository.AgpVersion
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind
 import com.intellij.usages.impl.rules.UsageType
-import org.jetbrains.android.util.AndroidBundle
 
 val MIGRATE_ADB_OPTIONS_TO_INSTALLATION =
   PropertiesOperationsRefactoringInfo(
     optionalFromVersion = AgpVersion.parse("7.0.1"),
     requiredFromVersion = AgpVersion.parse("9.0.0-alpha01"),
-    commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToInstallationRefactoringProcessor.commandName"),
+    commandNameSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.migrateToInstallationRefactoringProcessor.commandName"),
     shortDescriptionSupplier = {
       """
       Configuration related to the adb tool is now performed using
       the installation block.
     """.trimIndent()
     },
-    processedElementsHeaderSupplier = AndroidBundle.messagePointer(
+    processedElementsHeaderSupplier = AgpUpgradeBundle.messagePointer(
       "project.upgrade.migrateToInstallationRefactoringProcessor.usageView.header"),
     componentKind = UpgradeAssistantComponentKind.MIGRATE_TO_INSTALLATION,
     propertiesOperationInfos = listOf(
@@ -40,13 +39,13 @@ val MIGRATE_ADB_OPTIONS_TO_INSTALLATION =
           Pair({ android().adbOptions().installOptions() }, { android().installation().installOptions() }),
           Pair({ android().adbOptions().timeOutInMs() }, { android().installation().timeOutInMs() }),
         ),
-        tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.installationUsageInfo.move.tooltipText"),
-        usageType = UsageType(AndroidBundle.messagePointer("project.upgrade.migrateToInstallationRefactoringProcessor.move.usageType"))
+        tooltipTextSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.installationUsageInfo.move.tooltipText"),
+        usageType = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.migrateToInstallationRefactoringProcessor.move.usageType"))
       ),
       RemovePropertiesInfo(
         propertyModelListGetter = { listOf(android().adbOptions()) },
-        tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.installationUsageInfo.remove.tooltipText"),
-        usageType = UsageType(AndroidBundle.messagePointer("project.upgrade.migrateToInstallationRefactoringProcessor.remove.usageType"))
+        tooltipTextSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.installationUsageInfo.remove.tooltipText"),
+        usageType = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.migrateToInstallationRefactoringProcessor.remove.usageType"))
       ),
     ),
   )

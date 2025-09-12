@@ -32,7 +32,6 @@ import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
-import org.jetbrains.android.util.AndroidBundle
 
 class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
@@ -98,7 +97,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GRADLE_PLUGINS)
 
   override fun getCommandName(): String =
-    AndroidBundle.message("project.upgrade.gradlePluginsRefactoringProcessor.commandName")
+    AgpUpgradeBundle.message("project.upgrade.gradlePluginsRefactoringProcessor.commandName")
 
   override fun getShortDescription(): String =
     """
@@ -116,14 +115,14 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
       }
 
       override fun getProcessedElementsHeader() =
-        AndroidBundle.message("project.upgrade.gradlePluginsRefactoringProcessor.usageView.header")
+        AgpUpgradeBundle.message("project.upgrade.gradlePluginsRefactoringProcessor.usageView.header")
     }
   }
 
   @Suppress("FunctionName")
   companion object {
     val WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE =
-      UsageType(AndroidBundle.messagePointer("project.upgrade.gradlePluginsRefactoringProcessor.wellKnownGradlePluginUsageType"))
+      UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.gradlePluginsRefactoringProcessor.wellKnownGradlePluginUsageType"))
 
     fun `kotlin-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {

@@ -28,7 +28,6 @@ import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
-import org.jetbrains.android.util.AndroidBundle
 
 /**
  * Staring AGP 9.0 android.defaults.buildFeatures.shaders will be set to false by default, causing projects that have shaders to not use AOT
@@ -75,7 +74,7 @@ class ShadersDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcess
     return usages.toTypedArray()
   }
 
-  override fun getCommandName() = AndroidBundle.message("project.upgrade.shadersDefaultRefactoringProcessor.commandName")
+  override fun getCommandName() = AgpUpgradeBundle.message("project.upgrade.shadersDefaultRefactoringProcessor.commandName")
 
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.SHADERS_DEFAULT)
@@ -86,7 +85,7 @@ class ShadersDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcess
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AndroidBundle.message("project.upgrade.shadersDefaultRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("project.upgrade.shadersDefaultRefactoringProcessor.usageView.header")
     }
   }
 
@@ -94,7 +93,7 @@ class ShadersDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcess
 
   companion object {
     val INSERT_SHADERS_DIRECTIVE =
-      UsageType(AndroidBundle.messagePointer("project.upgrade.shadersDefaultRefactoringProcessor.enable.usageType"))
+      UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.shadersDefaultRefactoringProcessor.enable.usageType"))
   }
 }
 
@@ -102,7 +101,7 @@ class ShadersEnableUsageInfo(
   element: WrappedPsiElement,
   private val resultModel: GradlePropertyModel,
 ): GradleBuildModelUsageInfo(element) {
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.shadersBuildFeature.enable.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.shadersBuildFeature.enable.tooltipText")
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     resultModel.setValue(true)

@@ -36,7 +36,6 @@ import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
-import org.jetbrains.android.util.AndroidBundle
 
 class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
@@ -229,14 +228,14 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AndroidBundle.message("project.upgrade.fabricCrashlyticsRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("project.upgrade.fabricCrashlyticsRefactoringProcessor.usageView.header")
     }
   }
 
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(UpgradeAssistantComponentKind.FABRIC_CRASHLYTICS)
 
-  override fun getCommandName(): String = AndroidBundle.message("project.upgrade.fabricCrashlyticsRefactoringProcessor.commandName")
+  override fun getCommandName(): String = AgpUpgradeBundle.message("project.upgrade.fabricCrashlyticsRefactoringProcessor.commandName")
 
   override fun getShortDescription() =
     """
@@ -249,24 +248,24 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
     val COMPATIBLE_WITH = AgpVersion.parse("3.4.0")
     val INCOMPATIBLE_VERSION = AgpVersion.parse("4.1.0-alpha05") // see b/154302886
 
-    val REMOVE_FABRIC_REPOSITORY_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.removeFabricRepositoryUsageType"))
-    val ADD_GMAVEN_REPOSITORY_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.addGmavenRepositoryUsageType"))
+    val REMOVE_FABRIC_REPOSITORY_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.removeFabricRepositoryUsageType"))
+    val ADD_GMAVEN_REPOSITORY_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.addGmavenRepositoryUsageType"))
 
-    val REMOVE_FABRIC_CLASSPATH_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.removeFabricClasspathUsageType"))
-    val ADD_GOOGLE_SERVICES_CLASSPATH_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.addGoogleServicesClasspathUsageType"))
-    val ADD_FIREBASE_CRASHLYTICS_CLASSPATH_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.addFirebaseCrashlyticsClasspathUsageType"))
+    val REMOVE_FABRIC_CLASSPATH_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.removeFabricClasspathUsageType"))
+    val ADD_GOOGLE_SERVICES_CLASSPATH_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.addGoogleServicesClasspathUsageType"))
+    val ADD_FIREBASE_CRASHLYTICS_CLASSPATH_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.addFirebaseCrashlyticsClasspathUsageType"))
 
-    val REPLACE_FABRIC_PLUGIN_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.replaceFabricPluginUsageType"))
-    val APPLY_GOOGLE_SERVICES_PLUGIN_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.applyGoogleServicesPluginUsageType"))
+    val REPLACE_FABRIC_PLUGIN_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.replaceFabricPluginUsageType"))
+    val APPLY_GOOGLE_SERVICES_PLUGIN_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.applyGoogleServicesPluginUsageType"))
 
-    val REMOVE_FABRIC_CRASHLYTICS_SDK_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.removeFabricCrashlyticsSdkUsageType"))
-    val ADD_FIREBASE_CRASHLYTICS_SDK_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.addFirebaseCrashlyticsSdkUsageType"))
-    val ADD_GOOGLE_ANALYTICS_SDK_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.addGoogleAnalyticsSdkUsageType"))
+    val REMOVE_FABRIC_CRASHLYTICS_SDK_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.removeFabricCrashlyticsSdkUsageType"))
+    val ADD_FIREBASE_CRASHLYTICS_SDK_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.addFirebaseCrashlyticsSdkUsageType"))
+    val ADD_GOOGLE_ANALYTICS_SDK_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.addGoogleAnalyticsSdkUsageType"))
 
-    val REMOVE_FABRIC_NDK_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.removeFabricNdkUsageType"))
-    val ADD_FIREBASE_CRASHLYTICS_NDK_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.addFirebaseCrashlyticsNdkUsageType"))
-    val REMOVE_CRASHLYTICS_ENABLE_NDK_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.removeCrashlyticsEnableNdkUsageType"))
-    val ADD_FIREBASE_CRASHLYTICS_NATIVE_SYMBOL_UPLOAD_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.addFirebaseCrashlyticsNativeSymbolUploadUsageType"))
+    val REMOVE_FABRIC_NDK_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.removeFabricNdkUsageType"))
+    val ADD_FIREBASE_CRASHLYTICS_NDK_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.addFirebaseCrashlyticsNdkUsageType"))
+    val REMOVE_CRASHLYTICS_ENABLE_NDK_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.removeCrashlyticsEnableNdkUsageType"))
+    val ADD_FIREBASE_CRASHLYTICS_NATIVE_SYMBOL_UPLOAD_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.addFirebaseCrashlyticsNativeSymbolUploadUsageType"))
   }
 }
 
@@ -279,7 +278,7 @@ class RemoveFabricMavenRepositoryUsageInfo(
     repositories.removeRepository(repository)
   }
 
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.removeFabricMavenRepositoryUsageInfo.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.removeFabricMavenRepositoryUsageInfo.tooltipText")
 }
 
 // TODO(xof): investigate unifying this with the NoGMavenUsageInfo class above
@@ -292,7 +291,7 @@ class AddGoogleMavenRepositoryUsageInfo(
     repositories.addGoogleMavenRepository()
   }
 
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.addGoogleMavenRepositoryUsageInfo.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.addGoogleMavenRepositoryUsageInfo.tooltipText")
 }
 
 class RemoveFabricClasspathDependencyUsageInfo(
@@ -304,7 +303,7 @@ class RemoveFabricClasspathDependencyUsageInfo(
     dependencies.remove(dependency)
   }
 
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.removeFabricClasspathDependencyUsageInfo.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.removeFabricClasspathDependencyUsageInfo.tooltipText")
 }
 
 class AddGoogleServicesClasspathDependencyUsageInfo(
@@ -316,7 +315,7 @@ class AddGoogleServicesClasspathDependencyUsageInfo(
     dependencies.addArtifact("classpath", "com.google.gms:google-services:4.3.3")
   }
 
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.addGoogleServicesClasspathDependencyUsageInfo.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.addGoogleServicesClasspathDependencyUsageInfo.tooltipText")
 }
 
 class AddFirebaseCrashlyticsClasspathDependencyUsageInfo(
@@ -328,7 +327,7 @@ class AddFirebaseCrashlyticsClasspathDependencyUsageInfo(
     dependencies.addArtifact("classpath", "com.google.firebase:firebase-crashlytics-gradle:2.3.0")
   }
 
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.addFirebaseCrashlyticsClasspathDependencyUsageInfo.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.addFirebaseCrashlyticsClasspathDependencyUsageInfo.tooltipText")
 }
 
 class ReplaceFabricPluginUsageInfo(
@@ -339,7 +338,7 @@ class ReplaceFabricPluginUsageInfo(
     plugin.name().setValue("com.google.firebase.crashlytics")
   }
 
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.replaceFabricPluginUsageInfo.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.replaceFabricPluginUsageInfo.tooltipText")
 }
 
 class ApplyGoogleServicesPluginUsageInfo(
@@ -350,7 +349,7 @@ class ApplyGoogleServicesPluginUsageInfo(
     model.applyPlugin("com.google.gms.google-services")
   }
 
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.applyGoogleServicesPluginUsageInfo.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.applyGoogleServicesPluginUsageInfo.tooltipText")
 }
 
 class RemoveFabricCrashlyticsSdkUsageInfo(
@@ -362,7 +361,7 @@ class RemoveFabricCrashlyticsSdkUsageInfo(
     dependencies.remove(dependency)
   }
 
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.removeFabricCrashlyticsSdkUsageInfo.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.removeFabricCrashlyticsSdkUsageInfo.tooltipText")
 }
 
 class AddFirebaseCrashlyticsSdkUsageInfo(
@@ -373,7 +372,7 @@ class AddFirebaseCrashlyticsSdkUsageInfo(
     dependencies.addArtifact("implementation", "com.google.firebase:firebase-crashlytics:17.2.1")
   }
 
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.addFirebaseCrashlyticsSdkUsageInfo.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.addFirebaseCrashlyticsSdkUsageInfo.tooltipText")
 }
 
 class AddGoogleAnalyticsSdkUsageInfo(
@@ -384,7 +383,7 @@ class AddGoogleAnalyticsSdkUsageInfo(
     dependencies.addArtifact("implementation", "com.google.firebase:firebase-analytics:17.5.0")
   }
 
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.addGoogleAnalyticsSdkUsageInfo.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.addGoogleAnalyticsSdkUsageInfo.tooltipText")
 }
 
 class RemoveFabricNdkUsageInfo(
@@ -396,7 +395,7 @@ class RemoveFabricNdkUsageInfo(
     dependencies.remove(dependency)
   }
 
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.removeFabricNdkUsageInfo.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.removeFabricNdkUsageInfo.tooltipText")
 }
 
 class AddFirebaseCrashlyticsNdkUsageInfo(
@@ -407,7 +406,7 @@ class AddFirebaseCrashlyticsNdkUsageInfo(
     dependencies.addArtifact("implementation", "com.google.firebase:firebase-crashlytics-ndk:17.2.1")
   }
 
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.addFirebaseCrashlyticsNdkUsageInfo.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.addFirebaseCrashlyticsNdkUsageInfo.tooltipText")
 }
 
 class RemoveCrashlyticsEnableNdkUsageInfo(
@@ -418,7 +417,7 @@ class RemoveCrashlyticsEnableNdkUsageInfo(
     model.crashlytics().enableNdk().delete()
   }
 
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.removeCrashlyticsEnableNdkUsageInfo.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.removeCrashlyticsEnableNdkUsageInfo.tooltipText")
 }
 
 class AddBuildTypeFirebaseCrashlyticsUsageInfo(
@@ -429,5 +428,5 @@ class AddBuildTypeFirebaseCrashlyticsUsageInfo(
     buildType.firebaseCrashlytics().nativeSymbolUploadEnabled().setValue(true)
   }
 
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.addBuildTypeFirebaseCrashlyticsUsageInfo.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.addBuildTypeFirebaseCrashlyticsUsageInfo.tooltipText")
 }

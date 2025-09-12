@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.ide.common.repository.AgpVersion
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.util.AndroidBundle
 
 /**
  * Starting with AGP 9.0, the default value of android.dependency.useConstraints is now false. This refactoring adds
@@ -31,13 +30,13 @@ class DependencyConstraintsRefactoringProcessor: AbstractBooleanPropertyDefaultR
   override val propertyKey = "android.dependency.useConstraints"
   override val oldDefault = true
   override val upgradeEventKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.DEPENDENCY_CONSTRAINTS_DEFAULT
-  override val insertPropertyText = AndroidBundle.message("project.upgrade.dependencyConstraintsDefaultRefactoringProcessor.tooltipText")!!
-  override val tooltip = AndroidBundle.message("project.upgrade.dependencyConstraintsDefaultRefactoringProcessor.usage")!!
-  override val usageViewHeader = AndroidBundle.message("project.upgrade.dependencyConstraintsDefaultRefactoringProcessor.usageView.header")!!
+  override val insertPropertyText = AgpUpgradeBundle.message("project.upgrade.dependencyConstraintsDefaultRefactoringProcessor.tooltipText")!!
+  override val tooltip = AgpUpgradeBundle.message("project.upgrade.dependencyConstraintsDefaultRefactoringProcessor.usage")!!
+  override val usageViewHeader = AgpUpgradeBundle.message("project.upgrade.dependencyConstraintsDefaultRefactoringProcessor.usageView.header")!!
   override val necessityInfo = PointNecessity(AgpVersion.parse("9.0.0-alpha02"))
   // TODO: Add redirect once we have a landing page (b/358385655)
   override val readMoreUrlRedirect = ReadMoreUrlRedirect("dependency-constraints")
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.dependency.constraints"
-  override fun getCommandName() = AndroidBundle.message("project.upgrade.dependencyConstraintsDefaultRefactoringProcessor.commandName")!!
-  override fun getShortDescription() = AndroidBundle.message("project.upgrade.dependencyConstraintsDefaultRefactoringProcessor.shortDescription")!!
+  override fun getCommandName() = AgpUpgradeBundle.message("project.upgrade.dependencyConstraintsDefaultRefactoringProcessor.commandName")!!
+  override fun getShortDescription() = AgpUpgradeBundle.message("project.upgrade.dependencyConstraintsDefaultRefactoringProcessor.shortDescription")!!
 }

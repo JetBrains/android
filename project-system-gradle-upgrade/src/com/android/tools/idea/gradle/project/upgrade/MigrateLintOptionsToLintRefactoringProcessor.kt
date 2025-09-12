@@ -18,19 +18,18 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.ide.common.repository.AgpVersion
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.usages.impl.rules.UsageType
-import org.jetbrains.android.util.AndroidBundle
 
 val MIGRATE_LINT_OPTIONS_TO_LINT =
   PropertiesOperationsRefactoringInfo(
     optionalFromVersion = AgpVersion.parse("7.1.0-alpha06"),
     requiredFromVersion = AgpVersion.parse("9.0.0-alpha01"),
-    commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToLintRefactoringProcessor.commandName"),
+    commandNameSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.migrateToLintRefactoringProcessor.commandName"),
     shortDescriptionSupplier = { """
       Configuration related to lint is now performed using the
       lint block.
     """.trimIndent()
     },
-    processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToLintRefactoringProcessor.usageView.header"),
+    processedElementsHeaderSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.migrateToLintRefactoringProcessor.usageView.header"),
     componentKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TO_LINT,
     propertiesOperationInfos = listOf(
       MovePropertiesInfo(
@@ -68,13 +67,13 @@ val MIGRATE_LINT_OPTIONS_TO_LINT =
           Pair({ android().lintOptions().xmlOutput() }, { android().lint().xmlOutput() }),
           Pair({ android().lintOptions().xmlReport() }, { android().lint().xmlReport() }),
         ),
-        tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.lintOptionsUsageInfo.move.tooltipText"),
-        usageType = UsageType(AndroidBundle.messagePointer("project.upgrade.migrateToLintRefactoringProcessor.move.usageType")),
+        tooltipTextSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.lintOptionsUsageInfo.move.tooltipText"),
+        usageType = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.migrateToLintRefactoringProcessor.move.usageType")),
       ),
       RemovePropertiesInfo(
         propertyModelListGetter = { listOf(android().lintOptions()) },
-        tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.lintOptionsUsageInfo.remove.tooltipText"),
-        usageType = UsageType(AndroidBundle.messagePointer("project.upgrade.migrateToLintRefactoringProcessor.remove.usageType")),
+        tooltipTextSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.lintOptionsUsageInfo.remove.tooltipText"),
+        usageType = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.migrateToLintRefactoringProcessor.remove.usageType")),
       ),
     )
   )

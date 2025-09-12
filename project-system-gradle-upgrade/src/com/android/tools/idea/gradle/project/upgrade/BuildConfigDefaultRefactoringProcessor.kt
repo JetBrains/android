@@ -28,7 +28,6 @@ import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
-import org.jetbrains.android.util.AndroidBundle
 
 class BuildConfigDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
@@ -63,7 +62,7 @@ class BuildConfigDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPro
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.BUILD_CONFIG_DEFAULT)
 
-  override fun getCommandName() = AndroidBundle.message("project.upgrade.buildConfigDefaultRefactoringProcessor.commandName")
+  override fun getCommandName() = AgpUpgradeBundle.message("project.upgrade.buildConfigDefaultRefactoringProcessor.commandName")
 
   override fun getShortDescription() = """
     The default value for buildFeatures.buildConfig is changing, meaning that
@@ -82,20 +81,20 @@ class BuildConfigDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPro
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AndroidBundle.message("project.upgrade.buildConfigDefaultRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("project.upgrade.buildConfigDefaultRefactoringProcessor.usageView.header")
     }
   }
 
   override val readMoreUrlRedirect = ReadMoreUrlRedirect("build-config-default")
 
   companion object {
-    val INSERT_PROPERTY = UsageType(AndroidBundle.messagePointer("project.upgrade.buildConfigDefaultRefactoringProcessor.enable.usageType"))
+    val INSERT_PROPERTY = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.buildConfigDefaultRefactoringProcessor.enable.usageType"))
     val DEFAULT_CHANGED = AgpVersion.parse("8.0.0-alpha02")
   }
 }
 
 class BuildConfigUsageInfo(private val wrappedElement: WrappedPsiElement): GradleBuildModelUsageInfo(wrappedElement) {
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.buildConfigBuildFeature.enable.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.buildConfigBuildFeature.enable.tooltipText")
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     val (propertiesFile, psiFile) = when (val realElement = wrappedElement.realElement) {

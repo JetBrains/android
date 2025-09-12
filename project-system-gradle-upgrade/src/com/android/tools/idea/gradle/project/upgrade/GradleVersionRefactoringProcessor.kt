@@ -35,7 +35,6 @@ import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
 import org.gradle.util.GradleVersion
-import org.jetbrains.android.util.AndroidBundle
 import java.io.File
 
 class GradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
@@ -92,7 +91,7 @@ class GradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GRADLE_VERSION)
 
   override fun getCommandName(): String =
-    AndroidBundle.message("project.upgrade.gradleVersionRefactoringProcessor.commandName", compatibleGradleVersion.version.version)
+    AgpUpgradeBundle.message("project.upgrade.gradleVersionRefactoringProcessor.commandName", compatibleGradleVersion.version.version)
 
   override fun getShortDescription(): String =
     """
@@ -109,14 +108,14 @@ class GradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
       }
 
       override fun getProcessedElementsHeader() =
-        AndroidBundle.message("project.upgrade.gradleVersionRefactoringProcessor.usageView.header", compatibleGradleVersion.version.version)
+        AgpUpgradeBundle.message("project.upgrade.gradleVersionRefactoringProcessor.usageView.header", compatibleGradleVersion.version.version)
     }
   }
 
   @Suppress("FunctionName")
   companion object {
     val GRADLE_URL_USAGE_TYPE =
-      UsageType(AndroidBundle.messagePointer("project.upgrade.gradleVersionRefactoringProcessor.gradleUrlUsageType"))
+      UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.gradleVersionRefactoringProcessor.gradleUrlUsageType"))
   }
 
   // Handle an apparent annoyance in the Psi PropertiesFile implementation which apparently gives us escaping backslashes
@@ -139,7 +138,7 @@ class GradleVersionUsageInfo(
   private val gradleVersion: GradleVersion,
   private val updatedUrl: String
 ) : GradleBuildModelUsageInfo(element) {
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.gradleVersionUsageInfo.tooltipText", gradleVersion.version)
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.gradleVersionUsageInfo.tooltipText", gradleVersion.version)
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     ((element as? WrappedPsiElement)?.realElement as? Property)?.let { property ->

@@ -18,18 +18,17 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.ide.common.repository.AgpVersion
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind
 import com.intellij.usages.impl.rules.UsageType
-import org.jetbrains.android.util.AndroidBundle
 
 val MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES =
   PropertiesOperationsRefactoringInfo(
     optionalFromVersion = AgpVersion.parse("7.0.1"),
     requiredFromVersion = AgpVersion.parse("9.0.0-alpha01"),
-    commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToAndroidResourcesRefactoringProcessor.commandName"),
+    commandNameSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.migrateToAndroidResourcesRefactoringProcessor.commandName"),
     shortDescriptionSupplier = { """
       Configuration related to Android assets and other resources is
       now performed using the androidResources block.
     """.trimIndent() },
-    processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToAndroidResourcesRefactoringProcessor.usageView.header"),
+    processedElementsHeaderSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.migrateToAndroidResourcesRefactoringProcessor.usageView.header"),
     componentKind = UpgradeAssistantComponentKind.MIGRATE_TO_ANDROID_RESOURCES,
     propertiesOperationInfos = listOf(
       MovePropertiesInfo(
@@ -40,14 +39,14 @@ val MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES =
           Pair({ android().aaptOptions().additionalParameters() }, { android().androidResources().additionalParameters() }),
           Pair({ android().aaptOptions().namespaced() }, { android().androidResources().namespaced() }),
         ),
-        tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.androidResourcesUsageInfo.move.tooltipText"),
-        usageType = UsageType(AndroidBundle.messagePointer("project.upgrade.migrateToAndroidResourcesRefactoringProcessor.move.usageType"))
+        tooltipTextSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.androidResourcesUsageInfo.move.tooltipText"),
+        usageType = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.migrateToAndroidResourcesRefactoringProcessor.move.usageType"))
       ),
       RemovePropertiesInfo(
         propertyModelListGetter = { listOf(android().aaptOptions()) },
-        tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.androidResourcesUsageInfo.remove.tooltipText"),
+        tooltipTextSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.androidResourcesUsageInfo.remove.tooltipText"),
         usageType = UsageType(
-          AndroidBundle.messagePointer("project.upgrade.migrateToAndroidResourcesRefactoringProcessor.remove.usageType")),
+          AgpUpgradeBundle.messagePointer("project.upgrade.migrateToAndroidResourcesRefactoringProcessor.remove.usageType")),
       )
     )
   )

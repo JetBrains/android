@@ -29,7 +29,6 @@ import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
-import org.jetbrains.android.util.AndroidBundle
 
 class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
@@ -143,20 +142,20 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
     return object : UsageViewDescriptorAdapter() {
       override fun getElements(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
 
-      override fun getProcessedElementsHeader(): String = AndroidBundle.message("project.upgrade.compileRuntimeConfigurationRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader(): String = AgpUpgradeBundle.message("project.upgrade.compileRuntimeConfigurationRefactoringProcessor.usageView.header")
     }
   }
 
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.CompileRuntimeConfiguration"
 
-  override fun getCommandName(): String = AndroidBundle.message("project.upgrade.compileRuntimeConfigurationRefactoringProcessor.commandName")
+  override fun getCommandName(): String = AgpUpgradeBundle.message("project.upgrade.compileRuntimeConfigurationRefactoringProcessor.commandName")
 
   companion object {
     val IMPLEMENTATION_API_INTRODUCED = AgpVersion.parse("3.1.0")
     val COMPILE_REMOVED = AgpVersion.parse("7.0.0-alpha03")
 
-    val RENAME_CONFIGURATION_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.compileRuntimeConfigurationRefactoringProcessor.renameConfigurationUsageType"))
-    val CHANGE_DEPENDENCY_CONFIGURATION_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.compileRuntimeConfigurationRefactoringProcessor.changeDependencyConfigurationUsageType"))
+    val RENAME_CONFIGURATION_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.compileRuntimeConfigurationRefactoringProcessor.renameConfigurationUsageType"))
+    val CHANGE_DEPENDENCY_CONFIGURATION_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.compileRuntimeConfigurationRefactoringProcessor.changeDependencyConfigurationUsageType"))
   }
 }
 
@@ -169,7 +168,7 @@ class ObsoleteConfigurationDependencyUsageInfo(
     dependency.setConfigurationName(newConfigurationName)
   }
 
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.obsoleteConfigurationDependencyUsageInfo.tooltipText", dependency.configurationName(), newConfigurationName)
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.obsoleteConfigurationDependencyUsageInfo.tooltipText", dependency.configurationName(), newConfigurationName)
 
   override fun getDiscriminatingValues(): List<Any> = listOf(dependency, newConfigurationName)
 }
@@ -183,7 +182,7 @@ class ObsoleteConfigurationConfigurationUsageInfo(
     configuration.rename(newConfigurationName)
   }
 
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.obsoleteConfigurationConfigurationUsageInfo.tooltipText", configuration.name(), newConfigurationName)
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.obsoleteConfigurationConfigurationUsageInfo.tooltipText", configuration.name(), newConfigurationName)
 
   override fun getDiscriminatingValues(): List<Any> = listOf(configuration, newConfigurationName)
 }

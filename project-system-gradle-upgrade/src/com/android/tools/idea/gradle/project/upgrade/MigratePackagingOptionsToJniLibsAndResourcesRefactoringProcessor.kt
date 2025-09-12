@@ -24,7 +24,6 @@ import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
-import org.jetbrains.android.util.AndroidBundle
 
 class MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
@@ -70,7 +69,7 @@ class MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor : AgpUpgr
     return usages.toArray(UsageInfo.EMPTY_ARRAY)
   }
 
-  override fun getCommandName(): String = AndroidBundle.message("project.upgrade.migratePackagingOptionsRefactoringProcessor.commandName")
+  override fun getCommandName(): String = AgpUpgradeBundle.message("project.upgrade.migratePackagingOptionsRefactoringProcessor.commandName")
 
   override fun getShortDescription(): String? =
     """
@@ -88,26 +87,26 @@ class MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor : AgpUpgr
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AndroidBundle.message("project.upgrade.migratePackagingOptionsRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("project.upgrade.migratePackagingOptionsRefactoringProcessor.usageView.header")
     }
   }
 
   companion object {
-    val MOVE_PROPERTY = UsageType(AndroidBundle.messagePointer("project.upgrade.migratePackagingOptionsRefactoringProcessor.move.usageType"))
-    val SPLIT_PROPERTY = UsageType(AndroidBundle.messagePointer("project.upgrade.migratePackagingOptionsRefactoringProcessor.split.usageType"))
-    val REMOVE_PROPERTY = UsageType(AndroidBundle.messagePointer("project.upgrade.migratePackagingOptionsRefactoringProcessor.remove.usageType"))
+    val MOVE_PROPERTY = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.migratePackagingOptionsRefactoringProcessor.move.usageType"))
+    val SPLIT_PROPERTY = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.migratePackagingOptionsRefactoringProcessor.split.usageType"))
+    val REMOVE_PROPERTY = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.migratePackagingOptionsRefactoringProcessor.remove.usageType"))
 
     val MOVE_PACKAGING_OPTIONS_PROPERTIES_INFO = MovePropertiesInfo(
       listOf(
         Pair({ android().packaging().doNotStrip() }, { android().packaging().jniLibs().keepDebugSymbols() }),
         Pair({ android().packaging().merges() }, { android().packaging().resources().merges() }),
       ),
-      tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.migratePackagingOptionsRefactoringProcessor.move.tooltipText"),
+      tooltipTextSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.migratePackagingOptionsRefactoringProcessor.move.tooltipText"),
       usageType = MOVE_PROPERTY
     )
     val REMOVE_PACKAGING_OPTIONS_PROPERTIES_INFO = RemovePropertiesInfo(
       { listOf(android().packaging().excludes(), android().packaging().pickFirsts()) },
-      tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.migratePackagingOptionsRefactoringProcessor.remove.tooltipText"),
+      tooltipTextSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.migratePackagingOptionsRefactoringProcessor.remove.tooltipText"),
       usageType = REMOVE_PROPERTY
     )
   }

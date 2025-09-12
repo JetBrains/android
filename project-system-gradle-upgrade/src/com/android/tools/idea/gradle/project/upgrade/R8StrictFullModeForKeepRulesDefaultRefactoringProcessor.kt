@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.ide.common.repository.AgpVersion
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.util.AndroidBundle
 
 /**
  * Starting with AGP 9.0, the default value of android.r8.strictFullModeForKeepRules is now true. This refactoring adds the property if it
@@ -31,14 +30,14 @@ class R8StrictFullModeForKeepRulesDefaultRefactoringProcessor: AbstractBooleanPr
   override val propertyKey = "android.r8.strictFullModeForKeepRules"
   override val oldDefault = false
   override val upgradeEventKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.USE_R8_STRICT_FULL_MODE_FOR_KEEP_RULES_DEFAULT
-  override val insertPropertyText = AndroidBundle.message("project.upgrade.useR8StrictModeForKeepRules.enable.usageType")!!
-  override val tooltip = AndroidBundle.message("project.upgrade.useR8StrictModeForKeepRules.tooltipText")!!
-  override val usageViewHeader = AndroidBundle.message("project.upgrade.useR8StrictModeForKeepRules.usageView.header")!!
+  override val insertPropertyText = AgpUpgradeBundle.message("project.upgrade.useR8StrictModeForKeepRules.enable.usageType")!!
+  override val tooltip = AgpUpgradeBundle.message("project.upgrade.useR8StrictModeForKeepRules.tooltipText")!!
+  override val usageViewHeader = AgpUpgradeBundle.message("project.upgrade.useR8StrictModeForKeepRules.usageView.header")!!
   override val necessityInfo = PointNecessity(DEFAULT_CHANGED)
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.r8StrictFullModeForKeepRules"
-  override fun getCommandName() = AndroidBundle.message("project.upgrade.useR8StrictModeForKeepRules.commandName")!!
+  override fun getCommandName() = AgpUpgradeBundle.message("project.upgrade.useR8StrictModeForKeepRules.commandName")!!
   override val readMoreUrlRedirect: ReadMoreUrlRedirect? = ReadMoreUrlRedirect("r8-strict-full-mode-for-keep-rules")
-  override fun getShortDescription() = AndroidBundle.message("project.upgrade.useR8StrictModeForKeepRules.shortDescription")!!
+  override fun getShortDescription() = AgpUpgradeBundle.message("project.upgrade.useR8StrictModeForKeepRules.shortDescription")!!
 
   companion object {
     val DEFAULT_CHANGED = AgpVersion.parse("9.0.0-alpha01")

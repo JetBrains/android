@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.ide.common.repository.AgpVersion
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.util.AndroidBundle
 
 /**
  * Starting with AGP 9.0, the default value of android.sdk.defaultTargetSdkToCompileSdkIfUnset is now true. This refactoring adds the property if it
@@ -31,11 +30,11 @@ class TargetSdkDefaultRefactoringProcessor: AbstractBooleanPropertyDefaultRefact
   override val propertyKey = "android.sdk.defaultTargetSdkToCompileSdkIfUnset"
   override val oldDefault = false
   override val upgradeEventKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.DEFAULT_TARGET_SDK_TO_COMPILE_SDK_IF_UNSET
-  override val insertPropertyText = AndroidBundle.message("project.upgrade.targetSdkDefaultsToCompileSdk.enable.usageType")!!
-  override val tooltip = AndroidBundle.message("project.upgrade.targetSdkDefaultsToCompileSdk.tooltipText")!!
-  override val usageViewHeader = AndroidBundle.message("project.upgrade.targetSdkDefaultsToCompileSdk.usageView.header")!!
+  override val insertPropertyText = AgpUpgradeBundle.message("project.upgrade.targetSdkDefaultsToCompileSdk.enable.usageType")!!
+  override val tooltip = AgpUpgradeBundle.message("project.upgrade.targetSdkDefaultsToCompileSdk.tooltipText")!!
+  override val usageViewHeader = AgpUpgradeBundle.message("project.upgrade.targetSdkDefaultsToCompileSdk.usageView.header")!!
   override val necessityInfo = PointNecessity(AgpVersion.parse("9.0.0-alpha01"))
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.targetSdkDefaultRefactoringProcessor"
-  override fun getCommandName() = AndroidBundle.message("project.upgrade.targetSdkDefaultsToCompileSdk.commandName")!!
-  override fun getShortDescription() = AndroidBundle.message("project.upgrade.targetSdkDefaultsToCompileSdk.shortDescription")!!
+  override fun getCommandName() = AgpUpgradeBundle.message("project.upgrade.targetSdkDefaultsToCompileSdk.commandName")!!
+  override fun getShortDescription() = AgpUpgradeBundle.message("project.upgrade.targetSdkDefaultsToCompileSdk.shortDescription")!!
 }

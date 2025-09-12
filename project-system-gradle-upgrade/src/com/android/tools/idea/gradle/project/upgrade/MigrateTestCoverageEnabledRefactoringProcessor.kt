@@ -23,20 +23,19 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.usageView.UsageInfo
 import com.intellij.usages.impl.rules.UsageType
-import org.jetbrains.android.util.AndroidBundle
 
 val MIGRATE_TEST_COVERAGE_ENABLED_TO_UNIT_AND_ANDROID_COVERAGE =
   PropertiesOperationsRefactoringInfo(
     optionalFromVersion = AgpVersion.parse("7.3.0"),
     requiredFromVersion = AgpVersion.parse("9.0.0-alpha01"),
-    commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.migrateTestCoverageEnabledRefactoringProcessor.commandName"),
+    commandNameSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.migrateTestCoverageEnabledRefactoringProcessor.commandName"),
     shortDescriptionSupplier = { """
       Starting with Android Gradle Plugin 7.3.0 testCoverageEnabled has
       been replaced by enableUnitTestCoverage and enableAndroidTestCoverage.
       It will be removed in AGP 9.0.0.
     """.trimIndent()
     },
-    processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.migrateTestCoverageEnabledRefactoringProcessor.usageView.header"),
+    processedElementsHeaderSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.migrateTestCoverageEnabledRefactoringProcessor.usageView.header"),
     componentKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TEST_COVERAGE_ENABLED,
     propertiesOperationInfos = listOf(
       MoveTestCoveragePropertiesInfo(),
@@ -44,8 +43,8 @@ val MIGRATE_TEST_COVERAGE_ENABLED_TO_UNIT_AND_ANDROID_COVERAGE =
   )
 
 private class MoveTestCoveragePropertiesInfo: PropertiesOperationInfo{
-  val usageType = UsageType(AndroidBundle.messagePointer("project.upgrade.migrateTestCoverageEnabledRefactoringProcessor.move.usageType"))
-  val tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.migrateTestCoverageEnabledRefactoringProcessor.move.tooltipText")
+  val usageType = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.migrateTestCoverageEnabledRefactoringProcessor.move.usageType"))
+  val tooltipTextSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.migrateTestCoverageEnabledRefactoringProcessor.move.tooltipText")
 
   override fun findBuildModelUsages(
     processor: AgpUpgradeComponentRefactoringProcessor,

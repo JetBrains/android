@@ -18,24 +18,23 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.ide.common.repository.AgpVersion
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind
 import com.intellij.usages.impl.rules.UsageType
-import org.jetbrains.android.util.AndroidBundle
 
 val BUILD_TYPE_USE_PROGUARD_INFO = RemovePropertiesInfo(
   propertyModelListGetter = { android().buildTypes().map { buildType -> buildType.useProguard() } },
-  tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.removeBuildTypeUseProguard.tooltipText"),
-  usageType = UsageType(AndroidBundle.messagePointer("project.upgrade.removeBuildTypeUseProguard.usageType"))
+  tooltipTextSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.removeBuildTypeUseProguard.tooltipText"),
+  usageType = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.removeBuildTypeUseProguard.usageType"))
 )
 
 val REMOVE_BUILD_TYPE_USE_PROGUARD_INFO = PropertiesOperationsRefactoringInfo(
   optionalFromVersion = AgpVersion.parse("3.5.0"),
   requiredFromVersion = AgpVersion.parse("7.0.0-alpha14"),
-  commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.removeBuildTypeUseProguardRefactoringProcessor.commandName"),
+  commandNameSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.removeBuildTypeUseProguardRefactoringProcessor.commandName"),
   shortDescriptionSupplier = { """
     The useProguard setting for build types is not supported in Android
     Gradle Plugin version 7.0.0 and higher; from that version the R8 minifier
     is used unconditionally.
   """.trimIndent()},
-  processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.removeBuildTypeUseProguardRefactoringProcessor.usageView.header"),
+  processedElementsHeaderSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.removeBuildTypeUseProguardRefactoringProcessor.usageView.header"),
   componentKind = UpgradeAssistantComponentKind.REMOVE_BUILD_TYPE_USE_PROGUARD,
   propertiesOperationInfos = listOf(BUILD_TYPE_USE_PROGUARD_INFO)
 )

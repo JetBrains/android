@@ -32,7 +32,6 @@ import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
 import com.intellij.util.lang.JavaVersion
-import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.jvmcompat.GradleJvmSupportMatrix
 import org.jetbrains.plugins.gradle.properties.GradleDaemonJvmPropertiesFile
@@ -62,16 +61,16 @@ class GradleDaemonJvmCriteriaRefactoringProcessor : AgpUpgradeComponentRefactori
     if (currentToolchainVersion != null && currentToolchainVersion >= requiredToolchainVersion) return emptyArray()
     if (!GradleDaemonJvmCriteriaTemplatesManager.canGeneratePropertiesFile(recommendedToolchainVersion)) return emptyArray()
 
-    val usageType = UsageType(AndroidBundle.messagePointer("project.upgrade.gradleDaemonJvmCriteria.enable.usageType", recommendedToolchainVersion.feature))
+    val usageType = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.gradleDaemonJvmCriteria.enable.usageType", recommendedToolchainVersion.feature))
     val wrappedPsiElement = WrappedPsiElement(propertiesPsiFile.containingFile, this, usageType)
     return arrayOf(GradleDaemonJvmCriteriaUsageInfo(wrappedPsiElement, recommendedToolchainVersion, externalProjectPath))
   }
 
   override fun getCommandName(): String =
-    AndroidBundle.message("project.upgrade.gradleDaemonJvmCriteria.commandName", recommendedToolchainVersion)
+    AgpUpgradeBundle.message("project.upgrade.gradleDaemonJvmCriteria.commandName", recommendedToolchainVersion)
 
   override fun getShortDescription(): String =
-    AndroidBundle.message("project.upgrade.gradleDaemonJvmCriteria.shortDescription", recommendedToolchainVersion)
+    AgpUpgradeBundle.message("project.upgrade.gradleDaemonJvmCriteria.shortDescription", recommendedToolchainVersion)
 
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.DAEMON_JVM_CRITERIA)
@@ -83,7 +82,7 @@ class GradleDaemonJvmCriteriaRefactoringProcessor : AgpUpgradeComponentRefactori
       }
 
       override fun getProcessedElementsHeader() =
-        AndroidBundle.message("project.upgrade.gradleDaemonJvmCriteria.usageView.header", recommendedToolchainVersion)
+        AgpUpgradeBundle.message("project.upgrade.gradleDaemonJvmCriteria.usageView.header", recommendedToolchainVersion)
     }
   }
 
@@ -104,7 +103,7 @@ class GradleDaemonJvmCriteriaRefactoringProcessor : AgpUpgradeComponentRefactori
     private val javaVersion: JavaVersion,
     private val externalProjectPath: @SystemIndependent String,
   ) : GradleBuildModelUsageInfo(element) {
-    override fun getTooltipText(): String = AndroidBundle.message(
+    override fun getTooltipText(): String = AgpUpgradeBundle.message(
       "project.upgrade.gradleDaemonJvmCriteria.enable.tooltipText", javaVersion.feature)
 
     override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {

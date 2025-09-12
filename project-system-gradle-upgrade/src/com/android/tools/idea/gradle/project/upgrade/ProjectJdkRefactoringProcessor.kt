@@ -32,7 +32,6 @@ import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
 import com.intellij.util.lang.JavaVersion
 import org.gradle.util.GradleVersion
-import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import com.android.tools.idea.gradle.extensions.isProjectUsingDaemonJvmCriteria
 import com.android.tools.idea.gradle.project.sync.jdk.GradleJdkConfigurationUtils
@@ -140,7 +139,7 @@ class ProjectJdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.PROJECT_JDK)
 
-  override fun getCommandName(): String = AndroidBundle.message("project.upgrade.projectJdkRefactoringProcessor.commandName")
+  override fun getCommandName(): String = AgpUpgradeBundle.message("project.upgrade.projectJdkRefactoringProcessor.commandName")
 
   override fun getShortDescription() = AgpCompatibleJdkVersion.getCompatibleJdkVersion(new).languageLevel.feature().let { v ->
     """
@@ -160,7 +159,7 @@ class ProjectJdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AndroidBundle.message("project.upgrade.projectJdkRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("project.upgrade.projectJdkRefactoringProcessor.usageView.header")
     }
   }
 
@@ -169,7 +168,7 @@ class ProjectJdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   }
 
   companion object {
-    val UPDATE_PROJECT_JDK = UsageType(AndroidBundle.messagePointer("project.upgrade.projectJdkRefactoringProcessor.enable.usageType"))
+    val UPDATE_PROJECT_JDK = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.projectJdkRefactoringProcessor.enable.usageType"))
   }
 }
 
@@ -178,7 +177,7 @@ class UpdateJdkUsageInfo(
   private val currentJdkPath: String,
   private val newJdkPath: String
 ) : GradleBuildModelUsageInfo(element) {
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.projectJdkUsageInfo.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.projectJdkUsageInfo.tooltipText")
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     fun setJdkAsProjectJdk(path: String) {

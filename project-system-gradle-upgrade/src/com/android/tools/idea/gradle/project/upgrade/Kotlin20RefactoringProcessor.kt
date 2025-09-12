@@ -33,7 +33,6 @@ import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
-import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.NonNls
 
 /**
@@ -72,7 +71,7 @@ class Kotlin20RefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
   override val necessityInfo: AgpUpgradeComponentNecessityInfo = PointNecessity(AgpVersion.parse("9.0.0-alpha01"))
 
-  override fun getShortDescription(): String = AndroidBundle.message("project.upgrade.kotlin20.shortDescription")
+  override fun getShortDescription(): String = AgpUpgradeBundle.message("project.upgrade.kotlin20.shortDescription")
 
   override fun getRefactoringId(): @NonNls String = "com.android.tools.upgrade.agp.kotlin20"
 
@@ -98,7 +97,7 @@ class Kotlin20RefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
     return usages.toTypedArray()
   }
 
-  override fun getCommandName(): String = AndroidBundle.message("project.upgrade.kotlin20.commandName")
+  override fun getCommandName(): String = AgpUpgradeBundle.message("project.upgrade.kotlin20.commandName")
 
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder) =
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.KOTLIN20_COMPOSE)
@@ -108,13 +107,13 @@ class Kotlin20RefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
       override fun getElements(): Array<out PsiElement?> = PsiElement.EMPTY_ARRAY
 
       override fun getProcessedElementsHeader(): @NlsContexts.ListItem String? =
-        AndroidBundle.message("project.upgrade.kotlin20.usageView.header")
+        AgpUpgradeBundle.message("project.upgrade.kotlin20.usageView.header")
     }
   }
 
   companion object {
-    val COMPILER_PLUGIN_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.kotlin20.compilerPlugin.usageType"))
-    val COMPOSE_OPTION_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.kotlin20.composeOption.usageType"))
+    val COMPILER_PLUGIN_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.kotlin20.compilerPlugin.usageType"))
+    val COMPOSE_OPTION_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.kotlin20.composeOption.usageType"))
   }
 }
 
@@ -128,7 +127,7 @@ class ApplyComposeCompilerPluginUsageInfo(
     PluginsHelper.withModel(projectModel).addPluginOrClasspath(PLUGIN_ID, MODULE, kotlinVersion.toString(), listOf(model))
   }
 
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.kotlin20.compilerPlugin.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.kotlin20.compilerPlugin.tooltipText")
   companion object {
     const val PLUGIN_ID = "org.jetbrains.kotlin.plugin.compose"
     const val MODULE = "org.jetbrains.kotlin:compose-compiler-gradle-plugin"
@@ -139,5 +138,5 @@ class RemoveComposeOptionUsageInfo(element: WrappedPsiElement, val model: Resolv
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     model.delete()
   }
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.kotlin20.composeOption.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.kotlin20.composeOption.tooltipText")
 }

@@ -28,7 +28,6 @@ import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
-import org.jetbrains.android.util.AndroidBundle
 
 class NonTransitiveRClassDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
@@ -64,7 +63,7 @@ class NonTransitiveRClassDefaultRefactoringProcessor : AgpUpgradeComponentRefact
     // TODO(xof): do the metrics dance
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.NON_TRANSITIVE_R_CLASS_DEFAULT)
 
-  override fun getCommandName(): String = AndroidBundle.message("project.upgrade.nonTransitiveRClassDefaultRefactoringProcessor.commandName")
+  override fun getCommandName(): String = AgpUpgradeBundle.message("project.upgrade.nonTransitiveRClassDefaultRefactoringProcessor.commandName")
 
   override fun getShortDescription() = """
     R classes in this project are transitive, pulling in information from their
@@ -84,12 +83,12 @@ class NonTransitiveRClassDefaultRefactoringProcessor : AgpUpgradeComponentRefact
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AndroidBundle.message("project.upgrade.nonTransitiveRClassDefaultRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("project.upgrade.nonTransitiveRClassDefaultRefactoringProcessor.usageView.header")
     }
   }
 
   companion object {
-    val INSERT_PROPERTY = UsageType(AndroidBundle.messagePointer("project.upgrade.nonTransitiveRClassDefaultRefactoringProcessor.usageType"))
+    val INSERT_PROPERTY = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.nonTransitiveRClassDefaultRefactoringProcessor.usageType"))
   }
 }
 
@@ -108,5 +107,5 @@ class NonTransitiveRClassUsageInfo(
     propertiesFile.addProperty("android.nonTransitiveRClass", "false")
   }
 
-  override fun getTooltipText() = AndroidBundle.message("project.upgrade.nonTransitiveRClassUsageInfo.tooltipText")
+  override fun getTooltipText() = AgpUpgradeBundle.message("project.upgrade.nonTransitiveRClassUsageInfo.tooltipText")
 }

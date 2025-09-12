@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.ide.common.repository.AgpVersion
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.util.AndroidBundle
 
 /**
  * Starting with AGP 9.0, the default value of android.usesSdkInManifest.disallowed becomes true.
@@ -32,13 +31,13 @@ class DisallowUsesSdkInManifestDefaultRefactoringProcessor: AbstractBooleanPrope
   override val propertyKey = "android.usesSdkInManifest.disallowed"
   override val oldDefault = false
   override val upgradeEventKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.USES_SDK_IN_MANIFEST_DISALLOWED_DEFAULT
-  override val insertPropertyText = AndroidBundle.message("project.upgrade.disallowUsesSdkInManifest.enable.usageType")!!
-  override val tooltip = AndroidBundle.message("project.upgrade.disallowUsesSdkInManifest.tooltipText")!!
-  override val usageViewHeader = AndroidBundle.message("project.upgrade.disallowUsesSdkInManifest.usageView.header")!!
+  override val insertPropertyText = AgpUpgradeBundle.message("project.upgrade.disallowUsesSdkInManifest.enable.usageType")!!
+  override val tooltip = AgpUpgradeBundle.message("project.upgrade.disallowUsesSdkInManifest.tooltipText")!!
+  override val usageViewHeader = AgpUpgradeBundle.message("project.upgrade.disallowUsesSdkInManifest.usageView.header")!!
   override val necessityInfo = PointNecessity(DEFAULT_CHANGED)
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.usesSdkInManifestDisallowed"
-  override fun getCommandName() = AndroidBundle.message("project.upgrade.disallowUsesSdkInManifest.commandName")!!
-  override fun getShortDescription() = AndroidBundle.message("project.upgrade.disallowUsesSdkInManifest.shortDescription")!!
+  override fun getCommandName() = AgpUpgradeBundle.message("project.upgrade.disallowUsesSdkInManifest.commandName")!!
+  override fun getShortDescription() = AgpUpgradeBundle.message("project.upgrade.disallowUsesSdkInManifest.shortDescription")!!
 
   companion object {
     val DEFAULT_CHANGED = AgpVersion.parse("9.0.0-alpha01")

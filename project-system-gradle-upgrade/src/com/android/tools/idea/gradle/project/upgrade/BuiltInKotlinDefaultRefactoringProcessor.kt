@@ -19,7 +19,6 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.ide.common.repository.AgpVersion
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.TestOnly
 
 /**
@@ -38,11 +37,11 @@ class BuiltInKotlinDefaultRefactoringProcessor : AbstractBooleanPropertyDefaultR
   override val oldDefault = false
   override val necessityInfo = PointNecessity(AgpVersion.parse("9.0.0-alpha03"))
 
-  override val insertPropertyText = AndroidBundle.message("project.upgrade.builtInKotlin.default.usageType")!!
-  override val tooltip = AndroidBundle.message("project.upgrade.builtInKotlin.default.usageType")!!
-  override val usageViewHeader = AndroidBundle.message("project.upgrade.builtInKotlin.default.commandName")!!
+  override val insertPropertyText = AgpUpgradeBundle.message("project.upgrade.builtInKotlin.default.usageType")!!
+  override val tooltip = AgpUpgradeBundle.message("project.upgrade.builtInKotlin.default.usageType")!!
+  override val usageViewHeader = AgpUpgradeBundle.message("project.upgrade.builtInKotlin.default.commandName")!!
 
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.builtInKotlin.default"
-  override fun getCommandName() = AndroidBundle.message("project.upgrade.builtInKotlin.default.commandName")!!
-  override fun getShortDescription() = AndroidBundle.message("project.upgrade.builtInKotlin.default.shortDescription")!!
+  override fun getCommandName() = AgpUpgradeBundle.message("project.upgrade.builtInKotlin.default.commandName")!!
+  override fun getShortDescription() = AgpUpgradeBundle.message("project.upgrade.builtInKotlin.default.shortDescription")!!
 }

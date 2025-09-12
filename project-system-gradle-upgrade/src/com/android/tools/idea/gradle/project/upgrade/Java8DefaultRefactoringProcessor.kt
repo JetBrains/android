@@ -33,7 +33,6 @@ import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
-import org.jetbrains.android.util.AndroidBundle
 import java.util.function.Supplier
 
 private val LOG = Logger.getInstance(LOG_CATEGORY)
@@ -119,10 +118,10 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
     return builder.setKind(UpgradeAssistantComponentKind.JAVA8_DEFAULT).setJava8DefaultSettings(java8Settings)
   }
 
-  override fun getCommandName(): String = AndroidBundle.message("project.upgrade.java8DefaultRefactoringProcessor.commandName")
+  override fun getCommandName(): String = AgpUpgradeBundle.message("project.upgrade.java8DefaultRefactoringProcessor.commandName")
 
   override val groupingName: String
-    get() = AndroidBundle.message("project.upgrade.java8DefaultRefactoringProcessor.groupingName")
+    get() = AgpUpgradeBundle.message("project.upgrade.java8DefaultRefactoringProcessor.groupingName")
 
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.Java8Default"
 
@@ -132,7 +131,7 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AndroidBundle.message("project.upgrade.java8DefaultRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("project.upgrade.java8DefaultRefactoringProcessor.usageView.header")
     }
   }
 
@@ -157,14 +156,14 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
   companion object {
     val ACTIVATED_VERSION = AgpVersion.parse("4.2.0-alpha05")
 
-    val EXISTING_DIRECTIVE_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.java8DefaultRefactoringProcessor.existingDirectiveUsageType"))
-    val ACCEPT_NEW_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.java8DefaultRefactoringProcessor.acceptNewUsageType"))
-    val INSERT_OLD_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.java8DefaultRefactoringProcessor.insertOldUsageType"))
+    val EXISTING_DIRECTIVE_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.java8DefaultRefactoringProcessor.existingDirectiveUsageType"))
+    val ACCEPT_NEW_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.java8DefaultRefactoringProcessor.acceptNewUsageType"))
+    val INSERT_OLD_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.java8DefaultRefactoringProcessor.insertOldUsageType"))
   }
 
   enum class NoLanguageLevelAction(val supplier: Supplier<String>) {
-    ACCEPT_NEW_DEFAULT(AndroidBundle.messagePointer("project.upgrade.noLanguageLevelAction.acceptNewDefault")),
-    INSERT_OLD_DEFAULT(AndroidBundle.messagePointer("project.upgrade.noLanguageLevelAction.insertOldDefault")),
+    ACCEPT_NEW_DEFAULT(AgpUpgradeBundle.messagePointer("project.upgrade.noLanguageLevelAction.acceptNewDefault")),
+    INSERT_OLD_DEFAULT(AgpUpgradeBundle.messagePointer("project.upgrade.noLanguageLevelAction.insertOldDefault")),
     ;
 
     override fun toString() = supplier.get()
@@ -181,10 +180,10 @@ class JavaLanguageLevelUsageInfo(
   override fun getTooltipText(): String {
     return when (existing) {
       false -> when (noLanguageLevelAction) {
-        INSERT_OLD_DEFAULT -> AndroidBundle.message("project.upgrade.javaLanguageLevelUsageInfo.tooltipText.insertOldDefault", propertyName)
-        ACCEPT_NEW_DEFAULT -> AndroidBundle.message("project.upgrade.javaLanguageLevelUsageInfo.tooltipText.acceptNewDefault")
+        INSERT_OLD_DEFAULT -> AgpUpgradeBundle.message("project.upgrade.javaLanguageLevelUsageInfo.tooltipText.insertOldDefault", propertyName)
+        ACCEPT_NEW_DEFAULT -> AgpUpgradeBundle.message("project.upgrade.javaLanguageLevelUsageInfo.tooltipText.acceptNewDefault")
       }
-      true -> AndroidBundle.message("project.upgrade.javaLanguageLevelUsageInfo.tooltipText.existing", propertyName)
+      true -> AgpUpgradeBundle.message("project.upgrade.javaLanguageLevelUsageInfo.tooltipText.existing", propertyName)
     }
   }
 
@@ -207,11 +206,11 @@ class KotlinLanguageLevelUsageInfo(
   override fun getTooltipText(): String {
     return when (existing) {
       false -> when (noLanguageLevelAction) {
-        INSERT_OLD_DEFAULT -> AndroidBundle.message("project.upgrade.kotlinLanguageLevelUsageInfo.tooltipText.insertOldDefault", propertyName)
-        ACCEPT_NEW_DEFAULT -> AndroidBundle.message("project.upgrade.kotlinLanguageLevelUsageInfo.tooltipText.acceptNewDefault")
+        INSERT_OLD_DEFAULT -> AgpUpgradeBundle.message("project.upgrade.kotlinLanguageLevelUsageInfo.tooltipText.insertOldDefault", propertyName)
+        ACCEPT_NEW_DEFAULT -> AgpUpgradeBundle.message("project.upgrade.kotlinLanguageLevelUsageInfo.tooltipText.acceptNewDefault")
 
       }
-      true -> AndroidBundle.message("project.upgrade.kotlinLanguageLevelUsageInfo.tooltipText.existing", propertyName)
+      true -> AgpUpgradeBundle.message("project.upgrade.kotlinLanguageLevelUsageInfo.tooltipText.existing", propertyName)
     }
   }
 

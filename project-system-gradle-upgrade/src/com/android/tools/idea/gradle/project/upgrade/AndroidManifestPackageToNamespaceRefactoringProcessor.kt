@@ -34,7 +34,6 @@ import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
-import org.jetbrains.android.util.AndroidBundle
 import java.io.File
 
 class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
@@ -149,7 +148,7 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
     return usages.toTypedArray()
   }
 
-  override fun getCommandName(): String = AndroidBundle.message("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.commandName")
+  override fun getCommandName(): String = AgpUpgradeBundle.message("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.commandName")
 
   override val readMoreUrlRedirect = ReadMoreUrlRedirect("manifest-package-deprecated")
 
@@ -168,7 +167,7 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AndroidBundle.message("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.usageView.header")
     }
   }
 
@@ -182,9 +181,9 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
   }
 
   companion object {
-    val REMOVE_MANIFEST_PACKAGE = UsageType(AndroidBundle.messagePointer("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.removePackage.usageType"))
-    val ADD_NAMESPACE_BUILDFILE = UsageType(AndroidBundle.messagePointer("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.addNamespace.usageType"))
-    val ADD_TEST_NAMESPACE_BUILDFILE = UsageType(AndroidBundle.messagePointer("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.addTestNamespace.usageType"))
+    val REMOVE_MANIFEST_PACKAGE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.removePackage.usageType"))
+    val ADD_NAMESPACE_BUILDFILE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.addNamespace.usageType"))
+    val ADD_TEST_NAMESPACE_BUILDFILE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.addTestNamespace.usageType"))
   }
 }
 
@@ -197,7 +196,7 @@ class AndroidManifestPackageUsageInfo(element: WrappedPsiElement) : GradleBuildM
     }
   }
 
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.removePackage.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.removePackage.tooltipText")
 }
 
 class AndroidNamespaceUsageInfo(
@@ -209,7 +208,7 @@ class AndroidNamespaceUsageInfo(
     model.android().namespace().setValue(value)
   }
 
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.addNamespace.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.addNamespace.tooltipText")
 }
 
 class AndroidTestNamespaceUsageInfo(
@@ -221,5 +220,5 @@ class AndroidTestNamespaceUsageInfo(
     model.android().testNamespace().setValue(value)
   }
 
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.addTestNamespace.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.addTestNamespace.tooltipText")
 }

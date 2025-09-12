@@ -25,7 +25,6 @@ import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
-import org.jetbrains.android.util.AndroidBundle
 
 class RedundantPropertiesRefactoringProcessor: AgpUpgradeComponentRefactoringProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
@@ -59,7 +58,7 @@ class RedundantPropertiesRefactoringProcessor: AgpUpgradeComponentRefactoringPro
     else -> Version.parse("30.0.3")
   }
 
-  override fun getCommandName(): String = AndroidBundle.message("project.upgrade.redundantPropertiesRefactoringProcessor.commandName")
+  override fun getCommandName(): String = AgpUpgradeBundle.message("project.upgrade.redundantPropertiesRefactoringProcessor.commandName")
 
   override fun getShortDescription(): String =
     """
@@ -77,12 +76,12 @@ class RedundantPropertiesRefactoringProcessor: AgpUpgradeComponentRefactoringPro
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AndroidBundle.message("project.upgrade.redundantPropertiesRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("project.upgrade.redundantPropertiesRefactoringProcessor.usageView.header")
     }
   }
 
   companion object {
-    val REDUNDANT_PROPERTY_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.redundantProperties.usageType"))
+    val REDUNDANT_PROPERTY_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.redundantProperties.usageType"))
   }
 }
 
@@ -94,5 +93,5 @@ class RemoveRedundantPropertyUsageInfo(
     model.delete()
   }
 
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.redundantProperties.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.redundantProperties.tooltipText")
 }

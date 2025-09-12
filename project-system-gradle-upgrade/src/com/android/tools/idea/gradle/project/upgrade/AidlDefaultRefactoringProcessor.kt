@@ -29,7 +29,6 @@ import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
-import org.jetbrains.android.util.AndroidBundle
 
 class AidlDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
@@ -71,7 +70,7 @@ class AidlDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor 
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.AIDL_DEFAULT)
 
-  override fun getCommandName() = AndroidBundle.message("project.upgrade.aidlDefaultRefactoringProcessor.commandName")
+  override fun getCommandName() = AgpUpgradeBundle.message("project.upgrade.aidlDefaultRefactoringProcessor.commandName")
 
   override fun getShortDescription() = """
     The default value for buildFeatures.aidl has changed, and some modules
@@ -87,7 +86,7 @@ class AidlDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor 
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AndroidBundle.message("project.upgrade.aidlDefaultRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("project.upgrade.aidlDefaultRefactoringProcessor.usageView.header")
     }
   }
 
@@ -95,7 +94,7 @@ class AidlDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor 
 
   companion object {
     val INSERT_AIDL_DIRECTIVE =
-      UsageType(AndroidBundle.messagePointer("project.upgrade.aidlDefaultRefactoringProcessor.enable.usageType"))
+      UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.aidlDefaultRefactoringProcessor.enable.usageType"))
     val DEFAULT_CHANGED = AgpVersion.parse("8.0.0-alpha04")
   }
 }
@@ -104,7 +103,7 @@ class AidlEnableUsageInfo(
   element: WrappedPsiElement,
   private val resultModel: GradlePropertyModel,
 ): GradleBuildModelUsageInfo(element) {
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.aidlBuildFeature.enable.tooltipText")
+  override fun getTooltipText(): String = AgpUpgradeBundle.message("project.upgrade.aidlBuildFeature.enable.tooltipText")
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     resultModel.setValue(true)

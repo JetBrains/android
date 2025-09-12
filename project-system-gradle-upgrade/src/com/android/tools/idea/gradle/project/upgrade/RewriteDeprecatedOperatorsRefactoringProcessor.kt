@@ -18,19 +18,18 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.ide.common.repository.AgpVersion
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.usages.impl.rules.UsageType
-import org.jetbrains.android.util.AndroidBundle
 
 val REWRITE_DEPRECATED_OPERATORS = PropertiesOperationsRefactoringInfo(
   optionalFromVersion = AgpVersion.parse("7.1.0-alpha06"),
   requiredFromVersion = AgpVersion.parse("9.0.0-alpha01"),
-  commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.rewriteDeprecatedOperatorsRefactoringProcessor.commandName"),
+  commandNameSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.rewriteDeprecatedOperatorsRefactoringProcessor.commandName"),
   shortDescriptionSupplier = {
     """
       A number of Dsl operators and methods have been deprecated for removal in
       AGP 9.0.0, replaced by simpler property operations.
     """.trimIndent()
   },
-  processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.rewriteDeprecatedOperatorsRefactoringProcessor.usageView.header"),
+  processedElementsHeaderSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.rewriteDeprecatedOperatorsRefactoringProcessor.usageView.header"),
   componentKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REWRITE_DEPRECATED_OPERATORS,
   propertiesOperationInfos = listOf(
     RewriteObsoletePropertiesInfo(
@@ -73,8 +72,8 @@ val REWRITE_DEPRECATED_OPERATORS = PropertiesOperationsRefactoringInfo(
           )
         }
       },
-      tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.deprecatedOperatorUsageInfo.rewrite.tooltipText"),
-      usageType = UsageType(AndroidBundle.messagePointer("project.upgrade.rewriteDeprecatedOperatorsRefactoringProcessor.rewrite.usageType")),
+      tooltipTextSupplier = AgpUpgradeBundle.messagePointer("project.upgrade.deprecatedOperatorUsageInfo.rewrite.tooltipText"),
+      usageType = UsageType(AgpUpgradeBundle.messagePointer("project.upgrade.rewriteDeprecatedOperatorsRefactoringProcessor.rewrite.usageType")),
     )
   )
 )
