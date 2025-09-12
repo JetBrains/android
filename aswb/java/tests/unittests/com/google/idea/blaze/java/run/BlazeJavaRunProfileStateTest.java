@@ -131,7 +131,7 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
     return FakeBuildSystemProvider.builder()
         .setBuildSystem(
             FakeBuildSystem.builder(BuildSystemName.Bazel)
-                .setBuildInvoker(FakeBuildInvoker.builder().binaryPath("/usr/bin/blaze").build())
+                .setBuildInvoker(FakeBuildInvoker.builder().invokeCommand(ImmutableList.of("/usr/bin/blaze")).build())
                 .build())
         .build();
   }
@@ -147,7 +147,7 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
     assertThat(
             BlazeJavaRunProfileState.getBlazeCommandBuilder(
                     project,
-                    FakeBuildInvoker.builder().binaryPath("/usr/bin/blaze").build(),
+                    FakeBuildInvoker.builder().invokeCommand(ImmutableList.of("/usr/bin/blaze")).build(),
                     configuration,
                     ImmutableList.of(),
                     ExecutorType.RUN,
@@ -175,7 +175,7 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
     assertThat(
             BlazeJavaRunProfileState.getBlazeCommandBuilder(
                     project,
-                    FakeBuildInvoker.builder().binaryPath("/usr/bin/blaze").build(),
+                    FakeBuildInvoker.builder().invokeCommand(ImmutableList.of("/usr/bin/blaze")).build(),
                     configuration,
                     ImmutableList.of(),
                     ExecutorType.DEBUG,
@@ -203,7 +203,7 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
     assertThat(
             BlazeJavaRunProfileState.getBlazeCommandBuilder(
                     project,
-                    FakeBuildInvoker.builder().binaryPath("/usr/bin/blaze").build(),
+                    FakeBuildInvoker.builder().invokeCommand(ImmutableList.of("/usr/bin/blaze")).build(),
                     configuration,
                     ImmutableList.of(),
                     ExecutorType.DEBUG,
@@ -231,7 +231,7 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
     assertThat(
             BlazeJavaRunProfileState.getBlazeCommandBuilder(
                     project,
-                    FakeBuildInvoker.builder().binaryPath("/usr/bin/blaze").build(),
+                    FakeBuildInvoker.builder().invokeCommand(ImmutableList.of("/usr/bin/blaze")).build(),
                     configuration,
                     ImmutableList.of(),
                     ExecutorType.DEBUG,
@@ -244,8 +244,11 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
   @Test
   public void getBashCommandsToRunScript() throws Exception {
     BlazeCommand.Builder commandBuilder =
-        BlazeCommand.builder(FakeBuildInvoker.builder().binaryPath("/usr/bin/blaze").build(), BlazeCommandName.BUILD)
-            .addTargets(Label.create("//label:java_binary_rule"));
+        BlazeCommand.builder(
+          FakeBuildInvoker.builder().invokeCommand(
+            ImmutableList.of("/usr/bin/blaze")).build(),
+          BlazeCommandName.BUILD)
+          .addTargets(Label.create("//label:java_binary_rule"));
     List<String> command =
         HotSwapCommandBuilder.getBashCommandsToRunScript(getProject(), commandBuilder);
     Path tempDirectory = TempDirectoryProvider.getInstance().getTempDirectory();

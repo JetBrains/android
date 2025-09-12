@@ -16,7 +16,6 @@
 package com.google.idea.blaze.base.bazel;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.MustBeClosed;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.bazel.BuildSystem.SyncStrategy;
@@ -39,6 +38,7 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.project.Project;
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -248,8 +248,8 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
     }
 
     @Override
-    public String getBinaryPath() {
-      return inner.getBinaryPath();
+    public List<String> getInvokeCommand() {
+      return inner.getInvokeCommand();
     }
 
     @Override

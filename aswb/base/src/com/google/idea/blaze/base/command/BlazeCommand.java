@@ -20,27 +20,25 @@ import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.model.primitives.TargetExpression;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import javax.annotation.concurrent.Immutable;
 
 /** A command to issue to Blaze/Bazel on the command line. */
 @Immutable
 public final class BlazeCommand {
 
-  private final String binaryPath;
+  private final List<String> invokeCommand;
   private final BlazeCommandName name;
   private final ImmutableList<String> blazeCmdlineFlags;
   private final ImmutableList<String> blazeStartupFlags;
 
   private BlazeCommand(
-      String binaryPath,
+      List<String> invokeCommand,
       BlazeCommandName name,
       ImmutableList<String> blazeStartupFlags,
       ImmutableList<String> blazeCmdlineFlags) {
-    this.binaryPath = binaryPath;
+    this.invokeCommand = invokeCommand;
     this.name = name;
     this.blazeCmdlineFlags = blazeCmdlineFlags;
     this.blazeStartupFlags = blazeStartupFlags;
@@ -60,7 +58,7 @@ public final class BlazeCommand {
 
   public ImmutableList<String> toList() {
     return ImmutableList.<String>builder()
-        .add(binaryPath)
+        .addAll(invokeCommand)
         .addAll(blazeStartupFlags)
         .add(name.toString())
         .addAll(blazeCmdlineFlags)
@@ -73,16 +71,23 @@ public final class BlazeCommand {
   }
 
   public static Builder builder(BuildInvoker invoker, BlazeCommandName name) {
-    return new Builder(invoker.getBinaryPath(), name);
+    return new Builder(invoker.getInvokeCommand(), name);
   }
 
+
+  /**
+   * Returns a [BlazeCommand.Builder] with the given blaze binary path.
+   * <p>
+   * This Builder is used by run configs where the user specifies a single blazeBinaryPath which is used instead of the invoker's
+   * default binary path (if the invoker supports path overrides, i.e. canOverrideBinaryPath).
+   */
   public static Builder builder(BuildInvoker invoker, BlazeCommandName name, String blazeBinaryPath) {
-    return new Builder(invoker.getBinaryPath(blazeBinaryPath), name);
+    return new Builder(invoker.getInvokeCommandForBinaryPath(blazeBinaryPath), name);
   }
 
   /** Builder for a blaze command */
   public static class Builder {
-    private final String binaryPath;
+    private final List<String> invokeCommand;
     private final BlazeCommandName name;
     private boolean invokeParallel;
     private final ImmutableList.Builder<String> blazeStartupFlags = ImmutableList.builder();
@@ -90,8 +95,8 @@ public final class BlazeCommand {
     private final ImmutableList.Builder<String> blazeCmdlineFlags = ImmutableList.builder();
     private final ImmutableList.Builder<String> exeFlags = ImmutableList.builder();
 
-    public Builder(String binaryPath, BlazeCommandName name) {
-      this.binaryPath = binaryPath;
+    public Builder(List<String> invokeCommand, BlazeCommandName name) {
+      this.invokeCommand = invokeCommand;
       this.name = name;
       this.invokeParallel = false;
       // Tell forge what tool we used to call blaze so we can track usage.
@@ -115,11 +120,7 @@ public final class BlazeCommand {
     }
 
     public BlazeCommand build() {
-      return new BlazeCommand(
-          binaryPath,
-          name,
-          blazeStartupFlags.build(),
-          getArguments());
+      return new BlazeCommand(invokeCommand, name, blazeStartupFlags.build(), getArguments());
     }
 
     public boolean isInvokeParallel() {

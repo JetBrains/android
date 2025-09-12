@@ -147,7 +147,7 @@ interface BuildSystem {
      */
     val type: BuildBinaryType
 
-    val binaryPath: String
+    val invokeCommand: List<String>
 
     val canOverrideBinaryPath: Boolean
 
@@ -158,9 +158,9 @@ interface BuildSystem {
      *
      * @return [String] user defined blaze binary path if supported by the invoker
      */
-    fun getBinaryPath(userSpecifiedBinaryPath: String): String {
+    fun getInvokeCommandForBinaryPath(userSpecifiedBinaryPath: String): List<String> {
       if (canOverrideBinaryPath) {
-        return userSpecifiedBinaryPath
+        return listOf(userSpecifiedBinaryPath)
       } else {
         throw UnsupportedOperationException("This BuildInvoker does not support user-specified binary paths.")
       }

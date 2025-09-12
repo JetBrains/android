@@ -1,5 +1,6 @@
 package com.google.idea.blaze.base.bazel;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.intellij.openapi.project.Project;
@@ -14,7 +15,7 @@ public final class LocalBazelInvoker extends AbstractLocalInvoker {
 
 
   public LocalBazelInvoker(Project project, BuildSystem buildSystem, Supplier<String> binaryPath) {
-    super(project, buildSystem, binaryPath);
+    super(project, buildSystem, () -> ImmutableList.of(binaryPath.get()));
   }
 
   @Override
