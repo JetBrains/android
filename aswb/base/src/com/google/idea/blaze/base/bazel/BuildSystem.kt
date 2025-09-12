@@ -149,6 +149,23 @@ interface BuildSystem {
 
     val binaryPath: String
 
+    val canOverrideBinaryPath: Boolean
+
+    /**
+     * Returns a user specified binary path that may be different than this.binaryPath.
+     *
+     * Local invokers allow users to overwrite the binaryPath (e.g. from run config dialog)
+     *
+     * @return [String] user defined blaze binary path if supported by the invoker
+     */
+    fun getBinaryPath(userSpecifiedBinaryPath: String): String {
+      if (canOverrideBinaryPath) {
+        return userSpecifiedBinaryPath
+      } else {
+        throw UnsupportedOperationException("This BuildInvoker does not support user-specified binary paths.")
+      }
+    }
+
     @Throws(SyncScope.SyncFailedException::class)
     fun getBlazeInfo(blazeContext: BlazeContext): BlazeInfo
 

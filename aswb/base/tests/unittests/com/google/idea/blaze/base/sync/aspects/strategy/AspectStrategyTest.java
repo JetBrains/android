@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.BlazeTestCase;
+import com.google.idea.blaze.base.bazel.FakeBuildInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.model.primitives.LanguageClass;
@@ -186,7 +187,7 @@ public class AspectStrategyTest extends BlazeTestCase {
   }
 
   private static BlazeCommand.Builder emptyBuilder() {
-    return BlazeCommand.builder("/usr/bin/blaze", BlazeCommandName.BUILD);
+    return BlazeCommand.builder(FakeBuildInvoker.builder().binaryPath("/usr/bin/blaze").build(), BlazeCommandName.BUILD);
   }
 
   private static ImmutableList<String> getBlazeFlags(BlazeCommand.Builder builder) {

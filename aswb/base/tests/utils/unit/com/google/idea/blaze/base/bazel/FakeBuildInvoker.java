@@ -52,6 +52,11 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
   public abstract String getBinaryPath();
 
   @Override
+  public boolean getCanOverrideBinaryPath() {
+    return false;
+  }
+
+  @Override
   public BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) {
     return fakeBuildEventStreamProvider();
   }

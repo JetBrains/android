@@ -135,11 +135,6 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
   }
 
   @Override
-  public String getBinaryPath(Project project) {
-    return inner().getBinaryPath(project);
-  }
-
-  @Override
   public ProjectLoader createProjectLoader(Project project) {
     return inner.createProjectLoader(project);
   }
@@ -255,6 +250,11 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
     @Override
     public String getBinaryPath() {
       return inner.getBinaryPath();
+    }
+
+    @Override
+    public boolean getCanOverrideBinaryPath() {
+      return inner.getCanOverrideBinaryPath();
     }
 
     @Override

@@ -76,12 +76,8 @@ public final class BlazeCommand {
     return new Builder(invoker.getBinaryPath(), name);
   }
 
-  /**
-   * @deprecated Use {@link #builder(BuildInvoker, BlazeCommandName)} instead.
-   */
-  @Deprecated
-  public static Builder builder(String binaryPath, BlazeCommandName name) {
-    return new Builder(binaryPath, name);
+  public static Builder builder(BuildInvoker invoker, BlazeCommandName name, String blazeBinaryPath) {
+    return new Builder(invoker.getBinaryPath(blazeBinaryPath), name);
   }
 
   /** Builder for a blaze command */

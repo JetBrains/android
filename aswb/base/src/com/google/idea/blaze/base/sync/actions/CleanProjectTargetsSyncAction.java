@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.idea.blaze.base.async.process.ExternalTask;
 import com.google.idea.blaze.base.async.process.LineProcessingOutputStream;
+import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.bazel.BuildSystemProvider;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
@@ -131,8 +132,10 @@ public class CleanProjectTargetsSyncAction extends BlazeProjectSyncAction {
   @Nullable
   private static ImmutableList<TargetInfo> runBlazeQuery(
       Project project, String query, BlazeContext context) {
+    BuildSystem.BuildInvoker invoker = Blaze.getBuildSystemProvider(project).getBuildSystem().getBuildInvoker(project);
+
     BlazeCommand command =
-        BlazeCommand.builder(getBlazeBinaryPath(project), BlazeCommandName.QUERY)
+        BlazeCommand.builder(invoker, BlazeCommandName.QUERY)
             .addBlazeFlags("--output=label_kind")
             .addBlazeFlags("--keep_going")
             .addBlazeFlags(query)
@@ -159,11 +162,6 @@ public class CleanProjectTargetsSyncAction extends BlazeProjectSyncAction {
       return null;
     }
     return outputProcessor.getTargets();
-  }
-
-  private static String getBlazeBinaryPath(Project project) {
-    BuildSystemProvider buildSystemProvider = Blaze.getBuildSystemProvider(project);
-    return buildSystemProvider.getSyncBinaryPath(project);
   }
 
   private static void removeInvalidRunConfigurations(Project project, ImmutableSet<Label> deleted) {

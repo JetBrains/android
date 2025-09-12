@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker.Capability;
+import com.google.idea.blaze.base.bazel.LocalBazelInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeCommandRunnerExperiments;
@@ -153,7 +154,6 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
 
   private ProcessHandler startProcessBazelCliCase(
     BuildInvoker invoker, Project project, BlazeContext context) throws ExecutionException {
-    PrepareBazelCommandResult result = prepareBazelCommand(project);
     addConsoleFilters(
       ToolWindowTaskIssueOutputFilter.createWithDefaultParsers(
         project,
@@ -161,14 +161,14 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
         BlazeInvocationContext.ContextType.RunConfiguration));
 
     try {
-      return invoker.invokeAsProcessHandler(prepareBazelCommand(project).blazeCommand(), context);
+      return invoker.invokeAsProcessHandler(prepareBazelCommand(project, invoker).blazeCommand(), context);
     }
     catch (BuildException e) {
       throw new ExecutionException(e);
     }
   }
 
-  private PrepareBazelCommandResult prepareBazelCommand(Project project) {
+  private PrepareBazelCommandResult prepareBazelCommand(Project project, BuildInvoker invoker) {
     BlazeCommand.Builder blazeCommand;
     BlazeTestUiSession testUiSession = null;
     BlazeTestResultFinderStrategy testResultFinderStrategy = new BlazeTestResultHolder();
@@ -186,6 +186,7 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
       blazeCommand =
         getBlazeCommandBuilder(
           project,
+          invoker,
           getConfiguration(),
           testUiSession.getBlazeFlags(),
           getExecutorType(),
@@ -203,6 +204,7 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
       blazeCommand =
         getBlazeCommandBuilder(
           project,
+          invoker,
           getConfiguration(),
           ImmutableList.of(),
           getExecutorType(),
@@ -238,6 +240,7 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
   @VisibleForTesting
   static BlazeCommand.Builder getBlazeCommandBuilder(
     Project project,
+    BuildInvoker invoker,
     BlazeCommandRunConfiguration configuration,
     List<String> extraBlazeFlags,
     ExecutorType executorType,
@@ -249,19 +252,16 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
       Preconditions.checkNotNull(ProjectViewManager.getInstance(project).getProjectViewSet());
     BlazeJavaRunConfigState handlerState = getState(configuration);
 
-    String binaryPath =
-      handlerState.getBlazeBinaryState().getBlazeBinary() != null
-      ? handlerState.getBlazeBinaryState().getBlazeBinary()
-      : Blaze.getBuildSystemProvider(project).getBinaryPath(project);
-
     BlazeCommandName blazeCommand =
       Preconditions.checkNotNull(handlerState.getCommandState().getCommand());
     if (executorType == ExecutorType.COVERAGE) {
       blazeCommand = BlazeCommandName.COVERAGE;
     }
-    BlazeCommand.Builder command =
-      BlazeCommand.builder(binaryPath, blazeCommand)
-        .addTargets(configuration.getTargets())
+
+    BlazeCommand.Builder command = handlerState.getBlazeBinaryState().getBlazeBinary() != null
+        ? BlazeCommand.builder(invoker, blazeCommand, handlerState.getBlazeBinaryState().getBlazeBinary())
+        : BlazeCommand.builder(invoker, blazeCommand);
+    command.addTargets(configuration.getTargets())
         .addBlazeFlags(
           BlazeFlags.blazeFlags(
             project,

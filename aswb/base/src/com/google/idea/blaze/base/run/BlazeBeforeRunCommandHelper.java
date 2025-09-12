@@ -99,11 +99,6 @@ public final class BlazeBeforeRunCommandHelper {
     WorkspaceRoot workspaceRoot = WorkspaceRoot.fromProject(project);
     ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
 
-    String binaryPath =
-        handlerState.getBlazeBinaryState().getBlazeBinary() != null
-            ? handlerState.getBlazeBinaryState().getBlazeBinary()
-            : Blaze.getBuildSystemProvider(project).getBinaryPath(project);
-
     return ProgressiveTaskWithProgressIndicator.builder(project, TASK_TITLE)
         .submitTaskWithResult(
             new ScopedTask<BuildEventStreamProvider>() {
@@ -125,8 +120,13 @@ public final class BlazeBeforeRunCommandHelper {
 
                 context.output(new StatusOutput(progressMessage));
 
+                BuildSystem.BuildInvoker invoker =
+                  Blaze.getBuildSystemProvider(project)
+                    .getBuildSystem()
+                    .getBuildInvoker(project);
+
                 BlazeCommand.Builder command =
-                    BlazeCommand.builder(binaryPath, commandName)
+                    BlazeCommand.builder(invoker, commandName)
                         .addTargets(targets)
                         .addBlazeFlags(overridableExtraBlazeFlags)
                         .addBlazeFlags(
@@ -139,11 +139,6 @@ public final class BlazeBeforeRunCommandHelper {
                         .addBlazeFlags(
                             handlerState.getBlazeFlagsState().getFlagsForExternalProcesses())
                         .addBlazeFlags(requiredExtraBlazeFlags);
-
-                BuildSystem.BuildInvoker invoker =
-                    Blaze.getBuildSystemProvider(project)
-                        .getBuildSystem()
-                        .getBuildInvoker(project);
                 try {
                   return invoker.invoke(command, context);
                 } catch (BuildException e) {
