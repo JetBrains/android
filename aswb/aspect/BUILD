@@ -2,11 +2,6 @@
 # Description: Bazel aspect bundled with the Bazel IntelliJ plugin.
 #
 
-load(
-    ":intellij_info_impl.bzl",
-    "define_flag_hack",
-)
-
 licenses(["notice"])
 
 # Files needed at runtime for blaze-invoking integration tests
@@ -109,5 +104,3 @@ genrule(
     cmd = "cat $(SRCS) >$@ && " +
           "sed -i -e '/BUNDLED-IGNORE-BEGIN/,/BUNDLED-IGNORE-END/d' $@",
 )
-
-define_flag_hack()
