@@ -24,6 +24,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.PathUtil.toSystemDependentName
 import com.intellij.util.PathUtil.toSystemIndependentName
 import org.jetbrains.annotations.SystemIndependent
@@ -33,7 +34,7 @@ import kotlin.io.path.invariantSeparatorsPathString
 typealias ProjectDumpAction = (project: Project, projectDumper: ProjectDumper) -> Unit
 
 /**
- * Returns a human readable environment independent stable representation of the current structure of the project that can be used in tests
+ * Returns a human-readable environment independent stable representation of the current structure of the project that can be used in tests
  * to ensure that no unintended changes are accidentally introduced to projects set up by sync/import/etc.
  */
 fun Project.saveAndDump(
@@ -41,7 +42,7 @@ fun Project.saveAndDump(
   ignoreModuleFileAndType : Boolean = false,
   dumpToAction: ProjectDumpAction = { project, projectDumper -> projectDumper.dumpProject(project) }
 ): String {
-  ApplicationManager.getApplication().saveAll()
+  runInEdtAndWait { ApplicationManager.getApplication().saveAll() }
   val dumper = ProjectDumper(
     androidSdk = getSdk().toFile(),
     offlineRepos = getOfflineM2Repositories(),

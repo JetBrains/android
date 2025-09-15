@@ -41,8 +41,10 @@ import com.google.common.truth.Expect
 import com.google.common.truth.Truth
 import com.intellij.execution.RunManagerEx
 import com.intellij.execution.configurations.ModuleBasedConfiguration
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.project.ExternalStorageConfigurationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
@@ -67,7 +69,6 @@ import java.io.File
 import java.nio.file.Path
 
 @RunWith(JUnit4::class)
-@RunsInEdt
 class OpenProjectIntegrationTest {
   @get:Rule
   val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
@@ -121,7 +122,7 @@ class OpenProjectIntegrationTest {
   fun testReopenProject_withCustomEntry() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     val before = preparedProject.open { project ->
-      runWriteAction {
+      runWriteActionAndWait {
         val appMainModule = project.gradleModule(":app")!!.getMainModule()
         val modifieableModule = ModuleRootManagerEx.getInstanceEx(appMainModule).modifiableModel
         val abc = appMainModule.fileUnderGradleRoot("src")!!.createChildDirectory("test", "abc")
@@ -176,7 +177,7 @@ class OpenProjectIntegrationTest {
       val buildDir = File(project.getBasePath(), "build")
       buildDir.mkdirs()
       val initial = project.saveAndDump()
-      runWriteAction {
+      runWriteActionAndWait {
         buildFile.setBinaryContent("*bad*".toByteArray())
       }
       AndroidGradleTests.syncProject(project, GradleSyncInvoker.Request.testRequest()) {
@@ -264,9 +265,9 @@ class OpenProjectIntegrationTest {
 
   @Test
   fun testOpen36ProjectWithoutModules() {
-    AndroidGradleTests.addJdk8ToTableButUseCurrent()
+    runWriteActionAndWait { AndroidGradleTests.addJdk8ToTableButUseCurrent() }
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.RUN_APP_36)
-    runWriteAction {
+    runWriteActionAndWait {
       val projectRootVirtualFile = VfsUtil.findFileByIoFile(preparedProject.root, false)!!
       projectRootVirtualFile.findFileByRelativePath(".idea/modules.xml")!!.delete("test")
       projectRootVirtualFile.findFileByRelativePath("app/app.iml")!!.delete("test")
@@ -314,7 +315,7 @@ class OpenProjectIntegrationTest {
   fun testReopenAndResync() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     val debugBefore = preparedProject.open { project: Project ->
-      runWriteAction {
+      runWriteActionAndWait {
         // Modify the project build file to ensure the project is synced when opened.
         project.gradleModule(":")!!.fileUnderGradleRoot("build.gradle")!!.also { file ->
           file.setBinaryContent((String(file.contentsToByteArray()) + " // ").toByteArray())
@@ -351,8 +352,10 @@ class OpenProjectIntegrationTest {
           ProjectManager.getInstance().closeAndDispose(A)
         }
         B.requestSyncAndWait()
-        val wrapper = GradleWrapper.find(B)!!
-        wrapper.updateDistributionUrl(GradleVersion.version("7.999"))
+        runInEdtAndWait {
+          val wrapper = GradleWrapper.find(B)!!
+          wrapper.updateDistributionUrl(GradleVersion.version("7.999"))
+        }
 
         AndroidGradleTests.syncProject(B, GradleSyncInvoker.Request.testRequest()) {
           // Do not check status.
