@@ -19,9 +19,13 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.buildMainSourceProviderStub
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 
 @RunsInEdt
@@ -29,6 +33,16 @@ class ResValuesDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase(
   override val projectRule = AndroidProjectRule.withAndroidModel(
     AndroidProjectBuilder().withMainSourceProvider { buildMainSourceProviderStub() }
   )
+
+  private lateinit var gradlePropertiesFile : VirtualFile
+
+  @Before
+  fun setUpGradlePropertiesFile() {
+    com.intellij.openapi.application.runWriteAction {
+      gradlePropertiesFile = projectRule.fixture.tempDirFixture.createFile("gradle.properties")
+      assertTrue(gradlePropertiesFile.isWritable)
+    }
+  }
 
   //@Test
   // TODO (b/370068502): enable this test after redirect has been added
@@ -41,13 +55,21 @@ class ResValuesDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase(
   fun testEmptyProject() {
     val processor = ResValuesDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("9.0.0"))
     writeToBuildFile(TestFileName("ResValuesDefault/NoResValuesDeclaration"))
+    assertTrue(processor.isEnabled)
     processor.run()
     verifyFileContents(buildFile, TestFileName("ResValuesDefault/NoResValuesDeclaration"))
+    assertThat(gradlePropertiesFile.load()).contains("android.defaults.buildfeatures.resvalues=true")
   }
 
   @Test
   fun testIsEnabledFor900Alpha1() {
     val processor = ResValuesDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("9.0.0-alpha01"))
     assertTrue(processor.isEnabled)
+    processor.run()
+    assertThat(gradlePropertiesFile.load()).contains("android.defaults.buildfeatures.resvalues=true")
   }
+
+  fun VirtualFile.load():String = VfsUtilCore.loadText(this).normalize()
+
+  fun String.normalize() = replace("[ \\t]+".toRegex(), "").trim { it <= ' ' }
 }
