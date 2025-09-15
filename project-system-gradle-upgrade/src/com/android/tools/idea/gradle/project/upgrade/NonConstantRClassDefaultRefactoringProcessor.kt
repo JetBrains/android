@@ -16,53 +16,28 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.dsl.utils.FN_GRADLE_PROPERTIES
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
-import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiDirectory
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiManager
-import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
-import com.intellij.usageView.UsageInfo
-import com.intellij.usageView.UsageViewDescriptor
-import com.intellij.usages.impl.rules.UsageType
 
-class NonConstantRClassDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
+class NonConstantRClassDefaultRefactoringProcessor : AbstractBooleanPropertyDefaultRefactoringProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override val necessityInfo = PointNecessity(AgpVersion.parse("8.0.0-beta01"))
+  override val upgradeEventKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.NON_CONSTANT_R_CLASS_DEFAULT
+  override val propertyKey = "android.nonFinalResIds"
+  override val oldDefault = false
+  override var necessityInfo = PointNecessity(DEFAULT_CHANGED)
 
-  override fun findComponentUsages(): Array<out UsageInfo> {
-    val usages = mutableListOf<UsageInfo>()
-    val baseDir = project.baseDir ?: return usages.toTypedArray()
-    val gradlePropertiesVirtualFile = baseDir.findChild("gradle.properties")
-    if (gradlePropertiesVirtualFile != null && gradlePropertiesVirtualFile.exists()) {
-      val gradlePropertiesPsiFile = PsiManager.getInstance(project).findFile(gradlePropertiesVirtualFile)
-      if (gradlePropertiesPsiFile is PropertiesFile) {
-        val property = gradlePropertiesPsiFile.findPropertyByKey("android.nonFinalResIds")
-        if (property == null) {
-          val wrappedPsiElement = WrappedPsiElement(gradlePropertiesPsiFile, this, INSERT_PROPERTY)
-          usages.add(NonConstantRClassUsageInfo(wrappedPsiElement))
-        }
-      }
-    }
-    else if (baseDir.exists()) {
-      val baseDirPsiDirectory = PsiManager.getInstance(project).findDirectory(baseDir)
-      if (baseDirPsiDirectory is PsiElement) {
-        val wrappedPsiElement = WrappedPsiElement(baseDirPsiDirectory, this, INSERT_PROPERTY)
-        usages.add(NonConstantRClassUsageInfo(wrappedPsiElement))
-      }
-    }
-    return usages.toTypedArray()
-  }
+  override val insertPropertyText = AgpUpgradeBundle.message("nonConstantRClassDefaultRefactoringProcessor.usageType")
+  override val tooltip = AgpUpgradeBundle.message("nonConstantRClassUsageInfo.tooltipText")
+  override val usageViewHeader = AgpUpgradeBundle.message("nonConstantRClassDefaultRefactoringProcessor.usageView.header")
+  override val readMoreUrlRedirect = ReadMoreUrlRedirect("non-constant-r-class-default")
+
+  override fun getCommandName() = AgpUpgradeBundle.message("nonConstantRClassDefaultRefactoringProcessor.commandName")
+  override fun getRefactoringId() = "com.android.tools.agp.upgrade.nonConstantRClass"
 
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.NON_CONSTANT_R_CLASS_DEFAULT)
-
-  override fun getCommandName(): String = AgpUpgradeBundle.message("nonConstantRClassDefaultRefactoringProcessor.commandName")
 
   override fun getShortDescription() = """
     R classes in applications and tests previously used constant values that can be
@@ -72,39 +47,8 @@ class NonConstantRClassDefaultRefactoringProcessor : AgpUpgradeComponentRefactor
     default.
   """.trimIndent()
 
-  override fun getRefactoringId() = "com.android.tools.agp.upgrade.nonConstantRClass"
-
-  override val readMoreUrlRedirect = ReadMoreUrlRedirect("non-constant-r-class-default")
-
-  override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
-    return object : UsageViewDescriptorAdapter() {
-      override fun getElements(): Array<PsiElement> {
-        return PsiElement.EMPTY_ARRAY
-      }
-
-      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("nonConstantRClassDefaultRefactoringProcessor.usageView.header")
-    }
-  }
 
   companion object {
-    val INSERT_PROPERTY = UsageType(AgpUpgradeBundle.messagePointer("nonConstantRClassDefaultRefactoringProcessor.usageType"))
+    val DEFAULT_CHANGED = AgpVersion.parse("8.0.0-beta01")
   }
-}
-
-class NonConstantRClassUsageInfo(
-  private val wrappedElement: WrappedPsiElement
-) : GradleBuildModelUsageInfo(wrappedElement) {
-  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    val (propertiesFile, psiFile) = when (val realElement = wrappedElement.realElement) {
-      is PropertiesFile -> realElement to (realElement as? PsiFile ?: return)
-      is PsiDirectory -> (realElement.findFile(FN_GRADLE_PROPERTIES) ?: realElement.createFile (FN_GRADLE_PROPERTIES)).let {
-        (it as? PropertiesFile ?: return) to (it as? PsiFile ?: return)
-      }
-      else -> return
-    }
-    otherAffectedFiles.add(psiFile)
-    propertiesFile.addProperty("android.nonFinalResIds", "false")
-  }
-
-  override fun getTooltipText() = AgpUpgradeBundle.message("nonConstantRClassUsageInfo.tooltipText")
 }
