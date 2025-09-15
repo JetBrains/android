@@ -55,7 +55,6 @@ import org.junit.Test;
 /**
  * Tests for {@link ProjectStructureUsageTrackerSyncListener}.
  */
-@RunsInEdt
 public class ProjectStructureUsageTrackerSyncListenerTest {
   @Rule public IntegrationTestEnvironmentRule projectRule = AndroidProjectRule.withIntegrationTestEnvironment();
   // A UsageTracker implementation that allows introspection of logged metrics in tests.

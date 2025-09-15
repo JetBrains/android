@@ -33,6 +33,7 @@ import com.android.tools.idea.testing.buildAndWait
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
@@ -41,11 +42,11 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.writeText
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.workspaceModel.ide.impl.WorkspaceEntityLifecycleSupporterUtils
 import org.junit.Rule
 import org.junit.Test
 
-@RunsInEdt
 class BuildListenerTest {
   @get:Rule
   val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
@@ -84,15 +85,17 @@ class BuildListenerTest {
         buildTargetReferenceFromFile(project, preparedTestProject, "app/src/main/java/google/simpleapplication/MyActivity.java")
       )
     }) {
-      WorkspaceEntityLifecycleSupporterUtils.withAllEntitiesInWorkspaceFromProvidersDefinedOnEdt(project) {
-        assertThat(collectedEvents()).isEqualTo(
-          """
+      runInEdtAndWait {
+        WorkspaceEntityLifecycleSupporterUtils.withAllEntitiesInWorkspaceFromProvidersDefinedOnEdt(project) {
+          assertThat(collectedEvents()).isEqualTo(
+            """
           * syncSkipped
           * firstSourceRootsAdded
           * setupBuildListener
           ->startedListening
         """.trimIndent() // Note that `->startedListening` comes only after `* syncSkipped`.
-        )
+          )
+        }
       }
     }
   }
@@ -375,15 +378,15 @@ class BuildListenerTest {
   }
 
   private fun <T> Context.withBrokenBuild(body: () -> T) {
-    val buildFile = runWriteAction {VfsUtil.findFileByIoFile(this.projectRoot.resolve("app/build.gradle"), true)!!}
+    val buildFile = runWriteActionAndWait {VfsUtil.findFileByIoFile(this.projectRoot.resolve("app/build.gradle"), true)!!}
     val oldContent = buildFile.contentsToByteArray()
-    runWriteAction {
+    runWriteActionAndWait {
       buildFile.writeText("***")
     }
     try {
       body()
     } finally {
-      runWriteAction {
+      runWriteActionAndWait {
         buildFile.setBinaryContent(oldContent)
       }
     }
@@ -434,7 +437,7 @@ class BuildListenerTest {
         },
       )
     }) { project ->
-      body(project)
+      runInEdtAndWait { body(project) }
     }
   }
 }

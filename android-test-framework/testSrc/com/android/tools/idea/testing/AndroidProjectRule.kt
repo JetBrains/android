@@ -490,9 +490,6 @@ class TestEnvironmentRuleImpl(val withAndroidSdk: Boolean) :
     //  FileUtils.join(FileUtil.getTempDirectory(), testSpecificName, "nonexistent_user_home"),
     //)
 
-    // Avoid executing write actions on background thread due to b/430533136
-    System.setProperty("idea.background.write.action.enabled", "false")
-
     // Disable antivirus checks on Windows.
     StudioFlags.ANTIVIRUS_METRICS_ENABLED.overrideForTest(false, testEnvironmentDisposable)
     StudioFlags.ANTIVIRUS_NOTIFICATION_ENABLED.overrideForTest(false, testEnvironmentDisposable)
