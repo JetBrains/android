@@ -1,10 +1,11 @@
 load("//tools/adt/idea/aswb:build-visibility.bzl", "DEFAULT_TEST_VISIBILITY")
+load("//tools/adt/idea/aswb/testing:test_defs.bzl", "aswb_test")
 
 package(default_visibility = DEFAULT_TEST_VISIBILITY)
 
-java_test(
+aswb_test(
     name = "ArtifactDirectoryUpdateTest",
-    srcs = ["ArtifactDirectoryUpdateTest.java"],
+    srcs = ["ArtifactDirectoryUpdateTest.kt"],
     deps = [
         ":mock_artifact_cache",
         "//prebuilts/tools/common/m2:jsr305-2.0.1",

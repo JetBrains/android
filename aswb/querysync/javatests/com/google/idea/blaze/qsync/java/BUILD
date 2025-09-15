@@ -1,11 +1,12 @@
 load("//tools/adt/idea/aswb:build-visibility.bzl", "DEFAULT_TEST_VISIBILITY")
+load("//tools/adt/idea/aswb/testing:test_defs.bzl", "aswb_test")
 
 package(default_visibility = DEFAULT_TEST_VISIBILITY)
 
-java_test(
+aswb_test(
     name = "PackageStatementParserTest",
     size = "small",
-    srcs = ["PackageStatementParserTest.java"],
+    srcs = ["PackageStatementParserTest.kt"],
     deps = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java",
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",
@@ -17,10 +18,10 @@ java_test(
     ],
 )
 
-java_test(
+aswb_test(
     name = "AddCompiledJavaDepsTest",
     size = "small",
-    srcs = ["AddCompiledJavaDepsTest.java"],
+    srcs = ["AddCompiledJavaDepsTest.kt"],
     deps = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
@@ -38,15 +39,16 @@ java_test(
     ],
 )
 
-java_test(
+aswb_test(
     name = "AddDependencyGenSrcsJarsTest",
     size = "small",
-    srcs = ["AddDependencyGenSrcsJarsTest.java"],
+    srcs = ["AddDependencyGenSrcsJarsTest.kt"],
     deps = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync:TestUtils",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata",
@@ -62,10 +64,10 @@ java_test(
     ],
 )
 
-java_test(
+aswb_test(
     name = "AddDependencySrcJarsTest",
     size = "small",
-    srcs = ["AddDependencySrcJarsTest.java"],
+    srcs = ["AddDependencySrcJarsTest.kt"],
     deps = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
@@ -84,15 +86,16 @@ java_test(
     ],
 )
 
-java_test(
+aswb_test(
     name = "AddProjectGenSrcJarsTest",
     size = "small",
-    srcs = ["AddProjectGenSrcJarsTest.java"],
+    srcs = ["AddProjectGenSrcJarsTest.kt"],
     deps = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync:TestUtils",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata",
@@ -109,15 +112,16 @@ java_test(
     ],
 )
 
-java_test(
+aswb_test(
     name = "AddProjectGenSrcsTest",
     size = "small",
-    srcs = ["AddProjectGenSrcsTest.java"],
+    srcs = ["AddProjectGenSrcsTest.kt"],
     deps = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync:TestUtils",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata",
@@ -134,15 +138,16 @@ java_test(
     ],
 )
 
-java_test(
+aswb_test(
     name = "AddDependencyAarsTest",
     size = "small",
-    srcs = ["AddDependencyAarsTest.java"],
+    srcs = ["AddDependencyAarsTest.kt"],
     deps = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync:TestUtils",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata",
