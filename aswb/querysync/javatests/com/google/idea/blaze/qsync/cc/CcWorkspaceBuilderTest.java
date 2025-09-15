@@ -17,8 +17,6 @@ package com.google.idea.blaze.qsync.cc;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.idea.blaze.qsync.project.ProjectPath.projectRelative;
-import static com.google.idea.blaze.qsync.project.ProjectPath.workspaceRelative;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -72,17 +70,17 @@ public class CcWorkspaceBuilderTest {
                     .toolchainId("//my/cc_toolchain")
                     .defines("DEBUG")
                     .includeDirectories(
-                        projectRelative("build-out/include/directory"),
-                        workspaceRelative("src/include/directory"))
+                      ProjectPath.projectRelative(Path.of("build-out/include/directory")),
+                        ProjectPath.workspaceRelative(Path.of("src/include/directory")))
                     .quoteIncludeDirectories(
-                        projectRelative("build-out/quote/include/directory"),
-                        workspaceRelative("src/quote/include/directory"))
+                      ProjectPath.projectRelative(Path.of("build-out/quote/include/directory")),
+                        ProjectPath.workspaceRelative(Path.of("src/quote/include/directory")))
                     .systemIncludeDirectories(
-                        projectRelative("build-out/system/include/directory"),
-                        workspaceRelative("src/system/include/directory"))
+                      ProjectPath.projectRelative(Path.of("build-out/system/include/directory")),
+                        ProjectPath.workspaceRelative(Path.of("src/system/include/directory")))
                     .frameworkIncludeDirectories(
-                        projectRelative("build-out/framework/include/directory"),
-                        workspaceRelative("src/framework/include/directory"))
+                      ProjectPath.projectRelative(Path.of("build-out/framework/include/directory")),
+                        ProjectPath.workspaceRelative(Path.of("src/framework/include/directory")))
                     .genHeaders(
                         BuildArtifact.create(
                             "includedigest",
@@ -111,12 +109,12 @@ public class CcWorkspaceBuilderTest {
                 CcToolchain.builder()
                     .id("//my/cc_toolchain")
                     .compiler("clang")
-                    .compilerExecutable(workspaceRelative("workspace/path/to/clang"))
+                    .compilerExecutable(ProjectPath.workspaceRelative(Path.of("workspace/path/to/clang")))
                     .cpu("k8")
                     .targetGnuSystemName("k8-debug")
                     .builtInIncludeDirectories(
-                        projectRelative("build-out/builtin/include/directory"),
-                        workspaceRelative("src/builtin/include/directory"))
+                      ProjectPath.projectRelative(Path.of("build-out/builtin/include/directory")),
+                        ProjectPath.workspaceRelative(Path.of("src/builtin/include/directory")))
                     .cOptions("--sharedopt", "--conlyopt")
                     .cppOptions("--sharedopt", "--cppopt")
                     .build()));
@@ -209,16 +207,16 @@ public class CcWorkspaceBuilderTest {
             labels.stream()
                 .map(
                     label ->
-                        CcCompilationInfo.builder()
-                            .target(label)
-                            .defines("DEBUG")
-                            .includeDirectories(workspaceRelative("src/include/directory"))
-                            .quoteIncludeDirectories()
-                            .systemIncludeDirectories()
-                            .frameworkIncludeDirectories()
-                            .genHeaders()
-                            .toolchainId("//my/cc_toolchain")
-                            .build())
+                      CcCompilationInfo.builder()
+                          .target(label)
+                          .defines("DEBUG")
+                          .includeDirectories(ProjectPath.workspaceRelative(Path.of("src/include/directory")))
+                          .quoteIncludeDirectories()
+                          .systemIncludeDirectories()
+                          .frameworkIncludeDirectories()
+                          .genHeaders()
+                          .toolchainId("//my/cc_toolchain")
+                          .build())
                 .collect(
                     ImmutableMap.toImmutableMap(CcCompilationInfo::target, Function.identity())),
             ImmutableMap.of(
@@ -226,10 +224,10 @@ public class CcWorkspaceBuilderTest {
                 CcToolchain.builder()
                     .id("//my/cc_toolchain")
                     .compiler("clang")
-                    .compilerExecutable(workspaceRelative("workspace/path/to/clang"))
+                    .compilerExecutable(ProjectPath.workspaceRelative(Path.of("workspace/path/to/clang")))
                     .cpu("k8")
                     .targetGnuSystemName("k8-debug")
-                    .builtInIncludeDirectories(workspaceRelative("src/builtin/include/directory"))
+                    .builtInIncludeDirectories(ProjectPath.workspaceRelative(Path.of("src/builtin/include/directory")))
                     .cOptions()
                     .cppOptions()
                     .build()));

@@ -11,6 +11,7 @@ import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot
 import com.google.idea.blaze.qsync.project.BlazeProjectDataStorage.WORKSPACE_MODULE_NAME
 import com.google.idea.blaze.qsync.project.ProjectPath
+import com.google.idea.blaze.qsync.project.ProjectPath.workspaceRelative
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.common.experiments.BoolExperiment
 import com.google.idea.common.experiments.EnumExperiment
@@ -235,7 +236,7 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
             it.isGenerated,
             it.packagePrefix)
         },
-        excludedRoots = excludedRoots.map { ProjectPath.workspaceRelative(it).toIdeaUrl() },
+        excludedRoots = excludedRoots.map { workspaceRelative(Path.of(it)).toIdeaUrl() },
       )
     }
 

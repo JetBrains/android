@@ -46,7 +46,7 @@ public class ArtifactDirectoryBuilderTest {
             DependencyBuildContext.create(
                 "build-id", Instant.EPOCH.plusSeconds(1)));
 
-    assertThat(added).hasValue(ProjectPath.projectRelative("artifactDir/path/to/artifact"));
+    assertThat(added).hasValue(ProjectPath.projectRelative(Path.of("artifactDir/path/to/artifact")));
 
     ProjectProto.ArtifactDirectories.Builder protoBuilder =
         ProjectProto.ArtifactDirectories.newBuilder();
@@ -93,7 +93,7 @@ public class ArtifactDirectoryBuilderTest {
             DependencyBuildContext.create(
                 "build-id", Instant.EPOCH.plusSeconds(2)));
 
-    assertThat(added).hasValue(ProjectPath.projectRelative("artifactDir/path/to/artifact"));
+    assertThat(added).hasValue(ProjectPath.projectRelative(Path.of("artifactDir/path/to/artifact")));
 
     ProjectProto.ArtifactDirectories.Builder protoBuilder =
         ProjectProto.ArtifactDirectories.newBuilder();

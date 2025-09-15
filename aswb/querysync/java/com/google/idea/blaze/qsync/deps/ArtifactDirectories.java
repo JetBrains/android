@@ -22,7 +22,7 @@ import java.nio.file.Path;
 /** Static helpers for managing directories in the project artifact store. */
 public class ArtifactDirectories {
 
-  public static final ProjectPath ROOT = ProjectPath.projectRelative(QuerySyncProjectDirectory.BAZEL_ARTIFACTS.getDirectoryName());
+  public static final ProjectPath ROOT = ProjectPath.projectRelative(Path.of(QuerySyncProjectDirectory.BAZEL_ARTIFACTS.getDirectoryName()));
 
   /**
    * By default, all project artifacts go in this directory, at a path matching their bazel output
@@ -46,7 +46,8 @@ public class ArtifactDirectories {
   public static final ProjectPath INSPECTORS = ROOT.resolveChild(Path.of("inspectors"));
 
   /** APKs storage. */
-  public static final ProjectPath RUNFILES = ProjectPath.projectRelative(".").resolveChild(Path.of(".runfiles"));
+  public static final ProjectPath RUNFILES = ProjectPath.projectRelative(Path.of(".")).resolveChild(Path.of(".runfiles"));
+
   private ArtifactDirectories() {}
 
   /**

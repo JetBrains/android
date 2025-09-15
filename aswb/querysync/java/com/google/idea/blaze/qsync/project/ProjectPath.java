@@ -70,25 +70,13 @@ public abstract class ProjectPath {
     return create(Root.WORKSPACE, path);
   }
 
-  public static ProjectPath workspaceRelative(String path) {
-    return workspaceRelative(Path.of(path));
-  }
-
   public static ProjectPath projectRelative(Path path) {
     return create(Root.PROJECT, path);
-  }
-
-  public static ProjectPath projectRelative(String path) {
-    return projectRelative(Path.of(path));
   }
 
   public static ProjectPath absolute(Path path) {
     Preconditions.checkArgument(path.isAbsolute(), path);
     return create(Root.ABSOLUTE, path);
-  }
-
-  public static ProjectPath absolute(String path) {
-    return absolute(Path.of(path));
   }
 
   static Root convertContentRootBase(ProjectProto.ProjectPath.Base base) {

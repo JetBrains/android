@@ -118,21 +118,21 @@ public class ArtifactTrackerStateSerializationTest {
                     .defines(ImmutableList.of("-D", "-w"))
                     .includeDirectories(
                         ImmutableList.of(
-                            ProjectPath.projectRelative("buildout/include"),
-                            ProjectPath.workspaceRelative("src/include"),
-                            ProjectPath.absolute("/usr/local/include")))
+                          ProjectPath.projectRelative(Path.of("buildout/include")),
+                            ProjectPath.workspaceRelative(Path.of("src/include")),
+                          ProjectPath.absolute(Path.of("/usr/local/include"))))
                     .quoteIncludeDirectories(
                         ImmutableList.of(
-                            ProjectPath.projectRelative("buildout/qinclude"),
-                            ProjectPath.workspaceRelative("src/qinclude")))
+                          ProjectPath.projectRelative(Path.of("buildout/qinclude")),
+                            ProjectPath.workspaceRelative(Path.of("src/qinclude"))))
                     .systemIncludeDirectories(
                         ImmutableList.of(
-                            ProjectPath.projectRelative("buildout/sysinclude"),
-                            ProjectPath.workspaceRelative("src/sysinclude")))
+                          ProjectPath.projectRelative(Path.of("buildout/sysinclude")),
+                            ProjectPath.workspaceRelative(Path.of("src/sysinclude"))))
                     .frameworkIncludeDirectories(
                         ImmutableList.of(
-                            ProjectPath.projectRelative("buildout/fwinclude"),
-                            ProjectPath.workspaceRelative("src/fwinclude")))
+                          ProjectPath.projectRelative(Path.of("buildout/fwinclude")),
+                            ProjectPath.workspaceRelative(Path.of("src/fwinclude"))))
                     .genHeaders(
                         ImmutableList.of(
                             BuildArtifact.create(
@@ -154,8 +154,8 @@ public class ArtifactTrackerStateSerializationTest {
                 .targetGnuSystemName("gnu-linux-armv8")
                 .builtInIncludeDirectories(
                     ImmutableList.of(
-                        ProjectPath.projectRelative("buildout/builtininclude"),
-                        ProjectPath.workspaceRelative("src/builtininclude")))
+                      ProjectPath.projectRelative(Path.of("buildout/builtininclude")),
+                        ProjectPath.workspaceRelative(Path.of("src/builtininclude"))))
                 .cOptions(ImmutableList.of("--copt1"))
                 .cppOptions(ImmutableList.of("--ccopt1"))
                 .build());
