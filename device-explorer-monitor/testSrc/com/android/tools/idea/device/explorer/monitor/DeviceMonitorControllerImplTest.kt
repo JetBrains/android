@@ -347,6 +347,11 @@ class DeviceMonitorControllerImplTest {
 
   private suspend fun checkMockViewInitialState() {
     checkMockViewActiveDevice(1)
+    // Since we add a client process to start with wait for its name to be set since
+    // it's required to perform actions like killing a process or clearing AppData
+    waitForCondition("Client ${model.tableModel.getValueForRow(0).safeProcessName} has an unknown name") {
+      !model.tableModel.getValueForRow(0).isPidOnly
+    }
   }
 
   private suspend fun checkMockViewActiveDevice(numOfClientsExpected: Int) {
