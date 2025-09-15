@@ -18,6 +18,9 @@ package com.android.tools.idea.common.surface
 import com.android.tools.idea.common.model.DisplaySettings
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.glasses.GlassesBlendDropdownAction
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.uibuilder.surface.TestSceneView
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -48,12 +51,8 @@ class SceneViewPeerPanelTest {
 
   @Test
   fun `top panel is visible when label is hidden and actions are present`() {
-    val action =
-      object : AnAction() {
-        override fun actionPerformed(e: AnActionEvent) {}
-      }
     val sceneViewPeerPanel =
-      createSceneViewPeerPanel(disposableRule.disposable, "", toolbarActions = listOf(action))
+      createSceneViewPeerPanel(disposableRule.disposable, "", toolbarActions = listOf(anAction()))
     assertTrue(sceneViewPeerPanel.sceneViewTopPanel.isVisible)
   }
 
@@ -74,13 +73,43 @@ class SceneViewPeerPanelTest {
 
   @Test
   fun `toolbar is created when actions are present`() {
-    val action =
-      object : AnAction() {
-        override fun actionPerformed(e: AnActionEvent) {}
-      }
     val sceneViewPeerPanel =
-      createSceneViewPeerPanel(disposableRule.disposable, "", toolbarActions = listOf(action))
+      createSceneViewPeerPanel(disposableRule.disposable, "", toolbarActions = listOf(anAction()))
     assertTrue(sceneViewPeerPanel.sceneViewTopPanel.components.any { it is ActionToolbar })
+  }
+
+  @Test
+  fun `toolbar contains glasses dropdown action if flag is enabled`() {
+    StudioFlags.COMPOSE_PREVIEW_XR_GLASSES_PREVIEW.overrideForTest(true, disposableRule.disposable)
+    val sceneViewPeerPanel =
+      createSceneViewPeerPanel(disposableRule.disposable, "", toolbarActions = listOf(anAction()))
+    assertTrue(sceneViewPeerPanel.sceneViewTopPanel.components.any { it is ActionToolbar })
+    val toolbarActions = sceneViewPeerPanel.getTopToolbarActions()
+    assertTrue(toolbarActions.filterIsInstance<GlassesBlendDropdownAction>().isNotEmpty())
+  }
+
+  @Test
+  fun `toolbar doesn't contain glasses dropdown action if flag is disabled`() {
+    StudioFlags.COMPOSE_PREVIEW_XR_GLASSES_PREVIEW.overrideForTest(false, disposableRule.disposable)
+    val sceneViewPeerPanel =
+      createSceneViewPeerPanel(disposableRule.disposable, "", toolbarActions = listOf(anAction()))
+    assertTrue(sceneViewPeerPanel.sceneViewTopPanel.components.any { it is ActionToolbar })
+    val toolbarActions = sceneViewPeerPanel.getTopToolbarActions()
+    assertTrue(toolbarActions.filterIsInstance<GlassesBlendDropdownAction>().isEmpty())
+  }
+}
+
+private fun SceneViewPeerPanel.getTopToolbarActions(): List<AnAction> {
+  val toolbar =
+    sceneViewTopPanel.components.filterIsInstance<ActionToolbar>().singleOrNull()
+      ?: return emptyList()
+  return toolbar.actionGroup.getChildren(null).asList()
+}
+
+/** Creates an empty implementation of the [AnAction] interface. */
+private fun anAction(): AnAction {
+  return object : AnAction() {
+    override fun actionPerformed(e: AnActionEvent) {}
   }
 }
 

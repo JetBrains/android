@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.common.surface.sceneview
 
+import com.android.flags.ifEnabled
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.glasses.GlassesBlendDropdownAction
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -74,9 +77,14 @@ class SceneViewTopPanel(
       toolbarActions
         .takeIf { it.isNotEmpty() }
         ?.let {
-          createToolbar(listOf(ShowActionGroupInPopupAction(DefaultActionGroup(it))))?.also {
-            add(it, BorderLayout.LINE_END)
-          }
+          val actions =
+            listOfNotNull(
+              StudioFlags.COMPOSE_PREVIEW_XR_GLASSES_PREVIEW.ifEnabled {
+                GlassesBlendDropdownAction()
+              },
+              ShowActionGroupInPopupAction(DefaultActionGroup(it)),
+            )
+          createToolbar(actions)?.also { toolbar -> add(toolbar, BorderLayout.LINE_END) }
         }
     // The space of name label is sacrificed when there is no enough width to display the toolbar.
     // When it happens, the label will be trimmed and show the ellipsis at its tail.
