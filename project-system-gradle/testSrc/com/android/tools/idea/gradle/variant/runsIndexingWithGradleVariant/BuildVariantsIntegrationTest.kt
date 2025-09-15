@@ -64,7 +64,6 @@ import java.nio.file.Files
 private const val NOT_SET = "n/a"
 
 @RunWith(JUnit4::class)
-@RunsInEdt
 class BuildVariantsIntegrationTest {
   @get:Rule
   val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()

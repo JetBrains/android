@@ -154,6 +154,8 @@ import com.intellij.build.events.FinishBuildEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.FinishBuildEventImpl
 import com.intellij.build.internal.DummySyncViewManager
+import com.intellij.diagnostic.ThreadDumper
+import com.intellij.diagnostic.dumpCoroutines
 import com.intellij.execution.process.ProcessOutputType
 import com.intellij.externalSystem.JavaProjectData
 import com.intellij.gradle.toolingExtension.impl.model.sourceSetModel.DefaultGradleSourceSetModel
@@ -186,6 +188,7 @@ import com.intellij.openapi.module.JavaModuleType.JAVA_MODULE_ENTITY_TYPE_ID_NAM
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.progress.blockingContext
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ex.ProjectEx
@@ -209,7 +212,6 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl.ensureIndexesUpToDate
 import com.intellij.testFramework.replaceService
-import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ThrowableConsumer
 import com.intellij.util.containers.ContainerUtil
@@ -250,7 +252,10 @@ import java.util.IdentityHashMap
 import java.util.Locale
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
+import kotlinx.coroutines.runBlocking
 
 data class AndroidProjectModels(
   val androidProject: IdeAndroidProjectImpl,
@@ -2334,11 +2339,37 @@ private fun <T> openPreparedProject(
   // Use per-project code style settings so we never modify the IDE defaults.
   CodeStyleSettingsManager.getInstance().USE_PER_PROJECT_SETTINGS = true;
 
+  fun <T> funcall(function: () -> T) = function.invoke()
+
+  fun <T> waitForFuture(future: Future<T>, timeoutMillis: Long): T {
+    val start = System.nanoTime()
+    while (true) {
+      if (!future.isDone) {
+        runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+      }
+      try {
+        return future.get(10, TimeUnit.MILLISECONDS)
+      }
+      catch (_: TimeoutException) {}
+      catch (e: Exception) {
+        throw AssertionError(e)
+      }
+      val took = System.nanoTime() - start
+      if (took / 1000000L > timeoutMillis) {
+        throw AssertionError(
+          "The waiting takes too long. " +
+          "Expected to take no more than: " + timeoutMillis + " ms but took: " + took + " ms\n" +
+          "Thread dump: " + ThreadDumper.dumpThreadsToString() + "\n" +
+          "Coroutine dump: " + dumpCoroutines(null, true, true) + "\n")
+      }
+    }
+  }
+
   fun body(): T {
     val disposable = Disposer.newDisposable()
     try {
-      val project = runInEdtAndGet {
-        PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+      val project = funcall {
+        runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
 
         var afterCreateCalled = false
 
@@ -2414,8 +2445,8 @@ private fun <T> openPreparedProject(
           DelayedProjectSynchronizer.Util.backgroundPostStartupProjectLoading(project)
           project.service<AndroidGradleProjectStartupActivity.StartupService>().awaitInitialization()
         }
-        PlatformTestUtil.waitForFuture(awaitGradleStartupActivity.asCompletableFuture(), TimeUnit.MINUTES.toMillis(10))
-        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+        waitForFuture(awaitGradleStartupActivity.asCompletableFuture(), TimeUnit.MINUTES.toMillis(10))
+        runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
         project.maybeOutputDiagnostics()
         project
       }
@@ -2503,6 +2534,7 @@ fun verifySyncSuccessful(project: Project, disposable: Disposable) {
 private fun verifySyncResult(project: Project, disposable: Disposable, expectedSyncResult: ProjectSystemSyncManager.SyncResult) {
   assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(expectedSyncResult)
   project.verifyModelsAttached()
+  DumbService.getInstance(project).waitForSmartMode()
   var completed = false
   project.runWhenSmartAndSynced(disposable, callback = {
     completed = true
