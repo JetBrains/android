@@ -70,16 +70,6 @@ interface LayoutInspectorManager : Disposable {
     }
   }
 
-  fun interface StateListener {
-    /**
-     * Called each time the state of [LayoutInspectorManager] changes. Which happens each time
-     * Layout Inspector is enabled or disabled for a tab.
-     */
-    fun onStateUpdate(state: Set<DeviceId>)
-  }
-
-  fun addStateListener(listener: StateListener)
-
   /** Injects or removes Layout Inspector in the tab associated to [deviceId]. */
   fun enableLayoutInspector(deviceId: DeviceId, enable: Boolean)
 
@@ -117,8 +107,6 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
 
       LayoutInspectorManagerGlobalState.tabsWithLayoutInspector.addAll(tabsAdded)
       LayoutInspectorManagerGlobalState.tabsWithLayoutInspector.removeAll(tabsRemoved)
-
-      updateListeners()
     }
 
   /** The tab on which Layout Inspector is running */
@@ -171,8 +159,6 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
       // inject Layout Inspector UI
       value.enableLayoutInspector()
     }
-
-  private val stateListeners = mutableListOf<LayoutInspectorManager.StateListener>()
 
   /**
    * The list of tabs currently open in Running Devices, with or without Layout Inspector enabled.
@@ -266,12 +252,6 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
     return SelectedTabState(project, deviceId, tabComponents, layoutInspector, renderingComponents)
   }
 
-  override fun addStateListener(listener: LayoutInspectorManager.StateListener) {
-    ApplicationManager.getApplication().assertIsDispatchThread()
-    updateListeners(listOf(listener))
-    stateListeners.add(listener)
-  }
-
   override fun enableLayoutInspector(deviceId: DeviceId, enable: Boolean) {
     ApplicationManager.getApplication().assertIsDispatchThread()
 
@@ -339,13 +319,6 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
   override fun disable() {
     selectedTab = null
     tabsWithLayoutInspector = emptySet()
-  }
-
-  private fun updateListeners(
-    listenersToUpdate: List<LayoutInspectorManager.StateListener> = stateListeners
-  ) {
-    ApplicationManager.getApplication().assertIsDispatchThread()
-    listenersToUpdate.forEach { listener -> listener.onStateUpdate(tabsWithLayoutInspector) }
   }
 }
 

@@ -253,8 +253,6 @@ class ToggleLayoutInspectorActionTest {
     var isEnabled = false
     var toggleLayoutInspectorInvocations = 0
 
-    override fun addStateListener(listener: LayoutInspectorManager.StateListener) {}
-
     override fun enableLayoutInspector(tabId: DeviceId, enable: Boolean) {
       toggleLayoutInspectorInvocations += 1
       isEnabled = enable
