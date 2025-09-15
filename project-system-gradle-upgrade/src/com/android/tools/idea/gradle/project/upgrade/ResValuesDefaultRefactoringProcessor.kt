@@ -16,95 +16,35 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.dsl.utils.FN_GRADLE_PROPERTIES
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
-import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiDirectory
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiManager
-import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
-import com.intellij.usageView.UsageInfo
-import com.intellij.usageView.UsageViewDescriptor
-import com.intellij.usages.impl.rules.UsageType
 
-class ResValuesDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
+class ResValuesDefaultRefactoringProcessor : AbstractBooleanPropertyDefaultRefactoringProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override var necessityInfo = PointNecessity(AgpVersion.parse("9.0.0-alpha01"))
+  override val upgradeEventKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.RES_VALUES_DEFAULT
+  override val propertyKey = "android.defaults.buildfeatures.resvalues"
+  override val oldDefault = true
+  override var necessityInfo = PointNecessity(DEFAULT_CHANGED)
 
-  override fun findComponentUsages(): Array<out UsageInfo> {
-    val usages = mutableListOf<UsageInfo>()
-    val baseDir = project.baseDir ?: return usages.toTypedArray()
-    val gradlePropertiesVirtualFile = baseDir.findChild("gradle.properties")
-    if (gradlePropertiesVirtualFile != null && gradlePropertiesVirtualFile.exists()) {
-      val gradlePropertiesPsiFile = PsiManager.getInstance(project).findFile(gradlePropertiesVirtualFile)
-      if (gradlePropertiesPsiFile is PropertiesFile) {
-        val property = gradlePropertiesPsiFile.findPropertyByKey("android.defaults.buildfeatures.resvalues")
-        if (property == null) {
-          val wrappedPsiElement = WrappedPsiElement(gradlePropertiesPsiFile, this, INSERT_PROPERTY)
-          usages.add(ResValuesUsageInfo(wrappedPsiElement))
-        }
-      }
-    }
-    else if (baseDir.exists()) {
-      val baseDirPsiDirectory = PsiManager.getInstance(project).findDirectory(baseDir)
-      if (baseDirPsiDirectory is PsiElement) {
-        val wrappedPsiElement = WrappedPsiElement(baseDirPsiDirectory, this, INSERT_PROPERTY)
-        usages.add(ResValuesUsageInfo(wrappedPsiElement))
-      }
-    }
-    return usages.toTypedArray()
-  }
+  override val insertPropertyText = AgpUpgradeBundle.message("resValuesDefaultRefactoringProcessor.enable.usageType")
+  override val tooltip = AgpUpgradeBundle.message("resValuesBuildFeature.enable.tooltipText")
+  override val usageViewHeader = AgpUpgradeBundle.message("resValuesDefaultRefactoringProcessor.usageView.header")
+  // TODO (b/370068502): add redirect and enable
+  //override val readMoreUrlRedirect = ReadMoreUrlRedirect("res-values-default")
 
-  override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
-    builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.RES_VALUES_DEFAULT)
-
+  override fun getRefactoringId() = "com.android.tools.agp.upgrade.resValuesDefault"
   override fun getCommandName() = AgpUpgradeBundle.message("resValuesDefaultRefactoringProcessor.commandName")
-
-  override fun getShortDescription() = """
-    The default value for buildfeatures.resvalues is changing, meaning that
+  override fun getShortDescription() =  """
+  The default value for buildfeatures.resvalues is changing, meaning that
     the Android Gradle Plugin will no longer generate resValues by default.
     This processor adds a directive to preserve the previous behavior of generating
     resValues for all modules; if this project does not use resValues, you
     can remove the android.defaults.buildfeatures.resvalues property from the
     project's gradle.properties file after this upgrade.
   """.trimIndent()
-
-  override fun getRefactoringId() = "com.android.tools.agp.upgrade.resValuesDefault"
-
-  override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
-    return object : UsageViewDescriptorAdapter() {
-      override fun getElements(): Array<PsiElement> {
-        return PsiElement.EMPTY_ARRAY
-      }
-
-      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("resValuesDefaultRefactoringProcessor.usageView.header")
-    }
-  }
-
-  // TODO (b/370068502): add redirect and enable
-  //override val readMoreUrlRedirect = ReadMoreUrlRedirect("res-values-default")
-
   companion object {
-    val INSERT_PROPERTY = UsageType(AgpUpgradeBundle.messagePointer("resValuesDefaultRefactoringProcessor.enable.usageType"))
-  }
-}
-
-class ResValuesUsageInfo(private val wrappedElement: WrappedPsiElement): GradleBuildModelUsageInfo(wrappedElement) {
-  override fun getTooltipText(): String = AgpUpgradeBundle.message("resValuesBuildFeature.enable.tooltipText")
-
-  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    val (propertiesFile, psiFile) = when (val realElement = wrappedElement.realElement) {
-      is PropertiesFile -> realElement to (realElement as? PsiFile ?: return)
-      is PsiDirectory -> (realElement.findFile(FN_GRADLE_PROPERTIES) ?: realElement.createFile (FN_GRADLE_PROPERTIES)).let {
-        (it as? PropertiesFile ?: return) to (it as? PsiFile ?: return)
-      }
-      else -> return
-    }
-    otherAffectedFiles.add(psiFile)
-    propertiesFile.addProperty("android.defaults.buildfeatures.resvalues", "true")
+    val DEFAULT_CHANGED = AgpVersion.parse("9.0.0-alpha01")
   }
 }
