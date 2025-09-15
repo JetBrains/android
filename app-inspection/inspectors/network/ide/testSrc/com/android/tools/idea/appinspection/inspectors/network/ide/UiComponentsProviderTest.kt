@@ -17,12 +17,14 @@ package com.android.tools.idea.appinspection.inspectors.network.ide
 
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.stdui.ContentType
-import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.disposable
 import com.android.tools.inspectors.common.ui.dataviewer.DataViewer
 import com.android.tools.inspectors.common.ui.dataviewer.IntellijDataViewer
 import com.android.tools.inspectors.common.ui.dataviewer.IntellijImageDataViewer
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import javax.swing.JLabel
 import kotlin.io.path.readBytes
@@ -35,14 +37,16 @@ private val TIMEOUT = 5.seconds
 @RunsInEdt
 class UiComponentsProviderTest {
 
-  @get:Rule val edtRule = EdtRule()
+  private val edtRule = EdtRule()
 
-  @get:Rule val projectRule = AndroidProjectRule.onDisk()
+  private val projectRule = ProjectRule()
+
+  @get:Rule val rule = RuleChain(projectRule, edtRule)
 
   @Test
   fun createImageDataViewer() {
     val componentsProvider =
-      DefaultUiComponentsProvider(projectRule.project, projectRule.testRootDisposable)
+      DefaultUiComponentsProvider(projectRule.project, projectRule.disposable)
 
     // Valid image results in the creation of an image data viewer.
     assertThat(
@@ -73,7 +77,7 @@ class UiComponentsProviderTest {
   @Test
   fun createTextDataViewer() {
     val componentsProvider =
-      DefaultUiComponentsProvider(projectRule.project, projectRule.testRootDisposable)
+      DefaultUiComponentsProvider(projectRule.project, projectRule.disposable)
 
     val viewer =
       componentsProvider.createDataViewer(
@@ -89,7 +93,7 @@ class UiComponentsProviderTest {
   @Test
   fun createInvalidRawDataViewer() {
     val componentsProvider =
-      DefaultUiComponentsProvider(projectRule.project, projectRule.testRootDisposable)
+      DefaultUiComponentsProvider(projectRule.project, projectRule.disposable)
 
     val viewer =
       componentsProvider.createDataViewer(
@@ -105,7 +109,7 @@ class UiComponentsProviderTest {
   @Test
   fun createInvalidPrettyDataViewer() {
     val componentsProvider =
-      DefaultUiComponentsProvider(projectRule.project, projectRule.testRootDisposable)
+      DefaultUiComponentsProvider(projectRule.project, projectRule.disposable)
 
     val viewer =
       componentsProvider.createDataViewer(
@@ -121,7 +125,7 @@ class UiComponentsProviderTest {
   @Test
   fun multipartBody_createsTextViewer() {
     val componentsProvider =
-      DefaultUiComponentsProvider(projectRule.project, projectRule.testRootDisposable)
+      DefaultUiComponentsProvider(projectRule.project, projectRule.disposable)
 
     val viewer =
       componentsProvider.createDataViewer(
@@ -137,7 +141,7 @@ class UiComponentsProviderTest {
   @Test
   fun createPrettyDataViewer() {
     val componentsProvider =
-      DefaultUiComponentsProvider(projectRule.project, projectRule.testRootDisposable)
+      DefaultUiComponentsProvider(projectRule.project, projectRule.disposable)
 
     val viewer =
       componentsProvider.createDataViewer(

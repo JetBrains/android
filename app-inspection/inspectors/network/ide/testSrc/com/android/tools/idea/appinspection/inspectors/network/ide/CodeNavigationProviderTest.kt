@@ -16,14 +16,14 @@
 package com.android.tools.idea.appinspection.inspectors.network.ide
 
 import com.android.tools.idea.codenavigation.IntelliJNavSource
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
 
 class CodeNavigationProviderTest {
 
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = ProjectRule()
 
   @Test
   fun getCodeNavigator() {
