@@ -214,7 +214,7 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
         }
       }
 
-      override fun recalculateLocation(balloon: Balloon): RelativePoint? {
+      override fun recalculateLocation(balloon: Balloon): RelativePoint {
         val button = toolbarComponent.components.findLast { it.isVisible && it.width != 0 }
         if (button !== lastToolbarButton) {
           lastToolbarButton?.removeComponentListener(this)
