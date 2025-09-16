@@ -49,7 +49,7 @@ private const val NEXT_DESCRIPTION_KEY = "layout.inspector.recomposition.next"
 private const val HIDE_DESCRIPTION_KEY = "layout.inspector.recomposition.hide"
 
 /** Model for the [StateInspectionPanel]. */
-interface StateInspectionModel {
+internal interface StateInspectionModel {
   /** Show the State Read panel if the value is true, otherwise hide. */
   val show: StateFlow<Boolean>
 
@@ -75,7 +75,7 @@ interface StateInspectionModel {
   val updates: StateFlow<Int>
 }
 
-class StateInspectionModelImpl(
+internal class StateInspectionModelImpl(
   private val model: InspectorModel,
   private val scope: CoroutineScope,
   private val treeSettings: TreeSettings,

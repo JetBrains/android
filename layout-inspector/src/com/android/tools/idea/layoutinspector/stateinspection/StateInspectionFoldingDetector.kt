@@ -102,7 +102,7 @@ private val RECORD_READ_EXCEPTION_PREFIXES =
  * - the start of the exception stacktrace (common to all/most state reads)
  * - the end of the exception stacktrace (usually doesn't hold informative data)
  */
-class StateInspectionFoldingDetector(
+internal class StateInspectionFoldingDetector(
   private val editor: Editor,
   private val scope: CoroutineScope,
 ) {

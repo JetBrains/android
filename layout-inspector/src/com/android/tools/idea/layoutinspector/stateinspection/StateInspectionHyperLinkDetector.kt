@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
 /** A Hyperlink detector that adds hyperlinks to an [Editor] */
-class StateInspectionHyperLinkDetector(
+internal class StateInspectionHyperLinkDetector(
   private val project: Project,
   private val editor: EditorEx,
   scope: CoroutineScope,

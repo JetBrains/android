@@ -51,12 +51,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
-val STATE_READ_EDITOR_KEY = Key.create<Editor>("StateReadEditor")
+internal val STATE_READ_EDITOR_KEY = Key.create<Editor>("StateReadEditor")
 const val RECOMPOSITION_TEXT_LABEL_NAME = "RecompositionTextLabel"
 const val STATE_READ_TEXT_LABEL_NAME = "StateReadTextLabel"
 
 /** Convenience function for creating a StateInspectionPanel */
-fun createStateInspectionPanel(
+internal fun createStateInspectionPanel(
   layoutInspector: LayoutInspector,
   parentDisposable: Disposable,
 ): StateInspectionPanel {
@@ -75,7 +75,7 @@ fun createStateInspectionPanel(
 }
 
 /** A panel to display state reads for recompositions. */
-class StateInspectionPanel(
+internal class StateInspectionPanel(
   model: StateInspectionModel,
   project: Project,
   scope: CoroutineScope,
@@ -219,7 +219,7 @@ private class InnerStateInspectionPanel(
     return editor
   }
 
-  fun <T> Component?.putUserData(key: Key<T>, data: T?) {
+  private fun <T> Component?.putUserData(key: Key<T>, data: T?) {
     (this as? JComponent)?.putClientProperty(key, data)
   }
 }
