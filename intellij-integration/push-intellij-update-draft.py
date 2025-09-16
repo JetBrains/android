@@ -63,11 +63,11 @@ def main():
                 pass
             elif check('git', 'rev-parse', '-q', '--verify', args.branch, cwd=path, stdout=DEVNULL):
                 # Pin revision to a synthetic draft commit that we push to Gerrit.
-                ref = run('git', 'commit-tree', '-p', 'm/studio-main^{}', '-m', COMMIT_MSG, f'{args.branch}^{{tree}}', cwd=path)
-                if str(path) in ['tools/idea', 'tools/vendor/intellij/cidr', 'external/jetbrains/kotlin']:
-                    continue  # TODO: Gerrit falls over when trying to render huge commits in IntelliJ/CIDR/Kotlin.
-                else:
-                    jobs.append(executor.submit(push_to_gerrit, path, ref, 'goog', args.push))
+                parent_args = []
+                for p in collect_parents(path, args.branch):
+                    parent_args.extend(['-p', p])
+                ref = run('git', 'commit-tree', *parent_args, '-m', COMMIT_MSG, f'{args.branch}^{{tree}}', cwd=path)
+                jobs.append(executor.submit(push_to_gerrit, path, ref, 'goog', args.push))
                 project.set('revision', ref)
             else:
                 # Pin revision to m/studio-main.
@@ -90,15 +90,37 @@ def main():
     print('Finished successfully.')
 
 
+def collect_parents(path: Path, branch: str) -> list[str]:
+    # Compute the list of parents for the synthetic squashed commit. This should include the
+    # 2nd parents of any merge commits so that Git-on-Borg computes a lighter delta during push,
+    # and so that Gerrit renders a smaller diff (otherwise Gerrit becomes extremely slow).
+    parents = []
+    parents.append(run('git', 'rev-parse', 'm/studio-main', cwd=path))
+    each_commit_parents = run('git', 'log', '--first-parent', '--format=%P', f'm/studio-main..{branch}', cwd=path)
+    for commit_parents in each_commit_parents.splitlines():
+        commit_parents = commit_parents.split(' ')
+        if len(commit_parents) > 1:
+            parents.extend(commit_parents[1:])
+    return parents
+
+
 def push_to_gerrit(path: Path, ref: str, remote: str, push: bool):
     if push:
         print(f'Uploading {ref:.10} in {path}')
-        opts = 'wip,topic=intellij-update-draft-do-not-submit'
+        opts = ['wip', 'topic=intellij-update-draft-do-not-submit']
+        # Important: we use the "Override Merge Base" feature in Gerrit to ensure that
+        # any extra parents of the synthetic squashed commit do not lead to additional
+        # Gerrit changes being created (e.g. for upstream IntelliJ commits). For details see
+        # https://gerrit-review.googlesource.com/Documentation/user-upload.html#base.
+        parents = run('git', 'show', '-s', '--format=%P', ref, cwd=path).split(' ')
+        if len(parents) > 1:
+            opts.extend([f'base={p}' for p in parents])
+        opts = ','.join(opts)
         try:
             run('git', 'push', '-o', 'banned-words~skip', remote, f'{ref}:refs/for/studio-main%{opts}', stderr=PIPE, cwd=path)
         except subprocess.CalledProcessError as e:
             stderr = e.stderr.decode().strip()
-            if 'remote rejected' in stderr and 'no new changes' in stderr:
+            if 'remote rejected' in stderr and ('no new changes' in stderr or 'commit(s) already exists' in stderr):
                 pass  # Gerrit already has the change.
             else:
                 print(stderr)
