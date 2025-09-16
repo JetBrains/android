@@ -103,7 +103,7 @@ public class ProjectProtoUpdate {
   }
 
   public ProjectProto.Project build() {
-    artifactDirs.values().forEach(d -> d.addTo(project.getArtifactDirectoriesBuilder()));
+    artifactDirs.values().forEach(d -> d.addToArtifactDirectories(project.getArtifactDirectoriesBuilder()));
     return project.build();
   }
 }

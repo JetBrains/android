@@ -51,7 +51,7 @@ class ArtifactDirectoryBuilderTest {
 
     val protoBuilder =
       ProjectProto.ArtifactDirectories.newBuilder()
-    adb.addTo(protoBuilder)
+    adb.addToArtifactDirectories(protoBuilder)
 
     Truth.assertThat(protoBuilder.build())
       .isEqualTo(
@@ -107,7 +107,7 @@ class ArtifactDirectoryBuilderTest {
 
     val protoBuilder =
       ProjectProto.ArtifactDirectories.newBuilder()
-    adb.addTo(protoBuilder)
+    adb.addToArtifactDirectories(protoBuilder)
 
     val proto = protoBuilder.build()
     Truth.assertThat(
@@ -149,7 +149,7 @@ class ArtifactDirectoryBuilderTest {
 
     val protoBuilder =
       ProjectProto.ArtifactDirectories.newBuilder()
-    adb.addTo(protoBuilder)
+    adb.addToArtifactDirectories(protoBuilder)
     val proto = protoBuilder.build()
     Truth.assertThat(
       proto
@@ -199,7 +199,7 @@ class ArtifactDirectoryBuilderTest {
       )
         .toBuilder()
 
-    adb.addTo(protoBuilder)
+    adb.addToArtifactDirectories(protoBuilder)
 
     Truth.assertThat(protoBuilder.build())
       .isEqualTo(
