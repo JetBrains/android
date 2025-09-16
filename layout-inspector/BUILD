@@ -137,6 +137,7 @@ iml_module(
         "//tools/adt/idea/device-manager-v2:intellij.android.device-manager-v2",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner",
     ],
+    test_friends = ["//tools/adt/idea/layout-inspector:intellij.android.layout-inspector"],
     test_jvm_flags = select({
         "//tools/base/bazel/platforms:macos-arm64": ["-Djava.library.path=prebuilts/studio/skiaparser/test_support/mac-arm"],
         "//tools/base/bazel/platforms:macos-x86_64": ["-Djava.library.path=prebuilts/studio/skiaparser/test_support/mac"],
@@ -169,10 +170,12 @@ iml_module(
     iml_files = ["intellij.android.layout-inspector.integration.iml"],
     # do not sort: must match IML order
     test_deps = [
+        "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector",
         "//tools/adt/idea/.idea/libraries:junit4",
         "//tools/adt/idea/as-driver:as-driver.utils",
         "//tools/base/common:studio.android.sdktools.common",
     ],
+    test_friends = ["//tools/adt/idea/layout-inspector:intellij.android.layout-inspector"],
     test_resources = ["integration/testData"],
     test_srcs = ["integration/testSrc"],
     visibility = ["//visibility:public"],

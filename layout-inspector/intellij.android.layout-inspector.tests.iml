@@ -65,4 +65,5 @@
     <orderEntry type="module" module-name="intellij.android.device-manager-v2" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.device-provisioner" scope="TEST" />
   </component>
+  <component name="TestModuleProperties" production-module="intellij.android.layout-inspector" />
 </module>

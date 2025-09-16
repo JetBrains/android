@@ -13,8 +13,10 @@
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
     <orderEntry type="module" module-name="android.sdktools.testutils" />
+    <orderEntry type="module" module-name="intellij.android.layout-inspector" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="junit4" level="project" />
     <orderEntry type="module" module-name="as-driver.utils" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
   </component>
+  <component name="TestModuleProperties" production-module="intellij.android.layout-inspector" />
 </module>
