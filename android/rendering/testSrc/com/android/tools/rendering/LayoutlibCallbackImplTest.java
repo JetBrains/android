@@ -149,7 +149,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
                                                       .getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
         RenderModelModule module = new AndroidFacetRenderModelModule(myBuildTarget);
         LayoutlibCallbackImpl layoutlibCallback =
-          new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader, true);
+          new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader, true, true);
         ILayoutPullParser parser = layoutlibCallback.getParser(new ResourceValueImpl(
           ResourceNamespace.ANDROID, ResourceType.LAYOUT, "main", psiFile.getVirtualFile().getCanonicalPath()
         ));
@@ -190,7 +190,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
         RenderModelModule module = new AndroidFacetRenderModelModule(myBuildTarget);
         LayoutlibCallbackImpl layoutlibCallback =
-          new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader, true);
+          new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader, true, true);
 
         assertNotNull(layoutlibCallback.createXmlParserForPsiFile(fontsFolder.toPath().resolve("aar_font_family.xml").toAbsolutePath().toString()));
 
@@ -219,7 +219,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
         RenderModelModule module = new AndroidFacetRenderModelModule(myBuildTarget);
         LayoutlibCallbackImpl layoutlibCallback =
-          new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader, true);
+          new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader, true, true);
         layoutlibCallback.setProjectFonts(myProjectFonts);
 
         assertNotNull(layoutlibCallback.createXmlParserForPsiFile(fontFile.getPath()));

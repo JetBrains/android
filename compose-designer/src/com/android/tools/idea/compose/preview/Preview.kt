@@ -256,6 +256,7 @@ fun configureLayoutlibSceneManager(
   runVisualAnalysis: Boolean,
   quality: Float,
   disableAnimation: Boolean,
+  useLoadViewFallbacks: Boolean, // TODO(b/445947658): remove this parameter
 ): LayoutlibSceneManager =
   sceneManager.apply {
     sceneRenderConfiguration.let { config ->
@@ -289,6 +290,7 @@ fun configureLayoutlibSceneManager(
       // as they are reused and may have old resize data.
       config.clearOverrideRenderSize = true
       config.disableAnimation = disableAnimation
+      config.useLoadViewFallbacks = useLoadViewFallbacks
     }
     visualLintMode =
       if (runVisualAnalysis) {
@@ -417,6 +419,16 @@ class ComposePreviewRepresentation(
     ComposePreviewNavigationHandler().apply {
       Disposer.register(this@ComposePreviewRepresentation, this)
     }
+
+  // TODO(b/445947658): remove variable and TestOnly setter method below
+  // Preview should never rely on fallback mechanisms in production, so it should not rely on them
+  // for testing either.
+  private var useLoadViewFallbacks = false
+
+  @TestOnly
+  fun useLoadViewFallbacksForTest() {
+    useLoadViewFallbacks = true
+  }
 
   /** Blank panel to display on top of the surface when transitioning between two [PreviewMode]s */
   private val blankTransitionPanel = JPanel()
@@ -1056,6 +1068,7 @@ class ComposePreviewRepresentation(
       runVisualAnalysis = mode.value is PreviewMode.UiCheck,
       quality = qualityManager.getTargetQuality(layoutlibSceneManager),
       disableAnimation = mode.value.isNormal,
+      useLoadViewFallbacks = useLoadViewFallbacks,
     )
 
   private fun onAfterRender(previewsCount: Int) {
