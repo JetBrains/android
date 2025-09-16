@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.core
 
+import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.common.primaryPanelBackground
@@ -38,6 +39,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.ui.getParentOfType
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -47,6 +49,7 @@ import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.JBColor
 import com.intellij.ui.SideBorder
 import com.intellij.ui.awt.RelativePoint
+import com.intellij.util.containers.ContainerUtil.createLockFreeCopyOnWriteList
 import com.intellij.util.ui.PositionTracker
 import com.intellij.util.ui.components.BorderLayoutPanel
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap
@@ -90,24 +93,27 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
   protected val mainToolbar: ActionToolbar
   protected val secondaryToolbar: ActionToolbar
   protected val centerPanel = BorderLayoutPanel()
-  protected val displayPanels = Int2ObjectRBTreeMap<T>()
+  private val displayPanelsMap = Int2ObjectRBTreeMap<T>()
+  protected val displayPanels: Collection<T>
+    get() = displayPanelsMap.values
+  private val displayListeners = createLockFreeCopyOnWriteList<DeviceDisplayListener>()
 
   private val displayInfoProvider = object : DisplayInfoProvider {
 
     override fun getIdsOfAllDisplays(): IntArray =
-        displayPanels.keys.toIntArray()
+        displayPanelsMap.keys.toIntArray()
 
     override fun getDisplaySize(displayId: Int): Dimension =
-        displayPanels[displayId]?.displayView?.deviceDisplaySize ?: throw IllegalArgumentException()
+      displayPanelsMap[displayId]?.displayView?.deviceDisplaySize ?: throw IllegalArgumentException()
 
     override fun getDisplayOrientation(displayId: Int): Int =
-        displayPanels[displayId]?.displayView?.displayOrientationQuadrants ?: throw IllegalArgumentException()
+      displayPanelsMap[displayId]?.displayView?.displayOrientationQuadrants ?: throw IllegalArgumentException()
 
     override fun getScreenshotRotation(displayId: Int): Int =
-        displayPanels[displayId]?.displayView?.displayOrientationCorrectionQuadrants ?: throw IllegalArgumentException()
+      displayPanelsMap[displayId]?.displayView?.displayOrientationCorrectionQuadrants ?: throw IllegalArgumentException()
 
     override fun getSkin(displayId: Int): SkinDefinition? =
-        (displayPanels[displayId]?.displayView as? EmulatorView)?.getSkin()
+      (displayPanelsMap[displayId]?.displayView as? EmulatorView)?.getSkin()
   }
 
   init {
@@ -146,6 +152,57 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
   /** Removes the given notification panel. */
   fun removeNotification(notificationPanel: EditorNotificationPanel) {
     findNotificationHolderPanel()?.removeNotification(notificationPanel)
+  }
+
+  fun addDeviceDisplayListener(listener: DeviceDisplayListener) {
+    displayListeners.add(listener)
+  }
+
+  fun removeDeviceDisplayListener(listener: DeviceDisplayListener) {
+    displayListeners.remove(listener)
+  }
+
+  private fun notifyListenersDisplayAdded(displayPanel: T) {
+    val displayView = displayPanel.displayView
+    for (listener in displayListeners) {
+      try {
+        listener.displayAdded(displayView)
+      }
+      catch (e: Throwable) {
+        thisLogger().error(e)
+      }
+    }
+  }
+
+  private fun notifyListenersDisplayRemoved(displayPanel: T) {
+    val displayView = displayPanel.displayView
+    for (listener in displayListeners) {
+      try {
+        listener.displayRemoved(displayView)
+      }
+      catch (e: Throwable) {
+        thisLogger().error(e)
+      }
+    }
+  }
+
+  protected fun findDisplayPanel(displayId: Int): T? =
+      displayPanelsMap[displayId]
+
+  protected fun createDisplayPanelIfAbsent(displayId: Int, displayPanelCreator: (Int) -> T): T =
+      displayPanelsMap.computeIfAbsent(displayId) { displayPanelCreator(displayId).also { notifyListenersDisplayAdded(it) } }
+
+  protected fun removeDisplayPanels(filter: (T) -> Boolean): Boolean {
+    return displayPanelsMap.int2ObjectEntrySet().removeIf { (_, displayPanel) ->
+      if (filter(displayPanel)) {
+        notifyListenersDisplayRemoved(displayPanel)
+        Disposer.dispose(displayPanel)
+        true
+      }
+      else {
+        false
+      }
+    }
   }
 
   internal abstract fun createContent(deviceFrameVisible: Boolean, savedUiState: UiState? = null)
@@ -271,4 +328,15 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
       primaryDisplayView?.getParentOfType<NotificationHolderPanel>()
 
   internal interface UiState
+
+  /** The listener interface for receiving device display lifecycle events. */
+  @UiThread
+  interface DeviceDisplayListener {
+
+    /** Called when a new display becomes active. */
+    fun displayAdded(displayView: AbstractDisplayView)
+
+    /** Called when a display becomes inactive. */
+    fun displayRemoved(displayView: AbstractDisplayView)
+  }
 }

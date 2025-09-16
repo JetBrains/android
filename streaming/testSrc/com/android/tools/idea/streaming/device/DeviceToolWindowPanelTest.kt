@@ -34,8 +34,10 @@ import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.actions.FloatingXrToolbarState
 import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.actions.ToggleFloatingXrToolbarAction
+import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DisplayType
 import com.android.tools.idea.streaming.core.FloatingToolbarContainer
+import com.android.tools.idea.streaming.core.StreamingDevicePanel
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
@@ -73,14 +75,6 @@ import com.intellij.testFramework.replaceService
 import com.intellij.ui.LayeredIcon
 import icons.StudioIcons
 import it.unimi.dsi.fastutil.bytes.ByteArrayList
-import kotlinx.coroutines.runBlocking
-import org.junit.Before
-import org.junit.ClassRule
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.kotlin.any
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Point
@@ -120,6 +114,14 @@ import kotlin.test.assertEquals
 import kotlin.test.fail
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.runBlocking
+import org.junit.Before
+import org.junit.ClassRule
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /** Tests for [DeviceToolWindowPanel], [DeviceDisplayPanel] and toolbar actions that produce Android key events. */
 @RunsInEdt
@@ -552,32 +554,49 @@ class DeviceToolWindowPanelTest {
   @Test
   fun testMultipleDisplays() {
     device = agentRule.connectDevice("Pixel 7 Pro", 33, Dimension(1440, 3120))
+    val displayIds = mutableSetOf<Int>()
+    panel.addDeviceDisplayListener(object: StreamingDevicePanel.DeviceDisplayListener {
+      override fun displayAdded(displayView: AbstractDisplayView) {
+        displayIds.add(displayView.displayId)
+      }
+
+      override fun displayRemoved(displayView: AbstractDisplayView) {
+        displayIds.remove(displayView.displayId)
+      }
+    })
     assertThat(panel.primaryDisplayView).isNull()
+    assertThat(displayIds).isEmpty()
 
     panel.createContent(false)
     assertThat(panel.primaryDisplayView).isNotNull()
+    assertThat(displayIds).containsExactly(PRIMARY_DISPLAY_ID)
 
     fakeUi.layoutAndDispatchEvents()
     waitForCondition(10.seconds) { agent.isRunning && panel.isConnected }
 
     waitForFrame()
 
-    val externalDisplayId = 1
-    agent.addDisplay(externalDisplayId, 1080, 1920, DisplayType.EXTERNAL)
+    val secondaryDisplayId = 1
+    agent.addDisplay(secondaryDisplayId, 1080, 1920, DisplayType.EXTERNAL)
     waitForCondition(2.seconds) { fakeUi.findAllComponents<DeviceView>().size == 2 }
+    assertThat(displayIds).containsExactly(PRIMARY_DISPLAY_ID, secondaryDisplayId)
     waitForFrame(displayId = PRIMARY_DISPLAY_ID)
-    waitForFrame(displayId = externalDisplayId)
+    waitForFrame(displayId = secondaryDisplayId)
     assertAppearance("MultipleDisplays1", maxPercentDifferentMac = 0.06, maxPercentDifferentWindows = 0.06)
 
     agent.clearCommandLog()
     // Rotating the device. Only the internal display should rotate.
     executeAction("android.device.rotate.left", panel.primaryDisplayView!!, project)
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetDeviceOrientationMessage(orientation=1))
-    waitForFrame(displayId = externalDisplayId)
+    waitForFrame(displayId = secondaryDisplayId)
     assertAppearance("MultipleDisplays2", maxPercentDifferentMac = 0.06, maxPercentDifferentWindows = 0.06)
 
-    agent.removeDisplay(externalDisplayId)
+    agent.removeDisplay(secondaryDisplayId)
     waitForCondition(2.seconds) { fakeUi.findAllComponents<DeviceView>().size == 1 }
+    assertThat(displayIds).containsExactly(PRIMARY_DISPLAY_ID)
+
+    panel.destroyContent()
+    assertThat(displayIds).isEmpty()
   }
 
   @Test

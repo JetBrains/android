@@ -53,7 +53,6 @@ import com.intellij.ui.JBColor
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap
 import java.awt.EventQueue
 import java.util.concurrent.TimeoutException
-import java.util.function.IntFunction
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -103,7 +102,7 @@ internal class DeviceToolWindowPanel(
   override var zoomToolbarVisible = false
     set(value) {
       field = value
-      for (displayPanel in displayPanels.values) {
+      for (displayPanel in displayPanels) {
         displayPanel.zoomToolbarVisible = value
       }
     }
@@ -145,11 +144,11 @@ internal class DeviceToolWindowPanel(
 
     val uiState = savedUiState as DeviceUiState? ?: DeviceUiState()
     val initialOrientation = uiState.orientation
-    val primaryDisplayPanel =
-        DeviceDisplayPanel(disposable, deviceClient, PRIMARY_DISPLAY_ID, initialOrientation, project, zoomToolbarVisible)
-    displayPanels.put(primaryDisplayPanel.displayId, primaryDisplayPanel)
+    val primaryDisplayPanel = createDisplayPanelIfAbsent(PRIMARY_DISPLAY_ID) {
+      DeviceDisplayPanel(disposable, deviceClient, PRIMARY_DISPLAY_ID, initialOrientation, project, zoomToolbarVisible)
+    }
     val zoomScrollState = uiState.zoomScrollState
-    for (displayPanel in displayPanels.values) {
+    for (displayPanel in displayPanels) {
       zoomScrollState[displayPanel.displayId]?.let { displayPanel.zoomScrollState = it }
     }
 
@@ -202,14 +201,14 @@ internal class DeviceToolWindowPanel(
     val disposable = contentDisposable ?: return uiState
     contentDisposable = null
     uiState.orientation = primaryDisplayView?.displayOrientationQuadrants ?: 0
-    for (displayPanel in displayPanels.values) {
+    for (displayPanel in displayPanels) {
       uiState.zoomScrollState[displayPanel.displayId] = displayPanel.zoomScrollState
     }
 
     Disposer.dispose(disposable)
 
     centerPanel.removeAll()
-    displayPanels.clear()
+    removeDisplayPanels { true }
     primaryDisplayView = null
     mainToolbar.targetComponent = this
     secondaryToolbar.targetComponent = this
@@ -239,7 +238,7 @@ internal class DeviceToolWindowPanel(
   private inner class DisplayConfigurator : DeviceController.DisplayListener {
 
     /** Display descriptors sorted by display ID. */
-    var displayDescriptors: List<DisplayDescriptor> = displayPanels.values.map { DisplayDescriptor(it.displayId, 0, 0) }
+    var displayDescriptors: List<DisplayDescriptor> = displayPanels.map { DisplayDescriptor(it.displayId, 0, 0) }
 
     @AnyThread
     fun initialize() {
@@ -303,13 +302,8 @@ internal class DeviceToolWindowPanel(
         return
       }
 
-      val each = displayPanels.iterator()
-      while (each.hasNext()) {
-        val (displayId, displayPanel) = each.next()
-        if (displayId != PRIMARY_DISPLAY_ID && !newDisplays.any { it.displayId == displayId }) {
-          each.remove()
-          Disposer.dispose(displayPanel)
-        }
+      removeDisplayPanels {
+        displayPanel -> displayPanel.displayId != PRIMARY_DISPLAY_ID && !newDisplays.any { it.displayId == displayPanel.displayId }
       }
       val layoutRoot = computeBestLayout(centerPanel.sizeWithoutInsets, newDisplays.map { it.size })
       val rootPanel = buildLayout(layoutRoot, newDisplays)
@@ -330,10 +324,10 @@ internal class DeviceToolWindowPanel(
         is LeafNode -> {
           val display = displayDescriptors[layoutNode.rectangleIndex]
           val displayId = display.displayId
-          displayPanels.computeIfAbsent(displayId, IntFunction {
+          createDisplayPanelIfAbsent(displayId) {
             assert(it != PRIMARY_DISPLAY_ID)
             DeviceDisplayPanel(contentDisposable!!, deviceClient, displayId, display.orientation, project, zoomToolbarVisible)
-          })
+          }
         }
         is SplitNode -> {
           SplitPanel(layoutNode).apply {
@@ -355,10 +349,10 @@ internal class DeviceToolWindowPanel(
       else {
         val displayId = state.displayId ?: throw IllegalArgumentException()
         val display = displayDescriptors.find { it.displayId == displayId } ?: throw IllegalArgumentException()
-        displayPanels.computeIfAbsent(displayId, IntFunction {
+        createDisplayPanelIfAbsent(displayId) {
           assert(it != PRIMARY_DISPLAY_ID)
           DeviceDisplayPanel(contentDisposable!!, deviceClient, displayId, display.orientation, project, zoomToolbarVisible)
-        })
+        }
       }
     }
 
@@ -371,7 +365,7 @@ internal class DeviceToolWindowPanel(
 
     private fun adjustDisplayDescriptors(displays: List<DisplayDescriptor>) {
       for (display in displays) {
-        val displayView = displayPanels[display.displayId]?.displayView ?: continue
+        val displayView = findDisplayPanel(display.displayId)?.displayView ?: continue
         if (displayView.deviceDisplaySize.width != 0 && displayView.deviceDisplaySize.height != 0) {
           display.width = displayView.deviceDisplaySize.width
           display.height = displayView.deviceDisplaySize.height

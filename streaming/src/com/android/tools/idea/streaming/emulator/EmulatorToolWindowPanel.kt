@@ -66,7 +66,6 @@ import com.intellij.util.xmlb.annotations.Property
 import icons.StudioIcons
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap
 import java.awt.EventQueue
-import java.util.function.IntFunction
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -125,7 +124,7 @@ internal class EmulatorToolWindowPanel(
   override var zoomToolbarVisible = false
     set(value) {
       field = value
-      for (panel in displayPanels.values) {
+      for (panel in displayPanels) {
         panel.zoomToolbarVisible = value
       }
     }
@@ -171,9 +170,9 @@ internal class EmulatorToolWindowPanel(
     Disposer.register(this, disposable)
     contentDisposable = disposable
 
-    val primaryDisplayPanel =
-        EmulatorDisplayPanel(disposable, emulator, project, PRIMARY_DISPLAY_ID, null, zoomToolbarVisible, deviceFrameVisible)
-    displayPanels[primaryDisplayPanel.displayId] = primaryDisplayPanel
+    val primaryDisplayPanel = createDisplayPanelIfAbsent(PRIMARY_DISPLAY_ID) {
+      EmulatorDisplayPanel(disposable, emulator, project, PRIMARY_DISPLAY_ID, null, zoomToolbarVisible, deviceFrameVisible)
+    }
     val emulatorView = primaryDisplayPanel.displayView
     primaryDisplayView = emulatorView
     installFileDropHandler(this, id.serialNumber, emulatorView, project)
@@ -208,7 +207,7 @@ internal class EmulatorToolWindowPanel(
 
     val uiState = savedUiState as EmulatorUiState? ?: EmulatorUiState()
     val zoomScrollState = uiState.zoomScrollState
-    for (panel in displayPanels.values) {
+    for (panel in displayPanels) {
       zoomScrollState[panel.displayId]?.let { panel.zoomScrollState = it }
     }
 
@@ -237,7 +236,7 @@ internal class EmulatorToolWindowPanel(
     multiDisplayStateUpdater.run()
     multiDisplayStateStorage.removeUpdater(multiDisplayStateUpdater)
 
-    for (panel in displayPanels.values) {
+    for (panel in displayPanels) {
       uiState.zoomScrollState[panel.displayId] = panel.zoomScrollState
     }
 
@@ -259,7 +258,7 @@ internal class EmulatorToolWindowPanel(
     Disposer.dispose(disposable)
 
     centerPanel.removeAll()
-    displayPanels.clear()
+    removeDisplayPanels { true }
     primaryDisplayView = null
     mainToolbar.targetComponent = this
     secondaryToolbar.targetComponent = this
@@ -322,15 +321,7 @@ internal class EmulatorToolWindowPanel(
         return
       }
 
-      displayPanels.int2ObjectEntrySet().removeIf { (displayId, displayPanel) ->
-        if (!newDisplays.any { it.displayId == displayId }) {
-          Disposer.dispose(displayPanel)
-          true
-        }
-        else {
-          false
-        }
-      }
+      removeDisplayPanels { displayPanel -> !newDisplays.any { it.displayId == displayPanel.displayId } }
       val layoutRoot = computeBestLayout(centerPanel.sizeWithoutInsets, newDisplays.map { it.size })
       val rootPanel = buildLayout(layoutRoot, newDisplays)
       displayDescriptors = newDisplays
@@ -350,10 +341,10 @@ internal class EmulatorToolWindowPanel(
         is LeafNode -> {
           val display = displayDescriptors[layoutNode.rectangleIndex]
           val displayId = display.displayId
-          displayPanels.computeIfAbsent(displayId, IntFunction {
+          createDisplayPanelIfAbsent(displayId) {
             assert(it != PRIMARY_DISPLAY_ID)
             EmulatorDisplayPanel(contentDisposable!!, emulator, project, it, display.size, zoomToolbarVisible)
-          })
+          }
         }
         is SplitNode -> {
           SplitPanel(layoutNode).apply {
@@ -375,10 +366,10 @@ internal class EmulatorToolWindowPanel(
       else {
         val displayId = state.displayId ?: throw IllegalArgumentException()
         val display = displayDescriptors.find { it.displayId == displayId } ?: throw IllegalArgumentException()
-        displayPanels.computeIfAbsent(displayId, IntFunction {
+        createDisplayPanelIfAbsent(displayId) {
           assert(it != PRIMARY_DISPLAY_ID)
           EmulatorDisplayPanel(contentDisposable!!, emulator, project, it, display.size, zoomToolbarVisible)
-        })
+        }
       }
     }
 
