@@ -28,6 +28,8 @@ import com.android.tools.idea.FileEditorUtil
 import com.android.tools.idea.apk.viewer.arsc.ArscViewer
 import com.android.tools.idea.apk.viewer.dex.DexFileViewer
 import com.android.tools.idea.apk.viewer.diff.ApkDiffPanel
+import com.android.tools.idea.apk.viewer.pagealign.AlignmentWarningViewer
+import com.android.tools.idea.apk.viewer.pagealign.getAlignmentFinding
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerUtil
 import com.android.tools.proguard.ProguardMap
@@ -76,7 +78,8 @@ internal class ApkEditor(
   private val project: Project,
   private val baseFile: VirtualFile,
   private val root: VirtualFile,
-  private val applicationInfoProvider: AndroidApplicationInfoProvider
+  private val applicationInfoProvider: AndroidApplicationInfoProvider,
+  private val isPageAlignFeatureEnabled : Boolean
 ) : UserDataHolderBase(), FileEditor, ApkViewPanel.Listener {
   private var baseFileHash: String = ""
   private var apkViewPanel: ApkViewPanel? = null
@@ -148,7 +151,8 @@ internal class ApkEditor(
             ApkViewPanel(
               ApkParser(context, ApkSizeCalculator.getDefault()),
               apkVirtualFile.name,
-              applicationInfoProvider
+              applicationInfoProvider,
+              isPageAlignFeatureEnabled
             )
           }
           apkViewPanel = panel
@@ -192,9 +196,9 @@ internal class ApkEditor(
     if (file == null) {
       return  // User canceled.
     }
-    val oldApk: VirtualFile? = checkNotNull(ApkFileSystem.getInstance().getRootByLocal(file))
+    val oldApk: VirtualFile = checkNotNull(ApkFileSystem.getInstance().getRootByLocal(file))
     val builder = DialogBuilder(project)
-    builder.setTitle(oldApk!!.name + " (old) vs " + root.name + " (new)")
+    builder.setTitle(oldApk.name + " (old) vs " + root.name + " (new)")
     val panel = ApkDiffPanel(oldApk, root)
     builder.setCenterPanel(panel.container)
     builder.setPreferredFocusComponent(panel.preferredFocusedComponent)
@@ -267,6 +271,19 @@ internal class ApkEditor(
   fun getEditor(nodes: Array<out ArchiveTreeNode>?): ApkFileEditorComponent {
     if (nodes.isNullOrEmpty()) {
       return EmptyPanel()
+    }
+
+    if (isPageAlignFeatureEnabled) {
+      val extractNativeLibs = apkViewPanel?.treeModel?.extractNativeLibs
+      // Check whether there is an alignment warning and show a warning panel.
+      // If there are multiple, then give precedence to other viewers.
+      if (extractNativeLibs != null && nodes.size == 1) {
+        val archiveEntry = nodes[0].data
+        val alignment = archiveEntry.getAlignmentFinding(extractNativeLibs)
+        if (alignment.hasWarning) {
+          return AlignmentWarningViewer()
+        }
+      }
     }
 
     // Check if multiple dex files are selected and return a multiple dex viewer.
@@ -474,6 +491,10 @@ internal class ApkEditor(
       val variant = parent.name
       val mapping = parent.parent?.parent?.resolve("mapping/$variant/mapping.txt") ?: return null
       return try {
+        if (!Files.isRegularFile(mapping)) {
+          log.info("No mapping file found at: $mapping")
+          return null
+        }
         val proguardMap = ProguardMap()
         proguardMap.readFromFile(mapping.toFile())
         ProguardMappings(proguardMap, null, null)

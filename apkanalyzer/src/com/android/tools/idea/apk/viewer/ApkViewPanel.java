@@ -32,8 +32,6 @@ import com.android.tools.apk.analyzer.Archives;
 import com.android.tools.apk.analyzer.internal.ApkArchive;
 import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
 import com.android.tools.apk.analyzer.internal.InstantAppBundleArchive;
-import static com.android.tools.idea.apk.viewer.pagealign.AlignmentFindingKt.IS_PAGE_ALIGN_ENABLED;
-
 import com.android.tools.idea.apk.viewer.pagealign.AlignmentCellRenderer;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.google.common.primitives.Longs;
@@ -104,6 +102,7 @@ public class ApkViewPanel implements TreeSelectionListener {
   private ApkTreeModel myTreeModel;
   private Listener myListener;
   @NotNull private final ApkParser myApkParser;
+  final private boolean myIsPageAlignFeatureEnabled;
   private boolean myArchiveDisposed = false;
 
   private static final int TEXT_RENDERER_HORIZ_PADDING = 6;
@@ -154,8 +153,10 @@ public class ApkViewPanel implements TreeSelectionListener {
   public ApkViewPanel(
     @NotNull ApkParser apkParser,
     @NotNull String apkName,
-    @NotNull AndroidApplicationInfoProvider applicationInfoProvider) {
+    @NotNull AndroidApplicationInfoProvider applicationInfoProvider,
+    boolean isPageAlignFeatureEnabled) {
     myApkParser = apkParser;
+    myIsPageAlignFeatureEnabled = isPageAlignFeatureEnabled;
     // construct the main tree along with the uncompressed sizes
     setupUI();
     Futures.addCallback(apkParser.constructTreeStructure(), new FutureCallBackAdapter<>() {
@@ -179,7 +180,7 @@ public class ApkViewPanel implements TreeSelectionListener {
           .sort(result, (o1, o2) -> Longs.compare(o2.getData().getDownloadFileSize(), o1.getData().getDownloadFileSize()));
         try {
           refreshTree();
-          if (IS_PAGE_ALIGN_ENABLED) {
+          if (isPageAlignFeatureEnabled) {
             myTree.expandPaths(findPageAlignWarningsPaths(result, myTreeModel.getExtractNativeLibs()));
           }
         }
@@ -360,7 +361,7 @@ public class ApkViewPanel implements TreeSelectionListener {
                     .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                     .setRenderer(new CompressionRenderer()));
 
-      if (IS_PAGE_ALIGN_ENABLED) {
+      if (myIsPageAlignFeatureEnabled) {
         builder
           .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                      .setName("Alignment")

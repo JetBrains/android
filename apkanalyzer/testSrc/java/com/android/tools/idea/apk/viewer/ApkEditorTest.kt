@@ -24,6 +24,7 @@ import com.android.tools.apk.analyzer.dex.tree.DexClassNode
 import com.android.tools.apk.analyzer.internal.ArchiveTreeNode
 import com.android.tools.idea.apk.viewer.arsc.ArscViewer
 import com.android.tools.idea.apk.viewer.dex.DexFileViewer
+import com.android.tools.idea.apk.viewer.pagealign.AlignmentWarningViewer
 import com.android.tools.idea.apk.viewer.testing.FakeAndroidApplicationInfoProvider
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.android.tools.idea.testing.TemporaryDirectoryRule
@@ -54,7 +55,6 @@ import com.intellij.ui.treeStructure.Tree
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
@@ -68,6 +68,7 @@ import kotlin.io.path.createParentDirectories
 import kotlin.io.path.pathString
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
+import org.junit.runners.Parameterized
 
 private val TIMEOUT = 3.seconds
 
@@ -75,12 +76,19 @@ private val TIMEOUT = 3.seconds
  * Tests for [ApkEditor]
  */
 @RunsInEdt
-@RunWith(JUnit4::class)
-class ApkEditorTest {
+@RunWith(Parameterized::class)
+class ApkEditorTest(
+  val isPageAlignFeatureEnabled: Boolean
+) {
   private val projectRule = ProjectRule()
   private val project get() = projectRule.project
   private val disposableRule = DisposableRule()
   val temporaryDirectoryRule = TemporaryDirectoryRule()
+
+  companion object {
+    @Parameterized.Parameters(name = "isPageAlignFeatureEnabled={0}")
+    @JvmStatic fun data() = arrayOf(true, false)
+  }
 
   @get:Rule
   val rule = RuleChain(
@@ -208,6 +216,20 @@ class ApkEditorTest {
   }
 
   @Test
+  fun selectSo_createsSoEditor() {
+    val apkEditor = apkEditor("/16kb.apk")
+    val fileNode = apkEditor.getNode("/lib/x86_64/liba16kbbash.so")
+    if (isPageAlignFeatureEnabled) {
+      val editor = apkEditor.getEditor<AlignmentWarningViewer>(fileNode)
+      assertThat(editor).isNotNull()
+    } else {
+      val editor = apkEditor.getEditor<FileEditorComponent>(fileNode)
+      val fileEditor = editor.editor as TestFileEditor
+      assertThat(fileEditor.fileType).isEqualTo("UNKNOWN")
+    }
+  }
+
+  @Test
   fun selectBinaryXml_createsXmlEditor() {
     val apkEditor = apkEditor("/test-app.apk")
 
@@ -288,7 +310,12 @@ class ApkEditorTest {
     val file = if (isResource) TestResources.getFile(path) else File(path)
     val archive = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file) ?: fail("File not found: $path")
     val root = ApkFileSystem().getRootByLocal(archive) ?: fail("Invalid archive: $path")
-    val apkEditor = ApkEditor(project, archive, root, FakeAndroidApplicationInfoProvider())
+    val apkEditor = ApkEditor(
+      project,
+      archive,
+      root,
+      FakeAndroidApplicationInfoProvider(),
+      isPageAlignFeatureEnabled)
     Disposer.register(disposableRule.disposable, apkEditor)
     waitForCondition { apkEditor.isLoaded() }
     return apkEditor

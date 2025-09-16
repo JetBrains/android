@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.apk.viewer;
 
+import static com.android.tools.idea.apk.viewer.pagealign.AlignmentFindingKt.IS_PAGE_ALIGN_ENABLED;
+
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -36,7 +38,7 @@ final class ApkEditorProvider implements FileEditorProvider, DumbAware {
   public @NotNull FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
     VirtualFile root = ApkFileSystem.getInstance().getRootByLocal(file);
     assert root != null; // see accept above
-    return new ApkEditor(project, file, root, new AndroidApplicationInfoProviderImpl());
+    return new ApkEditor(project, file, root, new AndroidApplicationInfoProviderImpl(), IS_PAGE_ALIGN_ENABLED);
   }
 
   @Override
