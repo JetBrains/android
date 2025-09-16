@@ -20,6 +20,7 @@ import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSy
 import com.android.ide.common.util.PathString;
 import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.fonts.StudioDownloadableFontCacheService;
 import com.android.tools.idea.projectsystem.DependencyScopeType;
@@ -27,6 +28,7 @@ import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.sampledata.datasource.ResourceContent;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.res.AssetFileOpener;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.google.common.collect.Streams;
@@ -103,7 +105,8 @@ public class StudioAssetFileOpener implements AssetFileOpener {
 
   /**
    * It takes an absolute path that does not point to an asset and opens the file. Currently the access
-   * is restricted to files under the resources directories and the downloadable font cache directory.
+   * is restricted to files under the resources directories, the downloadable font cache directory
+   * and to the location of the Sdk.
    *
    * @param path the path pointing to a file on disk.
    */
@@ -130,7 +133,9 @@ public class StudioAssetFileOpener implements AssetFileOpener {
     return getDirectories(myFacet,
                           IdeaSourceProvider::getResDirectories,
                           it -> it.getResFolder() != null ? it.getResFolder().getRoot() : null)
-      .filter(resDir -> VfsUtilCore.isAncestor(resDir, file, true))
+      .filter(
+        resDir -> VfsUtilCore.isAncestor(resDir, file, true)
+        || (getSdkPath() != null && VfsUtilCore.isAncestor(getSdkPath(), file, true)))
       .map(resDir -> {
         try {
           return file.getInputStream();
@@ -211,5 +216,15 @@ public class StudioAssetFileOpener implements AssetFileOpener {
       myFrameworkResDirOrJar = compatibilityTarget.getPath(IAndroidTarget.RESOURCES);
     }
     return myFrameworkResDirOrJar;
+  }
+
+  private VirtualFile getSdkPath() {
+    AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
+    Path sdkHome = sdkHandler.getLocation();
+    if (sdkHome == null) {
+      return null;
+    }
+    VirtualFileManager virtualFileManager = VirtualFileManager.getInstance();
+    return virtualFileManager.findFileByUrl("file://" + sdkHome.toAbsolutePath());
   }
 }
