@@ -36,7 +36,6 @@ import java.awt.FlowLayout
 import java.awt.Font
 import java.awt.Graphics
 import java.awt.Graphics2D
-import java.awt.GridBagLayout
 import java.awt.RenderingHints
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -52,6 +51,8 @@ import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JToggleButton
 import javax.swing.SwingConstants
+import javax.swing.event.ChangeEvent
+import javax.swing.event.ChangeListener
 import kotlin.math.min
 
 /**
@@ -86,8 +87,6 @@ class ScreenshotResultView {
   var diffImagePath: String = ""
   var testFailed: Boolean = false
 
-  private var areScrollbarsLinked = false
-
   init {
     // Use nested OnePixelSplitters to create a three-panel view
     val rightSplit = OnePixelSplitter(false, 0.5f).apply {
@@ -99,6 +98,57 @@ class ScreenshotResultView {
       firstComponent = newImagePanel
       secondComponent = rightSplit
     }
+
+    // Link the scrollbars for the three-panel view by default.
+    // This is done by listening to changes in each scrollbar's model and propagating
+    // the new value to the others. This is more robust than sharing the model
+    // instance directly, as it avoids layout conflicts when image sizes differ.
+    val panelsToSync = listOf(newImagePanel, diffImagePanel, refImagePanel)
+    val horizontalModels = panelsToSync.map { it.scrollPane.horizontalScrollBar.model }
+    val verticalModels = panelsToSync.map { it.scrollPane.verticalScrollBar.model }
+
+    val horizontalSyncListener = object : ChangeListener {
+      var isSyncing = false
+      override fun stateChanged(e: ChangeEvent) {
+        if (isSyncing) return
+
+        try {
+          isSyncing = true
+          val sourceModel = e.source as BoundedRangeModel
+          val newValue = sourceModel.value
+          horizontalModels.forEach { model ->
+            if (model !== sourceModel) {
+              model.value = newValue
+            }
+          }
+        } finally {
+          isSyncing = false
+        }
+      }
+    }
+
+    val verticalSyncListener = object : ChangeListener {
+      var isSyncing = false
+      override fun stateChanged(e: ChangeEvent) {
+        if (isSyncing) return
+
+        try {
+          isSyncing = true
+          val sourceModel = e.source as BoundedRangeModel
+          val newValue = sourceModel.value
+          verticalModels.forEach { model ->
+            if (model !== sourceModel) {
+              model.value = newValue
+            }
+          }
+        } finally {
+          isSyncing = false
+        }
+      }
+    }
+
+    horizontalModels.forEach { it.addChangeListener(horizontalSyncListener) }
+    verticalModels.forEach { it.addChangeListener(verticalSyncListener) }
 
     fun addTab(title: String, component: JComponent) {
       val cardLayout = contentPanel.layout as CardLayout
@@ -168,23 +218,6 @@ class ScreenshotResultView {
     myView.repaint()
   }
 
-  fun setScrollbarLinking(link: Boolean) {
-    if (link == areScrollbarsLinked) return
-    areScrollbarsLinked = link
-
-    if (link) {
-      diffImagePanel.linkScrollbars(newImagePanel)
-      refImagePanel.linkScrollbars(newImagePanel)
-    } else {
-      diffImagePanel.unlinkScrollbars()
-      refImagePanel.unlinkScrollbars()
-    }
-    // Force all toolbars to update their action states
-    newImagePanel.updateToolbar()
-    diffImagePanel.updateToolbar()
-    refImagePanel.updateToolbar()
-  }
-
   /** Loads an image from a file path on a background thread and sets it on the target panel. */
   private fun loadImageAsync(filePath: String, targetPanel: ImageWithToolbarPanel, placeholder: String) {
     targetPanel.setPlaceholder(placeholder)
@@ -209,7 +242,7 @@ class ScreenshotResultView {
   class ImageWithToolbarPanel(
     title: String,
     private val parentView: ScreenshotResultView,
-    private val showSyncPanAction: Boolean
+    private val isMultiViewPanel: Boolean
   ) : JPanel(BorderLayout(0, 4)) {
     private val imageLabel = object : JBLabel() {
       private var gridVisible = false
@@ -247,21 +280,21 @@ class ScreenshotResultView {
       // Add a subtle, theme-aware border to clearly delineate the image boundaries
       // since diff image is transparent in the areas where new and reference images match
       border = JBUI.Borders.customLine(JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground())
+      horizontalAlignment = SwingConstants.CENTER
     }
     private val placeholderLabel = JBLabel().apply {
       horizontalAlignment = SwingConstants.CENTER
       verticalAlignment = SwingConstants.CENTER
     }
-    private val scrollPane = JScrollPane()
-    private val imageWrapperPanel = JPanel(GridBagLayout())
+    internal val scrollPane = JScrollPane()
+    // A simple, non-opaque panel to wrap the image label. This resolves a Swing layout conflict
+    // that was preventing the scrollbars from appearing correctly.
+    private val imageContainer = JPanel(BorderLayout())
 
     private val toolbar: ActionToolbar
     private var originalImage: BufferedImage? = null
     private var currentScale = 1.0
     private var isAutoFitting = false
-
-    private val originalHorizontalModel: BoundedRangeModel = scrollPane.horizontalScrollBar.model
-    private val originalVerticalModel: BoundedRangeModel = scrollPane.verticalScrollBar.model
 
     companion object {
       private const val MIN_SCALE = 0.1
@@ -320,14 +353,6 @@ class ScreenshotResultView {
       override fun update(e: AnActionEvent) { e.presentation.isEnabled = (originalImage != null) }
     }
 
-    private inner class SynchronizedPanAction : ToggleAction("Sync Pan", "Synchronize Scrolling", AllIcons.Actions.SyncPanels) {
-      override fun isSelected(e: AnActionEvent): Boolean = parentView.areScrollbarsLinked
-      override fun setSelected(e: AnActionEvent, state: Boolean) {
-        parentView.setScrollbarLinking(state)
-      }
-      override fun update(e: AnActionEvent) { e.presentation.isEnabled = (originalImage != null) }
-    }
-
     init {
       border = JBUI.Borders.empty(10)
 
@@ -343,9 +368,6 @@ class ScreenshotResultView {
         add(FitToWidthAction())
         addSeparator()
         add(ToggleGridViewAction())
-        if (showSyncPanAction) {
-          add(SynchronizedPanAction())
-        }
       }
       toolbar = ActionManager.getInstance().createActionToolbar("ScreenshotImageToolbar", actionGroup, true).apply {
         targetComponent = this@ImageWithToolbarPanel
@@ -357,8 +379,8 @@ class ScreenshotResultView {
 
       add(headerPanel, BorderLayout.NORTH)
 
-      imageWrapperPanel.background = scrollPane.viewport.background
-      imageWrapperPanel.add(imageLabel)
+      imageContainer.isOpaque = false
+      imageContainer.add(imageLabel, BorderLayout.CENTER)
       add(scrollPane, BorderLayout.CENTER)
 
       scrollPane.addComponentListener(object : ComponentAdapter() {
@@ -382,7 +404,7 @@ class ScreenshotResultView {
         imageLabel.icon = null
         scrollPane.setViewportView(placeholderLabel)
       } else {
-        scrollPane.setViewportView(imageWrapperPanel)
+        scrollPane.setViewportView(imageContainer)
         // When a new image is set, always default to auto-fitting.
         isAutoFitting = true
         fitToWidth()
@@ -391,27 +413,13 @@ class ScreenshotResultView {
       repaint()
     }
 
-    fun linkScrollbars(other: ImageWithToolbarPanel) {
-      scrollPane.verticalScrollBar.model = other.scrollPane.verticalScrollBar.model
-      scrollPane.horizontalScrollBar.model = other.scrollPane.horizontalScrollBar.model
-    }
-
-    fun unlinkScrollbars() {
-      scrollPane.verticalScrollBar.model = originalVerticalModel
-      scrollPane.horizontalScrollBar.model = originalHorizontalModel
-    }
-
-    fun updateToolbar() {
-      toolbar.updateActionsImmediately()
-    }
-
     @UiThread
     private fun fitToWidth() {
       val image = originalImage ?: return
       val viewSize = scrollPane.viewport.extentSize
       if (viewSize.width <= 0 || viewSize.height <= 0 || image.width <= 0) return
 
-      val scale = if (showSyncPanAction) {
+      val scale = if (isMultiViewPanel) {
         viewSize.width.toDouble() / image.width
       } else {
         val targetWidth = min(viewSize.width, SINGLE_TAB_MAX_IMAGE_WIDTH)
@@ -443,6 +451,10 @@ class ScreenshotResultView {
       // After updating the image and scale, we should update the toolbar
       // to reflect the new enabled/disabled state of the zoom buttons.
       toolbar.updateActionsImmediately()
+
+      // Revalidate the scroll pane directly to ensure it re-evaluates its viewport and scrollbars.
+      scrollPane.revalidate()
+      scrollPane.repaint()
     }
   }
 }
