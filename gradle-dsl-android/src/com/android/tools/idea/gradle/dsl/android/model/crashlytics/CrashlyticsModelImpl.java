@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.model.crashlytics;
+package com.android.tools.idea.gradle.dsl.android.model.crashlytics;
 
-import com.android.tools.idea.gradle.dsl.api.crashlytics.FirebaseCrashlyticsModel;
+import com.android.tools.idea.gradle.dsl.android.api.crashlytics.CrashlyticsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
-import com.android.tools.idea.gradle.dsl.parser.crashlytics.FirebaseCrashlyticsDslElement;
+import com.android.tools.idea.gradle.dsl.android.parser.crashlytics.CrashlyticsDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public class FirebaseCrashlyticsModelImpl extends GradleDslBlockModel implements FirebaseCrashlyticsModel  {
-  @NonNls public static final String NATIVE_SYMBOL_UPLOAD_ENABLED = "mNativeSymbolUploadEnabled";
+public class CrashlyticsModelImpl extends GradleDslBlockModel implements CrashlyticsModel {
+  @NonNls public static final String ENABLE_NDK = "mEnableNdk";
 
   @Override
   @NotNull
-  public ResolvedPropertyModel nativeSymbolUploadEnabled() {
-    return getModelForProperty(NATIVE_SYMBOL_UPLOAD_ENABLED);
+  public ResolvedPropertyModel enableNdk() {
+    return getModelForProperty(ENABLE_NDK);
   }
 
-  public FirebaseCrashlyticsModelImpl(@NotNull FirebaseCrashlyticsDslElement element) {
+  public CrashlyticsModelImpl(@NotNull CrashlyticsDslElement element) {
     super(element);
   }
 }

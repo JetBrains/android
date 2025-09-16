@@ -14,8 +14,6 @@
 
   <extensions defaultExtensionNs="com.android.tools.idea.gradle.dsl">
     <blockModelProvider implementation="com.android.tools.idea.gradle.dsl.model.GradleDefaultBlockModels"/>
-    <blockModelProvider implementation="com.android.tools.idea.gradle.dsl.model.crashlytics.CrashlyticsBlockModelProvider"/>
-    <blockModelProvider implementation="com.android.tools.idea.gradle.dsl.model.crashlytics.FirebaseCrashlyticsBlockModelProvider"/>
     <blockModelProvider implementation="com.android.tools.idea.gradle.dsl.model.android.AndroidBlockModelProvider"/>
     <blockModelProvider implementation="com.android.tools.idea.gradle.dsl.model.android.AndroidDeclarativeBlockModelProvider"/>
   </extensions>

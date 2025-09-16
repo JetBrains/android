@@ -67,6 +67,7 @@ jvm_library(
     "//android/gradle-dsl-kotlin",
     "//android/gradle-dsl-declarative",
     "//android/gradle-dsl-flags",
+    "//android/gradle-dsl-android",
     "//android/avd",
     "//android/databinding/gradle",
     "//android/android/editing/documentation",

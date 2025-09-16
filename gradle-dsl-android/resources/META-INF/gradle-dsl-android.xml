@@ -1,1 +1,6 @@
-<idea-plugin></idea-plugin>
+<idea-plugin>
+  <extensions defaultExtensionNs="com.android.tools.idea.gradle.dsl">
+    <blockModelProvider implementation="com.android.tools.idea.gradle.dsl.android.model.crashlytics.CrashlyticsBlockModelProvider"/>
+    <blockModelProvider implementation="com.android.tools.idea.gradle.dsl.android.model.crashlytics.FirebaseCrashlyticsBlockModelProvider"/>
+  </extensions>
+</idea-plugin>

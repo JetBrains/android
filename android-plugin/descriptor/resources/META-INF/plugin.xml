@@ -94,10 +94,12 @@
   <xi:include href="/META-INF/backgroundtask-inspector.xml"/>
   <xi:include href="/META-INF/android-debuggers.xml"/>
   <!--<xi:include href="/META-INF/gradle-dsl.xml"/>-->
+  <!--<xi:include href="/META-INF/gradle-dsl-groovy.xml"/>-->
   <!--<xi:include href="/META-INF/gradle-dsl-kotlin.xml"/>-->
   <!--<xi:include href="/META-INF/gradle-dsl-declarative.xml"/>-->
-  <!--<xi:include href="/META-INF/gradle-declarative-lang.xml"/>-->
   <!--<xi:include href="/META-INF/gradle-dsl-toml.xml"/>-->
+  <!--<xi:include href="/META-INF/gradle-dsl-flags.xml"/>-->
+  <!--<xi:include href="/META-INF/gradle-dsl-android.xml"/>-->
   <xi:include href="/META-INF/android-avd.xml"/>
   <xi:include href="/META-INF/logcat.xml"/>
   <xi:include href="/META-INF/logcat-gradle.xml" />

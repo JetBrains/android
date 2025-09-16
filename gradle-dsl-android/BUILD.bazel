@@ -12,7 +12,14 @@ jvm_library(
   module_name = "intellij.android.gradle.dsl.android",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = [":gradle-dsl-android_resources"]
+  resources = [":gradle-dsl-android_resources"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:kotlin-stdlib",
+    "@lib//:jetbrains-annotations",
+    "//platform/core-api:core",
+    "//android/gradle-dsl",
+  ]
 )
 ### auto-generated section `build intellij.android.gradle.dsl.android` end
 
@@ -20,7 +27,12 @@ jvm_library(
 jvm_library(
   name = "gradle-dsl-android-tests",
   visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    "@lib//:kotlin-stdlib",
+    "@lib//:jetbrains-annotations",
+    "//platform/core-api:core",
+  ]
 )
 
 jvm_library(
@@ -28,6 +40,21 @@ jvm_library(
   module_name = "intellij.android.gradle.dsl.android.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:jetbrains-annotations",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//android/gradle-dsl",
+    "//android/gradle-dsl-android",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/gradle-dsl:gradle-dsl-testutils_test_lib",
+    "@lib//:junit4",
+  ],
   runtime_deps = [":gradle-dsl-android-tests"]
 )
 ### auto-generated section `build intellij.android.gradle.dsl.android.tests` end

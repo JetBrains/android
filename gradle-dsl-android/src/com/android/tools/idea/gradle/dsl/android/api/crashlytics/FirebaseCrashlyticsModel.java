@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.api.crashlytics;
+package com.android.tools.idea.gradle.dsl.android.api.crashlytics;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import org.jetbrains.annotations.NotNull;
 
-public interface CrashlyticsModel extends GradleBlockModel {
+public interface FirebaseCrashlyticsModel extends GradleBlockModel {
   @NotNull
-  ResolvedPropertyModel enableNdk();
+  ResolvedPropertyModel nativeSymbolUploadEnabled();
 }
