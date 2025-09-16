@@ -1,4 +1,5 @@
 load("//tools/adt/idea/aswb:build-visibility.bzl", "DEFAULT_TEST_VISIBILITY")
+load("//tools/adt/idea/aswb/testing:test_defs.bzl", "aswb_test")
 
 package(default_visibility = DEFAULT_TEST_VISIBILITY)
 
@@ -47,10 +48,10 @@ java_test(
     ],
 )
 
-java_test(
+aswb_test(
     name = "ArtifactDirectoryBuilderTest",
     size = "small",
-    srcs = ["ArtifactDirectoryBuilderTest.java"],
+    srcs = ["ArtifactDirectoryBuilderTest.kt"],
     deps = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
