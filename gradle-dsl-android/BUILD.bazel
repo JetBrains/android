@@ -1,42 +1,137 @@
-### auto-generated section `build intellij.android.gradle.dsl.android` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
-resourcegroup(
-  name = "gradle-dsl-android_resources",
-  srcs = glob(["resources/**/*"]),
-  strip_prefix = "resources"
+### auto-generated section `build intellij.android.gradle.dsl.android` start
+
+jvm_library(
+    name = "gradle-dsl-android",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.gradle.dsl.android",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:kotlin-stdlib",
+        "@lib//:jetbrains-annotations",
+        "//platform/core-api:core",
+        "//android/gradle-dsl",
+    ],
 )
 
 jvm_library(
-  name = "gradle-dsl-android",
-  module_name = "intellij.android.gradle.dsl.android",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = [":gradle-dsl-android_resources"]
+    name = "gradle-dsl-android_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.gradle.dsl.android",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":gradle-dsl-android",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//platform/core-api:core_test_lib",
+        "//platform/core-ui",
+        "//platform/core-ui:core-ui_test_lib",
+        "//platform/testFramework",
+        "//platform/testFramework:testFramework_test_lib",
+        "//android/gradle-dsl:gradle-dsl_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.android.gradle.dsl.android` end
 
+### auto-generated section `iml intellij.android.gradle.dsl.android` start
+exports_files(
+    [
+        "intellij.android.gradle.dsl.android.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `iml intellij.android.gradle.dsl.android` end
+
 ### auto-generated section `build intellij.android.gradle.dsl.android.tests` start
+
 jvm_library(
-  name = "gradle-dsl-android-tests",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True)
+    name = "gradle-dsl-android-tests",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.gradle.dsl.android.tests",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+        "@lib//:jetbrains-annotations",
+        "//platform/core-api:core",
+    ],
 )
 
 jvm_library(
-  name = "gradle-dsl-android-tests_test_lib",
-  module_name = "intellij.android.gradle.dsl.android.tests",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  runtime_deps = [":gradle-dsl-android-tests"]
+    name = "gradle-dsl-android-tests_test_lib",
+    testonly = True,
+    srcs = glob(
+        [
+            "testSrc/**/*.kt",
+            "testSrc/**/*.java",
+            "testSrc/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.gradle.dsl.android.tests",
+    visibility = ["//visibility:public"],
+    runtime_deps = [":gradle-dsl-android-tests"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "@lib//:kotlin-stdlib",
+        "@lib//:jetbrains-annotations",
+        "//platform/core-api:core",
+        "//platform/core-api:core_test_lib",
+        "//platform/core-ui",
+        "//platform/core-ui:core-ui_test_lib",
+        "//platform/testFramework",
+        "//platform/testFramework:testFramework_test_lib",
+        "//android/gradle-dsl",
+        "//android/gradle-dsl:gradle-dsl_test_lib",
+        "//android/gradle-dsl-android",
+        "//android/gradle-dsl-android:gradle-dsl-android_test_lib",
+        "//android/adt-testutils",
+        "//android/adt-testutils:adt-testutils_test_lib",
+        "//android/gradle-dsl:gradle-dsl-testutils",
+        "//android/gradle-dsl:gradle-dsl-testutils_test_lib",
+        "@lib//:junit4",
+    ],
 )
 ### auto-generated section `build intellij.android.gradle.dsl.android.tests` end
 
+### auto-generated section `iml intellij.android.gradle.dsl.android.tests` start
+exports_files(
+    [
+        "intellij.android.gradle.dsl.android.tests.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `iml intellij.android.gradle.dsl.android.tests` end
+
 ### auto-generated section `test intellij.android.gradle.dsl.android.tests` start
-load("@community//build:tests-options.bzl", "jps_test")
 
 jps_test(
-  name = "gradle-dsl-android-tests_test",
-  runtime_deps = [":gradle-dsl-android-tests_test_lib"]
+    name = "gradle-dsl-android-tests_test",
+    runtime_deps = [":gradle-dsl-android-tests_test_lib"],
 )
 ### auto-generated section `test intellij.android.gradle.dsl.android.tests` end

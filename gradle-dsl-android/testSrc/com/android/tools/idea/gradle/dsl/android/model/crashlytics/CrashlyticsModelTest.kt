@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.model.crashlytics
+package com.android.tools.idea.gradle.dsl.android.model.crashlytics
 
+import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.TestFileName
-import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Test
 import java.io.File
 
-class CrashlyticsModelTest : GradleFileModelTestCase() {
+class CrashlyticsModelTest : AndroidGradleFileModelTestCase() {
   @Test
   fun testParseCrashlytics() {
     writeToBuildFile(TestFile.PARSE_CRASHLYTICS)

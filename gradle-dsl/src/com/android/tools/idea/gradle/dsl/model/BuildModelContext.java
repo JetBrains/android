@@ -167,7 +167,7 @@ public final class BuildModelContext {
       return notificationMap.getInstance(type.getClazz());
     }
     else {
-      T notification = type.getConstructor().produce();
+      T notification = type.getConstructor().get();
       notificationMap.putInstance(type.getClazz(), notification);
       return notification;
     }

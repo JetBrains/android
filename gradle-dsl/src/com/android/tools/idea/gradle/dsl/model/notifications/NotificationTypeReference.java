@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.notifications;
 
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification.NotificationType;
-import com.intellij.util.Producer;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -39,9 +39,9 @@ public class NotificationTypeReference<T extends BuildModelNotification> {
     new NotificationTypeReference<>(CircularApplication.class, CircularApplication::new);
 
   @NotNull private final Class<T> myClazz;
-  @NotNull private final Producer<T> myConstructor;
+  @NotNull private final Supplier<T> myConstructor;
 
-  NotificationTypeReference(@NotNull Class<T> clazz, @NotNull Producer<T> constructor) {
+  NotificationTypeReference(@NotNull Class<T> clazz, @NotNull Supplier<T> constructor) {
     myClazz = clazz;
     myConstructor = constructor;
   }
@@ -52,7 +52,7 @@ public class NotificationTypeReference<T extends BuildModelNotification> {
   }
 
   @NotNull
-  public Producer<T> getConstructor() {
+  public Supplier<T> getConstructor() {
     return myConstructor;
   }
 }

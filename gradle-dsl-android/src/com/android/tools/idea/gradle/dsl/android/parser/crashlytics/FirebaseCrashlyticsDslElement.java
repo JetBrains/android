@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser.crashlytics;
+package com.android.tools.idea.gradle.dsl.android.parser.crashlytics;
 
-import static com.android.tools.idea.gradle.dsl.model.crashlytics.CrashlyticsModelImpl.ENABLE_NDK;
+import static com.android.tools.idea.gradle.dsl.android.model.crashlytics.FirebaseCrashlyticsModelImpl.NATIVE_SYMBOL_UPLOAD_ENABLED;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
@@ -31,14 +31,14 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescr
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
-public class CrashlyticsDslElement extends GradleDslBlockElement {
+public class FirebaseCrashlyticsDslElement extends GradleDslBlockElement {
   public static final ExternalToModelMap ktsToModelMap = Stream.of(new Object[][] {
-    {"enableNdk", property, ENABLE_NDK, VAR}
+    {"nativeSymbolUploadEnabled", property, NATIVE_SYMBOL_UPLOAD_ENABLED, VAR}
   }).collect(toModelMap());
 
   public static final ExternalToModelMap groovyToModelMap = Stream.of(new Object[][] {
-    {"enableNdk", property, ENABLE_NDK, VAR},
-    {"enableNdk", exactly(1), ENABLE_NDK, SET}
+    {"nativeSymbolUploadEnabled", property, NATIVE_SYMBOL_UPLOAD_ENABLED, VAR},
+    {"nativeSymbolUploadEnabled", exactly(1), NATIVE_SYMBOL_UPLOAD_ENABLED, SET}
   }).collect(toModelMap());
 
   @Override
@@ -46,10 +46,10 @@ public class CrashlyticsDslElement extends GradleDslBlockElement {
     return getExternalToModelMap(converter, groovyToModelMap, ktsToModelMap);
   }
 
-  public static final PropertiesElementDescription<CrashlyticsDslElement> CRASHLYTICS =
-    new PropertiesElementDescription<>("crashlytics", CrashlyticsDslElement.class, CrashlyticsDslElement::new);
+  public static final PropertiesElementDescription<FirebaseCrashlyticsDslElement> FIREBASE_CRASHLYTICS =
+    new PropertiesElementDescription<>("firebaseCrashlytics", FirebaseCrashlyticsDslElement.class, FirebaseCrashlyticsDslElement::new);
 
-  protected CrashlyticsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
-    super(parent, name);
+  protected FirebaseCrashlyticsDslElement(@NotNull GradleDslElement element, @NotNull GradleNameElement name) {
+    super(element, name);
   }
 }

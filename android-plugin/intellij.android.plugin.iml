@@ -77,6 +77,7 @@
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.declarative" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.flags" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.android" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.avd" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.databinding.gradle" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.core.editing.documentation" scope="RUNTIME" />

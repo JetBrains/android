@@ -101,6 +101,7 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/base/common:studio.android.sdktools.common",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl",
+        "//tools/adt/idea/gradle-dsl-android:intellij.android.gradle.dsl.android",
         "//tools/analytics-library/tracker:analytics-tracker",
         "@intellij//:com.intellij.properties",
         "//tools/adt/idea/analytics",
