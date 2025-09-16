@@ -15,6 +15,7 @@ COMMON_DATA = [
     "//tools/adt/idea/android/lib:sampleData",
     "//tools/adt/idea/android/testData:projects",
     "//tools/adt/idea/android/testData:snapshots",
+    "//tools/adt/idea/android/testData:layouts",
     "//tools/adt/idea/artwork:device-art-resources",
     "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.5.21",
 ]

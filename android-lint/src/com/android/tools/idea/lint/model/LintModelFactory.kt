@@ -22,7 +22,6 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_ANDROID_TEST
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_TEST_FIXTURES
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_UNIT_TEST
-import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidProject
