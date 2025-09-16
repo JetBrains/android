@@ -27,3 +27,13 @@ filegroup(
     ),
     visibility = ["//visibility:public"],
 )
+
+filegroup(
+    name = "layouts",
+    srcs = glob(
+        include = [
+            "layouts/**",
+        ],
+    ),
+    visibility = ["//visibility:public"],
+)
