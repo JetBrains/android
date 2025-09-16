@@ -129,8 +129,6 @@ private fun ProjectDumper.dump(lintModelVariant: LintModelVariant) {
         prop("CoreLibraryDesugaringEnabled") {
           lintModelVariant.buildFeatures.coreLibraryDesugaringEnabled.toString()
         }
-        // TODO merge
-        //prop("NamespacingMode") { lintModelVariant.buildFeatures.namespacingMode.toString() }
       }
     }
     nest {
