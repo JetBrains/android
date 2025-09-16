@@ -369,7 +369,10 @@ enum class TestProject(
       }
     }
   ),
-  NAMESPACES(TestProjectToSnapshotPaths.NAMESPACES),
+  NAMESPACES(
+    TestProjectToSnapshotPaths.NAMESPACES,
+    isCompatibleWith = { it <= AgpVersionSoftwareEnvironmentDescriptor.AGP_8_13 }
+  ),
   INCLUDE_FROM_LIB(TestProjectToSnapshotPaths.INCLUDE_FROM_LIB),
   LOCAL_AARS_AS_MODULES(TestProjectToSnapshotPaths.LOCAL_AARS_AS_MODULES),
   BASIC(TestProjectToSnapshotPaths.BASIC),
