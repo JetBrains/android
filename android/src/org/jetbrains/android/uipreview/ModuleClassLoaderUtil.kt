@@ -28,8 +28,6 @@ import com.android.tools.idea.rendering.classloading.loaders.MultiLoaderWithAffi
 import com.android.tools.idea.rendering.classloading.loaders.NameRemapperLoader
 import com.android.tools.idea.rendering.classloading.loaders.RecyclerViewAdapterLoader
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Companion.getBuildSystemFilePreviewServices
-import com.android.tools.idea.util.findAndroidModule
-import com.android.tools.idea.util.isAndroidModule
 import com.android.utils.cache.ChangeTracker
 import com.android.utils.cache.ChangeTrackerCachedValue
 import com.android.tools.rendering.classloading.ClassBinaryCache
@@ -42,7 +40,6 @@ import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SystemInfo
@@ -62,6 +59,8 @@ import java.nio.file.Path
 import java.util.Collections
 import java.util.Enumeration
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
+import kotlin.time.Duration.Companion.seconds
 
 private val ourLoaderCachePool = UrlClassLoader.createCachePool()
 
@@ -127,6 +126,18 @@ internal class ModuleClassLoaderImpl(buildTargetReference: BuildTargetReference,
 
   private val _projectLoadedClassNames: MutableSet<String> = Collections.newSetFromMap(ConcurrentHashMap())
   private val _nonProjectLoadedClassNames: MutableSet<String> = Collections.newSetFromMap(ConcurrentHashMap())
+
+  private val logger = Logger.getInstance(ModuleClassLoaderImpl::class.java)
+
+  /**
+   * TODO(b/445923198): delete timestamp variable once lifecycle race condition is fixed.
+   * Timestamp when [dispose] was first called, or null if [dispose] has not been called yet.
+   * This is used to avoid logging many warnings due to an existing race condition.
+   * See [loadClass] for more details.
+   */
+  private var disposalTimestampMillis: Long? = null
+  private val isDisposed
+    get() = disposalTimestampMillis != null
 
   /**
    * List of libraries used in this [ModuleClassLoaderImpl].
@@ -257,19 +268,37 @@ internal class ModuleClassLoaderImpl(buildTargetReference: BuildTargetReference,
   }
 
   override fun loadClass(fqcn: String): ByteArray? {
-    if (Disposer.isDisposed(this)) {
-      Logger.getInstance(ModuleClassLoaderImpl::class.java).warn("Using already disposed ModuleClassLoaderImpl",
-                                                                 Throwable(Disposer.getDisposalTrace(this)))
+    if (isDisposed) {
+      // TODO(b/445923198): improve lifecycle management of ClassLoaders and RenderTasks
+      // It is known that this may happen due to race conditions around the lifecycle of
+      // RenderTasks and ClassLoaders. So we only log this as a warning if disposal of this
+      // class loader happened more than a second ago (which could indicate an actual issue).
+      // Otherwise we log it as debug
+      val log: (String, Throwable) -> Unit =
+        if (System.currentTimeMillis() - disposalTimestampMillis!! > 1.seconds.inWholeMilliseconds)
+          logger::warn
+        else logger::debug
+      log(
+        "Using already disposed ModuleClassLoaderImpl $this",
+        Throwable(Disposer.getDisposalTrace(this))
+      )
       return null
     }
-
-    return loader.loadClass(fqcn)
+    return loader.loadClass(fqcn).also {
+      // Dispose happened concurrently to loading a class, clean up again to be safe
+      if (isDisposed) {
+        logger.info("Disposed while loading a class $this")
+        dispose()
+      }
+    }
   }
 
   fun getResources(name: String): Enumeration<URL> = externalLibrariesClassLoader.getResources(name)
   fun getResource(name: String): URL? = externalLibrariesClassLoader.getResource(name)
 
   override fun dispose() {
+    // Do not update disposal time if already disposed, but invalidate caches anyway
+    disposalTimestampMillis = disposalTimestampMillis ?: System.currentTimeMillis()
     projectSystemLoader.invalidateCaches()
   }
 

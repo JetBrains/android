@@ -71,16 +71,22 @@ public class ViewLoader {
   @NotNull private final DelegatingClassLoader myClassLoader;
   /** If true, the loading of the R classes will use bytecode parsing and not reflection. */
   private final boolean myUseRBytecodeParsing;
+  /**
+   * If true, when class loading fails, some fallback mechanisms will be executed.
+   * See {@link ViewLoader#loadView} for details.
+   */
+  private final boolean myUseLoadViewFallbacks;
 
   public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull RenderModelModule module, @NotNull IRenderLogger logger,
                     @Nullable Object credential,
-                    @NotNull DelegatingClassLoader classLoader) {
+                    @NotNull DelegatingClassLoader classLoader, boolean useLoadViewFallbacks) {
     myLayoutLibrary = layoutLib;
     myModule = module;
     myLogger = logger;
     myCredential = credential;
     myClassLoader = classLoader;
     myUseRBytecodeParsing = module.getEnvironment().getUseRBytecodeParser();
+    myUseLoadViewFallbacks = useLoadViewFallbacks;
   }
 
   /**
@@ -121,6 +127,14 @@ public class ViewLoader {
     Object aClass = loadClass(className, constructorSignature, constructorArgs, true);
     if (aClass != null) {
       return aClass;
+    }
+
+    // If class loading fails, for some tools (like Layout Editor) we attempt to fall back to one
+    // of its super classes, or even to a mock view with simply a label. But this may not make
+    // sense for other tools (like Preview) and it could also cause problems like to trigger
+    // indexing again or take a long time (see createViewFromSuperclass for more details)
+    if(!myUseLoadViewFallbacks) {
+      throw new ClassNotFoundException(className);
     }
 
     try {

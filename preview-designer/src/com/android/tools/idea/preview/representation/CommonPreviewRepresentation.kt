@@ -246,6 +246,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
             defaultSceneManagerProvider(surface, model, false).apply {
               sceneRenderConfiguration.let { config ->
                 config.useCustomInflater = useCustomInflater
+                config.useLoadViewFallbacks = false
                 config.useShrinkRendering = true
                 config.renderingTopic = renderingTopic
               }

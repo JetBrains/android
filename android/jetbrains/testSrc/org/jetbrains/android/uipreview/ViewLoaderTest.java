@@ -38,7 +38,6 @@ import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader;
 import com.android.tools.rendering.classloading.loaders.StaticLoader;
 import com.android.tools.res.ids.ResourceIdManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import kotlin.Pair;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -90,33 +89,44 @@ public class ViewLoaderTest extends AndroidTestCase {
     }
   }
 
-  public void testMissingClass() throws Exception {
-    Project project = myModule.getProject();
+  public void testMissingClass() {
     RenderLogger logger = new RenderLogger();
     ViewLoader viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myBuildTarget), logger, null,
-                                           myClassLoaderReference.getClassLoader());
+                                           myClassLoaderReference.getClassLoader(), true);
 
     assertNull(viewLoader.loadClass("broken.brokenclass", true));
     assertTrue(logger.hasErrors());
     assertThat(logger.getMissingClasses(), hasItem("broken.brokenclass"));
 
     logger = new RenderLogger();
-    viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myBuildTarget), logger, null, myClassLoaderReference.getClassLoader());
+    viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myBuildTarget), logger, null, myClassLoaderReference.getClassLoader(), true);
 
     try {
       viewLoader.loadView("broken.brokenclass", null, null);
       fail("ClassNotFoundException expected");
     }
-    catch (ClassNotFoundException ignored) {
+    catch (ClassNotFoundException e) {
+      assertNotNull(e.getCause()); // A cause should come from load view fallback mechanisms
     }
 
     logger = new RenderLogger();
-    viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myBuildTarget), logger, null, myClassLoaderReference.getClassLoader());
+    viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myBuildTarget), logger, null, myClassLoaderReference.getClassLoader(), false);
+
+    try {
+      viewLoader.loadView("broken.brokenclass", null, null);
+      fail("ClassNotFoundException expected");
+    }
+    catch (ClassNotFoundException e) {
+      assertNull(e.getCause()); // Cause should be null when no fallbacks are not executed
+    }
+
+    logger = new RenderLogger();
+    viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myBuildTarget), logger, null, myClassLoaderReference.getClassLoader(), true);
     assertNull(viewLoader.loadClass("broken.brokenclass", false));
     assertFalse(logger.hasErrors());
   }
 
-  public void testRClassLoad() throws ClassNotFoundException {
+  public void testRClassLoad() {
     // We use a class loader that allows to get the byte version of the classes. This way we can use both
     // the reflection and the R bytecode parsing path.
     DelegatingClassLoader classLoader = new DelegatingClassLoader(this.getClass().getClassLoader(), new StaticLoader(
@@ -127,7 +137,7 @@ public class ViewLoaderTest extends AndroidTestCase {
     ));
 
     RenderLogger logger = new RenderLogger();
-    ViewLoader viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myBuildTarget), logger, null, classLoader);
+    ViewLoader viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myBuildTarget), logger, null, classLoader, true);
     ResourceIdManager idManager = StudioResourceIdManager.get(myModule);
     assertNotNull(idManager);
 

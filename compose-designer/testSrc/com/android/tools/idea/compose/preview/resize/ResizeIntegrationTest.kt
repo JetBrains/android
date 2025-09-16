@@ -154,6 +154,8 @@ class ResizeIntegrationTest {
       }
     previewRepresentation =
       ComposePreviewRepresentation(testPsiFile, PreferredVisibility.SPLIT, viewProvider).also {
+        // TODO(b/445947658): modify test to stop relying on useLoadViewFallbacksForTest
+        it.useLoadViewFallbacksForTest()
         Disposer.register(projectRule.testRootDisposable, it)
       }
     surface = localSurface!!

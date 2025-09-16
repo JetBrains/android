@@ -30,6 +30,7 @@ import com.android.tools.rendering.RenderLogger
 import com.android.tools.rendering.RenderService
 import com.android.tools.rendering.RenderService.RenderTaskBuilder
 import com.android.tools.rendering.RenderTask
+import com.android.tools.rendering.ViewLoader
 import com.android.tools.rendering.api.RenderModelModule
 import com.android.tools.rendering.imagepool.ImagePool
 import com.intellij.openapi.util.Disposer
@@ -187,6 +188,12 @@ class LayoutlibSceneRenderConfiguration(
   var useCustomInflater = true
 
   /**
+   * If true, when class loading fails during inflation, some fallback mechanisms will be executed.
+   * See [ViewLoader.loadView] for details.
+   */
+  var useLoadViewFallbacks = true
+
+  /**
    * If true sets value of Settings.Global.ANIMATOR_DURATION_SCALE to 0f, otherwise sets it to 1f.
    */
   var disableAnimation = false
@@ -227,6 +234,7 @@ class LayoutlibSceneRenderConfiguration(
         .withForceMonochromeIcon(StudioFlags.FORCE_MONOCHROME_ADAPTIVE_ICON.get())
         .withTopic(renderingTopic)
         .setUseCustomInflater(useCustomInflater)
+        .setUseLoadViewFallbacks(useLoadViewFallbacks)
     if (!useImagePool) taskBuilder.disableImagePool()
     if (quality < 1f) taskBuilder.withQuality(quality)
     if (!showDecorations) taskBuilder.disableDecorations()
