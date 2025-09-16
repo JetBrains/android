@@ -27,6 +27,7 @@ import org.gradle.tooling.model.gradle.GradleBuild
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import kotlin.collections.forEach
 import kotlin.collections.orEmpty
+import org.gradle.tooling.model.gradle.BasicGradleProject
 
 class PhasedSyncDependencyModelProvider(val syncOptions: SyncActionOptions, val cachedData: ModelProviderCachedData) : ProjectImportModelProvider {
   override fun getPhase() =  GradleModelFetchPhase.PROJECT_SOURCE_SET_DEPENDENCY_PHASE
@@ -34,6 +35,7 @@ class PhasedSyncDependencyModelProvider(val syncOptions: SyncActionOptions, val 
   override fun populateModels(controller: BuildController,
                               buildModels: MutableCollection<out GradleBuild>,
                               modelConsumer: ProjectImportModelProvider.GradleModelConsumer) {
+    val exceptionsPerProject = mutableListOf<Pair<BasicGradleProject, Throwable>>()
 
     val actions = buildModels.flatMap { buildModel ->
       // For each build, build a map per-project to indicate whether it has inbound dependencies
@@ -47,31 +49,46 @@ class PhasedSyncDependencyModelProvider(val syncOptions: SyncActionOptions, val 
       buildModel.projects
         .mapNotNull { gradleProject ->
           BuildAction {
-            val data = cachedData.data[gradleProject] ?: return@BuildAction null
-            val variantDependencies = controller.findModel(
-              gradleProject,VariantDependenciesAdjacencyList::class.java, ModelBuilderParameter::class.java
-            ) {
-              it.variantName = data.selectedVariantName
-              // If the studio flag for it is enabled, we don't fetch runtime classpath for libraries with inbound depenencis
-              if(data.shouldSkipRuntimeClassPathForLibraries
-                 && data.projectType == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY
-                 && hasInboundDependencyByPath[gradleProject.path] == true) {
-                it.buildOnlyTestRuntimeClasspaths(
-                  syncOptions.flags.studioFlagBuildRuntimeClasspathForLibraryUnitTests,
-                  syncOptions.flags.studioFlagBuildRuntimeClasspathForLibraryScreenshotTests,
-                  addAdditionalArtifactsInModel = syncOptions.flags.studioFlagMultiVariantAdditionalArtifactSupport
-                )
-              } else {
-                it.buildAllRuntimeClasspaths(addAdditionalArtifactsInModel = syncOptions.flags.studioFlagMultiVariantAdditionalArtifactSupport)
-              }
-            } ?: return@BuildAction null
-            gradleProject to variantDependencies
+            runCatching {
+              val data = cachedData.data[gradleProject] ?: return@BuildAction null
+              val variantDependencies = controller.findModel(
+                gradleProject, VariantDependenciesAdjacencyList::class.java, ModelBuilderParameter::class.java
+              ) {
+                it.variantName = data.selectedVariantName
+                // If the studio flag for it is enabled, we don't fetch runtime classpath for libraries with inbound depenencis
+                if (data.shouldSkipRuntimeClassPathForLibraries
+                    && data.projectType == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY
+                    && hasInboundDependencyByPath[gradleProject.path] == true) {
+                  it.buildOnlyTestRuntimeClasspaths(
+                    syncOptions.flags.studioFlagBuildRuntimeClasspathForLibraryUnitTests,
+                    syncOptions.flags.studioFlagBuildRuntimeClasspathForLibraryScreenshotTests,
+                    addAdditionalArtifactsInModel = syncOptions.flags.studioFlagMultiVariantAdditionalArtifactSupport
+                  )
+                }
+                else {
+                  it.buildAllRuntimeClasspaths(
+                    addAdditionalArtifactsInModel = syncOptions.flags.studioFlagMultiVariantAdditionalArtifactSupport)
+                }
+              } ?: return@BuildAction null
+              gradleProject to variantDependencies
+            }.onFailure {
+              exceptionsPerProject += gradleProject to it
+            }.getOrNull()
           }
         }
     }
     controller.run(actions).filterNotNull().forEach { (gradleProject, variantDependencies) ->
       modelConsumer.consumeProjectModel(gradleProject, variantDependencies, VariantDependenciesAdjacencyList::class.java)
     }
+    exceptionsPerProject
+      .groupBy ({ it.first }) { it.second }
+      .filter { (_, exceptions) -> exceptions.isNotEmpty()}
+      .forEach { (gradleProject, exceptions) ->
+        // TODO: This is a bit silly because the model provider for source set can also deliver the same model (probably overriding each other)
+        // We need to reconcile the exceptions and the sync issue model together and only deliver this once for this to work properly.
+        val issuesAndExceptions = IdeAndroidSyncIssuesAndExceptions(syncIssues = emptyList(), exceptions = exceptions)
+        modelConsumer.consumeProjectModel(gradleProject, issuesAndExceptions, IdeAndroidSyncIssuesAndExceptions::class.java)
+      }
     cachedData.data.clear()
   }
 }
