@@ -87,7 +87,8 @@ class FeatureConfigurationProvider private constructor(
         stream.reader(Charsets.UTF_8).use { reader ->
           reader.readLines().filter { !it.startsWith("#") }.associateNotNull {
             val tokens = parseLine(it) ?: return@associateNotNull null
-            val flagConfig = configsByName[tokens.second] ?: return@associateNotNull null
+            val flagConfig = configsByName[tokens.second]
+                ?: throw RuntimeException("Invalid value '${tokens.second}' for flag '${tokens.first}'")
             tokens.first to flagConfig
           }
         }

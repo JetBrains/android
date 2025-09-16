@@ -26,11 +26,15 @@ import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.ExpectedException
 
 class FeatureConfigurationOverridesTest {
 
   @get:Rule
   val studioFlagRule = FlagRule(StudioFlags.FLAG_LEVEL)
+
+  @get:Rule
+  val exception = ExpectedException.none()
 
   @Test
   fun testEmpty() {
@@ -208,6 +212,19 @@ class FeatureConfigurationOverridesTest {
       "group1.flag2", "true",
       "group1.flag3", "true",
     )
+  }
+
+  @Test
+  fun testWrongValues() {
+    val content = """
+    #some comments
+    group1.flag1=INTERNAL
+    group1.flag2=false
+    group1.flag3=COMPLETE:2025
+    """.trimIndent()
+
+    exception.expectMessage("Invalid value 'false' for flag 'group1.flag2'")
+    FeatureConfigurationProvider.loadValues(content.byteInputStream())
   }
 
   private fun FeatureConfigurationProvider.toMap(): Map<String, String> {
