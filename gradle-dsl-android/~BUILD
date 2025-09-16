@@ -1,0 +1,18 @@
+load("//tools/base/bazel:bazel.bzl", "iml_module")
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.gradle.dsl.android.tests",
+    iml_files = ["intellij.android.gradle.dsl.android.tests.iml"],
+    test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.gradle.dsl.android",
+    srcs = ["src"],
+    iml_files = ["intellij.android.gradle.dsl.android.iml"],
+    resources = ["resources"],
+    visibility = ["//visibility:public"],
+)
