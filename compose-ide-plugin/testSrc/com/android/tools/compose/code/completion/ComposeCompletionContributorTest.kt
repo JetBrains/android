@@ -519,7 +519,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        FoobarOne { ${caret} }
+        FoobarOne(${caret}) { }
       }
       """
         .trimIndent(),
@@ -1063,7 +1063,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        FoobarOne { ${caret} }
+        FoobarOne(${caret}) { }
       }
       """
         .trimIndent(),

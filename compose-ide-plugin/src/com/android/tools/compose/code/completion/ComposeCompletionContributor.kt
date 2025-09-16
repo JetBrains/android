@@ -239,9 +239,10 @@ private class ComposableFunctionLookupElement(
     val cursorWasBeforeBlockOpening =
       context.getNextElementAfterOffset()?.text?.startsWith("{") ?: false
     if (!cursorWasBeforeBlockOpening) {
-      // When there are no required parameters before the lambda, the caret will be placed in the
-      // lambda, so there needs to be an extra space.
-      val trailingLambda = if (functionInfo.hasRequiredParametersBeforeLambda) " { }" else " {  }"
+      // When there are no parameters before the lambda, the caret will be placed in the
+      // lambda, so there needs to be an extra space. When there are parameters, a single
+      // space is used.
+      val trailingLambda = if (functionInfo.hasParametersBeforeLambda) " { }" else " {  }"
 
       // Insert the lambda.
       context.document.insertString(context.tailOffset, trailingLambda)
@@ -250,7 +251,7 @@ private class ComposableFunctionLookupElement(
 
     // If there are required parameters before the lambda, then we can just leave the function's
     // parens there.
-    if (functionInfo.hasRequiredParametersBeforeLambda) return
+    if (functionInfo.hasParametersBeforeLambda) return
 
     // Since there are no required parameters, delete the function's parens.
     val valueArgumentList =
@@ -448,7 +449,7 @@ private fun InsertionContext.getNextElementAfterOffset(): PsiElement? =
 private data class FunctionInfo(
   val endsInRequiredLambda: Boolean,
   val endsInVarargLambda: Boolean,
-  val hasRequiredParametersBeforeLambda: Boolean,
+  val hasParametersBeforeLambda: Boolean,
 )
 
 private fun KtNamedFunction.getFunctionInfoForCompletion(): FunctionInfo =
@@ -464,8 +465,7 @@ private fun KtNamedFunction.getFunctionInfoForCompletion(): FunctionInfo =
       lastParameter?.let { it.isVararg && it.returnType is KaFunctionType && !it.hasDefaultValue }
         ?: false
 
-    val hasRequiredParametersBeforeLambda =
-      endsInRequiredLambda && allParameters.dropLast(1).any { !it.hasDefaultValue && !it.isVararg }
+    val hasParametersBeforeLambda = endsInRequiredLambda && allParameters.size > 1
 
-    return FunctionInfo(endsInRequiredLambda, endsInVarargLambda, hasRequiredParametersBeforeLambda)
+    return FunctionInfo(endsInRequiredLambda, endsInVarargLambda, hasParametersBeforeLambda)
   }
