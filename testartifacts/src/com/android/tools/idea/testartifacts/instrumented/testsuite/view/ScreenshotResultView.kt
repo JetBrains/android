@@ -152,14 +152,16 @@ class ScreenshotResultView {
 
   @UiThread
   fun updateView() {
+    val diffPlaceholder = if (testFailed) "No Diff Image" else "No Difference"
+
     // Load images for the "All" tab
     loadImageAsync(newImagePath, newImagePanel, "No Preview Image")
-    loadImageAsync(diffImagePath, diffImagePanel, "No Diff Image")
+    loadImageAsync(diffImagePath, diffImagePanel, diffPlaceholder)
     loadImageAsync(refImagePath, refImagePanel, "No Reference Image")
 
     // Load images for the single-view tabs
     loadImageAsync(newImagePath, newImagePanelSingle, "No Preview Image")
-    loadImageAsync(diffImagePath, diffImagePanelSingle, "No Diff Image")
+    loadImageAsync(diffImagePath, diffImagePanelSingle, diffPlaceholder)
     loadImageAsync(refImagePath, refImagePanelSingle, "No Reference Image")
 
     myView.revalidate()
