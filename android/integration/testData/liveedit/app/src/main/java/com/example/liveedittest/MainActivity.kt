@@ -30,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.liveedittest.ui.theme.LiveEditTestTheme
+import com.example.userlib.OtherModuleNameProvider
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,8 +40,8 @@ class MainActivity : ComponentActivity() {
             LiveEditTestTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
+                      name = OtherModuleNameProvider().getNameInline() + OtherModuleNameProvider().getName(),
+                      modifier = Modifier.padding(innerPadding)
                     )
                 }
             }
