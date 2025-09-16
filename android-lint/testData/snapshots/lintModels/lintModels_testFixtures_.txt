@@ -20,7 +20,6 @@ MODULE                        : project.app
         BuildFeatures
             ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
-            NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 : google.simpleapplication
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
@@ -876,7 +875,6 @@ MODULE                        : project.lib
         BuildFeatures
             ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
-            NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 :
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]

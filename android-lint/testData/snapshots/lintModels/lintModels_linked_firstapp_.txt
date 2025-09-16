@@ -20,7 +20,6 @@ MODULE                        : My_First_App.app
         BuildFeatures
             ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
-            NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 : com.example.firstapp
             - GeneratedSourceFolders      : <ROOT>/firstapp/app/build/generated/ap_generated_sources/debug/out [-]
@@ -665,7 +664,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
         BuildFeatures
             ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
-            NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 :
             - GeneratedSourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/ap_generated_sources/debug/out [-]
