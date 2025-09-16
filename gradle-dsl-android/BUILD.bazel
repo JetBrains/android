@@ -1,0 +1,42 @@
+### auto-generated section `build intellij.android.gradle.dsl.android` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
+
+resourcegroup(
+  name = "gradle-dsl-android_resources",
+  srcs = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "gradle-dsl-android",
+  module_name = "intellij.android.gradle.dsl.android",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":gradle-dsl-android_resources"]
+)
+### auto-generated section `build intellij.android.gradle.dsl.android` end
+
+### auto-generated section `build intellij.android.gradle.dsl.android.tests` start
+jvm_library(
+  name = "gradle-dsl-android-tests",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True)
+)
+
+jvm_library(
+  name = "gradle-dsl-android-tests_test_lib",
+  module_name = "intellij.android.gradle.dsl.android.tests",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  runtime_deps = [":gradle-dsl-android-tests"]
+)
+### auto-generated section `build intellij.android.gradle.dsl.android.tests` end
+
+### auto-generated section `test intellij.android.gradle.dsl.android.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
+
+jps_test(
+  name = "gradle-dsl-android-tests_test",
+  runtime_deps = [":gradle-dsl-android-tests_test_lib"]
+)
+### auto-generated section `test intellij.android.gradle.dsl.android.tests` end
