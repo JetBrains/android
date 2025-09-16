@@ -333,6 +333,11 @@ final public class RenderService implements Disposable {
      * Material themes, for example, usually contain a viewInflaterClass attribute.
      */
     private boolean useCustomInflater = true;
+    /**
+     * If true, when class loading fails, some fallback mechanisms will be executed.
+     * See {@link ViewLoader#loadView} for details.
+     */
+    private boolean useLoadViewFallbacks = true;
     private RenderTask.TestEventListener myTestEventListener = RenderTask.NOP_TEST_EVENT_LISTENER;
     /**
      * Value to be set to Settings.Global.ANIMATOR_DURATION_SCALE.
@@ -541,6 +546,16 @@ final public class RenderService implements Disposable {
     }
 
     /**
+     * Sets whether some fallback mechanisms should be executed or not when class loading fails.
+     * See {@link ViewLoader#loadView} for details.
+     */
+    @NotNull
+    public RenderTaskBuilder setUseLoadViewFallbacks(boolean useLoadViewFallbacks) {
+      this.useLoadViewFallbacks = useLoadViewFallbacks;
+      return this;
+    }
+
+    /**
      * Sets a custom parser for creating the {@link ViewInfo} hierarchy from the layout root view.
      */
     @NotNull
@@ -629,7 +644,7 @@ final public class RenderService implements Disposable {
                            myCredential, myContext.getModule().getEnvironment().getCrashReporter(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, tracker,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
-                           classesToPreload, immediateClassesToPreload, reportOutOfDateUserClasses, myTopic, useCustomInflater, myTestEventListener, animationDurationScale);
+                           classesToPreload, immediateClassesToPreload, reportOutOfDateUserClasses, myTopic, useCustomInflater, useLoadViewFallbacks, myTestEventListener, animationDurationScale);
           if (myXmlFile != null) {
             task.setXmlFile(myXmlFile);
           }

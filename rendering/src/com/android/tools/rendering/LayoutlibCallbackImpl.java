@@ -189,13 +189,14 @@ public class LayoutlibCallbackImpl extends LayoutlibCallbackEx {
                                @Nullable ActionBarHandler actionBarHandler,
                                @Nullable ILayoutPullParserFactory parserFactory,
                                @NotNull ModuleClassLoader moduleClassLoader,
-                               boolean shouldUseCustomInflater) {
+                               boolean shouldUseCustomInflater,
+                               boolean useLoadViewFallbacks) {
     myRenderContext = renderTask.getContext();
     myLayoutLib = layoutLib;
     myRenderModule = renderModule;
     myLogger = logger;
     myCredential = credential;
-    myViewLoader = new ViewLoader(myLayoutLib, renderModule, logger, credential, moduleClassLoader);
+    myViewLoader = new ViewLoader(myLayoutLib, renderModule, logger, credential, moduleClassLoader, useLoadViewFallbacks);
     myActionBarHandler = actionBarHandler;
     myLayoutPullParserFactory = parserFactory;
     myHasLegacyAppCompat = renderModule.getDependencies().dependsOn(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7);

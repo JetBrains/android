@@ -405,11 +405,16 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
   }
 
   public void disposeImpl() {
-    myImpl.dispose();
+    // Get thread locals outside the executor to avoid losing their references due to its weak
+    // reference map (see TrackingThreadLocal).
+    Set<ThreadLocal<?>> threadLocals = TrackingThreadLocal.clearThreadLocals(this);
     ourDisposeService.execute(() -> {
+      // Wait a short time before disposing if needed, as an attempt of a graceful disposal
       waitForCoroutineThreadToStop();
+      // myImpl is not registered in the Disposer tree, so doesn't need to be disposed through the
+      // Disposer singleton
+      myImpl.dispose();
 
-      Set<ThreadLocal<?>> threadLocals = TrackingThreadLocal.clearThreadLocals(this);
       if (threadLocals == null || threadLocals.isEmpty()) {
         return;
       }
