@@ -125,6 +125,8 @@ iml_module(
         "//tools/base/common:studio.android.sdktools.common",
         "//tools/adt/idea/backup:intellij.android.backup.api",
         "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources",
+        "//tools/adt/idea/rendering:intellij.android.rendering",
     ],
     test_srcs = ["testSrc"],
     # Tests are run using explicit, local_old_agp_test targets

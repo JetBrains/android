@@ -52,6 +52,9 @@ jvm_library(
     "//platform/service-container:service-container_test_lib",
     "//platform/projectModel-impl",
     "//platform/execution",
+    "//android/render-resources",
+    "//android/rendering",
+    "//platform/analysis-api:analysis",
   ],
   runtime_deps = [":old-agp-tests"]
 )

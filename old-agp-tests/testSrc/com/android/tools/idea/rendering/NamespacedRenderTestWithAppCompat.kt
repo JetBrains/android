@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.res.TestResourceIdManager
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_8_13
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.project.Project
@@ -26,9 +28,14 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
+@OldAgpTest(agpVersions = ["8.13.0"], gradleVersions = ["8.13"])
 class NamespacedRenderTestWithAppCompat {
 
-  @get:Rule val projectRule = AndroidGradleProjectRule()
+  val AGP_VERSION = AGP_8_13
+
+  @get:Rule val projectRule = AndroidGradleProjectRule(
+    agpVersionSoftwareEnvironment = AGP_VERSION
+  )
 
   @get:Rule val renderRule = RenderTestRule()
 
