@@ -20,7 +20,6 @@ MODULE                        : TestCompositeLib1.app
         BuildFeatures
             ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
-            NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 : com.test.composite1
             - GeneratedResourceFolders    : <ROOT>/TestCompositeLib1/app/build/generated/res/resValues/debug [-]
@@ -683,7 +682,6 @@ MODULE                        : TestCompositeLib1.lib
         BuildFeatures
             ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
-            NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 :
             - GeneratedResourceFolders    : <ROOT>/TestCompositeLib1/lib/build/generated/res/resValues/debug [-]
@@ -1339,7 +1337,6 @@ MODULE                        : TestCompositeLib3.app
         BuildFeatures
             ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
-            NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 : com.test.composite3
             - GeneratedResourceFolders    : <ROOT>/TestCompositeLib3/app/build/generated/res/resValues/debug [-]
@@ -1990,7 +1987,6 @@ MODULE                        : TestCompositeLib3.lib
         BuildFeatures
             ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
-            NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 :
             - GeneratedResourceFolders    : <ROOT>/TestCompositeLib3/lib/build/generated/res/resValues/debug [-]
@@ -2613,7 +2609,6 @@ MODULE                        : project.app
         BuildFeatures
             ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
-            NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 : com.test.compositeapp
             - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/debug [-]
@@ -3276,7 +3271,6 @@ MODULE                        : project.lib
         BuildFeatures
             ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
-            NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 :
             - GeneratedResourceFolders    : <ROOT>/lib/build/generated/res/resValues/debug [-]
