@@ -12,6 +12,8 @@ iml_module(
         "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
         "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
         "//tools/adt/idea/gradle-dsl-declarative:intellij.android.gradle.dsl.declarative",
+        # Android-specific implementation module
+        "//tools/adt/idea/gradle-dsl-android:intellij.android.gradle.dsl.android",
         # Gradle Project System tools
         "//tools/adt/idea/build-attribution:intellij.android.build-attribution",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",

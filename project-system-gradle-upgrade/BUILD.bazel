@@ -58,6 +58,7 @@ jvm_library(
     "//platform/usageView-impl",
     "//plugins/properties/properties-psi-api:psi",
     "//xml/xml-psi-api:psi",
+    "//android/gradle-dsl-android",
     "//android/gmaven",
     "//libraries/ktor/client",
     "//platform/execution",
