@@ -1,4 +1,4 @@
-/**
+/* // Uncomment this if you want to load the project outside of ETE.
 pluginManagement {
   repositories {
     google {
@@ -22,4 +22,4 @@ dependencyResolutionManagement {
 */
 rootProject.name = "LiveEditTest"
 include(":app")
- 
+include(":app:userlib")
