@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.MaterialVdIconsProvider.Status
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.material.icons.MaterialIconsCopyHandler
 import com.android.tools.idea.material.icons.MaterialVdIcons
 import com.android.tools.idea.material.icons.MaterialVdIconsLoader
@@ -50,47 +49,53 @@ import kotlinx.coroutines.withContext
 
 private val LOG = Logger.getInstance(MaterialVdIconsProvider::class.java)
 
-/**
- * Provider class for [MaterialVdIcons].
- */
+/** Provider class for [MaterialVdIcons]. */
 class MaterialVdIconsProvider {
 
-  /**
-   * Enum to indicate the status of this provider class to the given UI callback.
-   */
+  /** Enum to indicate the status of this provider class to the given UI callback. */
   enum class Status {
     /**
-     * There are still more icons to load, it is expected that there will be more invocations to the ui-callback.
+     * There are still more icons to load, it is expected that there will be more invocations to the
+     * ui-callback.
      */
     LOADING,
-    /**
-     * There are no more icons to load, it should be the last call to the ui-callback.
-     */
-    FINISHED
+    /** There are no more icons to load, it should be the last call to the ui-callback. */
+    FINISHED,
   }
 
   companion object {
     @JvmStatic
-      /**
-       * Gets [MaterialIconsMetadata] and handles calls to [MaterialVdIconsLoader]. Invokes the given ui-callback when more icons are loaded.
-       *
-       * @param refreshUiCallback Called whenever more icons are loaded, with the updated [MaterialVdIcons] object and a [Status] to indicate
-       *  whether to expect more calls with more icons.
-       * @param parentDisposable When disposed, the background thread used for loading/copying/downloading icons is shutdown.
-       * @param metadataUrlProvider Url provider for the metadata file.
-       * @param iconsUrlProvider Url provider for [MaterialVdIconsLoader].
-       * @param onNewIconsAvailable this method might trigger a metadata update even after the local icons have been loaded. After the download
-       *  finishes, this method will be called if the metadata does not match the local copy and a UI update is needed.
-       */
-    fun loadMaterialVdIcons(refreshUiCallback: @UiThread (MaterialVdIcons, Status) -> Unit,
-                            parentDisposable: Disposable,
-                            metadataUrlProvider: MaterialIconsMetadataUrlProvider? = null,
-                            iconsUrlProvider: MaterialIconsUrlProvider? = null,
-                            onNewIconsAvailable: @UiThread () -> Unit = {}) {
+    /**
+     * Gets [MaterialIconsMetadata] and handles calls to [MaterialVdIconsLoader]. Invokes the given
+     * ui-callback when more icons are loaded.
+     *
+     * @param refreshUiCallback Called whenever more icons are loaded, with the updated
+     *   [MaterialVdIcons] object and a [Status] to indicate whether to expect more calls with more
+     *   icons.
+     * @param parentDisposable When disposed, the background thread used for
+     *   loading/copying/downloading icons is shutdown.
+     * @param metadataUrlProvider Url provider for the metadata file.
+     * @param iconsUrlProvider Url provider for [MaterialVdIconsLoader].
+     * @param onNewIconsAvailable this method might trigger a metadata update even after the local
+     *   icons have been loaded. After the download finishes, this method will be called if the
+     *   metadata does not match the local copy and a UI update is needed.
+     */
+    fun loadMaterialVdIcons(
+      refreshUiCallback: @UiThread (MaterialVdIcons, Status) -> Unit,
+      parentDisposable: Disposable,
+      metadataUrlProvider: MaterialIconsMetadataUrlProvider? = null,
+      iconsUrlProvider: MaterialIconsUrlProvider? = null,
+      onNewIconsAvailable: @UiThread () -> Unit = {},
+    ) {
       val metadataUrl = (metadataUrlProvider ?: getMetadataUrlProvider()).getMetadataUrl()
-      val metadataParseResult = metadataUrl?.let { MaterialIconsMetadata.parse(it) } ?: Result.success(MaterialIconsMetadata.EMPTY)
+      val metadataParseResult =
+        metadataUrl?.let { MaterialIconsMetadata.parse(it) }
+          ?: Result.success(MaterialIconsMetadata.EMPTY)
 
-      if (metadataParseResult.isSuccess && metadataParseResult.getOrThrow() === MaterialIconsMetadata.EMPTY) {
+      if (
+        metadataParseResult.isSuccess &&
+          metadataParseResult.getOrThrow() === MaterialIconsMetadata.EMPTY
+      ) {
         LOG.warn("Empty metadata for material icons.")
         refreshUiCallback(MaterialVdIcons.EMPTY, Status.FINISHED)
       }
@@ -101,22 +106,31 @@ class MaterialVdIconsProvider {
       }
 
       loadMaterialVdIcons(
-        metadataParseResult.getOrDefault(MaterialIconsMetadata.EMPTY), iconsUrlProvider ?: getIconsUrlProvider(), refreshUiCallback, onNewIconsAvailable, parentDisposable)
+        metadataParseResult.getOrDefault(MaterialIconsMetadata.EMPTY),
+        iconsUrlProvider ?: getIconsUrlProvider(),
+        refreshUiCallback,
+        onNewIconsAvailable,
+        parentDisposable,
+      )
     }
   }
 }
 
-private fun loadMaterialVdIcons(metadata: MaterialIconsMetadata,
-                                iconsUrlProvider: MaterialIconsUrlProvider,
-                                refreshUiCallback: @UiThread (MaterialVdIcons, Status) -> Unit,
-                                onNewIconsAvailable: @UiThread () -> Unit,
-                                parentDisposable: Disposable) {
+private fun loadMaterialVdIcons(
+  metadata: MaterialIconsMetadata,
+  iconsUrlProvider: MaterialIconsUrlProvider,
+  refreshUiCallback: @UiThread (MaterialVdIcons, Status) -> Unit,
+  onNewIconsAvailable: @UiThread () -> Unit,
+  parentDisposable: Disposable,
+) {
   val iconsLoader = MaterialVdIconsLoader(metadata, iconsUrlProvider)
-  val backgroundExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor(
-    "${MaterialVdIconsProvider::class.java.simpleName}-backgroundMaterialIconsTasks",
-    AppExecutorUtil.getAppExecutorService(),
-    1,
-    parentDisposable)
+  val backgroundExecutor =
+    AppExecutorUtil.createBoundedApplicationPoolExecutor(
+      "${MaterialVdIconsProvider::class.java.simpleName}-backgroundMaterialIconsTasks",
+      AppExecutorUtil.getAppExecutorService(),
+      1,
+      parentDisposable,
+    )
   AndroidCoroutineScope(parentDisposable).launch {
     var icons = MaterialVdIcons.EMPTY
     metadata.families.forEachIndexed { index, style ->
@@ -132,9 +146,7 @@ private fun loadMaterialVdIcons(metadata: MaterialIconsMetadata,
             if (icons.styles.isEmpty()) {
               LOG.warn("No icons loaded for style=$style.")
             }
-          }
-          catch (_: ProcessCanceledException) {}
-          catch (t: Throwable) {
+          } catch (_: ProcessCanceledException) {} catch (t: Throwable) {
             LOG.error("Error loading icons.", t)
           }
         }
@@ -156,10 +168,8 @@ private fun loadMaterialVdIcons(metadata: MaterialIconsMetadata,
 
           // Then, download the most recent metadata file and any new icons.
           iconsUpdated = updateMetadataAndIcons(metadata, iconsUrlProvider)
-        }
-        catch (_: ProcessCanceledException) {}
-        catch (t: Throwable) {
-          LOG.error( "Error updating icons.", t)
+        } catch (_: ProcessCanceledException) {} catch (t: Throwable) {
+          LOG.error("Error updating icons.", t)
         }
       }
     }
@@ -171,12 +181,10 @@ private fun loadMaterialVdIcons(metadata: MaterialIconsMetadata,
   }
 }
 
-
 private fun getMetadataUrlProvider(): MaterialIconsMetadataUrlProvider {
   return if (hasMetadataFileInSdkPath()) {
     SdkMetadataUrlProvider()
-  }
-  else {
+  } else {
     BundledMetadataUrlProvider()
   }
 }
@@ -184,17 +192,13 @@ private fun getMetadataUrlProvider(): MaterialIconsMetadataUrlProvider {
 private fun getIconsUrlProvider(): MaterialIconsUrlProvider {
   return if (hasMetadataFileInSdkPath()) {
     SdkMaterialIconsUrlProvider()
-  }
-  else {
+  } else {
     BundledIconsUrlProvider()
   }
 }
 
 @WorkerThread
-private fun copyBundledIcons(
-  metadata: MaterialIconsMetadata,
-  loadedIcons: MaterialVdIcons,
-) {
+private fun copyBundledIcons(metadata: MaterialIconsMetadata, loadedIcons: MaterialVdIcons) {
   val targetPath = getIconsSdkTargetPath()
   if (targetPath == null) {
     LOG.warn("No Android Sdk folder, can't copy material icons.")
@@ -203,9 +207,7 @@ private fun copyBundledIcons(
   MaterialIconsCopyHandler(metadata, loadedIcons).copyTo(targetPath)
 }
 
-/**
- * Returns true if any icons were updated.
- */
+/** Returns true if any icons were updated. */
 @WorkerThread
 private fun updateMetadataAndIcons(
   existingMetadata: MaterialIconsMetadata,
@@ -216,9 +218,11 @@ private fun updateMetadataAndIcons(
     LOG.warn("No Android Sdk folder, can't download any material icons.")
     return false
   }
-  val newMetadata = ApplicationManager.getApplication().getService(MaterialIconsMetadataDownloadCacheService::class.java)
-    .getMetadata()
-    .getCancellable()
+  val newMetadata =
+    ApplicationManager.getApplication()
+      .getService(MaterialIconsMetadataDownloadCacheService::class.java)
+      .getMetadata()
+      .getCancellable()
 
   return updateIconsAtDir(existingMetadata, newMetadata, targetPath.toPath(), iconsUrlProvider)
 }

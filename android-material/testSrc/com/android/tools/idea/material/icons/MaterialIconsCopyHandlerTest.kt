@@ -21,14 +21,14 @@ import com.android.tools.idea.material.icons.metadata.MaterialMetadataIcon
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.utils.SdkUtils
 import com.intellij.openapi.util.io.FileUtil
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 private const val INCOMPLETE_METADATA =
   """)]}'
@@ -59,8 +59,7 @@ private const val INCOMPLETE_METADATA =
 }"""
 
 class MaterialIconsCopyHandlerTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private lateinit var testDirectory: File
 
@@ -132,62 +131,66 @@ private fun createMaterialIconsMetadata(): MaterialIconsMetadata =
     urlPattern = "",
     families = arrayOf("Style 1", "Style 2"),
     icons = createMaterialMetadataIconArray(),
-    categories = arrayOf("category1", "category2", "category3")
+    categories = arrayOf("category1", "category2", "category3"),
   )
 
-private fun createMaterialMetadataIconArray(): Array<MaterialMetadataIcon> = arrayOf(
-  MaterialMetadataIcon(
-    name = "my_icon_1",
-    version = 1,
-    unsupportedFamilies = emptyArray(),
-    categories = arrayOf("category1", "category2"),
-    tags = emptyArray(),
-    unicode = 59530
-  ),
-  MaterialMetadataIcon(
-    name = "my_icon_2",
-    version = 1,
-    unsupportedFamilies = emptyArray(),
-    categories = arrayOf("category1", "category3"),
-    tags = emptyArray(),
-    unicode = 0
+private fun createMaterialMetadataIconArray(): Array<MaterialMetadataIcon> =
+  arrayOf(
+    MaterialMetadataIcon(
+      name = "my_icon_1",
+      version = 1,
+      unsupportedFamilies = emptyArray(),
+      categories = arrayOf("category1", "category2"),
+      tags = emptyArray(),
+      unicode = 59530,
+    ),
+    MaterialMetadataIcon(
+      name = "my_icon_2",
+      version = 1,
+      unsupportedFamilies = emptyArray(),
+      categories = arrayOf("category1", "category3"),
+      tags = emptyArray(),
+      unicode = 0,
+    ),
   )
-)
 
 private fun createMaterialVdIcons(dir: File): MaterialVdIcons {
-  val stylesToSortedIcons = mapOf<String, Array<VdIcon>>(
-    Pair("Style 1", arrayOf(createVdIcon(dir, "my_icon_1"), createVdIcon(dir, "my_icon_2"))),
-    Pair("Style 2", arrayOf(createVdIcon(dir, "my_icon_1"), createVdIcon(dir, "my_icon_2")))
-  )
-  val stylesCategoriesToIcons = mapOf<String, HashMap<String, Array<VdIcon>>>(
-    // No need to properly populate.
-    Pair("Style 1", HashMap()),
-    Pair("Style 2", HashMap())
-  )
-  return object: MaterialVdIcons {
+  val stylesToSortedIcons =
+    mapOf<String, Array<VdIcon>>(
+      Pair("Style 1", arrayOf(createVdIcon(dir, "my_icon_1"), createVdIcon(dir, "my_icon_2"))),
+      Pair("Style 2", arrayOf(createVdIcon(dir, "my_icon_1"), createVdIcon(dir, "my_icon_2"))),
+    )
+  val stylesCategoriesToIcons =
+    mapOf<String, HashMap<String, Array<VdIcon>>>(
+      // No need to properly populate.
+      Pair("Style 1", HashMap()),
+      Pair("Style 2", HashMap()),
+    )
+  return object : MaterialVdIcons {
     private val style1Icons = listOf(createVdIcon(dir, "my_icon_1"), createVdIcon(dir, "my_icon_2"))
     private val style2Icons = listOf(createVdIcon(dir, "my_icon_1"), createVdIcon(dir, "my_icon_2"))
 
     override val styles: List<String> = listOf("Style 1", "Style 2")
 
-    override fun getCategories(style: String): List<String> = listOf("category1", "category2", "category3")
+    override fun getCategories(style: String): List<String> =
+      listOf("category1", "category2", "category3")
 
-    override fun getIcons(style: String,
-                          category: String): List<VdIcon> {
+    override fun getIcons(style: String, category: String): List<VdIcon> {
       throw UnsupportedOperationException()
     }
 
-    override fun getAllIcons(style: String): List<VdIcon> = when (style) {
-      "Style 1" -> style1Icons
-      "Style 2" -> style2Icons
-      else -> throw IllegalArgumentException("$style not found")
-    }
-
+    override fun getAllIcons(style: String): List<VdIcon> =
+      when (style) {
+        "Style 1" -> style1Icons
+        "Style 2" -> style2Icons
+        else -> throw IllegalArgumentException("$style not found")
+      }
   }
 }
 
 private fun createVdIcon(dir: File, name: String): VdIcon {
-  val iconFile = dir.resolve("test_icons").apply { mkdir() }.resolve("$name.xml").apply { writeText(SIMPLE_VD) }
+  val iconFile =
+    dir.resolve("test_icons").apply { mkdir() }.resolve("$name.xml").apply { writeText(SIMPLE_VD) }
   return VdIcon(SdkUtils.fileToUrl(iconFile))
 }
 
@@ -207,9 +210,20 @@ private fun assertIconFile(parentDir: File, iconName: String) {
 }
 
 private fun setupIncompleteCopy(targetDir: File) {
-  val incompleteMetadata = targetDir.resolve("icons_metadata_temp_copy.txt").apply { writeText(INCOMPLETE_METADATA) }
+  val incompleteMetadata =
+    targetDir.resolve("icons_metadata_temp_copy.txt").apply { writeText(INCOMPLETE_METADATA) }
   assertTrue(incompleteMetadata.exists())
   assertFalse(incompleteMetadata.isDirectory)
-  targetDir.resolve("style1").resolve("my_icon_1").apply { mkdirs() }.resolve("my_icon_1.xml").writeText(SIMPLE_VD)
-  targetDir.resolve("style2").resolve("my_icon_1").apply { mkdirs() }.resolve("my_icon_1.xml").writeText(SIMPLE_VD)
+  targetDir
+    .resolve("style1")
+    .resolve("my_icon_1")
+    .apply { mkdirs() }
+    .resolve("my_icon_1.xml")
+    .writeText(SIMPLE_VD)
+  targetDir
+    .resolve("style2")
+    .resolve("my_icon_1")
+    .apply { mkdirs() }
+    .resolve("my_icon_1.xml")
+    .writeText(SIMPLE_VD)
 }

@@ -113,7 +113,8 @@ class MaterialSymbolsUpdater {
       try {
         val downloadService = DownloadableFileService.getInstance()
 
-        val fileDescription = listOf(downloadService.createFileDescription(downloadUrl, tempFileName))
+        val fileDescription =
+          listOf(downloadService.createFileDescription(downloadUrl, tempFileName))
 
         val downloader = downloadService.createDownloader(fileDescription, downloaderName)
         val downloadedFile = downloader.download(downloadFolder).first().first

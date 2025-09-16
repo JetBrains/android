@@ -24,20 +24,14 @@ import java.net.URL
 import java.nio.file.Files
 import java.util.Locale
 
-/**
- * Set of common functions and values used when reading/writing Material Icons files.
- */
+/** Set of common functions and values used when reading/writing Material Icons files. */
 object MaterialIconsUtils {
   private val LOG = Logger.getInstance(javaClass)
 
-  /**
-   * The path where the bundled material icons are stored.
-   */
+  /** The path where the bundled material icons are stored. */
   const val MATERIAL_ICONS_PATH = "images/material/icons/"
 
-  /**
-   * Name of the metadata filed used.
-   */
+  /** Name of the metadata filed used. */
   const val METADATA_FILE_NAME = "icons_metadata.txt"
 
   /**
@@ -45,11 +39,10 @@ object MaterialIconsUtils {
    *
    * Does not end on trailing slash.
    */
-  fun getBundledStyleDirectoryPath(styleName: String): String = MATERIAL_ICONS_PATH + styleName.toDirFormat()
+  fun getBundledStyleDirectoryPath(styleName: String): String =
+    MATERIAL_ICONS_PATH + styleName.toDirFormat()
 
-  /**
-   * Path from classpath to the bundled icon in the Material Icons directory.
-   */
+  /** Path from classpath to the bundled icon in the Material Icons directory. */
   fun getBundledIconPath(styleName: String, iconName: String, iconFileName: String) =
     getBundledStyleDirectoryPath(styleName) + "/" + iconName + "/" + iconFileName
 
@@ -73,7 +66,8 @@ object MaterialIconsUtils {
   }
 
   /**
-   * Returns `true` if there's a file with the name [METADATA_FILE_NAME] in the .../Android/Sdk directory.
+   * Returns `true` if there's a file with the name [METADATA_FILE_NAME] in the .../Android/Sdk
+   * directory.
    *
    * Does not check if it's a valid file for [MaterialIconsMetadata].
    */
@@ -83,8 +77,8 @@ object MaterialIconsUtils {
   }
 
   /**
-   * @see [MaterialIconsMetadata.writeAsJson]
    * @return The [MaterialIconsMetadata] parsed from the URL provided.
+   * @see [MaterialIconsMetadata.writeAsJson]
    */
   fun getMetadata(url: URL): Result<MaterialIconsMetadata> {
     return MaterialIconsMetadata.parse(url)
@@ -95,17 +89,18 @@ object MaterialIconsUtils {
    *
    * E.g. For 'android' of 'Material Icons Rounded' returns 'rounded_android_24'
    *
-   * This should be used whenever we want to read or write material icons, since we rely on this consistency.
+   * This should be used whenever we want to read or write material icons, since we rely on this
+   * consistency.
    */
   fun getIconFileNameWithoutExtension(iconName: String, styleName: String): String {
-    val family = styleName.toDirFormat()
-      .substringAfter("materialicons")
-      .substringAfter("materialsymbols")
-    val familyPrefix = when (family) {
-      "" -> "baseline"
-      "outlined" -> "outline"
-      else -> family
-    }
+    val family =
+      styleName.toDirFormat().substringAfter("materialicons").substringAfter("materialsymbols")
+    val familyPrefix =
+      when (family) {
+        "" -> "baseline"
+        "outlined" -> "outline"
+        else -> family
+      }
     return "${familyPrefix}_${iconName}_24"
   }
 }

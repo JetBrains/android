@@ -21,15 +21,14 @@ import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.METADATA_F
 import com.android.utils.SdkUtils
 import java.net.URL
 
-/**
- * Provides a [URL] that is used to get the metadata file and then parse it.
- */
+/** Provides a [URL] that is used to get the metadata file and then parse it. */
 interface MaterialIconsMetadataUrlProvider {
   fun getMetadataUrl(): URL?
 }
 
 /**
- * The default implementation of [MaterialIconsMetadataUrlProvider], returns the [URL] for the bundled metadata file in Android Studio.
+ * The default implementation of [MaterialIconsMetadataUrlProvider], returns the [URL] for the
+ * bundled metadata file in Android Studio.
  */
 class BundledMetadataUrlProvider : MaterialIconsMetadataUrlProvider {
   override fun getMetadataUrl(): URL? =
@@ -41,9 +40,10 @@ class BundledMetadataUrlProvider : MaterialIconsMetadataUrlProvider {
  *
  * @see MaterialIconsUtils.getIconsSdkTargetPath
  */
-class SdkMetadataUrlProvider: MaterialIconsMetadataUrlProvider {
+class SdkMetadataUrlProvider : MaterialIconsMetadataUrlProvider {
   override fun getMetadataUrl(): URL? {
-    val metadataFilePath = MaterialIconsUtils.getIconsSdkTargetPath()?.resolve(METADATA_FILE_NAME) ?: return null
+    val metadataFilePath =
+      MaterialIconsUtils.getIconsSdkTargetPath()?.resolve(METADATA_FILE_NAME) ?: return null
     return if (metadataFilePath.exists()) SdkUtils.fileToUrl(metadataFilePath) else null
   }
 }

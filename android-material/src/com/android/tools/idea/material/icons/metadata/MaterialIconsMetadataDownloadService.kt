@@ -20,7 +20,8 @@ import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.METADATA_F
 import java.io.File
 import java.net.URL
 
-private const val METADATA_DOWNLOAD_URL = "https://fonts.google.com/metadata/icons?key=material_symbols&incomplete=true"
+private const val METADATA_DOWNLOAD_URL =
+  "https://fonts.google.com/metadata/icons?key=material_symbols&incomplete=true"
 private const val EXISTING_METADATA_FILE_NAME = METADATA_FILE_NAME
 private const val DOWNLOADED_METADATA_FILE_NAME = "icons_metadata_temp.txt"
 
@@ -30,20 +31,17 @@ private const val DOWNLOADED_METADATA_FILE_NAME = "icons_metadata_temp.txt"
  * @param sdkTargetPath File path where the metadata file will be downloaded
  * @param existingMetadataUrl URL for existing metadata to use as fallback
  */
-class MaterialIconsMetadataDownloadService(
-  sdkTargetPath: File,
-  existingMetadataUrl: URL
-) : DownloadService(
-  "Material Symbols Metadata Downloader",
-  METADATA_DOWNLOAD_URL,
-  existingMetadataUrl,
-  sdkTargetPath,
-  DOWNLOADED_METADATA_FILE_NAME,
-  EXISTING_METADATA_FILE_NAME
-) {
+class MaterialIconsMetadataDownloadService(sdkTargetPath: File, existingMetadataUrl: URL) :
+  DownloadService(
+    "Material Symbols Metadata Downloader",
+    METADATA_DOWNLOAD_URL,
+    existingMetadataUrl,
+    sdkTargetPath,
+    DOWNLOADED_METADATA_FILE_NAME,
+    EXISTING_METADATA_FILE_NAME,
+  ) {
 
-  @Volatile
-  private var latestMetadataUrl: URL = existingMetadataUrl
+  @Volatile private var latestMetadataUrl: URL = existingMetadataUrl
 
   fun getLatestMetadataUrl(): URL {
     return latestMetadataUrl

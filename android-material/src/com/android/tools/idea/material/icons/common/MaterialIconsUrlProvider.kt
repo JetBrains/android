@@ -24,25 +24,20 @@ import com.android.utils.SdkUtils.fileToUrl
 import java.io.File
 import java.net.URL
 
-/**
- * Interface used to get [URL] objects of [MaterialVdIcons].
- */
+/** Interface used to get [URL] objects of [MaterialVdIcons]. */
 interface MaterialIconsUrlProvider {
 
-  /**
-   * Returns the [URL] of the files under a particular material icon style.
-   */
+  /** Returns the [URL] of the files under a particular material icon style. */
   fun getStyleUrl(style: String): URL?
 
   /**
-   * Returns the [URL] of the actual Material Icon file for the given style, icon name and its file name.
+   * Returns the [URL] of the actual Material Icon file for the given style, icon name and its file
+   * name.
    */
   fun getIconUrl(style: String, iconName: String, iconFileName: String): URL?
 }
 
-/**
- * The default [MaterialIconsUrlProvider] for [VdIcon] files bundled with Android Studio.
- */
+/** The default [MaterialIconsUrlProvider] for [VdIcon] files bundled with Android Studio. */
 class BundledIconsUrlProvider : MaterialIconsUrlProvider {
   override fun getStyleUrl(style: String): URL? {
     return javaClass.classLoader.getResource(getBundledStyleDirectoryPath(style))
