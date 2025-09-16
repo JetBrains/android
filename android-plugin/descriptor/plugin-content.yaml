@@ -44,6 +44,8 @@
   - name: intellij.android.adb.ui
   - name: intellij.android.backup
   - name: intellij.android.backup.api
+  - name: intellij.android.gradle.dsl.android
+  - name: intellij.android.gradle.dsl.android.tests
   - name: intellij.android.lint
   - name: intellij.android.templates
   - name: intellij.android.testartifacts
