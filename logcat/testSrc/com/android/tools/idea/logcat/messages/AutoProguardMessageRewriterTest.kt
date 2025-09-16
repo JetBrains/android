@@ -32,6 +32,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.guessModuleDir
 import com.intellij.testFramework.RuleChain
+import com.intellij.util.io.createDirectories
 import com.intellij.util.io.createParentDirectories
 import com.intellij.util.io.delete
 import java.nio.file.Path
@@ -188,7 +189,7 @@ class AutoProguardMessageRewriterTest {
   }
 
   @Test
-  fun rewrite_noMapping() {
+  fun rewrite_noMatchingMapping() {
     val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
     copyMapToModule(findModules("app1").first(), "release", "map-id-12345")
     val message = MESSAGE.withMapId("map-id-missing")
@@ -197,7 +198,64 @@ class AutoProguardMessageRewriterTest {
 
     assertThat(text).isEqualTo(message)
     assertThat(usageTrackerRule.retraceEvents())
-      .containsExactly(stackRetraceEvent("MAPPING_NOT_FOUND"))
+      .containsExactly(stackRetraceEvent("MATCHING_MAPPING_NOT_FOUND"))
+  }
+
+  @Test
+  fun rewrite_noBuildDir() {
+    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
+    val message = MESSAGE.withMapId("map-id-missing")
+
+    val text = rewriter.rewrite(message, "app1")
+
+    assertThat(text).isEqualTo(message)
+    assertThat(usageTrackerRule.retraceEvents())
+      .containsExactly(stackRetraceEvent("BUILD_DIR_NOT_FOUND"))
+  }
+
+  @Test
+  fun rewrite_noMappingsDir() {
+    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
+    val message = MESSAGE.withMapId("map-id-missing")
+    val module = findModules("app1").first()
+    val moduleDir = module.guessModuleDir()?.toNioPath() ?: fail("Failed to prepare module dir")
+    val mappingDir = moduleDir.resolve("build")
+    mappingDir.createDirectories()
+
+    val text = rewriter.rewrite(message, "app1")
+
+    assertThat(text).isEqualTo(message)
+    assertThat(usageTrackerRule.retraceEvents())
+      .containsExactly(stackRetraceEvent("MAPPINGS_DIR_NOT_FOUND"))
+  }
+
+  @Test
+  fun rewrite_noMappingsFile() {
+    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
+    val message = MESSAGE.withMapId("map-id-missing")
+    val module = findModules("app1").first()
+    val moduleDir = module.guessModuleDir()?.toNioPath() ?: fail("Failed to prepare module dir")
+    val mappingDir = moduleDir.resolve("build/outputs/mapping")
+    mappingDir.createDirectories()
+
+    val text = rewriter.rewrite(message, "app1")
+
+    assertThat(text).isEqualTo(message)
+    assertThat(usageTrackerRule.retraceEvents())
+      .containsExactly(stackRetraceEvent("MAPPINGS_FILE_NOT_FOUND"))
+  }
+
+  @Test
+  fun rewrite_noMappingId() {
+    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
+    val message = MESSAGE.withMapId("map-id-missing")
+    copyMapToModule(findModules("app1").first(), "release", mapId = null)
+
+    val text = rewriter.rewrite(message, "app1")
+
+    assertThat(text).isEqualTo(message)
+    assertThat(usageTrackerRule.retraceEvents())
+      .containsExactly(stackRetraceEvent("MAPPINGS_HAVE_NO_MAP_ID"))
   }
 
   @Test
@@ -210,7 +268,8 @@ class AutoProguardMessageRewriterTest {
     val text = rewriter.rewrite(message, "unknown-app")
 
     assertThat(text).isEqualTo(message)
-    assertThat(usageTrackerRule.retraceEvents()).containsExactly(stackRetraceEvent("APP_NOT_FOUND"))
+    assertThat(usageTrackerRule.retraceEvents())
+      .containsExactly(stackRetraceEvent("MODULES_NOT_FOUND"))
   }
 
   @Test
@@ -232,12 +291,19 @@ class AutoProguardMessageRewriterTest {
   }
 }
 
-private fun copyMapToModule(module: Module?, variant: String, mapId: String): Path {
+private fun copyMapToModule(module: Module?, variant: String, mapId: String?): Path {
   val moduleDir = module?.guessModuleDir()?.toNioPath() ?: fail("Failed to prepare module dir")
   val mappingFile = moduleDir.resolve("build/outputs/mapping/$variant/mapping.txt")
   mappingFile.createParentDirectories()
-  val resourceFile = TestResources.getFile("/proguard/mapping-with-id.txt").toPath()
-  val text = resourceFile.readText().replace("MAP_ID", mapId)
+  val text =
+    if (mapId == null) {
+      TestResources.getFile("/proguard/mapping-without-id.txt").toPath().readText()
+    } else {
+      TestResources.getFile("/proguard/mapping-with-id.txt")
+        .toPath()
+        .readText()
+        .replace("MAP_ID", mapId)
+    }
   mappingFile.writeText(text)
   return mappingFile
 }

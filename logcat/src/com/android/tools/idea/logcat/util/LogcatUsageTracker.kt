@@ -35,19 +35,11 @@ internal object LogcatUsageTracker {
     )
   }
 
-  fun logRetraceMappingNotFound() {
+  fun logRetrace(result: String) {
     log(
       LogcatUsageEvent.newBuilder()
         .setType(STACK_RETRACED)
-        .setStackRetrace(StackRetraceEvent.newBuilder().setResultString("MAPPING_NOT_FOUND"))
-    )
-  }
-
-  fun logRetraceAppNotFound() {
-    log(
-      LogcatUsageEvent.newBuilder()
-        .setType(STACK_RETRACED)
-        .setStackRetrace(StackRetraceEvent.newBuilder().setResultString("APP_NOT_FOUND"))
+        .setStackRetrace(StackRetraceEvent.newBuilder().setResultString(result))
     )
   }
 
