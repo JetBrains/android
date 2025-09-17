@@ -22,7 +22,6 @@ import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversio
 import com.google.idea.blaze.ext.Logentry.AiEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
-import java.time.Duration
 
 /**
  * Forwards event logs to any [EventLogger]s available. This indirection exists so that
@@ -38,7 +37,7 @@ abstract class EventLoggingService {
 
   abstract fun log(aiEvent: AiEvent)
 
-  abstract fun logCommand(caller: Any?, command: Command)
+  abstract fun log(caller: Any?, command: Command)
 
   @JvmOverloads
   open fun logEvent(
@@ -58,16 +57,6 @@ abstract class EventLoggingService {
   ) {}
 
   abstract fun log(project: Project, highlightStats: HighlightStats)
-
-  /** Information about an external command that was launched from the IDE. */
-  data class Command(
-      val executable: String,
-      val arguments: List<String>,
-      val subcommandName: String?,
-      val workingDirectory: String?,
-      val exitCode: Int,
-      val duration: Duration
-  )
 
   companion object {
     @JvmStatic

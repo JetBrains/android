@@ -16,6 +16,7 @@
 package com.google.idea.blaze.base
 
 import com.google.common.collect.ImmutableList
+import com.google.idea.blaze.base.logging.Command
 import com.google.idea.blaze.base.logging.EventLoggingService
 import com.google.idea.blaze.base.logging.utils.HighlightStats
 import com.google.idea.blaze.base.logging.utils.SyncStats
@@ -65,7 +66,7 @@ class MockEventLoggingService(parentDisposable: Disposable) : EventLoggingServic
     aiEvents.add(aiEvent)
   }
 
-  override fun logCommand(caller: Any?, command: Command) = Unit
+  override fun log(caller: Any?, command: Command) = Unit
 
   override fun log(project: Project, highlightStats: HighlightStats) = Unit
 }
