@@ -109,7 +109,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     try {
       AndroidSystem system = basic(Files.createTempDirectory("root"));
 
-      system.install = AndroidStudioInstallation.fromZip(system.fileSystem, androidStudioFlavor);
+      system.install = AndroidStudioInstallation.fromDir(system.fileSystem, androidStudioFlavor);
       system.install.createFirstRunXml();
       system.install.setNewUi();
       system.install.createGeneralPropertiesXml();
@@ -164,7 +164,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     AndroidSystem system = new AndroidSystem(fileSystem, display, null);
     AndroidStudioInstallation.Options options = new AndroidStudioInstallation.Options(system.fileSystem);
     options.disableFirstRun = false;
-    system.install = AndroidStudioInstallation.fromZip(options);
+    system.install = AndroidStudioInstallation.fromDir(options);
     system.setEnv("SDK_TEST_BASE_URL", String.format("file:///%s/",TestUtils.getRemoteSdk()));
 
     createRemediationShutdownHook();

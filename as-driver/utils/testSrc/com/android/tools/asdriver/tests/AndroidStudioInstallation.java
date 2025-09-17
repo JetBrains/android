@@ -91,10 +91,36 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
   }
 
   static public AndroidStudioInstallation fromDir(TestFileSystem testFileSystem) throws IOException {
-    Path workDir = TestUtils.getBinPath("tools/adt/idea/studio/android-studio");
+    Options options = new Options(testFileSystem, AndroidStudioFlavor.FOR_EXTERNAL_USERS);
+    return fromDir(options);
+  }
+
+  public static AndroidStudioInstallation fromDir(TestFileSystem testFileSystem, AndroidStudioFlavor androidStudioFlavor)
+    throws IOException {
+    Options options = new Options(testFileSystem, androidStudioFlavor);
+    return fromDir(options);
+  }
+
+  static public AndroidStudioInstallation fromDir(Options options) throws IOException {
+    String androidStudioDirectory;
+    switch (options.androidStudioFlavor) {
+      case FOR_EXTERNAL_USERS:
+        androidStudioDirectory = "tools/adt/idea/studio/android-studio";
+        break;
+      case ASWB:
+        androidStudioDirectory = "tools/vendor/google/aswb/aswb";
+        break;
+      case ASFP:
+        androidStudioDirectory = "tools/vendor/google/asfp/studio/asfp";
+        break;
+      default:
+        throw new IllegalArgumentException("A valid AndroidStudioFlavor must be passed in. Got: " + options.androidStudioFlavor);
+    }
+
+    Path workDir = TestUtils.getBinPath(androidStudioDirectory);
     Path studioDir = workDir.resolve(getStudioDirectory(workDir));
     TestLogger.log("studioDir: %s", studioDir);
-    return new AndroidStudioInstallation(testFileSystem, workDir, studioDir, AndroidStudioFlavor.UNKNOWN, true);
+    return new AndroidStudioInstallation(options.testFileSystem, workDir, studioDir, options.androidStudioFlavor, options.disableFirstRun);
   }
 
   static public AndroidStudioInstallation fromDir(TestFileSystem testFileSystem, Path studioDir) throws IOException {
