@@ -23,6 +23,7 @@ import com.android.repository.impl.meta.RepositoryPackages
 import com.android.repository.testframework.FakePackage.FakeRemotePackage
 import com.android.repository.testframework.FakeRepoManager
 import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.sdklib.testing.AndroidSdkHandlerRule
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
@@ -40,7 +41,6 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBRadioButton
 import com.intellij.ui.treeStructure.Tree
-import org.junit.After
 import java.util.concurrent.TimeUnit
 import javax.swing.JButton
 import javax.swing.JLabel
@@ -53,14 +53,10 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameter
 import org.junit.runners.Parameterized.Parameters
-import org.mockito.MockedStatic
-import org.mockito.Mockito.CALLS_REAL_METHODS
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.mockStatic
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
-import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.whenever
@@ -77,25 +73,25 @@ class SetupSdkApplicationServiceTest {
   @Parameter @JvmField var isTestingLegacyWizard: Boolean? = null
 
   private val projectRule = AndroidProjectRule.withSdk().initAndroid(true)
+  private val sdkHandlerRule = AndroidSdkHandlerRule()
 
   @get:Rule
   val chain =
     RuleChain(
       FlagRule(StudioFlags.NPW_COMPILE_SDK_VERSION, 35),
       FlagRule(StudioFlags.SDK_SETUP_MIGRATED_WIZARD_ENABLED),
+      sdkHandlerRule,
       projectRule,
       HeadlessDialogRule(),
       EdtRule(),
     ) // AndroidProjectRule must get initialized off the EDT thread
 
-  private lateinit var mockAndroidSdkHandler: MockedStatic<AndroidSdkHandler>
   private val newSdkPath = FileUtil.createTempDirectory("sdk", null)
 
   @Before
   fun setUp() {
     StudioFlags.SDK_SETUP_MIGRATED_WIZARD_ENABLED.override(isTestingLegacyWizard == false)
 
-    mockAndroidSdkHandler = mockStatic(AndroidSdkHandler::class.java, CALLS_REAL_METHODS)
     val fakeRepoManager =
       spy(
         FakeRepoManager(
@@ -112,14 +108,9 @@ class SetupSdkApplicationServiceTest {
         )
       )
     val sdkHandler = AndroidSdkHandler(newSdkPath.toPath(), null, fakeRepoManager)
-    whenever(AndroidSdkHandler.getInstance(any(), eq(newSdkPath.toPath()))).thenReturn(sdkHandler)
+    sdkHandlerRule.instanceProvider = AndroidSdkHandler.InstanceProvider { _, _ -> sdkHandler }
 
     IdeSdks.removeJdksOn(projectRule.testRootDisposable)
-  }
-
-  @After
-  fun tearDown() {
-    mockAndroidSdkHandler.close()
   }
 
   @Test

@@ -42,7 +42,6 @@ public class MultiVersionTreeNode extends UpdaterTreeNode {
     if (max == null) {
       RepoPackage greatestPackage = AndroidSdkHandler.getLatestPackageFromPrefixCollection(
         ContainerUtil.map(myVersionNodes, DetailsTreeNode::getPackage),
-        null,
         true,
         Version::parse);
       max = myVersionNodes.stream().filter(node -> node.getPackage() == greatestPackage).findFirst().orElse(null);
