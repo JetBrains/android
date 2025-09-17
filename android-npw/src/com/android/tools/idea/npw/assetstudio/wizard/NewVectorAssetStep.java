@@ -186,8 +186,8 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
   public NewVectorAssetStep(@NotNull GenerateIconsModel model, @NotNull AndroidFacet facet) {
     super(model, "Configure Vector Asset");
-    setupUI();
     myFacet = facet;
+    setupUI();
 
     int minSdkVersion = StudioAndroidModuleInfo.getInstance(myFacet).getMinSdkVersion().getApiLevel();
     myIconGenerator = new VectorIconGenerator(myFacet.getModule().getProject(), minSdkVersion);
@@ -477,7 +477,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     myIconPickerPanel.add(jBLabel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                         GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
                                                         null, 0, false));
-    myClipartAssetButton = new VectorIconButton();
+    myClipartAssetButton = new VectorIconButton(myFacet);
     myIconPickerPanel.add(myClipartAssetButton, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK |
                                                                     GridConstraints.SIZEPOLICY_CAN_GROW,

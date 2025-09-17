@@ -379,7 +379,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                     boolean isMonochromeSupported) {
     super(new BorderLayout());
     myIsMonochromeSupported = isMonochromeSupported;
-    setupUI(isMonochromeSupported);
+    setupUI(isMonochromeSupported, facet);
     myIconType = iconType;
     myDefaultOutputName = myIconType.toOutputName("");
 
@@ -915,7 +915,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
    *
    * @param isMonochromeSupported when true adds a tab to create monochrome icons, when false it doesn't add the monochrome tab.
    */
-  private void setupUI(boolean isMonochromeSupported) {
+  private void setupUI(boolean isMonochromeSupported, AndroidFacet androidFacet) {
     myRootPanel = new JPanel();
     myRootPanel.setLayout(new GridLayoutManager(2, 1, JBUI.emptyInsets(), -1, -1));
     myOutputNamePanelRow = new JPanel();
@@ -952,11 +952,11 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     imagePanelToolbar.setBorder(
       BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0), null, TitledBorder.DEFAULT_JUSTIFICATION,
                                        TitledBorder.DEFAULT_POSITION, null, null));
-    addForegroundLayerTab(imagePanelToolbar);
+    addForegroundLayerTab(imagePanelToolbar, androidFacet);
     addBackgroundLayerTab(imagePanelToolbar);
     // Don't create the monochrome tab panel if monochrome icons aren't supported for the given Icon Panel (for example Tv channel icons).
     if (isMonochromeSupported) {
-      addMonochromeLayerTab(imagePanelToolbar);
+      addMonochromeLayerTab(imagePanelToolbar, androidFacet);
     }
     addOtherImageOptionLayerTab(imagePanelToolbar);
   }
@@ -1471,7 +1471,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                                         GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
   }
 
-  private void addForegroundLayerTab(JBTabbedPane jBTabbedPane1) {
+  private void addForegroundLayerTab(JBTabbedPane jBTabbedPane1, AndroidFacet androidFacet) {
     final JPanel panel2 = new JPanel();
     panel2.setLayout(new GridLayoutManager(1, 1, JBUI.emptyInsets(), -1, -1));
     jBTabbedPane1.addTab("Foreground Layer", panel2);
@@ -1592,7 +1592,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                          new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                              GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
                                                              new Dimension(70, -1), null, null, 1, false));
-    myForegroundClipartAssetButton = new ClipartIconButton();
+    myForegroundClipartAssetButton = new ClipartIconButton(androidFacet);
     myForegroundClipartAssetRowPanel.add(myForegroundClipartAssetButton,
                                          new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                              GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
@@ -1741,7 +1741,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                                         GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
   }
 
-  private void addMonochromeLayerTab(JBTabbedPane jBTabbedPane1) {
+  private void addMonochromeLayerTab(JBTabbedPane jBTabbedPane1, AndroidFacet androidFacet) {
     final JPanel panel2 = new JPanel();
     panel2.setLayout(new GridLayoutManager(1, 3, JBUI.emptyInsets(), -1, -1));
     jBTabbedPane1.addTab("Monochrome", panel2);
@@ -1861,7 +1861,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                          new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                              GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
                                                              new Dimension(70, -1), null, null, 1, false));
-    myMonochromeClipartAssetButton = new ClipartIconButton();
+    myMonochromeClipartAssetButton = new ClipartIconButton(androidFacet);
     myMonochromeClipartAssetRowPanel.add(myMonochromeClipartAssetButton,
                                          new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                              GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,

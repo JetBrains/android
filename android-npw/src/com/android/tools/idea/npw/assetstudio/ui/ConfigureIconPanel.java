@@ -226,7 +226,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
                             @NotNull AndroidIconType iconType, int minSdkVersion, @NotNull ValidatorPanel validatorPanel,
                             @Nullable DrawableRenderer renderer) {
     super(new BorderLayout());
-    setupUI();
+    setupUI(facet);
 
     myIconType = iconType;
     myDefaultOutputName = myIconType.toOutputName("name");
@@ -354,7 +354,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     }
   }
 
-  private void setupUI() {
+  private void setupUI(AndroidFacet androidFacet) {
     myRootPanel = new JPanel();
     myRootPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
     myScrollPane = new JBScrollPane();
@@ -724,7 +724,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     myClipartAssetRowPanel.add(myClipartLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                                    GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
                                                                    null, null, 0, false));
-    myClipartAssetButton = new ClipartIconButton();
+    myClipartAssetButton = new ClipartIconButton(androidFacet);
     myClipartAssetRowPanel.add(myClipartAssetButton, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK |
                                                                          GridConstraints.SIZEPOLICY_CAN_GROW,

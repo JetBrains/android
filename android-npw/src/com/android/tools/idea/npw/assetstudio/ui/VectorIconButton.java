@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.assetstudio.ui;
 
 import com.android.ide.common.vectordrawable.VdIcon;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.npw.assetstudio.wizard.PersistentState;
@@ -39,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,15 +58,26 @@ public final class VectorIconButton extends JButton
 
   @Nullable private VdIcon myIcon;
 
-  public VectorIconButton() {
-    addActionListener(actionEvent -> {
+  public VectorIconButton(AndroidFacet myAndroidFacet) {
+    ActionListener actionListener =
+      StudioFlags.DYNAMIC_MATERIAL_SYMBOLS.get() ?
+      actionEvent -> {
+        SymbolPickerDialog iconPicker = new SymbolPickerDialog(myAndroidFacet, this);
+        if (iconPicker.showAndGet()) {
+          VdIcon selectedIcon = iconPicker.getSelectedIcon();
+          updateIcon(selectedIcon);
+        }
+      } :
+    actionEvent -> {
       IconPickerDialog iconPicker = new IconPickerDialog(myIcon);
       if (iconPicker.showAndGet()) {
         VdIcon selectedIcon = iconPicker.getSelectedIcon();
         assert selectedIcon != null; // Not null if user pressed OK.
         updateIcon(selectedIcon);
       }
-    });
+    };
+
+    addActionListener(actionListener);
 
     myXmlAsset.path().addListener(() -> {
       ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null);

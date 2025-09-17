@@ -18,7 +18,6 @@ package com.android.tools.idea.material.icons
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ide.common.vectordrawable.VdIcon
-import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.material.icons.common.BundledMetadataUrlProvider
 import com.android.tools.idea.material.icons.common.MaterialSymbolsFontUrlProvider
 import com.android.tools.idea.material.icons.common.SdkMaterialIconsUrlProvider
@@ -28,12 +27,11 @@ import com.android.tools.idea.material.icons.common.Symbols
 import com.android.tools.idea.material.icons.download.MaterialSymbolsUpdater
 import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
 import com.android.tools.idea.material.icons.metadata.MaterialMetadataIcon
-import com.intellij.openapi.Disposable
 import com.jetbrains.rd.util.reflection.toPath
 import java.io.File
 import java.time.Duration
 import java.time.Instant
-import kotlin.coroutines.EmptyCoroutineContext
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -50,17 +48,16 @@ class MaterialSymbolsLoader {
     /**
      * Function that ensures Material Symbols Metadata and font files are downloaded and up-to-date
      *
-     * @param parentDisposable The [Disposable] for binding all ongoing downloads
+     * @param scope The [CoroutineScope] for launching all downloads
      * @param forceMetadataDownload If true, will update the metadata regardless of automated
      *   internal checks
      * @param callback Callback function to be called when metadata has been provided
      */
     suspend fun getMaterialSymbolsFontsAndMetadata(
-      parentDisposable: Disposable,
+      scope: CoroutineScope,
       forceMetadataDownload: Boolean,
       callback: @UiThread (MaterialIconsMetadata) -> Unit,
     ) {
-      val scope = parentDisposable.createCoroutineScope(extraContext = EmptyCoroutineContext)
       val symbolDownloadsToStart =
         Symbols.entries.filter { !MaterialSymbolsFontUrlProvider.hasFontPathInSdk(it) }
       val downloads: MutableList<Job> =

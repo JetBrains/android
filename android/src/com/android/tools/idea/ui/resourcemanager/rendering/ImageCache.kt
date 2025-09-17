@@ -100,6 +100,10 @@ class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
     objectToImage.invalidateAll()
   }
 
+  fun size(): Long {
+    return objectToImage.size()
+  }
+
   /**
    * Return the value identified by [AssetKey] in the cache if it exists, otherwise returns the [placeholder] image
    * and gets the image from the [CompletableFuture] returned by [computationFutureProvider].
