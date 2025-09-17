@@ -212,6 +212,11 @@ public final class StudioFlags {
     "Enable XR template",
     "Allows the XR template to be used.");
 
+  public static final Flag<Boolean> NPW_ENABLE_XR_GLASSES_TEMPLATE = new BooleanFlag(
+    NPW, "xr.glasses.template",
+    "Enable XR Glasses template",
+    "Allows the XR Glasses template to be used.");
+
   public static final Flag<Boolean> NPW_ENABLE_NAVIGATION_UI_TEMPLATE = new BooleanFlag(
     NPW, "navigationui.template",
     "Enable Navigation UI template",
