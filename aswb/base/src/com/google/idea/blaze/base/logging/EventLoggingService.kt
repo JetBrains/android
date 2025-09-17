@@ -19,7 +19,6 @@ import com.google.idea.blaze.base.logging.utils.HighlightStats
 import com.google.idea.blaze.base.logging.utils.SyncStats
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStats
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats
-import com.google.idea.blaze.ext.Logentry.AiEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 
@@ -35,7 +34,7 @@ abstract class EventLoggingService {
 
   abstract fun log(project: Project, querySyncAutoConversionStats: QuerySyncAutoConversionStats)
 
-  abstract fun log(aiEvent: AiEvent)
+  abstract fun log(project: Project, aiEvent: AiEvent)
 
   abstract fun log(caller: Any?, command: Command)
 
