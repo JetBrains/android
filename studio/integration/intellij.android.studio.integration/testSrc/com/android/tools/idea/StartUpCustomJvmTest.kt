@@ -18,6 +18,7 @@ package com.android.tools.idea
 import com.android.tools.asdriver.tests.AndroidStudioInstallation
 import com.android.tools.testlib.Display
 import com.android.tools.testlib.TestFileSystem
+import com.android.utils.FileUtils
 import com.android.utils.withResources
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
@@ -32,9 +33,12 @@ internal class StartUpCustomJvmTest {
   @Test
   fun startUpWithCustomJvmTest() {
     val fileSystem = TestFileSystem(tempFolder.root.toPath())
-    val install = AndroidStudioInstallation.fromZip(fileSystem)
-    val newJvm = install.studioDir.resolve("jbr1")
-    install.studioDir.resolve("jbr").toFile().renameTo(newJvm.toFile())
+    val install = AndroidStudioInstallation.fromDir(fileSystem)
+    // Create a new directory jbr1 and copy the contents of the original Jvm
+    val newJvm = tempFolder.newFolder("jbr1").toPath()
+    val originalJvm = install.studioDir.resolve("jbr")
+    FileUtils.copyDirectory(originalJvm.toFile(), newJvm.toFile())
+    // Ensure that the Ide uses our new Jvm directory
     val env = mapOf("STUDIO_JDK" to newJvm.toString())
 
     withResources(Display.createDefault(), { install.run(it, env) }) { _, studio ->

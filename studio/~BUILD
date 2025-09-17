@@ -1237,7 +1237,6 @@ iml_module(
 
 iml_test(
     name = "StartUpTest",
-    data = ["//tools/adt/idea/studio:android-studio_files"],
     module = ":intellij.android.studio.integration",
     tags_linux = ["block-network"],
     tags_mac = [
@@ -1281,7 +1280,12 @@ iml_test(
 
 iml_test(
     name = "UpdateTest",
-    data = [
+    data = select({
+        "@platforms//os:linux": ["//tools/adt/idea/studio:android-studio.linux.zip"],
+        "//tools/base/bazel/platforms:macos-x86_64": ["//tools/adt/idea/studio:android-studio.mac.zip"],
+        "//tools/base/bazel/platforms:macos-arm64": ["//tools/adt/idea/studio:android-studio.mac_arm.zip"],
+        "@platforms//os:windows": ["//tools/adt/idea/studio:android-studio.win.zip"],
+    }) + [
         ":updater",
         ":updater.jar",
     ],
@@ -1294,8 +1298,6 @@ iml_test(
 iml_test(
     name = "WebpSupportTest",
     module = ":intellij.android.studio.integration",
-    # TODO(b/302730760) enable test when WebP support is fully fixed
-    tags = ["manual"],
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.WebpSupportTest",

@@ -39,7 +39,7 @@ public class EssentialPluginsTest {
   @Test
   public void essentialPluginsTest() throws Exception {
     TestFileSystem fileSystem = new TestFileSystem(tempFolder.getRoot().toPath());
-    AndroidStudioInstallation install = AndroidStudioInstallation.fromZip(fileSystem);
+    AndroidStudioInstallation install = AndroidStudioInstallation.fromDir(fileSystem);
     install.addVmOption("-Didea.is.internal=true"); // Allows executing internal actions in the test.
 
     // Force-retain certain plugins needed for testing (i.e., Android Studio Driver and its dependencies).

@@ -43,16 +43,6 @@ intellij_plugin(
     ],
 )
 
-alias(
-    name = "studio_zips",
-    actual = select({
-        "@platforms//os:linux": "//tools/adt/idea/studio:android-studio.linux.zip",
-        "//tools/base/bazel/platforms:macos-x86_64": "//tools/adt/idea/studio:android-studio.mac.zip",
-        "//tools/base/bazel/platforms:macos-arm64": "//tools/adt/idea/studio:android-studio.mac_arm.zip",
-        "@platforms//os:windows": "//tools/adt/idea/studio:android-studio.win.zip",
-    }),
-)
-
 # TODO: Switch to use full Sherlock (i.e., Sherlock Platform + Sherlock Plugin).
 # This is currently using the Sherlock Platform. It doesn't have Sherlock Plugin,
 # and it also doesn't have bundled plugins (performanceTesting is not included either).
@@ -74,7 +64,7 @@ iml_module(
         "//tools/adt/idea/as-driver:asdriver.plugin",
         "//tools/base/threading-agent:threading_agent.jar",
     ] + select({
-        "@intellij//:studio-sdk": [":studio_zips"],
+        "@intellij//:studio-sdk": ["//tools/adt/idea/studio:android-studio_files"],
         "@intellij//:sherlock-sdk": [
             ":sherlock_zips",
             # TODO: remove performanceTesting zip from here. When we switch sherlock_zip from pure
