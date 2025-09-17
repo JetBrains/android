@@ -290,8 +290,7 @@ interface AndroidProjectRule : TestRule {
       androidPlatformVersion: AndroidVersion = Sdks.getLatestAndroidPlatform()
     ): IntegrationTestEnvironmentRule {
       val projectRule = withAndroidModels(androidPlatformVersion = androidPlatformVersion)
-      val wrappedRules: TestRule =
-        RuleChain.outerRule(EdtAndroidProjectRule(projectRule)).around(EdtRule())!!
+      val wrappedRules: TestRule = EdtAndroidProjectRule(projectRule)
       return object : IntegrationTestEnvironmentRule, TestRule by wrappedRules {
         override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
 
