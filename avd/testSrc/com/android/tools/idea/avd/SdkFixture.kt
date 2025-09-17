@@ -139,18 +139,17 @@ class SdkFixture {
         FakeLocalPackage(fullPath, location)
       }
     pkg.displayName = displayName
-    // TODO merge
-    //pkg.typeDetails =
-    //  AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType().apply {
-    //    this.tags.addAll(tags)
-    //    this.abis.addAll(abis)
-    //    this.translatedAbis.addAll(translatedAbis)
-    //    this.vendor = vendor
-    //    this.apiLevelString = androidVersion.apiStringWithoutExtension
-    //    this.codename = androidVersion.codename
-    //    this.isBaseExtension = androidVersion.isBaseExtension
-    //    this.extensionLevel = androidVersion.extensionLevel
-    //  } as TypeDetails
+    pkg.typeDetails =
+      AndroidSdkHandler.sysImgModule.createLatestFactory().createSysImgDetailsType().apply {
+        this.tags.addAll(tags)
+        this.abis.addAll(abis)
+        this.translatedAbis.addAll(translatedAbis)
+        this.vendor = vendor
+        this.apiLevelString = androidVersion.apiStringWithoutExtension
+        this.codename = androidVersion.codename
+        this.isBaseExtension = androidVersion.isBaseExtension
+        this.extensionLevel = androidVersion.extensionLevel
+      } as TypeDetails
     return pkg
   }
 
