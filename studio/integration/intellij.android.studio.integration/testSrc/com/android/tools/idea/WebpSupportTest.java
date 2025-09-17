@@ -33,7 +33,7 @@ public class WebpSupportTest {
   @Test
   public void testWebpSupported() throws Exception {
     TestFileSystem fileSystem = new TestFileSystem(tempFolder.getRoot().toPath());
-    AndroidStudioInstallation install = AndroidStudioInstallation.fromZip(fileSystem);
+    AndroidStudioInstallation install = AndroidStudioInstallation.fromDir(fileSystem);
     install.addVmOption("-Didea.is.internal=true");
 
     try (Display display = Display.createDefault(); AndroidStudio studio = install.run(display)) {
