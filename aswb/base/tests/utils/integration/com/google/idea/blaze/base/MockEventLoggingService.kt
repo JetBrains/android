@@ -16,13 +16,13 @@
 package com.google.idea.blaze.base
 
 import com.google.common.collect.ImmutableList
+import com.google.idea.blaze.base.logging.AiEvent
 import com.google.idea.blaze.base.logging.Command
 import com.google.idea.blaze.base.logging.EventLoggingService
 import com.google.idea.blaze.base.logging.utils.HighlightStats
 import com.google.idea.blaze.base.logging.utils.SyncStats
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStats
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats
-import com.google.idea.blaze.ext.Logentry.AiEvent
 import com.google.idea.testing.ServiceHelper
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -62,7 +62,7 @@ class MockEventLoggingService(parentDisposable: Disposable) : EventLoggingServic
     querySyncAutoConversionStats.add(stats)
   }
 
-  override fun log(aiEvent: AiEvent) {
+  override fun log(project: Project, aiEvent: AiEvent) {
     aiEvents.add(aiEvent)
   }
 
