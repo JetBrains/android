@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.compose.ComposeGradleProjectRule
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.SimpleComposeAppPaths
 import com.android.tools.idea.compose.getPsiFile
 import com.android.tools.idea.compose.preview.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.ComposeVisualLintIssueProvider
@@ -62,10 +63,7 @@ class ComposeVisualLintSuppressTaskTest {
     val (targetFile, previewElement) =
       runBlocking {
         val psiFile =
-          getPsiFile(
-            projectRule.project,
-            "app/src/main/java/google/simpleapplication/VisualLintPreview.kt",
-          )
+          getPsiFile(projectRule.project, SimpleComposeAppPaths.APP_VISUAL_LINT_PREVIEW.path)
         psiFile.virtualFile to
           // needs to be a smartReadAction as RootsChangedDumbModeTask may be queued
           smartReadAction(projectRule.project) {
@@ -161,10 +159,7 @@ class ComposeVisualLintSuppressTaskTest {
     val (targetFile, previewElement) =
       runBlocking {
         val psiFile =
-          getPsiFile(
-            projectRule.project,
-            "app/src/main/java/google/simpleapplication/VisualLintPreview.kt",
-          )
+          getPsiFile(projectRule.project, SimpleComposeAppPaths.APP_VISUAL_LINT_PREVIEW.path)
         psiFile.virtualFile to
           // needs to be a smartReadAction as RootsChangedDumbModeTask may be queued
           smartReadAction(projectRule.project) {
