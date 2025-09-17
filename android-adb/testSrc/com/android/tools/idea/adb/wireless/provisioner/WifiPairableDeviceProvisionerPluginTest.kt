@@ -16,6 +16,10 @@
 package com.android.tools.idea.adb.wireless.provisioner
 
 import com.android.adblib.AdbFeatures
+import com.android.adblib.AdbSession
+import com.android.adblib.ConnectedDevice
+import com.android.adblib.CoroutineScopeCache
+import com.android.adblib.DeviceInfo
 import com.android.adblib.MdnsServices
 import com.android.adblib.MdnsTlsService
 import com.android.adblib.MdnsTrackServiceInfo
@@ -44,6 +48,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.isActive
@@ -134,8 +139,25 @@ class WifiPairableDeviceProvisionerPluginTest {
 
   @Test
   fun knownDevices_areIgnored() = runTest {
-    mdnsFlow.value = createMdnsTlsService("service1", knownDevice = true)
+    mdnsFlow.value = createMdnsTlsService("adb-35121FDJH000R8-fYN6pK")
     val plugin = WifiPairableDeviceProvisionerPlugin(backgroundScope, adbService, project)
+    val cache: CoroutineScopeCache = mock()
+    whenever(cache.scope).thenReturn(backgroundScope)
+    plugin.claim(
+      object : ConnectedDevice {
+        override val session: AdbSession
+          get() = TODO("Not yet implemented")
+
+        override val cache: CoroutineScopeCache
+          get() = cache
+
+        override val deviceInfoFlow: StateFlow<DeviceInfo>
+          get() = _deviceInfoFlow
+
+        private val _deviceInfoFlow: MutableStateFlow<DeviceInfo> =
+          MutableStateFlow(DeviceInfo("adb-35121FDJH000R8-fYN6pK._adb-tls-connect._tcp", mock()))
+      }
+    )
     advanceTimeBy(6000) // Past initial delay
 
     assertThat(plugin.devices.value).isEmpty()
