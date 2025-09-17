@@ -113,7 +113,6 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
 
   private static final File DEFAULT_FOREGROUND_IMAGE = getBundledImage("asset_studio", "ic_launcher_foreground.xml");
   private static final File DEFAULT_BACKGROUND_IMAGE = getBundledImage("asset_studio", "ic_launcher_background.xml");
-  private static final File DEFAULT_MONOCHROME_IMAGE = getBundledImage("asset_studio", "ic_launcher_monochrome.xml");
   private static final ForegroundAssetType DEFAULT_FOREGROUND_ASSET_TYPE = ForegroundAssetType.IMAGE;
   private static final BackgroundAssetType DEFAULT_BACKGROUND_ASSET_TYPE = BackgroundAssetType.IMAGE;
   private static final MonochromeAssetType DEFAULT_MONOCHROME_ASSET_TYPE = MonochromeAssetType.IMAGE;
@@ -484,7 +483,6 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myBackgroundColorPanel.setSelectedColor(myIconGenerator.backgroundColor().get());
 
     if (isMonochromeSupported) {
-      myMonochromeImageAssetBrowser.getAsset().setDefaultImagePath(DEFAULT_MONOCHROME_IMAGE);
       myMonochromeTextAssetEditor.getAsset().setDefaultText("Aa");
       myMonochromeLayerName = new TextProperty(myMonochromeLayerNameTextField);
       myMonochromeLayerName.set(defaultMonochromeLayerName());
@@ -500,7 +498,6 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
         MonochromeAssetType.IMAGE, myMonochromeImageAssetBrowser,
         MonochromeAssetType.CLIP_ART, myMonochromeClipartAssetButton,
         MonochromeAssetType.TEXT, myMonochromeTextAssetEditor);
-      myMonochromeImageAssetBrowser.getAsset().imagePath().setValue(DEFAULT_MONOCHROME_IMAGE);
       myMonochromeLayerNameLabel.setLabelFor(myMonochromeLayerNameTextField);
       myMonochromeAssetTypeLabel.setLabelFor(myMonochromeAssetRadioButtonsPanel);
       myMonochromeImagePathLabel.setLabelFor(myMonochromeImageAssetBrowser);
@@ -515,7 +512,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
       // We start with an unset active asset for Monochrome as this is an optional choice for now.
       // In case Monochrome is not set (and the optional value property is empty) we fallback to
       // foreground layer
-      myMonochromeActiveAsset = new OptionalValueProperty<>();
+      myMonochromeActiveAsset = new OptionalValueProperty<>(myMonochromeImageAssetBrowser.getAsset());
       myMonochromeImageAssetBrowser.getAsset().setRole("monochrome image");
       myMonochromeColorPanel.setSelectedColor(DEFAULT_FOREGROUND_COLOR);
       for (AssetComponent<?> assetComponent : myMonochromeAssetPanelMap.values()) {
@@ -687,7 +684,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                    myGenerateRoundIcon, myGeneratePlayStoreIcon, myGenerateWebpIcons)
         .with(onAssetModified);
 
-      // Listens for changes to the controls on the foreground panel. When the asset is changed,
+      // Listens for changes to the controls on the monochrome panel. When the asset is changed,
       // it updates the controller bindings to match the properties of the new asset.
       myListeners.listenAndFire(myMonochromeActiveAsset, () -> {
         myMonochromeActiveAssetBindings.releaseAll();
