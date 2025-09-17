@@ -294,7 +294,7 @@ class WifiAvailableDevicesDialog(
         },
         modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
       )
-      Spacer(modifier = Modifier.weight(1f))
+      Spacer(modifier = Modifier.padding(5.dp))
 
       Row(Modifier.padding(start = 4.dp, end = 4.dp, top = 6.dp)) {
         SearchBar(
