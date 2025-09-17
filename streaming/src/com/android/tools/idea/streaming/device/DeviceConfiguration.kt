@@ -25,7 +25,7 @@ import com.intellij.openapi.util.text.StringUtil.toTitleCase
  */
 class DeviceConfiguration(val deviceProperties: DeviceProperties, useTitleAsName: Boolean = false) {
   val apiLevel: Int
-    get() = deviceProperties.androidVersion?.apiLevel ?: SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
+    get() = deviceProperties.androidVersion?.androidApiLevel?.majorVersion ?: SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 
   val featureLevel: Int
     get() = deviceProperties.androidVersion?.featureLevel ?: SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
