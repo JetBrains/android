@@ -28,6 +28,6 @@ class NoopEventLoggingService : EventLoggingService() {
   override fun log(project: Project, querySyncStats: QuerySyncActionStats) = Unit
   override fun log(project: Project, querySyncAutoConversionStats: QuerySyncAutoConversionStats) = Unit
   override fun log(aiEvent: AiEvent) = Unit
-  override fun logCommand(caller: Any?, command: Command) = Unit
+  override fun log(caller: Any?, command: Command) = Unit
   override fun log(project: Project, highlightStats: HighlightStats) = Unit
 }
