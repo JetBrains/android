@@ -2371,6 +2371,11 @@ Android Studio Preview.app/Contents/plugins/android/lib/sdk-tools.jar
 Android Studio Preview.app/Contents/plugins/android/lib/sdklib-sdk-schema.jar
 Android Studio Preview.app/Contents/plugins/android/lib/sdklib.jar
 Android Studio Preview.app/Contents/plugins/android/lib/shared.jar
+Android Studio Preview.app/Contents/plugins/android/lib/shark-2.14.jar
+Android Studio Preview.app/Contents/plugins/android/lib/shark-android-2.14.jar
+Android Studio Preview.app/Contents/plugins/android/lib/shark-graph-2.14.jar
+Android Studio Preview.app/Contents/plugins/android/lib/shark-hprof-2.14.jar
+Android Studio Preview.app/Contents/plugins/android/lib/shark-log-2.14.jar
 Android Studio Preview.app/Contents/plugins/android/lib/smali-baksmali-3.0.9.jar
 Android Studio Preview.app/Contents/plugins/android/lib/smali-dexlib2-3.0.9.jar
 Android Studio Preview.app/Contents/plugins/android/lib/smali-util-3.0.9.jar
