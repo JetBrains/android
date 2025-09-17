@@ -19,7 +19,6 @@ import com.google.idea.blaze.base.logging.utils.HighlightStats
 import com.google.idea.blaze.base.logging.utils.SyncStats
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStats
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats
-import com.google.idea.blaze.ext.Logentry.AiEvent
 import com.intellij.openapi.project.Project
 
 /** An [EventLoggingService] that does nothing, used in case there isn't one registered. */
@@ -27,7 +26,7 @@ class NoopEventLoggingService : EventLoggingService() {
   override fun log(project: Project, syncStats: SyncStats) = Unit
   override fun log(project: Project, querySyncStats: QuerySyncActionStats) = Unit
   override fun log(project: Project, querySyncAutoConversionStats: QuerySyncAutoConversionStats) = Unit
-  override fun log(aiEvent: AiEvent) = Unit
+  override fun log(project: Project, aiEvent: AiEvent) = Unit
   override fun log(caller: Any?, command: Command) = Unit
   override fun log(project: Project, highlightStats: HighlightStats) = Unit
 }
