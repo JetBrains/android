@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
+import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.UpdateReferenceImagesFromTestPanelAction
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
@@ -32,6 +33,10 @@ import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.largeFilesEditor.GuiUtils
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUiKind
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -53,6 +58,8 @@ import java.util.Arrays
 import java.util.Locale
 import javax.swing.Box
 import javax.swing.BoxLayout
+import javax.swing.JButton
+import javax.swing.JComponent
 import javax.swing.JPanel
 
 /**
@@ -77,6 +84,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
   @VisibleForTesting var myScreenshotAttributesTab: TabInfo
   private val myScreenshotAttributesView: ScreenshotAttributesView
   val myJourneysResultsPanel: JourneysResultsPanel
+  @VisibleForTesting val updateReferenceButton: JComponent
 
   @VisibleForTesting
   val myJourneyScreenshotsTab: TabInfo
@@ -162,6 +170,28 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     myDeviceInfoTab.setTooltipText("Show device information")
     tabs.addTab(myDeviceInfoTab)
 
+    // Create a standard JButton and wire it to the AnAction.
+    val action = UpdateReferenceImagesFromTestPanelAction()
+    updateReferenceButton = JButton(action.templatePresentation.text).apply {
+      addActionListener {
+
+        val dataContext = DataContext { dataId ->
+          if (CommonDataKeys.PROJECT.name == dataId) project else null
+        }
+        val event = AnActionEvent.createEvent(
+          dataContext,
+          action.templatePresentation.clone(),
+          "AndroidTestSuite.DetailsView.Header",
+          ActionUiKind.NONE,
+          null
+        )
+        action.actionPerformed(event)
+      }
+
+      // The button is hidden by default and only shown when screenshot results are available.
+      isVisible = false
+    }
+
     rootPanel = JPanel(BorderLayout()).apply {
       add(JPanel().apply {
         layout = BoxLayout(this, BoxLayout.LINE_AXIS)
@@ -171,6 +201,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
         add(myTestResultLabel)
         border = JBUI.Borders.empty(10)
         add(Box.createHorizontalGlue())
+        add(updateReferenceButton)
       }, BorderLayout.NORTH)
       add(tabs.component, BorderLayout.CENTER)
       minimumSize = Dimension()
@@ -233,10 +264,15 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     val refImage = additionalTestArtifacts["PreviewScreenshot.refImagePath"]
     val diffImage = additionalTestArtifacts["PreviewScreenshot.diffImagePath"]
     val diffPercent = additionalTestArtifacts["PreviewScreenshot.diffPercent"]?.takeIf { it.isNotBlank() }
-    if (newImage != null || refImage != null || diffImage != null) {
+
+    val shouldButtonBeVisible = (newImage != null || refImage != null || diffImage != null)
+    val visibilityChanged = (updateReferenceButton.isVisible != shouldButtonBeVisible)
+
+    if (shouldButtonBeVisible) {
       myScreenshotAttributesTab.isHidden = false
       myScreenshotTab.isHidden = false
       myDeviceInfoTab.isHidden = true
+      updateReferenceButton.isVisible = true
       myScreenshotResultView.newImagePath = newImage ?: ""
       myScreenshotResultView.refImagePath = refImage ?: ""
       myScreenshotResultView.diffImagePath = diffImage ?: ""
@@ -253,11 +289,18 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     } else {
       myScreenshotTab.isHidden = true
       myScreenshotAttributesTab.isHidden = true
+      updateReferenceButton.isVisible = false
     }
 
     val journeyActionArtifacts = JourneyActionArtifacts.parseFromAdditionalTestArtifacts(additionalTestArtifacts)
     myJourneysResultsPanel.updateArtifacts(journeyActionArtifacts)
     myJourneyScreenshotsTab.isHidden = journeyActionArtifacts.isEmpty()
+
+    // Only re-layout and repaint if the button's visibility has actually changed.
+    if (visibilityChanged) {
+      rootPanel.revalidate()
+      rootPanel.repaint()
+    }
 
     updateSelectedTab()
   }
