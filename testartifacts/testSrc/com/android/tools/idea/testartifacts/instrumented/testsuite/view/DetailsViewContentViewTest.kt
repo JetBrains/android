@@ -274,6 +274,7 @@ class DetailsViewContentViewTest {
 
     assertThat(view.myScreenshotTab.isHidden).isTrue()
     assertThat(view.myScreenshotAttributesTab.isHidden).isTrue()
+    assertThat(view.updateReferenceButton.isVisible).isFalse()
     assertThat(view.myDeviceInfoTab.isHidden).isFalse()
   }
 
@@ -288,6 +289,7 @@ class DetailsViewContentViewTest {
 
     assertThat(view.myScreenshotTab.isHidden).isFalse()
     assertThat(view.myScreenshotAttributesTab.isHidden).isFalse()
+    assertThat(view.updateReferenceButton.isVisible).isTrue()
     assertThat(view.myDeviceInfoTab.isHidden).isTrue()
   }
 
@@ -305,6 +307,7 @@ class DetailsViewContentViewTest {
 
     assertThat(view.myScreenshotTab.isHidden).isFalse()
     assertThat(view.myScreenshotAttributesTab.isHidden).isFalse()
+    assertThat(view.updateReferenceButton.isVisible).isTrue()
     assertThat(view.logsTab.isHidden).isFalse()
     assertThat(view.myLogsView.text).isEqualTo("No logs available")
     assertThat(view.myDeviceInfoTab.isHidden).isTrue()
