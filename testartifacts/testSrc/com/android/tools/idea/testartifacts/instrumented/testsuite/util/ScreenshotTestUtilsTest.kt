@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.util
 
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils.calculateMatchPercentage
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils.loadImageMetadata
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
@@ -33,9 +35,9 @@ class ScreenshotTestUtilsTest {
    * Verifies that a valid percentage difference is correctly parsed and converted to a match percentage.
    */
   @Test
-  fun testParseMatchPercentage() {
-    val stackTrace = "Difference: 1.23%"
-    val result = ScreenshotTestUtils.parseMatchPercentage(stackTrace)
+  fun testCalculateMatchPercentage() {
+    val diffPercent = "1.23"
+    val result = calculateMatchPercentage(diffPercent)
     assertThat(result).isEqualTo("98.77%")
   }
 
@@ -43,9 +45,9 @@ class ScreenshotTestUtilsTest {
    * Ensures that an invalid or non-numeric difference string results in a null match percentage.
    */
   @Test
-  fun testParseMatchPercentage_invalid() {
-    val stackTrace = "Some other error"
-    val result = ScreenshotTestUtils.parseMatchPercentage(stackTrace)
+  fun testCalculateMatchPercentage_invalid() {
+    val diffPercent = "Some other error"
+    val result = calculateMatchPercentage(diffPercent)
     assertThat(result).isNull()
   }
 
@@ -53,8 +55,8 @@ class ScreenshotTestUtilsTest {
    * Checks that a null input to parseMatchPercentage is handled gracefully and returns null.
    */
   @Test
-  fun testParseMatchPercentage_null() {
-    val result = ScreenshotTestUtils.parseMatchPercentage(null)
+  fun testCalculateMatchPercentage_null() {
+    val result = calculateMatchPercentage(null)
     assertThat(result).isNull()
   }
 
@@ -62,9 +64,9 @@ class ScreenshotTestUtilsTest {
    * Tests the case where the difference is exactly 0%, expecting a 100% match.
    */
   @Test
-  fun testParseMatchPercentage_zeroDifference() {
-    val stackTrace = "Difference: 0%"
-    val result = ScreenshotTestUtils.parseMatchPercentage(stackTrace)
+  fun testCalculateMatchPercentage_zeroDifference() {
+    val diffPercent = "0"
+    val result = calculateMatchPercentage(diffPercent)
     assertThat(result).isEqualTo("100.00%")
   }
 
@@ -72,9 +74,9 @@ class ScreenshotTestUtilsTest {
    * Verifies that a 100% difference correctly results in a 0% match.
    */
   @Test
-  fun testParseMatchPercentage_hundredDifference() {
-    val stackTrace = "Difference: 100%"
-    val result = ScreenshotTestUtils.parseMatchPercentage(stackTrace)
+  fun testCalculateMatchPercentage_hundredDifference() {
+    val diffPercent = "100"
+    val result = calculateMatchPercentage(diffPercent)
     assertThat(result).isEqualTo("0.00%")
   }
 
@@ -82,9 +84,9 @@ class ScreenshotTestUtilsTest {
    * Ensures that integer percentage differences are correctly handled.
    */
   @Test
-  fun testParseMatchPercentage_integerDifference() {
-    val stackTrace = "Difference: 10%"
-    val result = ScreenshotTestUtils.parseMatchPercentage(stackTrace)
+  fun testCalculateMatchPercentage_integerDifference() {
+    val diffPercent = "10"
+    val result = calculateMatchPercentage(diffPercent)
     assertThat(result).isEqualTo("90.00%")
   }
 
@@ -92,9 +94,9 @@ class ScreenshotTestUtilsTest {
    * Tests that percentage differences with more than two decimal places are correctly truncated and rounded.
    */
   @Test
-  fun testParseMatchPercentage_manyDecimalPlaces() {
-    val stackTrace = "Difference: 12.3456%"
-    val result = ScreenshotTestUtils.parseMatchPercentage(stackTrace)
+  fun testCalculateMatchPercentage_manyDecimalPlaces() {
+    val diffPercent = "12.3456"
+    val result = calculateMatchPercentage(diffPercent)
     assertThat(result).isEqualTo("87.65%")
   }
 
@@ -102,8 +104,8 @@ class ScreenshotTestUtilsTest {
    * Checks that an empty input string is handled gracefully and results in a null match percentage.
    */
   @Test
-  fun testParseMatchPercentage_emptyString() {
-    val result = ScreenshotTestUtils.parseMatchPercentage("")
+  fun testCalculateMatchPercentage_emptyString() {
+    val result = calculateMatchPercentage("")
     assertThat(result).isNull()
   }
 
@@ -113,7 +115,7 @@ class ScreenshotTestUtilsTest {
   @Test
   fun testLoadImageMetadata_validPng() = runBlocking {
     val imageFile = createImageFile("valid.png", "png")
-    val metadata = ScreenshotTestUtils.loadImageMetadata(imageFile.absolutePath)
+    val metadata = loadImageMetadata(imageFile.absolutePath)
     assertThat(metadata.dimensions).isEqualTo("100x50")
     assertThat(metadata.size).isEqualTo("0 KB")
     assertThat(metadata.date).isNotEqualTo(NOT_APPLICABLE)
@@ -125,7 +127,7 @@ class ScreenshotTestUtilsTest {
   @Test
   fun testLoadImageMetadata_validJpeg() = runBlocking {
     val imageFile = createImageFile("valid.jpeg", "jpeg")
-    val metadata = ScreenshotTestUtils.loadImageMetadata(imageFile.absolutePath)
+    val metadata = loadImageMetadata(imageFile.absolutePath)
     assertThat(metadata.dimensions).isEqualTo("100x50")
     assertThat(metadata.size).isEqualTo("0 KB")
     assertThat(metadata.date).isNotEqualTo(NOT_APPLICABLE)
@@ -136,7 +138,7 @@ class ScreenshotTestUtilsTest {
    */
   @Test
   fun testLoadImageMetadata_nullPath() = runBlocking {
-    val metadata = ScreenshotTestUtils.loadImageMetadata(null)
+    val metadata = loadImageMetadata(null)
     assertThat(metadata.dimensions).isEqualTo(NOT_APPLICABLE)
     assertThat(metadata.size).isEqualTo(NOT_APPLICABLE)
     assertThat(metadata.date).isEqualTo(NOT_APPLICABLE)
@@ -147,7 +149,7 @@ class ScreenshotTestUtilsTest {
    */
   @Test
   fun testLoadImageMetadata_nonExistentFile() = runBlocking {
-    val metadata = ScreenshotTestUtils.loadImageMetadata("nonexistent.png")
+    val metadata = loadImageMetadata("nonexistent.png")
     assertThat(metadata.dimensions).isEqualTo(NOT_APPLICABLE)
     assertThat(metadata.size).isEqualTo(NOT_APPLICABLE)
     assertThat(metadata.date).isEqualTo(NOT_APPLICABLE)
@@ -160,7 +162,7 @@ class ScreenshotTestUtilsTest {
   fun testLoadImageMetadata_notAnImage() = runBlocking {
     val notAnImage = tempFolder.newFile("not_an_image.txt")
     notAnImage.writeText("This is not an image")
-    val metadata = ScreenshotTestUtils.loadImageMetadata(notAnImage.absolutePath)
+    val metadata = loadImageMetadata(notAnImage.absolutePath)
     assertThat(metadata.dimensions).isEqualTo(NOT_APPLICABLE)
     assertThat(metadata.size).isNotEmpty()
     assertThat(metadata.date).isNotEmpty()
@@ -172,7 +174,7 @@ class ScreenshotTestUtilsTest {
   @Test
   fun testLoadImageMetadata_directory() = runBlocking {
     val directory = tempFolder.newFolder("a_directory")
-    val metadata = ScreenshotTestUtils.loadImageMetadata(directory.absolutePath)
+    val metadata = loadImageMetadata(directory.absolutePath)
     assertThat(metadata.dimensions).isEqualTo(NOT_APPLICABLE)
     assertThat(metadata.size).isEqualTo(NOT_APPLICABLE)
     assertThat(metadata.date).isEqualTo(NOT_APPLICABLE)
@@ -184,7 +186,7 @@ class ScreenshotTestUtilsTest {
   @Test
   fun testLoadImageMetadata_emptyFile() = runBlocking {
     val emptyFile = tempFolder.newFile("empty.png")
-    val metadata = ScreenshotTestUtils.loadImageMetadata(emptyFile.absolutePath)
+    val metadata = loadImageMetadata(emptyFile.absolutePath)
     assertThat(metadata.dimensions).isEqualTo(NOT_APPLICABLE)
     assertThat(metadata.size).isEqualTo(NOT_APPLICABLE)
     assertThat(metadata.date).isEqualTo(NOT_APPLICABLE)

@@ -45,20 +45,18 @@ data class ImageMetadata(
 
 object ScreenshotTestUtils {
   /**
-   * Parses the match percentage from an error stack trace.
+   * Calculates the match percentage from a difference percentage string.
    *
-   * The stack trace is expected to contain a line in the format "Difference: X.XX%".
-   * This method extracts the difference percentage, calculates the match percentage (100 - difference),
-   * and returns it as a formatted string.
+   * This method takes a difference percentage as a string (e.g., "1.23"),
+   * calculates the match percentage (100 - difference), and returns it as a
+   * formatted string (e.g., "98.77%").
    *
-   * @param errorStackTrace The error stack trace from a screenshot test.
-   * @return The match percentage as a formatted string (e.g., "98.77%"), or null if the
-   *         difference percentage cannot be parsed.
+   * @param diffPercent The difference percentage as a string.
+   * @return The match percentage as a formatted string, or null if the
+   *         input cannot be parsed.
    */
-  fun parseMatchPercentage(errorStackTrace: String?): String? {
-    if (errorStackTrace == null) return null
-    val differenceString = errorStackTrace.substringAfter("Difference: ").substringBefore("%")
-    val difference = differenceString.toFloatOrNull()
+  fun calculateMatchPercentage(diffPercent: String?): String? {
+    val difference = diffPercent?.substringBefore("%")?.toFloatOrNull()
     if (difference != null) {
       val match = 100 - difference
       return "%.2f%%".format(Locale.US, match)

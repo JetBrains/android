@@ -47,7 +47,7 @@ class ScreenshotAttributesViewTest {
         testMethodName = "myMethod",
         testClassName = "MyClass",
         result = AndroidTestCaseResult.PASSED,
-        errorStackTrace = null
+        diffPercent = null
     )
     assertThat(view.state.matchPercentage).isNull()
     assertThat(view.state.testResult).isEqualTo(AndroidTestCaseResult.PASSED)
@@ -62,14 +62,14 @@ class ScreenshotAttributesViewTest {
    * This implicitly tests that the summary color is red.
    */
   @Test
-  fun updateData_withFailedResultAndValidStackTrace_setsFailedState() {
+  fun updateData_withFailedResultAndValidDiff_setsFailedState() {
     view.updateData(
         refImagePath = "ref.png",
         newImagePath = "new.png",
         testMethodName = "myMethod",
         testClassName = "MyClass",
         result = AndroidTestCaseResult.FAILED,
-        errorStackTrace = "Difference: 25.50%"
+        diffPercent = "25.50"
     )
     assertThat(view.state.matchPercentage).isEqualTo("74.50%")
     assertThat(view.state.testResult).isEqualTo(AndroidTestCaseResult.FAILED)
@@ -84,14 +84,14 @@ class ScreenshotAttributesViewTest {
    * This implicitly tests that the summary color is red.
    */
   @Test
-  fun updateData_withFailedResultAndNullStackTrace_setsFailedState() {
+  fun updateData_withFailedResultAndNullDiff_setsFailedState() {
     view.updateData(
         refImagePath = "ref.png",
         newImagePath = "new.png",
         testMethodName = "myMethod",
         testClassName = "MyClass",
         result = AndroidTestCaseResult.FAILED,
-        errorStackTrace = null
+        diffPercent = null
     )
     assertThat(view.state.matchPercentage).isNull()
     assertThat(view.state.testResult).isEqualTo(AndroidTestCaseResult.FAILED)
@@ -113,7 +113,7 @@ class ScreenshotAttributesViewTest {
         testMethodName = null,
         testClassName = null,
         result = null,
-        errorStackTrace = null
+        diffPercent = null
     )
     assertThat(view.state.refLocation).isEqualTo("N/A")
     assertThat(view.state.newLocation).isEqualTo("N/A")

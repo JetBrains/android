@@ -52,7 +52,8 @@ import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ImageMetadata
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.NOT_APPLICABLE
-import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils.calculateMatchPercentage
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils.loadImageMetadata
 import java.awt.Desktop
 import java.io.File
 import com.intellij.ide.ui.LafManagerListener
@@ -128,7 +129,7 @@ class ScreenshotAttributesView {
      * @param testMethodName The name of the test method.
      * @param testClassName The name of the test class.
      * @param result The result of the test case.
-     * @param errorStackTrace The error stack trace, if any.
+     * @param diffPercent The difference percentage, if any.
      */
     @UiThread
     fun updateData(
@@ -137,9 +138,9 @@ class ScreenshotAttributesView {
         testMethodName: String?,
         testClassName: String?,
         result: AndroidTestCaseResult?,
-        errorStackTrace: String?,
+        diffPercent: String?,
     ) {
-        val matchPercentage = ScreenshotTestUtils.parseMatchPercentage(errorStackTrace)
+        val matchPercentage = calculateMatchPercentage(diffPercent)
 
         state = ScreenshotAttributesState(
             testResult = result,
@@ -162,10 +163,10 @@ class ScreenshotAttributesView {
         var newMetadata by remember { mutableStateOf(ImageMetadata()) }
 
         LaunchedEffect(currentState.refLocation) {
-            refMetadata = ScreenshotTestUtils.loadImageMetadata(currentState.refLocation.takeIf { it != NOT_APPLICABLE })
+            refMetadata = loadImageMetadata(currentState.refLocation.takeIf { it != NOT_APPLICABLE })
         }
         LaunchedEffect(currentState.newLocation) {
-            newMetadata = ScreenshotTestUtils.loadImageMetadata(currentState.newLocation.takeIf { it != NOT_APPLICABLE })
+            newMetadata = loadImageMetadata(currentState.newLocation.takeIf { it != NOT_APPLICABLE })
         }
 
         val isDarkTheme = LocalIsDarkTheme.current
@@ -176,10 +177,7 @@ class ScreenshotAttributesView {
         ) {
             Section("Summary") {
                 KeyValueRow("Match") {
-                    val text = currentState.matchPercentage ?: when(currentState.testResult) {
-                        AndroidTestCaseResult.FAILED -> "0.00%"
-                        else -> currentState.testResult?.name ?: NOT_APPLICABLE
-                    }
+                    val text = currentState.matchPercentage ?: currentState.testResult?.name ?: NOT_APPLICABLE
                     when (currentState.testResult) {
                         AndroidTestCaseResult.PASSED -> GreenText(text)
                         AndroidTestCaseResult.FAILED -> RedText(text)

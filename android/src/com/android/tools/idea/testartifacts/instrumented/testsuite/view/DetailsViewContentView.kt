@@ -232,6 +232,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     val newImage = additionalTestArtifacts["PreviewScreenshot.newImagePath"]
     val refImage = additionalTestArtifacts["PreviewScreenshot.refImagePath"]
     val diffImage = additionalTestArtifacts["PreviewScreenshot.diffImagePath"]
+    val diffPercent = additionalTestArtifacts["PreviewScreenshot.diffPercent"]?.takeIf { it.isNotBlank() }
     if (newImage != null || refImage != null || diffImage != null) {
       myScreenshotAttributesTab.isHidden = false
       myScreenshotTab.isHidden = false
@@ -247,7 +248,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
         testResults?.methodName,
         testResults?.className,
         myAndroidTestCaseResult,
-        myErrorStackTrace
+        diffPercent
       )
     } else {
       myScreenshotTab.isHidden = true
