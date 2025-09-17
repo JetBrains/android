@@ -55,9 +55,7 @@ class ManagedVirtualDeviceCatalogServiceTest : LightPlatform4TestCase() {
     val pkg =
       FakePackage.FakeRemotePackage("system-images;android-23;default;armeabi-v7a").apply {
         typeDetails =
-          AndroidSdkHandler.getSysImgModule()
-            .createLatestFactory()
-            .createSysImgDetailsType()
+          AndroidSdkHandler.sysImgModule.createLatestFactory().createSysImgDetailsType()
             .apply {
               apiLevel = 23
               abis.add("armeabi-v7a")

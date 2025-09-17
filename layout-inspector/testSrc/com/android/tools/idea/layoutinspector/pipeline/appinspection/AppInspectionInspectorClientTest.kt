@@ -1337,12 +1337,11 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
       if (isRemote) FakePackage.FakeRemotePackage("mySysImg-$apiLevel")
       else FakePackage.FakeLocalPackage("mySysImg-$apiLevel", sdkRoot.resolve("mySysImg"))
     sdkPackage.setRevision(Revision(revision))
-    // TODO merge
-    //val packageDetails =
-    //  AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType()
-    //packageDetails.apiLevel = apiLevel
-    //tag?.let { packageDetails.tags.add(it) }
-    //sdkPackage.typeDetails = packageDetails as TypeDetails
+    val packageDetails =
+      AndroidSdkHandler.sysImgModule.createLatestFactory().createSysImgDetailsType()
+    packageDetails.apiLevel = apiLevel
+    tag?.let { packageDetails.tags.add(it) }
+    sdkPackage.typeDetails = packageDetails as TypeDetails
     return sdkPackage
   }
 

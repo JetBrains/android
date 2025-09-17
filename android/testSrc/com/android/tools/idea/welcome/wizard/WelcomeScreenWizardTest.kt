@@ -23,6 +23,7 @@ import com.android.repository.impl.meta.RepositoryPackages
 import com.android.repository.testframework.FakePackage.FakeRemotePackage
 import com.android.repository.testframework.FakeRepoManager
 import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.sdklib.testing.AndroidSdkHandlerRule
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
@@ -99,7 +100,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.atLeastOnce
 import org.mockito.kotlin.doAnswer
-import org.mockito.kotlin.eq
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -118,12 +118,14 @@ class WelcomeScreenWizardTest {
   @Parameter @JvmField var isTestingLegacyWizard: Boolean? = null
 
   private val projectRule = AndroidProjectRule.withSdk().initAndroid(true)
+  private val sdkHandlerRule = AndroidSdkHandlerRule()
 
   @get:Rule
   val chain =
     RuleChain(
       FlagRule(StudioFlags.NPW_COMPILE_SDK_VERSION, 35),
       FlagRule(StudioFlags.SDK_SETUP_MIGRATED_WIZARD_ENABLED),
+      sdkHandlerRule,
       projectRule,
       HeadlessDialogRule(),
       EdtRule(),
@@ -131,7 +133,6 @@ class WelcomeScreenWizardTest {
 
   private lateinit var sdkPath: File
   private lateinit var mockFirstRunWizardDefaults: MockedStatic<FirstRunWizardDefaults>
-  private lateinit var mockAndroidSdkHandler: MockedStatic<AndroidSdkHandler>
   private lateinit var fakeRepoManager: RepoManager
 
   @Before
@@ -146,7 +147,6 @@ class WelcomeScreenWizardTest {
     whenever(FirstRunWizardDefaults.getInitialSdkLocation(FirstRunWizardMode.NEW_INSTALL))
       .thenReturn(sdkPath)
 
-    mockAndroidSdkHandler = mockStatic(AndroidSdkHandler::class.java, CALLS_REAL_METHODS)
     fakeRepoManager =
       spy(
         FakeRepoManager(
@@ -163,7 +163,11 @@ class WelcomeScreenWizardTest {
         )
       )
     val sdkHandler = AndroidSdkHandler(sdkPath.toPath(), null, fakeRepoManager)
-    whenever(AndroidSdkHandler.getInstance(any(), eq(sdkPath.toPath()))).thenReturn(sdkHandler)
+    sdkHandlerRule.instanceProvider =
+      AndroidSdkHandler.InstanceProvider { locationProvider, path ->
+        if (path == sdkPath.toPath()) sdkHandler
+        else AndroidSdkHandler.DefaultInstanceProvider.getInstance(locationProvider, path)
+      }
 
     IdeSdks.removeJdksOn(projectRule.testRootDisposable)
   }
@@ -173,7 +177,6 @@ class WelcomeScreenWizardTest {
     StudioFlags.FIRST_RUN_MIGRATED_WIZARD_ENABLED.clearOverride()
 
     mockFirstRunWizardDefaults.close()
-    mockAndroidSdkHandler.close()
   }
 
   @Test
@@ -444,7 +447,7 @@ class WelcomeScreenWizardTest {
 
     // Ensure we return a new mocked sdk - otherwise the licenses won't be refreshed
     val sdkHandler = AndroidSdkHandler(newSdkPath.toPath(), null, fakeRepoManager)
-    whenever(AndroidSdkHandler.getInstance(any(), eq(newSdkPath.toPath()))).thenReturn(sdkHandler)
+    sdkHandlerRule.instanceProvider = AndroidSdkHandler.InstanceProvider { _, _ -> sdkHandler }
 
     sdkPathLabel.text = newSdkPath.absolutePath
     pumpEventsAndWaitForFuture(loadingFinished, 5, TimeUnit.SECONDS)

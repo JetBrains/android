@@ -101,9 +101,7 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
       repoManager.packages.setRemotePkgInfos(listOf(
         FakePackage.FakeRemotePackage(testSystemImageString).apply {
           typeDetails =
-            AndroidSdkHandler.getSysImgModule()
-              .createLatestFactory()
-              .createSysImgDetailsType()
+            AndroidSdkHandler.sysImgModule.createLatestFactory().createSysImgDetailsType()
               .apply {
                 apiLevel = testAndroidVersion.androidApiLevel.majorVersion
                 codename = testAndroidVersion.codename
