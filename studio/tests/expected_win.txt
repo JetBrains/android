@@ -1649,6 +1649,11 @@ android-studio/plugins/android/lib/sdk-tools.jar
 android-studio/plugins/android/lib/sdklib-sdk-schema.jar
 android-studio/plugins/android/lib/sdklib.jar
 android-studio/plugins/android/lib/shared.jar
+android-studio/plugins/android/lib/shark-2.14.jar
+android-studio/plugins/android/lib/shark-android-2.14.jar
+android-studio/plugins/android/lib/shark-graph-2.14.jar
+android-studio/plugins/android/lib/shark-hprof-2.14.jar
+android-studio/plugins/android/lib/shark-log-2.14.jar
 android-studio/plugins/android/lib/smali-baksmali-3.0.9.jar
 android-studio/plugins/android/lib/smali-dexlib2-3.0.9.jar
 android-studio/plugins/android/lib/smali-util-3.0.9.jar
