@@ -28,7 +28,7 @@ public class BackgroundEditorHighlighter implements com.intellij.codeHighlightin
 
   @NotNull
   @Override
-  public HighlightingPass[] createPassesForEditor() {
+  public HighlightingPass @NotNull [] createPassesForEditor() {
     return myHighlightingPasses;
   }
 }
