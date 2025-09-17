@@ -1848,6 +1848,14 @@ public final class StudioFlags {
       "OEM lab devices are available to users."
     );
 
+  public static final Flag<Boolean> DIRECT_ACCESS_SHOW_OUTAGE_NOTIFICATIONS =
+    new BooleanFlag(
+      FIREBASE_TEST_LAB,
+      "direct.access.show.outage.notifications",
+      "Show outage notifications",
+      "Notifications in device manager for outages from Test Lab."
+    );
+
   // endregion Firebase Test Lab
 
   // region App Insights
