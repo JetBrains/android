@@ -431,6 +431,8 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
     fun <T> getModelForMaybeSourceSetDataNode(): (DataNode<*>, Key<T>) -> T? {
       return { n, k -> getModelFromDataNode(n, k) ?: n.parent?.let { getModelFromDataNode(it, k) } }
     }
+    // In some cases when phased sync aborts early, the data nodes will have the final say on what should be on the model, so setting the
+    // workspace model entities below for compatibility with data services on startup.
     listOf(
       prepare(
         ANDROID_MODEL,
