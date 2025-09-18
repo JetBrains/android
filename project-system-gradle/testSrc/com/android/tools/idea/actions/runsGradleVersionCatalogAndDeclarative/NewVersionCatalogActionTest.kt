@@ -20,8 +20,8 @@ import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProje
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.withAdditionalPatch
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.writeChild
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.IdeView
 import com.intellij.ide.actions.TestDialogBuilder
@@ -32,17 +32,16 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
-import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.RunsInEdt
-import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
+import org.jetbrains.kotlin.incremental.createDirectory
 
 @RunsInEdt
 class NewVersionCatalogActionTest {
@@ -115,9 +114,9 @@ class NewVersionCatalogActionTest {
 
   @Test
   fun testNewVersionCatalogActionAlreadyExistsInFilesystem() {
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
-    val dir = VfsUtil.createDirectoryIfMissing(preparedProject.root.toVirtualFile(), "gradle")
-    dir.writeChild("libs.versions.toml", "[libraries]\n")
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION.withAdditionalPatch { root ->
+      root.resolve("gradle").apply { createDirectory() }.resolve("libs.versions.toml").writeText("[libraries]\n")
+    })
 
     preparedProject.open { p ->
       assertThat(p.baseDir?.findChild("gradle")?.findChild("libs.versions.toml")).isNotNull()
@@ -138,15 +137,8 @@ class NewVersionCatalogActionTest {
 
   @Test
   fun testNewVersionCatalogActionAlreadyExistsInSettings() {
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
-    val dir = VfsUtil.createDirectoryIfMissing(preparedProject.root.toVirtualFile(), "gradle")
-    dir.writeChild("bar.versions.toml", "[libraries]\n")
-
-    preparedProject.root.resolve("settings.gradle").toVirtualFile()!!.let { settings ->
-      val settingsText = VfsUtil.loadText(settings)
-      runWriteAction {
-        VfsUtil.saveText(settings, """
-        $settingsText
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION.withAdditionalPatch { root ->
+      root.resolve("settings.gradle").appendText("""
 
         dependencyResolutionManagement {
           versionCatalogs {
@@ -156,8 +148,8 @@ class NewVersionCatalogActionTest {
           }
         }
       """.trimIndent())
-      }
-    }
+      root.resolve("gradle").apply { createDirectory() }.resolve("bar.versions.toml").writeText("[libraries]\n")
+    })
 
     preparedProject.open { p ->
       assertThat(p.baseDir?.findChild("gradle")?.findChild("libs.versions.toml")).isNull()
