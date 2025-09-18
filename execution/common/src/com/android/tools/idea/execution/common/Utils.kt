@@ -28,6 +28,7 @@ import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.impl.isOfSameType
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.project.Project
+import java.util.concurrent.CancellationException
 import org.jetbrains.kotlin.tools.projectWizard.core.asPath
 
 
@@ -61,7 +62,7 @@ suspend fun restoreAppFromFile(project: Project, device: IDevice, backupFile: St
   stats.track("RESTORE_APP") {
     val backupManager = BackupManager.getInstance(project)
     val result = backupManager.restore(device.serialNumber, backupFile.asPath(), RUN_CONFIG, notify = false)
-    if (result is Error) {
+    if (result is Error && result.throwable !is CancellationException) {
       val message = "Failed to restore app from backup on device ${device.name}\n${result.throwable.message}"
       throw ExecutionException(message, result.throwable)
     }
