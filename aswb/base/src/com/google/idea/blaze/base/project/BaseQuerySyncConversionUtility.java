@@ -16,15 +16,14 @@
 package com.google.idea.blaze.base.project;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats.ShardingType.MULTI_SHARD_MULTI_COUNT;
-import static com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats.ShardingType.MULTI_SHARD_SINGLE_COUNT;
-import static com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats.ShardingType.MULTI_SHARD_NO_FULL_SYNC;
-import static com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats.ShardingType.SINGLE_SHARD;
+import static com.google.idea.blaze.base.logging.QuerySyncAutoConversionStats.ShardingType.MULTI_SHARD_MULTI_COUNT;
+import static com.google.idea.blaze.base.logging.QuerySyncAutoConversionStats.ShardingType.MULTI_SHARD_SINGLE_COUNT;
+import static com.google.idea.blaze.base.logging.QuerySyncAutoConversionStats.ShardingType.MULTI_SHARD_NO_FULL_SYNC;
+import static com.google.idea.blaze.base.logging.QuerySyncAutoConversionStats.ShardingType.SINGLE_SHARD;
 
 import com.android.utils.FileUtils;
-import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats;
+import com.google.idea.blaze.base.logging.QuerySyncAutoConversionStats;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
-import com.google.idea.blaze.base.projectview.ProjectView;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.projectview.parser.ProjectViewParser;
 import com.google.idea.blaze.base.projectview.section.sections.ImportSection;
@@ -47,7 +46,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 /**

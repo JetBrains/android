@@ -15,9 +15,8 @@
  */
 package com.google.idea.blaze.base.project;
 
-import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats;
+import com.google.idea.blaze.base.logging.QuerySyncAutoConversionStats;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
-import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import java.nio.file.Path;
 

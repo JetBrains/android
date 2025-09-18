@@ -20,7 +20,7 @@ import static com.google.idea.blaze.base.projectview.ProjectViewManager.migrateI
 
 import com.google.idea.blaze.base.async.executor.ProgressiveTaskWithProgressIndicator;
 import com.google.idea.blaze.base.logging.EventLoggingService;
-import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats;
+import com.google.idea.blaze.base.logging.QuerySyncAutoConversionStats;
 import com.google.idea.blaze.base.project.QuerySyncConversionUtility;
 import com.google.idea.blaze.base.projectview.ProjectView;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
@@ -39,12 +39,8 @@ import com.google.idea.blaze.exception.BuildException;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
-import com.intellij.notification.NotificationDisplayType;
-import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
-import com.intellij.notification.NotificationsConfiguration;
 import com.intellij.notification.NotificationsManager;
-import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
@@ -217,8 +213,8 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
       querySyncConversionUtility.backupExistingProjectDirectories();
     }
     EventLoggingService.getInstance().log(
-      project,
       QuerySyncAutoConversionStats.builder()
+        .setProject(project)
         .setStatus(querySyncConversionUtility.calculateStatus(importSettings, projectViewFilePath))
         .setShardingType(querySyncConversionUtility.calculateShardingType(importSettings, projectViewFilePath, legacySyncShardCount))
         .build());

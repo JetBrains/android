@@ -17,6 +17,7 @@ package com.google.idea.blaze.skylark.debugger.run;
 
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.logging.EventLoggingService;
+import com.google.idea.blaze.base.logging.GenericEvent;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandGenericRunConfigurationRunner.BlazeCommandRunProfileState;
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationRunner;
@@ -93,7 +94,11 @@ class SkylarkDebugRunner extends GenericProgramRunner<RunnerSettings> {
             new XDebugProcessStarter() {
               @Override
               public XDebugProcess start(XDebugSession session) {
-                EventLoggingService.getInstance().logEvent(env.getProject(), this, "skylark-debugging");
+                EventLoggingService.getInstance().log(
+                  new GenericEvent(
+                    env.getProject(),
+                    this,
+                    "skylark-debugging"));
                 return new SkylarkDebugProcess(
                     session, result, SkylarkDebugBuildFlagsProvider.SERVER_PORT);
               }

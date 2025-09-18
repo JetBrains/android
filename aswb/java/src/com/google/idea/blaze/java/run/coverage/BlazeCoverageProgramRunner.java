@@ -24,6 +24,7 @@ import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.command.info.BlazeInfoRunner;
 import com.google.idea.blaze.base.logging.EventLoggingService;
+import com.google.idea.blaze.base.logging.GenericEvent;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
@@ -126,7 +127,11 @@ public class BlazeCoverageProgramRunner extends DefaultProgramRunner {
     if (result == null) {
       return null;
     }
-    EventLoggingService.getInstance().logEvent(env.getProject(), getClass(), "run-with-coverage");
+    EventLoggingService.getInstance().log(
+        new GenericEvent(
+            env.getProject(),
+            getClass(),
+            "run-with-coverage"));
     // remove any old copy of the coverage data
 
     // retrieve coverage data and copy locally

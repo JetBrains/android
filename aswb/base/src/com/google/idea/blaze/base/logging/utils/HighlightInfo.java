@@ -16,6 +16,7 @@
 package com.google.idea.blaze.base.logging.utils;
 
 import com.google.auto.value.AutoValue;
+import com.google.idea.blaze.base.logging.HighlightStats;
 import com.intellij.codeInsight.daemon.impl.HighlightInfoType;
 import com.intellij.lang.annotation.HighlightSeverity;
 
