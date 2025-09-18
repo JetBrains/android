@@ -20,11 +20,11 @@ import com.android.tools.adtui.workbench.Side
 import com.android.tools.adtui.workbench.Split
 import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
 import com.android.tools.idea.layoutinspector.properties.DimensionUnitAction
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
-import com.android.tools.idea.layoutinspector.runningdevices.RenderingComponents
 import com.android.tools.idea.layoutinspector.runningdevices.SPLITTER_KEY
 import com.android.tools.idea.layoutinspector.runningdevices.actions.GearAction
 import com.android.tools.idea.layoutinspector.runningdevices.actions.HorizontalSplitAction
@@ -37,10 +37,12 @@ import com.android.tools.idea.layoutinspector.runningdevices.actions.SwapVertica
 import com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleDeepInspectAction
 import com.android.tools.idea.layoutinspector.runningdevices.actions.UiConfig
 import com.android.tools.idea.layoutinspector.runningdevices.actions.VerticalSplitAction
-import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.LayoutInspectorRenderer
+import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.RenderingComponents
+import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.createRenderingComponents
 import com.android.tools.idea.layoutinspector.stateinspection.createStateInspectionPanel
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_ALPHA_VALUE
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.OverlayActionGroup
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
 import com.android.tools.idea.layoutinspector.ui.toolbar.createEmbeddedLayoutInspectorToolbar
@@ -53,6 +55,7 @@ import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -67,6 +70,9 @@ import java.awt.event.KeyEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.KeyStroke
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
 private const val WORKBENCH_NAME = "Layout Inspector"
@@ -88,29 +94,73 @@ private val logger = Logger.getInstance(SelectedTabState::class.java)
  */
 @UiThread
 data class SelectedTabState(
+  val disposable: Disposable,
   val project: Project,
   val deviceId: DeviceId,
   val tabComponents: TabComponents,
   val layoutInspector: LayoutInspector,
-  val renderingComponents: List<RenderingComponents>,
+  val coroutineScope: CoroutineScope = disposable.createCoroutineScope(),
 ) : Disposable {
 
   private var uiConfig = UiConfig.HORIZONTAL
   private var wrapLogic: WrapLogic? = null
 
+  /** Indicates if layout inspector is currently enabled for this tab. */
+  private var isEnabled: Boolean = false
+
+  private var isDeepInspectEnabled: Boolean = false
+    set(value) {
+      field = value
+      renderingComponents.forEach { comp -> comp.model.setInterceptClicks(value) }
+    }
+
+  private var overlayImage: ByteArray? = null
+    set(value) {
+      field = value
+      renderingComponents.forEach { comp -> comp.model.setOverlay(value) }
+    }
+
+  private var overlayTransparency: Float = INITIAL_ALPHA_VALUE
+    set(value) {
+      field = value
+      renderingComponents.forEach { comp -> comp.model.setOverlayTransparency(value) }
+    }
+
+  @VisibleForTesting
+  var renderingComponents: List<RenderingComponents> = emptyList()
+    set(value) {
+      field.forEach { Disposer.dispose(it) }
+
+      field = value
+
+      value.forEach {
+        it.model.setInterceptClicks(isDeepInspectEnabled)
+        it.model.setOverlay(overlayImage)
+        it.model.setOverlayTransparency(overlayTransparency)
+
+        if (isEnabled) {
+          it.addRenderer()
+        }
+      }
+    }
+
   init {
-    Disposer.register(tabComponents, this)
+    Disposer.register(disposable, this)
 
     // Try to restore UI config
     val uiConfigString = PropertiesComponent.getInstance().getValue(UI_CONFIGURATION_KEY)
     uiConfig = uiConfigString?.let { UiConfig.valueOf(uiConfigString) } ?: UiConfig.HORIZONTAL
 
-    val layoutInspectorProvider = dataProviderForLayoutInspector(layoutInspector)
-    renderingComponents.forEach {
-      DataManager.registerDataProvider(it.renderer, layoutInspectorProvider)
-    }
-    Disposer.register(this) {
-      renderingComponents.forEach { DataManager.removeDataProvider(it.renderer) }
+    coroutineScope.launch(Dispatchers.EDT) {
+      tabComponents.displayList.collect { displayViews ->
+        val newRenderingComponents =
+          createRenderingComponents(
+            disposable = this@SelectedTabState,
+            displayList = displayViews,
+            layoutInspector = layoutInspector,
+          )
+        renderingComponents = newRenderingComponents
+      }
     }
   }
 
@@ -123,13 +173,9 @@ data class SelectedTabState(
   fun enableLayoutInspector() {
     ApplicationManager.getApplication().assertIsDispatchThread()
 
+    isEnabled = true
     wrapUi(uiConfig)
-    tabComponents.displayList.forEach { displayView ->
-      val renderer = renderingComponents.findRenderer(displayView.displayId)
-      if (renderer != null) {
-        displayView.add(renderer)
-      }
-    }
+    renderingComponents.forEach { it.addRenderer() }
 
     layoutInspector.processModel?.addSelectedProcessListeners(
       EdtExecutorService.getInstance(),
@@ -240,12 +286,8 @@ data class SelectedTabState(
   ): JComponent {
     val toggleDeepInspectAction =
       ToggleDeepInspectAction(
-        isSelected = {
-          // For now all renderers share the same ToggleDeepInspectAction. Eventually we might want
-          // to consider adding a separate action for each renderer.
-          renderingComponents.all { comp -> comp.model.interceptClicks.value }
-        },
-        setSelected = { renderingComponents.forEach { comp -> comp.model.setInterceptClicks(it) } },
+        isSelected = { isDeepInspectEnabled },
+        setSelected = { isDeepInspectEnabled = it },
         isRendering = { layoutInspector.renderModel.isActive },
         connectedClientProvider = { layoutInspector.currentClient },
       )
@@ -274,15 +316,9 @@ data class SelectedTabState(
         listOf(
           OverlayActionGroup(
             inspectorModel = layoutInspector.inspectorModel,
-            getImage = {
-              // For now all renderers share the same overlay. Eventually we might want to consider
-              // adding a separate overlay to each renderer.
-              renderingComponents.firstOrNull()?.model?.overlay?.value
-            },
-            setImage = { renderingComponents.forEach { comp -> comp.model.setOverlay(it) } },
-            setAlpha = {
-              renderingComponents.forEach { comp -> comp.model.setOverlayTransparency(it) }
-            },
+            getImage = { overlayImage },
+            setImage = { overlayImage = it },
+            setAlpha = { overlayTransparency = it },
           )
         ),
       lastGroupExtraActions =
@@ -325,14 +361,10 @@ data class SelectedTabState(
   private fun disableLayoutInspector() {
     ApplicationManager.getApplication().assertIsDispatchThread()
 
+    isEnabled = false
     unwrapUi()
 
-    tabComponents.displayList.forEach { displayView ->
-      val renderer = renderingComponents.findRenderer(displayView.displayId)
-      if (renderer != null) {
-        displayView.remove(renderer)
-      }
-    }
+    renderingComponents.forEach { it.removeRenderer() }
 
     layoutInspector.processModel?.removeSelectedProcessListener(selectedProcessListener)
 
@@ -345,7 +377,7 @@ data class SelectedTabState(
     // are invoked.
     if (!project.isDisposed) {
       layoutInspector.inspectorClientSettings.inLiveMode = true
-      renderingComponents.forEach { it.model.setInterceptClicks(false) }
+      isDeepInspectEnabled = false
     }
   }
 
@@ -440,10 +472,4 @@ data class SelectedTabState(
       overrideSplit = true,
     )
   }
-}
-
-/** Returns the renderer associated with [displayId] */
-@VisibleForTesting
-fun List<RenderingComponents>.findRenderer(displayId: Int): LayoutInspectorRenderer? {
-  return find { it.displayId == displayId }?.renderer
 }
