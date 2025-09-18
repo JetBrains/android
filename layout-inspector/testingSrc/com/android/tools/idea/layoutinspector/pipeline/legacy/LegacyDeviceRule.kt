@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.legacy
 
+import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule
+import com.android.adblib.testingutils.FakeAdbServerRule
 import com.android.ddmlib.AndroidDebugBridge
-import com.android.ddmlib.testing.FakeAdbRule
+import com.android.fakeadbserver.DeviceState
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.AdbServiceRule
@@ -41,7 +43,7 @@ import com.intellij.testFramework.DisposableRule
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.rules.ExternalResource
-import org.junit.rules.TestRule
+import org.junit.rules.RuleChain
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import org.mockito.kotlin.mock
@@ -118,9 +120,20 @@ class LegacyDeviceRule(
       extraCommands.add(SimpleCommand("am get-config", config))
       extraCommands.add(SimpleCommand("dumpsys activity activities", activities))
     }
-  private val adbRule = FakeAdbRule().withDeviceCommandHandler(commandHandler)
-  private val adbServiceRule = AdbServiceRule(projectRule::project, adbRule)
+  private val adbRule = FakeAdbServerRule {
+    installDefaultCommandHandlers()
+    addDeviceHandler(commandHandler)
+  }
+  private val initAndroidDebugBridgeRule = InitAndroidDebugBridgeRule { adbRule.adbServer.port }
+  private val adbServiceRule = AdbServiceRule(projectRule::project)
   private val disposableRule = DisposableRule()
+  val ruleChain: RuleChain =
+    RuleChain.outerRule(projectRule)
+      .around(adbRule)
+      .around(initAndroidDebugBridgeRule)
+      .around(adbServiceRule)
+      .around(disposableRule)
+
   private var clientInstance: LegacyClient? = null
 
   val project: Project
@@ -132,18 +145,28 @@ class LegacyDeviceRule(
   val client: LegacyClient
     get() = clientInstance!!
 
-  val bridge: AndroidDebugBridge
-    get() = adbRule.bridge
-
   override fun before() {
     val device = LEGACY_DEVICE
-    adbRule.attachDevice(
-      device.serial,
-      device.manufacturer,
-      device.model,
-      device.version,
-      device.apiLevel,
-    )
+    adbRule
+      .connectDevice(
+        device.serial,
+        device.manufacturer,
+        device.model,
+        device.version,
+        device.apiLevel,
+        DeviceState.HostConnectionType.USB,
+      )
+      .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
+    // TODO: This test relies on device being found using
+    //  `AndroidDebugBridge.getBridge()?.devices` call (see `AndroidDebugBridge.findDevice`
+    //  in `AdbUtils.kt`). We should make this wait a part of `FakeAdbServerRule.connectDevice`.
+    while (true) {
+      if (
+        AndroidDebugBridge.getBridge()?.devices?.any { it.serialNumber == device.serial } ?: false
+      ) {
+        break
+      }
+    }
     projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
     projectRule.fixture.addFileToProject("/AndroidManifest.xml", manifest)
     projectRule.fixture.addFileToProject("res/values/themes.xml", themes)
@@ -183,9 +206,7 @@ class LegacyDeviceRule(
   }
 
   override fun apply(base: Statement, description: Description): Statement {
-    val innerRules = listOf(disposableRule, adbServiceRule, adbRule, projectRule)
-    return innerRules.fold(super.apply(base, description)) { stmt: Statement, rule: TestRule ->
-      rule.apply(stmt, description)
-    }
+    val statement = super.apply(base, description)
+    return ruleChain.apply(statement, description)
   }
 }

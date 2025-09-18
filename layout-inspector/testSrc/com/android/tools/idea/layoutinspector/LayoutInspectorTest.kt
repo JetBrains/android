@@ -72,7 +72,7 @@ class LayoutInspectorTest {
   private val projectRule = ProjectRule()
 
   private val adbRule = FakeAdbRule()
-  private val adbService = AdbServiceRule(projectRule::project, adbRule)
+  private val adbService = AdbServiceRule(projectRule::project)
 
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
