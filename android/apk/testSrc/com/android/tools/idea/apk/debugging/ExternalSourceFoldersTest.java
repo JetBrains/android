@@ -26,8 +26,8 @@ import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.ProjectRule;
-import com.intellij.testFramework.RunsInEdt;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -46,7 +46,6 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 /**
  * Tests for {@link ExternalSourceFolders}.
  */
-@RunsInEdt
 public class ExternalSourceFoldersTest {
   private ModifiableRootModel myModuleModel;
 
@@ -62,34 +61,36 @@ public class ExternalSourceFoldersTest {
     // Just copy the project without syncing with Gradle, we don't want any content entries in the project.
     PreparedTestProject p = prepareTestProject(rule, SIMPLE_APPLICATION);
 
-    File appModulePath = new File(p.getRoot(), "app");
-    Module appModule = ProjectFiles.createModule(projectRule.getProject(), appModulePath, JavaModuleType.getModuleType());
+    EdtTestUtil.runInEdtAndWait(() -> {
+      File appModulePath = new File(p.getRoot(), "app");
+      Module appModule = ProjectFiles.createModule(projectRule.getProject(), appModulePath, JavaModuleType.getModuleType());
 
-    ModuleRootManager rootManager = ModuleRootManager.getInstance(appModule);
-    VirtualFile[] contentRoots = rootManager.getContentRoots();
-    // The module should not have content roots.
-    assertThat(contentRoots).isEmpty();
+      ModuleRootManager rootManager = ModuleRootManager.getInstance(appModule);
+      VirtualFile[] contentRoots = rootManager.getContentRoots();
+      // The module should not have content roots.
+      assertThat(contentRoots).isEmpty();
 
-    myModuleModel = rootManager.getModifiableModel();
-    ExternalSourceFolders externalSourceFolders = new ExternalSourceFolders(myModuleModel);
-    VirtualFile javaSourceFolder = findJavaSourceFolder(appModulePath);
-    List<VirtualFile> files = externalSourceFolders.addSourceFolders(new VirtualFile[]{javaSourceFolder}, () -> {
-      ApplicationManager.getApplication().runWriteAction(myModuleModel::commit);
-      myModuleModel = null;
+      myModuleModel = rootManager.getModifiableModel();
+      ExternalSourceFolders externalSourceFolders = new ExternalSourceFolders(myModuleModel);
+      VirtualFile javaSourceFolder = findJavaSourceFolder(appModulePath);
+      List<VirtualFile> files = externalSourceFolders.addSourceFolders(new VirtualFile[]{javaSourceFolder}, () -> {
+        ApplicationManager.getApplication().runWriteAction(myModuleModel::commit);
+        myModuleModel = null;
+      });
+
+      assertThat(files).containsExactly(javaSourceFolder);
+
+      ContentEntry[] contentEntries = rootManager.getContentEntries();
+      // Content entry should have been added.
+      assertThat(contentEntries).hasLength(1);
+
+      ContentEntry contentEntry = contentEntries[0];
+      VirtualFile[] sourceFolderFiles = contentEntry.getSourceFolderFiles();
+      assertThat(sourceFolderFiles).hasLength(1);
+
+      VirtualFile sourceFolderFile = sourceFolderFiles[0];
+      assertThat(sourceFolderFile.getPath()).isEqualTo(javaSourceFolder.getPath());
     });
-
-    assertThat(files).containsExactly(javaSourceFolder);
-
-    ContentEntry[] contentEntries = rootManager.getContentEntries();
-    // Content entry should have been added.
-    assertThat(contentEntries).hasLength(1);
-
-    ContentEntry contentEntry = contentEntries[0];
-    VirtualFile[] sourceFolderFiles = contentEntry.getSourceFolderFiles();
-    assertThat(sourceFolderFiles).hasLength(1);
-
-    VirtualFile sourceFolderFile = sourceFolderFiles[0];
-    assertThat(sourceFolderFile.getPath()).isEqualTo(javaSourceFolder.getPath());
   }
 
   @NotNull

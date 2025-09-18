@@ -215,6 +215,7 @@ import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ThrowableConsumer
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.containers.MultiMap
 import com.intellij.util.messages.MessageBusConnection
@@ -2211,6 +2212,11 @@ interface IntegrationTestEnvironment {
    * The base test directory to be used in tests.
    */
   fun getBaseTestPath(): @SystemDependent String
+
+  /**
+   * Whether to run the body of a prepared project open on the EDT.
+   */
+  val runOpenBodyOnEdt get() = false
 }
 
 /**
@@ -2329,10 +2335,12 @@ fun <T> IntegrationTestEnvironment.openPreparedProject(
   options: OpenPreparedProjectOptions = OpenPreparedProjectOptions(),
   action: (Project) -> T,
 ): T {
-  return openPreparedProject(nameToPath(name), options, action)
+  return openPreparedProject(this, nameToPath(name), options, action)
 }
 
+@RequiresBackgroundThread
 private fun <T> openPreparedProject(
+  integrationTestEnvironment: IntegrationTestEnvironment,
   projectPath: File,
   options: OpenPreparedProjectOptions,
   action: (Project) -> T,
@@ -2455,7 +2463,10 @@ private fun <T> openPreparedProject(
       try {
         verifyNoSyncIssues(project, options.expectedSyncIssues)
         options.verifyOpened(project)
-        return action(project)
+        return when (integrationTestEnvironment.runOpenBodyOnEdt) {
+          true -> runInEdtAndGet { action(project) }
+          false -> action(project)
+        }
       }
       finally {
         runInEdtAndWait {

@@ -38,8 +38,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.ProjectRule;
-import com.intellij.testFramework.RunsInEdt;
 import com.intellij.ui.EditorNotifications;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -65,7 +65,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link ChooseAndAttachJavaSourcesTask}.
  */
-@RunsInEdt
 public class ChooseAndAttachSourcesTaskTest {
   @Mock private EditorNotifications myEditorNotifications;
   @Mock private DexSourceFiles myDexSourceFiles;
@@ -86,28 +85,31 @@ public class ChooseAndAttachSourcesTaskTest {
     // Just copy the project without syncing with Gradle, we don't want any content entries in the project.
     PreparedTestProject p = prepareTestProject(rule, SIMPLE_APPLICATION);
 
-    File appModulePath = new File(p.getRoot(), "app");
-    Module appModule = ProjectFiles.createModule(projectRule.getProject(), appModulePath, JavaModuleType.getModuleType());
-    ApkFacet apkFacet = createAndAddApkFacet(appModule);
+    EdtTestUtil.runInEdtAndWait(() -> {
+      File appModulePath = new File(p.getRoot(), "app");
+      Module appModule = ProjectFiles.createModule(projectRule.getProject(), appModulePath, JavaModuleType.getModuleType());
+      ApkFacet apkFacet = createAndAddApkFacet(appModule);
 
-    VirtualFile javaSourceFolder = findJavaSourceFolder(appModulePath);
-    when(myFileOrFolderChooser.choose(projectRule.getProject())).thenReturn(new VirtualFile[]{javaSourceFolder});
+      VirtualFile javaSourceFolder = findJavaSourceFolder(appModulePath);
+      when(myFileOrFolderChooser.choose(projectRule.getProject())).thenReturn(new VirtualFile[]{javaSourceFolder});
 
-    String classFqn = "a.b.c";
-    ChooseAndAttachJavaSourcesTask task = new ChooseAndAttachJavaSourcesTask(classFqn, appModule, new MockDumbService(projectRule.getProject()),
-                                                                             myEditorNotifications, myDexSourceFiles, myFileOrFolderChooser);
-    task.run();
+      String classFqn = "a.b.c";
+      ChooseAndAttachJavaSourcesTask task =
+        new ChooseAndAttachJavaSourcesTask(classFqn, appModule, new MockDumbService(projectRule.getProject()),
+                                           myEditorNotifications, myDexSourceFiles, myFileOrFolderChooser);
+      task.run();
 
-    ContentEntry[] contentEntries = ModuleRootManager.getInstance(appModule).getContentEntries();
-    // Content entry should have been added.
-    assertThat(contentEntries).hasLength(1);
+      ContentEntry[] contentEntries = ModuleRootManager.getInstance(appModule).getContentEntries();
+      // Content entry should have been added.
+      assertThat(contentEntries).hasLength(1);
 
-    verify(myDexSourceFiles).navigateToJavaFile(classFqn);
-    verify(myEditorNotifications).updateAllNotifications();
+      verify(myDexSourceFiles).navigateToJavaFile(classFqn);
+      verify(myEditorNotifications).updateAllNotifications();
 
-    Set<String> javaSourceFolderPaths = apkFacet.getConfiguration().JAVA_SOURCE_FOLDER_PATHS;
-    assertThat(javaSourceFolderPaths).hasSize(1);
-    assertThat(getFirstItem(javaSourceFolderPaths)).isEqualTo(virtualToIoFile(javaSourceFolder).getPath());
+      Set<String> javaSourceFolderPaths = apkFacet.getConfiguration().JAVA_SOURCE_FOLDER_PATHS;
+      assertThat(javaSourceFolderPaths).hasSize(1);
+      assertThat(getFirstItem(javaSourceFolderPaths)).isEqualTo(virtualToIoFile(javaSourceFolder).getPath());
+    });
   }
 
   @NotNull

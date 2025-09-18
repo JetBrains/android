@@ -49,6 +49,7 @@ import com.intellij.platform.diagnostic.telemetry.TelemetryManager
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.IndexingTestUtil
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.common.cleanApplicationState
 import com.intellij.testFramework.common.initTestApplication
@@ -77,6 +78,7 @@ import org.mockito.Mockito
 import java.io.File
 import java.time.Clock
 import java.util.concurrent.TimeoutException
+import org.junit.runners.model.Statement
 
 /**
  * Rule that provides access to a [Project] containing one module configured with the Android facet.
@@ -284,13 +286,30 @@ interface AndroidProjectRule : TestRule {
       return chain(testEnvironmentRule, fixtureRule, projectEnvironmentRule)
     }
 
+    /**
+     * The rule this produces is a [IntegrationTestEnvironment] which additionally propagates the
+     * presence of an applicable [RunsInEdt] annotation (on the test class or method) to the
+     * call to [openPreparedProject], so that if the annotation is applied, the action on opening
+     * will be run in the EDT.  Note that this is different from the usual [RunsInEdt] behavior
+     * implemented by [EdtRule], and that opening a prepared project is incompatible with running
+     * on the EDT.
+     */
     @JvmStatic
     @JvmOverloads
     fun withIntegrationTestEnvironment(
       androidPlatformVersion: AndroidVersion = Sdks.getLatestAndroidPlatform()
     ): IntegrationTestEnvironmentRule {
       val projectRule = withAndroidModels(androidPlatformVersion = androidPlatformVersion)
-      val wrappedRules: TestRule = EdtAndroidProjectRule(projectRule)
+      var runOpenBodyOnEdt: Boolean = false
+      val integrationTestEdtRule = object : TestRule {
+        override fun apply(base: Statement, description: Description): Statement {
+          runOpenBodyOnEdt =
+            null != (description.getAnnotation(RunsInEdt::class.java)
+                     ?: description.testClass.getAnnotation(RunsInEdt::class.java))
+          return base;
+        }
+      }
+      val wrappedRules: TestRule = RuleChain.outerRule(projectRule).around(integrationTestEdtRule)
       return object : IntegrationTestEnvironmentRule, TestRule by wrappedRules {
         override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
 
@@ -299,6 +318,9 @@ interface AndroidProjectRule : TestRule {
 
         override val testRootDisposable: Disposable
           get() = projectRule.testRootDisposable
+
+        override val runOpenBodyOnEdt: Boolean
+          get() = runOpenBodyOnEdt
       }
     }
 
