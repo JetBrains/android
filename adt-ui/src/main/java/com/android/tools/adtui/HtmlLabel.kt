@@ -99,10 +99,21 @@ class HtmlLabel : JEditorPane() {
       editorPane.isEditable = false
       editorPane.setOpaque(false)
       editorPane.putClientProperty(HONOR_DISPLAY_PROPERTIES, true)
+      editorPane.addCss(font, foreground)
+    }
 
+    /**
+     * Adds Cascading Style Sheets to the component. If it is an instance of [HtmlLabel]
+     * it will preserve its default listener.
+     */
+    private fun JEditorPane.addCss(font: Font, foreground: Color) {
+      val preserveDefaultHtmlLabelListener = this is HtmlLabel && hyperlinkListeners.contains(defaultHyperlinkListener)
       val kit = HTMLEditorKitBuilder.simple()
       kit.styleSheet = createCss(font, foreground)
-      editorPane.setEditorKit(kit)
+      setEditorKit(kit)
+      if (preserveDefaultHtmlLabelListener) {
+        addHyperlinkListener(defaultHyperlinkListener)
+      }
     }
 
 

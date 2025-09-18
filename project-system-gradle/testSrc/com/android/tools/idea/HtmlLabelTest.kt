@@ -54,22 +54,36 @@ class HtmlLabelTest {
   }
 
   @Test
-  fun `hyperlink opens browser once`() {
+  fun `html label default listener opens URLs`() {
+    emitDemoEvent()
+    assertThat(launchedUrls).containsExactly(DEMO_URL)
+  }
+
+  @Test
+  fun `using hyperlink listener opens browser once`() {
     htmlLabel.addHyperlinkListener(NavigationHyperlinkListener(mock()))
     emitDemoEvent()
     assertThat(launchedUrls).containsExactly(DEMO_URL)
   }
 
   @Test
-  fun `hyperlink opens browser twice if default handling preserved`() {
+  fun `using navigation listener opens browser twice if default handling explicitly preserved`() {
     htmlLabel.addHyperlinkListener(NavigationHyperlinkListener(mock()), false)
     emitDemoEvent()
     assertThat(launchedUrls).containsExactly(DEMO_URL, DEMO_URL)
   }
 
   @Test
-  fun `hyperlink opens browser once if default handling explicitly not preserved`() {
+  fun `using navigation listener opens browser once if default handling explicitly not preserved`() {
     htmlLabel.addHyperlinkListener(NavigationHyperlinkListener(mock()), true)
+    emitDemoEvent()
+    assertThat(launchedUrls).containsExactly(DEMO_URL)
+  }
+
+  // b/445105967
+  @Test
+  fun `html label handles clicks with CSS added`() {
+    HtmlLabel.setUpAsHtmlLabel(htmlLabel)
     emitDemoEvent()
     assertThat(launchedUrls).containsExactly(DEMO_URL)
   }
