@@ -17,18 +17,7 @@ iml_module(
                 "noci:studio-linux",
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
-                "block-network",
             ],
-        },
-        "Benchmark2000MemoryMac": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000MemoryMacTest",
-            "tags": [
-                "noci:studio-win",
-                "noci:studio-linux",
-                "ci:studio-mac",
-                "exclusive-if-local",
-            ],
-            "timeout": "long",
         },
         "Benchmark2000KotlinMultiplatformCpu": {
             "test_filer": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000KotlinMultiplatformCpuTest",
@@ -36,7 +25,6 @@ iml_module(
                 "noci:studio-win",
                 "noci:studio-linux",
                 "ci:perfgate-linux",
-                "block-network",
             ],
         },
         # This test is run in release branch, too but not analyzed due to small number of runs per test
@@ -51,19 +39,7 @@ iml_module(
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
                 "perfgate-release",
-                "block-network",
             ],
-        },
-        "Benchmark2000CpuMac": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuMacTest",
-            "additional_jvm_args": ["-Xmx6g"],
-            "tags": [
-                "noci:studio-win",
-                "noci:studio-linux",
-                "ci:studio-mac",
-                "exclusive-if-local",
-            ],
-            "timeout": "long",
         },
         # Release branch tests with comparison to main branch
         "Benchmark2000CpuReleaseBranch": {
@@ -92,7 +68,6 @@ iml_module(
                 "noci:studio-linux",
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
-                "block-network",
             ],
             "data": ["//tools/base/build-system:gradle-distrib-latest-snapshot"],
         },
@@ -104,7 +79,6 @@ iml_module(
                 "noci:studio-linux",
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
-                "block-network",
             ],
             "data": ["//tools/base/build-system:gradle-distrib-latest-snapshot"],
         },
@@ -117,7 +91,6 @@ iml_module(
                 "noci:studio-linux",
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
-                "block-network",
             ],
             "data": ["//tools/base/build-system/integration-test:latest_kotlin_gradle_plugin_prebuilts_for_sync_benchmarks"],
         },
@@ -129,7 +102,6 @@ iml_module(
                 "noci:studio-linux",
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
-                "block-network",
             ],
             "data": ["//tools/base/build-system/integration-test:latest_kotlin_gradle_plugin_prebuilts_for_sync_benchmarks"],
         },
@@ -146,7 +118,6 @@ iml_module(
                 "noci:studio-linux",
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
-                "block-network",
             ],
         },
         "Benchmark500Cpu": {
@@ -156,7 +127,6 @@ iml_module(
                 "noci:studio-linux",
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
-                "block-network",
             ],
         },
         "Benchmark200Repeated20TimesMemory": {
@@ -166,7 +136,6 @@ iml_module(
                 "noci:studio-linux",
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
-                "block-network",
             ],
         },
         "Benchmark1000Memory": {
@@ -175,7 +144,6 @@ iml_module(
                 "noci:studio-win",
                 "noci:studio-linux",
                 "ci:perfgate-linux",
-                "block-network",
             ],
         },
         "Benchmark1000Cpu": {
@@ -184,7 +152,6 @@ iml_module(
                 "noci:studio-win",
                 "noci:studio-linux",
                 "ci:perfgate-linux",
-                "block-network",
             ],
         },
         # Disabled tests
@@ -292,7 +259,75 @@ iml_module(
     ],
     test_srcs = ["testSrc"],
     test_tags = [
+        "block-network",
         "cpu:4",
+    ],
+    test_timeout = "eternal",
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.gradle",
+    ],
+)
+
+iml_module(
+    name = "intellij.android.sync-memory-tests-mac",
+    srcs = ["src"],
+    iml_files = ["intellij.android.sync-memory-tests.iml"],
+    split_test_targets = {
+        "Benchmark2000Memory": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000MemoryTest",
+            "timeout": "long",
+        },
+        "Benchmark2000Cpu": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuTest",
+            "additional_jvm_args": ["-Xmx6g"],
+        },
+    },
+    test_data = [
+        "testSrc/com/android/tools/idea/gradle/project/sync/gradle/MeasurementPlugin.kt",
+        "//prebuilts/studio/buildbenchmarks:ExtraLarge2022_project",
+        "//prebuilts/studio/buildbenchmarks:ExtraLarge_KMP_project",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//prebuilts/studio/sdk:platforms/android-32",  # Used for model v1 tests that needs AGP 7.1 (which needs compile sdk 32)
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/tools/common/eclipse-mat",
+        "//tools/adt/idea/memory-usage/src/main/native:liblightweight_heap_traverse",
+        "//tools/base/build-system:android_gradle_plugin.zip",
+        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+        "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+        "//tools/data-binding:data_binding_runtime.zip",
+    ],
+    # do not sort: must match IML order
+    test_deps = [
+        "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+        "//tools/adt/idea/android-common:intellij.android.common",
+        "//tools/base/flags:studio.android.sdktools.flags",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/base/perf-logger:studio.perf-logger",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "//tools/adt/idea/android:intellij.android.core",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
+        "//tools/adt/idea/memory-usage",
+        "//tools/adt/idea/.idea/libraries:javax-inject",
+        "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync",
+        "//tools/adt/idea/.idea/libraries:truth",
+    ],
+    test_jvm_flags = [
+        "-Didea.skip.indices.initialization=true",
+    ],
+    test_srcs = ["testSrc"],
+    test_tags = [
+        "ci:studio-mac",
+        "cpu:4",
+        "exclusive-if-local",
+        "noci:studio-linux",
+        "noci:studio-win",
     ],
     test_timeout = "eternal",
     visibility = ["//visibility:public"],
