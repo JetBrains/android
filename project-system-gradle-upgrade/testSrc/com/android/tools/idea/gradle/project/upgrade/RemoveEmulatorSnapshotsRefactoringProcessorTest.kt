@@ -24,12 +24,12 @@ import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-class MigrateFailureRetentionToEmulatorSnapshotsRefactoringProcessorTest: UpgradeGradleFileModelTestCase() {
+class RemoveEmulatorSnapshotsRefactoringProcessorTest: UpgradeGradleFileModelTestCase() {
   @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
 
   private fun failureRetentionToEmulatorSnapshotsRefactoringProcessor(project: Project, current: AgpVersion, new: AgpVersion) =
-    MIGRATE_FAILURE_RETENTION_TO_EMULATOR_SNAPSHOTS.RefactoringProcessor(project, current, new)
+    REMOVE_EMULATOR_SNAPSHOTS.RefactoringProcessor(project, current, new)
 
   @Test
   fun testNecessities() {
@@ -48,10 +48,10 @@ class MigrateFailureRetentionToEmulatorSnapshotsRefactoringProcessorTest: Upgrad
   }
 
   @Test
-  fun testFailureRetentionToEmulatorSnapshots() {
-    writeToBuildFile(TestFileName("MigrateFailureRetentionToEmulatorSnapshots/FailureRetentionToEmulatorSnapshots"))
+  fun testRemoveFailureRetentionAndEmulatorSnapshots() {
+    writeToBuildFile(TestFileName("RemoveFailureRetentionAndEmulatorSnapshots/RemoveFailureRetentionAndEmulatorSnapshots"))
     val processor = failureRetentionToEmulatorSnapshotsRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("9.0.0"))
     processor.run()
-    verifyFileContents(buildFile, TestFileName("MigrateFailureRetentionToEmulatorSnapshots/FailureRetentionToEmulatorSnapshotsExpected"))
+    verifyFileContents(buildFile, TestFileName("RemoveFailureRetentionAndEmulatorSnapshots/RemoveFailureRetentionAndEmulatorSnapshotsExpected"))
   }
 }
