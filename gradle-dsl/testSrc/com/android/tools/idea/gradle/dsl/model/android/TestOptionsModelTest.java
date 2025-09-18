@@ -17,14 +17,18 @@ package com.android.tools.idea.gradle.dsl.model.android;
 
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_OPTIONS_MODEL_ADD_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_OPTIONS_MODEL_ADD_EXISTING_TEST_SUITE_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_OPTIONS_MODEL_EDIT_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_OPTIONS_MODEL_TEST_OPTIONS_TEXT;
 
+import com.android.tools.idea.gradle.dsl.api.android.testOptions.testSuites.TestSuiteModel;
 import com.android.tools.idea.gradle.model.IdeTestOptions;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.TestOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import java.io.IOException;
+import java.util.List;
 import org.junit.Test;
 
 /**
@@ -55,6 +59,7 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     testOptions.emulatorSnapshots().compressSnapshots().setValue(true);
     testOptions.emulatorSnapshots().enableForTestFailures().setValue(false);
     testOptions.emulatorSnapshots().maxSnapshotsForTestFailures().setValue(3);
+    testOptions.suites().get(0).addTargetVariant("debug");
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TEST_OPTIONS_MODEL_EDIT_ELEMENTS_EXPECTED);
@@ -71,6 +76,8 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("emulatorSnapshots.compressSnapshots", Boolean.TRUE, testOptions.emulatorSnapshots().compressSnapshots());
     assertEquals("emulatorSnapshots.enableForTestFailures", Boolean.FALSE, testOptions.emulatorSnapshots().enableForTestFailures());
     assertEquals("emulatorSnapshots.maxSnapshotsForTestFailures", 3, testOptions.emulatorSnapshots().maxSnapshotsForTestFailures());
+    assertEquals("testSuites.count", 2, testOptions.suites().size());
+    assertEquals("testSuites.0.targetVariants", List.of("debug"), testOptions.suites().get(0).targetVariants());
   }
 
   @Test
@@ -92,6 +99,8 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     testOptions.emulatorSnapshots().compressSnapshots().setValue(false);
     testOptions.emulatorSnapshots().enableForTestFailures().setValue(true);
     testOptions.emulatorSnapshots().maxSnapshotsForTestFailures().setValue(4);
+    testOptions.addSuite("journeysTest");
+    testOptions.addSuite("otherTestSuite");
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TEST_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED);
@@ -119,6 +128,7 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     testOptions.emulatorSnapshots().compressSnapshots().delete();
     testOptions.emulatorSnapshots().enableForTestFailures().delete();
     testOptions.emulatorSnapshots().maxSnapshotsForTestFailures().delete();
+    testOptions.removeSuites();
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, "");
@@ -129,6 +139,30 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     testOptions = android.testOptions();
     verifyNullTestOptionsValues();
     assertFalse(hasPsiElement(testOptions));
+  }
+
+  @Test
+  public void testReplacingTestSuite() throws IOException {
+    writeToBuildFile(TEST_OPTIONS_MODEL_TEST_OPTIONS_TEXT);
+    verifyTestOptionsValues();
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    TestOptionsModel testOptions = android.testOptions();
+    testOptions.suites().get(0).addTargetVariant("debug");
+
+    android = buildModel.android();
+    assertNotNull(android);
+
+    testOptions = android.testOptions();
+    TestSuiteModel testSuite = testOptions.addSuite("journeysTest");
+
+    assertEquals("existingTestSuiteIsReturned", List.of("debug"), testSuite.targetVariants());
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TEST_OPTIONS_MODEL_ADD_EXISTING_TEST_SUITE_EXPECTED);
   }
 
   private void verifyTestOptionsValues() {
@@ -145,6 +179,9 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("emulatorSnapshots.compressSnapshots", Boolean.FALSE, testOptions.emulatorSnapshots().compressSnapshots());
     assertEquals("emulatorSnapshots.enableForTestFailures", Boolean.TRUE, testOptions.emulatorSnapshots().enableForTestFailures());
     assertEquals("emulatorSnapshots.maxSnapshotsForTestFailures", 4, testOptions.emulatorSnapshots().maxSnapshotsForTestFailures());
+    assertEquals("testSuites.count", 2, testOptions.suites().size());
+    assertEquals("testSuites.names", List.of("journeysTest", "otherTestSuite"),
+                 testOptions.suites().stream().map(TestSuiteModel::name).toList());
   }
 
   private void verifyNullTestOptionsValues() {
@@ -161,5 +198,6 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     assertMissingProperty("emulatorSnapshots.compressSnapshots", testOptions.emulatorSnapshots().compressSnapshots());
     assertMissingProperty("emulatorSnapshots.enableForTestFailures", testOptions.emulatorSnapshots().enableForTestFailures());
     assertMissingProperty("emulatorSnapshots.maxSnapshotsForTestFailures", testOptions.emulatorSnapshots().maxSnapshotsForTestFailures());
+    assertEmpty("testSuites", testOptions.suites());
   }
 }
