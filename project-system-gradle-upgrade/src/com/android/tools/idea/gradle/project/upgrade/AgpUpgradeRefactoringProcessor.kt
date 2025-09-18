@@ -295,7 +295,6 @@ class AgpUpgradeRefactoringProcessor(
     // AGP 9.x
     JCenterToMavenCentralRefactoringProcessor(this),
     MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor(this),
-    MIGRATE_FAILURE_RETENTION_TO_EMULATOR_SNAPSHOTS.RefactoringProcessor(this),
     MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES.RefactoringProcessor(this),
     MIGRATE_ADB_OPTIONS_TO_INSTALLATION.RefactoringProcessor(this),
     MIGRATE_JACOCO_TO_TEST_COVERAGE.RefactoringProcessor(this),
@@ -325,6 +324,7 @@ class AgpUpgradeRefactoringProcessor(
     DisallowUsesSdkInManifestDefaultRefactoringProcessor(this),
     EnforceUniquePackageNameRefactoringProcessor(this),
     DependencyConstraintsRefactoringProcessor(this), // AGP 9.0.0-alpha02
+    REMOVE_EMULATOR_SNAPSHOTS.RefactoringProcessor(this),  // AGP 9.0.0-alpha03
     BuiltInKotlinDefaultRefactoringProcessor(this), // AGP 9.0.0-alpha03
     NewDslDefaultRefactoringProcessor(this), // AGP 9.0.0-alpha04
     AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor(this),
