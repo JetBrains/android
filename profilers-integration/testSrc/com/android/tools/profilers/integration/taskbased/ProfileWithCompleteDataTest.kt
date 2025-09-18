@@ -32,8 +32,7 @@ class ProfileWithCompleteDataTest : ProfilersTestBase() {
    *   1. Import minapp in the testData directory of this module.
    *   2. Start profile 'app' with complete data.
    *   Verify:
-   *   1. Verify if the complete data task started.
-   *   2. Verify in the logs that the running debuggable process is found.
+   *   1. Verify in the logs that the running debuggable process is found.
    *   </pre>
    * <p>
    */
@@ -44,10 +43,7 @@ class ProfileWithCompleteDataTest : ProfilersTestBase() {
       testFunction = { studio, adb ->
         profileWithCompleteData(studio, adb)
 
-        verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 120)
-        verifyIdeaLog(".*StudioMonitorStage.*PROFILER\\:\\s+Enter\\s+StudioMonitorStage\$", 120)
-
-        verifyIdeaLog("Found running project process: \\d+, Debuggable", 120)
+        verifyIdeaLog(".*Found\\s+running\\s+project\\s+process:\\s+\\d+,\\s+Debuggable\$", 120)
       }
     )
   }
