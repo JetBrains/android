@@ -68,6 +68,7 @@ import com.intellij.testFramework.UsefulTestCase.assertSize
 import org.junit.After
 import org.junit.Test
 import com.android.tools.idea.gradle.project.upgrade.REWRITE_DEPRECATED_OPERATORS as REWRITE_DEPRECATED_OPERATORS_INFO
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.JCENTER_TO_MAVEN_CENTRAL
 
 @RunsInEdt
@@ -311,20 +312,20 @@ class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
-  fun testFailureRetentionToEmulatorSnapshotsUsageTracker() {
-    writeToBuildFile(TestFileName("MigrateFailureRetentionToEmulatorSnapshots/FailureRetentionToEmulatorSnapshots"))
-    val processor = MIGRATE_FAILURE_RETENTION_TO_EMULATOR_SNAPSHOTS
+  fun testRemoveEmulatorSnapshotsUsageTracker() {
+    writeToBuildFile(TestFileName("RemoveFailureRetentionAndEmulatorSnapshots/RemoveFailureRetentionAndEmulatorSnapshots"))
+    val processor = REMOVE_EMULATOR_SNAPSHOTS
       .RefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("9.0.0"))
     processor.run()
 
     checkComponentEvents(
       UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("9.0.0")
-        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(MIGRATE_TO_EMULATOR_SNAPSHOTS).setIsEnabled(true))
-        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(3).setFiles(2))
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(UpgradeAssistantComponentKind.REMOVE_EMULATOR_SNAPSHOTS).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(2).setFiles(2))
         .build(),
       UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("9.0.0")
-        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(MIGRATE_TO_EMULATOR_SNAPSHOTS).setIsEnabled(true))
-        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(3).setFiles(2))
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(UpgradeAssistantComponentKind.REMOVE_EMULATOR_SNAPSHOTS).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(2).setFiles(2))
         .build(),
     )
   }

@@ -1,0 +1,5 @@
+android {
+  testOptions {
+    animationsDisabled = true  // This is unrelated property and should not be removed.
+  }
+}

@@ -263,15 +263,15 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
-  fun testEnabledEffectOnMigrateFailureRetention() {
+  fun testEnabledEffectOnDeleteFailureRetentionAndEmulatorSnapshots() {
     fun AgpUpgradeComponentRefactoringProcessor.isMigrateFailureRetention() =
-      this is PropertiesOperationsRefactoringInfo.RefactoringProcessor && info == MIGRATE_FAILURE_RETENTION_TO_EMULATOR_SNAPSHOTS
+      this is PropertiesOperationsRefactoringInfo.RefactoringProcessor && info == REMOVE_EMULATOR_SNAPSHOTS
 
-    writeToBuildFile(TestFileName("MigrateFailureRetentionToEmulatorSnapshots/FailureRetentionToEmulatorSnapshots"))
+    writeToBuildFile(TestFileName("RemoveFailureRetentionAndEmulatorSnapshots/RemoveFailureRetentionAndEmulatorSnapshots"))
     val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("8.0.0"))
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it.isMigrateFailureRetention() }
     processor.run()
-    verifyFileContents(buildFile, TestFileName("MigrateFailureRetentionToEmulatorSnapshots/FailureRetentionToEmulatorSnapshotsExpected"))
+    verifyFileContents(buildFile, TestFileName("RemoveFailureRetentionAndEmulatorSnapshots/RemoveFailureRetentionAndEmulatorSnapshotsExpected"))
   }
 
   @Test
