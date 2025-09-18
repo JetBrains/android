@@ -20,7 +20,9 @@ import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
+import com.android.tools.idea.streaming.core.DeviceDisplayListener
 import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.core.DisplayOwner
 import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
@@ -565,7 +567,8 @@ class FakeContent(
   override fun getExecutionId() = 1L
 }
 
-class FakeRunningDevicesComponent(private val tabInfo: TabInfo) : JPanel(), UiDataProvider {
+class FakeRunningDevicesComponent(private val tabInfo: TabInfo) :
+  JPanel(), UiDataProvider, DisplayOwner {
   init {
     tabInfo.container.add(tabInfo.content)
   }
@@ -576,4 +579,8 @@ class FakeRunningDevicesComponent(private val tabInfo: TabInfo) : JPanel(), UiDa
     sink[DISPLAY_VIEW_KEY] = tabInfo.displays.first()
     sink[DEVICE_ID_KEY] = tabInfo.deviceId
   }
+
+  override fun addDeviceDisplayListener(listener: DeviceDisplayListener) {}
+
+  override fun removeDeviceDisplayListener(listener: DeviceDisplayListener) {}
 }
