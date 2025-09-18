@@ -109,6 +109,8 @@ class LayoutInspectorLoadingObserverTest {
 
   @Test
   fun testDispose() {
+    val modificationListenersCountBefore = inspectorRule.inspectorModel.modificationListeners.size()
+    val selectedProcessListenersCountBefore = inspectorRule.processes.selectedProcessListeners.size
     val layoutInspectorLoadingObserver =
       LayoutInspectorLoadingObserver(inspectorRule.disposable, inspectorRule.inspector)
     layoutInspectorLoadingObserver.listeners.add(
@@ -123,8 +125,10 @@ class LayoutInspectorLoadingObserverTest {
 
     Disposer.dispose(layoutInspectorLoadingObserver)
 
-    assertThat(inspectorRule.inspectorModel.modificationListeners.size()).isEqualTo(2)
-    assertThat(inspectorRule.processes.selectedProcessListeners).hasSize(2)
+    assertThat(inspectorRule.inspectorModel.modificationListeners.size())
+      .isEqualTo(modificationListenersCountBefore)
+    assertThat(inspectorRule.processes.selectedProcessListeners)
+      .hasSize(selectedProcessListenersCountBefore)
 
     assertThat(layoutInspectorLoadingObserver.listeners.size()).isEqualTo(0)
     assertThat(inspectorRule.inspector.stopInspectorListeners).isEmpty()

@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.ddmlib.AndroidDebugBridge
-import com.android.ddmlib.testing.FakeAdbRule
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
 import com.google.common.util.concurrent.Futures
@@ -26,20 +25,23 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.replaceService
 import java.io.File
+import java.util.concurrent.TimeUnit
 import org.junit.rules.ExternalResource
 import org.mockito.Mockito.spy
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 /** Rule for making AdbUtils.getAdbFuture(Project) return AdbRule.bridge. */
-class AdbServiceRule(private val projectSupplier: () -> Project, private val adbRule: FakeAdbRule) :
-  ExternalResource() {
+class AdbServiceRule(private val projectSupplier: () -> Project) : ExternalResource() {
   private var serverKilled = false
   private var serviceDisposable: Disposable? = null
 
   override fun before() {
     val adbFile: File = mock()
-    val bridge: AndroidDebugBridge = spy(adbRule.bridge)
+    val bridgeInstance =
+      AndroidDebugBridge.createBridge(10, TimeUnit.SECONDS)
+        ?: error("TestRule could not create ADB bridge ")
+    val bridge: AndroidDebugBridge = spy(bridgeInstance)
     val disposable = Disposer.newDisposable().also { serviceDisposable = it }
     val adbFileProvider = AdbFileProvider { adbFile }
     projectSupplier().replaceService(AdbFileProvider::class.java, adbFileProvider, disposable)
@@ -53,7 +55,7 @@ class AdbServiceRule(private val projectSupplier: () -> Project, private val adb
       if (serverKilled) {
         error("Server was killed. Do not keep instances of AndroidDebugBridge around.")
       }
-      adbRule.bridge.devices
+      bridgeInstance.devices
     }
   }
 

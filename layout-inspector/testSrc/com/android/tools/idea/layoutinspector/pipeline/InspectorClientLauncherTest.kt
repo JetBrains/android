@@ -57,7 +57,7 @@ class InspectorClientLauncherTest {
   private val disposableRule = DisposableRule()
   private val projectRule = ProjectRule()
   private val adbRule = FakeAdbRule().withDeviceCommandHandler(FakeShellCommandHandler())
-  private val adbService = AdbServiceRule(projectRule::project, adbRule)
+  private val adbService = AdbServiceRule(projectRule::project)
 
   @get:Rule
   val ruleChain =
@@ -609,7 +609,7 @@ class InspectorClientLauncherMetricsTest {
   private val disposableRule = DisposableRule()
   private val projectRule = ProjectRule()
   private val adbRule = FakeAdbRule().withDeviceCommandHandler(FakeShellCommandHandler())
-  private val adbService = AdbServiceRule(projectRule::project, adbRule)
+  private val adbService = AdbServiceRule(projectRule::project)
 
   @get:Rule
   val ruleChain =

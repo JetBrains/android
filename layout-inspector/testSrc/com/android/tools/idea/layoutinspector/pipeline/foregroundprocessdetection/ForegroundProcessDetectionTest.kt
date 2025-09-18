@@ -64,7 +64,7 @@ import org.mockito.kotlin.mock
 class ForegroundProcessDetectionTest {
   private val projectRule = ProjectRule()
   private val adbRule = FakeAdbRule()
-  private val adbService = AdbServiceRule(projectRule::project, adbRule)
+  private val adbService = AdbServiceRule(projectRule::project)
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
   private val grpcServerRule =

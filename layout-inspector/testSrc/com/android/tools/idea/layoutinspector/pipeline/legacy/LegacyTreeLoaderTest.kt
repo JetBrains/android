@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.legacy
 
+import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
 import com.android.ddmlib.DebugViewDumpHandler
 import com.android.ddmlib.IDevice
@@ -206,7 +207,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
     val imageBytes =
       TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/image1.png").readBytes()
     val legacyClient = legacyRule.client
-    val device = legacyRule.bridge.findDevice(LEGACY_DEVICE)
+    val device = AndroidDebugBridge.getBridge()!!.findDevice(LEGACY_DEVICE)
     val client = mock<Client>()
     whenever(client.device).thenReturn(device)
     whenever(
