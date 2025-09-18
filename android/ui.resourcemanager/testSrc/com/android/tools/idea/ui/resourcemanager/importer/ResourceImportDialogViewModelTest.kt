@@ -124,7 +124,7 @@ class ResourceImportDialogViewModelTest {
     // Check invalidName
     viewModel.rename(designAssetSet, invalidName) { designAssetSet = it }
     assertEquals(expected, viewModel.validateName(invalidName)!!.message)
-    assertEquals("$invalidName: $expected", viewModel.getValidationInfo()!!.message)
+    assertEquals("$expected: '$invalidName'", viewModel.getValidationInfo()!!.message)
 
     // Check valid name duplicated
     assertNull(viewModel.validateName(newName))
@@ -133,6 +133,8 @@ class ResourceImportDialogViewModelTest {
     assertEquals("A resource with the same name is also being imported.", validationInfo.message)
     assertTrue(validationInfo.warning)
     assertNull(viewModel.getValidationInfo())
+
+    assertEquals("Enter a new name", viewModel.validateName("")!!.message)
   }
 
   @Test

@@ -351,7 +351,11 @@ class ResourceImportDialog(
   }
 
   override fun canGoNext(): Boolean {
-    return dialogViewModel.assetSets.isNotEmpty() && doValidateAll().isEmpty()
+    // We call doValidateAll here since it has side-effects like updating the dialog error message.
+    // If we add it to the end of the condition, if the asset set is empty, this would not get
+    // evaluated and the message would not be updated.
+    val noErrors = doValidateAll().isEmpty()
+    return dialogViewModel.assetSets.isNotEmpty() && noErrors
   }
 
   override fun updateButtons(lastStep: Boolean, canGoNext: Boolean, firstStep: Boolean) {
