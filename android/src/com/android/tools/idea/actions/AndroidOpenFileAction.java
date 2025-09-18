@@ -120,7 +120,8 @@ public class AndroidOpenFileAction extends DumbAwareAction {
         }
         doOpenFile(e, files);
       });
-    } finally {
+    }
+    finally {
       Disposer.dispose(disposable);
     }
   }
@@ -178,7 +179,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
       else {
         PlatformProjectOpenProcessor processor = PlatformProjectOpenProcessor.getInstanceIfItExists();
         if (processor != null) {
-          processor.doOpenProject(file, null, false);
+          PlatformProjectOpenProcessor.openProjectLegacyJavaApi(file, null, false, processor);
         }
       }
     }
