@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.flags.ifEnabled
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
@@ -68,17 +69,21 @@ internal class PreviewSurfaceActionManager(
     actionGroup.add(ToggleResizePanelVisibilityAction().visibleOnlyInFocus())
     // Add toolbar actions in the context-menu as a redundant entry point
     getSceneViewContextToolbarActions().takeIf { it.isNotEmpty() }?.forEach { actionGroup.add(it) }
-    // Add action to transform UI with AI
-    if (StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI.get()) {
+    StudioFlags.COMPOSE_PREVIEW_AI_AGENTS_DROPDOWN.ifEnabled {
       ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull()?.let {
-        it.transformPreviewAction()?.let { action ->
-          actionGroup.add(action.visibleOnlyInStaticPreview())
+        it.previewAgentsDropDownAction()?.visibleOnlyInStaticPreview()?.let { action ->
+          actionGroup.add(action)
         }
       }
     }
-    if (StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.get()) {
+    // Add action to transform UI with AI directly to the context-menu if the dropdown menu
+    // is not enabled.
+    if (
+      StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI.get() &&
+        !StudioFlags.COMPOSE_PREVIEW_AI_AGENTS_DROPDOWN.get()
+    ) {
       ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull()?.let {
-        it.fixVisualLintIssuesAction()?.let { action ->
+        it.transformPreviewAction()?.let { action ->
           actionGroup.add(action.visibleOnlyInStaticPreview())
         }
       }
