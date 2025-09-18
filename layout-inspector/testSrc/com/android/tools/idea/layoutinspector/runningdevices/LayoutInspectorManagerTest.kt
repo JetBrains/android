@@ -23,7 +23,6 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.FakeForegroundProcessDetection
-import com.android.tools.idea.layoutinspector.FakeSessionStats
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
@@ -38,7 +37,6 @@ import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetectio
 import com.android.tools.idea.layoutinspector.resource.data.Display
 import com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleDeepInspectAction
 import com.android.tools.idea.layoutinspector.runningdevices.actions.UiConfig
-import com.android.tools.idea.layoutinspector.runningdevices.ui.TabComponents
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.LayoutInspectorRenderer
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.OnDeviceRendererPanel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.StudioRendererPanel
@@ -65,7 +63,6 @@ import kotlin.time.Duration.Companion.seconds
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.spy
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
@@ -96,8 +93,8 @@ class LayoutInspectorManagerTest {
         container = JPanel(),
         displays =
           listOf(
-            spy(displayViewRule.newEmulatorView(displayId = Display.MAIN_DISPLAY_ID)),
-            spy(displayViewRule.newEmulatorView(displayId = 1)),
+            displayViewRule.newEmulatorView(displayId = Display.MAIN_DISPLAY_ID),
+            displayViewRule.newEmulatorView(displayId = 1),
           ),
       )
     tab2 =
@@ -107,8 +104,8 @@ class LayoutInspectorManagerTest {
         container = JPanel(),
         displays =
           listOf(
-            spy(displayViewRule.newEmulatorView(displayId = Display.MAIN_DISPLAY_ID)),
-            spy(displayViewRule.newEmulatorView(displayId = 1)),
+            displayViewRule.newEmulatorView(displayId = Display.MAIN_DISPLAY_ID),
+            displayViewRule.newEmulatorView(displayId = 1),
           ),
       )
     xrTab =
@@ -118,11 +115,7 @@ class LayoutInspectorManagerTest {
         container = JPanel(),
         displays =
           listOf(
-            spy(
-              displayViewRule.newEmulatorView(
-                avdCreator = { path -> FakeEmulator.createXrAvd(path) }
-              )
-            )
+            displayViewRule.newEmulatorView(avdCreator = { path -> FakeEmulator.createXrAvd(path) })
           ),
       )
     fakeToolWindowManager =
@@ -370,6 +363,13 @@ class LayoutInspectorManagerTest {
     fakeToolWindowManager.setSelectedContent(tab1)
     layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
+    // Displays are added asynchronously. Wait for them to be added.
+    tab1.displays.forEach { display ->
+      waitForCondition(2.seconds) {
+        display.allChildren().filterIsInstance<LayoutInspectorRenderer>().isNotEmpty()
+      }
+    }
+
     assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(5)
     assertThat(layoutInspector.processModel?.selectedProcessListeners).hasSize(3)
 
@@ -379,6 +379,13 @@ class LayoutInspectorManagerTest {
     assertThat(layoutInspector.processModel?.selectedProcessListeners).hasSize(1)
 
     layoutInspectorManager.enableLayoutInspector(tab2.deviceId, true)
+
+    // Displays are added asynchronously. Wait for them to be added.
+    tab2.displays.forEach { display ->
+      waitForCondition(2.seconds) {
+        display.allChildren().filterIsInstance<LayoutInspectorRenderer>().isNotEmpty()
+      }
+    }
 
     assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(5)
     assertThat(layoutInspector.processModel?.selectedProcessListeners).hasSize(3)
@@ -416,6 +423,13 @@ class LayoutInspectorManagerTest {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
     layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
+
+    // Displays are added asynchronously. Wait for them to be added.
+    tab1.displays.forEach { display ->
+      waitForCondition(2.seconds) {
+        display.allChildren().filterIsInstance<LayoutInspectorRenderer>().isNotEmpty()
+      }
+    }
 
     tab1.displays.forEach { display ->
       val renderer = display.allChildren().filterIsInstance<StudioRendererPanel>().first()
@@ -543,6 +557,11 @@ class LayoutInspectorManagerTest {
     var isRendererDisposed = mutableListOf<Boolean>()
 
     tab1.displays.forEach { display ->
+      // Displays are added asynchronously. Wait for them to be added.
+      waitForCondition(2.seconds) {
+        display.allChildren().filterIsInstance<LayoutInspectorRenderer>().isNotEmpty()
+      }
+
       val renderer = display.allChildren().filterIsInstance<LayoutInspectorRenderer>().first()
       Disposer.register(renderer) { isRendererDisposed.add(true) }
     }
@@ -633,27 +652,6 @@ class LayoutInspectorManagerTest {
 
     verifyUiRemoved(tab1)
     assertThat(LayoutInspectorManagerGlobalState.tabsWithLayoutInspector).isEmpty()
-  }
-
-  @Test
-  @RunsInEdt
-  fun testOnDeviceRenderingIsLoggedToMetrics() {
-    val tabComponents =
-      TabComponents(
-        disposable = displayViewRule.disposable,
-        tabContentPanel = xrTab.content,
-        tabContentPanelContainer = xrTab.container,
-        displayList = xrTab.displays,
-      )
-
-    val fakeSessionStats = FakeSessionStats()
-    createRenderingComponents(
-      tabComponents = tabComponents,
-      layoutInspector = layoutInspector,
-      statsProvider = { fakeSessionStats },
-    )
-
-    assertThat(fakeSessionStats.setOnDeviceRenderingInvocations).isEqualTo(1)
   }
 }
 

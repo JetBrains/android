@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices.ui
 
+import com.android.testutils.waitForCondition
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -31,14 +32,14 @@ import com.android.tools.idea.layoutinspector.model.VIEW4
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
-import com.android.tools.idea.layoutinspector.runningdevices.RenderingComponents
 import com.android.tools.idea.layoutinspector.runningdevices.actions.UiConfig
-import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.EmbeddedRendererModel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.LayoutInspectorRenderer
 import com.android.tools.idea.layoutinspector.runningdevices.verifyUiInjected
 import com.android.tools.idea.layoutinspector.runningdevices.verifyUiRemoved
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.android.tools.idea.streaming.core.DeviceDisplayListener
 import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.core.DisplayOwner
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
@@ -48,15 +49,12 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import java.awt.Rectangle
 import javax.swing.JPanel
+import kotlin.time.Duration.Companion.seconds
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
-
-private class FakeLayoutInspectorRenderer : LayoutInspectorRenderer() {
-  override fun dispose() {}
-}
 
 class SelectedTabStateTest {
 
@@ -65,6 +63,7 @@ class SelectedTabStateTest {
   @get:Rule val displayViewRule = EmulatorViewRule()
 
   private lateinit var layoutInspector: LayoutInspector
+  private lateinit var displayListeners: MutableList<DeviceDisplayListener>
 
   @Before
   fun setUp() {
@@ -116,6 +115,8 @@ class SelectedTabStateTest {
         notificationModel = notificationModel,
         treeSettings = FakeTreeSettings(),
       )
+
+    displayListeners = mutableListOf()
   }
 
   @After
@@ -179,11 +180,11 @@ class SelectedTabStateTest {
 
     selectedTabState1.enableLayoutInspector(UiConfig.VERTICAL)
 
-    verifyUiInjected<FakeLayoutInspectorRenderer>(
+    verifyUiInjected<LayoutInspectorRenderer>(
       UiConfig.VERTICAL,
       tabsComponents1.tabContentPanel,
       tabsComponents1.tabContentPanelContainer,
-      tabsComponents1.displayList,
+      tabsComponents1.displayList.value,
     )
 
     Disposer.dispose(tabsComponents1)
@@ -191,7 +192,7 @@ class SelectedTabStateTest {
     verifyUiRemoved(
       tabsComponents1.tabContentPanel,
       tabsComponents1.tabContentPanelContainer,
-      tabsComponents1.displayList,
+      tabsComponents1.displayList.value,
     )
 
     val tabsComponents2 = createTabComponents()
@@ -199,11 +200,11 @@ class SelectedTabStateTest {
 
     selectedTabState2.enableLayoutInspector()
 
-    verifyUiInjected<FakeLayoutInspectorRenderer>(
+    verifyUiInjected<LayoutInspectorRenderer>(
       UiConfig.VERTICAL,
       tabsComponents2.tabContentPanel,
       tabsComponents2.tabContentPanelContainer,
-      tabsComponents2.displayList,
+      tabsComponents2.displayList.value,
     )
   }
 
@@ -213,10 +214,7 @@ class SelectedTabStateTest {
     val tabsComponents = createTabComponents()
     val selectedTabState = createSelectedTabState(tabsComponents)
 
-    val renderers =
-      tabsComponents.displayList.mapNotNull { display ->
-        selectedTabState.renderingComponents.findRenderer(display.displayId)
-      }
+    val renderers = selectedTabState.renderingComponents.map { it.renderer }
 
     renderers.forEach { renderer ->
       val inspector1 =
@@ -225,7 +223,7 @@ class SelectedTabStateTest {
       assertThat(inspector1).isNotNull()
     }
 
-    Disposer.dispose(selectedTabState.tabComponents)
+    Disposer.dispose(tabsComponents)
 
     renderers.forEach { renderer ->
       val inspector2 =
@@ -235,25 +233,61 @@ class SelectedTabStateTest {
     }
   }
 
+  @Test
+  @RunsInEdt
+  fun testDynamicallyAddedDisplay() {
+    val tabComponents = createTabComponents()
+    val selectedTabState = createSelectedTabState(tabComponents)
+
+    waitForCondition(10.seconds) { selectedTabState.renderingComponents.isNotEmpty() }
+
+    selectedTabState.enableLayoutInspector(UiConfig.HORIZONTAL)
+
+    val newDisplay = displayViewRule.newEmulatorView()
+    displayListeners.forEach { it.displayAdded(newDisplay) }
+
+    assertThat(tabComponents.displayList.value).contains(newDisplay)
+
+    verifyUiInjected<LayoutInspectorRenderer>(
+      UiConfig.HORIZONTAL,
+      selectedTabState.tabComponents.tabContentPanel,
+      selectedTabState.tabComponents.tabContentPanelContainer,
+      tabComponents.displayList.value,
+    )
+
+    displayListeners.forEach { it.displayRemoved(newDisplay) }
+
+    assertThat(tabComponents.displayList.value).doesNotContain(newDisplay)
+
+    verifyUiInjected<LayoutInspectorRenderer>(
+      UiConfig.HORIZONTAL,
+      selectedTabState.tabComponents.tabContentPanel,
+      selectedTabState.tabComponents.tabContentPanelContainer,
+      tabComponents.displayList.value,
+    )
+  }
+
   private fun testConfiguration(uiConfig: UiConfig) {
     val tabComponents = createTabComponents()
     val selectedTabState = createSelectedTabState(tabComponents)
 
+    waitForCondition(10.seconds) { selectedTabState.renderingComponents.isNotEmpty() }
+
     selectedTabState.enableLayoutInspector(uiConfig)
 
-    verifyUiInjected<FakeLayoutInspectorRenderer>(
+    verifyUiInjected<LayoutInspectorRenderer>(
       uiConfig,
       selectedTabState.tabComponents.tabContentPanel,
       selectedTabState.tabComponents.tabContentPanelContainer,
-      tabComponents.displayList,
+      tabComponents.displayList.value,
     )
 
-    Disposer.dispose(selectedTabState.tabComponents)
+    Disposer.dispose(tabComponents)
 
     verifyUiRemoved(
       selectedTabState.tabComponents.tabContentPanel,
       selectedTabState.tabComponents.tabContentPanelContainer,
-      tabComponents.displayList,
+      tabComponents.displayList.value,
     )
   }
 
@@ -262,40 +296,36 @@ class SelectedTabStateTest {
     val content = JPanel()
     container.add(content)
 
-    val displays =
-      listOf(
-        displayViewRule.newEmulatorView(displayId = 0),
-        displayViewRule.newEmulatorView(displayId = 1),
-      )
-    return TabComponents(displayViewRule.disposable, content, container, displays)
+    val displayView1 = displayViewRule.newEmulatorView()
+    content.add(displayView1)
+
+    val displayView2 = displayViewRule.newEmulatorView()
+    content.add(displayView2)
+
+    return TabComponents(
+      disposable = displayViewRule.disposable,
+      tabContentPanel = content,
+      tabContentPanelContainer = container,
+      displayOwner =
+        object : DisplayOwner {
+          override fun addDeviceDisplayListener(listener: DeviceDisplayListener) {
+            displayListeners.add(listener)
+          }
+
+          override fun removeDeviceDisplayListener(listener: DeviceDisplayListener) {
+            displayListeners.remove(listener)
+          }
+        },
+    )
   }
 
   private fun createSelectedTabState(tabComponents: TabComponents): SelectedTabState {
-    val renderingComponents =
-      tabComponents.displayList.map { displayView ->
-        val renderModel =
-          EmbeddedRendererModel(
-            parentDisposable = displayViewRule.disposable,
-            displayId = displayView.displayId,
-            inspectorModel = layoutInspector.inspectorModel,
-            treeSettings = layoutInspector.treeSettings,
-            renderSettings = layoutInspector.renderSettings,
-            navigateToSelectedViewOnDoubleClick = {},
-          )
-
-        RenderingComponents(
-          displayId = displayView.displayId,
-          renderer = FakeLayoutInspectorRenderer(),
-          model = renderModel,
-        )
-      }
-
     return SelectedTabState(
+      disposable = tabComponents,
       project = displayViewRule.project,
       deviceId = DeviceId.ofPhysicalDevice("tab"),
       tabComponents = tabComponents,
       layoutInspector = layoutInspector,
-      renderingComponents = renderingComponents,
     )
   }
 }

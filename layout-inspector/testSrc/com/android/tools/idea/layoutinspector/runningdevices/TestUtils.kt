@@ -249,6 +249,7 @@ inline fun <reified T : LayoutInspectorRenderer> verifyUiInjected(
   val inspectorBanner = container.allChildren().filterIsInstance<InspectorBanner>().first()
   assertThat(inspectorBanner).isNotNull()
 
+  assertThat(displays).isNotEmpty()
   displays.forEach { displayView ->
     assertThat(displayView.allChildren().filterIsInstance<T>()).hasSize(1)
   }
@@ -275,6 +276,7 @@ fun verifyUiRemoved(content: Component, container: Container, displays: List<Abs
   val inspectorBanner = container.allChildren().filterIsInstance<InspectorBanner>()
   assertThat(inspectorBanner).hasSize(0)
 
+  assertThat(displays).isNotEmpty()
   displays.forEach { displayView ->
     assertThat(displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>()).hasSize(0)
   }
