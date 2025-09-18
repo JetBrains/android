@@ -131,16 +131,37 @@ public class HeapDumpCaptureObjectTest {
     classClassifier.partition(
       Collections.emptyList(), testHeap.getInstancesStream().collect(HashSet::new, HashSet::add, HashSet::addAll));
     List<ClassifierSet> classSets = classClassifier.getFilteredClassifierSets();
-    assertEquals(3, classSets.size());
+    assertEquals(4, classSets.size());
     assertTrue(classSets.stream().allMatch(classifier -> classifier instanceof ClassSet));
-    assertTrue(classSets.stream().anyMatch(classifier -> "java.lang.Class".equals(((ClassSet)classifier).getClassEntry().getClassName())));
+    // With the change, each ClassObj is an instance of its own class, so we expect a ClassSet for each class in the snapshot.
+    assertTrue(classSets.stream().anyMatch(classifier -> "java.lang.ref.Reference".equals(((ClassSet)classifier).getClassEntry().getClassName())));
+    assertTrue(classSets.stream().anyMatch(classifier -> "SoftAndHardReference".equals(((ClassSet)classifier).getClassEntry().getClassName())));
     assertTrue(classSets.stream().anyMatch(classifier -> "Class0".equals(((ClassSet)classifier).getClassEntry().getClassName())));
     assertTrue(classSets.stream().anyMatch(classifier -> "Class1".equals(((ClassSet)classifier).getClassEntry().getClassName())));
 
-    InstanceObject instance0 = findChildClassSetWithName(classClassifier, "Class0").getInstancesStream().findFirst().orElse(null);
-    InstanceObject instance1 = findChildClassSetWithName(classClassifier, "Class1").getInstancesStream().findFirst().orElse(null);
+    // The ClassSet for a class now contains both regular instances and the class object instance.
+    assertEquals(2, findChildClassSetWithName(classClassifier, "Class0").getInstancesCount());
+    assertEquals(1, findChildClassSetWithName(classClassifier, "java.lang.ref.Reference").getInstancesCount());
+    // We need to filter by value type to get the regular object instance we want to test.
+    InstanceObject instance0 = findChildClassSetWithName(classClassifier, "Class0").getInstancesStream()
+      .filter(i -> i.getValueType() == ValueObject.ValueType.OBJECT).findFirst().orElse(null);
+    InstanceObject instance1 = findChildClassSetWithName(classClassifier, "Class1").getInstancesStream()
+      .filter(i -> i.getValueType() == ValueObject.ValueType.OBJECT).findFirst().orElse(null);
     verifyInstance(instance0, "Class0@1 (0x1)", 0, 1, 0);
     verifyInstance(instance1, "Class1@2 (0x2)", 1, 0, 1);
+
+    // Also verify the Class object instances, which are now visible due to the change.
+    InstanceObject class0ClassObject = findChildClassSetWithName(classClassifier, "Class0").getInstancesStream()
+      .filter(i -> i.getValueType() == ValueObject.ValueType.CLASS).findFirst().orElse(null);
+    assertNotNull(class0ClassObject);
+    // Class objects are not part of the GC root path in this test, so their depth is MAX_VALUE.
+    // They also have no static fields (in this test) and no incoming references.
+    verifyInstance(class0ClassObject, "Class0.class@101 (0x65)", Integer.MAX_VALUE, 0, 0);
+
+    InstanceObject class1ClassObject = findChildClassSetWithName(classClassifier, "Class1").getInstancesStream()
+      .filter(i -> i.getValueType() == ValueObject.ValueType.CLASS).findFirst().orElse(null);
+    assertNotNull(class1ClassObject);
+    verifyInstance(class1ClassObject, "Class1.class@102 (0x66)", Integer.MAX_VALUE, 0, 0);
 
     FieldObject field0 = instance0.getFields().get(0);
     assertEquals(field0.getAsInstance(), instance1);

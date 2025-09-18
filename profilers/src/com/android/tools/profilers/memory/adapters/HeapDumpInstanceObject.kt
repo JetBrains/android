@@ -52,7 +52,16 @@ internal class HeapDumpInstanceObject(private val captureObject: HeapDumpCapture
   override fun getName() = ""
 
   // TODO show length of array instance
-  override fun getValueText() = String.format(Locale.US, NAME_FORMATTER, classEntry.simpleClassName, instance.uniqueId, instance.uniqueId)
+  override fun getValueText(): String {
+    val name = if (valueType == ValueObject.ValueType.CLASS) {
+      // For class objects, append ".class" to make them distinct in the UI.
+      "${classEntry.simpleClassName}.class"
+    }
+    else {
+      classEntry.simpleClassName
+    }
+    return String.format(Locale.US, NAME_FORMATTER, name, instance.uniqueId, instance.uniqueId)
+  }
 
   override fun getToStringText() = when (valueType) {
     ValueObject.ValueType.STRING -> when (val text = (instance as ClassInstance).getAsString(MAX_VALUE_TEXT_LENGTH)) {

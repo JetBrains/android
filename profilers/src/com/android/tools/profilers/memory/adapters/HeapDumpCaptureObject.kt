@@ -117,7 +117,8 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
     if (file == null || !file.exists() || file.length() == 0L) {
       // If any check fails, enter the error state and return false.
       false.also { isLoadingError = true }
-    } else {
+    }
+    else {
       true.also {
         ideProfilerServices.featureTracker.trackLoading(Loading.Type.HPROF, sizeKb = (file.length() / 1024).toInt(),
                                                         measure = { instanceIndex.size.toLong() }) {
@@ -134,10 +135,6 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
     snapshot.computeRetainedSizes()
     hasNativeAllocations = nativeRegistryPostProcessor.hasNativeAllocations
     hasLoaded = true
-    val javaLangClassObject = snapshot.heaps.stream()
-      .flatMap { h -> h.classes.stream().filter { ClassDb.JAVA_LANG_CLASS == it.className } }
-      .map { createClassObjectInstance(null, it) }
-      .findAny().orElse(null)
     val heapSetMappings = snapshot.heaps.associateWith { HeapSet(this, it.name, it.id) }
     val addInstanceToRightHeap: (HeapSet, Long, InstanceObject) -> Unit =
       AllHeapSet(this, heapSetMappings.values.toTypedArray()).let { superHeap ->
@@ -145,10 +142,24 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
         _heapSets[superHeap.id] = superHeap
         { _, id, classInst -> addInstance(superHeap, id, classInst) }
       }
+    // Iterate creating UI objects for some inspectable in the heap dump:
+    // 1. If a class is in the image heap, include it only if it has instances.
+    // 2. If a class is not in the image heap, include it always.
+    snapshot.heaps.asSequence().flatMap { it.classes.asSequence() }.forEach { classObj ->
+      classObj.makeEntry()
+      val isInImageHeap = classObj.heap?.name == CaptureObject.IMAGE_HEAP_NAME
+      if ((isInImageHeap && classObj.instanceCount > 0) || !isInImageHeap) {
+        val heapSet = heapSetMappings[classObj.heap]!!
+        // Create an InstanceObject for the ClassObj. The ID must be the real classObj.id
+        // so that findInstanceObject and other lookups work correctly.
+        addInstanceToRightHeap(heapSet, classObj.id, createClassObjectInstance(classObj))
+      }
+    }
+
+    // Process all other instances (ClassInstance and ArrayInstance).
     heapSetMappings.forEach { (heap, heapSet) ->
-      heap.classes.forEach { addInstanceToRightHeap(heapSet, it.id, createClassObjectInstance(javaLangClassObject, it)) }
       heap.forEachInstance { instance ->
-        assert(ClassDb.JAVA_LANG_CLASS != instance.classObj!!.className)
+        // The class for this instance would have already been registered.
         val classEntry = instance.classObj!!.makeEntry()
         addInstanceToRightHeap(heapSet, instance.id, HeapDumpInstanceObject(this@HeapDumpCaptureObject, instance, classEntry, null))
         true
@@ -188,11 +199,13 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
 
   open fun findInstanceObject(instance: Instance) = if (hasLoaded) instanceIndex.get(instance.id) else null
 
-  fun createClassObjectInstance(javaLangClass: InstanceObject?, classObj: ClassObj): InstanceObject {
-    val classEntry = classObj.makeEntry(if (javaLangClass == null) ClassDb.JAVA_LANG_CLASS else classObj.className)
-    // Handle java.lang.Class which is a special case. All its instances are other classes, so wee need to create an InstanceObject for it
-    // first for all classes to reference.
-    return HeapDumpInstanceObject(this, classObj, javaLangClass?.classEntry ?: classEntry, ValueObject.ValueType.CLASS)
+  fun createClassObjectInstance(classObj: ClassObj): InstanceObject {
+    // The ClassEntry associated with this InstanceObject should be for the class it represents
+    // (e.g. MyClass), not "java.lang.Class".
+    // This makes the object appear under its own class grouping in the UI, where it can act as a
+    // placeholder to access its static fields.
+    val classEntry = classObj.makeEntry()
+    return HeapDumpInstanceObject(this, classObj, classEntry, ValueObject.ValueType.CLASS)
   }
 
   override fun getActivityFragmentLeakFilter() = activityFragmentLeakFilter
@@ -259,9 +272,9 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
   }
 
   private fun doGetBytesRequest() = client.transportClient.getFile(Transport.BytesRequest.newBuilder()
-                                                                      .setStreamId(_session.streamId)
-                                                                      .setId(heapDumpInfo.startTime.toString())
-                                                                      .build())
+                                                                     .setStreamId(_session.streamId)
+                                                                     .setId(heapDumpInfo.startTime.toString())
+                                                                     .build())
 
   private fun ClassObj.makeEntry(name: String = this.className) =
     if (superClassObj != null) classDb.registerClass(id, superClassObj!!.id, name, totalRetainedSize)
