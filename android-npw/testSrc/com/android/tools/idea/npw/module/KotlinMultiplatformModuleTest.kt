@@ -132,14 +132,17 @@ class KotlinMultiplatformModuleTest {
 
     val newModuleTemplateData =
       ModuleTemplateData(
-        projectTemplateData = ProjectTemplateDataBuilder(false).apply {
-          androidXSupport = true
-          this.agpVersion = agpVersion
-          language = Language.Kotlin
-          this.kotlinVersion = kotlinVersion
-          topOut = tmpFolderRule.root
-          applicationPackage = packageName
-        }.build(),
+        projectTemplateData =
+          ProjectTemplateDataBuilder(false)
+            .apply {
+              androidXSupport = true
+              this.agpVersion = agpVersion
+              language = Language.Kotlin
+              this.kotlinVersion = kotlinVersion
+              topOut = tmpFolderRule.root
+              applicationPackage = packageName
+            }
+            .build(),
         themesData = ThemesData("appname"),
         apis =
           ApiTemplateData(
@@ -169,8 +172,7 @@ class KotlinMultiplatformModuleTest {
         useGenericLocalTests = true,
         useGenericInstrumentedTests = true,
         isCompose = false,
-        // TODO merge
-        currentVariant = null,
+        currentVariant = "debug",
       )
 
     runWriteCommandAction(projectRule.project) {

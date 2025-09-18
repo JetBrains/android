@@ -248,8 +248,7 @@ class GenerateBaselineProfileModuleTest {
         isCompose = false,
         useGenericLocalTests = true,
         useGenericInstrumentedTests = true,
-        // TODO merge
-        currentVariant = null,
+        currentVariant = "debug",
       )
 
     runWriteCommandAction(projectRule.project) {

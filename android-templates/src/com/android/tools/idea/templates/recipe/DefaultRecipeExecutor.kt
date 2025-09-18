@@ -24,6 +24,7 @@ import com.android.ide.common.gradle.Dependency
 import com.android.resources.ResourceFolderType
 import com.android.sdklib.AndroidVersion
 import com.android.support.AndroidxNameUtils
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dependencies.DependenciesHelper
 import com.android.tools.idea.gradle.dependencies.GroupNameDependencyMatcher
 import com.android.tools.idea.gradle.dependencies.PluginsHelper
@@ -603,11 +604,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     projectSettingsModel?.addModulePath(moduleName)
   }
 
-  // TODO merge
-  override fun addJourneysTestSuite(testSuiteName: String, targetVariant: String?) {
-    TODO("not implemented")
-  }
-
   /** Adds a new build feature to android block. For example, may enable compose. */
   override fun setBuildFeature(name: String, value: Boolean) {
     val buildModel = moduleGradleBuildModel ?: return
@@ -624,6 +620,48 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
 
     if (feature.valueType == ValueType.NONE) {
       feature.setValue(value)
+    }
+  }
+
+  override fun addJourneysTestSuite(testSuiteName: String, targetVariant: String?) {
+    // Configure the experimental property in gradle.properties
+    val buildModel = moduleGradleBuildModel ?: return
+    addProjectGradleProperty(
+      "android.experimental.testSuiteSupport",
+      """# Opt in to AGP test suite support.
+      android.experimental.testSuiteSupport=true
+      """
+        .trimIndent(),
+    )
+
+    // Get the existing test suite or create a new one
+    val testOptions = buildModel.android().testOptions()
+    val testSuite =
+      testOptions.suites().firstOrNull { it.name() == testSuiteName }
+        ?: buildModel.android().testOptions().addSuite(testSuiteName).apply {
+          addAssets()
+          addTarget("default")
+          useJunitEngine().apply {
+            addInput("com.android.build.api.dsl.AgpTestSuiteInputParameters.TESTED_APKS")
+            addIncludeEngine("journeys-test-engine")
+            addEngineDependency(
+              StudioFlags.JOURNEYS_WITH_GEMINI_TEST_SUITE_JUNIT_PLATFORM_LAUNCHER_DEP.get()
+            )
+            addEngineDependency(
+              StudioFlags.JOURNEYS_WITH_GEMINI_TEST_SUITE_JUNIT_PLATFORM_ENGINE_DEP.get()
+            )
+            addEngineDependency(
+              StudioFlags.JOURNEYS_WITH_GEMINI_TEST_SUITE_JOURNEYS_ENGINE_DEP.get()
+            )
+          }
+        }
+
+    // Add the target variant to the new (or existing) test suite
+    if (targetVariant != null && testSuite.targets().none { it.name() == targetVariant }) {
+      testSuite.addTargetVariant(targetVariant)
+    } else {
+      // Insert a placeholder
+      testSuite.addTargetVariant("INSERT_TARGET_VARIANT_HERE")
     }
   }
 
