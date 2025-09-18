@@ -59,6 +59,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
+import com.intellij.openapi.vfs.VirtualFile
 import java.net.URL
 import org.jetbrains.android.util.AndroidBundle.message
 
@@ -91,6 +92,8 @@ class ExistingProjectModelData(
   override val additionalMavenRepos: ObjectValueProperty<List<URL>> = ObjectValueProperty(listOf())
   override val multiTemplateRenderer = MultiTemplateRenderer(::runRenderer)
   override val prompt = StringValueProperty()
+  override val imageAttachments: ObjectValueProperty<List<VirtualFile>> =
+    ObjectValueProperty(listOf())
 
   private fun runRenderer(renderer: (Project) -> Unit) {
     object :

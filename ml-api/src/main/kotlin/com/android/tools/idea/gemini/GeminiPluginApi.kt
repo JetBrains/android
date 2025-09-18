@@ -91,7 +91,11 @@ interface GeminiPluginApi {
    * Launches the New Project agent with the given prompt in the given project, which should already
    * contain at least a skeleton.
    */
-  fun launchNewProjectAgent(project: Project, prompt: String) {}
+  fun launchNewProjectAgent(
+    project: Project,
+    prompt: String,
+    imageAttachments: Collection<VirtualFile>,
+  ) {}
 
   companion object {
     val EP_NAME =
