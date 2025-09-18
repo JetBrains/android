@@ -493,29 +493,29 @@ MODULE                        : project
                             targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                             - artifacts                   : <ROOT>/lint/build/libs/lint.jar [-]
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/com/android/tools/lint/lint-checks/31.13.0-rc01/lint-checks-31.13.0-rc01.jar
+                                file                          : <M2>/com/android/tools/lint/lint-checks/<VERSION>/lint-checks-<VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/com/android/tools/lint/lint-api/31.13.0-rc01/lint-api-31.13.0-rc01.jar
+                                file                          : <M2>/com/android/tools/lint/lint-api/<VERSION>/lint-api-<VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/com/android/tools/lint/lint-model/31.13.0-rc01/lint-model-31.13.0-rc01.jar
+                                file                          : <M2>/com/android/tools/lint/lint-model/<VERSION>/lint-model-<VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/com/android/tools/external/com-intellij/intellij-core/31.13.0-rc01/intellij-core-31.13.0-rc01.jar
+                                file                          : <M2>/com/android/tools/external/com-intellij/intellij-core/<VERSION>/intellij-core-<VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/com/android/tools/external/com-intellij/kotlin-compiler/31.13.0-rc01/kotlin-compiler-31.13.0-rc01.jar
+                                file                          : <M2>/com/android/tools/external/com-intellij/kotlin-compiler/<VERSION>/kotlin-compiler-<VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/com/android/tools/external/org-jetbrains/uast/31.13.0-rc01/uast-31.13.0-rc01.jar
+                                file                          : <M2>/com/android/tools/external/org-jetbrains/uast/<VERSION>/uast-<VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/com/android/tools/build/manifest-merger/31.13.0-rc01/manifest-merger-31.13.0-rc01.jar
+                                file                          : <M2>/com/android/tools/build/manifest-merger/<VERSION>/manifest-merger-<VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/com/android/tools/common/31.13.0-rc01/common-31.13.0-rc01.jar
+                                file                          : <M2>/com/android/tools/common/<VERSION>/common-<VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/com/android/tools/layoutlib/layoutlib-api/31.13.0-rc01/layoutlib-api-31.13.0-rc01.jar
+                                file                          : <M2>/com/android/tools/layoutlib/layoutlib-api/<VERSION>/layoutlib-api-<VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/com/android/tools/sdk-common/31.13.0-rc01/sdk-common-31.13.0-rc01.jar
+                                file                          : <M2>/com/android/tools/sdk-common/<VERSION>/sdk-common-<VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/com/android/tools/sdklib/31.13.0-rc01/sdklib-31.13.0-rc01.jar
+                                file                          : <M2>/com/android/tools/sdklib/<VERSION>/sdklib-<VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/commons-io/commons-io/2.16.1/commons-io-2.16.1.jar
                             - dependencies                : DefaultExternalLibraryDependency
@@ -534,11 +534,11 @@ MODULE                        : project
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/com/android/tools/annotations/31.13.0-rc01/annotations-31.13.0-rc01.jar
+                                file                          : <M2>/com/android/tools/annotations/<VERSION>/annotations-<VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/com/google/guava/guava/33.3.1-jre/guava-33.3.1-jre.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/com/android/tools/repository/31.13.0-rc01/repository-31.13.0-rc01.jar
+                                file                          : <M2>/com/android/tools/repository/<VERSION>/repository-<VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
@@ -823,7 +823,7 @@ MODULE                        : project
                     qName                         : :app:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
-        agpVersion                    : 8.13.0-rc01
+        agpVersion                    : 8.13.0
         gradlePath                    : :app
         gradleVersion                 : 8.13
         buildFile                     : <ROOT>/app/build.gradle
@@ -844,7 +844,7 @@ MODULE                        : project.app
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
-    ModelVersion                  : 8.13.0-rc01
+    ModelVersion                  : 8.13.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/app/build
@@ -1159,7 +1159,7 @@ MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
 MODULE                        : project.library
     GradleModuleModel
-        agpVersion                    : 8.13.0-rc01
+        agpVersion                    : 8.13.0
         gradlePath                    : :library
         gradleVersion                 : 8.13
         buildFile                     : <ROOT>/library/build.gradle
@@ -1180,7 +1180,7 @@ MODULE                        : project.library
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :library
-    ModelVersion                  : 8.13.0-rc01
+    ModelVersion                  : 8.13.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/library/build
@@ -1464,7 +1464,7 @@ MODULE                        : project.library
     externalProject               : :library (DefaultExternalProject) (*seen*)
 MODULE                        : project.library-remote
     GradleModuleModel
-        agpVersion                    : 8.13.0-rc01
+        agpVersion                    : 8.13.0
         gradlePath                    : :library-remote
         gradleVersion                 : 8.13
         buildFile                     : <ROOT>/library-remote/build.gradle
@@ -1485,7 +1485,7 @@ MODULE                        : project.library-remote
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :library-remote
-    ModelVersion                  : 8.13.0-rc01
+    ModelVersion                  : 8.13.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/library-remote/build
