@@ -17,9 +17,11 @@ package com.android.tools.idea.gradle.dsl.api.android;
 
 import com.android.tools.idea.gradle.dsl.api.android.testOptions.EmulatorSnapshotsModel;
 import com.android.tools.idea.gradle.dsl.api.android.testOptions.FailureRetentionModel;
+import com.android.tools.idea.gradle.dsl.api.android.testOptions.testSuites.TestSuiteModel;
 import com.android.tools.idea.gradle.dsl.api.android.testOptions.UnitTestsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public interface TestOptionsModel extends GradleBlockModel {
@@ -43,4 +45,13 @@ public interface TestOptionsModel extends GradleBlockModel {
 
   @NotNull
   ResolvedPropertyModel targetSdkVersion();
+
+  @NotNull
+  List<TestSuiteModel> suites();
+
+  TestSuiteModel addSuite(@NotNull String suiteName);
+
+  void removeSuite(@NotNull String suiteName);
+
+  void removeSuites();
 }

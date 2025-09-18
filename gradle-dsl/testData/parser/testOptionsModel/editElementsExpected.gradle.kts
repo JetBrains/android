@@ -13,5 +13,12 @@ android {
       enableForTestFailures = false
       maxSnapshotsForTestFailures = 3
     }
+    suites {
+      create("journeysTest") {
+        targetVariants += listOf("debug")
+      }
+      create("otherTestSuite") {
+      }
+    }
   }
 }

@@ -18,25 +18,33 @@ package com.android.tools.idea.gradle.dsl.model.android;
 import com.android.tools.idea.gradle.dsl.api.android.TestOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.testOptions.EmulatorSnapshotsModel;
 import com.android.tools.idea.gradle.dsl.api.android.testOptions.FailureRetentionModel;
+import com.android.tools.idea.gradle.dsl.api.android.testOptions.testSuites.TestSuiteModel;
 import com.android.tools.idea.gradle.dsl.api.android.testOptions.UnitTestsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.android.testOptions.EmulatorSnapshotsModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.testOptions.FailureRetentionModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.testOptions.testSuites.TestSuiteModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.testOptions.UnitTestsModelImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.SdkOrPreviewTransform;
 import com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.testOptions.EmulatorSnapshotsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.testOptions.FailureRetentionDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.testOptions.testSuites.SuitesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.testOptions.testSuites.TestSuiteDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.testOptions.UnitTestsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint;
+import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.TARGET_SDK_VERSION;
 import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.EmulatorSnapshotsDslElement.EMULATOR_SNAPSHOTS;
 import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.FailureRetentionDslElement.FAILURE_RETENTION;
+import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.testSuites.SuitesDslElement.SUITES;
 import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.UnitTestsDslElement.UNIT_TESTS;
 
 public class TestOptionsModelImpl extends GradleDslBlockModel implements TestOptionsModel {
@@ -92,5 +100,38 @@ public class TestOptionsModelImpl extends GradleDslBlockModel implements TestOpt
     return GradlePropertyModelBuilder.create(myDslElement, TARGET_SDK_VERSION)
       .addTransform(new SdkOrPreviewTransform(TARGET_SDK_VERSION, "targetSdkVersion", "targetSdk", "targetSdkPreview", agp410plus))
       .buildResolved();
+  }
+
+  @Override
+  @NotNull
+  public List<TestSuiteModel> suites() {
+    SuitesDslElement suites = myDslElement.getPropertyElement(SUITES);
+    return suites == null ? ImmutableList.of() : suites.get();
+  }
+
+  @Override
+  public TestSuiteModel addSuite(@NotNull String suiteName) {
+    SuitesDslElement
+            suitesDslElement = myDslElement.ensurePropertyElement(SUITES);
+    TestSuiteDslElement testSuiteElement =
+            suitesDslElement.ensureNamedPropertyElement(TestSuiteDslElement.TEST_SUITE, GradleNameElement.create(suiteName));
+
+    return new TestSuiteModelImpl(testSuiteElement);
+  }
+
+  @Override
+  public void removeSuite(@NotNull String suiteName) {
+    SuitesDslElement suites = myDslElement.getPropertyElement(SUITES);
+    if (suites != null) {
+      suites.removeProperty(suiteName);
+    }
+  }
+
+  @Override
+  public void removeSuites() {
+    SuitesDslElement suites = myDslElement.getPropertyElement(SUITES);
+    if (suites != null) {
+      myDslElement.removeProperty(suites);
+    }
   }
 }
