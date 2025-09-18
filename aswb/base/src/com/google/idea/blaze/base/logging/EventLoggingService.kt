@@ -15,12 +15,9 @@
  */
 package com.google.idea.blaze.base.logging
 
-import com.google.idea.blaze.base.logging.utils.HighlightStats
-import com.google.idea.blaze.base.logging.utils.SyncStats
-import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStats
-import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import com.google.idea.blaze.base.logging.GenericEvent
 
 /**
  * Forwards event logs to any [EventLogger]s available. This indirection exists so that
@@ -28,34 +25,7 @@ import com.intellij.openapi.project.Project
  */
 abstract class EventLoggingService {
 
-  abstract fun log(project: Project, syncStats: SyncStats)
-
-  abstract fun log(project: Project, querySyncStats: QuerySyncActionStats)
-
-  abstract fun log(project: Project, querySyncAutoConversionStats: QuerySyncAutoConversionStats)
-
-  abstract fun log(project: Project, aiEvent: AiEvent)
-
-  abstract fun log(caller: Any?, command: Command)
-
-  @JvmOverloads
-  open fun logEvent(
-      caller: Any?,
-      eventType: String,
-      keyValues: Map<String, String> = emptyMap(),
-      durationInNanos: Long? = null
-  ) {}
-
-  @JvmOverloads
-  open fun logEvent(
-      project: Project,
-      caller: Any?,
-      eventType: String,
-      keyValues: Map<String, String> = emptyMap(),
-      durationInNanos: Long? = null
-  ) {}
-
-  abstract fun log(project: Project, highlightStats: HighlightStats)
+  abstract fun log(event: LoggedEvent)
 
   companion object {
     @JvmStatic

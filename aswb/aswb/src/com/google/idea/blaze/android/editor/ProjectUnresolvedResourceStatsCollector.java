@@ -22,7 +22,7 @@ import com.google.idea.blaze.base.lang.buildfile.psi.util.PsiUtils;
 import com.google.idea.blaze.base.logging.EventLoggingService;
 import com.google.idea.blaze.base.logging.utils.FileHighlights;
 import com.google.idea.blaze.base.logging.utils.HighlightInfo;
-import com.google.idea.blaze.base.logging.utils.HighlightStats;
+import com.google.idea.blaze.base.logging.HighlightStats;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
@@ -185,15 +185,17 @@ class ProjectUnresolvedResourceStatsCollector implements Disposable {
       return;
     }
 
+
     HighlightStats highlightStats =
         HighlightStats.builder()
+            .setProject(project)
             .setGroup(HighlightStats.Group.ANDROID_RESOURCE_MISSING_REF)
             .setLastSyncMode(lastSyncMode)
             .setLastSyncResult(lastSyncResult)
             .setFileHighlights(getAllFileHighlights())
             .build();
 
-    EventLoggingService.getInstance().log(project, highlightStats);
+    EventLoggingService.getInstance().log(highlightStats);
     clearMap();
   }
 

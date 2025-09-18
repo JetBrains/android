@@ -35,6 +35,7 @@ import com.google.idea.blaze.android.run.runner.BlazeAndroidRunContext;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.logging.EventLoggingService;
+import com.google.idea.blaze.base.logging.GenericEvent;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
@@ -269,8 +270,12 @@ public class BlazeAndroidBinaryRunConfigurationHandler
       PropertiesComponent.getInstance(project).setValue(MI_NEVER_ASK_AGAIN, true);
     }
     EventLoggingService.getInstance()
-        .logEvent(
-            project, getClass(), "mi_migrate_prompt", ImmutableMap.of("choice", choiceToString(choice)));
+        .log(
+            new GenericEvent(
+                project,
+                getClass(),
+                "mi_migrate_prompt",
+                ImmutableMap.of("choice", choiceToString(choice))));
     return choice == Messages.YES;
   }
 

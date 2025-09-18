@@ -33,7 +33,7 @@ import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.command.info.BlazeInfoRunner;
 import com.google.idea.blaze.base.ideinfo.ArtifactLocation;
 import com.google.idea.blaze.base.ideinfo.TargetMap;
-import com.google.idea.blaze.base.logging.utils.SyncStats;
+import com.google.idea.blaze.base.logging.SyncStats;
 import com.google.idea.blaze.base.model.AspectSyncProjectData;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.model.ProjectTargetData;

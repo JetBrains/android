@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.base.logging.utils.querysync;
+package com.google.idea.blaze.base.logging;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import com.google.idea.blaze.base.logging.utils.querysync.DependenciesInfoStats;
+import com.google.idea.blaze.base.logging.utils.querysync.ProjectInfoStats;
+import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncOperationStats;
 import com.google.idea.blaze.base.qsync.QuerySyncManager.TaskOrigin;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.project.Project;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
@@ -29,7 +33,7 @@ import javax.annotation.Nullable;
 
 /** Sync stats covering all phases of query sync and build dependencies. */
 @AutoValue
-public abstract class QuerySyncActionStats {
+public abstract class QuerySyncActionStats implements LoggedEvent {
   private static final QuerySyncActionStats EMPTY =
       new AutoValue_QuerySyncActionStats.Builder()
           .setStartTime(Instant.EPOCH)
@@ -49,6 +53,9 @@ public abstract class QuerySyncActionStats {
     SUCCESS_WITH_WARNING,
     CANCELLED
   }
+
+  @Nullable
+  public abstract Project project();
 
   public abstract Instant startTime();
 
@@ -83,6 +90,8 @@ public abstract class QuerySyncActionStats {
   /** Auto value builder for QuerySyncStats. */
   @AutoValue.Builder
   public abstract static class Builder {
+    public abstract Builder setProject(Project project);
+
     public abstract Instant startTime();
 
     public abstract Builder setStartTime(Instant value);

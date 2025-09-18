@@ -27,6 +27,7 @@ import com.google.idea.blaze.base.async.FutureUtil;
 import com.google.idea.blaze.base.command.buildresult.RemoteOutputArtifact;
 import com.google.idea.blaze.base.io.FileOperationProvider;
 import com.google.idea.blaze.base.logging.EventLoggingService;
+import com.google.idea.blaze.base.logging.GenericEvent;
 import com.google.idea.blaze.base.prefetch.FetchExecutor;
 import com.google.idea.blaze.base.prefetch.RemoteArtifactPrefetcher;
 import com.google.idea.blaze.base.scope.BlazeContext;
@@ -513,7 +514,12 @@ public class LocalArtifactCache implements ArtifactCache {
     data.put("CacheSize", Long.toString(cacheDirSize));
     data.put("NumCachedFiles", Integer.toString(numFiles));
     EventLoggingService.getInstance()
-      .logEvent(project, LocalArtifactCache.class, "CacheDataWritten", data.build());
+      .log(
+        new GenericEvent(
+          project,
+          LocalArtifactCache.class,
+          "CacheDataWritten",
+          data.build()));
   }
 
   /** Returns the {@link File} containing serialized cache data */

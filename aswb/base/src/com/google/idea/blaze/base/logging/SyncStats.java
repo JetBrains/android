@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.base.logging.utils;
+package com.google.idea.blaze.base.logging;
+
+import com.google.idea.blaze.base.logging.utils.BuildPhaseSyncStats;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
@@ -26,14 +28,19 @@ import com.google.idea.blaze.base.scope.scopes.TimingScopeListener.TimedEvent;
 import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.google.idea.blaze.base.sync.SyncMode;
 import com.google.idea.blaze.base.sync.SyncResult;
+import com.intellij.openapi.project.Project;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 /** Sync stats covering all phases of sync. */
 @AutoValue
-public abstract class SyncStats {
+public abstract class SyncStats implements LoggedEvent {
+  @Nullable
+  public abstract Project project();
+
   public abstract SyncMode syncMode();
 
   public abstract String syncTitle();
@@ -81,6 +88,8 @@ public abstract class SyncStats {
   /** Auto value builder for SyncStats. */
   @AutoValue.Builder
   public abstract static class Builder {
+    public abstract Builder setProject(Project project);
+
     public abstract Builder setSyncMode(SyncMode syncMode);
 
     public abstract Builder setSyncTitle(String syncTitle);

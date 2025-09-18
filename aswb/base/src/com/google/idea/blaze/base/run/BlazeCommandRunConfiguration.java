@@ -26,6 +26,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.lang.buildfile.references.LabelUtils;
 import com.google.idea.blaze.base.logging.EventLoggingService;
+import com.google.idea.blaze.base.logging.GenericEvent;
 import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.model.primitives.TargetExpression;
@@ -142,7 +143,8 @@ public class BlazeCommandRunConfiguration
     this.targetKindString = null;
     this.contextElementString = pendingContext.getSourceElementString();
     updateHandler();
-    EventLoggingService.getInstance().logEvent(getProject(), getClass(), "async-run-config");
+    EventLoggingService.getInstance().log(new GenericEvent(
+      getProject(), getClass(), "async-run-config"));
   }
 
   public void clearPendingContext() {

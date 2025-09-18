@@ -13,17 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.base.logging.utils;
+package com.google.idea.blaze.base.logging;
+
+import com.google.idea.blaze.base.logging.utils.FileHighlights;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.sync.SyncMode;
 import com.google.idea.blaze.base.sync.SyncResult;
+import com.intellij.openapi.project.Project;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /** Highlight Stats to be logged per project */
 @AutoValue
-public abstract class HighlightStats {
+public abstract class HighlightStats implements LoggedEvent {
+  @Nullable
+  public abstract Project project();
+
   public abstract Group group();
 
   public abstract SyncMode lastSyncMode();
@@ -39,6 +46,8 @@ public abstract class HighlightStats {
   /** Builder for {@link HighlightStats} */
   @AutoValue.Builder
   public abstract static class Builder {
+    public abstract Builder setProject(Project project);
+
     public abstract Builder setGroup(Group group);
 
     public abstract Builder setLastSyncMode(SyncMode syncMode);

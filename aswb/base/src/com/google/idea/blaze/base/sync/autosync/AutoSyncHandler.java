@@ -20,6 +20,7 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.logging.EventLoggingService;
+import com.google.idea.blaze.base.logging.GenericEvent;
 import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.Blaze;
@@ -190,7 +191,7 @@ public class AutoSyncHandler implements ProjectComponent {
     if (syncParams.syncMode() == SyncMode.PARTIAL) {
       data.put("targets", Joiner.on(',').join(syncParams.targetExpressions()));
     }
-    EventLoggingService.getInstance().logEvent(project, getClass(), "auto-sync", data);
+    EventLoggingService.getInstance().log(new GenericEvent(project, getClass(), "auto-sync", data));
     logger.info("Automatic sync queued: " + syncParams.syncMode());
   }
 

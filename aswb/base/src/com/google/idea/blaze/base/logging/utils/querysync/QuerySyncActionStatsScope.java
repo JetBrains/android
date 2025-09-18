@@ -21,7 +21,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.logging.EventLoggingService;
-import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStats.Result;
+import com.google.idea.blaze.base.logging.QuerySyncActionStats;
+import com.google.idea.blaze.base.logging.QuerySyncActionStats.Result;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.BlazeScope;
 import com.google.idea.blaze.common.TimeSource;
@@ -98,6 +99,7 @@ public class QuerySyncActionStatsScope implements BlazeScope {
       TimeSource timeSource) {
     builder =
         QuerySyncActionStats.builder()
+            .setProject(project)
             .handleActionClass(actionClass)
             .handleActionEvent(event)
             .setRequestedFiles(ImmutableSet.copyOf(requestFiles));
@@ -150,8 +152,8 @@ public class QuerySyncActionStatsScope implements BlazeScope {
             builder ->
               EventLoggingService.getInstance()
                 .log(
-                  project,
                   builder
+                    .setProject(project)
                     .setDependenciesInfo(dependenciesInfoStatsBuilder.build())
                     .setProjectInfo(projectInfoStatsBuilder.build())
                     .setTotalClockTime(Duration.between(builder.startTime(), Instant.now()))

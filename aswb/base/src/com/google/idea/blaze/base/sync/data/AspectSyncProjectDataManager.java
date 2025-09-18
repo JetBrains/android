@@ -21,6 +21,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.idea.blaze.base.async.executor.ProgressiveTaskWithProgressIndicator;
 import com.google.idea.blaze.base.io.FileOperationProvider;
 import com.google.idea.blaze.base.logging.EventLoggingService;
+import com.google.idea.blaze.base.logging.GenericEvent;
 import com.google.idea.blaze.base.model.AspectSyncProjectData;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
@@ -118,7 +119,12 @@ public class AspectSyncProjectDataManager implements BlazeProjectDataManager {
       data.put("cl", Long.toString(clientCl));
     }
     EventLoggingService.getInstance()
-        .logEvent(project, AspectSyncProjectDataManager.class, "ProjectDataSerialized", data.build());
+        .log(
+          new GenericEvent(
+            project,
+            AspectSyncProjectDataManager.class,
+            "ProjectDataSerialized",
+            data.build()));
   }
 
   private static String serializationErrorMessage(Throwable e) {

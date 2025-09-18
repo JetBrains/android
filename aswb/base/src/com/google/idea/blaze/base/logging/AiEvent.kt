@@ -16,16 +16,18 @@
 package com.google.idea.blaze.base.logging
 
 import com.google.protobuf.Struct
+import com.intellij.openapi.project.Project
 import java.time.Duration
 
 /**
  * Data class for AI events.
  */
 data class AiEvent(
+  val project: Project,
   val conversation: Conversation,
   val modelId: String,
   val feature: Feature,
-) {
+) : LoggedEvent {
   enum class Feature {
     UNKNOWN_FEATURE,
     CHAT,

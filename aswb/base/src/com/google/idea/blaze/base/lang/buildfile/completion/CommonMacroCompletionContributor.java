@@ -33,6 +33,7 @@ import com.google.idea.blaze.base.lang.buildfile.psi.LoadedSymbol;
 import com.google.idea.blaze.base.lang.buildfile.psi.ReferenceExpression;
 import com.google.idea.blaze.base.lang.buildfile.psi.StringLiteral;
 import com.google.idea.blaze.base.logging.EventLoggingService;
+import com.google.idea.blaze.base.logging.GenericEvent;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.codeInsight.completion.AutoCompletionContext;
 import com.intellij.codeInsight.completion.AutoCompletionDecision;
@@ -175,10 +176,12 @@ public class CommonMacroCompletionContributor extends CompletionContributor {
   private static void insertLoadStatement(
       InsertionContext context, BuildFile file, String packageLocation, String symbol) {
     EventLoggingService.getInstance()
-        .logEvent(
-            CommonMacroCompletionContributor.class,
-            "completed",
-            ImmutableMap.of(symbol, packageLocation));
+        .log(
+            new GenericEvent(
+                null,
+                CommonMacroCompletionContributor.class,
+                "completed",
+                ImmutableMap.of(symbol, packageLocation)));
 
     String text = String.format("load(\"%s\", \"%s\")\n", packageLocation, symbol);
 

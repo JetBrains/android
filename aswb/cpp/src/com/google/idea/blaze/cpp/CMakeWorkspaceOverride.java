@@ -17,6 +17,7 @@ package com.google.idea.blaze.cpp;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.idea.blaze.base.logging.EventLoggingService;
+import com.google.idea.blaze.base.logging.GenericEvent;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.notification.Notification;
@@ -83,7 +84,7 @@ class CMakeWorkspaceOverride {
         ModuleRootManager.getInstance(module), ClassPathStorageUtil.DEFAULT_STORAGE);
     Logger.getInstance(CMakeWorkspaceOverride.class).warn("Had to clear CMake classpath");
     EventLoggingService.getInstance()
-        .logEvent(project, CMakeWorkspaceOverride.class, "cleared-cmake-classpath", ImmutableMap.of());
+        .log(new GenericEvent(project, CMakeWorkspaceOverride.class, "cleared-cmake-classpath", ImmutableMap.of()));
   }
 
   private static void clearContentRootsAndLibrariesIfModifiedForCMake(Module module) {
@@ -106,11 +107,12 @@ class CMakeWorkspaceOverride {
     Logger.getInstance(CMakeWorkspaceOverride.class)
         .warn("Need to migrate hybrid CMake+Blaze project");
     EventLoggingService.getInstance()
-        .logEvent(
-            project,
-            CMakeWorkspaceOverride.class,
-            "must-migrate-hybrid-cmake-blaze-project",
-            ImmutableMap.of());
+        .log(
+            new GenericEvent(
+                project,
+                CMakeWorkspaceOverride.class,
+                "must-migrate-hybrid-cmake-blaze-project",
+                ImmutableMap.of()));
     String projectFilePath = project.getProjectFilePath();
     if (projectFilePath == null) {
       return;
@@ -125,11 +127,12 @@ class CMakeWorkspaceOverride {
             notification.expire();
             ShowFilePathAction.openFile(projectFile);
             EventLoggingService.getInstance()
-                .logEvent(
-                    project,
-                    CMakeWorkspaceOverride.class,
-                    "must-migrate-hybrid-cmake-blaze-opened-xml",
-                    ImmutableMap.of());
+                .log(
+                    new GenericEvent(
+                      project,
+                      CMakeWorkspaceOverride.class,
+                      "must-migrate-hybrid-cmake-blaze-opened-xml",
+                      ImmutableMap.of()));
           }
         };
     Notification notification =

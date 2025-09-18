@@ -34,7 +34,7 @@ import com.google.idea.blaze.base.ideinfo.TargetKey;
 import com.google.idea.blaze.base.issueparser.BlazeIssueParser;
 import com.google.idea.blaze.base.logging.EventLoggingService;
 import com.google.idea.blaze.base.logging.utils.BuildPhaseSyncStats;
-import com.google.idea.blaze.base.logging.utils.SyncStats;
+import com.google.idea.blaze.base.logging.SyncStats;
 import com.google.idea.blaze.base.model.AspectSyncProjectData;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.ProjectTargetData;
@@ -647,6 +647,7 @@ final class SyncPhaseCoordinator {
         stats.addNetworkUsage(networkTraffic.getNetworkUsage());
       }
       stats
+          .setProject(project)
           .setSyncMode(syncParams.syncMode())
           .setSyncTitle(syncParams.title())
           .setSyncOrigin(syncParams.syncOrigin())
@@ -654,7 +655,7 @@ final class SyncPhaseCoordinator {
           .setStartTime(startTime)
           .setBlazeExecTime(totalBlazeTime(stats.getCurrentTimedEvents()))
           .setTotalClockTime(Duration.between(startTime, Instant.now()));
-      EventLoggingService.getInstance().log(project, stats.build());
+      EventLoggingService.getInstance().log(stats.build());
       context.output(new StatusOutput("Sync " + syncStatus));
       outputTimingSummary(context, stats.getCurrentTimedEvents());
 

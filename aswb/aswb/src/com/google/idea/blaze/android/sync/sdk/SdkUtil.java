@@ -24,6 +24,7 @@ import com.google.idea.blaze.android.projectview.AndroidSdkPlatformSection;
 import com.google.idea.blaze.android.sdk.BlazeSdkProvider;
 import com.google.idea.blaze.android.sync.model.BlazeAndroidSyncData;
 import com.google.idea.blaze.base.logging.EventLoggingService;
+import com.google.idea.blaze.base.logging.GenericEvent;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
@@ -133,7 +134,7 @@ public class SdkUtil {
           String.format(
               "Some classes of Sdk %s is missing. Trying to remove and reinstall it.",
               sdk.getName()));
-      EventLoggingService.getInstance().logEvent(SdkUtil.class, "Invalid SDK");
+      EventLoggingService.getInstance().log(new GenericEvent(null, SdkUtil.class, "Invalid SDK"));
 
       Application application = ApplicationManager.getApplication();
       if (application.isDispatchThread()) {
