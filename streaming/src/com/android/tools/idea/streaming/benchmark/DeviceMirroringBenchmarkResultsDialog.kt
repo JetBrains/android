@@ -42,6 +42,7 @@ import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
 /** Dialog to display results for device mirroring benchmarking. */
+@Suppress("UnstableApiUsage")
 class DeviceMirroringBenchmarkResultsDialog(private val deviceName: String, private val results: Benchmarker.Results<Point>) {
   init {
     require(results.percentiles.values.isNotEmpty()) { "Must provide some values!" }
