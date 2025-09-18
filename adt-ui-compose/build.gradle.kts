@@ -20,7 +20,7 @@ plugins {
   kotlin("jvm")
   id("org.jetbrains.intellij.platform.module")
   id("org.jetbrains.compose")
-  id("org.jetbrains.kotlin.plugin.compose") version "2.1.10"
+  id("org.jetbrains.kotlin.plugin.compose") version "2.2.0"
 }
 
 repositories {
@@ -53,8 +53,8 @@ dependencies {
 dependencies {
   api("androidx.lifecycle:lifecycle-runtime:2.8.7")
   testApi(compose.desktop.uiTestJUnit4)
-  testApi("org.jetbrains.jewel:jewel-int-ui-standalone:0.28.0-251.26137")
-  testApi("org.jetbrains.jewel:jewel-markdown-int-ui-standalone-styling:0.28.0-251.26137")
+  testApi("org.jetbrains.jewel:jewel-int-ui-standalone:0.29.0-252.24604")
+  testApi("org.jetbrains.jewel:jewel-markdown-int-ui-standalone-styling:0.29.0-252.24604")
   testImplementation("com.google.truth:truth:0.42")
 }
 
