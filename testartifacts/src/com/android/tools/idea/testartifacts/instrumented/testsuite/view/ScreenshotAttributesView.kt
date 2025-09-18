@@ -15,52 +15,59 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
+import androidx.compose.foundation.ScrollbarStyle
+import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposePanel
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.text.BasicText
 import com.android.annotations.concurrency.UiThread
-import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ImageMetadata
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.NOT_APPLICABLE
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils.calculateMatchPercentage
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils.loadImageMetadata
-import java.awt.Desktop
-import java.io.File
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import javax.swing.JComponent
 import com.intellij.util.ui.StartupUiUtil
+import java.awt.Desktop
+import java.io.File
+import javax.swing.JComponent
 
 private val LOG = Logger.getInstance(ScreenshotAttributesView::class.java)
 
@@ -171,33 +178,49 @@ class ScreenshotAttributesView {
 
         val isDarkTheme = LocalIsDarkTheme.current
         val backgroundColor = if (isDarkTheme) Color(0xFF1e2021) else Color(0xFFf7f8fa)
-        Column(
-            modifier = Modifier.fillMaxSize().background(backgroundColor).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Section("Summary") {
-                KeyValueRow("Match") {
-                    val text = currentState.matchPercentage ?: currentState.testResult?.name ?: NOT_APPLICABLE
-                    when (currentState.testResult) {
-                        AndroidTestCaseResult.PASSED -> GreenText(text)
-                        AndroidTestCaseResult.FAILED -> RedText(text)
-                        else -> GrayText(text)
+        val scrollState = rememberScrollState()
+        Box(Modifier.fillMaxSize().background(backgroundColor)) {
+          Column(
+                modifier = Modifier.fillMaxSize().padding(16.dp).verticalScroll(scrollState),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Section("Summary") {
+                    KeyValueRow("Match") {
+                        val text = currentState.matchPercentage ?: currentState.testResult?.name ?: NOT_APPLICABLE
+                        when (currentState.testResult) {
+                            AndroidTestCaseResult.PASSED -> GreenText(text)
+                            AndroidTestCaseResult.FAILED -> RedText(text)
+                            else -> GrayText(text)
+                        }
                     }
+                    KeyValueRow("Preview") { BlueText(currentState.methodName) }
+                    KeyValueRow("Related Composables") { BlueText(currentState.className) }
                 }
-                KeyValueRow("Preview") { BlueText(currentState.methodName) }
-                KeyValueRow("Related Composables") { BlueText(currentState.className) }
-            }
 
-            Section("Preview configuration") { CodeSnippet("@Preview(${currentState.methodName})") }
+                Section("Preview configuration") { CodeSnippet("@Preview(${currentState.methodName})") }
 
-            Section("File info") {
-                FileInfoTable(
-                    refMetadata.dimensions, newMetadata.dimensions,
-                    refMetadata.size, newMetadata.size,
-                    refMetadata.date, newMetadata.date,
-                    currentState.refLocation, currentState.newLocation
-                )
+                Section("File info") {
+                    FileInfoTable(
+                        refMetadata.dimensions, newMetadata.dimensions,
+                        refMetadata.size, newMetadata.size,
+                        refMetadata.date, newMetadata.date,
+                        currentState.refLocation, currentState.newLocation
+                    )
+                }
             }
+            val scrollbarStyle = ScrollbarStyle(
+                minimalHeight = 16.dp,
+                thickness = 8.dp,
+                shape = RectangleShape,
+                hoverDurationMillis = 300,
+                unhoverColor = Color.Gray.copy(alpha = 0.12f),
+                hoverColor = Color.Gray.copy(alpha = 0.5f)
+            )
+            VerticalScrollbar(
+                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                adapter = rememberScrollbarAdapter(scrollState),
+                style = scrollbarStyle
+            )
         }
     }
 }
