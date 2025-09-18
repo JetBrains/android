@@ -488,8 +488,10 @@ class DeviceClient(
   private fun isAudioStreamingEnabled(): Boolean =
       isAudioStreamingSupported() && (DeviceMirroringSettings.getInstance().redirectAudio || isRemoteDevice())
 
-  private fun shouldTurnOffDisplay(): Boolean =
-      !isRemoteDevice() && DeviceMirroringSettings.getInstance().turnOffDisplayWhileMirroring
+  private fun shouldTurnOffDisplay(): Boolean {
+    return !isRemoteDevice() && DeviceMirroringSettings.getInstance().turnOffDisplayWhileMirroring &&
+           (deviceConfig.featureLevel < 35 || StudioFlags.DEVICE_MIRRORING_B386236480_TESTING.get())
+  }
 
   private fun isRemoteDevice(): Boolean =
       deviceConfig.deviceProperties.isRemote == true
