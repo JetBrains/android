@@ -17,10 +17,13 @@ package com.android.tools.idea.npw.actions
 
 import com.android.AndroidProjectTypes
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.npw.COMPOSE_MIN_AGP_VERSION
+import com.android.tools.idea.npw.TEST_SUITE_MIN_AGP_VERSION
 import com.android.tools.idea.npw.hasComposeMinAgpVersion
+import com.android.tools.idea.npw.hasTestSuiteMinAgpVersion
 import com.android.tools.idea.npw.model.ProjectSyncInvoker.DefaultProjectSyncInvoker
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.fromFacet
 import com.android.tools.idea.npw.project.getModuleTemplates
@@ -28,6 +31,7 @@ import com.android.tools.idea.npw.project.getPackageForPath
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.testartifacts.testsuite.runconfiguration.TestSuiteUtils
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.TemplateConstraint
@@ -42,7 +46,9 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import icons.StudioIcons
 import java.io.File
 import org.jetbrains.android.facet.AndroidFacet
@@ -146,6 +152,16 @@ constructor(
           AndroidBundle.message("android.wizard.action.requires.aidlEnabled", templateName)
         presentation.isEnabled = false
       }
+      templateConstraints.contains(TemplateConstraint.TestSuite) &&
+        !hasTestSuiteMinAgpVersion(module.project) -> {
+        presentation.text =
+          AndroidBundle.message(
+            "android.wizard.action.requires.new.agp",
+            templateName,
+            TEST_SUITE_MIN_AGP_VERSION,
+          )
+        presentation.isEnabled = false
+      }
       else -> {
         val facet = AndroidFacet.getInstance(module)
         val isProjectReady =
@@ -183,6 +199,8 @@ constructor(
     val initialPackageSuggestion =
       if (targetDirectory == null) facet.getModuleSystem().getPackageName()
       else facet.getPackageForPath(moduleTemplates, targetDirectory)
+    val testSuiteNameSuggestion = suggestTestSuiteName(module, targetDirectory)
+
     val templateModel =
       fromFacet(
         facet,
@@ -192,6 +210,7 @@ constructor(
         DefaultProjectSyncInvoker(),
         shouldOpenFiles,
         MENU_GALLERY,
+        testSuiteNameSuggestion,
       )
     val newActivity =
       TemplateResolver.getAllTemplates()
@@ -234,5 +253,18 @@ constructor(
 
     showWizardDialog(wizardBuilder.build(), dialogTitle, module.project)
     e.dataContext.getData(CREATED_FILES)?.addAll(templateModel.createdFiles)
+  }
+
+  /**
+   * This function first attempts to find a test suite whose source root contains the
+   * [targetDirectory]. If no specific suite is found, it falls back to using the name of the first
+   * test suite defined in the [module].
+   */
+  private fun suggestTestSuiteName(module: Module?, targetDirectory: VirtualFile?): String? {
+    val model = module?.let(GradleAndroidModel::get) ?: return null
+    val suite =
+      targetDirectory?.let { TestSuiteUtils.getTestSuiteAtRoot(model.testSuites, it) }
+        ?: model.testSuites.firstOrNull()
+    return suite?.name
   }
 }
