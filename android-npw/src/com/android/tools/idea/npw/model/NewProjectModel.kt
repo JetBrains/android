@@ -74,6 +74,7 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.pom.java.LanguageLevel
 import java.io.File
@@ -105,6 +106,7 @@ interface ProjectModelData {
   val multiTemplateRenderer: MultiTemplateRenderer
   val projectTemplateDataBuilder: ProjectTemplateDataBuilder
   val prompt: StringProperty
+  val imageAttachments: ObjectValueProperty<List<VirtualFile>>
 }
 
 class NewProjectModel : WizardModel(), ProjectModelData {
@@ -126,6 +128,8 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val additionalMavenRepos: ObjectValueProperty<List<URL>> = ObjectValueProperty(listOf())
   override val multiTemplateRenderer = MultiTemplateRenderer(::runRenderer)
   override val prompt = StringValueProperty("")
+  override val imageAttachments: ObjectValueProperty<List<VirtualFile>> =
+    ObjectValueProperty(listOf())
 
   private fun runRenderer(renderer: (Project) -> Unit) {
     object :
@@ -158,7 +162,8 @@ if (StudioFlags.GEMINI_NEW_PROJECT_AGENT.get() && !prompt.isEmpty.get()) {
                 // ExternalToolWindowManager). We want the Gemini window to be shown instead, so
                 // delay opening the Gemini window until after Gradle has finished.
                 ToolWindowManager.getInstance(newProject).invokeLater {
-                  GeminiPluginApi.getInstance().launchNewProjectAgent(newProject, prompt.get())
+                  GeminiPluginApi.getInstance()
+                    .launchNewProjectAgent(newProject, prompt.get(), imageAttachments.get())
                 }
               }
             }
