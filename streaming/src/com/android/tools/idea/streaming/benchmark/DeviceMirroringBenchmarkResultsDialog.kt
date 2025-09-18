@@ -86,7 +86,7 @@ class DeviceMirroringBenchmarkResultsDialog(private val deviceName: String, priv
       createActions = { listOf(CloseDialogAction()) })
   }
 
-  private inner class CloseDialogAction : AbstractAction(CommonBundle.getCloseButtonText()) {
+  private class CloseDialogAction : AbstractAction(CommonBundle.getCloseButtonText()) {
     override fun actionPerformed(event: ActionEvent) {
       val wrapper = DialogWrapper.findInstance(event.source as? Component)
       wrapper?.close(DialogWrapper.CLOSE_EXIT_CODE)
