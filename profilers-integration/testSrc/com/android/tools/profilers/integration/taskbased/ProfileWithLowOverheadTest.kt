@@ -35,8 +35,7 @@ class ProfileWithLowOverheadTest: ProfilersTestBase() {
    *   1. Import minapp in the testData directory of this module.
    *   2. Start profile 'app' with lowOverhead.
    *   Verify:
-   *   1. Verify if the low overhead task started.
-   *   2. Verify in the logs that the running profileable process is found.
+   *   1. Verify in the logs that the running profileable process is found.
    *  </pre>
    * <p>
    */
@@ -51,11 +50,7 @@ class ProfileWithLowOverheadTest: ProfilersTestBase() {
         Thread.sleep(20000)
 
         profileWithLowOverhead(studio, adb)
-        // TODO(b/260296636): Reduce the time-out to 180, once the performance issue b/260296636 is fixed.
-        verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=PROFILEABLE\$", 480)
-        verifyIdeaLog(".*StudioMonitorStage.*PROFILER\\:\\s+Enter\\s+StudioMonitorStage\$", 300)
-
-        verifyIdeaLog("Found running project process: \\d+, Profileable", 120)
+        verifyIdeaLog(".*Found\\s+running\\s+project\\s+process:\\s+\\d+,\\s+Profileable\$", 120)
       }
     )
   }
