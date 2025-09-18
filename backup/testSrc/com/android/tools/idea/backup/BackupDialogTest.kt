@@ -275,6 +275,17 @@ class BackupDialogTest {
   }
 
   @Test
+  fun showDialog_changeFile_leadingSpaces() {
+    createDialog {
+      it.findComponent<TextAccessor>("fileTextField").text = "   foo"
+
+      it.clickOk()
+
+      assertThat(it.backupPath).isEqualTo(projectDir.resolve("foo.backup"))
+    }
+  }
+
+  @Test
   fun showDialog_changeFile_absolutePath() {
     createDialog {
       it.findComponent<TextAccessor>("fileTextField").text = "/someDir/foo"
