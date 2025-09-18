@@ -98,7 +98,7 @@ public class AndroidLibraryTest {
       NamedModuleTemplate template = GradleAndroidModuleTemplate.createDefaultModuleTemplate(project, "");
       RenderTemplateModel render = RenderTemplateModel.fromFacet(
         libAndroidFacet, "com.example", template, "command", new ProjectSyncInvoker.DefaultProjectSyncInvoker(), true,
-        NEW_MODULE
+        NEW_MODULE, null
       );
       List<Template> templates = TemplateResolver.Companion.getAllTemplates();
       @SuppressWarnings("OptionalGetWithoutIsPresent")

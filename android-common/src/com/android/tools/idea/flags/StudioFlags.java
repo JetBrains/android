@@ -2573,6 +2573,24 @@ public final class StudioFlags {
     JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.test.suite", "Enable Journeys with Gemini test suite",
     "Toggles IDE support for Journeys tests configured as AGP test suites"
   );
+  public static final Flag<String> JOURNEYS_WITH_GEMINI_TEST_SUITE_JOURNEYS_ENGINE_DEP = new StringFlag(
+    JOURNEYS_WITH_GEMINI, "dependency.journeys.with.gemini.test.suite.journeys.engine.dep",
+    "The name of the Journeys test engine dependency used by the Journeys test suite",
+    "This dependency is automatically added by the Journeys template engine when configuring a test suite.",
+    "com.android.tools.journeys:journeys-junit-engine:0.0.1-dev"
+  );
+  public static final Flag<String> JOURNEYS_WITH_GEMINI_TEST_SUITE_JUNIT_PLATFORM_ENGINE_DEP = new StringFlag(
+    JOURNEYS_WITH_GEMINI, "dependency.journeys.with.gemini.test.suite.junit.platform.engine.dep",
+    "The name of the JUnit Platform Engine dependency used by the Journeys test suite",
+    "This dependency is automatically added by the Journeys template engine when configuring a test suite.",
+    "org.junit.platform:junit-platform-engine:1.13.4"
+  );
+  public static final Flag<String> JOURNEYS_WITH_GEMINI_TEST_SUITE_JUNIT_PLATFORM_LAUNCHER_DEP = new StringFlag(
+    JOURNEYS_WITH_GEMINI, "dependency.journeys.with.gemini.test.suite.junit.platform.launcher.dep",
+    "The name of the JUnit Platform Launcher dependency used by the Journeys test suite",
+    "This dependency is automatically added by the Journeys template engine when configuring a test suite.",
+    "org.junit.platform:junit-platform-launcher:1.13.4"
+  );
   // endregion JOURNEYS_WITH_GEMINI
 
   // region WIZARD_MIGRATION

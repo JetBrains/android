@@ -32,12 +32,19 @@ import com.android.tools.idea.wizard.template.Constraint.LAYOUT
 import com.android.tools.idea.wizard.template.Constraint.NONEMPTY
 import com.android.tools.idea.wizard.template.Constraint.PACKAGE
 import com.android.tools.idea.wizard.template.Constraint.UNIQUE
+import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.StringParameter
+import com.android.tools.idea.wizard.template.Template
+import com.android.tools.idea.wizard.template.TestSuiteWidget
 import com.android.tools.idea.wizard.template.WizardUiContext
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.MENU_GALLERY
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.RunsInEdt
 import javax.swing.JLabel
+import javax.swing.JTextField
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import org.jetbrains.android.facet.AndroidFacet
@@ -136,6 +143,90 @@ class ConfigureTemplateParametersStepTest {
     assertNull(fakeUI.findComponent<JLabel> { it.text.contains("Target Source Set") })
   }
 
+  @Test
+  fun testSuiteWidget_initialValueIsSetToDefaultIfWhenNoTestSuiteNameSuggestion() {
+    val moduleTemplates = facet.getModuleTemplates(null)
+    val templateModel =
+      fromFacet(
+        facet,
+        "",
+        facet.getModuleTemplates(null)[0],
+        "New activity",
+        DefaultProjectSyncInvoker(),
+        true,
+        MENU_GALLERY,
+        testSuiteNameSuggestion = null,
+      )
+    templateModel.newTemplate = createTestSuiteTemplate("myDefaultSuite")
+    val modelWizard = createTemplateWizard(templateModel, moduleTemplates)
+    val fakeUI = FakeUi(modelWizard.contentPanel)
+
+    val testSuiteTextField = fakeUI.findComponent<JTextField>()
+    assertNotNull(testSuiteTextField)
+    assertEquals("myDefaultSuite", testSuiteTextField.text)
+    assertEquals("myDefaultSuite", templateModel.testSuiteName.get())
+  }
+
+  @Test
+  fun testSuiteWidget_initialValueIsSetToTestSuiteNameSuggestion() {
+    val moduleTemplates = facet.getModuleTemplates(null)
+    val templateModel =
+      fromFacet(
+        facet,
+        "",
+        facet.getModuleTemplates(null)[0],
+        "New activity",
+        DefaultProjectSyncInvoker(),
+        true,
+        MENU_GALLERY,
+        testSuiteNameSuggestion = "mySuggestedSuite",
+      )
+    templateModel.newTemplate = createTestSuiteTemplate("myDefaultSuite")
+    val modelWizard = createTemplateWizard(templateModel, moduleTemplates)
+    val fakeUI = FakeUi(modelWizard.contentPanel)
+
+    val testSuiteTextField = fakeUI.findComponent<JTextField>()
+    assertNotNull(testSuiteTextField)
+    assertEquals("mySuggestedSuite", testSuiteTextField.text)
+    assertEquals("mySuggestedSuite", templateModel.testSuiteName.get())
+  }
+
+  @Test
+  @RunsInEdt
+  fun testSuiteWidget_twoWayBindingOfTestSuiteNameParameter() {
+    val moduleTemplates = facet.getModuleTemplates(null)
+    val templateModel =
+      fromFacet(
+        facet,
+        "",
+        facet.getModuleTemplates(null)[0],
+        "New activity",
+        DefaultProjectSyncInvoker(),
+        true,
+        MENU_GALLERY,
+        testSuiteNameSuggestion = "mySuggestedSuite",
+      )
+    templateModel.newTemplate = createTestSuiteTemplate("myDefaultSuite")
+
+    val modelWizard = createTemplateWizard(templateModel, moduleTemplates)
+    val fakeUI = FakeUi(modelWizard.contentPanel, createFakeWindow = true)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    PlatformTestUtil.waitForAllBackgroundActivityToCalmDown()
+
+    val testSuiteTextField = fakeUI.findComponent<JTextField>()
+    assertNotNull(testSuiteTextField)
+
+    // Test that changing the UI updates the model
+    testSuiteTextField.text = "newSuiteName"
+    myInvokeStrategy.updateAllSteps()
+    assertEquals("newSuiteName", templateModel.testSuiteName.get())
+
+    // Test that changing the model updates the UI
+    templateModel.testSuiteName.set("anotherName")
+    myInvokeStrategy.updateAllSteps()
+    assertEquals("anotherName", fakeUI.findComponent<JTextField>()!!.text)
+  }
+
   private fun createTemplate(
     templateName: String,
     moduleTemplates: List<NamedModuleTemplate>,
@@ -157,6 +248,25 @@ class ConfigureTemplateParametersStepTest {
     templateModel.newTemplate = newActivity!!
 
     return templateModel
+  }
+
+  private fun createTestSuiteTemplate(defaultTestSuiteName: String): Template {
+    val testSuiteParameter =
+      StringParameter(
+        "testSuiteName",
+        "Test Suite Name",
+        constraints = emptyList(),
+        defaultValue = defaultTestSuiteName,
+      )
+    val testSuiteWidget = TestSuiteWidget(testSuiteParameter)
+    val template = mock<Template>()
+    whenever(template.name).thenReturn("Test Template with Test Suite")
+    whenever(template.description).thenReturn("A test template")
+    whenever(template.formFactor).thenReturn(FormFactor.Mobile)
+    whenever(template.widgets).thenReturn(listOf(testSuiteWidget))
+    whenever(template.parameters).thenReturn(listOf(testSuiteParameter))
+    whenever(template.constraints).thenReturn(emptyList())
+    return template
   }
 
   private fun createTemplateWizard(

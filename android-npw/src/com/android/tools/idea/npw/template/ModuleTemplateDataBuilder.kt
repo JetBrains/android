@@ -25,6 +25,7 @@ import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.AgpVersions
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.hasKotlinFacet
 import com.android.tools.idea.model.StudioAndroidModuleInfo
@@ -90,6 +91,7 @@ class ModuleTemplateDataBuilder(
   var isMaterial3: Boolean = false
   var useGenericLocalTests: Boolean = true
   var useGenericInstrumentedTests: Boolean = true
+  var currentVariant: String? = null
 
   /**
    * Adds common module roots template values like [rootDir], [srcDir], etc
@@ -153,6 +155,11 @@ class ModuleTemplateDataBuilder(
           )
 
       setBaseFeature(baseFeature)
+    }
+
+    val gradleAndroidModel = GradleAndroidModel.get(facet)
+    if (gradleAndroidModel != null) {
+      currentVariant = gradleAndroidModel.selectedVariantName
     }
   }
 
@@ -274,8 +281,8 @@ class ModuleTemplateDataBuilder(
       useGenericInstrumentedTests = useGenericInstrumentedTests,
       commonSrcDir = commonSrcDir,
       iosSrcDir = iosSrcDir,
+      currentVariant = currentVariant,
       // TODO merge
-      currentVariant = TODO(),
       isWatchFace = TODO(),
     )
   }

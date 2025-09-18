@@ -44,22 +44,42 @@ internal const val COMPOSE_MIN_AGP_VERSION = "4.0.0-alpha02"
  * assume that it is.
  */
 internal fun hasComposeMinAgpVersion(project: Project): Boolean {
-  val androidPluginInfo = AndroidPluginInfo.findFromModel(project) ?: return true
-  val agpVersion = androidPluginInfo.pluginVersion ?: return true
-  return agpVersion >= COMPOSE_MIN_AGP_VERSION
+  return hasMinAgpVersion(project, COMPOSE_MIN_AGP_VERSION)
+}
+
+// TODO(b/448352524): Update to 9.0.0 when released
+internal const val TEST_SUITE_MIN_AGP_VERSION = "9.0.0-alpha08"
+
+/**
+ * Checks if the project's AGP version is new enough to support Test Suite. If we can't determine
+ * it, assume that it is.
+ */
+internal fun hasTestSuiteMinAgpVersion(project: Project): Boolean {
+  return hasMinAgpVersion(project, TEST_SUITE_MIN_AGP_VERSION)
 }
 
 /**
- * Utility method used to create a URL from its String representation without throwing a [MalformedURLException].
- * Callers should use this if they're absolutely certain their URL is well formatted.
+ * Checks if the project's AGP version is new enough to support a given feature. If we can't
+ * determine it, assume that it is.
+ */
+private fun hasMinAgpVersion(project: Project, minAgpVersion: String): Boolean {
+  val androidPluginInfo = AndroidPluginInfo.findFromModel(project) ?: return true
+  val agpVersion = androidPluginInfo.pluginVersion ?: return true
+  return agpVersion >= minAgpVersion
+}
+
+/**
+ * Utility method used to create a URL from its String representation without throwing a
+ * [MalformedURLException]. Callers should use this if they're absolutely certain their URL is well
+ * formatted.
  */
 internal fun toUrl(urlAsString: String): URL {
-  val url: URL = try {
-    URL(urlAsString)
-  }
-  catch (e: MalformedURLException) {
-    // Caller should guarantee this will never happen!
-    throw RuntimeException(e)
-  }
+  val url: URL =
+    try {
+      URL(urlAsString)
+    } catch (e: MalformedURLException) {
+      // Caller should guarantee this will never happen!
+      throw RuntimeException(e)
+    }
   return url
 }

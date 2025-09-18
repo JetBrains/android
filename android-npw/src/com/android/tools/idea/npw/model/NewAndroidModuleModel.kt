@@ -123,6 +123,7 @@ interface ModuleModelData : ProjectModelData {
   val category: ObjectProperty<Category>
   val isLibrary: Boolean
   val moduleName: StringValueProperty
+  val testSuiteName: StringValueProperty
 
   /**
    * A template that's associated with a user's request to create a new module. This may be null if

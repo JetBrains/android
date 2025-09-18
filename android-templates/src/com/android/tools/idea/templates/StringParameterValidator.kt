@@ -71,10 +71,16 @@ import java.io.File
  * @return An error message detailing why the given value is invalid.
  */
 fun StringParameter.validate(
-  project: Project?, module: Module?, provider: SourceProvider?, packageName: String?, value: Any?, relatedValues: Set<Any>
+  project: Project?,
+  module: Module?,
+  provider: SourceProvider?,
+  packageName: String?,
+  testSuiteName: String?,
+  value: Any?,
+  relatedValues: Set<Any>
 ): String? {
   val v = value?.toString().orEmpty()
-  val violations = validateStringType(project, module, provider, packageName, v, relatedValues)
+  val violations = validateStringType(project, module, provider, packageName, testSuiteName, v, relatedValues)
   return violations.mapNotNull { getErrorMessageForViolatedConstraint(it, v) }.firstOrNull()
 }
 
@@ -109,7 +115,13 @@ private fun StringParameter.getErrorMessageForViolatedConstraint(c: Constraint, 
 @OptIn(KaPlatformInterface::class)
 @VisibleForTesting
 fun StringParameter.validateStringType(
-  project: Project?, module: Module?, provider: SourceProvider?, packageName: String?, value: String?, relatedValues: Set<Any> = setOf()
+  project: Project?,
+  module: Module?,
+  provider: SourceProvider?,
+  packageName: String?,
+  testSuiteName: String?,
+  value: String?,
+  relatedValues: Set<Any> = setOf()
 ): Collection<Constraint> {
   if (value.isNullOrBlank()) {
     return if (NONEMPTY in constraints) listOf(NONEMPTY)
@@ -183,11 +195,12 @@ fun StringParameter.validateStringType(
       }
     JOURNEY -> {
       module ?: return false
+      testSuiteName ?: return false
       val moduleRootDir = AndroidRootUtil.findModuleRootFolderPath(module) ?: return false
-      val journeysDir = moduleRootDir
+      val testSuiteDir = moduleRootDir
         .resolve("src")
-        .resolve("journeysTest")
-      return journeysDir.resolve("$value.xml").exists()
+        .resolve(testSuiteName)
+      return testSuiteDir.resolve("$value.xml").exists()
     }
       NONEMPTY, STRING, URI_AUTHORITY -> false
       UNIQUE, EXISTS -> false // not applicable
@@ -209,8 +222,14 @@ fun StringParameter.validateStringType(
  * Returns true if the given stringType is non-unique when it should be.
  */
 fun StringParameter.uniquenessSatisfied(
-  project: Project?, module: Module?, provider: SourceProvider?, packageName: String?, value: String?, relatedValues: Set<Any>
-): Boolean = !validateStringType(project, module, provider, packageName, value, relatedValues).contains(UNIQUE)
+  project: Project?,
+  module: Module?,
+  provider: SourceProvider?,
+  packageName: String?,
+  testSuiteName: String?,
+  value: String?,
+  relatedValues: Set<Any>
+): Boolean = !validateStringType(project, module, provider, packageName, testSuiteName, value, relatedValues).contains(UNIQUE)
 
 private const val URI_AUTHORITY_REGEX = "[a-zA-Z][a-zA-Z0-9-_.]*(:\\d+)?"
 

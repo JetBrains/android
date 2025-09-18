@@ -1,0 +1,59 @@
+plugins {
+    alias(libs.plugins.android.application)
+}
+
+android {
+    namespace 'template.test.in'
+    compileSdk {
+        version = release(35)
+    }
+
+    defaultConfig {
+        applicationId "template.test.in"
+        minSdk 23
+        targetSdk 35
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    testOptions {
+        suites {
+            journeysTest {
+                assets {
+                }
+                targets {
+                    'default' {
+                    }
+                }
+                useJunitEngine {
+                    inputs com.android.build.api.dsl.AgpTestSuiteInputParameters.TESTED_APKS
+                    includeEngines 'journeys-test-engine'
+                    enginesDependencies('org.junit.platform:junit-platform-launcher:1.13.4')
+                    enginesDependencies('org.junit.platform:junit-platform-engine:1.13.4')
+                    enginesDependencies('com.android.tools.journeys:journeys-junit-engine:0.0.1-dev')
+                }
+                targetVariants 'INSERT_TARGET_VARIANT_HERE'
+            }
+        }
+    }
+}
+
+dependencies {
+    implementation libs.appcompat
+    implementation libs.material
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+}

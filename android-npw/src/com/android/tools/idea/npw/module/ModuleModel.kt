@@ -79,6 +79,7 @@ abstract class ModuleModel(
   override val formFactor: ObjectProperty<FormFactor> = ObjectValueProperty(FormFactor.Mobile)
   override val category: ObjectProperty<Category> = ObjectValueProperty(Category.Activity)
   final override val moduleName = StringValueProperty(name).apply { addConstraint(String::trim) }
+  final override val testSuiteName = StringValueProperty("").apply { addConstraint(String::trim) }
   override val androidSdkInfo = OptionalValueProperty<AndroidVersionsInfo.VersionItem>()
   override val moduleTemplateDataBuilder =
     ModuleTemplateDataBuilder(

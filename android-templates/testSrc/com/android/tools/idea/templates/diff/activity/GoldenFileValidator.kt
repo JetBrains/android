@@ -191,6 +191,11 @@ class GoldenFileValidator(
           "'fun getMetrics(p0: DisplayMetrics!): Unit' is deprecated. Deprecated in Java.",
           "'fun getSerializableExtra(p0: String!): Serializable?' is deprecated. Deprecated in Java.",
         ),
+      // TODO: b/446181730
+      "testJourneysWithTestSuite" to
+        setOf(
+          "The option setting 'android.experimental.testSuiteSupport=true' is experimental."
+        )
     )
 
   private fun isValidWarning(message: String): Boolean {
