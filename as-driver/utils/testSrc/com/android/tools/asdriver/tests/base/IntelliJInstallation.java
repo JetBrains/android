@@ -57,8 +57,9 @@ public class IntelliJInstallation extends IdeInstallation<IntelliJ> {
     return new IntelliJInstallation(platform, testFileSystem, workDir, studioDir);
   }
 
-  protected IntelliJ createAndAttach() throws IOException, InterruptedException {
-    // TODO: We don't attach our client to IntelliJ yet.
+  @Override
+  public IntelliJ attach() throws IOException, InterruptedException {
+    // TODO: Implement attach for IntelliJ.
     return new IntelliJ(this);
   }
 
@@ -71,4 +72,7 @@ public class IntelliJInstallation extends IdeInstallation<IntelliJ> {
     Path studioDir = getStudioDir();
     return studioDir.resolve("bin/idea.sh").toString();
   }
+
+  @Override
+  public void close() throws Exception {}
 }

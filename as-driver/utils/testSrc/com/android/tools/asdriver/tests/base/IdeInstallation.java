@@ -15,29 +15,43 @@
  */
 package com.android.tools.asdriver.tests.base;
 
+import static com.android.tools.asdriver.tests.MemoryUsageReportProcessorKt.COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS;
+import static com.android.tools.asdriver.tests.MemoryUsageReportProcessorKt.DUMP_HPROF_SNAPSHOT;
+
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.TestUtils;
+import com.android.tools.asdriver.tests.AndroidProject;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
+import com.android.tools.testlib.AndroidSdk;
 import com.android.tools.testlib.Display;
 import com.android.tools.testlib.LogFile;
 import com.android.tools.testlib.TestFileSystem;
 import com.android.tools.testlib.TestLogger;
+import com.android.utils.FileUtils;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.registry.EarlyAccessRegistryManager;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class IdeInstallation<T extends Ide> {
+public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
 
   private final String platformId;
 
@@ -111,6 +125,10 @@ public abstract class IdeInstallation<T extends Ide> {
     unzip(pluginZipPath, pluginsDir);
   }
 
+  public void installPlugin(Path zip) throws IOException {
+    unzip(zip, pluginsDir);
+  }
+
   /** Removes the plugin under the provided folder name, under `android-studio/plugins/` */
   public void removePlugin(String folderName) {
     deleteDirectoryRecursively(workDir.resolve("android-studio/plugins/" + folderName));
@@ -154,6 +172,9 @@ public abstract class IdeInstallation<T extends Ide> {
     return stderr;
   }
 
+  public Path getConfigDir() {
+    return configDir;
+  }
 
   private void createVmOptionsFile() throws IOException {
     StringBuilder vmOptions = new StringBuilder();
@@ -179,6 +200,37 @@ public abstract class IdeInstallation<T extends Ide> {
     vmOptions.append(String.format("-Dide.libnotify.enabled=false%n"));
     vmOptions.append(String.format("-Didea.log.path=%s%n", logsDir));
     vmOptions.append(String.format("-Duser.home=%s%n", fileSystem.getHome()));
+
+    Path threadingCheckerAgentZip = TestUtils.getBinPath("tools/base/threading-agent/threading_agent.jar");
+    if (!Files.exists(threadingCheckerAgentZip)) {
+      // Threading agent can be built using 'bazel build //tools/base/threading-agent:threading_agent'
+      throw new IllegalStateException("Threading checker agent not found at " + threadingCheckerAgentZip);
+    }
+
+    vmOptions.append(String.format("-javaagent:%s%n", threadingCheckerAgentZip));
+    // Need to disable android first run checks, or we get stuck in a modal dialog complaining about lack of web access.
+    vmOptions.append(String.format("-Dgradle.ide.save.log.to.file=true%n"));
+    // Prevent our crash metrics from going to the production URL
+    vmOptions.append(String.format("-Duse.staging.crash.url=true%n"));
+    // Enabling this flag is required for connecting all the Java Instrumentation agents needed for memory statistics.
+    vmOptions.append(String.format("-Dstudio.run.under.integration.test=true%n"));
+    vmOptions.append(String.format("-Djdk.attach.allowAttachSelf=true%n"));
+    // Always collect histograms
+    vmOptions.append(String.format("-D%s=true%n", COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS));
+    if (Boolean.getBoolean(DUMP_HPROF_SNAPSHOT)) {
+      vmOptions.append(String.format("-D%s=true%n", DUMP_HPROF_SNAPSHOT));
+    }
+
+    // Specify the folder where completion variants for all the calls of the %doComplete performanceTesting command will be stored, same
+    // file is used by the %assertCompletionCommand command to access the output of the last completion event.
+    vmOptions.append(
+      String.format("-Dcompletion.command.report.dir=%s%n", Files.createTempDirectory(TestUtils.getTestOutputDir(), "completion_report")));
+    // Specify the file where the results of the findUsages action triggered by the %findUsages command will be stored. The same file is
+    // used by the %assertFindUsagesEntryCommand to access the result of the last findUsages event.
+    vmOptions.append(
+      String.format("-Dfind.usages.command.found.usages.list.file=%s%n", TestUtils.getTestOutputDir().resolve("find.usages.list.txt")));
+    // TODO(b/433574645): remove when the RAG index fluctuation is fixed
+    vmOptions.append(String.format("-Dgemini.rag.index=none%n"));
   }
 
   public void addVmOption(String line) throws IOException {
@@ -200,10 +252,6 @@ public abstract class IdeInstallation<T extends Ide> {
     addVmOption("-agentlib:jdwp=transport=dt_socket,server=y,suspend=" + s + ",address=localhost:5006\n");
   }
 
-  public void installPlugin(Path zip) throws IOException {
-    unzip(zip, pluginsDir);
-  }
-
   public T run(Display display) throws IOException, InterruptedException {
     return run(display, new HashMap<>(), new String[] {});
   }
@@ -212,7 +260,13 @@ public abstract class IdeInstallation<T extends Ide> {
     return run(display, env, new String[] {});
   }
 
-  abstract protected String getExecutable();
+  public T run(Display display, Map<String, String> env, AndroidProject project, Path sdkDir) throws IOException, InterruptedException {
+    Path projectPath = project.install(fileSystem.getRoot());
+    project.setSdkDir(sdkDir);
+    // Mark that project as trusted
+    trustPath(projectPath);
+    return run(display, env, new String[]{ projectPath.toString() });
+  }
 
   public T run(Display display, Map<String, String> userEnv, String[] args) throws IOException, InterruptedException {
     Map<String, String> env = new HashMap<>(userEnv);
@@ -255,6 +309,22 @@ public abstract class IdeInstallation<T extends Ide> {
   }
 
   /**
+   * Run from an APK project, which is different from an {@link AndroidProject} in that it doesn't
+   * have Gradle files or a {@code local.properties} file.
+   *
+   * Running from the "File" → "Profile or Debug APK" flow would also work, but that requires more
+   * automation to set up.
+   */
+  public T runFromExistingProject(Display display, HashMap<String, String> env, String path) throws IOException, InterruptedException {
+    Path project = TestUtils.resolveWorkspacePath(path);
+    Path targetProject = Files.createTempDirectory(fileSystem.getRoot(), "project");
+    FileUtils.copyDirectory(project.toFile(), targetProject.toFile());
+
+    trustPath(targetProject);
+    return run(display, env, new String[]{ targetProject.toString() });
+  }
+
+  /**
    * Emits the agent's logs to the console. When running a test locally, this can be helpful for
    * viewing the logs without having to suspend any processes; without this, you would have to
    * manually locate the randomly created temporary directories holding the logs.
@@ -268,6 +338,93 @@ public abstract class IdeInstallation<T extends Ide> {
     catch (IOException e) {
       e.printStackTrace();
     }
+  }
+
+  /**
+   * Creating {@code androidStudioFirstRun.xml} is what lets us bypass the Welcome Wizard.
+   * @throws IOException If the file can't be created.
+   */
+  public void createFirstRunXml() throws IOException {
+    Path dest = configDir.resolve("options/androidStudioFirstRun.xml");
+    TestLogger.log("Creating - %s", dest);
+
+    Files.createDirectories(dest.getParent());
+    String firstRunContents =
+      "<application>\n" +
+      "  <component name=\"AndroidFirstRunPersistentData\">\n" +
+      "    <version>1</version>\n" +
+      "  </component>\n" +
+      "</application>\n";
+    Files.writeString(dest, firstRunContents, StandardCharsets.UTF_8);
+  }
+
+  public void setNewUi() throws IOException {
+    Path dest = configDir.resolve(EarlyAccessRegistryManager.fileName);
+    TestLogger.log("Creating - %s", dest);
+    Files.createDirectories(dest.getParent());
+    String contents =
+      "ide.experimental.ui\n" +
+      "true\n" +
+      "ide.experimental.ui.inter.font\n" +
+      "false\n" +
+      "idea.plugins.compatible.build";
+    Files.writeString(dest, contents, StandardCharsets.UTF_8);
+  }
+
+
+  public void createGeneralPropertiesXml() throws IOException {
+    Path dest = configDir.resolve("options").resolve("ide.general.xml");
+    TestLogger.log("Creating - %s", dest);
+    Files.createDirectories(dest.getParent());
+    String registryChanges = "";
+    if (SystemInfo.isWindows) {
+      // When run in a Windows Docker container, we hit this issue:
+      // https://youtrack.jetbrains.com/issue/IDEA-270104. The resulting error doesn't seem to
+      // crash Android Studio, but the stack traces take up more than 100 lines in the log, so we
+      // work around the issue by disabling jump lists on Windows.
+      registryChanges =
+        "  <component name=\"Registry\">\n" +
+        "    <entry key=\"windows.jumplist\" value=\"false\" />\n" +
+        "  </component>\n";
+    }
+
+    String generalPropertyContents =
+      "<application>\n" +
+      "  <component name=\"GeneralSettings\">\n" +
+      "    <option name=\"confirmExit\" value=\"false\" />\n" +
+      "    <option name=\"processCloseConfirmation\" value=\"TERMINATE\" />\n" +
+      "  </component>\n" +
+      registryChanges +
+      "</application>";
+    Files.writeString(dest, generalPropertyContents, StandardCharsets.UTF_8);
+  }
+
+  /**
+   * Sets the SDK for the entire IDE rather than for a single project. Projects will then inherit
+   * this value.
+   */
+  public void setGlobalSdk(AndroidSdk sdk) throws IOException {
+    Path filetypePaths = configDir.resolve("options/other.xml");
+
+    if (filetypePaths.toFile().exists()) {
+      throw new IllegalStateException(
+        String.format("%s already exists, which means this method should be changed to merge with it rather than overwriting it.",
+                      filetypePaths));
+    }
+
+    Files.createDirectories(filetypePaths.getParent());
+
+    // Make sure backslashes don't show up in the path on Windows since the blob below must be valid JSON
+    String sdkPath = sdk.getSourceDir().toString().replaceAll("\\\\", "/");
+    String filetypeContents = String.format(
+      "<application>%n" +
+      "  <component name=\"PropertyService\"><![CDATA[{%n" +
+      "  \"keyToString\": {%n" +
+      "    \"android.sdk.path\": \"%s\"%n" +
+      "  }%n" +
+      "}]]></component>%n" +
+      "</application>", sdkPath);
+    Files.writeString(filetypePaths, filetypeContents, StandardCharsets.UTF_8);
   }
 
   public void enableBleak() throws IOException {
@@ -309,6 +466,74 @@ public abstract class IdeInstallation<T extends Ide> {
                                     "</application>");
   }
 
+  /**
+   * Writes a file to disk that will make the platform think that the user has already interacted
+   * with the "Send usage statistics" dialog. This process is faster than automating the
+   * consent dialog since the IDE checks for consent at start-up anyway.
+   *
+   * The internals of this function must match {@link com.intellij.ide.gdpr.ConfirmedConsent}.
+   * @param granted Whether the user grants consent.
+   * @throws IOException If there's a problem writing the file.
+   * @see com.intellij.ide.gdpr.ConfirmedConsent ConfirmedConsent
+   */
+  public void setConsentGranted(boolean granted) throws IOException {
+    String STATISTICS_OPTION_ID = "rsch.send.usage.stat";
+    String EAP_FEEDBACK_OPTION_ID = "eap";
+
+    // Only the major version matters for ConsentOptions#needsReconfirm.
+    String version = "1.0";
+    String isAccepted = granted ? "1" : "0";
+    long time = Instant.now().getEpochSecond() * 1000;
+    String consentFormatString = "%s:%s:%s:%d";
+    String nonEapString = String.format(consentFormatString, STATISTICS_OPTION_ID, version, isAccepted, time);
+    String eapString = String.format(consentFormatString, EAP_FEEDBACK_OPTION_ID, version, isAccepted, time);
+    String combinedString = String.format("%s;%s", nonEapString, eapString);
+
+    Path consentOptions = workDir.resolve("data/Google/consentOptions/accepted");
+    if (SystemInfo.isMac) {
+      consentOptions = fileSystem.getHome().resolve("Library/Application Support/Google/consentOptions/accepted");
+    } else if (SystemInfo.isWindows) {
+      // Since we're running from outside of Android Studio, getCommonDataPath() will have a vendor
+      // name of "null" instead of "Google", so we work around that here.
+      consentOptions = PathManager.getCommonDataPath().getParent().resolve("Google/consentOptions/accepted");
+    }
+    Files.createDirectories(consentOptions.getParent());
+    Files.writeString(consentOptions, combinedString);
+  }
+
+
+  /**
+   * Changes the settings not to show balloon notifications.
+   */
+  public void disableBalloonNotifications() throws IOException {
+    Path filetypePaths = configDir.resolve("options/notifications.xml");
+    Files.createDirectories(filetypePaths.getParent());
+    String filetypeContents =
+      """
+      <application>
+        <component name="NotificationConfiguration" showBalloons="false"/>
+      </application>""";
+    Files.writeString(filetypePaths, filetypeContents, StandardCharsets.UTF_8);
+  }
+
+  /**
+   * Accept the legal notice about showing decompiler .class files in editor.
+   */
+  public void acceptLegalDecompilerNotice() throws IOException {
+    Path filetypePaths = configDir.resolve("options/other.xml");
+    Files.createDirectories(filetypePaths.getParent());
+    String filetypeContents =
+      """
+        <application>
+          <component name="PropertyService"><![CDATA[{
+          "keyToString": {
+            "decompiler.legal.notice.accepted": "true"
+          }
+          }]]></component>
+        </application>""";
+    Files.writeString(filetypePaths, filetypeContents, StandardCharsets.UTF_8);
+  }
+
   public void verify() throws IOException {
     checkLogsForThreadingViolations();
   }
@@ -322,11 +547,46 @@ public abstract class IdeInstallation<T extends Ide> {
     }
   }
 
-  public Path getConfigDir() {
-    return configDir;
+  /**
+   * Checks to see if Android Studio failed to start because the JDWP address was already in use.
+   * This method will throw an exception in the test process rather than the developer having to
+   * check Android Studio's stderr itself. I.e. this method is purely for developer convenience
+   * when testing locally.
+   */
+  static protected void checkForJdwpError(IdeInstallation<? extends Ide> installation) {
+    try {
+      List<String> stderrContents = Files.readAllLines(installation.getStderr().getPath());
+      boolean hasJdwpError = stderrContents.stream().anyMatch((line) -> line.contains("JDWP exit error AGENT_ERROR_TRANSPORT_INIT"));
+      boolean isAddressInUse = stderrContents.stream().anyMatch((line) -> line.contains("Address already in use"));
+      if (hasJdwpError && isAddressInUse) {
+        throw new IllegalStateException("The JDWP address is already in use. You can fix this either by removing your " +
+                                        "AS_TEST_DEBUG env var or by terminating the existing Android Studio process.");
+      }
+    }
+    catch (IOException e) {
+      // We tried our best. :(
+    }
   }
 
-  abstract protected T createAndAttach() throws IOException, InterruptedException;
+  static protected int waitForDriverPid(LogFile reader) throws IOException, InterruptedException {
+    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver started on pid: (\\d+).*", null, true, 120, TimeUnit.SECONDS);
+    return Integer.parseInt(matcher.group(1));
+  }
+
+  static protected int waitForDriverServer(LogFile reader) throws IOException, InterruptedException {
+    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver server listening at: (\\d+).*", null, true, 30, TimeUnit.SECONDS);
+    return Integer.parseInt(matcher.group(1));
+  }
+
+  protected T createAndAttach() throws IOException, InterruptedException {
+    T studio = attach();
+    studio.startCapturingScreenshotsOnWindows();
+    return studio;
+  }
+
+  abstract public T attach() throws IOException, InterruptedException;
 
   abstract protected String vmOptionEnvName();
+
+  abstract protected String getExecutable();
 }
