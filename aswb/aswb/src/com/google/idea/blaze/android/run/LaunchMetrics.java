@@ -19,6 +19,7 @@ import com.google.common.base.StandardSystemProperty;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.idea.blaze.base.logging.EventLoggingService;
+import com.google.idea.blaze.base.logging.GenericEvent;
 import com.google.idea.common.experiments.BoolExperiment;
 import java.time.Duration;
 import java.time.Instant;
@@ -69,7 +70,7 @@ public class LaunchMetrics {
             .put(KEY_BLAZE_EXIT_CODE, Integer.toString(blazeExitCode))
             .putAll(additionalMetrics)
             .buildOrThrow();
-    EventLoggingService.getInstance().logEvent(LaunchMetrics.class, "BuildTiming", metrics);
+    EventLoggingService.getInstance().log(new GenericEvent(null, LaunchMetrics.class, "BuildTiming", metrics));
   }
 
   public static void logDeploymentTime(String launchId, Duration duration, boolean wasSuccessful) {
@@ -85,7 +86,7 @@ public class LaunchMetrics {
             Long.toString(duration.toMillis()),
             KEY_DEPLOY_STATUS,
             Boolean.toString(wasSuccessful));
-    EventLoggingService.getInstance().logEvent(LaunchMetrics.class, "DeployTiming", metrics);
+    EventLoggingService.getInstance().log(new GenericEvent(null, LaunchMetrics.class, "DeployTiming", metrics));
   }
 
   public static void logBinaryLaunch(
@@ -111,7 +112,7 @@ public class LaunchMetrics {
             KEY_NATIVE_DEBUGGING_ENABLED,
             Boolean.toString(nativeDebuggingEnabled));
     EventLoggingService.getInstance()
-        .logEvent(LaunchMetrics.class, "BlazeAndroidBinaryRun", metrics);
+        .log(new GenericEvent(null, LaunchMetrics.class, "BlazeAndroidBinaryRun", metrics));
   }
 
   public static void logTestLaunch(String launchId, String launchMethod, String executorId) {
@@ -122,7 +123,7 @@ public class LaunchMetrics {
     ImmutableMap<String, String> metrics =
         ImmutableMap.of(
             KEY_LAUNCH_ID, launchId, KEY_LAUNCH_METHOD, launchMethod, KEY_EXECUTOR_ID, executorId);
-    EventLoggingService.getInstance().logEvent(LaunchMetrics.class, "BlazeAndroidTestRun", metrics);
+    EventLoggingService.getInstance().log(new GenericEvent(null, LaunchMetrics.class, "BlazeAndroidTestRun", metrics));
   }
 
   private LaunchMetrics() {}

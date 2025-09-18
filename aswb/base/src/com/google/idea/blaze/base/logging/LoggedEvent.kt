@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 The Bazel Authors. All rights reserved.
+ * Copyright 2025 The Bazel Authors. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,10 @@
  */
 package com.google.idea.blaze.base.logging
 
-import com.intellij.openapi.project.Project
-
-/** An [EventLoggingService] that does nothing, used in case there isn't one registered. */
-class NoopEventLoggingService : EventLoggingService() {
-  override fun log(loggedEvent: LoggedEvent) = Unit
-}
+/**
+ * An interface for all events that are logged.
+ *
+ * This interface is used to ensure that all logged events have a consistent structure and can be
+ * easily processed.
+ */
+interface LoggedEvent {}

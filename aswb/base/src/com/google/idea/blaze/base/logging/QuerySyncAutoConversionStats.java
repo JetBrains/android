@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.base.logging.utils.querysync;
+package com.google.idea.blaze.base.logging;
 
 import com.google.auto.value.AutoValue;
+import com.intellij.openapi.project.Project;
+import javax.annotation.Nullable;
 
 /** Stores the Query Sync auto-conversion stats. */
 @AutoValue
-public abstract class QuerySyncAutoConversionStats {
+public abstract class QuerySyncAutoConversionStats implements LoggedEvent {
   private static final QuerySyncAutoConversionStats EMPTY =
     new AutoValue_QuerySyncAutoConversionStats.Builder()
       .setStatus(Status.UNKNOWN)
@@ -43,6 +45,9 @@ public abstract class QuerySyncAutoConversionStats {
     MULTI_SHARD_MULTI_COUNT
   }
 
+  @Nullable
+  public abstract Project project();
+
   public abstract Status status();
 
   public abstract ShardingType shardingType();
@@ -56,6 +61,8 @@ public abstract class QuerySyncAutoConversionStats {
   /** Auto value builder for QuerySyncAutoConversionStats. */
   @AutoValue.Builder
   public abstract static class Builder {
+    public abstract Builder setProject(Project project);
+
     public abstract Builder setStatus(Status value);
 
     public abstract Builder setShardingType(ShardingType value);

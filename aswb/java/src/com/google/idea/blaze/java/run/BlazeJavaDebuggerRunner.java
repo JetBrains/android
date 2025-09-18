@@ -17,6 +17,7 @@ package com.google.idea.blaze.java.run;
 
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.logging.EventLoggingService;
+import com.google.idea.blaze.base.logging.GenericEvent;
 import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationHandler;
@@ -82,7 +83,7 @@ public class BlazeJavaDebuggerRunner extends GenericDebuggerRunner {
   @Override
   protected RunContentDescriptor doExecute(RunProfileState state, ExecutionEnvironment env)
       throws ExecutionException {
-    EventLoggingService.getInstance().logEvent(env.getProject(), getClass(), "debugging-java");
+    EventLoggingService.getInstance().log(new GenericEvent(env.getProject(), getClass(), "debugging-java"));
     return super.doExecute(state, env);
   }
 }

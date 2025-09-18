@@ -26,6 +26,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.idea.blaze.base.bazel.BuildSystemProvider;
 import com.google.idea.blaze.base.ideinfo.TargetKey;
 import com.google.idea.blaze.base.logging.EventLoggingService;
+import com.google.idea.blaze.base.logging.GenericEvent;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.model.primitives.TargetExpression;
@@ -87,7 +88,7 @@ class AddSourceToProjectHelper {
       boolean inProjectDirectories,
       Future<List<TargetInfo>> targetsFuture) {
     EventLoggingService.getInstance()
-        .logEvent(project, AddSourceToProjectHelper.class, "AddSourceToProject");
+        .log(new GenericEvent(project, AddSourceToProjectHelper.class, "AddSourceToProject"));
     List<TargetInfo> targets;
     try {
       targets = targetsFuture.get();

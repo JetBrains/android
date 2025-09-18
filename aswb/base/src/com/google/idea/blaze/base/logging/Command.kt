@@ -19,10 +19,11 @@ import java.time.Duration
 
 /** Information about an external command that was launched from the IDE. */
 data class Command(
+  val caller: Any,
   val executable: String,
   val arguments: List<String>,
   val subcommandName: String?,
   val workingDirectory: String?,
   val exitCode: Int,
   val duration: Duration,
-)
+) : LoggedEvent

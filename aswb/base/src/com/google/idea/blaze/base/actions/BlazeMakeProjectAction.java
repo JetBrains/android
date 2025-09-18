@@ -17,6 +17,7 @@ package com.google.idea.blaze.base.actions;
 
 import com.google.idea.blaze.base.build.BlazeBuildService;
 import com.google.idea.blaze.base.logging.EventLoggingService;
+import com.google.idea.blaze.base.logging.GenericEvent;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 
@@ -29,7 +30,7 @@ class BlazeMakeProjectAction extends BlazeProjectAction {
 
   @Override
   protected void actionPerformedInBlazeProject(Project project, AnActionEvent e) {
-    EventLoggingService.getInstance().logEvent(project, getClass(), "make");
+    EventLoggingService.getInstance().log(new GenericEvent(project, getClass(), "make"));
     BlazeBuildService.getInstance(project).buildProject();
   }
 }

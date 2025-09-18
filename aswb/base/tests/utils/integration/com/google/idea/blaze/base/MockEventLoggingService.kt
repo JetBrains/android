@@ -19,13 +19,14 @@ import com.google.common.collect.ImmutableList
 import com.google.idea.blaze.base.logging.AiEvent
 import com.google.idea.blaze.base.logging.Command
 import com.google.idea.blaze.base.logging.EventLoggingService
-import com.google.idea.blaze.base.logging.utils.HighlightStats
-import com.google.idea.blaze.base.logging.utils.SyncStats
-import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStats
-import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats
+import com.google.idea.blaze.base.logging.GenericEvent
+import com.google.idea.blaze.base.logging.HighlightStats
+import com.google.idea.blaze.base.logging.LoggedEvent
+import com.google.idea.blaze.base.logging.SyncStats
+import com.google.idea.blaze.base.logging.QuerySyncActionStats
+import com.google.idea.blaze.base.logging.QuerySyncAutoConversionStats
 import com.google.idea.testing.ServiceHelper
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.project.Project
 
 /**
  * Provides a [EventLoggingService] for integration tests.
@@ -50,23 +51,15 @@ class MockEventLoggingService(parentDisposable: Disposable) : EventLoggingServic
 
   fun aiEvents(): ImmutableList<AiEvent> = ImmutableList.copyOf(aiEvents)
 
-  override fun log(project: Project, stats: SyncStats) {
-    syncStats.add(stats)
+  override fun log(loggedEvent: LoggedEvent) {
+    when(loggedEvent) {
+      is SyncStats -> syncStats.add(loggedEvent)
+      is QuerySyncActionStats -> querySyncStats.add(loggedEvent)
+      is QuerySyncAutoConversionStats -> querySyncAutoConversionStats.add(loggedEvent)
+      is AiEvent -> aiEvents.add(loggedEvent)
+      is HighlightStats -> Unit
+      is Command -> Unit
+      is GenericEvent -> Unit
+    }
   }
-
-  override fun log(project: Project, stats: QuerySyncActionStats) {
-    querySyncStats.add(stats)
-  }
-
-  override fun log(project: Project, stats: QuerySyncAutoConversionStats) {
-    querySyncAutoConversionStats.add(stats)
-  }
-
-  override fun log(project: Project, aiEvent: AiEvent) {
-    aiEvents.add(aiEvent)
-  }
-
-  override fun log(caller: Any?, command: Command) = Unit
-
-  override fun log(project: Project, highlightStats: HighlightStats) = Unit
 }

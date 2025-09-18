@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.idea.blaze.base.logging.EventLoggingService;
+import com.google.idea.blaze.base.logging.GenericEvent;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectView;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
@@ -222,6 +223,6 @@ public final class BlazeNewProjectBuilder {
   void commitToProject(Project project) {
     BlazeWizardUserSettingsStorage.getInstance().commit(userSettings);
     EventLoggingService.getInstance()
-        .logEvent(project, getClass(), "blaze-project-created", ImmutableMap.copyOf(userSettings.values));
+        .log(new GenericEvent(project, getClass(), "blaze-project-created", ImmutableMap.copyOf(userSettings.values)));
   }
 }
