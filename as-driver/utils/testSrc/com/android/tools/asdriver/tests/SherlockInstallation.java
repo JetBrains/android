@@ -15,30 +15,47 @@
  */
 package com.android.tools.asdriver.tests;
 
-import static com.android.tools.asdriver.tests.MemoryUsageReportProcessorKt.COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS;
-import static com.android.tools.asdriver.tests.MemoryUsageReportProcessorKt.DUMP_HPROF_SNAPSHOT;
 import com.android.testutils.TestUtils;
 import com.android.tools.asdriver.tests.base.IdeInstallation;
-import com.android.tools.testlib.LogFile;
+import com.android.tools.testlib.AndroidSdk;
+import com.android.tools.testlib.Display;
+import com.android.tools.testlib.Emulator;
 import com.android.tools.testlib.TestFileSystem;
 import com.android.tools.testlib.TestLogger;
+import com.android.utils.PathUtils;
 import com.intellij.openapi.util.SystemInfo;
+import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
+import org.jetbrains.annotations.Nullable;
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
+import org.junit.runners.model.Statement;
 
-public class SherlockInstallation extends IdeInstallation<Sherlock> {
+public class SherlockInstallation extends IdeInstallation<Sherlock> implements TestRule {
+
+  private final HashMap<String, String> env;
+  private final Display display;
+  private final AndroidSdk sdk;
+  // Currently running emulators
+  private final List<Emulator> emulators;
+  private int nextPort = 8554;
+
+  @Nullable
+  private static Throwable initializedAt = null;
 
   public static SherlockInstallation fromZip(TestFileSystem testFileSystem) throws IOException {
-    Options options = new Options(testFileSystem);
-    return fromZip(options);
+    return fromZip(testFileSystem, null, null, true);
   }
 
-  public static SherlockInstallation fromZip(Options options) throws IOException {
-    Path workDir = Files.createTempDirectory(options.testFileSystem.getRoot(), "sherlock");
+  public static SherlockInstallation fromZip(TestFileSystem testFileSystem,  Display display, AndroidSdk sdk, boolean disableFirstRun) throws IOException {
+    Path workDir = Files.createTempDirectory(testFileSystem.getRoot(), "sherlock");
     TestLogger.log("workDir: %s", workDir);
 
     String platform = "linux";
@@ -52,25 +69,31 @@ public class SherlockInstallation extends IdeInstallation<Sherlock> {
       platform = "win";
     }
 
-    String zipPath;
-    zipPath = String.format("prebuilts/studio/intellij-sdk/sherlock-sdk.%s.zip", platform);
+    String zipPath = String.format("prebuilts/studio/intellij-sdk/sherlock-sdk.%s.zip", platform);
     Path sherlockZip = TestUtils.getBinPath(zipPath);
     unzip(sherlockZip, workDir);
 
     String sherlockDir = getSherlockDirectory(workDir);
-    return new SherlockInstallation(options.testFileSystem, workDir, workDir.resolve(sherlockDir), options.disableFirstRun);
+    return new SherlockInstallation(testFileSystem, workDir, workDir.resolve(sherlockDir), disableFirstRun, display, sdk);
   }
 
   static public SherlockInstallation fromDir(TestFileSystem testFileSystem, Path sherlockDir) throws IOException {
     Path workDir = Files.createTempDirectory(testFileSystem.getRoot(), "sherlock");
-    return new SherlockInstallation(testFileSystem, workDir, sherlockDir, true);
+    return new SherlockInstallation(testFileSystem, workDir, sherlockDir, true, null, null);
   }
 
   private SherlockInstallation(TestFileSystem testFileSystem,
                                Path workDir,
                                Path sherlockDir,
-                               Boolean disableFirstRun) throws IOException {
+                               Boolean disableFirstRun,
+                               Display display,
+                               AndroidSdk sdk) throws IOException {
     super("sherlock-sdk", testFileSystem, workDir, sherlockDir);
+
+    this.display = display;
+    this.sdk = sdk;
+    this.env = new HashMap<>();
+    this.emulators = new ArrayList<>();
 
     if (disableFirstRun) {
       this.addVmOption("-Ddisable.android.first.run=true");
@@ -81,52 +104,15 @@ public class SherlockInstallation extends IdeInstallation<Sherlock> {
   }
 
   @Override
-  protected void createVmOptions(StringBuilder vmOptions) throws IOException {
-    super.createVmOptions(vmOptions);
-    Path threadingCheckerAgentZip = TestUtils.getBinPath("tools/base/threading-agent/threading_agent.jar");
-    if (!Files.exists(threadingCheckerAgentZip)) {
-      // Threading agent can be built using 'bazel build //tools/base/threading-agent:threading_agent'
-      throw new IllegalStateException("Threading checker agent not found at " + threadingCheckerAgentZip);
-    }
-    vmOptions.append(String.format("-javaagent:%s%n", threadingCheckerAgentZip));
-    // Need to disable android first run checks, or we get stuck in a modal dialog complaining about lack of web access.
-    vmOptions.append(String.format("-Dgradle.ide.save.log.to.file=true%n"));
-    // Prevent our crash metrics from going to the production URL
-    vmOptions.append(String.format("-Duse.staging.crash.url=true%n"));
-    // Enabling this flag is required for connecting all the Java Instrumentation agents needed for memory statistics.
-    vmOptions.append(String.format("-Dstudio.run.under.integration.test=true%n"));
-    vmOptions.append(String.format("-Djdk.attach.allowAttachSelf=true%n"));
-    // Always collect histograms
-    vmOptions.append(String.format("-D%s=true%n", COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS));
-    if (Boolean.getBoolean(DUMP_HPROF_SNAPSHOT)) {
-      vmOptions.append(String.format("-D%s=true%n", DUMP_HPROF_SNAPSHOT));
-    }
-    // Specify the folder where completion variants for all the calls of the %doComplete performanceTesting command will be stored, same
-    // file is used by the %assertCompletionCommand command to access the output of the last completion event.
-    vmOptions.append(
-      String.format("-Dcompletion.command.report.dir=%s%n", Files.createTempDirectory(TestUtils.getTestOutputDir(), "completion_report")));
-    // Specify the file where the results of the findUsages action triggered by the %findUsages command will be stored. The same file is
-    // used by the %assertFindUsagesEntryCommand to access the result of the last findUsages event.
-    vmOptions.append(
-      String.format("-Dfind.usages.command.found.usages.list.file=%s%n", TestUtils.getTestOutputDir().resolve("find.usages.list.txt")));
-  }
-
-  @Override
   protected String getExecutable() {
     String sherlockExecutable = "bin/sherlock.sh";
     if (SystemInfo.isMac) {
       sherlockExecutable = "Contents/MacOS/sherlock";
-    } else if (SystemInfo.isWindows) {
+    }
+    else if (SystemInfo.isWindows) {
       sherlockExecutable = "bin/sherlock64.exe";
     }
     return workDir.resolve(sherlockExecutable).toString();
-  }
-
-  @Override
-  protected Sherlock createAndAttach() throws IOException, InterruptedException {
-    Sherlock sherlock = attach();
-    sherlock.startCapturingScreenshotsOnWindows();
-    return sherlock;
   }
 
   @Override
@@ -134,6 +120,7 @@ public class SherlockInstallation extends IdeInstallation<Sherlock> {
     return "SHERLOCK_VM_OPTIONS";
   }
 
+  @Override
   public Sherlock attach() throws IOException, InterruptedException {
     int pid;
     try {
@@ -147,37 +134,6 @@ public class SherlockInstallation extends IdeInstallation<Sherlock> {
     return new Sherlock(this, process, port);
   }
 
-  /**
-   * Checks to see if Android Studio failed to start because the JDWP address was already in use.
-   * This method will throw an exception in the test process rather than the developer having to
-   * check Android Studio's stderr itself. I.e. this method is purely for developer convenience
-   * when testing locally.
-   */
-  static private void checkForJdwpError(SherlockInstallation installation) {
-    try {
-      List<String> stderrContents = Files.readAllLines(installation.getStderr().getPath());
-      boolean hasJdwpError = stderrContents.stream().anyMatch((line) -> line.contains("JDWP exit error AGENT_ERROR_TRANSPORT_INIT"));
-      boolean isAddressInUse = stderrContents.stream().anyMatch((line) -> line.contains("Address already in use"));
-      if (hasJdwpError && isAddressInUse) {
-        throw new IllegalStateException("The JDWP address is already in use. You can fix this either by removing your " +
-                                        "AS_TEST_DEBUG env var or by terminating the existing Android Studio process.");
-      }
-    }
-    catch (IOException e) {
-      // We tried our best. :(
-    }
-  }
-
-  static private int waitForDriverPid(LogFile reader) throws IOException, InterruptedException {
-    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver started on pid: (\\d+).*", null, true, 120, TimeUnit.SECONDS);
-    return Integer.parseInt(matcher.group(1));
-  }
-
-  static private int waitForDriverServer(LogFile reader) throws IOException, InterruptedException {
-    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver server listening at: (\\d+).*", null, true, 30, TimeUnit.SECONDS);
-    return Integer.parseInt(matcher.group(1));
-  }
-
   public static class Options {
     public TestFileSystem testFileSystem;
     boolean disableFirstRun = true;
@@ -188,5 +144,132 @@ public class SherlockInstallation extends IdeInstallation<Sherlock> {
 
   private static String getSherlockDirectory(Path workDir) {
     return "";
+  }
+
+  public static SherlockInstallation standard() {
+    try {
+      TestFileSystem fileSystem = new TestFileSystem(Files.createTempDirectory("root"));
+
+      AndroidSdk sdk = new AndroidSdk(TestUtils.resolveWorkspacePath(TestUtils.getRelativeSdk()));
+
+      SherlockInstallation install = SherlockInstallation.fromZip(fileSystem, Display.createDefault(), sdk, true);
+      install.createFirstRunXml();
+      install.setNewUi();
+      install.createGeneralPropertiesXml();
+
+      sdk.install(install.env);
+
+      createRemediationShutdownHook();
+
+      return install;
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  public void setEnv(String name, String value) {
+    env.put(name, value);
+  }
+
+  public AndroidSdk getSdk() {
+    return sdk;
+  }
+
+  public static void createRemediationShutdownHook() {
+    // When running from Bazel on Windows, the JVM isn't terminated in such a way that the shutdown
+    // hook is triggered, so we have to emit the remediation steps ahead of time (without knowing
+    // if they'll even be needed).
+    if (SystemInfo.isWindows && TestUtils.runningFromBazel()) {
+      TestLogger.log("Running on Bazel on Windows, so the shutdown hook may not be properly triggered. If this test fails, please " +
+                     "check go/e2e-find-log-files for more information on how to diagnose test issues.");
+    }
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      TestLogger.log("The test was terminated early (e.g. it was manually ended or Bazel may have timed out). Please see " +
+                     "go/e2e-find-log-files for more information on how to diagnose test issues.");
+    }));
+  }
+
+  /** Runs and returns an emulator using the given {@link Emulator.SystemImage}. */
+  public Emulator runEmulator(Emulator.SystemImage systemImage, List<String> extraEmulatorFlags) throws IOException, InterruptedException {
+    TestLogger.log("Emulator#runEmulator");
+    String curEmulatorName = String.format("emu%d", emulators.size());
+    Path systemImageDir = Workspace.getRoot(systemImage.path);
+    Emulator.createEmulator(fileSystem, curEmulatorName, systemImageDir);
+    // Increase grpc port by one after spawning an emulator to avoid conflict
+    Emulator emulator = Emulator.start(fileSystem, sdk, display, curEmulatorName, nextPort++, extraEmulatorFlags);
+    emulators.add(emulator);
+    return emulator;
+  }
+
+  /**
+   * Runs Sherlock without a project (e.g. for a scenario where you want to create that project).
+   */
+  public Sherlock runSherlockWithoutProject() throws IOException, InterruptedException {
+    return run(display, env);
+  }
+
+  public Sherlock runSherlock(AndroidProject project) throws IOException, InterruptedException {
+    return run(display, env, project, sdk.getSourceDir());
+  }
+
+  @Override
+  public void close() throws Exception {
+    if(display != null) {
+      display.close();
+    }
+    try {
+      try {
+        PathUtils.deleteRecursivelyIfExists(fileSystem.getRoot());
+      }
+      catch (AccessDeniedException e) {
+        // TODO(b/240166122): on Windows, there seems to be a race condition preventing deletions, so
+        // we try again after waiting for a bit.
+        if (SystemInfo.isWindows) {
+          Thread.sleep(5000);
+          PathUtils.deleteRecursivelyIfExists(fileSystem.getRoot());
+        }
+        else {
+          throw e;
+        }
+      }
+    }
+    catch (RuntimeException | IOException e) {
+      TestLogger.log("*** Files being written while shutting down system: ***");
+      printContents(fileSystem.getRoot().toFile());
+      throw e;
+    }
+  }
+
+  private static void printContents(File root) throws IOException {
+    if (root.isDirectory()) {
+      for (File subPath : root.listFiles()) {
+        printContents(subPath);
+      }
+    }
+    System.out.printf("%s%n", root.getCanonicalPath());
+  }
+
+  @Override
+  public Statement apply(Statement base, Description description) {
+    return new Statement() {
+      @Override
+      public void evaluate() throws Throwable {
+        if (initializedAt != null) {
+          // This object can be used as a rule only once per execution to avoid multiple
+          // integration tests on the same target. We only want a single test in a single
+          // target so that integration tests are parallelized, since they tend to take
+          // much longer time than unit tests.
+          throw new IllegalStateException("There should only be one integration test per test execution.", initializedAt);
+        }
+        initializedAt = new Throwable("Sherlock was previously initialized here.");
+        try {
+          base.evaluate();
+          verify();
+        } finally {
+          close();
+        }
+      }
+    };
   }
 }
