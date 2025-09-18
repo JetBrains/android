@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.ddmlib.testing.FakeAdbRule
+import com.android.fakeadbserver.DeviceState
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
@@ -140,12 +141,13 @@ class LayoutInspectorToolWindowFactoryTest {
   fun setUp() {
     val devices = listOf(MODERN_DEVICE, OLDER_LEGACY_DEVICE, LEGACY_DEVICE)
     devices.forEach { device ->
-      inspectorRule.adbRule.attachDevice(
+      inspectorRule.adbRule.connectDevice(
         device.serial,
         device.manufacturer,
         device.model,
         device.version,
         device.apiLevel,
+        DeviceState.HostConnectionType.USB,
       )
     }
   }
@@ -204,7 +206,6 @@ class LayoutInspectorToolWindowFactoryTest {
 
   @Test
   fun clientCanBeDisconnectedWhileMinimized() {
-    inspectorRule.attachDevice(LEGACY_DEVICE)
     val listener =
       LayoutInspectorToolWindowManagerListener(inspectorRule.project, inspectorRule.launcher)
     val toolWindow = FakeToolWindow(inspectorRule.project, listener)

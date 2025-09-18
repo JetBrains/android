@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector
 
-import com.android.ddmlib.testing.FakeAdbRule
+import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule
+import com.android.adblib.testingutils.FakeAdbServerRule
+import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.workbench.PropertiesComponentMock
@@ -54,6 +56,7 @@ import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import org.jetbrains.android.facet.AndroidFacet
+import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
@@ -218,8 +221,11 @@ class LayoutInspectorRule(
   val processes = ProcessesModel(processNotifier, isPreferredProcess)
   private lateinit var deviceModel: DeviceModel
 
-  val adbRule = FakeAdbRule()
-  val adbService = AdbServiceRule(projectRule::project, adbRule)
+  val adbRule = FakeAdbServerRule()
+  val adbService = AdbServiceRule(projectRule::project)
+  private val initAndroidDebugBridgeRule = InitAndroidDebugBridgeRule { adbRule.adbServer.port }
+  private val ruleChain =
+    RuleChain.outerRule(adbRule).around(initAndroidDebugBridgeRule).around(adbService)
 
   lateinit var inspector: LayoutInspector
     private set
@@ -239,22 +245,18 @@ class LayoutInspectorRule(
   val parametersCache: ComposeParametersCache?
     get() = (inspectorClient as? AppInspectionInspectorClient)?.composeInspector?.parametersCache
 
-  /**
-   * Notify this rule about a device that it should be aware of.
-   *
-   * Note that devices associated with launched processes will be added automatically, but it can
-   * still be useful to manually add devices before that happens.
-   */
+  /** Notify this rule about a device that it should be aware of. */
   fun attachDevice(device: DeviceDescriptor) {
-    if (adbRule.bridge.devices.none { it.serialNumber == device.serial }) {
-      adbRule.attachDevice(
+    adbRule
+      .connectDevice(
         device.serial,
         device.manufacturer,
         device.model,
         device.version,
         device.apiLevel,
+        DeviceState.HostConnectionType.USB,
       )
-    }
+      .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
   }
 
   private fun before() {
@@ -285,14 +287,6 @@ class LayoutInspectorRule(
     // is updated
     inspectorClient = launcher.activeClient
     assertThat(inspectorClient.isConnected).isFalse()
-    processes.addSelectedProcessListeners {
-      processes.selectedProcess?.let { process ->
-        // If a process is selected, let's just make sure we have ADB aware of the device as well.
-        // Some client code expects
-        // ADB and our processes model to by in sync in normal situations.
-        attachDevice(process.device)
-      }
-    }
 
     fakeForegroundProcessDetection = FakeForegroundProcessDetection()
 
@@ -343,8 +337,6 @@ class LayoutInspectorRule(
   }
 
   override fun apply(base: Statement, description: Description): Statement {
-    // List of rules that will be applied in order, with this rule being last
-    val innerRules = listOf(adbService, adbRule)
     val coreStatement =
       object : Statement() {
         override fun evaluate() {
@@ -356,9 +348,7 @@ class LayoutInspectorRule(
           }
         }
       }
-    return innerRules.fold(coreStatement) { stmt: Statement, rule: TestRule ->
-      rule.apply(stmt, description)
-    }
+    return ruleChain.apply(coreStatement, description)
   }
 }
 

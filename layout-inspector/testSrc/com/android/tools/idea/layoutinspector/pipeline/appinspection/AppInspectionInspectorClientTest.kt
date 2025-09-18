@@ -109,6 +109,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -600,7 +601,6 @@ class AppInspectionInspectorClientTest {
       debugViewAttributesPreviouslyEnabled = true,
     )
 
-    inspectorRule.attachDevice(MODERN_DEVICE)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     assertThat(inspectionRule.adbSession.deviceServices.shellV2Requests.size).isEqualTo(1)
     assertThat(inspectionRule.adbSession.deviceServices.shellV2Requests.poll().command)
@@ -1013,7 +1013,6 @@ class AppInspectionInspectorClientTest {
     setUpAdbForDebugViewAttributes(MODERN_PROCESS.device.serial)
 
     preferredProcess = null
-    inspectorRule.attachDevice(MODERN_PROCESS.device)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     inspectorRule.processes.selectedProcess = MODERN_PROCESS
     verifyActivityRestartBanner()
@@ -1027,7 +1026,6 @@ class AppInspectionInspectorClientTest {
     )
 
     preferredProcess = null
-    inspectorRule.attachDevice(MODERN_PROCESS.device)
     val banner = InspectorBanner(projectRule.testRootDisposable, inspectorRule.notificationModel)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     inspectorRule.processes.selectedProcess = MODERN_PROCESS
@@ -1041,7 +1039,6 @@ class AppInspectionInspectorClientTest {
     setUpAdbForDebugViewAttributes(MODERN_PROCESS.device.serial, shouldFail = true)
 
     preferredProcess = null
-    inspectorRule.attachDevice(MODERN_PROCESS.device)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     inspectorRule.processes.selectedProcess = MODERN_PROCESS
     verifyFailToEnableDebugViewAttributesBanner()
@@ -1162,6 +1159,7 @@ class AppInspectionInspectorClientTest {
 }
 
 // TODO: Move to separate file or integrate with main test class
+@Ignore("b/443319528 - add support for FakeEmulatorConsole in FakeAdbServer")
 class AppInspectionInspectorClientWithUnsupportedApi29 {
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val inspectionRule = AppInspectionInspectorRule(projectRule)
@@ -1366,17 +1364,17 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
         override val streamId = 4321L
       }
 
-    inspectorRule.adbRule.attachDevice(
+    inspectorRule.adbRule.connectDevice(
       processDescriptor.device.serial,
       processDescriptor.device.manufacturer,
       processDescriptor.device.model,
       processDescriptor.device.version,
       processDescriptor.device.apiLevel,
-      processDescriptor.abiCpuArch,
-      emptyMap(),
+      // processDescriptor.abiCpuArch,
+      // emptyMap(),
       DeviceState.HostConnectionType.LOCAL,
-      "myAvd-$apiLevel",
-      "/android/avds/myAvd-$apiLevel.avd",
+      // "myAvd-$apiLevel",
+      // "/android/avds/myAvd-$apiLevel.avd",
     )
 
     return processDescriptor
@@ -1436,6 +1434,7 @@ class AppInspectionInspectorClientWithFailingClientTest {
   fun setUp() {
     inspectorClientSettings = InspectorClientSettings(projectRule.project)
     notificationModel = NotificationModel(projectRule.project)
+    inspectorRule.attachDevice(MODERN_DEVICE)
   }
 
   @Test
@@ -1443,7 +1442,6 @@ class AppInspectionInspectorClientWithFailingClientTest {
     setUpAdbForDebugViewAttributes(MODERN_PROCESS.device.serial)
 
     throwOnState = AttachErrorState.START_REQUEST_SENT
-    inspectorRule.attachDevice(MODERN_DEVICE)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     val notifications = inspectorRule.notificationModel.notifications
@@ -1467,7 +1465,6 @@ class AppInspectionInspectorClientWithFailingClientTest {
   @Test
   fun errorThrownOnAttachSuccess() {
     throwOnState = AttachErrorState.ATTACH_SUCCESS
-    inspectorRule.attachDevice(MODERN_DEVICE)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     val notifications = inspectorRule.notificationModel.notifications
@@ -1503,7 +1500,6 @@ class AppInspectionInspectorClientWithFailingClientTest {
       startFetchReceived.countDown()
     }
 
-    inspectorRule.attachDevice(MODERN_DEVICE)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     startFetchReceived.await(
       TIMEOUT,
@@ -1579,7 +1575,6 @@ class AppInspectionInspectorClientWithFailingClientTest {
   private fun checkException(exception: Exception, expected: AttachErrorCode) {
     throwOnState = AttachErrorState.ATTACH_SUCCESS
     exceptionToThrow = exception
-    inspectorRule.attachDevice(MODERN_DEVICE)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     assertThat(inspectorRule.inspectorClient.isConnected).isFalse()

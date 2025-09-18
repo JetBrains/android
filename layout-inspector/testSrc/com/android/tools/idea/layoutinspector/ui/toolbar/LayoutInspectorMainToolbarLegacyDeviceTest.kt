@@ -78,6 +78,7 @@ class LayoutInspectorMainToolbarLegacyDeviceTest {
   @Test
   fun testLiveControlDisabledWithProcessFromModernDevice() =
     withEmbeddedLayoutInspector(false) {
+      layoutInspectorRule.attachDevice(MODERN_DEVICE)
       layoutInspectorRule.launchSynchronously = false
       layoutInspectorRule.startLaunch(1)
 
