@@ -455,7 +455,7 @@ MODULE                        : project
                     qName                         : :app:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
-        agpVersion                    : 8.13.0-rc01
+        agpVersion                    : 8.13.0
         gradlePath                    : :app
         gradleVersion                 : 8.13
         buildFile                     : <ROOT>/app/build.gradle
@@ -476,7 +476,7 @@ MODULE                        : project.app
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
-    ModelVersion                  : 8.13.0-rc01
+    ModelVersion                  : 8.13.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/app/build
@@ -790,7 +790,7 @@ MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
 MODULE                        : project.lib
     GradleModuleModel
-        agpVersion                    : 8.13.0-rc01
+        agpVersion                    : 8.13.0
         gradlePath                    : :lib
         gradleVersion                 : 8.13
         buildFile                     : <ROOT>/lib/build.gradle
@@ -811,7 +811,7 @@ MODULE                        : project.lib
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :lib
-    ModelVersion                  : 8.13.0-rc01
+    ModelVersion                  : 8.13.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/lib/build
@@ -1109,7 +1109,7 @@ MODULE                        : project.lib.main
 MODULE                        : project.lib.unitTest
 MODULE                        : project.otherlib
     GradleModuleModel
-        agpVersion                    : 8.13.0-rc01
+        agpVersion                    : 8.13.0
         gradlePath                    : :otherlib
         gradleVersion                 : 8.13
         buildFile                     : <ROOT>/otherlib/build.gradle
@@ -1130,7 +1130,7 @@ MODULE                        : project.otherlib
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :otherlib
-    ModelVersion                  : 8.13.0-rc01
+    ModelVersion                  : 8.13.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/otherlib/build
