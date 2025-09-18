@@ -21,18 +21,16 @@ import com.android.tools.profilers.memory.adapters.InstanceObject
 import com.android.tools.profilers.memory.adapters.ReferenceObject
 import com.android.tools.profilers.memory.adapters.ValueObject
 import com.android.tools.profilers.memory.adapters.ValueObject.ValueType.ARRAY
-import com.intellij.icons.AllIcons.Debugger.Db_array
-import com.intellij.icons.AllIcons.Debugger.Db_primitive
+import com.intellij.icons.AllIcons.Debugger.*
 import com.intellij.icons.AllIcons.Hierarchy.Subtypes
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.IconManager
 import com.intellij.ui.PlatformIcons
 import com.intellij.ui.SimpleTextAttributes
-import com.intellij.util.PlatformIcons.INTERFACE_ICON
-import icons.StudioIcons.Profiler.Overlays.ARRAY_STACK
-import icons.StudioIcons.Profiler.Overlays.FIELD_STACK
-import icons.StudioIcons.Profiler.Overlays.INTERFACE_STACK
+import com.intellij.util.PlatformIcons.*
+import icons.StudioIcons.Profiler.Overlays.*
+
 import java.awt.Color
 import javax.swing.Icon
 import javax.swing.JTree
@@ -90,7 +88,11 @@ open class ValueColumnRenderer : ColoredTreeCellRenderer() {
         referenceInstance.valueType == ARRAY -> referenceInstance.getStackedIcon(ARRAY_STACK, Db_array)
         else -> referenceInstance.getStackedIcon(FIELD_STACK, IconManager.getInstance().getPlatformIcon(PlatformIcons.Field))
       }
-      is InstanceObject -> getStackedIcon(INTERFACE_STACK, INTERFACE_ICON)
+      is InstanceObject -> when (valueType) {
+        ValueObject.ValueType.CLASS -> CLASS_ICON
+        ARRAY -> getStackedIcon(ARRAY_STACK, Db_array)
+        else -> getStackedIcon(INTERFACE_STACK, INTERFACE_ICON)
+      }
       else -> INTERFACE_ICON
     }
 
