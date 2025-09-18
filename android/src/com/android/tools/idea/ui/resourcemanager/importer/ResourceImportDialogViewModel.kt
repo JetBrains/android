@@ -269,7 +269,8 @@ class ResourceImportDialogViewModel(
     .filter { (_, info) -> !info.warning }
     .map {
       val (asset, error) = it
-      ValidationInfo("${asset.name}: ${error.message}")
+      val assetName = if (asset.name.isNotBlank()) ": '${asset.name}'" else ""
+      ValidationInfo("${error.message}${assetName}")
     }
     .firstOrNull()
 
