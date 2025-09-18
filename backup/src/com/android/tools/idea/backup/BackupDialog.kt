@@ -24,6 +24,7 @@ import com.android.tools.idea.util.relativeToProject
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.idea.ActionsBundle
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper
@@ -74,6 +75,8 @@ internal class BackupDialog(
     }
   private val typeHelpIcon: JLabel =
     JLabel(AllIcons.General.ContextHelp).apply {
+      name = "typeHelpIcon"
+      toolTipText = ActionsBundle.message("action.HelpTopics.description")
       addMouseListener(
         object : MouseAdapter() {
           override fun mouseReleased(e: MouseEvent) {
