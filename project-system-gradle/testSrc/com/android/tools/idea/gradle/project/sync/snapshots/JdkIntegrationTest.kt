@@ -41,6 +41,7 @@ import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUt
 import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.runInEdtAndWait
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
 import org.junit.rules.TemporaryFolder
@@ -96,7 +97,7 @@ class JdkIntegrationTest(
       StudioFlags.RESTORE_INVALID_GRADLE_JDK_CONFIGURATION.override(studioFlags.restoreInvalidGradleJdkConfiguration)
       StudioFlags.RESTORE_INVALID_GRADLE_JDK_CONFIGURATION_TEST_OVERRIDE.override(true)
       StudioFlags.MIGRATE_PROJECT_TO_GRADLE_LOCAL_JAVA_HOME.override(studioFlags.migrateToGradleLocalJavaHome)
-      JdkTableUtils.populateJdkTableWith(jdkTable, tempDir)
+      runInEdtAndWait { JdkTableUtils.populateJdkTableWith(jdkTable, tempDir) }
       EnvironmentUtils.overrideEnvironmentVariables(environmentVariables, disposable)
     }
     CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(
@@ -107,7 +108,7 @@ class JdkIntegrationTest(
 
   private fun cleanTestEnvironment() {
     StudioFlags.MIGRATE_PROJECT_TO_GRADLE_LOCAL_JAVA_HOME.clearOverride()
-    JavaAwareProjectJdkTableImpl.removeInternalJdkInTests()
+    runInEdtAndWait { JavaAwareProjectJdkTableImpl.removeInternalJdkInTests() }
     CapturePlatformModelsProjectResolverExtension.reset()
     Registry.get("gradle.sync.use.eel.for.wsl").resetToDefault()
   }
