@@ -24,8 +24,10 @@ import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.idea.backup.testing.clickOk
 import com.android.tools.idea.backup.testing.findComponent
+import com.android.tools.idea.testing.ApplicationServiceRule
 import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.browsers.BrowserLauncher
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.ui.ComboBox
@@ -36,13 +38,17 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.TextAccessor
+import java.awt.event.MouseEvent
 import javax.swing.JEditorPane
+import javax.swing.JLabel
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.Mockito.mock
+import org.mockito.kotlin.verify
 
 private val WARNING_DTD_HTML =
   """
@@ -82,6 +88,8 @@ class BackupDialogTest {
   private val temporaryFolder = TemporaryFolder()
   private val disposableRule = DisposableRule()
 
+  private val mockBrowserLauncher = mock<BrowserLauncher>()
+
   @get:Rule
   val rule =
     RuleChain(
@@ -90,6 +98,7 @@ class BackupDialogTest {
       temporaryFolder,
       HeadlessDialogRule(),
       disposableRule,
+      ApplicationServiceRule(BrowserLauncher::class.java, mockBrowserLauncher),
       EdtRule(),
     )
 
@@ -212,6 +221,21 @@ class BackupDialogTest {
       it.clickOk()
 
       assertThat(it.type).isEqualTo(CLOUD)
+    }
+  }
+
+  @Test
+  fun showDialog_typeHelpIcon() {
+    createDialog {
+      val typeHelpIcon = it.findComponent<JLabel>("typeHelpIcon")
+
+      typeHelpIcon.mouseListeners.forEach { listener ->
+        listener.mouseReleased(MouseEvent(typeHelpIcon, 0, 0, 0, 0, 0, 0, false))
+      }
+
+      assertThat(typeHelpIcon.toolTipText).isEqualTo("Show help contents")
+      verify(mockBrowserLauncher)
+        .browse("https://d.android.com//r/studio-ui/backup-restore/help/backup-type")
     }
   }
 
