@@ -53,7 +53,7 @@ public class BlazeAndroidIntegrationTestCase extends BlazeSyncIntegrationTestCas
 
   @After
   public void cleanUpAndroidSdkHandler() {
-    AndroidSdkHandler.resetInstance(workspaceRoot.fileForPath(MockSdkUtil.SDK_DIR).toPath());
+    AndroidSdkHandler.reset();
   }
 
   public void setTargetMap(NbTargetBuilder... builders) {
