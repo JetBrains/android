@@ -51,6 +51,7 @@ public class BlazeQueryParser {
     ImmutableSet.of(
       "_java_grpc_library",
       "_java_lite_grpc_library",
+      "_java_spanner_proto_library_rule",
       "aar_import",
       "af_internal_soyinfo_generator",
       "java_import",
