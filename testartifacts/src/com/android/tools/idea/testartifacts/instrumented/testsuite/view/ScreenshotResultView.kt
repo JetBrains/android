@@ -300,7 +300,6 @@ class ScreenshotResultView {
       private const val MIN_SCALE = 0.1
       private const val MAX_SCALE = 1.8
       private const val ZOOM_FACTOR = 1.2
-      private const val SINGLE_TAB_MAX_IMAGE_WIDTH = 500
     }
 
     // Toolbar actions
@@ -335,10 +334,10 @@ class ScreenshotResultView {
       override fun update(e: AnActionEvent) { e.presentation.isEnabled = (originalImage != null) }
     }
 
-    private inner class FitToWidthAction : AnAction("Fit to Width", "Fit image to panel width", AllIcons.General.FitContent) {
+    private inner class FitToScreenAction : AnAction("Fit to Screen", "Fit image to screen", AllIcons.General.FitContent) {
       override fun actionPerformed(e: AnActionEvent) {
         isAutoFitting = true
-        fitToWidth()
+        fitToScreen()
       }
       override fun update(e: AnActionEvent) { e.presentation.isEnabled = (originalImage != null) }
     }
@@ -365,7 +364,7 @@ class ScreenshotResultView {
         add(ZoomInAction())
         add(ZoomOutAction())
         add(OneToOneAction())
-        add(FitToWidthAction())
+        add(FitToScreenAction())
         addSeparator()
         add(ToggleGridViewAction())
       }
@@ -386,7 +385,7 @@ class ScreenshotResultView {
       scrollPane.addComponentListener(object : ComponentAdapter() {
         override fun componentResized(e: ComponentEvent?) {
           if (isAutoFitting) {
-            fitToWidth()
+            fitToScreen()
           }
         }
       })
@@ -407,24 +406,21 @@ class ScreenshotResultView {
         scrollPane.setViewportView(imageContainer)
         // When a new image is set, always default to auto-fitting.
         isAutoFitting = true
-        fitToWidth()
+        fitToScreen()
       }
       revalidate()
       repaint()
     }
 
     @UiThread
-    private fun fitToWidth() {
+    private fun fitToScreen() {
       val image = originalImage ?: return
       val viewSize = scrollPane.viewport.extentSize
-      if (viewSize.width <= 0 || viewSize.height <= 0 || image.width <= 0) return
+      if (viewSize.width <= 0 || viewSize.height <= 0 || image.width <= 0 || image.height <= 0) return
 
-      val scale = if (isMultiViewPanel) {
-        viewSize.width.toDouble() / image.width
-      } else {
-        val targetWidth = min(viewSize.width, SINGLE_TAB_MAX_IMAGE_WIDTH)
-        min(1.0, targetWidth.toDouble() / image.width)
-      }
+      val widthScale = viewSize.width.toDouble() / image.width
+      val heightScale = viewSize.height.toDouble() / image.height
+      val scale = min(widthScale, heightScale)
 
       currentScale = scale.coerceIn(MIN_SCALE, MAX_SCALE)
       updateImage()
