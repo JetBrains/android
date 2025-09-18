@@ -54,7 +54,7 @@ class BackupFileTextField private constructor(project: Project) :
     childComponent.text = text
   }
 
-  override fun getText(): String = childComponent.text
+  override fun getText(): String = childComponent.text.trim()
 
   /** Based on [com.intellij.ui.TextFieldWithStoredHistory] but with a `project` scope */
   private class TextFieldWithProjectStoredHistory(project: Project) : TextFieldWithHistory() {
