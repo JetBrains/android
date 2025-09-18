@@ -17,7 +17,7 @@ iml_module(
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
             ],
-            "additional_jvm_args": ["-Didea.kotlin.plugin.use.k2=false"],
+            "additional_jvm_args": ["-Didea.kotlin.plugin.use.k1=true"],
         },
         "JetNewsBenchmark_k2": {
             "test_filter": "com.android.tools.idea.benchmarks.JetNewsK2Benchmark",
@@ -28,7 +28,7 @@ iml_module(
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
             ],
-            "additional_jvm_args": ["-Didea.kotlin.plugin.use.k2=true"],
+            "additional_jvm_args": ["-Didea.kotlin.plugin.use.k1=false"],
         },
         "SantaTrackerKotlinBenchmark": {
             "test_filter": "com.android.tools.idea.benchmarks.SantaTrackerKotlinBenchmark",
@@ -39,7 +39,7 @@ iml_module(
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
             ],
-            "additional_jvm_args": ["-Didea.kotlin.plugin.use.k2=false"],
+            "additional_jvm_args": ["-Didea.kotlin.plugin.use.k1=true"],
         },
         "SantaTrackerKotlinBenchmark_k2": {
             "test_filter": "com.android.tools.idea.benchmarks.SantaTrackerKotlinK2Benchmark",
@@ -50,7 +50,7 @@ iml_module(
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
             ],
-            "additional_jvm_args": ["-Didea.kotlin.plugin.use.k2=true"],
+            "additional_jvm_args": ["-Didea.kotlin.plugin.use.k1=false"],
         },
         "JetNewsProjectCheck": {
             "test_filter": "com.android.tools.idea.benchmarks.tests.JetNewsBenchmarkTest",

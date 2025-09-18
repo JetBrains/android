@@ -39,7 +39,7 @@ class EditorPerformanceTest {
 
   @Test
   fun testCompletionAndGotoDeclaration() {
-    system.installation.addVmOption("-Didea.kotlin.plugin.use.k2=false")
+    system.installation.addVmOption("-Didea.kotlin.plugin.use.k1=true")
     doTestCompletionAndGotoDeclaration(system, watcher)
   }
 
