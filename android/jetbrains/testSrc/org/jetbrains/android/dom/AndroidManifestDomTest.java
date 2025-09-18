@@ -6,11 +6,11 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.SdkConstants;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.intellij.codeInsight.completion.CompletionType;
+import com.intellij.grazie.spellcheck.GrazieSpellCheckingInspection;
 import com.intellij.idea.IgnoreJUnit3;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import java.util.Arrays;
@@ -822,7 +822,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   }
 
   public void testSpellchecker1() throws Throwable {
-    myFixture.enableInspections(SpellCheckingInspection.class);
+    myFixture.enableInspections(GrazieSpellCheckingInspection.class);
     doTestHighlighting();
   }
 

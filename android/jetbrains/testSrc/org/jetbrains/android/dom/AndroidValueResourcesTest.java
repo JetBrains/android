@@ -29,6 +29,7 @@ import com.intellij.codeInsight.daemon.impl.IdentifierHighlighterPassFactory;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.codeInspection.ex.QuickFixWrapper;
+import com.intellij.grazie.spellcheck.GrazieSpellCheckingInspection;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -51,7 +52,6 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.actions.InlineAction;
 import com.intellij.refactoring.util.CommonRefactoringUtil;
-import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.spellchecker.quickfixes.RenameTo;
 import com.intellij.spellchecker.quickfixes.SaveTo;
 import com.intellij.testFramework.DumbModeTestUtils;
@@ -924,7 +924,7 @@ public class AndroidValueResourcesTest {
 
   @Test
   public void spellchecker1() {
-    myFixture.enableInspections(SpellCheckingInspection.class);
+    myFixture.enableInspections(GrazieSpellCheckingInspection.class);
     doTestHighlighting();
   }
 
@@ -936,7 +936,7 @@ public class AndroidValueResourcesTest {
   @Test
   public void spellchecker3() {
     // In English locale, should highlight typos
-    myFixture.enableInspections(SpellCheckingInspection.class);
+    myFixture.enableInspections(GrazieSpellCheckingInspection.class);
     VirtualFile file = copyFileToProject("spellchecker3.xml", "app/res/values-en-rUS/spellchecker3.xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting(true, false, false);
@@ -945,7 +945,7 @@ public class AndroidValueResourcesTest {
   @Test
   public void spellchecker4() {
     // In non-English locale, should not highlight typos
-    myFixture.enableInspections(SpellCheckingInspection.class);
+    myFixture.enableInspections(GrazieSpellCheckingInspection.class);
     VirtualFile file = copyFileToProject("spellchecker4.xml", "app/res/values-nb/spellchecker4.xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting(true, false, false);
@@ -954,7 +954,7 @@ public class AndroidValueResourcesTest {
   @Test
   public void spellchecker5() {
     // In default locale, with a tools:locale defined to non-English, should not get typos highlighted
-    myFixture.enableInspections(SpellCheckingInspection.class);
+    myFixture.enableInspections(GrazieSpellCheckingInspection.class);
     VirtualFile file = copyFileToProject("spellchecker5.xml", "app/res/values/spellchecker5.xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting(true, false, false);
@@ -963,7 +963,7 @@ public class AndroidValueResourcesTest {
   @Test
   public void spellchecker6() {
     // In default locale, with a tools:locale defined to English, should get typos highlighted
-    myFixture.enableInspections(SpellCheckingInspection.class);
+    myFixture.enableInspections(GrazieSpellCheckingInspection.class);
     VirtualFile file = copyFileToProject("spellchecker6.xml", "app/res/values/spellchecker6.xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting(true, false, false);
@@ -971,14 +971,14 @@ public class AndroidValueResourcesTest {
 
   @Test
   public void spellNewlines() {
-    myFixture.enableInspections(SpellCheckingInspection.class);
+    myFixture.enableInspections(GrazieSpellCheckingInspection.class);
     doTestHighlighting();
   }
 
   @Test
   public void doNotFlagLintXml() {
     // In default locale, with a tools:locale defined to non-English, should not get typos highlighted
-    myFixture.enableInspections(SpellCheckingInspection.class);
+    myFixture.enableInspections(GrazieSpellCheckingInspection.class);
     VirtualFile file = copyFileToProject("lint.xml", "lint.xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting(true, false, false);
@@ -1144,7 +1144,7 @@ public class AndroidValueResourcesTest {
 
   private void doTestSpellcheckerQuickFixes() {
     //noinspection unchecked
-    myFixture.enableInspections(SpellCheckingInspection.class);
+    myFixture.enableInspections(GrazieSpellCheckingInspection.class);
     // TODO: Kill getTestName, make test classes specify the golden file explicitly.
     VirtualFile virtualFile = copyFileToProject(getTestName(true) + ".xml");
     myFixture.configureFromExistingVirtualFile(virtualFile);

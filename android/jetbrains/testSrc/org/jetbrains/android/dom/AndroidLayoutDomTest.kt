@@ -24,6 +24,7 @@ import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.deadCode.UnusedDeclarationInspection
+import com.intellij.grazie.spellcheck.GrazieSpellCheckingInspection
 import com.intellij.lang.documentation.DocumentationProvider
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.util.TextRange
@@ -37,7 +38,6 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiPolyVariantReference
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
-import com.intellij.spellchecker.inspections.SpellCheckingInspection
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.util.xml.DomManager
 import org.intellij.lang.annotations.Language
@@ -2091,7 +2091,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   }
 
   fun testSpellchecker() {
-    enableInspection(SpellCheckingInspection::class.java)
+    enableInspection(GrazieSpellCheckingInspection::class.java)
     myFixture.copyFileToProject("$myTestFolder/spellchecker_resources.xml", "res/values/sr.xml")
     doTestHighlighting()
   }

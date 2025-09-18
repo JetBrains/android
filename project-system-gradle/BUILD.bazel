@@ -320,6 +320,7 @@ jvm_library(
     "//plugins/kotlin/base/plugin:plugin_test_lib",
     "//spellchecker",
     "//spellchecker:spellchecker_test_lib",
+    "//plugins/grazie/src:core",
     "//android/gradle-declarative-lang",
     "//android/gradle-declarative-lang-ide",
     "//android/gradle-dsl-flags",

@@ -17,14 +17,14 @@ package org.jetbrains.android.spellchecker
 
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
+import com.intellij.grazie.spellcheck.GrazieSpellCheckingInspection
 import com.intellij.spellchecker.SpellCheckerSeveritiesProvider
-import com.intellij.spellchecker.inspections.SpellCheckingInspection
 import org.jetbrains.android.AndroidTestCase
 
 class AndroidJsonSpellcheckingStrategyTest : AndroidTestCase() {
 
   fun testGoogleServicesSpelling() {
-    myFixture.enableInspections(setOf(SpellCheckingInspection::class.java))
+    myFixture.enableInspections(setOf(GrazieSpellCheckingInspection ::class.java))
     val virtualFile = myFixture.addFileToProject(
       "google-services.json",
       //language=JSON
@@ -75,7 +75,7 @@ class AndroidJsonSpellcheckingStrategyTest : AndroidTestCase() {
   }
 
   fun testGoogleServicesSpellingWithErrors() {
-    myFixture.enableInspections(setOf(SpellCheckingInspection::class.java))
+    myFixture.enableInspections(setOf(GrazieSpellCheckingInspection::class.java))
     val virtualFile = myFixture.addFileToProject(
       "google-services.json",
       //language=JSON
