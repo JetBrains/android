@@ -54,11 +54,10 @@ import org.mockito.kotlin.whenever
 // AnimationInspectorAction(),
 // EnableInteractiveAction(),
 // DeployToDeviceAction(),
-// TransformPreviewAction(),
-// FixVisualLintIssuesAction(),
 // BackNavigationAction()
+// ComposePreviewAgentsDropdownAction() or TransformPreviewAction(), depending on flag value.
 // in wrappers
-private const val EXPECTED_NUMBER_OF_ACTIONS = 10
+private const val EXPECTED_NUMBER_OF_ACTIONS = 9
 
 // SavePreviewInNewSize()
 // EnableUiCheckAction(),
@@ -90,12 +89,23 @@ class PreviewSurfaceActionManagerTest {
   fun tearDown() {
     StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI.clearOverride()
     StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.clearOverride()
+    StudioFlags.COMPOSE_PREVIEW_AI_AGENTS_DROPDOWN.clearOverride()
   }
 
   @Test
-  fun testAvailableActionsOnPreviewContextMenu() {
+  fun testAvailableActionsOnPreviewContextMenuWithDropdownEnabled() {
+    testAvailableActionsOnPreviewContextMenu(true)
+  }
+
+  @Test
+  fun testAvailableActionsOnPreviewContextMenuWithDropdownDisabled() {
+    testAvailableActionsOnPreviewContextMenu(false)
+  }
+
+  fun testAvailableActionsOnPreviewContextMenu(aiActionsDropdownEnabled: Boolean) {
     StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI.override(true)
     StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.override(true)
+    StudioFlags.COMPOSE_PREVIEW_AI_AGENTS_DROPDOWN.override(aiActionsDropdownEnabled)
     ExtensionTestUtil.maskExtensions(
       ComposeStudioBotActionFactory.EP_NAME,
       listOf(FakeStudioBotActionFactory()),
@@ -138,15 +148,11 @@ class PreviewSurfaceActionManagerTest {
       ((actions[7] as AnActionWrapper).delegate as AnActionWrapper).delegate
     assertThat(backNavigationAction).isInstanceOf(BackNavigationAction::class.java)
 
-    // Transform Preview action.
-    val transformPreviewAction =
+    // AI actions
+    val aiActionsDropdown =
       (actions[8] as ShowGroupUnderConditionWrapper).getChildren(null).single()
-    assertThat(transformPreviewAction.templatePresentation.text).isEqualTo("transformPreview")
-
-    // Fix Visual Lint Issues action.
-    val fixVisualLintIssuesAction =
-      (actions[9] as ShowGroupUnderConditionWrapper).getChildren(null).single()
-    assertThat(fixVisualLintIssuesAction.templatePresentation.text).isEqualTo("fixVisualLintIssues")
+    assertThat(aiActionsDropdown.templatePresentation.text)
+      .isEqualTo(if (aiActionsDropdownEnabled) "previewAgents" else "transformPreview")
   }
 
   @Test
