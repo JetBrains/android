@@ -1,0 +1,21 @@
+android {
+  testOptions {
+    suites {
+      testSuite {
+        targetVariants 'debug'
+        targets {
+          'default' {
+          }
+        }
+        assets {
+        }
+        useJunitEngine {
+          inputs com.android.build.api.dsl.AgpTestSuiteInputParameters.TESTED_APKS
+          includeEngines 'test-engine-id'
+          enginesDependencies('org.junit.platform:junit-platform-launcher')
+          enginesDependencies('org.junit.platform:junit-platform-engine:1.12.0')
+        }
+      }
+    }
+  }
+}

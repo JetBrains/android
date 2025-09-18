@@ -15,6 +15,7 @@ android {
     }
     suites {
       create("journeysTest") {
+        targetVariants += listOf("debug")
       }
       create("otherTestSuite") {
       }
