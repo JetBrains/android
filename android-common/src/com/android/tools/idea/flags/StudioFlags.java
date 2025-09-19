@@ -1608,6 +1608,10 @@ public final class StudioFlags {
     COMPOSE, "ai.agents.dropdown", "Enable dropdown action to list Compose Preview AI agent actions",
     "Enables a dropdown action that lists actions that trigger AI agent flows related to Compose Previews.");
 
+  public static final Flag<Boolean> COMPOSE_PREVIEW_MATCH_UI_AGENT = new BooleanFlag(
+    COMPOSE, "preview.match.ui.agent", "Enable an action to match the preview to a target image",
+    "Enables an action that triggers an agent that will match a Compose Preview to a user-provided target image.");
+
   public static final Flag<Boolean> COMPOSE_PREVIEW_CODE_TO_PREVIEW_NAVIGATION = new BooleanFlag(
     COMPOSE, "preview.code.to.preview.navigation", "Enable the highlighting of preview components when clicking on code",
     "If a user moves their caret to a element present in a preview, we highlight those elements");
