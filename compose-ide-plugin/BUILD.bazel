@@ -153,7 +153,6 @@ jvm_library(
     "@lib//:studio-platform",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
-    "@lib//:truth",
     "//libraries/guava",
     "@lib//:gradle",
     "@lib//:junit4",
@@ -241,6 +240,7 @@ jvm_library(
     "@lib//:kotlin-test",
     "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared",
     "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared_test_lib",
+    "@lib//:truth",
   ],
   runtime_deps = [":compose-ide-plugin-tests"]
 )

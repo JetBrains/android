@@ -24,7 +24,6 @@
     <orderEntry type="library" scope="TEST" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
-    <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.guava" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="Gradle" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
@@ -107,6 +106,7 @@
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="module" module-name="kotlin.code-insight.live-templates.shared" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.compose-ide-plugin" />
 </module>
