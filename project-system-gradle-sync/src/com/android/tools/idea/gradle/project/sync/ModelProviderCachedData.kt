@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeAndroidProject
+import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import java.io.Serializable
 
@@ -24,12 +25,11 @@ class ModelProviderCachedData: Serializable {
   internal val data = mutableMapOf<BasicGradleProject, CachedAndroidProjectData>()
 }
 
-internal data class CachedAndroidProjectData (
+internal data class CachedAndroidProjectData(
+  val modelVersions: ModelVersions,
   val selectedVariantName: String,
-  val projectType: IdeAndroidProjectType,
+  val ideAndroidProject: IdeAndroidProject,
   val shouldSkipRuntimeClassPathForLibraries: Boolean,
   val allOutgoingProjectDependencies: List<String>
 )
-
-
 
