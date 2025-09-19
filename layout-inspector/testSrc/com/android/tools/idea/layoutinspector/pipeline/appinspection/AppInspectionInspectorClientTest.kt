@@ -16,8 +16,8 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.adblib.DeviceSelector
+import com.android.ddmlib.AndroidDebugBridge
 import com.android.fakeadbserver.DeviceState
-import com.android.flags.junit.FlagRule
 import com.android.repository.Revision
 import com.android.repository.api.LocalPackage
 import com.android.repository.impl.meta.RepositoryPackages
@@ -109,7 +109,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -1159,17 +1158,13 @@ class AppInspectionInspectorClientTest {
 }
 
 // TODO: Move to separate file or integrate with main test class
-@Ignore("b/443319528 - add support for FakeEmulatorConsole in FakeAdbServer")
 class AppInspectionInspectorClientWithUnsupportedApi29 {
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val inspectionRule = AppInspectionInspectorRule(projectRule)
   private val inspectorRule = LayoutInspectorRule(listOf(mock()), projectRule) { false }
-  // Fake emulator set up by `LayoutInspectorRule` doesn't play well with adblib
-  private val flagRule = FlagRule(StudioFlags.ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE, false)
 
   @get:Rule
-  val ruleChain =
-    RuleChain.outerRule(flagRule).around(projectRule).around(inspectionRule).around(inspectorRule)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule)!!
 
   @Test
   fun testApi29VersionBanner() = runBlocking {
@@ -1344,39 +1339,54 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
   }
 
   private fun setUpDevice(apiLevel: Int): ProcessDescriptor {
+    val emulatorPort =
+      inspectorRule.adbRule.adbServer
+        .connectEmulatorConsole(
+          avdName = "myAvd-$apiLevel",
+          avdPath = "/android/avds/myAvd-$apiLevel.avd",
+        )
+        .get()
+        .port
+    val deviceId = "emulator-$emulatorPort"
+    val device =
+      inspectorRule.adbRule
+        .connectDevice(
+          deviceId = deviceId,
+          manufacturer = "mfg",
+          deviceModel = "model",
+          release = "10.0.0",
+          sdk = AndroidApiLevel(apiLevel),
+          hostConnectionType = DeviceState.HostConnectionType.LOCAL,
+        )
+        .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
+    // TODO: This test relies on device being found using
+    //  `AndroidDebugBridge.getBridge()?.devices` call (see `AndroidDebugBridge.findDevice`
+    //  in `AdbUtils.kt`). We should make this wait a part of `FakeAdbServerRule.connectDevice`.
+    while (true) {
+      if (AndroidDebugBridge.getBridge()?.devices?.any { it.serialNumber == deviceId } ?: false) {
+        break
+      }
+    }
+
     val processDescriptor =
       object : ProcessDescriptor {
         override val device =
           object : DeviceDescriptor {
-            override val manufacturer = "mfg"
-            override val model = "model"
-            override val serial = "emulator-$apiLevel"
+            override val manufacturer = device.manufacturer
+            override val model = device.model
+            override val serial = device.deviceId
             override val isEmulator = true
-            override val apiLevel = AndroidApiLevel(apiLevel)
-            override val version = "10.0.0"
+            override val apiLevel = device.buildVersionSdk
+            override val version = device.buildVersionRelease
             override val codename: String? = null
           }
-        override val abiCpuArch = "x86_64"
+        override val abiCpuArch = device.cpuAbi
         override val name = "my name"
         override val packageName = "my package name"
         override val isRunning = true
         override val pid = 1234
         override val streamId = 4321L
       }
-
-    inspectorRule.adbRule.connectDevice(
-      processDescriptor.device.serial,
-      processDescriptor.device.manufacturer,
-      processDescriptor.device.model,
-      processDescriptor.device.version,
-      processDescriptor.device.apiLevel,
-      // processDescriptor.abiCpuArch,
-      // emptyMap(),
-      DeviceState.HostConnectionType.LOCAL,
-      // "myAvd-$apiLevel",
-      // "/android/avds/myAvd-$apiLevel.avd",
-    )
-
     return processDescriptor
   }
 }
