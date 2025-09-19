@@ -155,6 +155,7 @@ rundebug.applychanges.optimisticswap=COMPLETE:2020
 rundebug.applychanges.structuralredefinition=COMPLETE:2020
 rundebug.applychanges.variablereinitialization=COMPLETE:2020
 rundebug.baselineprofile.guttericon.enabled=COMPLETE:2023
+rundebug.compose.class.name.calculator.canonical.file.cache=COMPLETE:2025
 rundebug.ddmlib.abb.exec.install.enable=COMPLETE:2022
 rundebug.debug.app.auto.attach.wait.for.debugger=COMPLETE:2023
 rundebug.debug.app.suspend.upon.start.enable=COMPLETE:2023
