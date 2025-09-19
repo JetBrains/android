@@ -20,6 +20,7 @@ import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.qsync.project.BlazeProjectDataStorage
 import com.google.idea.blaze.qsync.project.BuildGraphData
+import com.google.idea.blaze.qsync.project.LanguageClassProto.LanguageClass
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import java.nio.file.Path
@@ -47,7 +48,7 @@ class ProjectProtoUpdate(
   private val artifactDirs: MutableMap<Path, ArtifactDirectoryBuilder> = hashMapOf()
 
   fun context(): Context<*> = context
-  fun project(): ProjectProto.Project.Builder = project
+  fun ccWorkspace(): ProjectProto.CcWorkspace.Builder = project.ccWorkspaceBuilder
   fun buildGraph(): BuildGraphData = buildGraph
   fun workspaceModule(): ProjectProto.Module.Builder = workspaceModule
 
@@ -86,6 +87,11 @@ class ProjectProtoUpdate(
 
   fun build(): ProjectProto.Project {
     artifactDirs.values.forEach { it.addToArtifactDirectories(project.getArtifactDirectoriesBuilder()) }
+    if (project.getCcWorkspaceBuilder().getContextsCount() > 0) {
+      if (!project.activeLanguagesList.contains(LanguageClass.LANGUAGE_CLASS_CC)) {
+        project.addActiveLanguages(LanguageClass.LANGUAGE_CLASS_CC)
+      }
+    }
     return project
       .clearLibrary()
       .addAllLibrary(libraries.values)

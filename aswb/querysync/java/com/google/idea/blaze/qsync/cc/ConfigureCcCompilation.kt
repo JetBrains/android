@@ -70,9 +70,6 @@ class ConfigureCcCompilation(private val artifactState: State, private val updat
       val ccInfo = target.ccInfo().orNull() ?: continue
       visitTarget(ccInfo, target.buildContext())
     }
-    if (update.project().getCcWorkspaceBuilder().getContextsCount() > 0) {
-      update.project().addActiveLanguages(LanguageClass.LANGUAGE_CLASS_CC)
-    }
   }
 
   private fun visitToolchainMap(toolchainInfoMap: Map<String, CcToolchain>) {
@@ -154,7 +151,7 @@ class ConfigureCcCompilation(private val artifactState: State, private val updat
             .orEmpty()
         )
         .build()
-    update.project().getCcWorkspaceBuilder().addContexts(targetContext)
+    update.ccWorkspace().addContexts(targetContext)
 
     val headersDir = update.artifactDirectory(ArtifactDirectories.GEN_CC_HEADERS)
     for (artifact in ccInfo.genHeaders()) {
@@ -169,8 +166,7 @@ class ConfigureCcCompilation(private val artifactState: State, private val updat
     return uniqueFlagSetIds[canonicalFlagSet] ?: nextFlagSetId.incrementAndGet().toString().also { flagSetId ->
       uniqueFlagSetIds[canonicalFlagSet] = flagSetId
       update
-        .project()
-        .getCcWorkspaceBuilder()
+        .ccWorkspace()
         .putFlagSets(flagSetId, CcCompilerFlagSet.newBuilder().addAllFlags(flags).build())
     }
   }
