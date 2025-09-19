@@ -71,9 +71,9 @@ public class SherlockInstallation extends IdeInstallation<Sherlock> implements T
 
     String zipPath = String.format("prebuilts/studio/intellij-sdk/sherlock-sdk.%s.zip", platform);
     Path sherlockZip = TestUtils.getBinPath(zipPath);
-    unzip(sherlockZip, workDir);
+    unzip(sherlockZip, getUnzipDir(workDir));
 
-    String sherlockDir = getSherlockDirectory(workDir);
+    String sherlockDir = getSherlockDirectory();
     return new SherlockInstallation(testFileSystem, workDir, workDir.resolve(sherlockDir), disableFirstRun, display, sdk);
   }
 
@@ -105,12 +105,12 @@ public class SherlockInstallation extends IdeInstallation<Sherlock> implements T
 
   @Override
   protected String getExecutable() {
-    String sherlockExecutable = "bin/sherlock.sh";
+    String sherlockExecutable = "sherlock/bin/sherlock.sh";
     if (SystemInfo.isMac) {
-      sherlockExecutable = "Contents/MacOS/sherlock";
+      sherlockExecutable = "Sherlock.app/Contents/MacOS/sherlock";
     }
     else if (SystemInfo.isWindows) {
-      sherlockExecutable = "bin/sherlock64.exe";
+      sherlockExecutable = "sherlock/bin/sherlock64.exe";
     }
     return workDir.resolve(sherlockExecutable).toString();
   }
@@ -142,8 +142,25 @@ public class SherlockInstallation extends IdeInstallation<Sherlock> implements T
     }
   }
 
-  private static String getSherlockDirectory(Path workDir) {
-    return "";
+  private static String getSherlockDirectory() {
+    if (SystemInfo.isMac) {
+      return "Sherlock.app/Contents";
+    } else {
+      return "sherlock";
+    }
+  }
+
+  private static Path getUnzipDir(Path workDir) {
+    // We create a directory and then unzip into it.
+    // See https://b.corp.google.com/issues/442762985#comment13
+    String unzipDirectory = "sherlock";
+    if (SystemInfo.isMac) {
+      unzipDirectory = "Sherlock.app";
+    }
+
+    Path unzipDir = workDir.resolve(unzipDirectory);
+    unzipDir.toFile().mkdirs();
+    return unzipDir;
   }
 
   public static SherlockInstallation standard() {
