@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.tools.deployer.DeployerException;
+import com.android.tools.deployer.InstallOptions;
 import com.android.tools.idea.execution.common.AndroidExecutionException;
 import com.android.tools.idea.execution.common.DeployOptions;
 import com.android.tools.idea.run.ApkInfo;
@@ -37,7 +38,7 @@ public class DeployTasksHelper {
           new DeployTask(
             project,
             packages,
-            deployOptions.getPmInstallFlags(),
+            computeInstallOptionFlagsForMobileInstall(deployOptions.getPmInstallFlags()),
             deployOptions.getInstallOnAllUsers(),
             deployOptions.getAlwaysInstallWithPm(),
             deployOptions.getAllowAssumeVerified(),
@@ -47,5 +48,11 @@ public class DeployTasksHelper {
         throw new AndroidExecutionException(de.getId(), de.getMessage() + "\n" + de.getDetails());
       }
     };
+  }
+
+  public static String computeInstallOptionFlagsForMobileInstall(String userInstallFlags) {
+    InstallOptions.Builder installOptionsBuilder = InstallOptions.MOBILE_INSTALL_DEFAULTS.toBuilder();
+    installOptionsBuilder.setUserInstallOptions(userInstallFlags);
+    return String.join(" ", installOptionsBuilder.build().getFlags());
   }
 }
