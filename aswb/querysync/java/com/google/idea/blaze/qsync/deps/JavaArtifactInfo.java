@@ -28,6 +28,7 @@ import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.artifacts.DigestMap;
 import com.google.idea.blaze.qsync.java.JavaTargetInfo;
 import java.nio.file.Path;
+import javax.annotation.Nullable;
 
 /** Information about a project dependency that is calculated when the dependency is built. */
 @AutoValue
@@ -45,16 +46,14 @@ public abstract class JavaArtifactInfo {
    */
   public abstract ImmutableSet<BuildArtifact> jars();
 
-  /**
-   * The jar that in target's java_output.
-   */
+  /** The jar that in target's java_output. */
   public abstract ImmutableSet<BuildArtifact> outputJars();
 
   /**
    * The aar artifacts relative path (blaze-out/xxx) that can be used to retrieve local copy in the
    * cache.
    */
-  public abstract ImmutableSet<BuildArtifact> ideAars();
+  @Nullable  public abstract BuildArtifact ideAar();
 
   /**
    * The gensrc artifacts relative path (blaze-out/xxx) that can be used to retrieve local copy in
@@ -78,7 +77,7 @@ public abstract class JavaArtifactInfo {
     }
     return toBuilder()
         .setGenSrcs(BuildArtifact.addMetadata(genSrcs(), metadata))
-        .setIdeAars(BuildArtifact.addMetadata(ideAars(), metadata))
+        .setIdeAar(ideAar() != null ?ideAar().withMetadata(metadata.get(ideAar())) : null)
         .setJars(BuildArtifact.addMetadata(jars(), metadata))
         .setOutputJars(BuildArtifact.addMetadata(outputJars(), metadata))
         .build();
@@ -88,16 +87,18 @@ public abstract class JavaArtifactInfo {
     return new AutoValue_JavaArtifactInfo.Builder();
   }
 
-  public static JavaArtifactInfo create(
-    JavaTargetInfo.JavaArtifacts proto, DigestMap digestMap) {
+  public static JavaArtifactInfo create(JavaTargetInfo.JavaArtifacts proto, DigestMap digestMap) {
     // Note, the proto contains a list of sources, we take the parent as we want directories instead
     Label target = Label.of(proto.getTarget());
+    Builder builder = builder();
+    if (proto.hasIdeAar()) {
+      digestMap.createBuildArtifact(Interners.pathOf(proto.getIdeAar().getFile()), target).ifPresent(builder::setIdeAar);
+    }
     return builder()
         .setLabel(target)
         .setIsExternalDependency(proto.getIsExternalDependency())
         .setJars(BuildArtifact.fromProtos(proto.getJarsList(), digestMap, target))
         .setOutputJars(BuildArtifact.fromProtos(proto.getOutputJarsList(), digestMap, target))
-        .setIdeAars(BuildArtifact.fromProtos(proto.getIdeAarsList(), digestMap, target))
         .setGenSrcs(BuildArtifact.fromProtos(proto.getGenSrcsList(), digestMap, target))
         .setSources(proto.getSrcsList().stream().map(Interners::pathOf).collect(toImmutableSet()))
         .setSrcJars(
@@ -112,7 +113,6 @@ public abstract class JavaArtifactInfo {
         .setIsExternalDependency(false)
         .setJars(ImmutableList.of())
         .setOutputJars(ImmutableList.of())
-        .setIdeAars(ImmutableList.of())
         .setGenSrcs(ImmutableList.of())
         .setSources(ImmutableSet.of())
         .setSrcJars(ImmutableSet.of())
@@ -136,9 +136,7 @@ public abstract class JavaArtifactInfo {
 
     public abstract ImmutableSet.Builder<BuildArtifact> outputJarsBuilder();
 
-    public abstract Builder setIdeAars(ImmutableList<BuildArtifact> value);
-
-    public abstract Builder setIdeAars(BuildArtifact... value);
+    public abstract Builder setIdeAar(@Nullable BuildArtifact value);
 
     public abstract Builder setGenSrcs(ImmutableList<BuildArtifact> value);
 

@@ -122,7 +122,7 @@ public class ArtifactTrackerStateDeserializer {
         .setIsExternalDependency(proto.getIsExternalDependency())
         .setJars(toArtifactList(proto.getJarsList(), owner))
         .setOutputJars(toArtifactList(proto.getOutputJarsList(), owner))
-        .setIdeAars(toArtifactList(proto.getIdeAarsList(), owner))
+        .setIdeAar(proto.hasIdeAar() ? toArtifact(proto.getIdeAar(), owner) : null)
         .setGenSrcs(toArtifactList(proto.getGenSrcsList(), owner))
         .setSources(proto.getSourcesList().stream().map(Path::of).collect(toImmutableSet()))
         .setSrcJars(proto.getSrcJarsList().stream().map(Path::of).collect(toImmutableSet()))
@@ -156,16 +156,17 @@ public class ArtifactTrackerStateDeserializer {
         .build();
   }
 
+  private BuildArtifact toArtifact(ArtifactTrackerProto.Artifact a, Label owner) {
+    return BuildArtifact.create(
+      a.getDigest(),
+      Path.of(a.getArtifactPath()),
+      owner,
+      toArtifactMap(a.getMetadataList()));
+  }
   private ImmutableList<BuildArtifact> toArtifactList(
       List<ArtifactTrackerProto.Artifact> protos, Label owner) {
     return protos.stream()
-        .map(
-            a ->
-                BuildArtifact.create(
-                    a.getDigest(),
-                    Path.of(a.getArtifactPath()),
-                    owner,
-                    toArtifactMap(a.getMetadataList())))
+        .map(a ->toArtifact(a, owner))
         .collect(toImmutableList());
   }
 
