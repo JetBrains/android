@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("UnstableApiUsage")
+
 package com.android.tools.idea.settingssync
 
 import com.android.tools.idea.flags.StudioFlags
@@ -20,13 +22,17 @@ import com.android.tools.idea.settingssync.onboarding.feature
 import com.google.api.client.auth.oauth2.Credential
 import com.google.gct.login2.GoogleLoginService
 import com.google.gct.login2.LoginFeature
+import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.settingsSync.core.AbstractServerCommunicator
+import com.intellij.settingsSync.core.SETTINGS_SYNC_SNAPSHOT_ZIP
+import com.intellij.settingsSync.core.SettingsSnapshot
 import com.intellij.settingsSync.core.SettingsSyncEvents
 import com.intellij.settingsSync.core.SettingsSyncLocalSettings
+import com.intellij.settingsSync.core.SettingsSyncPushResult
 import com.intellij.settingsSync.core.SettingsSyncRemoteCommunicator
 import com.intellij.settingsSync.core.SyncSettingsEvent
 import com.intellij.settingsSync.core.communicator.SettingsSyncCommunicatorProvider
@@ -38,6 +44,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.TestOnly
 
 internal const val PROVIDER_CODE_GOOGLE = "google"
 internal const val PROVIDER_NAME_GOOGLE = "Google"
@@ -116,17 +123,18 @@ private class UnauthorizedException(message: String) : IOException(message)
 private val log
   get() = Logger.getInstance(GoogleCloudServerCommunicator::class.java)
 
-class GoogleCloudServerCommunicator(private val email: String) : AbstractServerCommunicator() {
-  private val lastRemoteErrorRef = AtomicReference<Throwable>()
-  private val googleDriveClient = GoogleDriveClient { getCredential(email) }
+private fun getCredential(email: String): Credential {
+  // TODO: how the system reacts to logout or token issue needs revisit once JB has new updates.
+  return LoginFeature.feature<SettingsSyncFeature>().credential(email)
+    ?: throw UnauthorizedException("Missing feature authorization for $email, please log in first.")
+}
 
-  private fun getCredential(email: String): Credential {
-    // TODO: how the system reacts to logout or token issue needs revisit once JB has new updates.
-    return LoginFeature.feature<SettingsSyncFeature>().credential(email)
-      ?: throw UnauthorizedException(
-        "Missing feature authorization for $email, please log in first."
-      )
-  }
+class GoogleCloudServerCommunicator(
+  private val email: String,
+  @TestOnly
+  private val googleDriveClient: GoogleDriveClient = GoogleDriveClient { getCredential(email) },
+) : AbstractServerCommunicator() {
+  private val lastRemoteErrorRef = AtomicReference<Throwable>()
 
   override val userId: String = email
 
@@ -140,6 +148,22 @@ class GoogleCloudServerCommunicator(private val email: String) : AbstractServerC
 
     // 2. write a new file to cloud
     return googleDriveClient.write(filePath, content).versionId
+  }
+
+  override fun push(
+    snapshot: SettingsSnapshot,
+    force: Boolean,
+    expectedServerVersionId: String?,
+  ): SettingsSyncPushResult {
+    // If we're pushing the "deleted" marker, instead delete the actual file.
+    if (snapshot.isDeleted()) {
+      deleteFile(
+        "${ApplicationNamesInfo.getInstance().productName.lowercase()}/$SETTINGS_SYNC_SNAPSHOT_ZIP"
+      )
+      return SettingsSyncPushResult.Success(null)
+    } else {
+      return super.push(snapshot, force, expectedServerVersionId)
+    }
   }
 
   override fun readFileInternal(filePath: String): Pair<InputStream?, String?> {
