@@ -279,7 +279,6 @@ iml_module(
     split_test_targets = {
         "Benchmark2000Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000MemoryTest",
-            "timeout": "long",
         },
         "Benchmark2000Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuTest",
