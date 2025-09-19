@@ -74,6 +74,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
         "@intellij//:com.intellij.modules.json",
         "//tools/adt/idea/.idea/libraries:kotlin-test",
+        "//tools/adt/idea/.idea/libraries:truth",
     ],
     test_friends = ["//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin"],
     test_srcs = ["testSrc"],
@@ -81,7 +82,6 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//tools/adt/idea/.idea/libraries:truth",
         "@intellij//:com.intellij.gradle",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/base/testutils:studio.android.sdktools.testutils",
