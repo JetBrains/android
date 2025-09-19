@@ -31,11 +31,9 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertSame;
 import static junit.framework.Assert.fail;
 import static junit.framework.TestCase.assertNotNull;
-import static org.assertj.core.util.Arrays.asList;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -59,12 +57,10 @@ import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.GradleSyncIssue;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.RunsInEdt;
 import com.intellij.util.containers.ContainerUtil;
@@ -593,14 +589,13 @@ public class UnresolvedDependenciesReporterIntegrationTest {
     } catch (IOException e) {
       fail("Failed to add google repo in settings.gradle");
     }
-    ApplicationManager.getApplication().runWriteAction(() -> VfsUtil.markDirtyAndRefresh(false, true, true, root));
   }
 
   public void testAndroidXGoogleHyperlink(boolean googleRepoExistInSettings) {
-    final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.SIMPLE_APPLICATION);
-    if (googleRepoExistInSettings) {
-      addGoogleRepoInSettings(preparedProject.getRoot());
-    }
+    final var preparedProject = prepareTestProject(projectRule, withAdditionalPatch(AndroidCoreTestProject.SIMPLE_APPLICATION, (env, root) -> {
+      if (googleRepoExistInSettings) addGoogleRepoInSettings(root);
+      return Unit.INSTANCE;
+    }));
     openPreparedTestProject(preparedProject, project -> {
       Module appModule = gradleModule(project, ":app");
       VirtualFile appFile = getGradleBuildFile(appModule);
