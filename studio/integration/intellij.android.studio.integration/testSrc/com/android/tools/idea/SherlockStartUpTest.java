@@ -54,7 +54,7 @@ public class SherlockStartUpTest {
       // On Mac the java.home has "/Contents/Home" added to the jbr path that are not present on other installations
       if (SystemInfo.isMac) {
         assertThat(javaHome).doesNotContain("/Contents/Home");
-        javaHome = install.getStudioDir().resolve("Contents/jbr/Contents/Home").toString();
+        javaHome = install.getStudioDir().resolve("jbr/Contents/Home").toString();
       }
       assertThat(sherlock.getSystemProperty("java.home")).isEqualTo(javaHome);
 
@@ -65,7 +65,9 @@ public class SherlockStartUpTest {
         plugins[i] = plugins[i].replaceAll(" (.*) \\(.*\\)", "$1").strip();
       }
       List<String> expectedPlugins = new ArrayList<>(Arrays.asList(
-        "IDEA CORE"
+        "IDEA CORE",
+        "Performance Testing",
+        "Android Studio Driver"
       ));
       assertThat(plugins).asList().containsExactlyElementsIn(expectedPlugins);
 
