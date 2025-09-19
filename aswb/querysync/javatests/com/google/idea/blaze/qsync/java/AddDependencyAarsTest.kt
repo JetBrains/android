@@ -86,19 +86,17 @@ class AddDependencyAarsTest {
       ArtifactTracker.State.forTargets(
         TargetBuildInfo.forJavaTarget(
           JavaArtifactInfo.empty(Label.of("//path/to:dep")).toBuilder()
-            .setIdeAars(
-              ImmutableList.of(
+            .setIdeAar(
                 BuildArtifact.create(
                   "aardigest",
                   Path.of("path/to/dep.aar"),
                   Label.of("//path/to:dep")
                 )
-                  .withMetadata(
-                    AarResPackage(
-                      "com.google.idea.blaze.qsync.testdata.android"
-                    )
+                .withMetadata(
+                  AarResPackage(
+                    "com.google.idea.blaze.qsync.testdata.android"
                   )
-              )
+                )
             )
             .build(),
           DependencyBuildContext.NONE
@@ -156,13 +154,11 @@ class AddDependencyAarsTest {
       ArtifactTracker.State.forJavaArtifacts(
         ImmutableList.of(
           JavaArtifactInfo.empty(Label.of("//path/to:dep")).toBuilder()
-            .setIdeAars(
-              ImmutableList.of(
-                BuildArtifact.create(
-                  "aardigest",
-                  Path.of("path/to/dep.aar"),
-                  Label.of("//path/to:dep")
-                )
+            .setIdeAar(
+              BuildArtifact.create(
+                "aardigest",
+                Path.of("path/to/dep.aar"),
+                Label.of("//path/to:dep")
               )
             )
             .build()

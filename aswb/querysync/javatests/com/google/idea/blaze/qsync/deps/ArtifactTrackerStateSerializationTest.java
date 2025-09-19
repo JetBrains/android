@@ -83,12 +83,11 @@ public class ArtifactTrackerStateSerializationTest {
                                 "jardigest",
                                 Path.of("/build/out/classes.jar"),
                                 Label.of("//my/package:target"))))
-                    .setIdeAars(
-                        ImmutableList.of(
+                    .setIdeAar(
                             BuildArtifact.create(
                                 "aardigest",
                                 Path.of("/build/out/resources.aar"),
-                                Label.of("//my/package:target"))))
+                                Label.of("//my/package:target")))
                     .setGenSrcs(
                         ImmutableList.of(
                             BuildArtifact.create(
@@ -190,7 +189,7 @@ public class ArtifactTrackerStateSerializationTest {
                                 ImmutableSet.of(
                                     JarPath.create("root1", "com.my.package"),
                                     JarPath.create("root2", "com.other.package")))))
-                .setIdeAars(
+                .setIdeAar(
                     BuildArtifact.create(
                             "bcd",
                             Path.of("//my/package/libtarget.aar"),

@@ -43,7 +43,7 @@ class AddDependencyAars(
 
   private fun getDependencyAars(target: TargetBuildInfo): Collection<BuildArtifact> {
     val javaInfo = target.javaInfo().getOrNull() ?: return emptyList()
-    return if (projectDefinition.isIncluded(javaInfo.label())) emptyList() else javaInfo.ideAars()
+    return if (projectDefinition.isIncluded(javaInfo.label())) emptyList() else listOfNotNull(javaInfo.ideAar())
   }
 
   override fun getRequiredArtifacts(

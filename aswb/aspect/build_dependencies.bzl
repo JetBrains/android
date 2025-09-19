@@ -282,7 +282,7 @@ def _encode_target_info_proto(target_info):
         jars = _encode_file_list(target_info.jars),
         compile_jdeps = _encode_file_list(target_info.compile_jdeps),
         output_jars = _encode_file_list(target_info.output_jars),
-        ide_aars = _encode_file_list(target_info.ide_aars),
+        ide_aar = struct(file = target_info.ide_aar.path) if target_info.ide_aar else None,
         gen_srcs = _encode_file_list(target_info.gen_srcs),
         srcs = target_info.srcs,
         srcjars = target_info.srcjars,
@@ -437,7 +437,7 @@ def _collect_own_java_artifacts(
     own_jar_depsets = []
     own_compile_jdeps_files = []
     own_output_jar_files = []
-    own_ide_aar_files = []
+    own_ide_aar_file = None
     own_gensrc_files = []
     own_src_file_paths = []
     own_srcjar_file_paths = []
@@ -470,13 +470,13 @@ def _collect_own_java_artifacts(
             if ide_aar:
                 # TODO(mathewi) - handle source aars
                 if not ide_aar.is_source:
-                    own_ide_aar_files.append(ide_aar)
+                    own_ide_aar_file = ide_aar
         elif declares_aar_import(ctx):
             ide_aar = rule.attr.aar.files.to_list()[0]
 
             # TODO(mathewi) - handle source aars
             if not ide_aar.is_source:
-                own_ide_aar_files.append(ide_aar)
+                own_ide_aar_file = ide_aar
 
     else:
         if android_info != None:
@@ -564,7 +564,7 @@ def _collect_own_java_artifacts(
         jar_depset = own_jar_depset,
         compile_jdeps_depset = depset(own_compile_jdeps_files),
         output_jar_depset = depset(own_output_jar_files),
-        ide_aar_depset = depset(own_ide_aar_files),
+        ide_aar = own_ide_aar_file,
         gensrc_depset = depset(own_gensrc_files),
         src_file_paths = own_src_file_paths,
         srcjar_file_paths = own_srcjar_file_paths,
@@ -578,7 +578,7 @@ def _target_to_artifact_entry(
         jars = [],
         compile_jdeps = [],
         output_jars = [],
-        ide_aars = [],
+        ide_aar = None,
         gen_srcs = [],
         srcs = [],
         srcjars = [],
@@ -590,7 +590,7 @@ def _target_to_artifact_entry(
         jars = jars,
         compile_jdeps = compile_jdeps,
         output_jars = output_jars,
-        ide_aars = ide_aars,
+        ide_aar = ide_aar,
         gen_srcs = gen_srcs,
         srcs = srcs,
         srcjars = srcjars,
@@ -630,7 +630,7 @@ def _collect_own_and_dependency_java_artifacts(
     jars = own_files.jar_depset.to_list()
     compile_jdeps = own_files.compile_jdeps_depset.to_list()
     output_jars = own_files.output_jar_depset.to_list()
-    ide_aars = own_files.ide_aar_depset.to_list()
+    ide_aar = own_files.ide_aar
     gen_srcs = own_files.gensrc_depset.to_list()  # Flattening is fine here (these are files from one target)
     java_info_file = _write_java_target_info(ctx, target.label, _target_to_artifact_entry(
         label = str(target.label),
@@ -639,7 +639,7 @@ def _collect_own_and_dependency_java_artifacts(
         jars = jars,
         compile_jdeps = compile_jdeps,
         output_jars = output_jars,
-        ide_aars = ide_aars,
+        ide_aar = ide_aar,
         gen_srcs = gen_srcs,
         srcs = own_files.src_file_paths,
         srcjars = own_files.srcjar_file_paths,
@@ -661,7 +661,7 @@ def _collect_own_and_dependency_java_artifacts(
         java_info_file = java_info_file,
         compile_jars = depset(transitive = own_and_transitive_jar_depsets),
         compile_jdeps = depset(transitive = own_and_transitive_compile_jdeps_depsets),
-        aars = depset(ide_aars, transitive = own_and_transitive_ide_aar_depsets),
+        aars = depset([ide_aar] if ide_aar else [], transitive = own_and_transitive_ide_aar_depsets),
         gensrcs = depset(gen_srcs, transitive = own_and_transitive_gensrc_depsets),
     )
 

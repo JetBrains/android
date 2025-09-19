@@ -80,7 +80,7 @@ message JavaArtifacts {
   repeated Artifact jars = 1;
   repeated Artifact compile_jdeps = 8;
   repeated Artifact output_jars = 7;
-  repeated Artifact ide_aars = 2;
+  repeated Artifact ide_aars = 2;  // deprecated
   repeated Artifact gen_srcs = 3;
   // Workspace relative paths of sources for the target
   repeated string sources = 4;
@@ -88,6 +88,7 @@ message JavaArtifacts {
   repeated string src_jars = 5;
   string android_resources_package = 6;
   bool is_external_dependency = 9;
+  optional Artifact ide_aar= 10;
 }
 
 message BuildContext {
