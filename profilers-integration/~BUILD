@@ -39,11 +39,7 @@ iml_test(
     ],
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
-    tags_linux = [
-        "noci:studio-linux",
-        "ci:studio-linux_very_flaky",  # b/322952709
-        "block-network",
-    ],
+    tags_linux = ["block-network"],
     tags_mac = [],
     tags_windows = [
         "block-network",
