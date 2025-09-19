@@ -26,7 +26,6 @@ import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.SrcJarJavaPackageRoots
 import com.google.idea.blaze.qsync.project.ProjectDefinition
-import com.google.idea.blaze.qsync.project.ProjectProto
 import java.nio.file.Path
 import kotlin.jvm.optionals.getOrNull
 
@@ -56,32 +55,27 @@ class AddDependencyGenSrcsJars(
   override fun update(
     update: ProjectProtoUpdate,
     artifactState: ArtifactTracker.State,
-    context: Context<*>
+    context: Context<*>,
   ) {
     for (target in artifactState.targets()) {
-      getDependencyGenSrcJars(target)
-        .forEach { genSrc ->
-          val projectArtifact =
-            update
-              .artifactDirectory(ArtifactDirectories.DEFAULT)
-              .addIfNewer(genSrc.artifactPath(), genSrc, target.buildContext())
-              .orElse(null)
-          if (projectArtifact != null) {
-            val innerJavaRoots = genSrc
-                                   .getMetadata(SrcJarJavaPackageRoots::class.java)
-                                   .getOrNull()
-                                   ?.roots()
-                                 ?: setOf(Path.of(""))
-            innerJavaRoots
-              .map { projectArtifact.withInnerJarPath(it) }
-              .map { it.toProto() }
-              .map { ProjectProto.LibrarySource.newBuilder().setSrcjar(it) }
-              .forEach {
-                update.library(target.label().toString())
-                  .addSources(it)
-              }
-          }
+      val projectPaths = getDependencyGenSrcJars(target)
+        .flatMap { genSrc ->
+          val projectPath = update
+                              .artifactDirectory(ArtifactDirectories.DEFAULT)
+                              .addIfNewer(genSrc.artifactPath(), genSrc, target.buildContext())
+                              .orElse(null)
+                            ?: return@flatMap emptyList()
+
+          val innerJavaRoots = genSrc
+                                 .getMetadata(SrcJarJavaPackageRoots::class.java)
+                                 .getOrNull()
+                                 ?.roots()
+                               ?: setOf(Path.of(""))
+          innerJavaRoots.map { projectPath.withInnerJarPath(it) }
         }
+      update.library(target.label()) {
+        addSourceJars(projectPaths)
+      }
     }
   }
 }

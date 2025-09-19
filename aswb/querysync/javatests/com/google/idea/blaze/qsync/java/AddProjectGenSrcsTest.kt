@@ -50,7 +50,7 @@ class AddProjectGenSrcsTest {
   val mockito: MockitoRule = MockitoJUnit.rule()
 
   @Mock
-  var context: Context<*>? = null
+  lateinit var context: Context<*>
 
   private val syncer =
     TestDataSyncRunner(NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PACKAGE_READER)
@@ -85,7 +85,7 @@ class AddProjectGenSrcsTest {
 
     val update =
       ProjectProtoUpdate(original.project(), original.graph(), context)
-    addGensrcs.update(update, artifactState, context!!)
+    addGensrcs.update(update, artifactState, context)
     val newProject = update.build()
 
     val workspace = newProject.getModules(0)
@@ -194,7 +194,7 @@ class AddProjectGenSrcsTest {
 
     val update =
       ProjectProtoUpdate(original.project(), original.graph(), context)
-    addGenSrcs.update(update, artifactState, context!!)
+    addGenSrcs.update(update, artifactState, context)
     val newProject = update.build()
 
     val workspace = newProject.getModules(0)
@@ -303,7 +303,7 @@ class AddProjectGenSrcsTest {
 
     val update =
       ProjectProtoUpdate(original.project(), original.graph(), context)
-    addGenSrcs.update(update, artifactState, context!!)
+    addGenSrcs.update(update, artifactState, context)
     Mockito.verify(context, Mockito.never())!!.setHasWarnings()
   }
 
@@ -336,7 +336,7 @@ class AddProjectGenSrcsTest {
 
     val update =
       ProjectProtoUpdate(original.project(), original.graph(), context)
-    addGensrcs.update(update, artifactState, context!!)
+    addGensrcs.update(update, artifactState, context)
     val newProject = update.build()
 
     val workspace = newProject.getModules(0)

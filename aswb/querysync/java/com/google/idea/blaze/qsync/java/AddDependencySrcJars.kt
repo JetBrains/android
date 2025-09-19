@@ -21,11 +21,8 @@ import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation
 import com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder.AllowPackagePrefixes
-import com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder.JarPath
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
-import com.google.idea.blaze.qsync.project.ProjectProto
-import java.nio.file.Path
 import kotlin.jvm.optionals.getOrNull
 
 /**
@@ -48,21 +45,22 @@ class AddDependencySrcJars(
       if (projectDefinition.isIncluded(javaInfo.label())) {
         continue
       }
-      for (srcJar in javaInfo.srcJars()) {
-        // these are workspace relative srcjar paths.
-        val jarPath = ProjectPath.workspaceRelative(srcJar)
-        srcJarInnerPathFinder
-          .findInnerJarPaths(
-            pathResolver.resolve(jarPath).toFile(),
-            AllowPackagePrefixes.EMPTY_PACKAGE_PREFIXES_ONLY,
-            srcJar.toString()
+      update
+        .library(target.label()) {
+          addSourceJars(
+            javaInfo.srcJars().flatMap { srcJar ->
+              // these are workspace relative srcjar paths.
+              val jarPath = ProjectPath.workspaceRelative(srcJar)
+              srcJarInnerPathFinder
+                .findInnerJarPaths(
+                  pathResolver.resolve(jarPath).toFile(),
+                  AllowPackagePrefixes.EMPTY_PACKAGE_PREFIXES_ONLY,
+                  srcJar.toString()
+                )
+                .map { jarPath.withInnerJarPath(it.path()) }
+            }
           )
-          .map { jarPath.withInnerJarPath(it.path()).toProto() }
-          .map { ProjectProto.LibrarySource.newBuilder().setSrcjar(it) }
-          .forEach {
-            update.library(target.label().toString()).addSources(it)
-          }
-      }
+        }
     }
   }
 }
