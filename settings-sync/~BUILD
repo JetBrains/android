@@ -21,6 +21,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito",
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose.tests",
         "//tools/adt/idea/android:intellij.android.core.tests",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
