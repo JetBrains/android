@@ -23,6 +23,7 @@ import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation
 import com.google.idea.blaze.qsync.project.ProjectProto
+import java.nio.file.Path
 import kotlin.jvm.optionals.getOrNull
 
 /** Adds compiled jars from dependencies to the project.  */
@@ -31,7 +32,7 @@ class AddCompiledJavaDeps(private val emptyJarDigests: MutableSet<String>) : Pro
     val javaDepsDir = update.artifactDirectory(ArtifactDirectories.JAVADEPS)
     val skipped: MutableSet<String> = hashSetOf()
     val seen: MutableSet<String> = hashSetOf()
-    val libNameToJars: MutableMap<String, MutableSet<String>> = hashMapOf()
+    val libNameToJars: MutableMap<Label, MutableSet<String>> = hashMapOf()
     val outputJarToTarget: Map<String, Label> =
       artifactState.targets()
         .flatMap { it.javaInfo().getOrNull()?.outputJars().orEmpty() }
@@ -66,7 +67,7 @@ class AddCompiledJavaDeps(private val emptyJarDigests: MutableSet<String>) : Pro
       for (jar in jarsToAdd) {
         seen.add(jar.digest())
         javaDepsDir.addIfNewer(jar.artifactPath(), jar, target.buildContext())
-        libNameToJars.getOrPut(target.label().toString()) { hashSetOf() }
+        libNameToJars.getOrPut(target.label()) { hashSetOf() }
           .add(javaDepsDir.path().resolve(jar.artifactPath()).toString())
       }
     }
@@ -76,21 +77,13 @@ class AddCompiledJavaDeps(private val emptyJarDigests: MutableSet<String>) : Pro
   }
 
   private fun updateProjectProtoUpdateOneTargetToOneLibrary(
-    libNameToJars: Map<String, Set<String>>, update: ProjectProtoUpdate
+    libNameToJars: Map<Label, Set<String>>, update: ProjectProtoUpdate
   ) {
     libNameToJars.forEach { (name, jars) ->
       update
-        .library(name)
-        .addAllClassesJar(
-          jars
-            .map { jar ->
-              ProjectProto.JarDirectory.newBuilder()
-                .setPath(jar)
-                .setRecursive(false)
-                .build()
-            }
-            .distinct()
-        )
+        .library(name) {
+          addClassJars(jars.map { Path.of(it) }.distinct())
+        }
     }
   }
 }
