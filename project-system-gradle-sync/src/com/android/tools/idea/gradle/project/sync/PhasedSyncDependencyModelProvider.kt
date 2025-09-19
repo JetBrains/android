@@ -15,18 +15,27 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.builder.model.v2.ide.AndroidGradlePluginProjectFlags
 import com.android.builder.model.v2.models.ModelBuilderParameter
 import com.android.builder.model.v2.models.VariantDependenciesAdjacencyList
-import com.android.ide.gradle.model.GradlePropertiesModel
+import com.android.ide.gradle.model.composites.BuildMap
+import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeVariantCore
+import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
+import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
+import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.ignoreExceptionsAndGet
 import com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase
+
+import java.io.File
+import kotlin.collections.component1
+import kotlin.collections.component2
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import kotlin.collections.forEach
 import kotlin.collections.orEmpty
+import kotlin.to
 import org.gradle.tooling.model.gradle.BasicGradleProject
 
 class PhasedSyncDependencyModelProvider(val syncOptions: SyncActionOptions, val cachedData: ModelProviderCachedData) : ProjectImportModelProvider {
@@ -36,8 +45,10 @@ class PhasedSyncDependencyModelProvider(val syncOptions: SyncActionOptions, val 
                               buildModels: MutableCollection<out GradleBuild>,
                               modelConsumer: ProjectImportModelProvider.GradleModelConsumer) {
     val exceptionsPerProject = mutableListOf<Pair<BasicGradleProject, Throwable>>()
+    val buildPathMap = buildBuildPathMap(controller, buildModels)
+    val internedModels = InternedModels(buildModels.first().buildIdentifier.rootDir)
 
-    val actions = buildModels.flatMap { buildModel ->
+    val result = controller.run(buildModels.flatMap { buildModel ->
       // For each build, build a map per-project to indicate whether it has inbound dependencies
       // This is used as an optimization when determining whether to skip library runtime classpaths
       val hasInboundDependencyByPath = mutableMapOf<String, Boolean>()
@@ -46,18 +57,25 @@ class PhasedSyncDependencyModelProvider(val syncOptions: SyncActionOptions, val 
           hasInboundDependencyByPath[gradleProjectPath] = true
         }
       }
+
+      val allProjects = buildModels.flatMap { it.projects }
+      val ideAndroidProjectMap = allProjects.mapNotNull { cachedData.data[it]?.let { data -> it to data.ideAndroidProject }}.toMap()
+      val androidProjectPathResolver = buildAndroidProjectPathResolver(allProjects, ideAndroidProjectMap)
+
+
       buildModel.projects
         .mapNotNull { gradleProject ->
           BuildAction {
             runCatching {
               val data = cachedData.data[gradleProject] ?: return@BuildAction null
+              val ideAndroidProject = data.ideAndroidProject
               val variantDependencies = controller.findModel(
                 gradleProject, VariantDependenciesAdjacencyList::class.java, ModelBuilderParameter::class.java
               ) {
                 it.variantName = data.selectedVariantName
                 // If the studio flag for it is enabled, we don't fetch runtime classpath for libraries with inbound depenencis
                 if (data.shouldSkipRuntimeClassPathForLibraries
-                    && data.projectType == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY
+                    && ideAndroidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY
                     && hasInboundDependencyByPath[gradleProject.path] == true) {
                   it.buildOnlyTestRuntimeClasspaths(
                     syncOptions.flags.studioFlagBuildRuntimeClasspathForLibraryUnitTests,
@@ -70,16 +88,36 @@ class PhasedSyncDependencyModelProvider(val syncOptions: SyncActionOptions, val 
                     addAdditionalArtifactsInModel = syncOptions.flags.studioFlagMultiVariantAdditionalArtifactSupport)
                 }
               } ?: return@BuildAction null
-              gradleProject to variantDependencies
+              val selectedVariant = ideAndroidProject.coreVariants.single { it.name == data.selectedVariantName }
+              val result = fetchAndProcessAndroidDependenciesModel(
+                variantDependencies,
+                cachedData.data[gradleProject]!!.modelVersions,
+                buildModel,
+                gradleProject,
+                selectedVariant,
+                ideAndroidProject.bootClasspath,
+                internedModels,
+                androidProjectPathResolver = androidProjectPathResolver,
+                buildPathMap = buildPathMap
+              )
+              exceptionsPerProject += result.exceptions.map { gradleProject to it }
+              result.ignoreExceptionsAndGet()?.let {
+                gradleProject to it
+              }
             }.onFailure {
               exceptionsPerProject += gradleProject to it
             }.getOrNull()
           }
         }
+    })
+
+    modelConsumer.consumeBuildModel(buildModels.first(), internedModels.apply { prepare() }.createLibraryTable(), IdeUnresolvedLibraryTableImpl::class.java)
+
+    result.filterNotNull().forEach { (gradleProject, variantWithPostProcessor) ->
+      val ideVariant = variantWithPostProcessor.postProcess()
+      modelConsumer.consumeProjectModel(gradleProject, ideVariant, IdeVariantCore::class.java)
     }
-    controller.run(actions).filterNotNull().forEach { (gradleProject, variantDependencies) ->
-      modelConsumer.consumeProjectModel(gradleProject, variantDependencies, VariantDependenciesAdjacencyList::class.java)
-    }
+
     exceptionsPerProject
       .groupBy ({ it.first }) { it.second }
       .filter { (_, exceptions) -> exceptions.isNotEmpty()}
@@ -93,3 +131,66 @@ class PhasedSyncDependencyModelProvider(val syncOptions: SyncActionOptions, val 
   }
 }
 
+private fun fetchAndProcessAndroidDependenciesModel(
+  variantDependencies: VariantDependenciesAdjacencyList,
+  versions: ModelVersions,
+  buildModel: GradleBuild,
+  projectModel: BasicGradleProject,
+  ideVariant: IdeVariantCore,
+  bootClasspath: Collection<String>,
+  internedModels: InternedModels,
+  androidProjectPathResolver: AndroidProjectPathResolver,
+  buildPathMap: Map<String, BuildId>,
+): ModelResult<IdeVariantWithPostProcessor> {
+  // We need to be lenient when modules are being resolved as some might not be set up yet if not supported by phased sync
+  // - for instance, the KMP modules are not supported and not yet populated in this case
+  val modelCacheV2Impl = modelCacheV2Impl(internedModels, versions, syncTestMode = SyncTestMode.PRODUCTION, lenientModuleResolution = true)
+
+  return modelCacheV2Impl.variantFrom(
+    BuildId(buildModel.buildIdentifier.rootDir),
+    projectModel.projectIdentifier.projectPath,
+    ideVariant as IdeVariantCoreImpl,
+    VariantDependenciesCompat.AdjacencyList(variantDependencies, versions),
+    bootClasspath,
+    androidProjectPathResolver,
+    buildPathMap,
+  )
+}
+
+
+/** Builds an [AndroidProjectPathResolver] instance, used to later refer to Android projects and resolve variant names for them. */
+private fun buildAndroidProjectPathResolver(
+  allProjects: List<BasicGradleProject>,
+  ideAndroidProjects: Map<BasicGradleProject, IdeAndroidProject>
+): AndroidProjectPathResolver {
+  val projectIdentifierToResolvedProjectPathMap = allProjects.mapNotNull { projectModel ->
+    run {
+      val ideAndroidProject = ideAndroidProjects[projectModel] ?: return@mapNotNull null
+      BuildId(projectModel.projectIdentifier.buildIdentifier.rootDir) to projectModel.path to
+        ResolvedAndroidProjectPathImpl(
+          projectModel,
+          buildVariantNameResolver(ideAndroidProject, ideAndroidProject.coreVariants),
+          ideAndroidProject.lintJar
+        )
+    }
+  }.toMap()
+  return AndroidProjectPathResolver { buildId, projectPath -> projectIdentifierToResolvedProjectPathMap[buildId to projectPath] }
+}
+
+/** Map from the Gradle path (composite aware, supports nested builds) to the Gradle build root directory. */
+private fun buildBuildPathMap(
+  controller: BuildController,
+  allBuilds: Collection<GradleBuild>
+): Map<String, BuildId> = allBuilds.mapNotNull { buildModel ->
+  controller.findModel(buildModel.rootProject, BuildMap::class.java)
+}.flatMap {
+  it.buildIdMap.entries
+}.associate { it.key to BuildId(it.value) }
+
+/** Used to refer to Android projects and resolve variant names for them. */
+private data class ResolvedAndroidProjectPathImpl(
+  override val gradleProject: BasicGradleProject,
+  override val androidVariantResolver: AndroidVariantResolver,
+  // Lint jar is not really relevant here, but required by the IdeLibrary model when resolving
+  override val lintJar: File?
+): ResolvedAndroidProjectPath

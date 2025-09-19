@@ -17,8 +17,6 @@ package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.SdkConstants.DOT_JAR
 import com.android.SdkConstants.FN_ANNOTATIONS_ZIP
-import com.android.builder.model.v2.models.VariantDependenciesAdjacencyList
-import com.android.ide.gradle.model.composites.BuildMap
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
@@ -33,12 +31,12 @@ import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreDirect
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
+import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTable
+import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity
 import com.android.tools.idea.gradle.project.entities.gradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
-import com.android.tools.idea.gradle.project.sync.AndroidProjectPathResolver
-import com.android.tools.idea.gradle.project.sync.AndroidVariantResolver
 import com.android.tools.idea.gradle.project.sync.BuildId
 import com.android.tools.idea.gradle.project.sync.IdeVariantWithPostProcessor
 import com.android.tools.idea.gradle.project.sync.InternedModels
@@ -75,7 +73,6 @@ import com.intellij.platform.workspace.storage.ImmutableEntityStorage
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.util.PathUtil
 import java.io.File
-import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.plugins.gradle.model.GradleSourceSetModel
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
@@ -91,13 +88,6 @@ private data class SourceSetModuleId(
   val sourceSetName: String
 )
 
-/** Used to refer to Android projects and resolve variant names for them. */
-data class ResolvedAndroidProjectPathImpl(
-  override val gradleProject: BasicGradleProject,
-  override val androidVariantResolver: AndroidVariantResolver,
-  // Lint jar is not really relevant here, but required by the IdeLibrary model when resolving
-  override val lintJar: File?
-): ResolvedAndroidProjectPath
 
 /**
  * Each project needs a certain amount of input and mutable state when resolving dependencies.
@@ -139,13 +129,15 @@ private class SyncContributorAndroidProjectDependenciesContext(
           LibraryDependency(it.getOrCreateLibraryEntity(entitySource, moduleName).symbolicId, false, scope)
 
         is IdeModuleLibrary ->
-          ModuleDependency(
-            sourceSetModuleIdToEntityMap[it.id()]!!.symbolicId,
-            false,
-            scope,
-            // Dependencies to test fixtures modules are marked as "production on test"
-            productionOnTest = it.sourceSet.sourceSetName == IdeModuleWellKnownSourceSet.TEST_FIXTURES.sourceSetName
-          )
+          sourceSetModuleIdToEntityMap[it.id()]?.let { entity ->
+            ModuleDependency(
+              entity.symbolicId,
+              false,
+              scope,
+              // Dependencies to test fixtures modules are marked as "production on test"
+              productionOnTest = it.sourceSet.sourceSetName == IdeModuleWellKnownSourceSet.TEST_FIXTURES.sourceSetName
+            )
+          }
         else -> null
       }
     }.distinct().let { newDependencies: List<ModuleDependencyItem> ->
@@ -240,23 +232,9 @@ internal fun setupAndroidDependenciesForAllProjects(
 ) : SourceSetUpdateResult {
   val project = context.project
 
-  val buildPathMap = buildBuildPathMap(context)
-  val androidProjectPathResolver = buildAndroidProjectPathResolver(context, allAndroidContexts)
-  val internedModels = InternedModels(context.allBuilds.first().buildIdentifier.rootDir)
   val updatedEntities = MutableEntityStorage.from(storage)
-
-  val allContextWithDependencies = allAndroidContexts.mapNotNull { androidContext ->
-    with(androidContext) {
-      val selectedVariant = ideAndroidProject.coreVariants.single {it.name == variantName }
-      fetchAndProcessAndroidDependenciesModel(
-        selectedVariant,
-        internedModels,
-        androidProjectPathResolver,
-        buildPathMap
-      )?.let { androidContext to it }
-    }
-  }
-  val ideLibraryModelResolver: IdeLibraryModelResolver = buildIdeLibraryModelResolver(internedModels, context)
+  val libraryTable = context.getRootModel(IdeUnresolvedLibraryTableImpl::class.java)!!
+  val ideLibraryModelResolver: IdeLibraryModelResolver = buildIdeLibraryModelResolver(context, libraryTable)
   val sourceSetModuleIdToModuleEntityMap = buildSourceSetModuleIdToModuleEntityMap(storage, context, project, phase, allAndroidContexts)
 
   // Make the storage state into a mutable one to be able track newly created entities.
@@ -267,16 +245,16 @@ internal fun setupAndroidDependenciesForAllProjects(
   val moduleNameToInstanceMap: Map<String, Module> =
     project.modules.associateBy { it.name }
 
-  val allKnownEntitySources = allContextWithDependencies.flatMap { (context, variantWithDependencies) ->
+  val allKnownEntitySources = allAndroidContexts.flatMap {
     SyncContributorAndroidProjectDependenciesContext(
-      context,
+      it,
       updatedEntities,
       ideLibraryModelResolver,
       sourceSetModuleIdToModuleEntityMap,
       moduleNameToEntityMap,
       moduleNameToInstanceMap,
       libraryIdToEntityMap,
-    ).populateDependenciesForAndroidProject(variantWithDependencies)
+    ).populateDependenciesForAndroidProject()
   }
 
   return SourceSetUpdateResult (
@@ -287,39 +265,9 @@ internal fun setupAndroidDependenciesForAllProjects(
   )
 }
 
-private fun SyncContributorAndroidProjectContext.fetchAndProcessAndroidDependenciesModel(
-  ideVariant: IdeVariantCore,
-  internedModels: InternedModels,
-  androidProjectPathResolver: AndroidProjectPathResolver,
-  buildPathMap: Map<String, BuildId>,
-): ModelResult<IdeVariantWithPostProcessor>? {
-  val variantDependencies = context.getProjectModel(projectModel, VariantDependenciesAdjacencyList::class.java) ?: return null.also {
-    LOG.debug("No variant dependency model found for ${projectModel.path}")
-  }
 
-  // We need to be lenient when modules are being resolved as some might not be set up yet if not supported by phased sync
-  // - for instance, the KMP modules are not supported and not yet populated in this case
-  val modelCacheV2Impl = modelCacheV2Impl(internedModels, versions, syncTestMode = SyncTestMode.PRODUCTION, lenientModuleResolution = true)
-
-  return modelCacheV2Impl.variantFrom(
-    BuildId(buildModel.buildIdentifier.rootDir),
-    projectModel.projectIdentifier.projectPath,
-    ideVariant as IdeVariantCoreImpl,
-    VariantDependenciesCompat.AdjacencyList(variantDependencies, versions),
-    ideAndroidProject.bootClasspath,
-    androidProjectPathResolver,
-    buildPathMap,
-  )
-}
-
-private fun SyncContributorAndroidProjectDependenciesContext.populateDependenciesForAndroidProject(
-  ideVariantWithPostProcessor: ModelResult<IdeVariantWithPostProcessor>
-) : Set<EntitySource> {
-  ideVariantWithPostProcessor.exceptions.firstOrNull()?.let { throw it }
-  val ideVariant = ideVariantWithPostProcessor.ignoreExceptionsAndGet()?.postProcess()  ?: (return emptySet()).also {
-    LOG.debug("Variant processing encountered errors: ${ideVariantWithPostProcessor.exceptions}")
-  }
-
+private fun SyncContributorAndroidProjectDependenciesContext.populateDependenciesForAndroidProject() : Set<EntitySource> {
+  val ideVariant: IdeVariantCoreImpl = with(androidProjectContext) { context.getProjectModel(projectModel, IdeVariantCore::class.java)} as IdeVariantCoreImpl? ?: return emptySet()
   ideVariant.mainArtifact.let { it.compileClasspathCore.populateDependenciesForModule(DependencyScope.COMPILE, it.name) }
   ideVariant.testFixturesArtifact?.let { it.compileClasspathCore.populateDependenciesForModule(DependencyScope.COMPILE, it.name) }
   ideVariant.hostTestArtifacts.forEach { it.compileClasspathCore.populateDependenciesForModule(DependencyScope.TEST, it.name)}
@@ -355,11 +303,10 @@ private fun SyncContributorAndroidProjectDependenciesContext.populateDependencie
 
 /* Used to refer to the library table from dependency models. */
 private fun buildIdeLibraryModelResolver(
-  internedModels: InternedModels,
-  context: ProjectResolverContext
+  context: ProjectResolverContext,
+  libraryTable: IdeUnresolvedLibraryTable
 ): IdeLibraryModelResolver {
   val artifactToSourceSetMap = buildJarArtifactToSourceSetMapFromPlatformModels(context)
-  val libraryTable = internedModels.apply { prepare() }.createLibraryTable()
   val resolvedTable = ResolvedLibraryTableBuilder(
     getGradlePathBy = { null },
     getModuleDataNode = { null },
@@ -402,38 +349,6 @@ private fun buildJarArtifactToSourceSetMapFromPlatformModels(context: ProjectRes
 }.associate { (artifact, sourceSets) ->
   artifact to sourceSets
 }
-
-
-/** Builds an [AndroidProjectPathResolver] instance, used to later refer to Android projects and resolve variant names for them. */
-private fun buildAndroidProjectPathResolver(
-  context: ProjectResolverContext,
-  allAndroidContexts: List<SyncContributorAndroidProjectContext>
-): AndroidProjectPathResolver {
-  val projectIdentifierToResolvedProjectPathMap = allAndroidContexts.mapNotNull {
-    with(it) {
-      val basicGradleProject = context.getProjectModel(projectModel, BasicGradleProject::class.java) ?: return@mapNotNull null.also {
-        LOG.debug("No BasicGradleProject model found for ${projectModel.path}")
-      }
-
-      BuildId(projectModel.projectIdentifier.buildIdentifier.rootDir) to projectModel.path to
-        ResolvedAndroidProjectPathImpl(
-          basicGradleProject,
-          buildVariantNameResolver(ideAndroidProject, ideAndroidProject.coreVariants),
-          ideAndroidProject.lintJar
-        )
-    }
-  }.toMap()
-  return AndroidProjectPathResolver { buildId, projectPath -> projectIdentifierToResolvedProjectPathMap[buildId to projectPath] }
-}
-
-/** Map from the Gradle path (composite aware, supports nested builds) to the Gradle build root directory. */
-private fun buildBuildPathMap(context: ProjectResolverContext): Map<String, BuildId> = context.allBuilds.flatMap { buildModel ->
-  val buildMapModel = context.getProjectModel(buildModel.rootProject, BuildMap::class.java) ?: (return@flatMap emptyList()).also {
-    LOG.debug("No BuildMap model found for ${buildModel.rootProject.path}")
-  }
-  buildMapModel.buildIdMap.entries
-}.associate { it.key to BuildId(it.value) }
-
 
 /** Returns the mapping from [SourceSetModuleId] to module entities for all projects. */
 private fun buildSourceSetModuleIdToModuleEntityMap(
