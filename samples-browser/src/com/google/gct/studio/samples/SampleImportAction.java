@@ -27,6 +27,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import icons.SampleImportIcons;
@@ -41,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
  * Action that initiates the Sample Import Wizard, it will also download the samples list from the samples service and pass
  * it as a paramter to the Sample Wizard.
  */
-public class SampleImportAction extends AnAction {
+public class SampleImportAction extends DumbAwareAction {
 
   private static final Logger LOG = Logger.getInstance(SampleImportAction.class);
 
