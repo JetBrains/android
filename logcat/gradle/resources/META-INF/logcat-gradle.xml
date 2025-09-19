@@ -1,0 +1,5 @@
+<idea-plugin>
+  <extensions defaultExtensionNs="com.android.tools.idea.logcat">
+    <logcatR8MappingToken implementation="com.android.tools.idea.logcat.gradle.LogcatR8MappingsGradleToken"/>
+  </extensions>
+</idea-plugin>

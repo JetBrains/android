@@ -88,6 +88,10 @@
     <extensionPoint
         qualifiedName="com.android.tools.idea.logcat.messages.exceptionMessageRewriter"
         interface="com.android.tools.idea.logcat.messages.ExceptionMessageRewriter" />
+
+    <extensionPoint qualifiedName="com.android.tools.idea.logcat.logcatR8MappingToken"
+                    interface="com.android.tools.idea.logcat.LogcatR8MappingsToken" />
+
   </extensionPoints>
 
   <actions>

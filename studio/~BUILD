@@ -261,6 +261,7 @@ studio_plugin(
             "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector.gradle",
             "//tools/adt/idea/layout-ui:intellij.android.layout-ui",
             "//tools/adt/idea/logcat:intellij.android.logcat",
+            "//tools/adt/idea/logcat/gradle:intellij.android.logcat.gradle",
             "//tools/vendor/google/login:google-login",
             "//tools/adt/idea/mlkit:intellij.android.mlkit",
             "//tools/adt/idea/nav/safeargs:intellij.android.nav.safeargs",
