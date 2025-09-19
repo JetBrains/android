@@ -23,17 +23,11 @@ import com.android.tools.deployer.InstallOptions
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.tasks.Canceller
 import com.android.tools.idea.run.ApkInfo
-import com.android.utils.ILogger
-import com.intellij.mock.MockApplication
-import com.intellij.notification.NotificationGroupManager
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
-import com.intellij.ui.IdeUICustomization
-import org.junit.After
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
 import org.junit.Ignore
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.eq
@@ -48,31 +42,19 @@ import org.mockito.Spy
 import org.mockito.kotlin.whenever
 
 class DeployTaskTest {
-  private val rootDisposable: Disposable = Disposer.newDisposable()
-  private val application: MockApplication = MockApplication(rootDisposable)
-
+  @get:Rule val appRule = ApplicationRule()
   @Mock private lateinit var project: Project
-  @Mock private lateinit var logger: ILogger
   @Mock private lateinit var device: IDevice
   @Mock private lateinit var deployer: Deployer
-  @Mock private lateinit var notificationGroupManager: NotificationGroupManager
   @Spy private lateinit var canceller: Canceller
 
   @Before
   fun setup() {
-    ApplicationManager.setApplication(application, rootDisposable)
-    application.registerService(IdeUICustomization::class.java)
     MockitoAnnotations.initMocks(this)
-    application.registerService(NotificationGroupManager::class.java, notificationGroupManager)
     whenever(deployer.install(any(), any(), any())).thenReturn(
       Deployer.Result(false, false, false, App.fromApks("id", emptyList()))
     )
     whenever(canceller.cancelled()).thenReturn(false)
-  }
-
-  @After
-  fun shutdown() {
-    Disposer.dispose(rootDisposable)
   }
 
   @Test

@@ -6,6 +6,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.deploy.iml"],
     resources = ["resources"],
+    test_class = "com.android.tools.idea.run.DeployTestSuite",
     test_data = glob(["testData/**"]) + ["//prebuilts/studio/sdk:platform-tools"],
     # do not sort: must match IML order
     test_deps = [
@@ -16,6 +17,7 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
         "//tools/base/common:studio.android.sdktools.common",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
