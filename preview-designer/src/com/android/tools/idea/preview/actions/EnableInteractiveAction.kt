@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.preview.actions
 
+import com.android.sdklib.devices.Device
+import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.modes.PreviewMode
@@ -36,8 +38,10 @@ class EnableInteractiveAction :
 
   override fun update(e: AnActionEvent) {
     val isEssentialsModeEnabled = PreviewEssentialsModeManager.isEssentialsModeEnabled
-    e.presentation.isVisible = true
-    e.presentation.isEnabled = !isEssentialsModeEnabled
+    val isXrGlassesDevice = Device.isXrGlasses(e.getData(SCENE_VIEW)?.configuration?.device)
+    // Interactive mode should not be enabled for XR Glasses devices.
+    e.presentation.isVisible = !isXrGlassesDevice
+    e.presentation.isEnabled = !isEssentialsModeEnabled && !isXrGlassesDevice
     e.presentation.description =
       if (isEssentialsModeEnabled) message("action.interactive.essentials.mode.description")
       else message("action.interactive.description")
