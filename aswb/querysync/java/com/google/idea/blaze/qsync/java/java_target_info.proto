@@ -29,10 +29,11 @@ message JavaArtifacts {
   repeated OutputArtifact jars = 4;
   repeated OutputArtifact compile_jdeps = 11;
   repeated OutputArtifact output_jars = 10;
-  repeated OutputArtifact ide_aars = 5;
+  repeated OutputArtifact ide_aars = 5; // Deprecated
   repeated OutputArtifact gen_srcs = 6;
   repeated string srcjars = 7;          // Workspace relative
   string android_resources_package = 8; // Package that this target places its Android R class in
   repeated OutputArtifact dep_java_info_files = 9;
   bool is_external_dependency = 12;
+  optional OutputArtifact ide_aar = 13;
 }
