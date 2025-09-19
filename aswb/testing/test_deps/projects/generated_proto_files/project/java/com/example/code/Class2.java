@@ -15,10 +15,7 @@
  */
 package com.example.code;
 
-import com.example.lib.LibMessage;
-
-public class Class1 {
-  public void foo(LibMessage message) {
-    System.out.println(message);
+public class Class2 extends com.example.lib.Foo {
+  public void foo() {
   }
 }
