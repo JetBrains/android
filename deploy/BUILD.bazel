@@ -129,6 +129,10 @@ jvm_library(
         "//android/android-adb:adb",
         "//android/android-adb:adb_test_lib",
         "@lib//:mockito-kotlin",
+        "//android/adt-testutils",
+        "//android/adt-testutils:adt-testutils_test_lib",
+        "//platform/testFramework",
+        "//platform/testFramework:testFramework_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.deploy` end
