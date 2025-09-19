@@ -30,6 +30,8 @@ enum class SimpleComposeAppPaths(val path: String) {
   APP_PREVIEWS_ANDROID_TEST("app/src/androidTest/java/google/simpleapplication/AndroidPreviews.kt"),
   APP_PREVIEWS_UNIT_TEST("app/src/test/java/google/simpleapplication/UnitPreviews.kt"),
   APP_VISUAL_LINT_PREVIEW("app/src/main/java/google/simpleapplication/VisualLintPreview.kt"),
+  // Conversation is a Composable that has parameters and no preview
+  APP_CONVERSATION("app/src/main/java/google/simpleapplication/Conversation.kt"),
   APP_SIMPLE_APPLICATION_DIR("app/src/test/java/google/simpleapplication"),
   LIB_PREVIEWS("lib/src/main/java/google/simpleapplicationlib/Previews.kt"),
   LIB_PREVIEWS_ANDROID_TEST(
