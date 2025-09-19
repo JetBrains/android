@@ -1,4 +1,5 @@
 load("//tools/adt/idea/aswb:build-visibility.bzl", "DEFAULT_TEST_VISIBILITY")
+load("//tools/adt/idea/aswb/testing:test_defs.bzl", "aswb_test")
 
 package(default_visibility = DEFAULT_TEST_VISIBILITY)
 
@@ -67,5 +68,18 @@ java_test(
         "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/adt/idea/aswb/third_party/java/truth",
         "@maven//:com.google.guava.guava",
+    ],
+)
+
+aswb_test(
+    name = "ProjectProtoDumperTest",
+    size = "small",
+    srcs = ["ProjectProtoDumperTest.kt"],
+    deps = [
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project/testutil",
+        "//tools/adt/idea/aswb/third_party/java/junit",
+        "//tools/adt/idea/aswb/third_party/java/truth",
+        "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
     ],
 )
