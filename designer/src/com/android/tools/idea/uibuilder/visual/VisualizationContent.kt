@@ -22,7 +22,6 @@ import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataSink
-import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
@@ -77,15 +76,13 @@ object VisualizationFormProvider : VisualizationContentProvider {
       VisualizationForm(project, toolWindow.disposable, AsyncContentInitializer)
     val contentPanel = visualizationForm.component
     val contentManager = toolWindow.contentManager
-    contentManager.addDataProvider(
-      EdtNoGetDataProvider { sink ->
-        val fileEditor = visualizationForm.editor
-        if (fileEditor != null) {
-          DataSink.uiDataSnapshot(sink, fileEditor.component)
-        }
-        sink[VisualizationContent.VISUALIZATION_CONTENT] = visualizationForm
+    contentManager.addUiDataProvider({ sink ->
+      val fileEditor = visualizationForm.editor
+      if (fileEditor != null) {
+        DataSink.uiDataSnapshot(sink, fileEditor.component)
       }
-    )
+      sink[VisualizationContent.VISUALIZATION_CONTENT] = visualizationForm
+    })
     val content = contentManager.factory.createContent(contentPanel, null, false)
     content.setDisposer(visualizationForm)
     content.isCloseable = false
