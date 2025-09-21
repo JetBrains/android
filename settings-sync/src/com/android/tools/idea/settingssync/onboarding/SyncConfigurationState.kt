@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("UnstableApiUsage")
+
 package com.android.tools.idea.settingssync.onboarding
 
 import androidx.compose.runtime.getValue
@@ -32,6 +34,7 @@ import com.google.gct.wizard.WizardState
 import com.google.gct.wizard.WizardStateElement
 import com.google.wireless.android.sdk.stats.BackupAndSyncEvent
 import com.google.wireless.android.sdk.stats.GoogleLoginPluginEvent
+import com.google.wireless.android.sdk.stats.backupAndSyncEvent
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.settingsSync.core.SettingsSyncBundle
@@ -198,7 +201,9 @@ internal class SyncConfigurationState : WizardStateElement, SettingsSyncEnabler.
   private fun WizardState.collectMetrics() {
     SyncEventsMetrics.getInstance()
       .trackEvent(
-        BackupAndSyncEvent.newBuilder().apply {
+        backupAndSyncEvent {
+          type = BackupAndSyncEvent.Type.TYPE_ENABLED_THROUGH_WIZARD
+          providerInUse = BackupAndSyncEvent.Provider.GOOGLE
           enablementFlow =
             when (getOrCreateState { GoogleSignInWizard.SignInState() }.loginType) {
               GoogleLoginPluginEvent.LoginType.COMBINED_LOGIN -> {
