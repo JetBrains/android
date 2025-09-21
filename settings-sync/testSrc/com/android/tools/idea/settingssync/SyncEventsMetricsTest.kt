@@ -23,12 +23,14 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.BACKUP
 import com.google.wireless.android.sdk.stats.BackupAndSyncEvent
 import com.intellij.settingsSync.core.SettingsSyncEvents
 import com.intellij.settingsSync.core.SettingsSyncLocalSettings
+import com.intellij.settingsSync.core.SyncSettingsEvent
 import com.intellij.testFramework.ProjectRule
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 
+@Suppress("UnstableApiUsage")
 class SyncEventsMetricsTest {
   @get:Rule val projectRule = ProjectRule()
 
@@ -55,5 +57,37 @@ class SyncEventsMetricsTest {
     // Assert
     val event = tracker.usages.map { it.studioEvent }.single { it.kind == BACKUP_AND_SYNC_EVENT }
     assertThat(event.backupAndSyncEvent.providerInUse).isEqualTo(BackupAndSyncEvent.Provider.GOOGLE)
+    assertThat(event.backupAndSyncEvent.type).isEqualTo(BackupAndSyncEvent.Type.TYPE_ENABLED)
+  }
+
+  @Test
+  fun `log sync`() {
+    SettingsSyncLocalSettings.getInstance().userId = "test-user"
+    runBlocking { SyncEventsMetrics.Initializer().execute(projectRule.project) }
+
+    // Log initial event with Google
+    SettingsSyncLocalSettings.getInstance().providerCode = PROVIDER_CODE_GOOGLE
+    SettingsSyncEvents.getInstance().fireSettingsChanged(SyncSettingsEvent.SyncRequest)
+
+    var event = tracker.usages.map { it.studioEvent }.single { it.kind == BACKUP_AND_SYNC_EVENT }
+    assertThat(event.backupAndSyncEvent.providerInUse).isEqualTo(BackupAndSyncEvent.Provider.GOOGLE)
+    assertThat(event.backupAndSyncEvent.type).isEqualTo(BackupAndSyncEvent.Type.TYPE_SYNC)
+
+    // Subsequent events with same provider shouldn't be logged
+    SettingsSyncEvents.getInstance().fireSettingsChanged(SyncSettingsEvent.SyncRequest)
+    assertThat(tracker.usages.count { it.studioEvent.kind == BACKUP_AND_SYNC_EVENT }).isEqualTo(1)
+
+    // First event with new provider should be logged
+    SettingsSyncLocalSettings.getInstance().providerCode = "jba"
+    SettingsSyncEvents.getInstance().fireSettingsChanged(SyncSettingsEvent.SyncRequest)
+    assertThat(tracker.usages.count { it.studioEvent.kind == BACKUP_AND_SYNC_EVENT }).isEqualTo(2)
+    event = tracker.usages.map { it.studioEvent }.last { it.kind == BACKUP_AND_SYNC_EVENT }
+    assertThat(event.backupAndSyncEvent.providerInUse)
+      .isEqualTo(BackupAndSyncEvent.Provider.JETBRAINS)
+    assertThat(event.backupAndSyncEvent.type).isEqualTo(BackupAndSyncEvent.Type.TYPE_SYNC)
+
+    // Subsequent events with same provider shouldn't be logged
+    SettingsSyncEvents.getInstance().fireSettingsChanged(SyncSettingsEvent.SyncRequest)
+    assertThat(tracker.usages.count { it.studioEvent.kind == BACKUP_AND_SYNC_EVENT }).isEqualTo(2)
   }
 }

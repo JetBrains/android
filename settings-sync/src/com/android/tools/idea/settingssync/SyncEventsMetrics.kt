@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("UnstableApiUsage")
+
 package com.android.tools.idea.settingssync
 
 import com.android.tools.analytics.UsageTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BackupAndSyncEvent
+import com.google.wireless.android.sdk.stats.androidStudioEvent
+import com.google.wireless.android.sdk.stats.backupAndSyncEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -26,6 +30,8 @@ import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.settingsSync.core.SettingsSyncEventListener
 import com.intellij.settingsSync.core.SettingsSyncEvents
 import com.intellij.settingsSync.core.SettingsSyncLocalSettings
+import com.intellij.settingsSync.core.SyncSettingsEvent
+import com.jetbrains.rd.util.collections.SynchronizedSet
 
 @Service
 class SyncEventsMetrics : SettingsSyncEventListener, Disposable {
@@ -39,28 +45,53 @@ class SyncEventsMetrics : SettingsSyncEventListener, Disposable {
     }
   }
 
-  override fun enabledStateChanged(syncEnabled: Boolean) {
-    if (syncEnabled == false) return
+  private val hasTrackedUsage = SynchronizedSet<BackupAndSyncEvent.Provider>()
 
-    val provider =
-      SettingsSyncLocalSettings.getInstance().providerCode ?: error("Provider code is not set")
-    val event =
-      BackupAndSyncEvent.newBuilder().apply {
-        providerInUse =
-          when (provider) {
-            PROVIDER_CODE_GOOGLE -> BackupAndSyncEvent.Provider.GOOGLE
-            else -> BackupAndSyncEvent.Provider.JETBRAINS // "jba"
-          }
+  override fun settingChanged(event: SyncSettingsEvent) {
+    val provider = getProvider()
+    if (!hasTrackedUsage.add(provider)) return
+
+    trackEvent(
+      backupAndSyncEvent {
+        type = BackupAndSyncEvent.Type.TYPE_SYNC
+        providerInUse = provider
       }
+    )
+  }
+
+  override fun enabledStateChanged(syncEnabled: Boolean) {
+    val event = backupAndSyncEvent {
+      providerInUse = getProvider()
+      type =
+        if (syncEnabled) BackupAndSyncEvent.Type.TYPE_ENABLED
+        else BackupAndSyncEvent.Type.TYPE_DISABLED
+    }
 
     trackEvent(event)
   }
 
-  fun trackEvent(event: BackupAndSyncEvent.Builder) {
+  fun getProvider() =
+    when (SettingsSyncLocalSettings.getInstance().providerCode) {
+      PROVIDER_CODE_GOOGLE -> BackupAndSyncEvent.Provider.GOOGLE
+      null -> BackupAndSyncEvent.Provider.UNKNOWN_PROVIDER
+      else -> BackupAndSyncEvent.Provider.JETBRAINS // "jba"
+    }
+
+  override fun categoriesStateChanged() {
+    trackEvent(
+      backupAndSyncEvent {
+        type = BackupAndSyncEvent.Type.TYPE_CHANGE_CATEGORIES
+        providerInUse = getProvider()
+      }
+    )
+  }
+
+  fun trackEvent(event: BackupAndSyncEvent) {
     UsageTracker.log(
-      AndroidStudioEvent.newBuilder()
-        .setKind(AndroidStudioEvent.EventKind.BACKUP_AND_SYNC_EVENT)
-        .setBackupAndSyncEvent(event)
+      androidStudioEvent {
+        kind = AndroidStudioEvent.EventKind.BACKUP_AND_SYNC_EVENT
+        backupAndSyncEvent = event
+      }
     )
   }
 

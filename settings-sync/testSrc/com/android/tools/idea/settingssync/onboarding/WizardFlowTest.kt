@@ -137,6 +137,7 @@ class WizardFlowTest {
     SettingsSyncSettings.getInstance().syncEnabled = false
 
     runBlocking { SyncEventsMetrics.Initializer().execute(projectRule.project) }
+    tracker.usages.clear()
   }
 
   @After
