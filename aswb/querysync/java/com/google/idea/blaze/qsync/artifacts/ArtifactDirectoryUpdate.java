@@ -19,6 +19,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.lang.Math.min;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -48,6 +49,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
@@ -65,11 +67,14 @@ public class ArtifactDirectoryUpdate {
   private final Path root;
   private final ArtifactDirectoryContents contents;
   private final Set<Path> updatedPaths;
+  private final String name;
 
   public ArtifactDirectoryUpdate(
+      String name,
       BuildArtifactCache artifactCache,
       Path root,
       ArtifactDirectoryContents contents) {
+    this.name = name;
     this.artifactCache = artifactCache;
     this.root = root;
     this.contents = contents;
@@ -90,69 +95,83 @@ public class ArtifactDirectoryUpdate {
     // better behaviour in the event of problems.
     List<Exception> exceptions = Lists.newArrayList();
 
-    ArtifactDirectoryContents existingContents;
-    if (Files.exists(contentsProtoPath)) {
-      try {
-        try (InputStream in = Files.newInputStream(contentsProtoPath)) {
-          existingContents =
-            ArtifactDirectoryContents.parseFrom(in, ExtensionRegistryLite.getEmptyRegistry());
+    final var sw = Stopwatch.createStarted();
+    try {
+      ArtifactDirectoryContents existingContents;
+      if (Files.exists(contentsProtoPath)) {
+        try {
+          try (InputStream in = Files.newInputStream(contentsProtoPath)) {
+            existingContents =
+              ArtifactDirectoryContents.parseFrom(in, ExtensionRegistryLite.getEmptyRegistry());
+          }
         }
+        catch (IOException | RuntimeException ex) {
+          context.output(
+            PrintOutput.error("Failed to load " + contentsProtoPath + "\n" + "Ignoring and trying to rebuild the directory.\n" + ex));
+          existingContents = ArtifactDirectoryContents.getDefaultInstance();
+          // Ignore corrupted contents files. In the worst case we will delete artifact files and won't be able to copy them again as they
+          // already expired in the cache. This, however,won't prevent syncing/building dependencies as an exception would do.
+        }
+        // we delete this now so that if something fails mid way through the below, then we should
+        // recover next time by re-creating the entire contents of the dir.
+        Files.delete(contentsProtoPath);
       }
-      catch (IOException | RuntimeException ex) {
-        context.output(PrintOutput.error("Failed to load " + contentsProtoPath + "\n" + "Ignoring and trying to rebuild the directory.\n" + ex));
+      else {
         existingContents = ArtifactDirectoryContents.getDefaultInstance();
-        // Ignore corrupted contents files. In the worst case we will delete artifact files and won't be able to copy them again as they
-        // already expired in the cache. This, however,won't prevent syncing/building dependencies as an exception would do.
       }
-      // we delete this now so that if something fails mid way through the below, then we should
-      // recover next time by re-creating the entire contents of the dir.
-      Files.delete(contentsProtoPath);
-    } else {
-      existingContents = ArtifactDirectoryContents.getDefaultInstance();
-    }
+      ImmutableSet.Builder<Label> incompleteTargets = ImmutableSet.builder();
 
-    ImmutableSet.Builder<Label> incompleteTargets = ImmutableSet.builder();
-
-    for (Map.Entry<String, ProjectProto.ProjectArtifact> destAndArtifact :
+      for (Map.Entry<String, ProjectProto.ProjectArtifact> destAndArtifact :
         contents.getContentsMap().entrySet()) {
-      try {
-        ProjectArtifact artifact = destAndArtifact.getValue();
-        if (!updateOneFile(
+        try {
+          ProjectArtifact artifact = destAndArtifact.getValue();
+          if (!updateOneFile(
             root.resolve(Path.of(destAndArtifact.getKey())),
             existingContents.getContentsMap().get(destAndArtifact.getKey()),
             artifact)) {
-          incompleteTargets.add(Label.of(artifact.getTarget()));
+            incompleteTargets.add(Label.of(artifact.getTarget()));
+          }
         }
-      } catch (BuildException | IOException e) {
+        catch (BuildException | IOException e) {
+          exceptions.add(e);
+        }
+      }
+
+      // we don't rely on the existing contents proto here so that we clean up properly if something
+      // else has put things in the dir.
+      try {
+        deleteUnnecessaryFiles();
+      }
+      catch (IOException e) {
         exceptions.add(e);
       }
-    }
 
-    // we don't rely on the existing contents proto here so that we clean up properly if something
-    // else has put things in the dir.
-    try {
-      deleteUnnecessaryFiles();
-    } catch (IOException e) {
-      exceptions.add(e);
+      if (contents.getContentsCount() == 0) {
+        // The directory is empty. Delete it.
+        Files.deleteIfExists(contentsProtoPath);
+        Files.deleteIfExists(root);
+        return ImmutableSet.of();
+      }
+      else {
+        try (OutputStream out = Files.newOutputStream(contentsProtoPath, StandardOpenOption.CREATE)) {
+          contents.writeTo(out);
+        }
+        catch (IOException e) {
+          exceptions.add(e);
+        }
+        if (!exceptions.isEmpty()) {
+          IOException e = new IOException("Directory update for " + root + " failed");
+          exceptions.forEach(e::addSuppressed);
+          throw e;
+        }
+        return incompleteTargets.build();
+      }
     }
-
-    if (contents.getContentsCount() == 0) {
-      // The directory is empty. Delete it.
-      Files.deleteIfExists(contentsProtoPath);
-      Files.deleteIfExists(root);
-      return ImmutableSet.of();
-    } else {
-      try (OutputStream out = Files.newOutputStream(contentsProtoPath, StandardOpenOption.CREATE)) {
-        contents.writeTo(out);
-      } catch (IOException e) {
-        exceptions.add(e);
+    finally {
+      final var elapsedMs = sw.elapsed(TimeUnit.MILLISECONDS);
+      if (elapsedMs > 500) {
+        context.output(PrintOutput.log("Took %,d ms to update %s", elapsedMs, name));
       }
-      if (!exceptions.isEmpty()) {
-        IOException e = new IOException("Directory update for " + root + " failed");
-        exceptions.forEach(e::addSuppressed);
-        throw e;
-      }
-      return incompleteTargets.build();
     }
   }
 
