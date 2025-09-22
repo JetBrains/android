@@ -102,7 +102,8 @@ private fun runTest(benchmarkTestRule: BenchmarkTestRule,
                     measureSyncExecutionTimeRule: MeasureSyncExecutionTimeRule) {
   benchmarkTestRule.addListener(measureSyncExecutionTimeRule.listener)
   benchmarkTestRule.openProject { project ->
-    repeat(measureSyncExecutionTimeRule.syncCount) {
+    val syncCount = System.getProperty("sync_count_override")?.toIntOrNull() ?: measureSyncExecutionTimeRule.syncCount
+    repeat(syncCount) {
       project.requestSyncAndWait()
     }
     measureSyncExecutionTimeRule.recordMeasurements(benchmarkTestRule.projectName)
