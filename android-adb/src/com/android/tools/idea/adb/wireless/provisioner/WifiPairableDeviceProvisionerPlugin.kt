@@ -31,6 +31,7 @@ import com.android.sdklib.deviceprovisioner.DeviceProvisionerPlugin
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceState.Disconnected
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.sdklib.deviceprovisioner.HideDeviceAction
 import com.android.sdklib.deviceprovisioner.PairDeviceAction
 import com.android.sdklib.deviceprovisioner.PhysicalDeviceProvisionerPlugin
 import com.android.sdklib.deviceprovisioner.awaitDisconnection
@@ -38,6 +39,7 @@ import com.android.tools.idea.adb.wireless.AdbServiceWrapper
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService
 import com.android.tools.idea.adb.wireless.TrackingMdnsService
 import com.android.tools.idea.adb.wireless.v2.ui.WifiPairableDevicesPersistentStateComponent
+import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceActionPresentation
 import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceIcons
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
@@ -286,6 +288,16 @@ class WifiPairableDeviceProvisionerPlugin(
           DeviceAction.Presentation("Pair", StudioIcons.Avd.PAIR_OVER_WIFI, true)
 
         override val presentation = MutableStateFlow(defaultPresentation).asStateFlow()
+      }
+
+    override val hideDeviceAction: HideDeviceAction =
+      object : HideDeviceAction {
+        override suspend fun hide() {
+          WifiPairableDevicesPersistentStateComponent.getInstance().addHiddenDevice(serviceName)
+        }
+
+        override val presentation =
+          MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())
       }
 
     override val id = DeviceId("Wireless", false, "serviceName=$serviceName")

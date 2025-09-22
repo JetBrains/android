@@ -37,7 +37,5 @@ object StudioDefaultDeviceActionPresentation : DeviceAction.DefaultPresentation 
   override val templateActivationAction = Presentation("Start", StudioIcons.Avd.RUN, true)
   override val repairDeviceAction = Presentation("Start", StudioIcons.Misc.BUILD_TYPE, true)
   override val pairDeviceAction = Presentation("Pair", StudioIcons.Avd.PAIR_OVER_WIFI, true)
-  override val hideDeviceAction: Presentation
-    // TODO merge
-    get() = TODO("not implemented")
+  override val hideDeviceAction = Presentation("Hide", StudioIcons.Common.REMOVE, true)
 }

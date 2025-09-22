@@ -195,6 +195,18 @@ class WifiPairableDeviceProvisionerPluginTest {
   }
 
   @Test
+  fun hideAction_addsDeviceToHiddenList() = runTest {
+    mdnsFlow.value = createMdnsTlsService("service1", "My Pixel", "1.2.3.4", 1234)
+    val plugin = WifiPairableDeviceProvisionerPlugin(backgroundScope, adbService, project)
+    advanceTimeBy(6000) // Past initial delay
+
+    val handle = plugin.devices.value.first()
+    handle.hideDeviceAction!!.hide()
+
+    verify(mockPersistentService).addHiddenDevice("service1")
+  }
+
+  @Test
   fun handleScopeIsCancelled_onRemoval() = runTest {
     mdnsFlow.value = createMdnsTlsService("service1", "My Pixel", "1.2.3.4", 1234)
     val plugin = WifiPairableDeviceProvisionerPlugin(backgroundScope, adbService, project)
