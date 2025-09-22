@@ -118,6 +118,7 @@ public final class RuntimeArtifactCacheImpl implements RuntimeArtifactCache {
       ProjectProto.ArtifactDirectoryContents artifactDirectoryContents) {
     try {
       new ArtifactDirectoryUpdate(
+        runfilesDirectory.getFileName().toString(),
         buildArtifactCache,
           runfilesDirectory,
               artifactDirectoryContents)

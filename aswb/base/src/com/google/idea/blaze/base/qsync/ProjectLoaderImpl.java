@@ -247,7 +247,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
     artifactTracker = tracker;
     renderJarArtifactTracker = new RenderJarArtifactTrackerImpl();
     appInspectorArtifactTracker =
-      new AppInspectorArtifactTrackerImpl(workspaceRoot.path(), artifactCache,
+      new AppInspectorArtifactTrackerImpl(artifactCache,
                                           ideProjectBasePath.resolve(ArtifactDirectories.INSPECTORS.relativePath()));
     AppInspectorTracker appInspectorTracker =
         new AppInspectorTrackerImpl(appInspectorBuilder, appInspectorArtifactTracker);
