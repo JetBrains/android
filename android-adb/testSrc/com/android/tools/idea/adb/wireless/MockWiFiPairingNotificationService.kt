@@ -18,15 +18,23 @@ package com.android.tools.idea.adb.wireless
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.FutureValuesTracker
 import com.intellij.notification.NotificationType
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.project.Project
 import javax.swing.Icon
 
 @UiThread
-class MockWiFiPairingNotificationService(project: Project) : WiFiPairingNotificationService {
+class MockWiFiPairingNotificationService(override val project: Project) :
+  WiFiPairingNotificationService {
   private val delegateService = WiFiPairingNotificationServiceImpl(project)
   val showBalloonTracker = FutureValuesTracker<ShowBalloonParams>()
 
-  override fun showBalloon(title: String, content: String, type: NotificationType, icon: Icon?) {
+  override fun showBalloon(
+    title: String,
+    content: String,
+    type: NotificationType,
+    icon: Icon?,
+    actions: List<AnAction>,
+  ) {
     delegateService.showBalloon(title, content, type, icon)
     showBalloonTracker.produce(ShowBalloonParams(title, content, type, icon))
   }

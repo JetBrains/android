@@ -16,6 +16,7 @@
 package com.android.tools.idea.adb.wireless.provisioner
 
 import com.android.tools.idea.adb.wireless.AdbServiceWrapperAdbLibImpl
+import com.android.tools.idea.adb.wireless.WiFiPairingNotificationServiceImpl
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerFactory
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.project.Project
@@ -31,5 +32,6 @@ class WifiPairableDeviceProvisionerFactory : DeviceProvisionerFactory {
       coroutineScope,
       AdbServiceWrapperAdbLibImpl(project),
       project,
+      WiFiPairingNotificationServiceImpl(project),
     )
 }

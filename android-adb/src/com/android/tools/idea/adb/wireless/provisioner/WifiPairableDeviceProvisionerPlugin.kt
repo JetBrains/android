@@ -38,9 +38,13 @@ import com.android.sdklib.deviceprovisioner.awaitDisconnection
 import com.android.tools.idea.adb.wireless.AdbServiceWrapper
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService
 import com.android.tools.idea.adb.wireless.TrackingMdnsService
+import com.android.tools.idea.adb.wireless.WiFiPairingNotificationService
+import com.android.tools.idea.adb.wireless.showDeviceHiddenBalloon
 import com.android.tools.idea.adb.wireless.v2.ui.WifiPairableDevicesPersistentStateComponent
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceActionPresentation
 import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceIcons
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
@@ -48,6 +52,7 @@ import kotlin.collections.plus
 import kotlin.collections.toSet
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -67,6 +72,7 @@ class WifiPairableDeviceProvisionerPlugin(
   private val scope: CoroutineScope,
   private val adbService: AdbServiceWrapper,
   private val project: Project,
+  private val notificationService: WiFiPairingNotificationService,
 ) : DeviceProvisionerPlugin {
 
   private val log = logger<WifiPairableDeviceProvisionerPlugin>()
@@ -206,6 +212,7 @@ class WifiPairableDeviceProvisionerPlugin(
                   }
               ),
               project,
+              notificationService,
               serviceName,
               trackService.service.deviceModel,
               trackService.service.ipv4,
@@ -241,6 +248,7 @@ class WifiPairableDeviceProvisionerPlugin(
     override val scope: CoroutineScope,
     override val stateFlow: StateFlow<DeviceState>,
     private val project: Project,
+    private val notificationService: WiFiPairingNotificationService,
     val serviceName: String,
     val deviceName: String?,
     val ipv4: String,
@@ -252,6 +260,7 @@ class WifiPairableDeviceProvisionerPlugin(
         scope: CoroutineScope,
         baseState: DeviceState,
         project: Project,
+        notificationService: WiFiPairingNotificationService,
         serviceName: String,
         deviceName: String?,
         ipv4: String,
@@ -261,6 +270,7 @@ class WifiPairableDeviceProvisionerPlugin(
           scope,
           MutableStateFlow(baseState),
           project,
+          notificationService,
           serviceName,
           deviceName,
           ipv4,
@@ -294,6 +304,9 @@ class WifiPairableDeviceProvisionerPlugin(
       object : HideDeviceAction {
         override suspend fun hide() {
           WifiPairableDevicesPersistentStateComponent.getInstance().addHiddenDevice(serviceName)
+          project.coroutineScope.launch(Dispatchers.EDT) {
+            notificationService.showDeviceHiddenBalloon(deviceName)
+          }
         }
 
         override val presentation =
