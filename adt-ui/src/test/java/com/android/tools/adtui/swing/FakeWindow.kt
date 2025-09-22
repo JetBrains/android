@@ -18,17 +18,18 @@ package com.android.tools.adtui.swing
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.runInEdtAndWait
-import org.mockito.ArgumentMatchers.anyInt
-import org.mockito.Mockito.doAnswer
-import org.mockito.Mockito.mock
-import org.mockito.kotlin.any
-import org.mockito.kotlin.whenever
+import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.Window
 import java.awt.event.WindowFocusListener
 import javax.swing.JComponent
 import javax.swing.RootPaneContainer
+import org.mockito.ArgumentMatchers.anyInt
+import org.mockito.Mockito.doAnswer
+import org.mockito.Mockito.mock
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 
 internal inline fun <reified T : Window> createFakeWindow(root: JComponent, parentDisposable: Disposable?): T {
   // A mock is used here because in a headless environment it is not possible to instantiate
@@ -51,6 +52,7 @@ private fun wrapInFakeWindow(mockWindow: Window, root: JComponent, parentDisposa
   whenever(mockWindow.locationOnScreen).thenReturn(Point(0, 0))
   whenever(mockWindow.size).thenReturn(root.size)
   whenever(mockWindow.bounds).thenReturn(Rectangle(0, 0, root.width, root.height))
+  whenever(mockWindow.maximumSize).thenReturn(Dimension(root.width, root.height))
   whenever(mockWindow.ownedWindows).thenReturn(emptyArray())
   whenever(mockWindow.isFocused).thenReturn(true)
   whenever(mockWindow.getFocusTraversalKeys(anyInt())).thenCallRealMethod()
