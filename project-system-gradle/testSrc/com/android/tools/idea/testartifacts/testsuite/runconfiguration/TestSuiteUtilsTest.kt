@@ -41,6 +41,7 @@ import com.intellij.testFramework.LightVirtualFile
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -90,7 +91,17 @@ class TestSuiteUtilsTest {
                   ),
                   junitEngineInfo = IdeJUnitEngineInfoImpl(includedEngines = setOf("engine1")),
                   targetedVariants = listOf("release")
-                )
+                ),
+                IdeTestSuiteImpl(
+                  name = "myTestSuiteWithMultipleTargets",
+                  sources = listOf(
+                    createAssetsTestSuiteSource(
+                      testSuitePath = moduleBasePath.resolve("src/myTestSuite")
+                    )
+                  ),
+                  junitEngineInfo = IdeJUnitEngineInfoImpl(includedEngines = setOf("engine1")),
+                  targetedVariants = listOf("debug")
+                ),
               )
             },
             testSuiteArtifactsStub = { variant ->
@@ -110,6 +121,24 @@ class TestSuiteUtilsTest {
                     suiteName = "myTestSuiteWithoutTargets",
                     targetedVariantName = "debug",
                     targets = emptyList()
+                  ),
+                  IdeTestSuiteVariantTargetImpl(
+                    suiteName = "myTestSuiteWithMultipleTargets",
+                    targetedVariantName = "debug",
+                    targets = listOf(
+                      IdeTestSuiteTargetImpl(
+                        targetName = "target1", testTaskName = "myTarget1TaskName",
+                        targetedDevices = emptyList()
+                      ),
+                      IdeTestSuiteTargetImpl(
+                        targetName = "target2", testTaskName = "myTarget2TaskName",
+                        targetedDevices = emptyList()
+                      ),
+                      IdeTestSuiteTargetImpl(
+                        targetName = "target3", testTaskName = "myTarget3TaskName",
+                        targetedDevices = listOf("deviceId")
+                      ),
+                    )
                   )
                 )
 
@@ -239,30 +268,43 @@ class TestSuiteUtilsTest {
   }
 
   @Test
-  fun getTestSuiteTaskName_returnsTaskName() {
-    val taskName = TestSuiteUtils.getTestSuiteTaskName(gradleAndroidModel.selectedVariant, "myTestSuite")
+  fun getTestSuiteTargets_returnsSingleTarget() {
+    val targets = TestSuiteUtils.getTestSuiteTargets(gradleAndroidModel.selectedVariant, "myTestSuite")
 
-    assertEquals("myTestSuiteTaskName", taskName)
+    assertEquals(1, targets.size)
+    assertEquals("connectedTest", targets.first().targetName)
+    assertEquals("myTestSuiteTaskName", targets.first().testTaskName)
+  }
+
+  @Test
+  fun getTestSuiteTargets_ignoresTargetsWithDevices() {
+    val targets = TestSuiteUtils.getTestSuiteTargets(gradleAndroidModel.selectedVariant, "myTestSuiteWithMultipleTargets")
+
+    assertEquals(2, targets.size)
+    assertEquals("target1", targets.first().targetName)
+    assertEquals("myTarget1TaskName", targets.first().testTaskName)
+    assertEquals("target2", targets[1].targetName)
+    assertEquals("myTarget2TaskName", targets[1].testTaskName)
   }
 
   @Test
   fun getTestSuiteTaskName_returnsNull_whenTestSuiteNotFound() {
-    val taskName = TestSuiteUtils.getTestSuiteTaskName(gradleAndroidModel.selectedVariant, "unknownTestSuite")
+    val targets = TestSuiteUtils.getTestSuiteTargets(gradleAndroidModel.selectedVariant, "unknownTestSuite")
 
-    assertNull(taskName)
+    assertTrue(targets.isEmpty())
   }
 
   @Test
   fun getTestSuiteTaskName_returnsNull_whenNoTargetsConfiguredOnTestSuite() {
-    val taskName = TestSuiteUtils.getTestSuiteTaskName(gradleAndroidModel.selectedVariant, "myTestSuiteWithoutTargets")
+    val targets = TestSuiteUtils.getTestSuiteTargets(gradleAndroidModel.selectedVariant, "myTestSuiteWithoutTargets")
 
-    assertNull(taskName)
+    assertTrue(targets.isEmpty())
   }
 
   @Test
   fun getTestSuiteTaskName_returnsNull_whenNonTargetedVariantSelected() {
-    val taskName = TestSuiteUtils.getTestSuiteTaskName(gradleAndroidModel.selectedVariant, "myTestSuiteWithNonTargetedVariant")
+    val targets = TestSuiteUtils.getTestSuiteTargets(gradleAndroidModel.selectedVariant, "myTestSuiteWithNonTargetedVariant")
 
-    assertNull(taskName)
+    assertTrue(targets.isEmpty())
   }
 }
