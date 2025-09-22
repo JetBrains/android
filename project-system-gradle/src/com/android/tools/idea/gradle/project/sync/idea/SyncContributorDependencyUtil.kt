@@ -364,7 +364,8 @@ private fun buildIdeLibraryModelResolver(
     getGradlePathBy = { null },
     getModuleDataNode = { null },
     resolveArtifact = { artifactToSourceSetMap[it] },
-    resolveKmpAndroidMainSourceSet = { null }
+    resolveKmpAndroidMainSourceSet = { null },
+    ignoreKmpFailures=true
   ).buildResolvedLibraryTable(libraryTable)
 
   return IdeLibraryModelResolverImpl.fromLibraryTables(
