@@ -54,7 +54,7 @@ public class BuildFlagsSection {
     public String quickDocs() {
       return String.format(
           "A set of flags that get passed to all %s build command invocations as arguments. This"
-              + "includes both sync and run configuration actions.",
+              + " includes both sync and run configuration actions.",
           Blaze.guessBuildSystemName());
     }
   }
