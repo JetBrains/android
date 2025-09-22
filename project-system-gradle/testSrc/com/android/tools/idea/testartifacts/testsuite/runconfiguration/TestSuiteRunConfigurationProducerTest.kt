@@ -129,7 +129,7 @@ class TestSuiteRunConfigurationProducerTest {
 
     assertTrue(result)
     assertEquals("All myTestSuite tests", configuration.name)
-    assertEquals("myTestSuiteTaskName", configuration.getTaskName())
+    assertEquals("myTestSuiteTaskName", configuration.getTaskNames().first())
     assertEquals(setOf("engine1"), configuration.getTestEngineIds())
   }
 
@@ -146,7 +146,7 @@ class TestSuiteRunConfigurationProducerTest {
   @Test
   fun isConfigurationFromContext_match() {
     val configuration = TestSuiteRunConfiguration(projectRule.project, producer.configurationFactory, "All myTestSuite tests")
-    configuration.setTaskName("myTestSuiteTaskName")
+    configuration.addTaskName("myTestSuiteTaskName")
     configuration.setTestEngineIds(setOf("engine1"))
     configuration.settings.externalProjectPath = ExternalSystemApiUtil.getExternalProjectPath(testSuiteModule)
 
@@ -158,7 +158,7 @@ class TestSuiteRunConfigurationProducerTest {
   @Test
   fun isConfigurationFromContext_match_whenUserRenamesConfiguration() {
     val configuration = TestSuiteRunConfiguration(projectRule.project, producer.configurationFactory, "User updated name")
-    configuration.setTaskName("myTestSuiteTaskName")
+    configuration.addTaskName("myTestSuiteTaskName")
     configuration.setTestEngineIds(setOf("engine1"))
     configuration.settings.externalProjectPath = ExternalSystemApiUtil.getExternalProjectPath(testSuiteModule)
 
@@ -170,7 +170,7 @@ class TestSuiteRunConfigurationProducerTest {
   @Test
   fun isConfigurationFromContext_noMatch_wrongTask() {
     val configuration = TestSuiteRunConfiguration(projectRule.project, producer.configurationFactory, "All myTestSuite tests")
-    configuration.setTaskName("wrongTask")
+    configuration.addTaskName("wrongTask")
     configuration.setTestEngineIds(setOf("engine1"))
     configuration.settings.externalProjectPath = ExternalSystemApiUtil.getExternalProjectPath(testSuiteModule)
 
@@ -182,7 +182,7 @@ class TestSuiteRunConfigurationProducerTest {
   @Test
   fun isConfigurationFromContext_noMatch_whenWrongModule() {
     val configuration = TestSuiteRunConfiguration(projectRule.project, producer.configurationFactory, "All myTestSuite tests")
-    configuration.setTaskName("myTestSuiteTaskName")
+    configuration.addTaskName("myTestSuiteTaskName")
     configuration.setTestEngineIds(setOf("engine1"))
     // Configure the top-level module path rather than the test suite module path
     configuration.settings.externalProjectPath = ExternalSystemApiUtil.getExternalProjectPath(projectRule.module)

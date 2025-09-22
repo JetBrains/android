@@ -61,15 +61,27 @@ object TestSuiteUtils {
   }
 
   /**
-   * Returns the name of the Gradle task for running the given test suite on a connected device
-   * for the currently selected variant.
+   * Represents a target for a test suite that can be executed.
+   *
+   * A single test suite can have multiple targets (e.g., one for emulators, one for physical
+   * devices). This class holds the information needed to run a specific target.
+   *
+   * @param targetName The name of the target.
+   * @param testTaskName The name of the Gradle task used to run this test suite target.
    */
-  fun getTestSuiteTaskName(selectedVariant: IdeVariantCore, testSuiteName: String): String? {
-    val testSuiteVariantTarget = selectedVariant.testSuiteArtifacts.find { it.suiteName == testSuiteName } ?: return null
-    val connectedDeviceTarget = testSuiteVariantTarget.targets.find {
-      it.targetedDevices.isEmpty()
-    }
-    return connectedDeviceTarget?.testTaskName
+  data class TestSuiteTarget(val targetName: String, val testTaskName: String)
+
+  /**
+   * Returns the list of [TestSuiteTarget] for the given [testSuiteName] that are applicable to the currently selected variant.
+   *
+   * Only targets that run on a connected device, i.e. have no target device, will be returned.
+   * TODO(b/447100167): Add support for running targets configured with GMD devices
+   */
+  fun getTestSuiteTargets(selectedVariant: IdeVariantCore, testSuiteName: String): List<TestSuiteTarget> {
+    val testSuiteVariantTarget = selectedVariant.testSuiteArtifacts.find { it.suiteName == testSuiteName } ?: return emptyList()
+    return testSuiteVariantTarget.targets
+      .filter { it.targetedDevices.isEmpty() }
+      .map { TestSuiteTarget(it.targetName, it.testTaskName) }
   }
 
   private fun isFileInTestSuite(file: File, testSuite: IdeTestSuite): Boolean {
