@@ -109,6 +109,7 @@ public class ProjectArtifactStore {
       Path root = projectDir.resolve(entry.getKey());
       ArtifactDirectoryUpdate dirUpdate =
           new ArtifactDirectoryUpdate(
+              entry.getKey(),
               artifactCache,
               root,
               entry.getValue());

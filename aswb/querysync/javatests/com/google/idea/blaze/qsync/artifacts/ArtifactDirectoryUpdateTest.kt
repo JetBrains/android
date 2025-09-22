@@ -66,6 +66,7 @@ class ArtifactDirectoryUpdateTest {
   fun copy_build_artifact_into_empty_dir() {
     val update =
       ArtifactDirectoryUpdate(
+        "name",
         cache,
         root,
         ArtifactDirectoryContents.newBuilder()
@@ -96,6 +97,7 @@ class ArtifactDirectoryUpdateTest {
     )
     val update =
       ArtifactDirectoryUpdate(
+        "name",
         cache,
         root,
         ArtifactDirectoryContents.newBuilder()
@@ -133,6 +135,7 @@ class ArtifactDirectoryUpdateTest {
 
     val update =
       ArtifactDirectoryUpdate(
+        "name",
         cache,
         root,
         ArtifactDirectoryContents.getDefaultInstance()
@@ -149,6 +152,7 @@ class ArtifactDirectoryUpdateTest {
     // first, populate the dir
     var update =
       ArtifactDirectoryUpdate(
+        "name",
         cache,
         root,
         ArtifactDirectoryContents.newBuilder()
@@ -169,6 +173,7 @@ class ArtifactDirectoryUpdateTest {
 
     update =
       ArtifactDirectoryUpdate(
+        "name",
         cache,
         root,
         ArtifactDirectoryContents.getDefaultInstance()
@@ -192,6 +197,7 @@ class ArtifactDirectoryUpdateTest {
     )
     val update =
       ArtifactDirectoryUpdate(
+        "name",
         cache,
         root,
         ArtifactDirectoryContents.newBuilder()
@@ -222,6 +228,7 @@ class ArtifactDirectoryUpdateTest {
     )
     val update =
       ArtifactDirectoryUpdate(
+        "name",
         cache,
         root,
         ArtifactDirectoryContents.newBuilder()
@@ -248,6 +255,7 @@ class ArtifactDirectoryUpdateTest {
     createFiles("dir/file1.txt")
     val update =
       ArtifactDirectoryUpdate(
+        "name",
         cache,
         root,
         ArtifactDirectoryContents.newBuilder()
@@ -275,6 +283,7 @@ class ArtifactDirectoryUpdateTest {
     createFiles("dir/file1.txt", "dir/subdir/file2.txt")
     val update =
       ArtifactDirectoryUpdate(
+        "name",
         cache,
         root,
         ArtifactDirectoryContents.newBuilder()
@@ -307,6 +316,7 @@ class ArtifactDirectoryUpdateTest {
   fun unchanged_files_not_requested_from_cache() {
     val populate =
       ArtifactDirectoryUpdate(
+        "name",
         cache,
         root,
         ArtifactDirectoryContents.newBuilder()
@@ -332,6 +342,7 @@ class ArtifactDirectoryUpdateTest {
     // re-run an equivalent update
     val update =
       ArtifactDirectoryUpdate(
+        "name",
         cache,
         root,
         ArtifactDirectoryContents.newBuilder()
@@ -361,6 +372,7 @@ class ArtifactDirectoryUpdateTest {
   fun partial_update() {
     val populate =
       ArtifactDirectoryUpdate(
+        "name",
         cache,
         root,
         ArtifactDirectoryContents.newBuilder()
@@ -386,6 +398,7 @@ class ArtifactDirectoryUpdateTest {
     // 1 file is changed, another is identical:
     val update =
       ArtifactDirectoryUpdate(
+        "name",
         cache,
         root,
         ArtifactDirectoryContents.newBuilder()

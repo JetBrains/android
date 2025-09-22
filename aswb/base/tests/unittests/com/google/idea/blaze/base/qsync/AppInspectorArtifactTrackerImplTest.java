@@ -56,7 +56,6 @@ public class AppInspectorArtifactTrackerImplTest {
     final var buildArtifactCache = createBuildArtifactCache(new TestArtifactFetcher(TestArtifactFetcher.ShouldFail.NO));
     Path storePath = tempDir.newFolder("store").toPath();
     final var tracker = new AppInspectorArtifactTrackerImpl(
-      tempDir.newFolder("workspace").toPath(),
       buildArtifactCache,
       storePath
     );
@@ -82,7 +81,6 @@ public class AppInspectorArtifactTrackerImplTest {
     final var buildArtifactCache = createBuildArtifactCache(new TestArtifactFetcher(TestArtifactFetcher.ShouldFail.YES));
     Path storePath = tempDir.newFolder("store").toPath();
     final var tracker = new AppInspectorArtifactTrackerImpl(
-      tempDir.newFolder("workspace").toPath(),
       buildArtifactCache,
       storePath
     );

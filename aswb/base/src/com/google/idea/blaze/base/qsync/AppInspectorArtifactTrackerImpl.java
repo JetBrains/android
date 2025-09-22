@@ -33,15 +33,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import java.util.logging.Logger;
 
 /**
  * A local cache of built app inspector artifacts.
  */
 public class AppInspectorArtifactTrackerImpl implements AppInspectorArtifactTracker {
-  private static final Logger logger = Logger.getLogger(AppInspectorArtifactTrackerImpl.class.getName());
-
-  private final Path workspaceRoot;
   private final BuildArtifactCache artifactCache;
   private final Path inspectorsDir;
 
@@ -53,8 +49,7 @@ public class AppInspectorArtifactTrackerImpl implements AppInspectorArtifactTrac
    */
   private final Map<Label, Map<Path, ProjectProto.ProjectArtifact>> knownInspectors = new HashMap<>();
 
-  public AppInspectorArtifactTrackerImpl(Path workspaceRoot, BuildArtifactCache artifactCache, Path inspectorsDir) {
-    this.workspaceRoot = workspaceRoot;
+  public AppInspectorArtifactTrackerImpl(BuildArtifactCache artifactCache, Path inspectorsDir) {
     this.artifactCache = artifactCache;
     this.inspectorsDir = inspectorsDir;
   }
@@ -101,6 +96,7 @@ public class AppInspectorArtifactTrackerImpl implements AppInspectorArtifactTrac
   private void updateArtifactDirectory(Context<?> context, ProjectProto.ArtifactDirectoryContents artifactDirectoryContents) throws BuildException {
     try {
       new ArtifactDirectoryUpdate(
+        inspectorsDir.getFileName().toString(),
         artifactCache, inspectorsDir, artifactDirectoryContents)
         .update(context);
     }
