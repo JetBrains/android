@@ -70,7 +70,7 @@ class MeasureSyncExecutionTimeRule(val syncCount: Int, val projectToCompareAgain
 
   override fun before() {
     StudioFlags.SYNC_STATS_OUTPUT_DIRECTORY.override(OUTPUT_DIRECTORY)
-    MeasurementPluginConfig.configureAndApply(OUTPUT_DIRECTORY, captureTypes = setOf(CaptureType.TIMESTAMP), CaptureJfrRule.shouldEnable())
+    MeasurementPluginConfig.configureAndApply(OUTPUT_DIRECTORY, captureTypes = setOf(CaptureType.TIMESTAMP), CaptureJfrRule.shouldEnableDaemon())
   }
 
   val listener = object : GradleSyncListenerWithRoot {
