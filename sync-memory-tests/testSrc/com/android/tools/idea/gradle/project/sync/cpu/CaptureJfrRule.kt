@@ -30,13 +30,18 @@ import javax.management.ObjectName
 
 class CaptureJfrRule : ExternalResource() {
 
+  var counter = 0
+  val syncCount = System.getProperty("sync_count_override")?.toIntOrNull() ?: 5
+
   val listener  = object : GradleSyncListenerWithRoot {
     // Invoked when each sync attempt starts
     override fun syncStarted(project: Project, rootProjectPath: String) {
-      startJavaFlightRecording()
+      counter++
+
+      if (counter == 1 || counter == syncCount + 1) startJavaFlightRecording()
     }
     override fun syncSucceeded(project: Project, rootProjectPath: String) {
-      stopJavaFlightRecording()
+      if (counter == 1 || counter == syncCount + 1) stopJavaFlightRecording()
     }
   }
 
@@ -75,5 +80,6 @@ class CaptureJfrRule : ExternalResource() {
 
   companion object {
     fun shouldEnable() = System.getProperty("capture_jfr").toBoolean()
+    fun shouldEnableDaemon() = System.getProperty("capture_jfr_daemon").toBoolean()
   }
 }
