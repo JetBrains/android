@@ -37,9 +37,30 @@ class ProjectProtoUpdate(
   private val buildGraph: BuildGraphData,
   private val context: Context<*>
 ) {
+  /**
+   * A library is a target external to the project scope.
+   */
   interface LibraryUpdater {
     fun addClassJars(jars: Collection<Path>)
     fun addSourceJars(jars: Collection<ProjectPath>)
+  }
+
+  /**
+   * A module is a target in the scope of the project.
+   */
+  interface ModuleUpdater {
+    fun addAndroidResourceJavaPackage(pkg: String)
+    fun addExternalAndroidLibrary(externalAndroidLibrary: ProjectProto.ExternalAndroidLibrary)
+    fun contentEntry(root: ProjectPath, updater: ContentEntryUpdater.() -> Unit)
+  }
+
+  /**
+   * A content entry is a directory that is analysed by the IDE and contains source code folders.
+   *
+   * Note, that all files are "indexed" by the IDE regardless of whether they are in a source folder or not.
+   */
+  interface ContentEntryUpdater {
+    fun addSourceRoot(root: ProjectPath, javaPackage: String, isTest: Boolean, isGenerated: Boolean)
   }
 
   private val project: ProjectProto.Project.Builder = existingProject.toBuilder()
@@ -50,7 +71,6 @@ class ProjectProtoUpdate(
   fun context(): Context<*> = context
   fun ccWorkspace(): ProjectProto.CcWorkspace.Builder = project.ccWorkspaceBuilder
   fun buildGraph(): BuildGraphData = buildGraph
-  fun workspaceModule(): ProjectProto.Module.Builder = workspaceModule
 
   /** Gets a builder for a library, creating it if it doesn't already exist.  */
   fun library(name: Label, updater: LibraryUpdater.() -> Unit) {
@@ -76,6 +96,39 @@ class ProjectProtoUpdate(
         update(name) {
           addAllSources(jars.map { ProjectProto.LibrarySource.newBuilder().setSrcjar(it.toProto()).build() })
         }
+      }
+    }.updater()
+  }
+
+  fun module(name: Label, updater: ModuleUpdater.() -> Unit) {
+    object: ModuleUpdater {
+      override fun addAndroidResourceJavaPackage(pkg: String) {
+        workspaceModule.addAndroidSourcePackages(pkg)
+      }
+
+      override fun addExternalAndroidLibrary(externalAndroidLibrary: ProjectProto.ExternalAndroidLibrary) {
+        workspaceModule.addAndroidExternalLibraries(externalAndroidLibrary)
+      }
+
+      override fun contentEntry(root: ProjectPath, updater: ContentEntryUpdater.() -> Unit) {
+        // This is a linear scan but it is fine for now since we don't have many content entries and we add each one only once.
+        val contentEntryBuilder = workspaceModule.contentEntriesBuilderList.firstOrNull {it.root == root}
+                                  ?: let { workspaceModule.addContentEntriesBuilder().setRoot(root.toProto()) }
+        object: ContentEntryUpdater {
+          override fun addSourceRoot(
+            root: ProjectPath,
+            javaPackage: String,
+            isTest: Boolean,
+            isGenerated: Boolean,
+          ) {
+            contentEntryBuilder
+              .addSourcesBuilder()
+              .setProjectPath(root.toProto())
+              .setPackagePrefix(javaPackage)
+              .setIsTest(isTest)
+              .setIsGenerated(isGenerated)
+          }
+        }.updater()
       }
     }.updater()
   }

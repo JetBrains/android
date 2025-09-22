@@ -33,17 +33,13 @@ class AddAndroidResPackages : ProjectProtoUpdateOperation {
     artifactState: ArtifactTracker.State,
     context: Context<*>
   ) {
-    update
-      .workspaceModule()
-      .addAllAndroidSourcePackages(
-        artifactState.targets()
-          .mapNotNull {
-            it.javaInfo()
-              .getOrNull()
-              ?.androidResourcesPackage()
-              ?.takeUnless(String::isEmpty)
-          }
-          .distinct()
-      )
+    artifactState
+      .targets()
+      .mapNotNull { it.javaInfo().getOrNull()?.let { javaInfo -> it.label() to javaInfo.androidResourcesPackage() } }
+      .forEach { (label, randroidResourceJavaPackage) ->
+        update.module(label) {
+          addAndroidResourceJavaPackage(randroidResourceJavaPackage)
+        }
+      }
   }
 }
