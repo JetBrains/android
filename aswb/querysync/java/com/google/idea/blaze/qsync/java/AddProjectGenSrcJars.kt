@@ -16,7 +16,6 @@
 package com.google.idea.blaze.qsync.java
 
 import com.google.common.collect.ImmutableSet
-import com.google.common.collect.ImmutableSetMultimap
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
@@ -28,11 +27,8 @@ import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.SrcJarPrefixedJavaPackageRoots
 import com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder.JarPath
 import com.google.idea.blaze.qsync.project.ProjectDefinition
-import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact.ArtifactTransform
 import com.google.idea.blaze.qsync.project.TestSourceGlobMatcher
-import java.util.function.Function
-import java.util.stream.Stream
 import kotlin.jvm.optionals.getOrNull
 
 /**
@@ -65,42 +61,42 @@ class AddProjectGenSrcJars(
     context: Context<*>
   ) {
     for (target in artifactState.targets()) {
-      getProjectGenSrcJars(target)
-        .forEach { genSrc ->
-          // a zip of generated sources
-          val added =
-            update
-              .artifactDirectory(ArtifactDirectories.JAVA_GEN_SRC)
-              .addIfNewer(
-                genSrc.artifactPath().resolve("src"),
-                genSrc,
-                target.buildContext(),
-                ArtifactTransform.UNZIP
-              )
-              .orElse(null)
-          if (added != null) {
-            val genSrcJarContentEntry =
-              ProjectProto.ContentEntry.newBuilder().setRoot(added.toProto())
-
-            val packageRoots =
-              genSrc
-                .getMetadata(SrcJarPrefixedJavaPackageRoots::class.java)
-                .getOrNull()
-                ?.paths()
-              ?: ImmutableSet.of(JarPath.create("", ""))
-            for (innerPath in packageRoots) {
-              genSrcJarContentEntry.addSources(
-                ProjectProto.SourceFolder.newBuilder()
-                  .setProjectPath(added.resolveChild(innerPath.path).toProto())
-                  .setIsGenerated(true)
-                  .setIsTest(testSourceMatcher.matches(genSrc.target().getBuildPackagePath()))
-                  .setPackagePrefix(innerPath.packagePrefix)
-                  .build()
-              )
+      val genSrcJars = getProjectGenSrcJars(target)
+      if (genSrcJars.isEmpty()) continue
+      update.module(target.label()) {
+        genSrcJars
+          .forEach { genSrc ->
+            // a zip of generated sources
+            val added =
+              update
+                .artifactDirectory(ArtifactDirectories.JAVA_GEN_SRC)
+                .addIfNewer(
+                  genSrc.artifactPath().resolve("src"),
+                  genSrc,
+                  target.buildContext(),
+                  ArtifactTransform.UNZIP
+                )
+                .orElse(null)
+            if (added != null) {
+              contentEntry(added) {
+                val packageRoots =
+                  genSrc
+                    .getMetadata(SrcJarPrefixedJavaPackageRoots::class.java)
+                    .getOrNull()
+                    ?.paths()
+                  ?: ImmutableSet.of(JarPath.create("", ""))
+                for (innerPath in packageRoots) {
+                  addSourceRoot(
+                    root = added.resolveChild(innerPath.path),
+                    javaPackage = innerPath.packagePrefix,
+                    isTest = testSourceMatcher.matches(genSrc.target().getBuildPackagePath()),
+                    isGenerated = true
+                  )
+                }
+              }
             }
-            update.workspaceModule().addContentEntries(genSrcJarContentEntry.build())
           }
-        }
+      }
     }
   }
 }

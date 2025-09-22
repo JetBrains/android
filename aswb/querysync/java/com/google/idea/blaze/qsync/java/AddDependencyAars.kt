@@ -65,26 +65,30 @@ class AddDependencyAars(
   ) {
     var aarDir: ArtifactDirectoryBuilder? = null
     for (target in artifactState.targets()) {
-      for (aar in getDependencyAars(target)) {
-        if (aarDir == null) {
-          aarDir = update.artifactDirectory(ArtifactDirectories.DEFAULT)
-        }
-        val packageName =
-          aar.getMetadata(AarResPackage::class.java).getOrNull()?.name
-        val dest =
-          aarDir
-            .addIfNewer(aar.artifactPath(), aar, target.buildContext(), ArtifactTransform.UNZIP)
-            .orElse(null)
-        if (dest != null) {
-          val lib =
-            ProjectProto.ExternalAndroidLibrary.newBuilder()
-              .setName(aar.artifactPath().toString().replace('/', '_'))
-              .setLocation(dest.toProto())
-              .setManifestFile(dest.resolveChild(Path.of("AndroidManifest.xml")).toProto())
-              .setResFolder(dest.resolveChild(Path.of("res")).toProto())
-              .setSymbolFile(dest.resolveChild(Path.of("R.txt")).toProto())
-          packageName?.let { lib.setPackageName(it) }
-          update.workspaceModule().addAndroidExternalLibraries(lib)
+      val aars = getDependencyAars(target)
+      if (aars.isEmpty()) continue
+      update.module(target.label()) {
+        for (aar in aars) {
+          if (aarDir == null) {
+            aarDir = update.artifactDirectory(ArtifactDirectories.DEFAULT)
+          }
+          val packageName =
+            aar.getMetadata(AarResPackage::class.java).getOrNull()?.name
+          val dest =
+            aarDir
+              .addIfNewer(aar.artifactPath(), aar, target.buildContext(), ArtifactTransform.UNZIP)
+              .orElse(null)
+          if (dest != null) {
+            val lib =
+              ProjectProto.ExternalAndroidLibrary.newBuilder()
+                .setName(aar.artifactPath().toString().replace('/', '_'))
+                .setLocation(dest.toProto())
+                .setManifestFile(dest.resolveChild(Path.of("AndroidManifest.xml")).toProto())
+                .setResFolder(dest.resolveChild(Path.of("res")).toProto())
+                .setSymbolFile(dest.resolveChild(Path.of("R.txt")).toProto())
+            packageName?.let { lib.setPackageName(it) }
+            addExternalAndroidLibrary(lib.build())
+          }
         }
       }
     }
