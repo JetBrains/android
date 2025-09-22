@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.devicemanagerv2
 
-import com.android.tools.idea.adb.wireless.provisioner.WifiPairableDeviceProvisionerPlugin.WifiPairableDeviceHandle
-import com.android.tools.idea.adb.wireless.v2.ui.WifiPairableDevicesPersistentStateComponent
+import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.idea.deviceprovisioner.deviceHandle
+import com.android.tools.idea.deviceprovisioner.launchCatchingDeviceActionException
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
@@ -27,11 +27,12 @@ class HideDeviceAction : DumbAwareAction("Hide", "Hide from device manager", nul
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.presentation.isEnabledAndVisible = e.deviceHandle() is WifiPairableDeviceHandle
+    e.updateFromDeviceAction(DeviceHandle::hideDeviceAction)
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    WifiPairableDevicesPersistentStateComponent.getInstance()
-      .addHiddenDevice((e.deviceHandle() as WifiPairableDeviceHandle).serviceName)
+    val deviceHandle = e.deviceHandle()
+    val hideAction = deviceHandle?.hideDeviceAction ?: return
+    deviceHandle.launchCatchingDeviceActionException { hideAction.hide() }
   }
 }
