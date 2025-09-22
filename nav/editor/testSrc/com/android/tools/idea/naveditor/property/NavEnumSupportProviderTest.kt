@@ -21,6 +21,7 @@ import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_START_DESTINATION
 import com.android.SdkConstants.AUTO_URI
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.concurrency.readOnPooledThread
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.addDynamicFeatureModule
@@ -33,6 +34,7 @@ import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.runInEdtAndGet
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION
 
 class NavEnumSupportProviderTest : NavTestCase() {
@@ -94,7 +96,7 @@ class NavEnumSupportProviderTest : NavTestCase() {
     val fragment1 = model.treeReader.find("fragment1")!!
     val property = getProperty(ANDROID_URI, ATTR_NAME, NlPropertyType.CLASS_NAME, fragment1)
     val support = getSupport(property)
-    val values = support.values
+    val values = readOnPooledThread { support.values }.get()
 
     val expectedDisplays =
       listOf(
@@ -128,6 +130,24 @@ class NavEnumSupportProviderTest : NavTestCase() {
       .isEqualTo(
         EnumValue.item("mytest.navtest.ImportantFragment", "ImportantFragment (mytest.navtest)")
       )
+  }
+
+  // Regression test for b/321695920
+  fun testClassNamesValuesIsNotAllowedOnEdt() {
+    addFragment("fragment")
+
+    val model = model("nav.xml") { navigation("root") { fragment("fragment") } }
+
+    val fragment = model.treeReader.find("fragment")!!
+    val property = getProperty(ANDROID_URI, ATTR_NAME, NlPropertyType.CLASS_NAME, fragment)
+    val support = getSupport(property)
+    val result = runCatching {
+      runInEdtAndGet {
+        // should not be allowed
+        support.values
+      }
+    }
+    assertThat(result.exceptionOrNull()).isNotNull()
   }
 
   fun testSelectName() {
