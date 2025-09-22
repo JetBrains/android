@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.scope.BlazeContext;
+import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
@@ -75,7 +76,7 @@ public final class RuntimeArtifactCacheImpl implements RuntimeArtifactCache {
     artifactCacheMap.put(targetKind, buildArtifactLayout(target, artifacts));
     final var artifactDirectoryContents = buildArtifactDirectoryContents(artifactCacheMap);
     waitForArtifacts(artifactsCachedFuture);
-    updateArtifactDirectory(artifactDirectoryContents);
+    updateArtifactDirectory(context, artifactDirectoryContents);
 
     return resolveArtifactLayoutPaths(target, artifactKind, artifactCacheMap.get(targetKind).keySet());
   }
@@ -113,13 +114,14 @@ public final class RuntimeArtifactCacheImpl implements RuntimeArtifactCache {
   }
 
   private void updateArtifactDirectory(
+      Context<?> context,
       ProjectProto.ArtifactDirectoryContents artifactDirectoryContents) {
     try {
       new ArtifactDirectoryUpdate(
         buildArtifactCache,
           runfilesDirectory,
               artifactDirectoryContents)
-          .update();
+          .update(context);
     } catch (IOException e) {
       throw new IllegalStateException("Exception while updating artifact directory", e);
     }

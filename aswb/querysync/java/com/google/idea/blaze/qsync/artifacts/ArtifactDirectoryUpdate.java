@@ -26,7 +26,9 @@ import com.google.common.io.MoreFiles;
 import com.google.common.io.RecursiveDeleteOption;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.Uninterruptibles;
+import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
+import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.common.artifact.CachedArtifact;
 import com.google.idea.blaze.exception.BuildException;
@@ -78,7 +80,7 @@ public class ArtifactDirectoryUpdate {
     return artifactDir.resolveSibling(artifactDir.getFileName() + ".contents");
   }
 
-  public ImmutableSet<Label> update() throws IOException {
+  public ImmutableSet<Label> update(Context<?> context) throws IOException {
     Files.createDirectories(root);
     Path contentsProtoPath = getContentsFile(root);
 
@@ -90,9 +92,17 @@ public class ArtifactDirectoryUpdate {
 
     ArtifactDirectoryContents existingContents;
     if (Files.exists(contentsProtoPath)) {
-      try (InputStream in = Files.newInputStream(contentsProtoPath)) {
-        existingContents =
+      try {
+        try (InputStream in = Files.newInputStream(contentsProtoPath)) {
+          existingContents =
             ArtifactDirectoryContents.parseFrom(in, ExtensionRegistryLite.getEmptyRegistry());
+        }
+      }
+      catch (IOException | RuntimeException ex) {
+        context.output(PrintOutput.error("Failed to load " + contentsProtoPath + "\n" + "Ignoring and trying to rebuild the directory.\n" + ex));
+        existingContents = ArtifactDirectoryContents.getDefaultInstance();
+        // Ignore corrupted contents files. In the worst case we will delete artifact files and won't be able to copy them again as they
+        // already expired in the cache. This, however,won't prevent syncing/building dependencies as an exception would do.
       }
       // we delete this now so that if something fails mid way through the below, then we should
       // recover next time by re-creating the entire contents of the dir.

@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.io.Closer
 import com.google.common.truth.Truth
+import com.google.idea.blaze.common.NoopContext
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectoryContents
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact
@@ -77,7 +78,7 @@ class ArtifactDirectoryUpdateTest {
           )
           .build()
       )
-    update.update()
+    update.update(NoopContext())
 
     Truth.assertThat(readContents()).containsExactly(Path.of("somefile.txt"))
     Truth.assertThat(Files.readAllLines(root.resolve("somefile.txt"))).containsExactly("abcde")
@@ -107,7 +108,7 @@ class ArtifactDirectoryUpdateTest {
           )
           .build()
       )
-    update.update()
+    update.update(NoopContext())
 
     Truth.assertThat(readContents())
       .containsExactly(
@@ -136,7 +137,7 @@ class ArtifactDirectoryUpdateTest {
         root,
         ArtifactDirectoryContents.getDefaultInstance()
       )
-    update.update()
+    update.update(NoopContext())
 
     Truth.assertThat(Files.exists(root)).isFalse()
     Truth.assertThat(update.updatedPaths).isEmpty()
@@ -160,7 +161,7 @@ class ArtifactDirectoryUpdateTest {
           )
           .build()
       )
-    update.update()
+    update.update(NoopContext())
 
     val contentsProtoPath = root.resolveSibling(root.fileName.toString() + ".contents")
 
@@ -172,7 +173,7 @@ class ArtifactDirectoryUpdateTest {
         root,
         ArtifactDirectoryContents.getDefaultInstance()
       )
-    update.update()
+    update.update(NoopContext())
 
     Truth.assertThat(Files.exists(root)).isFalse()
     Truth.assertThat(Files.exists(contentsProtoPath)).isFalse()
@@ -203,7 +204,7 @@ class ArtifactDirectoryUpdateTest {
           )
           .build()
       )
-    update.update()
+    update.update(NoopContext())
 
     Truth.assertThat(readContents())
       .containsExactly(Path.of("dir/file3.txt"), Path.of("dir/subdir2/file4.txt"))
@@ -235,7 +236,7 @@ class ArtifactDirectoryUpdateTest {
           )
           .build()
       )
-    update.update()
+    update.update(NoopContext())
 
     Truth.assertThat(readContents()).containsExactly(Path.of("dir/file1.txt"))
     Truth.assertThat(update.updatedPaths).containsExactly(root.resolve("dir/file1.txt"))
@@ -261,7 +262,7 @@ class ArtifactDirectoryUpdateTest {
           )
           .build()
       )
-    update.update()
+    update.update(NoopContext())
 
     Truth.assertThat(readContents()).containsExactly(Path.of("dir"))
     Truth.assertThat(Files.readAllLines(root.resolve("dir"))).containsExactly("abcde")
@@ -293,7 +294,7 @@ class ArtifactDirectoryUpdateTest {
           )
           .build()
       )
-    update.update()
+    update.update(NoopContext())
 
     Truth.assertThat(readContents())
       .containsExactly(Path.of("dir/file3.txt"), Path.of("dir/subdir2/file4.txt"))
@@ -325,7 +326,7 @@ class ArtifactDirectoryUpdateTest {
           )
           .build()
       )
-    populate.update()
+    populate.update(NoopContext())
     cache!!.takeRequestedDigests()
 
     // re-run an equivalent update
@@ -350,7 +351,7 @@ class ArtifactDirectoryUpdateTest {
           )
           .build()
       )
-    update.update()
+    update.update(NoopContext())
     Truth.assertThat(update.updatedPaths).isEmpty()
     Truth.assertThat(cache!!.takeRequestedDigests()).isEmpty()
   }
@@ -379,7 +380,7 @@ class ArtifactDirectoryUpdateTest {
           )
           .build()
       )
-    populate.update()
+    populate.update(NoopContext())
     cache!!.takeRequestedDigests()
 
     // 1 file is changed, another is identical:
@@ -404,7 +405,7 @@ class ArtifactDirectoryUpdateTest {
           )
           .build()
       )
-    update.update()
+    update.update(NoopContext())
     Truth.assertThat(update.updatedPaths).containsExactly(root.resolve("file2.txt"))
     Truth.assertThat(cache!!.takeRequestedDigests()).containsExactly("efgh")
     Truth.assertThat(Files.readAllLines(root.resolve("file2.txt"))).containsExactly("efgh")
