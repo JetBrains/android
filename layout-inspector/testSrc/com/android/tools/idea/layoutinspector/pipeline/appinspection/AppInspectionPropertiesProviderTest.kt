@@ -36,6 +36,8 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.Par
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterItem
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ShowMoreElementsItem
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.parameterNamespaceOf
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.LiveViewPropertiesCache
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewPropertiesData
 import com.android.tools.idea.layoutinspector.properties.DimensionUnits
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertiesModel
@@ -44,6 +46,7 @@ import com.android.tools.idea.layoutinspector.properties.NAMESPACE_INTERNAL
 import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.PropertyType
+import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.setApplicationIdForTest
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -52,13 +55,20 @@ import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.ptable.PTable
 import com.android.tools.property.ptable.PTableGroupModification
+import com.google.common.collect.HashBasedTable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.psi.PsiClass
+import java.awt.Rectangle
 import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
@@ -68,6 +78,8 @@ import org.mockito.Mockito
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.spy
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
@@ -801,6 +813,58 @@ class AppInspectionPropertiesProviderTest {
     inspectorRule.inspectorModel.setSelection(text2, SelectionOrigin.COMPONENT_TREE)
     waitForCondition(TIMEOUT, TIMEOUT_UNIT) { generatedCount == 4 }
     propertiesModel.properties.assertProperty("text", PropertyType.STRING, "Previous")
+  }
+
+  // Regression test for b/325128437
+  @OptIn(ExperimentalCoroutinesApi::class)
+  @Test
+  fun propertiesCanBeCompletedConcurrently() = runBlocking {
+    val propertiesCache = LiveViewPropertiesCache(mock(), inspectorRule.inspectorModel)
+    val propertiesProvider =
+      AppInspectionPropertiesProvider(propertiesCache, null, inspectorRule.inspectorModel)
+    val continueLoopLatch = CountDownLatch(1)
+    val insideModificationLoopLatch = CountDownLatch(1)
+    val mockLookup = mock<ViewNodeAndResourceLookup> { on { resourceLookup } doReturn mock() }
+    val mockProperty =
+      mock<InspectorPropertyItem> {
+        on { resolveDimensionType(any()) } doAnswer
+          {
+            // ensure we get stuck inside the loop so that we can modify it concurrently
+            insideModificationLoopLatch.countDown()
+            continueLoopLatch.await()
+          }
+        on { lookup } doReturn mockLookup
+        on { type } doReturn PropertyType.STRING
+      }
+    val table = HashBasedTable.create<String, String, InspectorPropertyItem>()
+    table.put("rowKey", "mockProperty", mockProperty)
+    // we need a second property to force the concurrent modification
+    table.put(
+      "rowKey",
+      "mockProperty2",
+      mock<InspectorPropertyItem> {
+        on { lookup } doReturn mockLookup
+        on { type } doReturn PropertyType.STRING
+      },
+    )
+
+    val propertiesTable = PropertiesTable.create(table)
+    val mockPropertiesData = mock<ViewPropertiesData> { on { properties } doReturn propertiesTable }
+    val mockNode = mock<ViewNode> { on { layoutBounds } doReturn Rectangle(20, 20, 600, 200) }
+
+    val job =
+      launch(Dispatchers.Default) {
+        // this will run until it gets stuck in the loop over the properties
+        propertiesProvider.completeProperties(mockNode, mockPropertiesData)
+      }
+
+    insideModificationLoopLatch.await()
+    // make a concurrent modification
+    table.put("rowKey", "columnKey", mock<InspectorPropertyItem>())
+    continueLoopLatch.countDown()
+
+    // if we reach here, that means the concurrent modification happened successfully
+    job.cancel()
   }
 
   private fun layout(name: String, namespace: String = APP_NAMESPACE): ResourceReference =
