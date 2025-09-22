@@ -104,8 +104,7 @@ jvm_library(
     "//android/avd:avd_test_lib",
     "//android/intellij.android.device:device",
     "//platform/analysis-api:analysis",
-  ],
-  runtime_deps = [":device-manager-v2_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.device-manager-v2` end
 

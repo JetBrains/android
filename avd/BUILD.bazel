@@ -92,7 +92,6 @@ jvm_library(
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util-ex",
   ],
-  runtime_deps = [":avd_resources"],
   plugins = ["@lib//:compose-plugin"]
 )
 ### auto-generated section `build intellij.android.avd` end

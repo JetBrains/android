@@ -79,8 +79,7 @@ jvm_library(
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "@lib//:jsoup",
     "@lib//:gson",
-  ],
-  runtime_deps = [":documentation_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.core.editing.documentation` end
 

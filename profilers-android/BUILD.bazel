@@ -153,8 +153,7 @@ jvm_library(
     "//platform/lang-impl",
     "@lib//:kotlinx-coroutines-test",
     "@lib//:mockito-kotlin",
-  ],
-  runtime_deps = [":profilers-android_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.profilersAndroid` end
 

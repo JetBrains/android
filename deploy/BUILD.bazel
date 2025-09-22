@@ -85,8 +85,7 @@ jvm_library(
     "//platform/core-impl",
     "//android/android-adb:adb",
     "@lib//:mockito-kotlin",
-  ],
-  runtime_deps = [":deploy_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.deploy` end
 

@@ -45,8 +45,7 @@ jvm_library(
     "@lib//:javax-inject-provided",
     "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api",
     "@lib//:equalsverifier",
-  ],
-  runtime_deps = [":android-gradle-tooling-impl_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.gradle-tooling.impl` end
 

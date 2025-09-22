@@ -192,8 +192,7 @@ jvm_library(
     "@lib//:mockito-kotlin",
     "//android/device-manager-v2",
     "//android/device-manager-v2:device-manager-v2_test_lib",
-  ],
-  runtime_deps = [":layout-inspector_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.layout-inspector` end
 

@@ -52,8 +52,7 @@ jvm_library(
     "//platform/core-ui",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
-  ],
-  runtime_deps = [":smali_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.smali` end
 

@@ -82,10 +82,7 @@ jvm_library(
     "@lib//:android-adt-ui-compose-jewel-int-ui-standalone-243",
     "@lib//:android-adt-ui-compose-jewel-ide-laf-bridge-243",
   ],
-  runtime_deps = [
-    ":adt-ui-compose_resources",
-    ":adt-ui-compose_test_resources",
-  ],
+  runtime_deps = [":adt-ui-compose_test_resources"],
   plugins = ["@lib//:compose-plugin"]
 )
 ### auto-generated section `build intellij.android.adt.ui.compose` end

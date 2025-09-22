@@ -100,8 +100,7 @@ jvm_library(
     "@lib//:mockito-kotlin",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
-  ],
-  runtime_deps = [":transport_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.transport` end
 

@@ -205,7 +205,6 @@ jvm_library(
     "//android/avd:avd_test_lib",
     "//libraries/xerces",
   ],
-  runtime_deps = [":designer_resources"],
   plugins = ["@lib//:compose-plugin"]
 )
 ### auto-generated section `build intellij.android.designer` end
