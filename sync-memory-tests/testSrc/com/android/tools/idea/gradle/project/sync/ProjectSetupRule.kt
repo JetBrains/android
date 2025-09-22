@@ -108,6 +108,7 @@ class ProjectSetupRuleImpl(
   val testEnvironmentRule: IntegrationTestEnvironmentRule by lazy(testEnvironmentRuleProvider)
 
   override fun before() {
+    kotlinx.coroutines.debug.DebugProbes.uninstall()
     setUpProject(project)
   }
 
