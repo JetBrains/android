@@ -113,7 +113,7 @@ public class ProjectArtifactStore {
               root,
               entry.getValue());
       try {
-        incompleteTargets.addAll(dirUpdate.update());
+        incompleteTargets.addAll(dirUpdate.update(context));
       } catch (IOException e) {
         exceptions.add(e);
       }
