@@ -73,14 +73,19 @@ import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.ListCellRenderer
+import org.junit.rules.RuleChain
 
 class AndroidComplicationConfigurationEditorTest {
   @get:Rule
   val ignoreTestRule = IgnoreTestRule()
 
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  private val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule val fakeAdb = FakeAdbRule()
+  private val fakeAdb = FakeAdbRule()
+
+  @get:Rule
+  val ruleChain =
+    RuleChain.outerRule(projectRule).around(fakeAdb)!!
 
   private val fixture
     get() = projectRule.fixture
