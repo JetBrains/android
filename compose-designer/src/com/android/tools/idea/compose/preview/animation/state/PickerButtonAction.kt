@@ -88,7 +88,7 @@ class PickerButtonAction(val tracker: ComposeAnimationTracker) : CustomComponent
     get() = "${state.value.first} to ${state.value.second}"
 
   fun swapStates() {
-    state.value = state.value.second to state.value.first
+    updateState(state.value.second, state.value.first)
   }
 
   fun updateInitialState(initial: Any?) {
