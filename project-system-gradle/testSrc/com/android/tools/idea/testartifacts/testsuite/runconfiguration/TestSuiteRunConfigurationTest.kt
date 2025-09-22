@@ -43,8 +43,8 @@ class TestSuiteRunConfigurationTest {
     assertEquals(engineIds, configuration.getTestEngineIds())
 
     val taskName = "myTestTask"
-    configuration.setTaskName(taskName)
-    assertEquals(taskName, configuration.getTaskName())
+    configuration.addTaskName(taskName)
+    assertEquals(listOf(taskName), configuration.getTaskNames())
   }
 
   @Test
@@ -52,7 +52,7 @@ class TestSuiteRunConfigurationTest {
     val engineIds = setOf("junit5", "journeys-test-engine")
     configuration.setTestEngineIds(engineIds)
     val taskName = "myTestTask"
-    configuration.setTaskName(taskName)
+    configuration.addTaskName(taskName)
     configuration.setShowsResultsInAndroidTestMatrix(true)
     configuration.setIsDeployableToDevice(true)
 
@@ -63,7 +63,7 @@ class TestSuiteRunConfigurationTest {
     newConfiguration.readExternal(element)
 
     assertEquals(engineIds, newConfiguration.getTestEngineIds())
-    assertEquals(taskName, newConfiguration.getTaskName())
+    assertEquals(listOf(taskName), newConfiguration.getTaskNames())
     assertTrue(newConfiguration.showsResultsInAndroidTestMatrix())
     assertTrue(newConfiguration.isDeployableToDevice())
   }

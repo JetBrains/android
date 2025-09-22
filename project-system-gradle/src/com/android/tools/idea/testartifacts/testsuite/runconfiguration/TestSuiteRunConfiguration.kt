@@ -49,17 +49,17 @@ class TestSuiteRunConfiguration(project: Project, factory: ConfigurationFactory,
   }
 
   /**
-   * Sets the name of the Gradle test suite test task to execute.
+   * Adds a task name to the list of tasks executed by this run configuration.
    */
-  fun setTaskName(taskName: String) {
-    settings.taskNames = listOf(taskName)
+  fun addTaskName(taskName: String) {
+    settings.taskNames = settings.taskNames + taskName
   }
 
   /**
-   * Returns the name of the Gradle test suite task to execute.
+   * Returns the names of the Gradle tasks executed by this run configuration.
    */
-  fun getTaskName(): String {
-    return settings.taskNames.firstOrNull() ?: ""
+  fun getTaskNames(): List<String> {
+    return settings.taskNames
   }
 
   /**

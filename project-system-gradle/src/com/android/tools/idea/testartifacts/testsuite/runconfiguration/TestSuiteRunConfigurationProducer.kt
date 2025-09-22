@@ -43,7 +43,8 @@ class TestSuiteRunConfigurationProducer : LazyRunConfigurationProducer<TestSuite
     val testSuiteContext = getTestSuiteContext(context) ?: return false
     configuration.name = generateConfigurationName(testSuiteContext.testSuite)
     configuration.settings.externalProjectPath = testSuiteContext.externalProjectPath
-    configuration.setTaskName(testSuiteContext.testTaskName)
+    // TODO(b/446654477): Allow user to select the target
+    configuration.addTaskName(testSuiteContext.targets.first().testTaskName)
     configuration.setTestEngineIds(testSuiteContext.testSuite.junitEngineInfo.includedEngines)
 
     return true
@@ -58,16 +59,16 @@ class TestSuiteRunConfigurationProducer : LazyRunConfigurationProducer<TestSuite
     }
 
     val testSuiteContext = getTestSuiteContext(context) ?: return false
-
+    val targetTaskNames = testSuiteContext.targets.map { it.testTaskName }.toSet()
     return configuration.settings.externalProjectPath == testSuiteContext.externalProjectPath &&
-           configuration.getTaskName() == testSuiteContext.testTaskName &&
+           configuration.getTaskNames().any { it in targetTaskNames } &&
            configuration.getTestEngineIds() == testSuiteContext.testSuite.junitEngineInfo.includedEngines
   }
 
   private data class TestSuiteContext(
     val externalProjectPath: String,
     val testSuite: IdeTestSuite,
-    val testTaskName: String,
+    val targets: List<TestSuiteUtils.TestSuiteTarget>,
   )
 
   private fun getTestSuiteContext(context: ConfigurationContext): TestSuiteContext? {
@@ -79,8 +80,12 @@ class TestSuiteRunConfigurationProducer : LazyRunConfigurationProducer<TestSuite
       TestSuiteUtils.getTestSuiteAtRoot(androidModel.testSuites, file)
       ?: TestSuiteUtils.getTestSuiteContainingFile(androidModel.testSuites, file)
       ?: return null
-    val testTaskName = TestSuiteUtils.getTestSuiteTaskName(androidModel.selectedVariant, testSuite.name) ?: return null
-    return TestSuiteContext(externalProjectPath, testSuite, testTaskName)
+    val targets = TestSuiteUtils.getTestSuiteTargets(androidModel.selectedVariant, testSuite.name)
+    if (targets.isEmpty()) {
+      return null
+    }
+
+    return TestSuiteContext(externalProjectPath, testSuite, targets)
   }
 
   private fun generateConfigurationName(testSuite: IdeTestSuite): String {
