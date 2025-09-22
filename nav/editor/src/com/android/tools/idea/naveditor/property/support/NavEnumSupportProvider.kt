@@ -28,7 +28,8 @@ import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.property.panel.api.EnumValue
 import com.intellij.psi.util.ClassUtil
-import com.intellij.util.SlowOperations
+import com.intellij.util.concurrency.ThreadingAssertions
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO
 import org.jetbrains.android.dom.navigation.getClassesForTag
@@ -58,12 +59,9 @@ class NavEnumSupportProvider : EnumSupportProvider<NlPropertyItem> {
           }
         }
         ANDROID_URI -> {
-          when (property.name) {
-            ATTR_NAME -> {
-              val classes = SlowOperations.knownIssue("b/321695920").use { getClasses(component) }
-              return ClassEnumSupport(emptyList.plus(classes))
-            }
-            else -> return null
+          return when (property.name) {
+            ATTR_NAME -> ClassEnumSupport(component)
+            else -> null
           }
         }
         else -> return null
@@ -127,7 +125,14 @@ class NavEnumSupportProvider : EnumSupportProvider<NlPropertyItem> {
     }
   }
 
-  private class ClassEnumSupport(override val values: List<EnumValue>) : EnumSupport {
+  private class ClassEnumSupport(private val component: NlComponent) : EnumSupport {
+    override val values: List<EnumValue>
+      @RequiresBackgroundThread
+      get() {
+        ThreadingAssertions.assertBackgroundThread()
+        return emptyList + getClasses(component)
+      }
+
     override fun createValue(stringValue: String): EnumValue {
       return EnumValue.item(stringValue, displayString(stringValue))
     }
