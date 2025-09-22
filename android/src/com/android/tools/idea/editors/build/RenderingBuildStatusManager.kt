@@ -37,10 +37,8 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
@@ -59,7 +57,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.asJava.KotlinAsJavaSupport
+import org.jetbrains.kotlin.fileClasses.isJvmMultifileClassFile
 import org.jetbrains.kotlin.idea.util.projectStructure.module
+import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.analysisContext
+import kotlin.collections.plus
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.toUElement
 
@@ -365,19 +369,40 @@ private class RenderingBuildStatusManagerImpl(
   override fun getResourcesListenerForTest(): ResourceChangeListener = resourceChangeListener
 
   private suspend fun editorHasExistingClassFile(): Boolean {
-    val editorFile: PsiFile = runReadAction { editorFilePtr.element } ?: return false
-
-    val fqNames = readAction {
-      val uFile = editorFile.toUElement(UFile::class.java)
-      val classes = when {
-        uFile != null -> uFile.classes.map { c -> c.javaPsi }
-        editorFile is PsiClassOwner -> editorFile.classes.asList()
-        else -> listOfNotNull(PsiTreeUtil.findChildOfType(editorFile, PsiClass::class.java))
-      }
-      classes.mapNotNull { it.qualifiedName }
-    }
-
+    val psiFile: PsiFile = readAction { editorFilePtr.element } ?: return false
     val classFileFinder = classFinderFactory(buildTargetReference)
-    return fqNames.any { classFileFinder(it) }
+
+    return readAction {
+      psiFile.findClassesFqNames()
+    }
+      .any {
+        classFileFinder(it)
+      }
+  }
+
+  private fun PsiFile.findClassesFqNames(): List<String> {
+    val uFile = toUElement(UFile::class.java)
+    if (uFile != null) {
+      return uFile.classes.map { c -> c.javaPsi }.mapNotNull { it.qualifiedName }
+    }
+    return when (this) {
+      is KtFile -> kotlinClassDeclarations()
+      is PsiClassOwner -> classes.mapNotNull { it.qualifiedName }
+      else -> listOfNotNull(PsiTreeUtil.findChildOfType(this, PsiClass::class.java)).mapNotNull { it.qualifiedName }
+    }
+  }
+
+  private fun KtFile.kotlinClassDeclarations(): List<String> =
+    declarations.filterIsInstance<KtClassOrObject>().mapNotNull { ktClass -> ktClass.fqName?.asString() } + fetchTopLevelClasses(this)
+
+  private fun fetchTopLevelClasses(file: KtFile): List<String> = buildList {
+    if (!file.isJvmMultifileClassFile && !file.hasTopLevelCallables()) return@buildList
+
+    val kotlinAsJavaSupport = KotlinAsJavaSupport.getInstance(file.project)
+    if (file.analysisContext == null) {
+      kotlinAsJavaSupport.getLightFacade(file)?.qualifiedName?.let(this::add)
+    } else {
+      kotlinAsJavaSupport.createFacadeForSyntheticFile(file).qualifiedName?.let(this::add)
+    }
   }
 }
