@@ -207,6 +207,7 @@ studiobot.knowledge.base.rag=PREVIEW
 studiobot.local.models.enabled=PREVIEW
 studiobot.mcp.auth.enabled=INTERNAL
 studiobot.mcp.host.enabled=COMPLETE:2025
+studiobot.mcp.settings.enabled=PREVIEW
 studiobot.mcp.ui.servers.enabled=INTERNAL
 studiobot.open.files.context=PREVIEW
 studiobot.project.facts.context.enabled=INTERNAL
