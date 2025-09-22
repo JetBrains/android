@@ -185,6 +185,8 @@ public class BlazeQueryParser {
     graph.outputStats(context);
     context.output(PrintOutput.log("%-10d Dependencies", javaDeps.size()));
 
+    elapsedMs = (System.nanoTime() - now) / 1000000L;
+    context.output(PrintOutput.log("Analysis time: %d ms", elapsedMs));
     return graph;
   }
 
