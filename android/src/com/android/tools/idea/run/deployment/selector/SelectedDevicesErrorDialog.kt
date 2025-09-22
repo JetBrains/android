@@ -19,14 +19,13 @@ import com.android.tools.idea.run.LaunchCompatibility.State
 import com.intellij.CommonBundle
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.openapi.ui.DoNotAskOption
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.IconUtil
 import com.intellij.util.ui.JBEmptyBorder
 import icons.StudioIcons
+import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.Action
 import javax.swing.JComponent
-import org.jetbrains.android.util.AndroidBundle.message
 
 /**
  * Displays the deployment issues for each device and a warning or error icon when the user deploys
@@ -53,7 +52,8 @@ internal constructor(
     title = if (anyDeviceHasError) message("error.level.title") else message("warning.level.title")
     if (!anyDeviceHasError) {
       setDoNotAskOption(
-        object : DoNotAskOption.Adapter() {
+        @Suppress("RemoveRedundantQualifierName")
+        object : com.intellij.openapi.ui.DoNotAskOption.Adapter() {
           override fun rememberChoice(isSelected: Boolean, exitCode: Int) =
             project.putUserData(DO_NOT_SHOW_WARNING_ON_DEPLOYMENT, isSelected)
 
