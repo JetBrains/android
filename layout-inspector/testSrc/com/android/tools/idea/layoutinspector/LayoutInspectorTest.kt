@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector
 
-import com.android.ddmlib.testing.FakeAdbRule
-import com.android.sdklib.AndroidApiLevel
+import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule
+import com.android.adblib.ddmlibcompatibility.testutils.UseAdbLibAndroidDebugBridgeRule
+import com.android.adblib.testingutils.FakeAdbServerProviderRule
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
@@ -71,7 +72,11 @@ class LayoutInspectorTest {
 
   private val projectRule = ProjectRule()
 
-  private val adbRule = FakeAdbRule()
+  private val adbRule = FakeAdbServerProviderRule()
+  private val useAdbLibAndroidDebugBridgeRule = UseAdbLibAndroidDebugBridgeRule {
+    adbRule.adbSession
+  }
+  private val initAndroidDebugBridgeRule = InitAndroidDebugBridgeRule { adbRule.fakeAdb.port }
   private val adbService = AdbServiceRule(projectRule::project)
 
   private val timer = FakeTimer()
@@ -81,10 +86,13 @@ class LayoutInspectorTest {
   val grpcServerRule =
     FakeGrpcServer.createFakeGrpcServer("ForegroundProcessDetectionTest", transportService)
 
-  private val deviceToStreamMap = mapOf(device1 to createFakeStream(1, device1))
-
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(adbRule).around(adbService)
+  val ruleChain: RuleChain =
+    RuleChain.outerRule(projectRule)
+      .around(adbRule)
+      .around(useAdbLibAndroidDebugBridgeRule)
+      .around(initAndroidDebugBridgeRule)
+      .around(adbService)
 
   private lateinit var layoutInspector: LayoutInspector
   private lateinit var deviceModel: DeviceModel
@@ -174,27 +182,6 @@ class LayoutInspectorTest {
     inspectorModel.update(newWindow, listOf(ROOT), 0)
     waitForCondition(10.seconds) { imagesRefreshed }
     verify(mockRenderModel, timeout(TimeUnit.SECONDS.toMillis(10)).times(2)).refresh()
-  }
-
-  /** Connect a device to the transport and to adb. */
-  private fun connectDevice(device: Common.Device, timestamp: Long? = null) {
-    val transportDevice = deviceToStreamMap[device]!!.device
-
-    if (timestamp != null) {
-      transportService.addDevice(transportDevice, timestamp)
-    } else {
-      transportService.addDevice(transportDevice)
-    }
-
-    if (adbRule.bridge.devices.none { it.serialNumber == device.serial }) {
-      adbRule.attachDevice(
-        device.serial,
-        device.manufacturer,
-        device.model,
-        device.version,
-        AndroidApiLevel(device.apiLevel),
-      )
-    }
   }
 
   private fun createDeviceModel(vararg devices: Common.Device): Pair<DeviceModel, ProcessesModel> {

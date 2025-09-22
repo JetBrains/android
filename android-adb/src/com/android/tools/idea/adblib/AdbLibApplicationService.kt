@@ -311,17 +311,9 @@ class AdbLibApplicationService : Disposable {
      * way to update it since [AdbLibApplicationService] itself is a singleton.
      */
     fun resetForTests() {
-      if (
-        isInstanceCreated &&
-          ApplicationManager.getApplication().isUnitTestMode &&
-          instance.configuration.adbLibMigrationFlagValue !=
-            StudioFlags.ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE.get()
-      ) {
+      if (isInstanceCreated && ApplicationManager.getApplication().isUnitTestMode) {
         // Shutdown and cleanup
-        runBlocking {
-          instance.configuration.closeAndJoin()
-          AndroidDebugBridge.resetForTests()
-        }
+        runBlocking { instance.configuration.closeAndJoin() }
 
         // Create a new configuration
         instance.configuration = Configuration(instance.host, instance.adbFileLocationTracker)
