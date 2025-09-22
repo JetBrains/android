@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection
 
-import com.android.ddmlib.testing.FakeAdbRule
+import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule
+import com.android.adblib.ddmlibcompatibility.testutils.UseAdbLibAndroidDebugBridgeRule
+import com.android.adblib.testingutils.FakeAdbServerProviderRule
+import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidApiLevel
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
@@ -63,7 +66,11 @@ import org.mockito.kotlin.mock
 
 class ForegroundProcessDetectionTest {
   private val projectRule = ProjectRule()
-  private val adbRule = FakeAdbRule()
+  private val adbRule = FakeAdbServerProviderRule()
+  private val useAdbLibAndroidDebugBridgeRule = UseAdbLibAndroidDebugBridgeRule {
+    adbRule.adbSession
+  }
+  private val initAndroidDebugBridgeRule = InitAndroidDebugBridgeRule { adbRule.fakeAdb.port }
   private val adbService = AdbServiceRule(projectRule::project)
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
@@ -75,6 +82,8 @@ class ForegroundProcessDetectionTest {
   val ruleChain: RuleChain =
     RuleChain.outerRule(projectRule)
       .around(adbRule)
+      .around(useAdbLibAndroidDebugBridgeRule)
+      .around(initAndroidDebugBridgeRule)
       .around(adbService)
       .around(grpcServerRule)
       .around(streamManagerRule)
@@ -199,8 +208,6 @@ class ForegroundProcessDetectionTest {
       val device = getDeviceFromCommand(command)
       coroutineScope.launch { stopTrackingSyncChannel.send(device) }
     }
-
-    adbRule.bridge.devices.forEach { adbRule.disconnectDevice(it.serialNumber) }
   }
 
   @After
@@ -1213,15 +1220,14 @@ class ForegroundProcessDetectionTest {
       transportService.addDevice(transportDevice)
     }
 
-    if (adbRule.bridge.devices.none { it.serialNumber == device.serial }) {
-      adbRule.attachDevice(
-        device.serial,
-        device.manufacturer,
-        device.model,
-        device.version,
-        AndroidApiLevel(device.apiLevel),
-      )
-    }
+    adbRule.fakeAdb.connectDevice(
+      device.serial,
+      device.manufacturer,
+      device.model,
+      device.version,
+      AndroidApiLevel(device.apiLevel),
+      DeviceState.HostConnectionType.USB,
+    )
   }
 
   /** Disconnect a device from the transport and from adb. */
