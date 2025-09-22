@@ -48,6 +48,8 @@ jvm_library(
         "@lib//:javax-inject",
         "//libraries/kotlinx/coroutines/core",
         "//libraries/kotlinx/coroutines/core:core_test_lib",
+        "//libraries/kotlinx/coroutines/debug",
+        "//libraries/kotlinx/coroutines/debug:debug_test_lib",
         "//libraries/kotlinx/datetime",
         "//libraries/kotlinx/datetime:datetime_test_lib",
         "//android/adt-testutils",
