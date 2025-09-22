@@ -139,7 +139,7 @@ public class TargetMenuAction extends DropDownAction {
       if (version.getFeatureLevel() < minSdk) {
         continue;
       }
-      if (version.getApiLevel() >= SHOW_FROM_API_LEVEL) {
+      if (version.getAndroidApiLevel().getMajorVersion() >= SHOW_FROM_API_LEVEL) {
         haveRecent = true;
       }
       else if (haveRecent) {
@@ -165,8 +165,10 @@ public class TargetMenuAction extends DropDownAction {
         SetTargetAction oldAction = titleToActionMap.get(title);
         int oldRevision = oldAction.myTarget.getRevision();
         int newRevision = targetAction.myTarget.getRevision();
-        // Choose the last revision one.
-        if (newRevision > oldRevision) {
+        AndroidVersion oldVersion = oldAction.myTarget.getVersion();
+        AndroidVersion newVersion = targetAction.myTarget.getVersion();
+        // Choose the newer min revision or if they have the same, the latest revision
+        if (newVersion.compareTo(oldVersion) > 0 || (newVersion.compareTo(oldVersion) == 0 && newRevision > oldRevision)) {
           titleToActionMap.replace(title, targetAction);
         }
       }
@@ -221,7 +223,7 @@ public class TargetMenuAction extends DropDownAction {
     }
 
     AndroidVersion version = target.getVersion();
-
+    int majorVersion = version.getAndroidApiLevel().getMajorVersion();
     if (brief) {
       if (target.isPlatform()) {
         String codename = version.getCodename();
@@ -237,14 +239,14 @@ public class TargetMenuAction extends DropDownAction {
             return Character.toString(codename.charAt(0));
           }
         }
-        return Integer.toString(version.getApiLevel());
+        return Integer.toString(majorVersion);
       }
       else {
-        return target.getName() + ':' + Integer.toString(version.getApiLevel());
+        return target.getName() + ':' + majorVersion;
       }
     }
 
-    return String.format(Locale.US, "API %1$d: %2$s", version.getApiLevel(), target.getShortClasspathName());
+    return String.format(Locale.US, "API %1$d: %2$s", majorVersion, target.getShortClasspathName());
   }
 
   private static class TogglePickBestAction extends AnAction implements Toggleable {
