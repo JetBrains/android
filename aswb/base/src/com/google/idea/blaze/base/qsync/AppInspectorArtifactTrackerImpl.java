@@ -71,7 +71,7 @@ public class AppInspectorArtifactTrackerImpl implements AppInspectorArtifactTrac
 
     final var artifactDirectoryContents = buildArtifactDirectoryContents(knownInspectors);
     waitForArtifacts(artifactsCachedFuture);
-    updateArtifactDirectory(artifactDirectoryContents);
+    updateArtifactDirectory(context, artifactDirectoryContents);
 
     return resolveArtifactLayoutPaths(appInspectorTarget, appInspectorArtifactLayout.keySet());
   }
@@ -98,11 +98,11 @@ public class AppInspectorArtifactTrackerImpl implements AppInspectorArtifactTrac
       .collect(toImmutableSet());
   }
 
-  private void updateArtifactDirectory(ProjectProto.ArtifactDirectoryContents artifactDirectoryContents) throws BuildException {
+  private void updateArtifactDirectory(Context<?> context, ProjectProto.ArtifactDirectoryContents artifactDirectoryContents) throws BuildException {
     try {
       new ArtifactDirectoryUpdate(
         artifactCache, inspectorsDir, artifactDirectoryContents)
-        .update();
+        .update(context);
     }
     catch (IOException e) {
       throw new BuildException(e);
