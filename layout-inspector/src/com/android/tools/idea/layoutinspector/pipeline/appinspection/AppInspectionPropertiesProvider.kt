@@ -109,7 +109,9 @@ class AppInspectionPropertiesProvider(
     val properties = propertiesData.properties
     if (properties.getByNamespace(NAMESPACE_INTERNAL).isNotEmpty()) return
 
-    properties.values.forEach { property ->
+    // make a copy to avoid concurrent modifications
+    val propertyValuesCopy = synchronized(properties) { properties.values.toList() }
+    propertyValuesCopy.forEach { property ->
       property.resolveDimensionType(view)
       property.replaceFileLocations(view)
       property.addColorButton(view)
