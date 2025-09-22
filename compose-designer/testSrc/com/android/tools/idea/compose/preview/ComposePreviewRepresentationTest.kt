@@ -101,6 +101,7 @@ import com.intellij.testFramework.runInEdtAndWait
 import java.nio.file.Path
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
+import kotlin.test.assertFails
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -881,6 +882,62 @@ class ComposePreviewRepresentationTest {
   }
 
   @Test
+  fun testEnterFocusModeDoesRefreshWhenNeeded() {
+    val testFile = runWriteActionAndWait {
+      fixture.addFileToProjectAndInvalidate(
+        "SinglePreview.kt",
+        // language=kotlin
+        """
+            import androidx.compose.ui.tooling.preview.Preview
+            import androidx.compose.runtime.Composable
+
+            @Composable
+            @Preview
+            fun SinglePreview() {
+            }
+          """
+          .trimIndent(),
+      )
+    }
+
+    return runComposePreviewRepresentationTest(testFile) {
+      createPreviewAndCompile(expectedModelCount = 1)
+
+      val previewElements = mainSurface.models.mapNotNull { it.dataProvider?.previewElement() }
+      assertThat(mainSurface.models.size).isEqualTo(1)
+      val singleElement = previewElements.single()
+
+      // Grid -> Focus shouldn't refresh when single preview (i.e. wait should time out)
+      assertFails {
+        setModeAndWaitForRefresh(PreviewMode.Focus(singleElement), waitForRefresh = true) {
+          composeView.focusMode != null
+        }
+      }
+
+      // Focus -> Interactive should refresh (i.e. wait should not time out)
+      setModeAndWaitForRefresh(PreviewMode.Interactive(singleElement), waitForRefresh = true) {
+        composeView.focusMode == null
+      }
+      // Interactive -> Focus should refresh (i.e. wait should not time out)
+      setModeAndWaitForRefresh(PreviewMode.Focus(singleElement), waitForRefresh = true) {
+        composeView.focusMode != null
+      }
+
+      // Focus -> Animation should refresh (i.e. wait should not time out)
+      setModeAndWaitForRefresh(
+        PreviewMode.AnimationInspection(singleElement),
+        waitForRefresh = true,
+      ) {
+        composeView.focusMode == null
+      }
+      // Animation -> Focus should refresh (i.e. wait should not time out)
+      setModeAndWaitForRefresh(PreviewMode.Focus(singleElement), waitForRefresh = true) {
+        composeView.focusMode != null
+      }
+    }
+  }
+
+  @Test
   fun testResizePanelIsCreatedInFocusMode_flagFalse() = runComposePreviewRepresentationTest {
     StudioFlags.COMPOSE_PREVIEW_RESIZING.overrideForTest(
       false,
@@ -1324,7 +1381,7 @@ class ComposePreviewRepresentationTest {
         composeView.refreshCompletedListeners.add { refresh = true }
       }
       preview.setMode(previewMode)
-      delayUntilCondition(250) { refresh && additionalCondition() }
+      delayUntilCondition(250, timeout = 5.seconds) { refresh && additionalCondition() }
     }
 
     private suspend fun delayWhileRefreshingOrDumb(preview: ComposePreviewRepresentation) {

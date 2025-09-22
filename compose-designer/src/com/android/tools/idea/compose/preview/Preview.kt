@@ -1624,10 +1624,15 @@ class ComposePreviewRepresentation(
               }
             } ?: FocusMode(composeWorkBench.mainSurface)
         }
-        // If file had one Preview, on Entering Focus mode render will not be invoked,
-        // so [onAfterRender] and [updateResizePanel] will not be invoked either, we need to do it
-        // manually
-        surface.sceneManagers.singleOrNull()?.let { updateResizePanel() }
+        // Only refresh if exiting the previous mode invalidated the state of the preview. This is
+        // expected for example when exiting interactive or animation inspection modes.
+        if (invalidated.get()) requestRefresh()
+        else {
+          // If file had one Preview, on Entering Focus mode render will not be invoked,
+          // so [onAfterRender] and [updateResizePanel] will not be invoked either, we need to do it
+          // manually
+          surface.sceneManagers.singleOrNull()?.let { updateResizePanel() }
+        }
       }
     }
     surface.background = mode.backgroundColor
@@ -1656,6 +1661,7 @@ class ComposePreviewRepresentation(
         currentAnimationPreview = null
         ComposeAnimationSubscriber.setHandler(null)
         requestVisibilityAndNotificationsUpdate()
+        invalidate()
       }
       is PreviewMode.Focus -> {
         withContext(Dispatchers.EDT) {
