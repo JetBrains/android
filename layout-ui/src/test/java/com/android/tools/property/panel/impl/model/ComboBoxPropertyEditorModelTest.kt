@@ -33,6 +33,8 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.util.concurrency.ThreadingAssertions
+import org.junit.Assert.assertTrue
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
@@ -43,6 +45,7 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
+import org.mockito.kotlin.doAnswer
 
 @RunsInEdt
 class ComboBoxPropertyEditorModelTest {
@@ -264,6 +267,25 @@ class ComboBoxPropertyEditorModelTest {
 
     // cleanup
     enumSupport.releaseAll()
+  }
+
+  @Test
+  // Regression test for b/321695920
+  fun testEnumSupportValuesIsFetchedOnBackgroundThread() {
+    var valuesCalled = false
+    val enumSupport =
+      org.mockito.kotlin.mock<EnumSupport> {
+        on { values } doAnswer
+          {
+            ThreadingAssertions.assertBackgroundThread()
+            valuesCalled = true
+            emptyList()
+          }
+      }
+
+    val model = createModel(enumSupport)
+    model.popupMenuWillBecomeVisible {}.get(1L, TimeUnit.SECONDS) // load values from enumSupport
+    assertTrue(valuesCalled)
   }
 
   private class RecursiveListDataListener(private val model: ComboBoxPropertyEditorModel) :

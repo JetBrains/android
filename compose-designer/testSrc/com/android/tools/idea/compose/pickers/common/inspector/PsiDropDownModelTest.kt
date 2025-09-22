@@ -15,14 +15,29 @@
  */
 package com.android.tools.idea.compose.pickers.common.inspector
 
+import com.android.tools.idea.compose.pickers.common.property.ClassPsiCallParameter
+import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.impl.model.util.FakeEnumSupport
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.util.concurrency.ThreadingAssertions
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.mock
 
+@RunsInEdt
 internal class PsiDropDownModelTest {
+
+  @get:Rule val ruleChain = RuleChain(ApplicationRule(), EdtRule())
+
   @Test
   fun valueChange() {
     val property = FakePsiProperty("prop", "value3", "default")
@@ -49,5 +64,26 @@ internal class PsiDropDownModelTest {
     // Apply selection, should reflect on property
     model.selectEnumValue {}
     assertEquals("value2", property.value)
+  }
+
+  @Test
+  // Regression test for b/321695920
+  fun testEnumSupportValuesIsFetchedOnBackgroundThread() {
+    val property =
+      ClassPsiCallParameter(mock(), mock(), { _, _ -> null }, mock(), null, null, "test")
+    var valuesCalled = false
+    val enumSupport =
+      mock<EnumSupport> {
+        on { values } doAnswer
+          {
+            ThreadingAssertions.assertBackgroundThread()
+            valuesCalled = true
+            emptyList()
+          }
+      }
+
+    val model = PsiDropDownModel(property, enumSupport)
+    model.popupMenuWillBecomeVisible {}.get(1L, TimeUnit.SECONDS) // load values from enumSupport
+    assertTrue(valuesCalled)
   }
 }

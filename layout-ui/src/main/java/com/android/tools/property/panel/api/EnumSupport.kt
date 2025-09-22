@@ -15,6 +15,7 @@
  */
 package com.android.tools.property.panel.api
 
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import javax.swing.ListCellRenderer
 
 /**
@@ -23,8 +24,11 @@ import javax.swing.ListCellRenderer
  * These values will be displayed in the dropdown of a ComboBox or DropDown control.
  */
 interface EnumSupport {
-  /** The values to display in the enum control. */
+  /**
+   * The values to display in the enum control. This getter should be called on a background thread.
+   */
   val values: List<EnumValue>
+    @RequiresBackgroundThread get
 
   /** A [ListCellRenderer] for customizing the display of each value. */
   val renderer: ListCellRenderer<EnumValue>
