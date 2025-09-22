@@ -135,8 +135,8 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> REPORT_MANIFEST_INDEX_ERRORS_AS_CRASHES = new DebugFlag(
     STUDIO_DIAGNOSTIC, "manifestindex.treaterrorsascrashes", "Treat Manifest Index query errors as crashes",
-    "Report manifest query index errors using Logger.error, which results in them being treted as crashes, and reported for" +
-    "opt-in developers.");
+    "Report manifest query index errors using Logger.error, which results in them being treated as crashes, and reported for" +
+    " opt-in developers.");
   //endregion
 
   //region New Project Wizard
@@ -848,7 +848,7 @@ public final class StudioFlags {
 
   public static final Flag<String> SYNC_STATS_OUTPUT_DIRECTORY = new StringFlag(
     GRADLE_IDE, "sync.stats.output.directory", "Enables printing sync stats to a file",
-    "If not empty, sync execution stats for models requested by Android Studio are printed to a file in the given directory when" +
+    "If not empty, sync execution stats for models requested by Android Studio are printed to a file in the given directory when " +
     "sync completes.", "");
 
   public static final Flag<Boolean> GRADLE_SYNC_ENABLE_CACHED_VARIANTS = new BooleanFlag(
@@ -896,7 +896,7 @@ public final class StudioFlags {
    */
   public static final Flag<String> AGP_VERSION_TO_USE = new StringFlag(
     GRADLE_IDE, "agp.version.to.use", "Version of AGP to use",
-    "The AGP version to use when making a new project, e.g. \"8.0.0-dev\". To use the latest stable version of AGP, set the value" +
+    "The AGP version to use when making a new project, e.g. \"8.0.0-dev\". To use the latest stable version of AGP, set the value " +
     "to \"stable\". When set, a compatible Gradle version will also be " +
     "selected. If unset, the latest AGP version and the latest Gradle version will be used.",
     ""
@@ -1002,7 +1002,7 @@ public final class StudioFlags {
     GRADLE_IDE,
     "gradle.heap.analysis.output.directory",
     "Gradle heap analysis output directory",
-    "If set, files with information about heap usage such as total live objects size and the strongly reachable objects size, will be dumped" +
+    "If set, files with information about heap usage such as total live objects size and the strongly reachable objects size, will be dumped " +
     "to a file at certain points during project sync.",
     ""
   );
@@ -1027,7 +1027,7 @@ public final class StudioFlags {
     GRADLE_IDE,
     "use.flat.dependency.graph.model",
     "Switches to a flat representation of the dependency model to improve performance",
-    "Switches to a flat representation of the dependency model to improve performance. The behaviour is guarded behind a flag" +
+    "Switches to a flat representation of the dependency model to improve performance. The behaviour is guarded behind a flag " +
     "until we can decide to enable it. This currently reduces some functionality around views / analyses regarding dependency structure");
 
   public static final Flag<Boolean> MULTIPLE_DEVICE_SPECS_ENABLED = new BooleanFlag(
@@ -2211,7 +2211,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> STUDIOBOT_MCP_AUTH_ENABLED =
     new BooleanFlag(STUDIOBOT, "mcp.auth.enabled",
                     "Enable MCP Auth via OAuth with MCP Servers",
-                    "Allows connectinos with remote streamableHttp MCP Servers that require OAuth");
+                    "Allows connections with remote streamableHttp MCP Servers that require OAuth");
 
   public static final Flag<Boolean> STUDIOBOT_MCP_SETTINGS_ENABLED =
     new BooleanFlag(STUDIOBOT, "mcp.settings.enabled",
@@ -2365,19 +2365,19 @@ public final class StudioFlags {
   public static Flag<Boolean> GEMINI_BRING_YOUR_OWN_KEY_ENABLED =
     new BooleanFlag(STUDIOBOT, "bring.your.own.key",
                     "Enable providing a public Gemini API key to override the default model.",
-                    "When enabled, a setting and various UI is made visible to provide a Gemini API key, and when provided and" +
+                    "When enabled, a setting and various UI is made visible to provide a Gemini API key, and when provided and " +
                     "enabled it replaces the default model with the public Gemini model.");
 
   public static Flag<Boolean> LOCAL_MODELS_ENABLED =
     new BooleanFlag(STUDIOBOT, "local.models.enabled",
                     "Add local models for Chat.",
-                    "When enabled, a setting and various UI is made visible to configure local models, and when provided and" +
+                    "When enabled, a setting and various UI is made visible to configure local models, and when provided and " +
                     "enabled it add local model option to Chat model picker.");
 
   public static Flag<Boolean> REMOTE_MODELS_ENABLED =
     new BooleanFlag(STUDIOBOT, "remote.models.enabled",
                     "Add remote models for Chat.",
-                    "When enabled, a setting and various UI is made visible to configure remote models, and when provided and" +
+                    "When enabled, a setting and various UI is made visible to configure remote models, and when provided and " +
                     "enabled it add remote model option to Chat model picker.");
 
   public static final Flag<Boolean> STUDIOBOT_INCLUDE_GRADLE_PROJECT_STRUCTURE_TOOLS_BY_DEFAULT =
