@@ -80,9 +80,9 @@ class MeasureSyncExecutionTimeRule(val syncCount: Int, val projectToCompareAgain
 
     override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {
       val configurationFinishedTimestamp = getTimestampForCheckpoint(MeasurementCheckpoint.CONFIGURATION_FINISHED.name)
-      val androidStartedTimestamp = getTimestampForCheckpoint(AndroidMeasurementCheckpoint.ANDROID_STARTED.name)
-      val androidFinishedTimestamp = getTimestampForCheckpoint(AndroidMeasurementCheckpoint.ANDROID_FINISHED.name)
+      val androidStartedTimestamp = configurationFinishedTimestamp
       val gradleSyncFinishedTimestamp = getTimestampForCheckpoint(MeasurementCheckpoint.SYNC_FINISHED.name)
+      val androidFinishedTimestamp = gradleSyncFinishedTimestamp
       val ideFinishedTimestamp = Clock.System.now()
 
       val result = Durations(
