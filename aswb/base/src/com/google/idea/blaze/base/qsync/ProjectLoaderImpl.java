@@ -30,12 +30,10 @@ import com.google.idea.blaze.base.projectview.section.Glob;
 import com.google.idea.blaze.base.projectview.section.sections.AutomaticallyDeriveTargetsSection;
 import com.google.idea.blaze.base.projectview.section.sections.TargetSection;
 import com.google.idea.blaze.base.projectview.section.sections.TestSourceSection;
-import com.google.idea.blaze.base.qsync.cc.CcProjectProtoTransform;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.google.idea.blaze.base.settings.BuildSystemName;
-import com.google.idea.blaze.base.sync.data.BlazeDataStorage;
 import com.google.idea.blaze.base.sync.projectview.ImportRoots;
 import com.google.idea.blaze.base.sync.projectview.LanguageSupport;
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings;
@@ -242,7 +240,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
             projectPathResolver,
             buildSystem.getEmptyJarDigests(),
             QuerySync.ATTACH_DEP_SRCJARS::getValue));
-    projectTransformRegistry.add(new CcProjectProtoTransform());
 
     artifactTracker = tracker;
     renderJarArtifactTracker = new RenderJarArtifactTrackerImpl();

@@ -28,7 +28,6 @@ import com.google.idea.blaze.qsync.deps.CcToolchain
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation
-import com.google.idea.blaze.qsync.project.LanguageClassProto.LanguageClass
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto.CcCompilationContext
 import com.google.idea.blaze.qsync.project.ProjectProto.CcCompilerFlag
