@@ -32,7 +32,6 @@ import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTable
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.LibraryData
@@ -49,6 +48,7 @@ class ResolvedLibraryTableBuilder(
   private val getModuleDataNode: (GradleProjectPath) -> DataNode<out ModuleData>?,
   private val resolveArtifact: (File) -> List<GradleSourceSetProjectPath>?,
   private val resolveKmpAndroidMainSourceSet: (GradleProjectPath) -> String?,
+  private val ignoreKmpFailures: Boolean = false
 ) {
   fun buildResolvedLibraryTable(
     ideLibraryTable: IdeUnresolvedLibraryTable,
@@ -57,7 +57,8 @@ class ResolvedLibraryTableBuilder(
       artifactResolver = { resolveArtifact(it) },
       moduleDependencyExpander = ::resolveAdditionalKmpSourceSets,
       kmpAndroidMainSourceSetResolver = resolveKmpAndroidMainSourceSet,
-      logger = logger
+      logger,
+      ignoreKmpFailures
     )
   }
 
@@ -66,7 +67,9 @@ class ResolvedLibraryTableBuilder(
       yield(sourceSet)
       val targetSourceSetData = getModuleDataNode(sourceSet)
         ?: let {
-          logWarn("Resolved source set not found for: $sourceSet")
+          if(!ignoreKmpFailures) {
+            logger.error("Resolved source set not found for: $sourceSet")
+          }
           return@sequence
         }
       val kmpDependsOn = ExternalSystemApiUtil.find(targetSourceSetData, KotlinSourceSetData.KEY)?.data?.sourceSetInfo?.dependsOn.orEmpty()
@@ -79,20 +82,14 @@ class ResolvedLibraryTableBuilder(
 
   private val logger = Logger.getInstance(this.javaClass)
 
-  private fun logWarn(message: String) {
-    if (ApplicationManager.getApplication().isUnitTestMode) {
-      logger.warn(message) // To avoid failing tests, as this is expected in some scenarios
-    } else {
-      logger.error(message)
-    }
-  }
 }
 
 private fun IdeUnresolvedLibraryTable.resolve(
   artifactResolver: (File) -> List<GradleSourceSetProjectPath>?,
   moduleDependencyExpander: (GradleSourceSetProjectPath) -> List<GradleSourceSetProjectPath>,
   kmpAndroidMainSourceSetResolver: (GradleProjectPath) -> String?,
-  logger: Logger
+  logger: Logger,
+  ignoreKmpFailures: Boolean
 ): IdeResolvedLibraryTableImpl {
 
   fun resolve(preResolved: IdePreResolvedModuleLibrary): List<IdeModuleLibrary> {
@@ -121,7 +118,9 @@ private fun IdeUnresolvedLibraryTable.resolve(
         unresolved.projectPath
       )
     ) ?: run {
-      logger.error("Unable to find the main android sourceSet for the kotlin multiplatform module ${unresolved.projectPath}.")
+      if (!ignoreKmpFailures) {
+        logger.error("Unable to find the main android sourceSet for the kotlin multiplatform module ${unresolved.projectPath}.")
+      }
       return emptyList()
     }
 
