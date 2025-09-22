@@ -71,11 +71,25 @@ class TargetMenuActionTest : AndroidTestCase() {
     menuAction.updateActions(dataContext)
 
     val children = menuAction.getChildren(null)
-    // First child is TargetMenuAction.TogglePickBestAction, second child is Separator
-    val target = (children[2] as SetTargetAction).myTarget
+    run {
+      val target =
+        children
+          .filterIsInstance<SetTargetAction>()
+          .map { it.myTarget }
+          .single { it.version.androidApiLevel.majorVersion == 33 }
 
-    assertThat(target.version.apiLevel).isEqualTo(33)
-    assertThat(target.revision).isEqualTo(2)
+      assertThat(target.revision).isEqualTo(2)
+    }
+
+    run {
+      val target =
+        children
+          .filterIsInstance<SetTargetAction>()
+          .map { it.myTarget }
+          .single { it.version.androidApiLevel.majorVersion == 32 }
+
+      assertThat(target.version.androidApiLevel.minorVersion).isEqualTo(1)
+    }
   }
 
   fun testNotSelectAutomaticallyPickupActionWhenSelectOtherTarget() {
@@ -146,17 +160,17 @@ class TargetMenuActionTest : AndroidTestCase() {
     val manager = ConfigurationManager.getOrCreateInstance(myModule)
     val spied = spy(manager)
 
-    val highestApi = createApiTarget(30, 0)
+    val highestApi = createApiTarget(30, 0, 0)
     val targets =
       arrayOf(
-        createApiTarget(28),
-        createApiTarget(29),
+        createApiTarget(28, 0),
+        createApiTarget(29, 0),
         highestApi,
-        createApiTarget(31),
-        createApiTarget(32),
-        createApiTarget(33),
-        createApiTarget(33, 1),
-        createApiTarget(33, 2),
+        createApiTarget(31, 0),
+        createApiTarget(32, 0, 1),
+        createApiTarget(32, 1),
+        createApiTarget(33, 0, 1),
+        createApiTarget(33, 0, 2),
       )
 
     doReturn(targets).whenever(spied).targets
@@ -164,9 +178,9 @@ class TargetMenuActionTest : AndroidTestCase() {
     return spied
   }
 
-  private fun createApiTarget(level: Int, revision: Int = 0): IAndroidTarget {
+  private fun createApiTarget(level: Int, minorLevel: Int, revision: Int = 0): IAndroidTarget {
     val target = mock<IAndroidTarget>()
-    whenever(target.version).thenReturn(AndroidVersion(level))
+    whenever(target.version).thenReturn(AndroidVersion(level, minorLevel))
     whenever(target.revision).thenReturn(revision)
     whenever(target.hasRenderingLibrary()).thenReturn(true)
     whenever(target.isPlatform).thenReturn(true)
