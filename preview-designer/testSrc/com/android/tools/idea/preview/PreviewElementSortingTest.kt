@@ -67,25 +67,34 @@ class PreviewElementSortingTest {
 
   @Test
   fun testPreviewSortingMultipleInstancesWithDisplayName() {
-    val displayNames = arrayOf("A", "B", "C", "D")
-    val expectedPreviews =
-      displayNames.mapIndexed { index, name ->
-        ParametrizedComposePreviewElementInstance(
-          basePreviewElement = previewInstance(name = "PreviewComposableName"),
-          parameterName = "param-$index",
-          providerClassFqn = "ProviderClass",
-          index = index,
-          maxIndex = displayNames.size,
-          displayName = name,
-        )
+    val displayNamesWithLocale =
+      listOf(
+        "" to arrayOf("A", "à", "B", "C", "ç", "ch", "E", "é", "ê", "j", "y", "z", "Z"),
+        "en_US" to arrayOf("A", "à", "B", "C", "ç", "ch", "E", "é", "ê", "j", "y", "z", "Z"),
+        // Czech ('ch' letter will be in a different position)
+        "cs" to arrayOf("A", "à", "B", "C", "ç", "E", "é", "ê", "ch", "j", "y", "z", "Z"),
+        // Lithuanian ('y' will be in a different position)
+        "lt" to arrayOf("A", "à", "B", "C", "ç", "ch", "E", "é", "ê", "y", "j", "z", "Z"),
+      )
+
+    displayNamesWithLocale.forEach { (locale, displayNames) ->
+      val expectedPreviews =
+        displayNames.mapIndexed { index, name ->
+          ParametrizedComposePreviewElementInstance(
+            basePreviewElement = previewInstance(name = "PreviewComposableName", locale = locale),
+            parameterName = "param-$index",
+            providerClassFqn = "ProviderClass",
+            index = index,
+            maxIndex = displayNames.size,
+            displayName = name,
+          )
+        }
+      // Because we  want to check if we correctly sort the PreviewElement we shuffle
+      // the previews
+      val shuffledPreviews = expectedPreviews.shuffled()
+      runBlocking {
+        assertEquals(expectedPreviews, shuffledPreviews.sortByDisplayAndSourcePosition())
       }
-
-    // Because we  want to check if we correctly sort the PreviewElement we shuffle
-    // the previews
-    val shuffledPreviews = expectedPreviews.shuffled()
-
-    runBlocking {
-      assertEquals(expectedPreviews, shuffledPreviews.sortByDisplayAndSourcePosition())
     }
   }
 
@@ -106,7 +115,7 @@ class PreviewElementSortingTest {
     }
   }
 
-  private fun previewInstance(name: String, group: String? = null) =
+  private fun previewInstance(name: String, group: String? = null, locale: String? = null) =
     SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
       methodFqn = "ComposableName",
       displaySettings =
@@ -123,6 +132,6 @@ class PreviewElementSortingTest {
         ),
       previewElementDefinition = null,
       previewBody = null,
-      configuration = PreviewConfiguration.cleanAndGet(),
+      configuration = PreviewConfiguration.cleanAndGet(locale = locale),
     )
 }

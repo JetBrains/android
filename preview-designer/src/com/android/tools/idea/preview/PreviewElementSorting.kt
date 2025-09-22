@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.preview
 
+import com.android.tools.preview.ConfigurablePreviewElement
 import com.android.tools.preview.DisplayPositioning
 import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
+import java.text.Collator
+import java.util.Locale
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
 
 /**
@@ -36,7 +39,37 @@ private val sourceOffsetComparator = compareBy<PsiPreviewElement> { it.sourceOff
 private val displayPriorityComparator =
   compareBy<PsiPreviewElement> { it.displaySettings.displayPositioning }
 
-private val lexicographicalNameComparator = compareBy<PreviewElement<*>> { it.displaySettings.name }
+/**
+ * Returns a [Comparator] that sorts [PreviewElement]s by their display name.
+ *
+ * This comparator uses [Collator] for locale-sensitive String comparison. This is important for
+ * sorting Strings in a way that respects the conventions of a specific language. For example, in
+ * some languages, accented characters are sorted differently than in others. Using [Collator] is
+ * more robust than a simple [String.compareTo] which just compares Unicode values.
+ *
+ * @param locale the [Locale] to be used by the [Collator] for comparison.
+ */
+private fun lexicographicalNameComparator(locale: Locale): Comparator<PreviewElement<*>> =
+  compareBy(Collator.getInstance(locale)) { it.displaySettings.name }
+
+/**
+ * Gets a common [Locale] for sorting a collection of [PsiPreviewElement]s.
+ *
+ * Returns a specific [Locale] if exactly one unique locale is defined among all
+ * [ConfigurablePreviewElement]s in the collection. Otherwise, returns [Locale.getDefault].
+ *
+ * @param previewElements The collection of preview elements to analyze.
+ * @return The unique [Locale] if one exists, otherwise the system default.
+ */
+private fun <T : PsiPreviewElement> getPreviewElementLocale(
+  previewElements: Collection<T>
+): Locale {
+  val locales =
+    previewElements
+      .mapNotNull { (it as? ConfigurablePreviewElement<*>)?.configuration?.locale }
+      .toSet()
+  return if (locales.size == 1) Locale(locales.first()) else Locale.getDefault()
+}
 
 /**
  * Sorts the [PreviewElement]s by [DisplayPositioning] (top first) and then by source code line
@@ -50,6 +83,6 @@ fun <T : PsiPreviewElement> Collection<T>.sortByDisplayAndSourcePosition(): List
     sortedWith(
       displayPriorityComparator
         .thenComparing(sourceOffsetComparator)
-        .thenComparing(lexicographicalNameComparator)
+        .thenComparing(lexicographicalNameComparator(getPreviewElementLocale(this)))
     )
   }
