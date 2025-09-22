@@ -63,13 +63,20 @@ class ProjectProtoUpdate(
     fun addSourceRoot(root: ProjectPath, javaPackage: String, isTest: Boolean, isGenerated: Boolean)
   }
 
+  /**
+   * A CcWorkspace holds configuration of native targets.
+   */
+  interface CcWorkspaceUpdater {
+    fun addContexts(compilationContext: ProjectProto.CcCompilationContext)
+    fun putFlagSets(flagSetId: String, build: ProjectProto.CcCompilerFlagSet)
+  }
+
   private val project: ProjectProto.Project.Builder = existingProject.toBuilder()
   private val workspaceModule: ProjectProto.Module.Builder = getWorkspaceModuleBuilder(project)
   private val libraries: MutableMap<String, ProjectProto.Library> = project.libraryList.associateBy { it.name }.toMutableMap()
   private val artifactDirs: MutableMap<Path, ArtifactDirectoryBuilder> = hashMapOf()
 
   fun context(): Context<*> = context
-  fun ccWorkspace(): ProjectProto.CcWorkspace.Builder = project.ccWorkspaceBuilder
   fun buildGraph(): BuildGraphData = buildGraph
 
   /** Gets a builder for a library, creating it if it doesn't already exist.  */
@@ -133,6 +140,18 @@ class ProjectProtoUpdate(
     }.updater()
   }
 
+  fun ccWorkspace(updater: CcWorkspaceUpdater.() -> Unit) {
+    object: CcWorkspaceUpdater {
+      override fun addContexts(compilationContext: ProjectProto.CcCompilationContext) {
+        project.ccWorkspaceBuilder.addContexts(compilationContext)
+      }
+
+      override fun putFlagSets(flagSetId: String, build: ProjectProto.CcCompilerFlagSet) {
+        project.ccWorkspaceBuilder.putFlagSets(flagSetId, build)
+      }
+    }.updater()
+  }
+
   fun artifactDirectory(path: ProjectPath): ArtifactDirectoryBuilder {
     Preconditions.checkState(path.rootType() == ProjectPath.Root.PROJECT)
     return artifactDirs.computeIfAbsent(path.relativePath()) { path -> ArtifactDirectoryBuilder(path) }
@@ -156,9 +175,9 @@ class ProjectProtoUpdate(
       return project
                .modulesBuilderList
                .firstOrNull { it.name == BlazeProjectDataStorage.WORKSPACE_MODULE_NAME }
-             ?: throw IllegalArgumentException(
-               ("Module with name ${BlazeProjectDataStorage.WORKSPACE_MODULE_NAME} not found in project proto.")
-             )
+             ?: project.addModulesBuilder()
+               .setName(BlazeProjectDataStorage.WORKSPACE_MODULE_NAME)
+               .setType(ProjectProto.ModuleType.MODULE_TYPE_DEFAULT)
     }
   }
 }
