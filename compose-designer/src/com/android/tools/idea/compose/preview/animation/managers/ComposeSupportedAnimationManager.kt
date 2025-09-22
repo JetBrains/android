@@ -116,7 +116,7 @@ abstract class ComposeSupportedAnimationManager(
         try {
           properties =
             getAnimatedProperties(animation).map {
-              AnimationUnit.TimelineUnit(it.label, ComposeUnit.parseStateUnit(it))
+              AnimationUnit.TimelineUnit(it.label, ComposeUnit.parseStateUnit(it.value))
             }
         } catch (e: Exception) {
           LOG.warn("Failed to get the Compose Animation properties", e)
