@@ -43,20 +43,14 @@ import com.android.tools.idea.rendering.tokens.requestBuildArtifactsForRendering
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.ActionUiKind
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
-import com.intellij.openapi.actionSystem.ex.ActionUtil
-import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileEditor
-import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.TextEditorWithPreview
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
@@ -412,11 +406,20 @@ internal class ComposePreviewViewImpl(
             workbench.hideLoading()
             workbench.showContent()
           } else {
-            val generatePreviewsActionData =
+            val actions =
               withContext(workerThread) {
-                if (StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.get())
-                  createGeneratePreviewsActionData()
-                else null
+                listOfNotNull(
+                  if (StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.get()) {
+                    createGeneratePreviewsActionData()
+                  } else {
+                    null
+                  },
+                  if (StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.get()) {
+                    createScreenshotToCodeActionData()
+                  } else {
+                    null
+                  },
+                )
               }
             workbench.hideLoading()
             workbench.hideContent()
@@ -424,7 +427,7 @@ internal class ComposePreviewViewImpl(
               message("panel.no.previews.defined") + message("panel.no.previews.syntax.error.note"),
               null,
               UrlData(message("panel.no.previews.action"), COMPOSE_PREVIEW_DOC_URL),
-              generatePreviewsActionData,
+              *actions.toTypedArray(),
             )
           }
         }
@@ -434,20 +437,23 @@ internal class ComposePreviewViewImpl(
     }
   }
 
+  private fun isGeminiAvailable() =
+    GeminiPluginApi.getInstance().isAvailable() &&
+      GeminiPluginApi.getInstance().isContextAllowed(project)
+
+  private fun getComposeStudioBotActionFactory(): ComposeStudioBotActionFactory? =
+    ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull()
+
   /**
    * Creates an [ActionData] to invoke [GenerateComposePreviewsForFileAction]. The action should
    * only be visible if the containing file has Composables.
    */
   private suspend fun createGeneratePreviewsActionData(): ActionData? {
-    if (
-      !GeminiPluginApi.getInstance().isAvailable() ||
-        !GeminiPluginApi.getInstance().isContextAllowed(project)
-    ) {
+    if (!isGeminiAvailable()) {
       return null
     }
 
-    val previewGeneratorFactory =
-      ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull() ?: return null
+    val previewGeneratorFactory = getComposeStudioBotActionFactory() ?: return null
 
     try {
       ProgressManager.checkCanceled()
@@ -461,37 +467,40 @@ internal class ComposePreviewViewImpl(
         // Don't show the action if there are no Composables in the file
         return null
       }
+    } catch (e: ProcessCanceledException) {
+      throw e
     } catch (e: Exception) {
       log.debug("Failed to check if there are Composables in the file", e)
       return null
     }
 
-    return previewGeneratorFactory.createPreviewGenerator()?.let { previewGenerator ->
-      ActionData(
+    return previewGeneratorFactory.createPreviewGenerator()?.let {
+      createPreviewActionData(
+        it,
+        psiFilePointer,
+        mainSurface,
         message("action.generate.previews.for.file.empty.panel"),
         StudioIcons.StudioBot.LOGO,
-      ) {
-        val psiFile = psiFilePointer.element ?: return@ActionData
-        val selectedEditor =
-          (FileEditorManager.getInstance(psiFile.project).selectedEditor as? TextEditorWithPreview)
-            ?.editor ?: return@ActionData
-        val simpleContext =
-          SimpleDataContext.builder()
-            .add(CommonDataKeys.PSI_FILE, psiFile)
-            .add(CommonDataKeys.EDITOR, selectedEditor)
-            .add(CommonDataKeys.PROJECT, psiFile.project)
-            .build()
-        val event =
-          AnActionEvent.createEvent(
-            previewGenerator,
-            simpleContext,
-            null,
-            ActionPlaces.UNKNOWN,
-            ActionUiKind.NONE,
-            null,
-          )
-        ActionUtil.invokeAction(previewGenerator, event, null)
-      }
+      )
+    }
+  }
+
+  /** Creates an [ActionData] to invoke an action that generates code from a screenshot. */
+  private fun createScreenshotToCodeActionData(): ActionData? {
+    if (!isGeminiAvailable()) {
+      return null
+    }
+
+    val factory = getComposeStudioBotActionFactory() ?: return null
+
+    return factory.screenshotToCodeAction().let {
+      createPreviewActionData(
+        it,
+        psiFilePointer,
+        mainSurface,
+        it.templatePresentation.text,
+        StudioIcons.StudioBot.LOGO,
+      )
     }
   }
 
