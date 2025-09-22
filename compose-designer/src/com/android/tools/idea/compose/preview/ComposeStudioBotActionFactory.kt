@@ -42,6 +42,9 @@ interface ComposeStudioBotActionFactory {
    */
   fun previewAgentsDropDownAction(): AnAction?
 
+  /** Action to generate Compose code from a screenshot of a UI. */
+  fun screenshotToCodeAction(): AnAction
+
   companion object {
     val EP_NAME: ExtensionPointName<ComposeStudioBotActionFactory> =
       ExtensionPointName.create(

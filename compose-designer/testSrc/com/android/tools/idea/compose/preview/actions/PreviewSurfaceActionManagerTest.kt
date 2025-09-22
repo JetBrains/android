@@ -308,5 +308,9 @@ class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
   override fun fixComposeRenderIssueAction(renderIssues: List<Issue>): AnAction? =
     fakeAction("fixComposeRender")
 
-  override fun previewAgentsDropDownAction(): AnAction? = fakeAction("previewAgents")
+  override fun previewAgentsDropDownAction(): AnAction = fakeAction("previewAgents")
+
+  override fun screenshotToCodeAction(): AnAction {
+    return fakeAction("screenshotToCode")
+  }
 }
