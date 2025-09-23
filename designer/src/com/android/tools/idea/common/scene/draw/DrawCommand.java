@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
  * This interface also implies a constructor that takes a String
  * Which can expand the serialization of the command
  */
-public interface DrawCommand extends Comparable {
+public interface DrawCommand extends Comparable<DrawCommand> {
   int CONNECTION_LEVEL = 10 ;
   int COMPONENT_LEVEL = 20;
   int COMPONENT_SELECTED_LEVEL = 30;
@@ -41,8 +41,7 @@ public interface DrawCommand extends Comparable {
   void paint(Graphics2D g, SceneContext sceneContext);
   String serialize();
 
-  @Override
-  default int compareTo(@NotNull Object o) {
-    return Integer.compare(getLevel(), ((DrawCommand)o).getLevel());
+  default int compareTo(@NotNull DrawCommand o) {
+    return Integer.compare(getLevel(), o.getLevel());
   }
 }

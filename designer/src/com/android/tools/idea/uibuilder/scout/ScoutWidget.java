@@ -43,7 +43,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
   private DimensionInfo mPreConvertDimension;
   private float mRootDistance;
   NlComponent mNlComponent;
-  private boolean mKeepExistingConnections = true;
+  private final boolean mKeepExistingConnections = true;
   private Rectangle mRectangle;
   HashMap<String, ScoutWidget> myChildMap = new HashMap<String, ScoutWidget>();
   private static final String ATT_LL = SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF;
@@ -123,10 +123,10 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
       return Float.compare(mRootDistance, scoutWidget.mRootDistance);
     }
     if (mY != scoutWidget.mY) {
-      return Float.compare(mY, scoutWidget.mY);
+      return Integer.compare(mY, scoutWidget.mY);
     }
     if (mX != scoutWidget.mX) {
-      return Float.compare(mX, scoutWidget.mX);
+      return Integer.compare(mX, scoutWidget.mX);
     }
     return 0;
   }
@@ -288,19 +288,13 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
    * @return
    */
   float getLocation(Direction dir) {
-    switch (dir) {
-      case TOP:
-        return mY;
-      case BOTTOM:
-        return mY + mHeight;
-      case LEFT:
-        return mX;
-      case RIGHT:
-        return mX + mWidth;
-      case BASELINE:
-        return mBaseLine;
-    }
-    return mBaseLine;
+    return switch (dir) {
+      case TOP -> mY;
+      case BOTTOM -> mY + mHeight;
+      case LEFT -> mX;
+      case RIGHT -> mX + mWidth;
+      case BASELINE -> mBaseLine;
+    };
   }
 
   /**

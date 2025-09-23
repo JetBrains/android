@@ -40,7 +40,6 @@ public class ScoutChains {
     VERTICAL
   }
 
-  private final static boolean DEBUG = true;
 
   public static void pick(ScoutWidget[] list) {
     ScoutWidget base = list[0];
@@ -48,12 +47,10 @@ public class ScoutChains {
     System.arraycopy(list, 1, children, 0, children.length);
     ChainMode chain_mode;
     // ===============  CHECK for horizontal chain ===============
-    for (int i = 0; i < children.length; i++) {
-      ScoutWidget child = children[i];
+    for (ScoutWidget child : children) {
       child.mCheckedForChain = child.isConnected(Direction.LEFT) || child.isConnected(Direction.RIGHT);
     }
-    for (int i = 0; i < children.length; i++) {
-      ScoutWidget child = children[i];
+    for (ScoutWidget child : children) {
       ScoutWidget[] group = getCandiateListX(child, children);
       group = removeOverlapsX(group);
       if (group != null) { // We have a solid candidate group
@@ -98,14 +95,12 @@ public class ScoutChains {
     }
 
     // =============== CHECK for a vertical chain ===============
-    for (int i = 0; i < children.length; i++) {
-      ScoutWidget child = children[i];
+    for (ScoutWidget child : children) {
       child.mCheckedForChain =
         child.isConnected(Direction.BOTTOM) || child.isConnected(Direction.TOP) || child.isConnected(Direction.BASELINE);
     }
-    for (int i = 0; i < children.length; i++) {
-      ScoutWidget child = children[i];
-      ScoutWidget[] group = getCandiateListY(child, children);
+    for (ScoutWidget child : children) {
+      ScoutWidget[] group = getCandidateListY(child, children);
       group = removeOverlapsY(group);
 
       if (group != null) {
@@ -113,7 +108,7 @@ public class ScoutChains {
         if (anyNotWrap(group, dir)) { // go with a "normal" chain calc margins
           int[] margins = new int[group.length + 1];
           getMargins(base, group, margins, dir);
-          creatVerticalChain(group, base, ChainMode.CHAIN_SPREAD, margins);
+          createVerticalChain(group, base, ChainMode.CHAIN_SPREAD, margins);
         }
         else {
           int[] marginsSpread = new int[group.length + 1];
@@ -130,19 +125,19 @@ public class ScoutChains {
               if (errorPacked > MAX_ERROR) {
                 return;
               }
-              creatVerticalChain(group, base, chain_mode, marginsPacked);
+              createVerticalChain(group, base, chain_mode, marginsPacked);
               break;
             case CHAIN_SPREAD:
               if (errorSpread > MAX_ERROR) {
                 return;
               }
-              creatVerticalChain(group, base, chain_mode, marginsSpread);
+              createVerticalChain(group, base, chain_mode, marginsSpread);
               break;
             case CHAIN_SPREAD_INSIDE:
               if (errorInside > MAX_ERROR || group.length < MIN_SPREAD) {
                 return;
               }
-              creatVerticalChain(group, base, chain_mode, marginsInside);
+              createVerticalChain(group, base, chain_mode, marginsInside);
               break;
           }
         }
@@ -175,7 +170,8 @@ public class ScoutChains {
    * @param group  array to be in chain
    * @param margin margins needed
    * @param dir    chain direction
-   * @return
+   * @return the sum of the squares of the differences between the actual margins and the calculated natural space, indicating the error in the spread.
+   * A smaller error means a better fit for the spread mode.
    */
   private static int getMarginsSpread(ScoutWidget base, ScoutWidget[] group, int[] margin, Dir dir) {
     int error = 0;
@@ -211,8 +207,7 @@ public class ScoutChains {
       margin[group.length] = base.getDpHeight() - group[group.length - 1].getDpHeight() - group[group.length - 1].getDpY() - naturalSpace;
     }
 
-    for (int i = 0; i < margin.length; i++) {
-      int e = margin[i];
+    for (int e : margin) {
       if (e < -2) {
         error = Integer.MAX_VALUE;
         return error;
@@ -230,7 +225,8 @@ public class ScoutChains {
    * @param group  array to be in chain
    * @param margin margins needed
    * @param dir    chain direction
-   * @return
+   * @return the sum of the squares of the differences between the actual margins and the calculated natural space, indicating the error in the spread inside mode.
+   * A smaller error means a better fit for this mode.
    */
   private static int getMarginsInside(ScoutWidget base, ScoutWidget[] group, int[] margin, Dir dir) {
     int error = 0;
@@ -263,8 +259,7 @@ public class ScoutChains {
       margin[group.length] = base.getDpHeight() - group[group.length - 1].getDpHeight() - group[group.length - 1].getDpY();
     }
 
-    for (int i = 0; i < margin.length; i++) {
-      int e = margin[i]; // since the spread should be exactly the average value spread is value greater than a
+    for (int e : margin) { // since the spread should be exactly the average value spread is value greater than a
       if (e < -2) {
         error = Integer.MAX_VALUE;
         return error;
@@ -281,12 +276,14 @@ public class ScoutChains {
    * @param group  array to be in chain
    * @param margin margins needed
    * @param dir    chain direction
-   * @return
+   * @return the sum of the squares of the differences between the actual margins and the calculated natural space, indicating the error in the packed mode.
+   * A smaller error means a better fit for this mode.
    */
   private static int getMarginsPacked(ScoutWidget base, ScoutWidget[] group, int[] margin, Dir dir) {
     int error = 0;
+    int topSpace;
     if (dir == Dir.HORIZONTAL) {
-      int topSpace = group[0].getDpX();
+      topSpace = group[0].getDpX();
       int bottomSpace = base.getDpWidth() - (group[group.length - 1].getDpWidth() + group[group.length - 1].getDpX());
       int naturalSpace = Math.min(topSpace, bottomSpace);
 
@@ -297,7 +294,7 @@ public class ScoutChains {
       margin[group.length] = base.getDpWidth() - group[group.length - 1].getDpWidth() - group[group.length - 1].getDpX() - naturalSpace;
     }
     else { // VERTICAL
-      int topSpace = group[0].getDpY();
+      topSpace = group[0].getDpY();
       int bottomSpace = base.getDpHeight() - (group[group.length - 1].getDpHeight() + group[group.length - 1].getDpY());
       int naturalSpace = Math.min(topSpace, bottomSpace);
 
@@ -308,8 +305,7 @@ public class ScoutChains {
       margin[group.length] = base.getDpHeight() - group[group.length - 1].getDpHeight() - group[group.length - 1].getDpY() - naturalSpace;
     }
 
-    for (int i = 0; i < margin.length; i++) {
-      int e = margin[i]; // since the spread should be exactly the average value spread is value greater than a
+    for (int e : margin) { // since the spread should be exactly the average value spread is value greater than a
       if (e < -2) {
         error = Integer.MAX_VALUE;
         return error;
@@ -320,8 +316,7 @@ public class ScoutChains {
   }
 
   private static boolean anyNotWrap(ScoutWidget[] group, Dir dir) {
-    for (int i = 0; i < group.length; i++) {
-      ScoutWidget widget = group[i];
+    for (ScoutWidget widget : group) {
       if (widget.isCandidateResizable((dir == Dir.HORIZONTAL) ? 1 : 0)) {
         return true;
       }
@@ -367,15 +362,15 @@ public class ScoutChains {
         }
         int gap = margins[i];
         if (gap > 0) {
-          attrList.add(new String[]{ANDROID_URI, ATTR_LAYOUT_MARGIN_START, Integer.toString(gap) + "dp"});
-          attrList.add(new String[]{ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT, Integer.toString(gap) + "dp"});
+          attrList.add(new String[]{ANDROID_URI, ATTR_LAYOUT_MARGIN_START, gap + "dp"});
+          attrList.add(new String[]{ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT, gap + "dp"});
         }
       }
 
       int gap = margins[i + 1];
       if (gap > 0) {
-        attrList.add(new String[]{ANDROID_URI, ATTR_LAYOUT_MARGIN_END, Integer.toString(gap) + "dp"});
-        attrList.add(new String[]{ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT, Integer.toString(gap) + "dp"});
+        attrList.add(new String[]{ANDROID_URI, ATTR_LAYOUT_MARGIN_END, gap + "dp"});
+        attrList.add(new String[]{ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT, gap + "dp"});
       }
 
       scoutChainConnect(widget.mNlComponent, Direction.RIGHT, rightConnect.mNlComponent, rdir, attrList);
@@ -383,7 +378,7 @@ public class ScoutChains {
     }
   }
 
-  private static void creatVerticalChain(ScoutWidget[] scoutWidgets, ScoutWidget parentScoutWidget, ChainMode chain_mode, int[] margin) {
+  private static void createVerticalChain(ScoutWidget[] scoutWidgets, ScoutWidget parentScoutWidget, ChainMode chain_mode, int[] margin) {
     Arrays.sort(scoutWidgets, ScoutArrange.sSortRecY);
     ScoutWidget topConnect, bottomConnect;
     ArrayList<String[]> attrList = new ArrayList<>();
@@ -422,13 +417,13 @@ public class ScoutChains {
         }
         int gap = margin[i];
         if (gap > 0) {
-          attrList.add(new String[]{ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP, Integer.toString(gap) + "dp"});
+          attrList.add(new String[]{ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP, gap + "dp"});
         }
       }
 
       int gap = margin[i + 1];
       if (gap > 0) {
-        attrList.add(new String[]{ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM, Integer.toString(gap) + "dp"});
+        attrList.add(new String[]{ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM, gap + "dp"});
       }
 
       scoutChainConnect(widget.mNlComponent, Direction.BOTTOM, bottomConnect.mNlComponent, bdir, attrList);
@@ -467,7 +462,7 @@ public class ScoutChains {
         list.add(group[i]);
       }
     }
-    return list.toArray(new ScoutWidget[list.size()]);
+    return list.toArray(new ScoutWidget[0]);
   }
 
   /**
@@ -501,7 +496,7 @@ public class ScoutChains {
         list.add(group[i]);
       }
     }
-    return list.toArray(new ScoutWidget[list.size()]);
+    return list.toArray(new ScoutWidget[0]);
   }
 
   private static int medianX(ScoutWidget[] group, int excluding) {
@@ -530,18 +525,16 @@ public class ScoutChains {
 
   public static ScoutWidget[] getCandiateListX(ScoutWidget candidate,
                                                ScoutWidget[] list) {
-    ScoutWidget a = candidate;
     ScoutWidget[] shortList = new ScoutWidget[list.length];
     int shortListCount = 1;
     shortList[0] = candidate;
-    for (int j = 0; j < list.length; j++) {
-      ScoutWidget b = list[j];
-      if (b.mCheckedForChain || a == b) {
+    for (ScoutWidget b : list) {
+      if (b.mCheckedForChain || candidate == b) {
         continue;
       }
-      if (yRangeOverlap(a, b)) { // overlap in y
-        int ba_gap = b.getDpX() + b.getDpWidth() - a.getDpX();
-        int ab_gap = a.getDpX() + a.getDpWidth() - b.getDpX();
+      if (yRangeOverlap(candidate, b)) { // overlap in y
+        int ba_gap = b.getDpX() + b.getDpWidth() - candidate.getDpX();
+        int ab_gap = candidate.getDpX() + candidate.getDpWidth() - b.getDpX();
         if (ba_gap * ab_gap <= 0) { // does not overlap in x
           shortList[shortListCount++] = b;
         }
@@ -552,32 +545,25 @@ public class ScoutChains {
     }
 
     shortList = Arrays.copyOf(shortList, shortListCount);
-    for (int i = 0; i < shortList.length; i++) {
-      shortList[i].mCheckedForChain = true;
+    for (ScoutWidget widget : shortList) {
+      widget.mCheckedForChain = true;
     }
-    Arrays.sort(shortList, new Comparator<ScoutWidget>() {
-      @Override
-      public int compare(ScoutWidget o1, ScoutWidget o2) {
-        return Float.compare(o1.getDpX(), o2.getDpX());
-      }
-    });
+    Arrays.sort(shortList, Comparator.comparingInt(ScoutWidget::getDpX));
     return shortList;
   }
 
-  public static ScoutWidget[] getCandiateListY(ScoutWidget candidate,
-                                               ScoutWidget[] list) {
-    ScoutWidget a = candidate;
+  public static ScoutWidget[] getCandidateListY(ScoutWidget candidate,
+                                                ScoutWidget[] list) {
     ScoutWidget[] shortList = new ScoutWidget[list.length];
     int shortListCount = 1;
     shortList[0] = candidate;
-    for (int j = 0; j < list.length; j++) {
-      ScoutWidget b = list[j];
-      if (b.mCheckedForChain || a == b) {
+    for (ScoutWidget b : list) {
+      if (b.mCheckedForChain || candidate == b) {
         continue;
       }
-      if (xRangeOverlap(a, b)) { // overlap in y
-        int ba_gap = b.getDpY() + b.getDpHeight() - a.getDpY();
-        int ab_gap = a.getDpY() + a.getDpHeight() - b.getDpY();
+      if (xRangeOverlap(candidate, b)) { // overlap in y
+        int ba_gap = b.getDpY() + b.getDpHeight() - candidate.getDpY();
+        int ab_gap = candidate.getDpY() + candidate.getDpHeight() - b.getDpY();
         if (ba_gap * ab_gap <= 0) { // does not overlap in x
           shortList[shortListCount++] = b;
         }
@@ -588,15 +574,10 @@ public class ScoutChains {
     }
 
     shortList = Arrays.copyOf(shortList, shortListCount);
-    for (int i = 0; i < shortList.length; i++) {
-      shortList[i].mCheckedForChain = true;
+    for (ScoutWidget widget : shortList) {
+      widget.mCheckedForChain = true;
     }
-    Arrays.sort(shortList, new Comparator<ScoutWidget>() {
-      @Override
-      public int compare(ScoutWidget o1, ScoutWidget o2) {
-        return Float.compare(o1.getDpY(), o2.getDpY());
-      }
-    });
+    Arrays.sort(shortList, Comparator.comparingInt(ScoutWidget::getDpY));
     return shortList;
   }
 
