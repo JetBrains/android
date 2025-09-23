@@ -253,10 +253,10 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   }
 
   /**
-   * Shows the default empty content panel with the given message and optionals icon and {@link ActionData}.
-   * The message can contain multiple lines.
+   * Shows the default empty content panel with the given message and optional icon and {@link ActionData}s.
+   * The message can contain multiple lines. Multiple action links are displayed vertically stacked.
    */
-  public void loadingStopped(@NotNull String message, @Nullable Icon icon, @Nullable UrlData urlData, @Nullable ActionData actionData) {
+  public void loadingStopped(@NotNull String message, @Nullable Icon icon, @Nullable UrlData urlData, @Nullable ActionData... actionData) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("loadingStopped " + message);
     }

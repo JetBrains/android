@@ -53,20 +53,28 @@ object NewLineChunk : Chunk()
  * @param helpUrlData If present, shows a link at the bottom of the empty state text, offering users
  *   a change to click on a link that takes them to a browser page where they can read more about
  *   what is causing the empty state / what they can do.
- * @param actionData If present, shows a link below empty text and url (if present), which when
- *   clicked runs the callback passed to ActionData.
+ * @param actionData If present, shows links below empty text and url (if present), which when
+ *   clicked run the callbacks passed to ActionData.
  */
 class EmptyStatePanel
 @JvmOverloads
 constructor(
   private val reason: LabelData,
   helpUrlData: UrlData? = null,
-  @TestOnly val actionData: ActionData? = null,
+  @TestOnly vararg val actionData: ActionData?,
   textColor: Color = NamedColorUtil.getInactiveTextColor(),
 ) : JPanel(BorderLayout()) {
+
   init {
-    add(createInstructionsPanel(this, reason, helpUrlData, actionData, textColor))
+    add(createInstructionsPanel(this, reason, helpUrlData, *actionData, textColor = textColor))
   }
+
+  constructor(
+    reason: LabelData,
+    helpUrlData: UrlData? = null,
+    actionData: ActionData?,
+    textColor: Color = NamedColorUtil.getInactiveTextColor(),
+  ) : this(reason, helpUrlData, *arrayOf(actionData), textColor = textColor)
 
   @JvmOverloads
   constructor(
@@ -89,7 +97,7 @@ private fun createInstructionsPanel(
   parent: JComponent,
   reason: LabelData,
   helpUrlData: UrlData?,
-  actionData: ActionData?,
+  vararg actionData: ActionData?,
   textColor: Color,
 ): InstructionsPanel {
   val instructions = mutableListOf<RenderInstruction>()
@@ -108,10 +116,10 @@ private fun createInstructionsPanel(
     instructions.add(HyperlinkInstruction(textMetrics.font, helpUrlData.text, helpUrlData.url))
   }
 
-  if (actionData != null) {
+  actionData.filterNotNull().forEach {
     instructions.add(NewRowInstruction(12))
-    actionData.icon?.let { instructions.add(IconInstruction(it, 5, null)) }
-    instructions.add(HyperlinkInstruction(textMetrics.font, actionData.text, actionData.callback))
+    it.icon?.let { icon -> instructions.add(IconInstruction(icon, 5, null)) }
+    instructions.add(HyperlinkInstruction(textMetrics.font, it.text, it.callback))
   }
 
   return InstructionsPanel.Builder(*instructions.toTypedArray())
