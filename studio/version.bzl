@@ -4,5 +4,5 @@ visibility(["//tools/adt/idea/studio", "//tools/vendor/google/asfp/studio", "//t
 STUDIO_CODENAME = "Otter"
 STUDIO_CONFIG = "canary"
 STUDIO_VERSION = "Canary"
-STUDIO_MICRO_PATCH = "1.1"
-STUDIO_RELEASE_NUMBER = 1
+STUDIO_MICRO_PATCH = "1.2"
+STUDIO_RELEASE_NUMBER = 2
