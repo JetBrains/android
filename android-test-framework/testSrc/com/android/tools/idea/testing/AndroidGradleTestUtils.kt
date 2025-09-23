@@ -2373,8 +2373,6 @@ private fun <T> openPreparedProject(
   // Use per-project code style settings so we never modify the IDE defaults.
   CodeStyleSettingsManager.getInstance().USE_PER_PROJECT_SETTINGS = true;
 
-  fun <T> funcall(function: () -> T) = function.invoke()
-
   fun <T> waitForFuture(future: Future<T>, timeoutMillis: Long): T {
     val start = System.nanoTime()
     while (true) {
@@ -2392,7 +2390,7 @@ private fun <T> openPreparedProject(
       if (took / 1000000L > timeoutMillis) {
         throw AssertionError(
           "The waiting takes too long. " +
-          "Expected to take no more than: " + timeoutMillis + " ms but took: " + took + " ms\n" +
+          "Expected to take no more than: " + timeoutMillis + " ms but took: " + (took/1000000L) + " ms\n" +
           "Thread dump: " + ThreadDumper.dumpThreadsToString() + "\n" +
           "Coroutine dump: " + dumpCoroutines(null, true, true) + "\n")
       }
