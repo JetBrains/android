@@ -29,6 +29,7 @@ import java.util.stream.IntStream;
 import javax.swing.KeyStroke;
 import javax.swing.RowSorter;
 import javax.swing.SortOrder;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
@@ -178,19 +179,31 @@ public class StringResourceTable extends FrozenColumnTable<StringResourceTableMo
     return column != StringResourceTableModel.KEY_COLUMN && column != StringResourceTableModel.UNTRANSLATABLE_COLUMN;
   }
 
-  static class ThreeStateTableRowSorter<M extends TableModel> extends TableRowSorter<M> {
+  private class ThreeStateTableRowSorter<M extends TableModel> extends TableRowSorter<M> {
     private ThreeStateTableRowSorter(M model) {
       super(model);
     }
 
     @Override
     public void toggleSortOrder(int column) {
+      // b/158846154 Remove the cell editor before applying the sort order to avoid the editor
+      // staying in the current row index.
+      removeCellEditor();
+
       List<? extends SortKey> sortKeys = getSortKeys();
       if (!sortKeys.isEmpty() && sortKeys.get(0).getSortOrder() == SortOrder.DESCENDING) {
         setSortKeys(null);
         return;
       }
       super.toggleSortOrder(column);
+    }
+
+    private void removeCellEditor() {
+      // This is the same code as JBTable.removeCellEditor used when the table looses focus.
+      TableCellEditor cellEditor = getCellEditor();
+      if (cellEditor != null && !cellEditor.stopCellEditing()) {
+        cellEditor.cancelCellEditing();
+      }
     }
 
     @Override
