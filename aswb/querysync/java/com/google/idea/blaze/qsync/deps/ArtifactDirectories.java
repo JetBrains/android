@@ -16,38 +16,39 @@
 package com.google.idea.blaze.qsync.deps;
 
 import com.google.idea.blaze.qsync.project.ProjectPath;
+import com.google.idea.blaze.qsync.project.ProjectPath.ProjectRelativeProjectPath;
 import com.google.idea.blaze.qsync.project.QuerySyncProjectDirectory;
 import java.nio.file.Path;
 
 /** Static helpers for managing directories in the project artifact store. */
 public class ArtifactDirectories {
 
-  public static final ProjectPath ROOT = ProjectPath.projectRelative(Path.of(QuerySyncProjectDirectory.BAZEL_ARTIFACTS.getDirectoryName()));
+  public static final ProjectRelativeProjectPath ROOT =
+    ProjectPath.projectRelative(Path.of(QuerySyncProjectDirectory.BAZEL_ARTIFACTS.getDirectoryName()));
 
   /**
    * By default, all project artifacts go in this directory, at a path matching their bazel output
    * path.
    */
-  public static final ProjectPath DEFAULT = ROOT.resolveChild(Path.of("buildout"));
+  public static final ProjectRelativeProjectPath DEFAULT = ROOT.resolveChild(Path.of("buildout"));
 
   /**
    * Compiled dependency jar files have their own path, since the IDE uses all jars within this
    * directory and we want to ensure there are no extras there.
    */
-  public static final ProjectPath JAVADEPS = ROOT.resolveChild(Path.of("javadeps"));
+  public static final ProjectRelativeProjectPath JAVADEPS = ROOT.resolveChild(Path.of("javadeps"));
 
-  public static final ProjectPath JAVA_GEN_SRC = ROOT.resolveChild(Path.of("gensrc/java"));
-  public static final ProjectPath JAVA_GEN_TESTSRC = ROOT.resolveChild(Path.of("gensrc/javatests"));
+  public static final ProjectRelativeProjectPath JAVA_GEN_SRC = ROOT.resolveChild(Path.of("gensrc/java"));
+  public static final ProjectRelativeProjectPath JAVA_GEN_TESTSRC = ROOT.resolveChild(Path.of("gensrc/javatests"));
 
   /** Generated CC headers go in the default directory. */
-  public static final ProjectPath GEN_CC_HEADERS = DEFAULT;
+  public static final ProjectRelativeProjectPath GEN_CC_HEADERS = DEFAULT;
 
   /** Application inspectors runtime jar storage. */
-  public static final ProjectPath INSPECTORS = ROOT.resolveChild(Path.of("inspectors"));
+  public static final ProjectRelativeProjectPath INSPECTORS = ROOT.resolveChild(Path.of("inspectors"));
 
   /** APKs storage. */
-  public static final ProjectPath RUNFILES = ProjectPath.projectRelative(Path.of(".")).resolveChild(Path.of(".runfiles"));
-
+  public static final ProjectRelativeProjectPath RUNFILES = ProjectPath.projectRelative(Path.of(".")).resolveChild(Path.of(".runfiles"));
   private ArtifactDirectories() {}
 
   /**

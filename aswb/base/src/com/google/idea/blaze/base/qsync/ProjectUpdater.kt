@@ -11,7 +11,6 @@ import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot
 import com.google.idea.blaze.qsync.project.BlazeProjectDataStorage.WORKSPACE_MODULE_NAME
 import com.google.idea.blaze.qsync.project.ProjectPath
-import com.google.idea.blaze.qsync.project.ProjectPath.workspaceRelative
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.common.experiments.BoolExperiment
 import com.google.idea.common.experiments.EnumExperiment
@@ -112,11 +111,7 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
   @JvmInline
   value class IdeaUrl private constructor (private val url: String) {
     companion object {
-      fun fromPath(path: Path): IdeaUrl {
-        return IdeaUrl(UrlUtil.pathToIdeaUrl(path))
-      }
-
-      fun fromJarPath(path: Path, innerJarPath: Path): IdeaUrl {
+      fun fromPath(path: Path, innerJarPath: Path): IdeaUrl {
         return IdeaUrl(UrlUtil.pathToUrl(path.toString(), innerJarPath))
       }
 
@@ -165,23 +160,21 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
     private val projectBase = Paths.get(project.getBasePath())
     private val projectPathResolver = querySyncProject.projectPathResolver
     fun ProjectProto.JarDirectory.toIdeaUrl(): IdeaUrl {
-      return IdeaUrl.fromPath(projectBase.resolve(this.path))
+      return IdeaUrl.fromPath(projectBase.resolve(this.path), Path.of(""))
         .also { virtualFileManager.findFileByUrl(it) }  // Register roots in a background thread.
     }
 
     fun ProjectProto.LibrarySource.toIdeaUrl(): IdeaUrl {
-      val projectPath = ProjectPath.create(srcjar)
-      return IdeaUrl.fromJarPath(projectPathResolver.resolve(projectPath), projectPath.innerJarPath())
+      return srcjar.toProjectPath().toIdeaUrl()
         .also { virtualFileManager.findFileByUrl(it) }  // Register roots in a background thread.
     }
 
     fun ProjectProto.ProjectPath.toIdeaUrl(): IdeaUrl {
-      val sourceFolderProjectPath = ProjectPath.create(this)
-      return sourceFolderProjectPath.toIdeaUrl()
+      return toProjectPath().toIdeaUrl()
     }
 
     fun ProjectPath.toIdeaUrl(): IdeaUrl {
-      return IdeaUrl.fromPath(projectPathResolver.resolve(this))
+      return IdeaUrl.fromPath(projectPathResolver.resolve(this), innerPath)
     }
 
     fun ModuleData.Companion.from(
@@ -236,7 +229,7 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
             it.isGenerated,
             it.packagePrefix)
         },
-        excludedRoots = excludedRoots.map { workspaceRelative(Path.of(it)).toIdeaUrl() },
+        excludedRoots = excludedRoots.map { ProjectPath.workspaceRelative(Path.of(it)).toIdeaUrl() },
       )
     }
 
@@ -401,3 +394,5 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
     }
   }
 }
+
+private fun ProjectProto.ProjectPath.toProjectPath(): ProjectPath = ProjectPath.create(this)
