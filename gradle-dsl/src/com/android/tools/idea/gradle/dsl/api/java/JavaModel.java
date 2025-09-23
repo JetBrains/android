@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.api.java;
 
-import com.android.tools.idea.gradle.dsl.api.android.BaseCompileOptionsModel;
 import org.jetbrains.annotations.NotNull;
 
 public interface JavaModel extends BaseCompileOptionsModel {
