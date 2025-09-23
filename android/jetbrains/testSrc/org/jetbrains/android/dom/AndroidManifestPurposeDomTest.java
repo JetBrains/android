@@ -20,34 +20,31 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotNull;
 
 import com.android.sdklib.IAndroidTarget;
-import org.jetbrains.android.sdk.AndroidPlatforms;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.android.tools.sdk.AndroidPlatform;
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.jetbrains.android.dom.converters.AndroidPermissionPurposeConverter;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.nio.file.Files;
-import java.io.File;
-import java.nio.file.Path;
-import java.io.IOException;
-import java.util.List;
-
 /**
- * Tests for purpose declaration completetion that require a mocked SDK.
+ * Tests for purpose declaration completion that require a mocked SDK.
  */
 public class AndroidManifestPurposeDomTest {
   private static final String DEFAULT_XML_CONTENT =
     "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
     "<permissions>" +
-    "    <permission name=\"android.permission.USE_FOO\" requirePurposeMin=\"37\">" +
-    "        <valid-purpose name=\"validPurpose1\" min=\"37\"/>" +
-    "        <valid-purpose name=\"validPurpose2\" min=\"37\"/>" +
+    "    <permission name=\"android.permission.USE_FOO\" requiresSpecificPurposeMin=\"37\">" +
+    "        <valid-specific-purpose name=\"validPurpose1\" min=\"37\"/>" +
+    "        <valid-specific-purpose name=\"validPurpose2\" min=\"37\"/>" +
     "    </permission>" +
-    "    <permission name=\"android.permission.USE_BAR\" requirePurposeMin=\"37\">" +
-    "        <valid-purpose name=\"validPurpose3\" min=\"37\"/>" +
+    "    <permission name=\"android.permission.USE_BAR\" requiresSpecificPurposeMin=\"37\">" +
+    "        <valid-specific-purpose name=\"validPurpose3\" min=\"37\"/>" +
     "    </permission>" +
     "</permissions>";
 
@@ -67,13 +64,13 @@ public class AndroidManifestPurposeDomTest {
   }
 
   @Test
-  public void testUsesPermissionPurposeCompletion1() throws Exception {
+  public void testUsesPermissionSpecificPurposeCompletion1() throws Exception {
     mockSdkWithXmlFile(DEFAULT_XML_CONTENT);
 
     myFixture.configureByText("AndroidManifest.xml",
                               "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
                               "    <uses-permission android:name=\"android.permission.USE_FOO\">\n" +
-                              "        <purpose android:name=\"<caret>\"/>\n" +
+                              "        <specific-purpose android:name=\"<caret>\"/>\n" +
                               "    </uses-permission>\n" +
                               "</manifest>");
 
@@ -82,14 +79,14 @@ public class AndroidManifestPurposeDomTest {
   }
 
   @Test
-  public void testUsesPermissionSdk23PurposeCompletion() throws Exception {
+  public void testUsesPermissionSdk23SpecificPurposeCompletion() throws Exception {
     mockSdkWithXmlFile(DEFAULT_XML_CONTENT);
 
     myFixture.configureByText("AndroidManifest.xml",
                               "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
                               "    <uses-permission-sdk-23 android:name=\"android.permission.USE_FOO\">\n" +
-                              "        <purpose android:name=\"<caret>\"/>\n" +
-                              "    </uses-permission>\n" +
+                              "        <specific-purpose android:name=\"<caret>\"/>\n" +
+                              "    </uses-permission-sdk-23\n" +
                               "</manifest>");
 
     myFixture.completeBasic();
@@ -97,13 +94,13 @@ public class AndroidManifestPurposeDomTest {
   }
 
   @Test
-  public void testUsesPermissionPurposeCompletion2() throws Exception {
+  public void testUsesPermissionSpecificPurposeCompletion2() throws Exception {
     mockSdkWithXmlFile(DEFAULT_XML_CONTENT);
 
     myFixture.configureByText("AndroidManifest.xml",
                               "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
                               "    <uses-permission android:name=\"android.permission.USE_BAR\">\n" +
-                              "        <purpose android:name=\"<caret>\"/>\n" +
+                              "        <specific-purpose android:name=\"<caret>\"/>\n" +
                               "    </uses-permission>\n" +
                               "</manifest>");
 
@@ -112,13 +109,13 @@ public class AndroidManifestPurposeDomTest {
   }
 
   @Test
-  public void testPurposeCompletionUnderUnknownTag() throws Exception {
+  public void testSpecificPurposeCompletionUnderUnknownTag() throws Exception {
     mockSdkWithXmlFile(DEFAULT_XML_CONTENT);
 
     myFixture.configureByText("AndroidManifest.xml",
                               "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
                               "    <unknown-tag android:name=\"android.permission.USE_BAR\">\n" +
-                              "        <purpose android:name=\"<caret>\"/>\n" +
+                              "        <specific-purpose android:name=\"<caret>\"/>\n" +
                               "    </unknown-tag>\n" +
                               "</manifest>");
 
@@ -127,13 +124,13 @@ public class AndroidManifestPurposeDomTest {
   }
 
   @Test
-  public void testPurposeCompletionWithEmptyXmlFile() throws Exception {
+  public void testSpecificPurposeCompletionWithEmptyXmlFile() throws Exception {
     mockSdkWithXmlFile(EMPTY_XML_CONTENT);
 
     myFixture.configureByText("AndroidManifest.xml",
                               "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
                               "    <uses-permission android:name=\"android.permission.USE_BAR\">\n" +
-                              "        <purpose android:name=\"<caret>\"/>\n" +
+                              "        <specific-purpose android:name=\"<caret>\"/>\n" +
                               "    </uses-permission>\n" +
                               "</manifest>");
 
@@ -142,11 +139,11 @@ public class AndroidManifestPurposeDomTest {
   }
 
   @Test
-  public void testPurposeCompletionWithMissingXmlFile() throws Exception {
+  public void testSpecificPurposeCompletionWithMissingXmlFile() throws Exception {
     myFixture.configureByText("AndroidManifest.xml",
                               "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
                               "    <uses-permission android:name=\"android.permission.USE_BAR\">\n" +
-                              "        <purpose android:name=\"<caret>\"/>\n" +
+                              "        <specific-purpose android:name=\"<caret>\"/>\n" +
                               "    </uses-permission>\n" +
                               "</manifest>");
 
