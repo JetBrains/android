@@ -21,17 +21,21 @@ import com.android.tools.idea.common.scene.TargetProvider
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.model.getViewHandler
+import com.android.tools.rendering.RenderResult
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.future.await
 
 /**
- * Returns whether the [SceneView] has failed to render or has rendered with errors.
+ * Returns the [RenderResult] if the [SceneView] has failed to render or has rendered with errors.
  *
  * Note that cancellations are not considered to be an error.
  */
 fun SceneView.hasRenderErrors(): Boolean =
   (sceneManager as? LayoutlibSceneManager).hasRenderErrors()
+
+fun SceneView.getRenderResultIfError(): RenderResult? =
+  (sceneManager as? LayoutlibSceneManager).getRenderResultIfError()
 
 /** Returns whether the [SceneView] has a valid image. */
 fun SceneView.hasValidImage(): Boolean = (sceneManager as? LayoutlibSceneManager).hasValidImage()
@@ -40,6 +44,9 @@ fun LayoutlibSceneManager?.hasValidImage(): Boolean =
   this?.renderResult?.renderedImage?.isValid ?: false
 
 fun LayoutlibSceneManager?.hasRenderErrors(): Boolean = this?.renderResult.isErrorResult()
+
+fun LayoutlibSceneManager?.getRenderResultIfError(): RenderResult? =
+  this?.renderResult?.takeIf { it.isErrorResult() }
 
 suspend fun LayoutlibSceneManager.executeInRenderSession(
   useLongTimeout: Boolean = false,

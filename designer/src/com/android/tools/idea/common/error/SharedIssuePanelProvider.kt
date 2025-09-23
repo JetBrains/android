@@ -19,9 +19,7 @@ import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanelProvider
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewTab
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.application.readAction
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
@@ -57,20 +55,5 @@ class SharedIssuePanelProvider(private val project: Project) : ProblemsViewPanel
     } else {
       "No problems in $fileNameString"
     }
-  }
-
-  /**
-   * Fixes the given [issue] using StudioBot. The [issue] is expected to be a render issue in
-   * Compose preview.
-   *
-   * @param issue The [Issue] to fix.
-   */
-  private fun fixWithAiActionProvider(issue: Issue): AnAction? {
-    val fixes = IssueFixActionProvider.getFixes(issue)
-    if (fixes.size > 1) {
-      Logger.getInstance(SharedIssuePanelProvider::class.java)
-        .warn("Multiple AI fix providers found for issue: $issue. Only the first one will be used.")
-    }
-    return fixes.firstOrNull()
   }
 }
