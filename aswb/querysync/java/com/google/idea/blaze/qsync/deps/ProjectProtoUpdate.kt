@@ -153,8 +153,8 @@ class ProjectProtoUpdate(
   }
 
   fun artifactDirectory(path: ProjectPath): ArtifactDirectoryBuilder {
-    Preconditions.checkState(path.rootType() == ProjectPath.Root.PROJECT)
-    return artifactDirs.computeIfAbsent(path.relativePath()) { path -> ArtifactDirectoryBuilder(path) }
+    val projectPath = path as ProjectPath.ProjectRelativeProjectPath
+    return artifactDirs.computeIfAbsent(projectPath.relativePath) { path -> ArtifactDirectoryBuilder(path) }
   }
 
   fun build(): ProjectProto.Project {

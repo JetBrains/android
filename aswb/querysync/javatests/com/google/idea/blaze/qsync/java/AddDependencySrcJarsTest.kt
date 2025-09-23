@@ -46,7 +46,7 @@ import org.junit.runners.JUnit4
 class AddDependencySrcJarsTest {
   @get:Rule
   val tempDir: TemporaryFolder = TemporaryFolder()
-  private var workspaceRoot: Path? = null
+  private lateinit var workspaceRoot: Path
   private var pathResolver: ProjectPath.Resolver? = null
   private val syncer = TestDataSyncRunner(
     NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PACKAGE_READER

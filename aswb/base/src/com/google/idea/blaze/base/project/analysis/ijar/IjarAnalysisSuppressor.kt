@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.VisibleForTesting
 
 class IjarAnalysisSuppressor: BytecodeAnalysisSuppressor {
-  private val prefix = ArtifactDirectories.JAVADEPS.relativePath().toString()
+  private val prefix = ArtifactDirectories.JAVADEPS.relativePath.toString()
 
 
   override fun shouldSuppress(file: VirtualFile): Boolean {
