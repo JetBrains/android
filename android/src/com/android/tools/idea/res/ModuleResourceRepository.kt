@@ -17,18 +17,22 @@ package com.android.tools.idea.res
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.SingleNamespaceResourceRepository
+import com.android.resources.ResourceType
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.res.LocalResourceRepository
 import com.android.utils.TraceUtils.simpleId
 import com.google.common.base.MoreObjects
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.application
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.facet.ResourceFolderManager.ResourceFolderListener
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.kotlin.idea.util.publishModuleOutOfBlockModificationEvent
 
 /** @see StudioResourceRepositoryManager.getModuleResources */
 @VisibleForTesting
@@ -147,6 +151,28 @@ private constructor(
 
   override fun getLeafResourceRepositories(): MutableCollection<SingleNamespaceResourceRepository> =
     super<MemoryTrackingMultiResourceRepository>.getLeafResourceRepositories()
+
+  override fun invalidateCache(
+    repository: SingleNamespaceResourceRepository,
+    vararg types: ResourceType,
+  ) {
+    super.invalidateCache(repository, *types)
+
+    // Todo (b/424551554): This is a workaround. We should replace this with a more targeted fix
+    // that
+    // does not invalidate the whole module.
+    application.invokeLater {
+      runWriteAction { facet.module.publishModuleOutOfBlockModificationEvent() }
+    }
+  }
+
+  override fun invalidateCache() {
+    super.invalidateCache()
+
+    application.invokeLater {
+      runWriteAction { facet.module.publishModuleOutOfBlockModificationEvent() }
+    }
+  }
 
   companion object {
     /**
