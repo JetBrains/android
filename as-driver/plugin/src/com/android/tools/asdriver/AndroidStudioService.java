@@ -882,11 +882,10 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
       studioInteractionService.waitForComponent(projectPathFieldMatcher, false);
 
       // Even after the field is available and editable, it is still updating as the VFS gets the directory structure. Setting the text
-      // right away sometimes fails on Windows, so waiting a couple seconds allows it to finish updates before continuing.
+      // right away sometimes fails, so waiting a couple seconds allows it to finish updates before continuing.
       Thread.sleep(2000);
 
       studioInteractionService.findAndSetTextOnComponent(projectPathFieldMatcher, request.getProjectPath());
-      Thread.sleep(2000);
 
       studioInteractionService.findAndInvokeComponent(createExactTextComponentMatcher("OK"));
 
