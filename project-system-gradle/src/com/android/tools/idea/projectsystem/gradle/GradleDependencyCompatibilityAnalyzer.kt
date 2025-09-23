@@ -18,8 +18,8 @@ package com.android.tools.idea.projectsystem.gradle
 import com.android.SdkConstants
 import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.Dependency
-import com.android.ide.common.gradle.RichVersion
 import com.android.ide.common.gradle.Module as ExternalModule
+import com.android.ide.common.gradle.RichVersion
 import com.android.ide.common.gradle.Version
 import com.android.ide.common.gradle.VersionRange
 import com.android.ide.common.repository.KnownVersionStability
@@ -50,8 +50,8 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
-import org.jetbrains.annotations.TestOnly
 import java.util.ArrayDeque
+import org.jetbrains.annotations.TestOnly
 
 private const val MAX_ARTIFACTS_TO_REQUEST = 50  // Note: we do not expect more than one result per repository.
 private val groupsWithVersionIdentifyRequirements = listOf(SdkConstants.SUPPORT_LIB_GROUP_ID)
@@ -482,9 +482,13 @@ class GradleDependencyCompatibilityAnalyzer(
         moduleMap[id] = fromModule
 
         //TODO: Find a way to get artifact dependencies from all repositories...
-        repoUrlManager
-          .findCompileDependencies(id.group, id.name, versionRange.lowerEndpoint())
-          .forEach { addDependency(it, explicitDependency, fromModule) }
+        if (existingVersionRange == null ||
+            versionRange.lowerEndpoint() > existingVersionRange.lowerEndpoint())
+        {
+          repoUrlManager
+            .findCompileDependencies(id.group, id.name, versionRange.lowerEndpoint())
+            .forEach { addDependency(it, explicitDependency, fromModule) }
+        }
       }
     }
   }
