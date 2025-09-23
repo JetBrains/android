@@ -25,43 +25,45 @@ import com.android.tools.adtui.instructions.TextInstruction
 import com.intellij.icons.AllIcons
 import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.UIUtilities
-import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.Color
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
+import org.jetbrains.annotations.TestOnly
 
 class UrlData(val text: String, val url: String)
-class ActionData(
-  val text: String,
-  val icon: Icon? = null,
-  val callback: () -> Unit,
-)
+
+class ActionData(val text: String, val icon: Icon? = null, val callback: () -> Unit)
 
 sealed class Chunk
+
 class IconChunk(val icon: Icon) : Chunk()
+
 class TextChunk(val text: String) : Chunk()
+
 class LabelData(vararg val chunks: Chunk)
+
 object NewLineChunk : Chunk()
 
 /**
  * An opinionated panel that makes it easy to generate UI that conforms to
  * https://jetbrains.github.io/ui/principles/empty_state/
  *
- * @param helpUrlData If present, shows a link at the bottom of the empty state text, offering
- * users a change to click on a link that takes them to a browser page where they can read more
- * about what is causing the empty state / what they can do.
- *
- * @param actionData If present, shows a link below empty text and url (if present), which when clicked
- * runs the callback passed to ActionData.
+ * @param helpUrlData If present, shows a link at the bottom of the empty state text, offering users
+ *   a change to click on a link that takes them to a browser page where they can read more about
+ *   what is causing the empty state / what they can do.
+ * @param actionData If present, shows a link below empty text and url (if present), which when
+ *   clicked runs the callback passed to ActionData.
  */
-class EmptyStatePanel @JvmOverloads constructor(
+class EmptyStatePanel
+@JvmOverloads
+constructor(
   private val reason: LabelData,
   helpUrlData: UrlData? = null,
   @TestOnly val actionData: ActionData? = null,
-  textColor: Color = NamedColorUtil.getInactiveTextColor()
-): JPanel(BorderLayout()) {
+  textColor: Color = NamedColorUtil.getInactiveTextColor(),
+) : JPanel(BorderLayout()) {
   init {
     add(createInstructionsPanel(this, reason, helpUrlData, actionData, textColor))
   }
@@ -70,8 +72,8 @@ class EmptyStatePanel @JvmOverloads constructor(
   constructor(
     reason: String,
     helpUrlData: UrlData? = null,
-    actionData: ActionData? = null
-  ): this(LabelData(TextChunk(reason)), helpUrlData, actionData)
+    actionData: ActionData? = null,
+  ) : this(LabelData(TextChunk(reason)), helpUrlData, actionData)
 
   /**
    * The raw reason text rendered by this empty state panel (in other words, icons not included)
@@ -79,7 +81,8 @@ class EmptyStatePanel @JvmOverloads constructor(
    * Useful for testing.
    */
   @get:TestOnly
-  val reasonText get() = reason.chunks.mapNotNull { it as? TextChunk }.joinToString(" ") { it.text }
+  val reasonText
+    get() = reason.chunks.mapNotNull { it as? TextChunk }.joinToString(" ") { it.text }
 }
 
 private fun createInstructionsPanel(
@@ -87,7 +90,7 @@ private fun createInstructionsPanel(
   reason: LabelData,
   helpUrlData: UrlData?,
   actionData: ActionData?,
-  textColor: Color
+  textColor: Color,
 ): InstructionsPanel {
   val instructions = mutableListOf<RenderInstruction>()
   val textMetrics = UIUtilities.getFontMetrics(parent, AdtUiUtils.EMPTY_TOOL_WINDOW_FONT)
@@ -102,15 +105,12 @@ private fun createInstructionsPanel(
   if (helpUrlData != null) {
     instructions.add(NewRowInstruction(12))
     instructions.add(IconInstruction(AllIcons.General.ContextHelp, 5, null))
-    instructions.add(
-      HyperlinkInstruction(textMetrics.font, helpUrlData.text, helpUrlData.url))
+    instructions.add(HyperlinkInstruction(textMetrics.font, helpUrlData.text, helpUrlData.url))
   }
 
   if (actionData != null) {
     instructions.add(NewRowInstruction(12))
-    actionData.icon?.let {
-      instructions.add(IconInstruction(it, 5, null))
-    }
+    actionData.icon?.let { instructions.add(IconInstruction(it, 5, null)) }
     instructions.add(HyperlinkInstruction(textMetrics.font, actionData.text, actionData.callback))
   }
 
@@ -119,4 +119,3 @@ private fun createInstructionsPanel(
     .setColors(textColor, null)
     .build()
 }
-
