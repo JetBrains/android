@@ -36,6 +36,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.PsiManagerEx;
 import com.intellij.psi.impl.file.impl.FileManagerEx;
 import com.intellij.testFramework.PlatformTestUtil;
@@ -53,6 +54,7 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 /** Tests for {@link ModuleResourceRepository}. */
+
 @SuppressWarnings("SpellCheckingInspection")
 public class ModuleResourceRepositoryTest extends AndroidTestCase {
   private static final String LAYOUT = "resourceRepository/layout.xml";
@@ -84,7 +86,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertNotSame(res3, res1);
 
     ModuleResourceRepository resources =
-        ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO);
+      ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO);
 
     // Check that values are handled correctly. First a plain value (not overridden anywhere).
     assertStringIs(resources, "title_layout_changes", "Layout Changes");
@@ -116,7 +118,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     FolderConfiguration valueConfig = FolderConfiguration.getConfigForFolder("values-no");
     assertNotNull(valueConfig);
     ResourceValue stringValue = ResourceRepositoryUtil.getConfiguredResources(resources, RES_AUTO, ResourceType.STRING, valueConfig)
-                                                      .get("another_unique_string");
+      .get("another_unique_string");
     assertNotNull(stringValue);
     assertEquals("En Annen", stringValue.getValue());
 
@@ -174,7 +176,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     VirtualFile res3 = myFixture.copyFileToProject(VALUES, "res/values/values.xml").getParent().getParent();
     myFixture.copyFileToProject(VALUES_OVERLAY2_NO, "res1/values-no/values.xml");
     ModuleResourceRepository resources =
-        ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO);
+      ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO);
     assertStringIs(resources, "title_layout_changes", "Layout Changes"); // sanity check
 
     // Layout resource check:
@@ -248,7 +250,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     VirtualFile res2 = values2.getParent().getParent();
     VirtualFile res3 = values3.getParent().getParent();
     ModuleResourceRepository resources =
-        ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO);
+      ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO);
     PsiFile psiValues1 = PsiManager.getInstance(getProject()).findFile(values1);
     assertNotNull(psiValues1);
     PsiFile psiValues1No = PsiManager.getInstance(getProject()).findFile(values1No);
@@ -264,7 +266,8 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertStringIs(resources, "title_zoom", "Zoom!"); // Overridden in res1
     assertStringIs(resources, "unique_string", "Unique"); // Overridden in res2
     assertStringIs(resources, "another_unique_string", "Another Unique", res -> res.getConfiguration().isDefault()); // Overridden in res1
-    assertStringIs(resources, "app_name", "Very Different App Name", res -> res.getConfiguration().isDefault()); // res1 (not unique because we have a values-no item too)
+    assertStringIs(resources, "app_name", "Very Different App Name",
+                   res -> res.getConfiguration().isDefault()); // res1 (not unique because we have a values-no item too)
 
     // Value resource check:
     // Verify that an edit in a value file, both in a non-overridden and an overridden
@@ -496,5 +499,69 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
 
     assertThat(StudioResourceRepositoryManager.getModuleResources(myFacet).getNamespaces())
       .containsExactly(ResourceNamespace.fromPackageName("p1.p2"));
+  }
+
+  public void testStringResourceLifecycle_synchronizationFix() throws Exception {
+
+    final String RESOURCE_NAME = "my_string";
+
+    myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      //language=xml
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "    package=\"com.example\">\n" +
+      "</manifest>"
+    );
+
+    final PsiFile stringsXml = myFixture.addFileToProject(
+      "res/values/strings.xml",
+      //language=xml
+      "<resources>\n<string name=\"" + RESOURCE_NAME + "\">Hello</string>\n</resources>"
+    );
+
+    final PsiFile mainActivity = myFixture.addFileToProject(
+      "src/com/example/MainActivity.kt",
+      "package com.example\n" +
+      "\n" +
+      "class MainActivity {\n" +
+      "    fun test() {\n" +
+      "        val s = R.string." + RESOURCE_NAME + "\n" +
+      "    }\n" +
+      "}"
+    );
+
+    myFixture.configureFromExistingVirtualFile(mainActivity.getVirtualFile());
+
+    PsiReference reference = getResourceReferenceAtName(RESOURCE_NAME);
+    assertThat(reference).isNotNull();
+    assertThat(reference.resolve()).isNotNull();
+
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      myFixture.saveText(stringsXml.getVirtualFile(), "<resources>\n</resources>");
+      PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
+    });
+
+    waitForUpdates(StudioResourceRepositoryManager.getModuleResources(myFacet));
+
+    reference = getResourceReferenceAtName(RESOURCE_NAME);
+    assertThat(reference).isNotNull();
+    assertThat(reference.resolve()).isNull();
+
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      myFixture.saveText(stringsXml.getVirtualFile(), "<resources>\n<string name=\"" + RESOURCE_NAME + "\">Hello</string>\n</resources>");
+      PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
+    });
+
+    waitForUpdates(StudioResourceRepositoryManager.getModuleResources(myFacet));
+
+    reference = getResourceReferenceAtName(RESOURCE_NAME);
+    assertThat(reference).isNotNull();
+    assertThat(reference.resolve()).isNotNull();
+  }
+
+  /** Finds the PsiReference for a resource name by finding its offset in the current document. */
+  private PsiReference getResourceReferenceAtName(String resourceName) {
+    int offset = myFixture.getEditor().getDocument().getText().indexOf(resourceName);
+    return myFixture.getFile().findReferenceAt(offset);
   }
 }
