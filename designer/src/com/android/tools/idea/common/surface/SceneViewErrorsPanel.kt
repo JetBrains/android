@@ -16,6 +16,16 @@
 package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.common.AdtUiUtils
+import com.android.tools.idea.common.error.Issue
+import com.android.tools.idea.common.error.IssueSource
+import com.android.tools.idea.common.error.fixWithAiActionProvider
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.rendering.RenderProblem
+import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.ui.Gray
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
@@ -28,10 +38,14 @@ import javax.swing.border.LineBorder
 private const val ERROR_LABEL_CONTENT = "Render problem"
 private val TRANSLUCENT_BACKGROUND_COLOR = Gray._220.withAlpha(200)
 private val DEFAULT_BORDER = LineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR, 1)
+private val DEFAULT_HEIGHT = 35
+private val EXTENDED_HEIGHT = DEFAULT_HEIGHT * 2
 
 /** Shows a Panel with an error message */
-class SceneViewErrorsPanel(val styleProvider: () -> Style = { Style.SOLID }) :
-  JPanel(BorderLayout()) {
+class SceneViewErrorsPanel(
+  val errorProvider: () -> List<Throwable>?,
+  val styleProvider: () -> Style = { Style.SOLID },
+) : JPanel(BorderLayout()) {
 
   /** The style applied to the panel */
   enum class Style {
@@ -43,7 +57,9 @@ class SceneViewErrorsPanel(val styleProvider: () -> Style = { Style.SOLID }) :
     TRANSLUCENT,
   }
 
-  private val size = JBUI.size(150, 35)
+  private val height =
+    if (StudioFlags.COMPOSE_RENDER_ERROR_FIX_WITH_AI.get()) EXTENDED_HEIGHT else DEFAULT_HEIGHT
+  private val size = JBUI.size(150, height)
   private val label =
     JBLabel(ERROR_LABEL_CONTENT).apply {
       foreground = Gray._119
@@ -52,20 +68,62 @@ class SceneViewErrorsPanel(val styleProvider: () -> Style = { Style.SOLID }) :
     }
   private val boldFont = UIUtil.getLabelFont().deriveFont(Font.BOLD)
   private var lastStyle: Style? = null
+  private val fixWithAiActionGroup = DefaultActionGroup()
+  private val fixWithAiToolbar: ActionToolbar =
+    ActionManager.getInstance()
+      .createActionToolbar("SceneViewErrorsPanelToolbar", fixWithAiActionGroup, true)
+      .apply {
+        targetComponent = this@SceneViewErrorsPanel
+        component.isOpaque = false
+        component.border = JBUI.Borders.empty()
+      }
 
   init {
     add(label, BorderLayout.CENTER)
+    add(fixWithAiToolbar.component, BorderLayout.SOUTH)
     updateStyles()
   }
+
+  /** Converts a [RenderProblem] to an [Issue]. */
+  private fun toIssue(throwable: Throwable): Issue =
+    object : Issue() {
+      override val summary: String = throwable.message ?: throwable.message ?: "Render error"
+      override val description: String = throwable.stackTraceToString()
+      override val severity: HighlightSeverity = HighlightSeverity.ERROR
+      override val source: IssueSource = IssueSource.NONE
+      override val category: String = "Render Error"
+    }
 
   override fun getPreferredSize() = size
 
   override fun getMinimumSize() = size
 
+  private fun updateFixWithAiButton() {
+    fixWithAiActionGroup.removeAll()
+    val issues = errorProvider()?.map { toIssue(it) } ?: emptyList()
+
+    if (issues.isNotEmpty()) {
+      fixWithAiActionProvider(issues.first())?.let { action ->
+        action.templatePresentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
+        fixWithAiActionGroup.add(action)
+      }
+    }
+    fixWithAiToolbar.updateActionsAsync()
+  }
+
   /** Updates the look and feel of the panel with the style and returns the current set style. */
   private fun updateStyles(): Style {
     val newStyle = styleProvider()
     if (newStyle != lastStyle) {
+      // We update the button every time the style changes.
+      // When the panel is visible, we might add the "Fix with AI" button.
+      // When it's hidden, the button will be removed.
+      if (newStyle == Style.SOLID && StudioFlags.COMPOSE_RENDER_ERROR_FIX_WITH_AI.get()) {
+        updateFixWithAiButton()
+      } else {
+        fixWithAiActionGroup.removeAll()
+        fixWithAiToolbar.updateActionsAsync()
+      }
       when (newStyle) {
         Style.SOLID -> {
           label.foreground = Gray._119
