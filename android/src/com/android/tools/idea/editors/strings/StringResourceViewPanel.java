@@ -149,6 +149,7 @@ public class StringResourceViewPanel implements Disposable {
         return myTable.skipTransferTo(after, component) ? super.getComponentAfter(container, after) : after;
       }
     });
+    myToolbar.setTargetComponent(myLoadingPanel);
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       new ResourceLoadingTask(this).queue();
@@ -273,7 +274,6 @@ public class StringResourceViewPanel implements Disposable {
     group.add(new BrowserHelpAction("Translations editor", "https://developer.android.com/r/studio-ui/translations-editor.html"));
 
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("TranslationsEditorToolbar", group, true);
-    toolbar.setTargetComponent(myLoadingPanel);
 
     myToolbar = toolbar;
     myToolbarComponent = toolbar.getComponent();
