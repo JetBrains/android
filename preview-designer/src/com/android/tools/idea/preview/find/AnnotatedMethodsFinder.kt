@@ -16,7 +16,6 @@
 package com.android.tools.idea.preview.find
 
 import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.getPsiFileSafely
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ApplicationManager
@@ -45,6 +44,7 @@ import com.intellij.util.concurrency.annotations.RequiresReadLock
 import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.withContext
@@ -248,7 +248,7 @@ suspend fun <T> findAnnotatedMethodsValues(
   toValues: (methods: List<UMethod>) -> Flow<T>,
 ): Collection<T> {
   val psiFile = getPsiFileSafely(project, vFile) ?: return emptyList()
-  return withContext(AndroidDispatchers.workerThread) {
+  return withContext(Dispatchers.Default) {
     val promiseResult =
       CachedValuesManager.getManager(project)
         .getCachedValue(
