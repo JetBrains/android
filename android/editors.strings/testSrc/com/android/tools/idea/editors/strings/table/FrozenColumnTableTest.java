@@ -27,6 +27,7 @@ import com.intellij.testFramework.RuleChain;
 import com.intellij.util.ArrayUtil;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
@@ -34,6 +35,7 @@ import javax.swing.DefaultRowSorter;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import org.junit.Rule;
@@ -381,6 +383,57 @@ public final class FrozenColumnTableTest {
     assertThat(getColumnSelection(frozenColumnTable)).isEqualTo(new int[]{4, 3});
   }
 
+  @Test
+  public void testScrollWithMovement() {
+    Object[][] data = new Object[][] {
+      new Object[]{"east", "app/src/main/res", false, "east", "est", "øst"},
+      new Object[]{"west", "app/src/main/res", false, "west", "ouest", "vest"},
+      new Object[]{"north", "app/src/main/res", false, "north", "nord", "nord"},
+      new Object[]{"south", "app/src/main/res", false, "south", "sud", "syd"}
+    };
+    Object[] columns = new Object[]{"Key", "Resource Folder", "Untranslatable", "Default Value", "French (fr)", "Danish (da)"};
+    DefaultTableModel model = new DefaultTableModel(data, columns);
+    FrozenColumnTable<DefaultTableModel> frozenColumnTable = new FrozenColumnTable<>(model, 4);
+    frozenColumnTable.getFrozenTable().createDefaultColumnsFromModel();
+    frozenColumnTable.getScrollableTable().createDefaultColumnsFromModel();
+    JTable frozenTable = frozenColumnTable.getFrozenTable();
+    frozenTable.setUI(new HeadlessTableUI());
+    JTable scrollableTable = frozenColumnTable.getScrollableTable();
+    scrollableTable.setUI(new HeadlessTableUI());
+    Rectangle cell = frozenTable.getCellRect(0, 0, true);
+    Component scrollPane = frozenColumnTable.getScrollPane();
+    scrollPane.setSize(new Dimension(300, 3 * cell.height));
+    FakeUi ui = new FakeUi(scrollPane, 1.0, true, myRule.getDisposable());
+    scrollPane.doLayout();
+    FakeKeyboardFocusManager focusManager = new FakeKeyboardFocusManager(myRule.getDisposable());
+    focusManager.setFocusOwner(frozenColumnTable.getFrozenTable());
+
+    // Hack to avoid blitting while scrolling:
+    frozenTable.setOpaque(false);
+    scrollableTable.setOpaque(false);
+
+    moveTo(frozenColumnTable, 0, 1);
+    assertThat(frozenTable.getSelectedRow()).isEqualTo(0);
+
+    // Move down: no scrolling is expected since the scroll pane should hold 2 rows:
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN);
+    assertThat(frozenTable.getSelectedRow()).isEqualTo(1);
+    assertThat(getScrollPositionY(frozenTable)).isLessThan(cell.height);
+    assertThat(getScrollPositionY(scrollableTable)).isEqualTo(getScrollPositionY(frozenTable));
+
+    // Move down: scrolling is expected:
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN);
+    assertThat(frozenTable.getSelectedRow()).isEqualTo(2);
+    assertThat(getScrollPositionY(frozenTable)).isAtLeast(cell.height);
+    assertThat(getScrollPositionY(scrollableTable)).isEqualTo(getScrollPositionY(frozenTable));
+
+    // Move down: scrolling is expected:
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN);
+    assertThat(frozenTable.getSelectedRow()).isEqualTo(3);
+    assertThat(getScrollPositionY(frozenTable)).isAtLeast(2 * cell.height);
+    assertThat(getScrollPositionY(scrollableTable)).isEqualTo(getScrollPositionY(frozenTable));
+  }
+
   private static void moveTo(FrozenColumnTable<DefaultTableModel> table, int row, int column) {
     table.getFrozenTable().getSelectionModel().setSelectionInterval(row, row);
     table.gotoColumn(column, false);
@@ -415,5 +468,9 @@ public final class FrozenColumnTableTest {
       result = ArrayUtil.reverseArray(result);
     }
     return result;
+  }
+
+  private static int getScrollPositionY(JTable table) {
+    return ((JViewport)table.getParent()).getViewPosition().y;
   }
 }

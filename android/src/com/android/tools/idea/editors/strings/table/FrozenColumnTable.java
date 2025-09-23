@@ -18,7 +18,6 @@ package com.android.tools.idea.editors.strings.table;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.table.JBTable;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -43,6 +42,7 @@ import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
@@ -359,6 +359,25 @@ public class FrozenColumnTable<M extends TableModel> {
 
     myScrollPane.setCorner(ScrollPaneConstants.UPPER_LEFT_CORNER, myFrozenTable.getTableHeader());
     myScrollPane.setRowHeaderView(myFrozenTable);
+
+    JViewport frozenViewport = (JViewport)myFrozenTable.getParent();
+    JViewport scrollableViewport = (JViewport)myScrollableTable.getParent();
+    frozenViewport.addChangeListener(event -> {
+      int y = frozenViewport.getViewPosition().y;
+      Point pos = scrollableViewport.getViewPosition();
+      if (pos.y != y) {
+        pos.y = y;
+        scrollableViewport.setViewPosition(pos);
+      }
+    });
+    scrollableViewport.addChangeListener(event -> {
+      int y = scrollableViewport.getViewPosition().y;
+      Point pos = frozenViewport.getViewPosition();
+      if (pos.y != y) {
+        pos.y = y;
+        frozenViewport.setViewPosition(pos);
+      }
+    });
   }
 
   boolean includeColumn(int modelColumnIndex) {
@@ -548,6 +567,12 @@ public class FrozenColumnTable<M extends TableModel> {
     if (cellRect != null) {
       table.scrollRectToVisible(cellRect);
     }
+  }
+
+  @Nullable
+  private JViewport getViewportOf(JTable table) {
+    Component parent = table.getParent();
+    return parent instanceof JViewport ? (JViewport)parent : null;
   }
 
   public final int getFrozenColumnCount() {
