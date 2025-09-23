@@ -442,16 +442,13 @@ class SceneViewPanel(
       .map { it.bounds }
       .firstOrNull()
 
-  fun findSceneViewRectangles(): HashMap<SceneView, Rectangle?> =
-    hashMapOf(
-      *components
-        .filterIsInstance<SceneViewPeerPanel>()
-        .distinctBy { it.sceneView }
-        .map {
-          it.sceneView to it.bounds.apply { location = Point(it.sceneView.x, it.sceneView.y) }
-        }
-        .toTypedArray()
-    )
+  fun findSceneViewRectangles(): Map<SceneView, Rectangle?> =
+    components
+      .filterIsInstance<SceneViewPeerPanel>()
+      .distinctBy { it.sceneView }
+      .associate {
+        it.sceneView to it.bounds.apply { location = Point(it.sceneView.x, it.sceneView.y) }
+      }
 
   /**
    * Find the predicted rectangle of the [sceneView] when layout manager re-layout the content with
