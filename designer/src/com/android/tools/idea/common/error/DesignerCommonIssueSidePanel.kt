@@ -17,6 +17,7 @@ package com.android.tools.idea.common.error
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.errors.ui.MessageTip
+import com.android.tools.idea.uibuilder.error.RenderIssueProvider.NlRenderIssueWrapper
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -144,9 +145,9 @@ private class DesignerCommonIssueDetailPanel(
 
     if (issue is VisualLintRenderIssue) {
       contentPanel.addVisualRenderIssue(issue)
-    }
-
-    if (StudioFlags.COMPOSE_RENDER_ERROR_FIX_WITH_AI.get()) {
+    } else if (
+      issue is NlRenderIssueWrapper && StudioFlags.COMPOSE_RENDER_ERROR_FIX_WITH_AI.get()
+    ) {
       addFixWithAiButton(contentPanel, offSetBottom = true)
     }
 
