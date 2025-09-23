@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import com.android.tools.idea.gradle.dsl.api.android.BaseCompileOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.java.BaseCompileOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement;
 import org.jetbrains.annotations.NonNls;

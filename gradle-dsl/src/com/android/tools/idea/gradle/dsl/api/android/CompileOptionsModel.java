@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.api.android;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.java.BaseCompileOptionsModel;
 import org.jetbrains.annotations.NotNull;
 
 public interface CompileOptionsModel extends BaseCompileOptionsModel {
