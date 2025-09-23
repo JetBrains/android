@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.vitals.ui
 
-import com.android.flags.junit.FlagRule
 import com.android.testutils.delayUntilCondition
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gservices.DeprecationBanner
 import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
@@ -58,7 +56,6 @@ import org.mockito.kotlin.whenever
 class VitalsTabProviderTest {
 
   @get:Rule val projectRule = ProjectRule()
-  @get:Rule val flagRule = FlagRule(StudioFlags.USE_1P_LOGIN_UI, false)
 
   private lateinit var modelStateFlow: MutableStateFlow<AppInsightsModel>
   private lateinit var manager: AppInsightsConfigurationManager
@@ -128,12 +125,7 @@ class VitalsTabProviderTest {
     }
 
     modelStateFlow.value = AppInsightsModel.Unauthenticated
-    val expect =
-      if (StudioFlags.USE_1P_LOGIN_UI.get()) {
-        "loggedOut1pPanel"
-      } else {
-        "loggedOutErrorStateComponent"
-      }
+    val expect = "loggedOutErrorStateComponent"
     delayUntilCondition(200) { tabPanel.components.firstOrNull().toString().contains(expect) }
 
     modelStateFlow.value = AppInsightsModel.InitializationFailed
@@ -309,15 +301,4 @@ class VitalsTabProviderTest {
 
       delayUntilCondition(200) { tabPanel.components.none { it is DeprecationBanner } }
     }
-
-  @Test
-  fun `test 1p login screen`() = runTest {
-    StudioFlags.USE_1P_LOGIN_UI.override(true)
-    tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
-    modelStateFlow.value = AppInsightsModel.Unauthenticated
-
-    delayUntilCondition(200) {
-      tabPanel.components.firstOrNull().toString().contains("loggedOut1pPanel")
-    }
-  }
 }
