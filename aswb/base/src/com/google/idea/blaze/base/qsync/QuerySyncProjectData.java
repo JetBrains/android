@@ -106,8 +106,7 @@ public class QuerySyncProjectData implements BlazeProjectData {
 
     ImmutableSet<LanguageClass> projectLanguages =
         blazeProject
-            .map(p -> p.project().getActiveLanguagesList())
-            .map(QuerySyncLanguage::fromProtoList)
+            .map(p -> p.project().getActiveLanguages())
             .map(LanguageClasses::fromQuerySync)
             .orElse(ImmutableSet.of());
 

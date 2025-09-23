@@ -17,6 +17,7 @@ package com.google.idea.blaze.qsync.java
 
 import com.google.common.collect.ImmutableSet
 import com.google.common.truth.Truth
+import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.Label.Companion.of
 import com.google.idea.blaze.common.NoopContext
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot
@@ -83,9 +84,9 @@ class AddDependencySrcJarsTest {
 
     val newProject = update.build()
 
-    Truth.assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList())
-    Truth.assertThat(newProject.getModulesList()).isEqualTo(original.project().getModulesList())
-    Truth.assertThat(newProject.getArtifactDirectories().getDirectoriesMap().keys).isEmpty()
+    Truth.assertThat(newProject.libraries).isEqualTo(original.project().libraries)
+    Truth.assertThat(newProject.modules).isEqualTo(original.project().modules)
+    Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys).isEmpty()
   }
 
   @Test
@@ -99,18 +100,11 @@ class AddDependencySrcJarsTest {
       )
     external_srcjar_added(
       addSrcJars,
-      ProjectProto.Library.newBuilder().setName("//java/com/google/common/collect:collect")
-        .addSources(
-          ProjectProto.LibrarySource.newBuilder()
-            .setSrcjar(
-              ProjectProto.ProjectPath.newBuilder()
-                .setBase(ProjectProto.ProjectPath.Base.WORKSPACE)
-                .setPath("source/path/external.srcjar")
-                .setInnerPath("root")
-            )
-            .build()
-        )
-        .build()
+      ProjectProto.Library(
+        name = Label.of("//java/com/google/common/collect:collect"),
+        classesJarList = emptyList(),
+        sourcesList = listOf(ProjectPath.workspaceRelative(Path.of("source/path/external.srcjar")).withInnerJarPath(Path.of("root")))
+      )
     )
   }
 
@@ -143,6 +137,6 @@ class AddDependencySrcJarsTest {
 
     val newProject = update.build()
 
-    Truth.assertThat(newProject.getLibraryList()).containsExactly(*libraries)
+    Truth.assertThat(newProject.libraries.values).containsExactly(*libraries)
   }
 }

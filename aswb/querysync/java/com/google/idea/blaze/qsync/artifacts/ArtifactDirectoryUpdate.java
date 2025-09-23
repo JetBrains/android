@@ -36,7 +36,6 @@ import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectoryContents;
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact;
-import com.google.protobuf.ExtensionRegistryLite;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -82,13 +81,24 @@ public class ArtifactDirectoryUpdate {
   }
 
   public static Path getContentsFile(Path artifactDir) {
+    return artifactDir.resolveSibling(artifactDir.getFileName() + ".state");
+  }
+
+  public static Path getOldContentsFile(Path artifactDir) {
     return artifactDir.resolveSibling(artifactDir.getFileName() + ".contents");
   }
 
   public ImmutableSet<Label> update(Context<?> context) throws IOException {
     Files.createDirectories(root);
     Path contentsProtoPath = getContentsFile(root);
+    Path oldContentsProtoPath = getOldContentsFile(root);
 
+    try {
+      Files.deleteIfExists(oldContentsProtoPath);
+    }
+    catch (IOException e) {
+      // Ignore.
+    }
     // Any exceptions that occur when updating individual entries are caught and added here.
     // If any entry fails, we will throw an exception at the end with all such failures added as
     // suppressed exceptions. This ensures we update as much of the store as we can and should give
@@ -101,8 +111,7 @@ public class ArtifactDirectoryUpdate {
       if (Files.exists(contentsProtoPath)) {
         try {
           try (InputStream in = Files.newInputStream(contentsProtoPath)) {
-            existingContents =
-              ArtifactDirectoryContents.parseFrom(in, ExtensionRegistryLite.getEmptyRegistry());
+            existingContents = ProjectProto.ArtifactDirectoryContents.Companion.readFrom(in);
           }
         }
         catch (IOException | RuntimeException ex) {
@@ -122,14 +131,14 @@ public class ArtifactDirectoryUpdate {
       ImmutableSet.Builder<Label> incompleteTargets = ImmutableSet.builder();
 
       for (Map.Entry<String, ProjectProto.ProjectArtifact> destAndArtifact :
-        contents.getContentsMap().entrySet()) {
+        contents.getContents().entrySet()) {
         try {
           ProjectArtifact artifact = destAndArtifact.getValue();
           if (!updateOneFile(
             root.resolve(Path.of(destAndArtifact.getKey())),
-            existingContents.getContentsMap().get(destAndArtifact.getKey()),
+            existingContents.getContents().get(destAndArtifact.getKey()),
             artifact)) {
-            incompleteTargets.add(Label.of(artifact.getTarget()));
+            incompleteTargets.add(artifact.getTarget());
           }
         }
         catch (BuildException | IOException e) {
@@ -146,7 +155,7 @@ public class ArtifactDirectoryUpdate {
         exceptions.add(e);
       }
 
-      if (contents.getContentsCount() == 0) {
+      if (contents.getContents().isEmpty()) {
         // The directory is empty. Delete it.
         Files.deleteIfExists(contentsProtoPath);
         Files.deleteIfExists(root);
@@ -159,13 +168,8 @@ public class ArtifactDirectoryUpdate {
         catch (IOException e) {
           exceptions.add(e);
         }
-        if (!exceptions.isEmpty()) {
-          IOException e = new IOException("Directory update for " + root + " failed");
-          exceptions.forEach(e::addSuppressed);
-          throw e;
-        }
-        return incompleteTargets.build();
       }
+      return incompleteTargets.build();
     }
     finally {
       final var elapsedMs = sw.elapsed(TimeUnit.MILLISECONDS);
@@ -234,21 +238,17 @@ public class ArtifactDirectoryUpdate {
 
   private Optional<CachedArtifact> getCachedArtifact(ProjectProto.ProjectArtifact artifact)
       throws BuildException {
-    if (artifact.hasBuildArtifact()) {
-      // TODO(mathewi) It would probably be better to parallelize this so get better performance
-      //   in the case that not all artifacts are ready in the cache.
-      Optional<ListenableFuture<CachedArtifact>> artifactFuture =
-          artifactCache.get(artifact.getBuildArtifact().getDigest());
-      if (artifactFuture.isEmpty()) {
-        return Optional.empty();
-      }
-      try {
-        return Optional.of(Uninterruptibles.getUninterruptibly(artifactFuture.get()));
-      } catch (ExecutionException e) {
-        throw new BuildException("Failed to fetch artifact " + artifact, e);
-      }
-    } else {
-      throw new IllegalArgumentException("Invalid artifact: " + artifact);
+    // TODO(mathewi) It would probably be better to parallelize this so get better performance
+    //   in the case that not all artifacts are ready in the cache.
+    Optional<ListenableFuture<CachedArtifact>> artifactFuture =
+        artifactCache.get(artifact.getBuildArtifact().getDigest());
+    if (artifactFuture.isEmpty()) {
+      return Optional.empty();
+    }
+    try {
+      return Optional.of(Uninterruptibles.getUninterruptibly(artifactFuture.get()));
+    } catch (ExecutionException e) {
+      throw new BuildException("Failed to fetch artifact " + artifact, e);
     }
   }
 
@@ -259,7 +259,7 @@ public class ArtifactDirectoryUpdate {
     }
     try (final var fileStream = Files.walk(root)) {
       final var dot = Path.of("."); // Path.of("abc").startsWith(Path.of("")) does not work but with "./abc" and "./" it does.
-      final var wanted = contents.getContentsMap().keySet().stream().map(dot::resolve);
+      final var wanted = contents.getContents().keySet().stream().map(dot::resolve);
       final var present = fileStream.map(root::relativize).map(dot::resolve).filter(it -> !dot.equals(it));
       toDelete = computeFilesToDelete(present, wanted);
     }

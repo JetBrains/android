@@ -15,7 +15,6 @@ java_test(
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:language_class_java_proto",
-        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync:TestUtils",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/artifacts:aspect_protos",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata",

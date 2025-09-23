@@ -29,7 +29,6 @@ import com.google.idea.blaze.qsync.java.ArtifactTrackerProto.Artifact;
 import com.google.idea.blaze.qsync.java.ArtifactTrackerProto.ArtifactTrackerState;
 import com.google.idea.blaze.qsync.java.ArtifactTrackerProto.BuildContext;
 import com.google.idea.blaze.qsync.project.ProjectPath;
-import com.google.idea.blaze.qsync.project.ProjectProto;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Objects;
@@ -133,17 +132,17 @@ public class ArtifactTrackerStateSerializer {
         .setToolchainId(ccInfo.toolchainId());
   }
 
-  private ProjectProto.ProjectPath projectPathToProto(ProjectPath projectPath) {
+  private ArtifactTrackerProto.ProjectPath projectPathToProto(ProjectPath projectPath) {
     if (Objects.requireNonNull(projectPath) instanceof ProjectPath.WorkspaceRelativeProjectPath relativePath) {
-      return ProjectProto.ProjectPath.newBuilder().setBase(ProjectProto.ProjectPath.Base.WORKSPACE)
+      return ArtifactTrackerProto.ProjectPath.newBuilder().setBase(ArtifactTrackerProto.ProjectPath.Base.WORKSPACE)
         .setPath(relativePath.relativePath().toString()).build();
     }
     else if (projectPath instanceof ProjectPath.ProjectRelativeProjectPath relativePath) {
-      return ProjectProto.ProjectPath.newBuilder().setBase(ProjectProto.ProjectPath.Base.PROJECT)
+      return ArtifactTrackerProto.ProjectPath.newBuilder().setBase(ArtifactTrackerProto.ProjectPath.Base.PROJECT)
         .setPath(relativePath.relativePath().toString()).build();
     }
     else if (projectPath instanceof ProjectPath.AbsoluteProjectPath absolutePath) {
-      return ProjectProto.ProjectPath.newBuilder().setBase(ProjectProto.ProjectPath.Base.ABSOLUTE)
+      return ArtifactTrackerProto.ProjectPath.newBuilder().setBase(ArtifactTrackerProto.ProjectPath.Base.ABSOLUTE)
         .setPath(absolutePath.absolutePath().toString()).build();
     }
     throw new IllegalStateException("Unexpected value: " + projectPath);

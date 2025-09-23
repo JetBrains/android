@@ -20,37 +20,24 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
-import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectoryContents
-import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact
-import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact.ArtifactTransform
+import com.jetbrains.rd.util.getOrCreate
 import java.nio.file.Path
 import java.util.Optional
 
 /** Populates a [ProjectProto.ArtifactDirectoryContents] proto from build artifacts.  */
 class ArtifactDirectoryBuilder(val path: Path) {
   data class Entry(
-    val destination: Path,
     val source: BuildArtifact,
     val fromBuild: DependencyBuildContext,
-    val transform: ArtifactTransform,
+    val transform: ProjectProto.ProjectArtifact.ArtifactTransform,
   ) {
-    fun toProto(): ProjectArtifact {
-      return ProjectArtifact.newBuilder()
-        .setTarget(source.target().toString())
-        .setBuildArtifact(
-          ProjectProto.BuildArtifact.newBuilder().setDigest(source.digest()).build()
-        )
-        .setTransform(transform)
-        .build()
-    }
 
-    companion object {
-      fun create(
-        destination: Path,
-        source: BuildArtifact,
-        fromBuild: DependencyBuildContext,
-        transform: ArtifactTransform
-      ): Entry = Entry(destination, source, fromBuild, transform)
+    fun toProto(): ProjectProto.ProjectArtifact {
+      return ProjectProto.ProjectArtifact(
+        target = source.target(),
+        buildArtifact = ProjectProto.BuildArtifact(source.digest()),
+        transform = transform,
+      )
     }
   }
 
@@ -88,14 +75,14 @@ class ArtifactDirectoryBuilder(val path: Path) {
     relativePath: Path,
     source: BuildArtifact,
     fromBuild: DependencyBuildContext,
-    transform: ArtifactTransform = ArtifactTransform.COPY
+    transform: ProjectProto.ProjectArtifact.ArtifactTransform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY
   ): Optional<ProjectPath> {
     val existing = contents.get(relativePath)
     if (existing != null && existing.fromBuild.startTime().isAfter(fromBuild.startTime())) {
       // we already have the same artifact from a more recent build.
       return Optional.empty()
     }
-    contents[relativePath] = Entry(relativePath, source, fromBuild, transform)
+    contents[relativePath] = Entry(source, fromBuild, transform)
     return Optional.of(ProjectPath.projectRelative(path.resolve(relativePath)))
   }
 
@@ -103,13 +90,11 @@ class ArtifactDirectoryBuilder(val path: Path) {
     get() = contents.isEmpty()
 
   fun addToArtifactDirectories(artifactDirectoriesBuilder: ProjectProto.ArtifactDirectories.Builder) {
-    val artifactDirectoryContentsBuilder =
-      artifactDirectoriesBuilder.getDirectoriesOrDefault(path.toString(), ArtifactDirectoryContents.getDefaultInstance()).toBuilder()
-    artifactDirectoriesBuilder.putDirectories(
-      path.toString(),
-      artifactDirectoryContentsBuilder
-        .putAllContents(contents.values.associate { it.destination.toString() to it.toProto() })
-        .build()
-    )
+    val key = path.toString()
+    artifactDirectoriesBuilder.directoriesMap[key] =
+      (artifactDirectoriesBuilder.directoriesMap[key] ?: ProjectProto.ArtifactDirectoryContents.getDefaultInstance())
+        .let {
+          ProjectProto.ArtifactDirectoryContents(it.contents + contents.entries.map { it.key.toString() to it.value.toProto() })
+        }
   }
 }

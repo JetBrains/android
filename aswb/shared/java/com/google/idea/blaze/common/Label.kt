@@ -19,6 +19,7 @@ import com.google.idea.blaze.common.TargetPattern.ScopeStatus
 import com.google.idea.blaze.common.TargetPattern.ScopeStatus.EXCLUDED
 import com.google.idea.blaze.common.TargetPattern.ScopeStatus.INCLUDED
 import com.google.idea.blaze.common.TargetPattern.ScopeStatus.NOT_IN_SCOPE
+import java.io.Serializable
 import java.nio.file.Path
 
 
@@ -34,7 +35,7 @@ import java.nio.file.Path
  * <p>Note that this class only supports labels in the current workspace, i.e. not labels of the
  * form {@code @repo//pkg/foo:abc}.
  */
-data class Label(val workspace: String, val buildPackage: String, val name: String) {
+data class Label(val workspace: String, val buildPackage: String, val name: String): Serializable {
 
   companion object {
     @JvmField

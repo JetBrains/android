@@ -29,6 +29,7 @@ import com.google.idea.blaze.qsync.deps.DependencyBuildContext
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo
+import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectoryContents
 import com.google.idea.blaze.qsync.testdata.TestData
@@ -88,47 +89,35 @@ class AddProjectGenSrcsTest {
     addGensrcs.update(update, artifactState, context)
     val newProject = update.build()
 
-    val workspace = newProject.getModules(0)
+    val workspace = newProject.modules.single()
     // check our above assumption:
-    Truth.assertThat(workspace.getName()).isEqualTo(".workspace")
-    Truth.assertThat(workspace.getContentEntriesList())
+    Truth.assertThat(workspace.name).isEqualTo(".workspace")
+    Truth.assertThat(workspace.contentEntries.values)
       .contains(
-        TextFormat.parse(
-          Joiner.on("\n")
-            .join(
-              "root {",
-              "      path: \".bazel/gensrc/java\"",
-              "      base: PROJECT",
-              "    }",
-              "    sources {",
-              "      is_generated: true",
-              "      project_path {",
-              "        path: \".bazel/gensrc/java\"",
-              "        base: PROJECT",
-              "      }",
-              "    }"
+        ProjectProto.ContentEntry(
+          root = ProjectPath.projectRelative(Path.of(".bazel/gensrc/java")),
+          sourceFolders = listOf(
+            ProjectProto.SourceFolder(
+              projectPath = ProjectPath.projectRelative(Path.of(".bazel/gensrc/java")),
+              isGenerated = true,
+              isTest = false,
+              packagePrefix = "",
             ),
-          ProjectProto.ContentEntry::class.java
+          ),
+          excludes = listOf(),
         )
       )
-    Truth.assertThat(newProject.getArtifactDirectories().getDirectoriesMap())
+    Truth.assertThat(newProject.artifactDirectories.directoriesMap)
       .containsEntry(
         ".bazel/gensrc/java",
-        TextFormat.parse(
-          Joiner.on("\n")
-            .join(
-              "contents {",
-              "      key: \"com/org/Class.java\"",
-              "      value {",
-              "        transform: COPY",
-              "        build_artifact {",
-              "          digest: \"gensrcdigest\"",
-              "        }",
-              "        target: \"" + testData.assumedOnlyLabel + "\"",
-              "      }",
-              "    }"
-            ),
-          ArtifactDirectoryContents::class.java
+        ArtifactDirectoryContents(
+          contents = mapOf(
+            "com/org/Class.java" to ProjectProto.ProjectArtifact(
+              target = testData.assumedOnlyLabel,
+              buildArtifact = ProjectProto.BuildArtifact("gensrcdigest"),
+              transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+            )
+          )
         )
       )
     Mockito.verify(context, Mockito.never())!!.setHasWarnings()
@@ -197,48 +186,36 @@ class AddProjectGenSrcsTest {
     addGenSrcs.update(update, artifactState, context)
     val newProject = update.build()
 
-    val workspace = newProject.getModules(0)
+    val workspace = newProject.modules.single()
     // check our above assumption:
-    Truth.assertThat(workspace.getName()).isEqualTo(".workspace")
+    Truth.assertThat(workspace.name).isEqualTo(".workspace")
 
-    Truth.assertThat(workspace.getContentEntriesList())
+    Truth.assertThat(workspace.contentEntries.values)
       .contains(
-        TextFormat.parse(
-          Joiner.on("\n")
-            .join(
-              "root {",
-              "      path: \".bazel/gensrc/java\"",
-              "      base: PROJECT",
-              "    }",
-              "    sources {",
-              "      is_generated: true",
-              "      project_path {",
-              "        path: \".bazel/gensrc/java\"",
-              "        base: PROJECT",
-              "      }",
-              "    }"
+        ProjectProto.ContentEntry(
+          root = ProjectPath.projectRelative(Path.of(".bazel/gensrc/java")),
+          sourceFolders = listOf(
+            ProjectProto.SourceFolder(
+              projectPath = ProjectPath.projectRelative(Path.of(".bazel/gensrc/java")),
+              isGenerated = true,
+              isTest = false,
+              packagePrefix = "",
             ),
-          ProjectProto.ContentEntry::class.java
+            ),
+          excludes = listOf(),
         )
       )
-    Truth.assertThat(newProject.getArtifactDirectories().getDirectoriesMap())
+    Truth.assertThat(newProject.artifactDirectories.directoriesMap)
       .containsEntry(
         ".bazel/gensrc/java",
-        TextFormat.parse(
-          Joiner.on("\n")
-            .join(
-              "contents {",
-              "      key: \"com/org/Class.java\"",
-              "      value {",
-              "        transform: COPY",
-              "        build_artifact {",
-              "          digest: \"gensrc2\"",
-              "        }",
-              "        target: \"" + genSrc2Label + "\"",
-              "      }",
-              "    }"
-            ),
-          ArtifactDirectoryContents::class.java
+        ArtifactDirectoryContents(
+          contents = mapOf(
+            "com/org/Class.java" to ProjectProto.ProjectArtifact(
+              target = genSrc2Label,
+              buildArtifact = ProjectProto.BuildArtifact("gensrc2"),
+              transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+            )
+          )
         )
       )
     Mockito.verify(context)!!.setHasWarnings()
@@ -339,17 +316,17 @@ class AddProjectGenSrcsTest {
     addGensrcs.update(update, artifactState, context)
     val newProject = update.build()
 
-    val workspace = newProject.getModules(0)
+    val workspace = newProject.modules.single()
     // check our above assumption:
-    Truth.assertThat(workspace.getName()).isEqualTo(".workspace")
+    Truth.assertThat(workspace.name).isEqualTo(".workspace")
     Truth.assertThat(
-      workspace.getContentEntriesList()
-        .flatMap { it!!.getSourcesList() }
-        .filter { it!!.getIsGenerated() })
+      workspace.contentEntries.values
+        .flatMap { it.sourceFolders }
+        .filter { it.isGenerated })
       .isEmpty()
     Truth.assertThat(
-      newProject.getArtifactDirectories().getDirectoriesMap().values
-        .flatMap { it!!.getContentsMap().entries }
+      newProject.artifactDirectories.directoriesMap.values
+        .flatMap { it.contents.entries }
       .isEmpty())
     Mockito.verify(context)!!.setHasWarnings()
   }

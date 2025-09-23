@@ -21,7 +21,6 @@ import static com.google.idea.blaze.qsync.QuerySyncTestUtils.getQuerySummary;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.idea.blaze.common.Context;
@@ -31,10 +30,8 @@ import com.google.idea.blaze.common.Output;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.qsync.java.PackageReader;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
-import com.google.idea.blaze.qsync.project.LanguageClassProto.LanguageClass;
+import com.google.idea.blaze.qsync.project.ProjectPath;
 import com.google.idea.blaze.qsync.project.ProjectProto;
-import com.google.idea.blaze.qsync.project.ProjectProto.ProjectPath;
-import com.google.idea.blaze.qsync.project.ProjectProto.ProjectPath.Base;
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import com.google.idea.blaze.qsync.query.PackageSet;
 import com.google.idea.blaze.qsync.testdata.BuildGraphs;
@@ -549,12 +546,12 @@ public class GraphToProjectConverterTest {
   public void testConvertProject_emptyProject() throws Exception {
     GraphToProjectConverter converter = GraphToProjectConvertersForTests.builder().build();
     ProjectProto.Project project = converter.createProject(BuildGraphData.EMPTY);
-    assertThat(project.getModulesCount()).isEqualTo(1);
+    assertThat(project.getModules().size()).isEqualTo(1);
 
-    ProjectProto.Module workspaceModule = project.getModules(0);
+    ProjectProto.Module workspaceModule = project.getModules().get(0);
     assertThat(workspaceModule.getName()).isEqualTo(".workspace");
 
-    assertThat(workspaceModule.getContentEntriesCount()).isEqualTo(0);
+    assertThat(workspaceModule.getContentEntries().size()).isEqualTo(0);
   }
 
   @Test
@@ -575,25 +572,20 @@ public class GraphToProjectConverterTest {
     ProjectProto.Project project = converter.createProject(buildGraphData);
 
     // Sanity check
-    assertThat(project.getModulesCount()).isEqualTo(1);
-    ProjectProto.Module workspaceModule = project.getModules(0);
+    assertThat(project.getModules().size()).isEqualTo(1);
+    ProjectProto.Module workspaceModule = project.getModules().get(0);
 
-    assertThat(workspaceModule.getContentEntriesCount()).isEqualTo(1);
+    assertThat(workspaceModule.getContentEntries().size()).isEqualTo(1);
 
-    ProjectProto.ContentEntry javaContentEntry = workspaceModule.getContentEntries(0);
-    assertThat(javaContentEntry.getRoot().getBase()).isEqualTo(Base.WORKSPACE);
-    assertThat(javaContentEntry.getRoot().getPath()).isEqualTo(workspaceImportDirectory.toString());
-    assertThat(javaContentEntry.getSourcesCount()).isEqualTo(1);
+    ProjectProto.ContentEntry javaContentEntry = workspaceModule.getContentEntries().values().iterator().next();
+    assertThat(javaContentEntry.getRoot()).isEqualTo(ProjectPath.workspaceRelative(workspaceImportDirectory));
+    assertThat(javaContentEntry.getSourceFolders().size()).isEqualTo(1);
 
-    ProjectProto.SourceFolder javaSource = javaContentEntry.getSources(0);
+    ProjectProto.SourceFolder javaSource = javaContentEntry.getSourceFolders().get(0);
     assertThat(javaSource.getProjectPath())
-        .isEqualTo(
-            ProjectPath.newBuilder()
-                .setBase(Base.WORKSPACE)
-                .setPath(workspaceImportDirectory.toString())
-                .build());
-    assertThat(javaSource.getIsGenerated()).isFalse();
-    assertThat(javaSource.getIsTest()).isFalse();
+        .isEqualTo(ProjectPath.workspaceRelative(workspaceImportDirectory));
+    assertThat(javaSource.isGenerated()).isFalse();
+    assertThat(javaSource.isTest()).isFalse();
   }
 
   @Test
@@ -614,19 +606,17 @@ public class GraphToProjectConverterTest {
     BuildGraphData buildGraphData = BuildGraphs.forTestProject(TestData.JAVA_LIBRARY_NO_DEPS_QUERY);
     ProjectProto.Project project = converter.createProject(buildGraphData);
 
-    assertThat(project.getModulesCount()).isEqualTo(1);
-    assertThat(project.getModules(0).getContentEntriesCount()).isEqualTo(1);
-    assertThat(project.getModules(0).getContentEntries(0).getSourcesCount()).isEqualTo(1);
+    assertThat(project.getModules().size()).isEqualTo(1);
+    assertThat(project.getModules().get(0).getContentEntries().size()).isEqualTo(1);
+    ProjectProto.ContentEntry contentEntry = project.getModules().get(0).getContentEntries().values().iterator().next();
+    assertThat(contentEntry.getSourceFolders().size()).isEqualTo(1);
     ProjectProto.SourceFolder sourceFolder =
-        project.getModules(0).getContentEntries(0).getSources(0);
+      contentEntry.getSourceFolders().get(0);
 
     assertThat(sourceFolder.getProjectPath())
-        .isEqualTo(
-            ProjectPath.newBuilder()
-                .setBase(Base.WORKSPACE)
-                .setPath(TestData.ROOT.resolve("nodeps").toString())
-                .build());
-    assertThat(sourceFolder.getIsTest()).isTrue();
+      .isEqualTo(ProjectPath.workspaceRelative(TestData.ROOT.resolve("nodeps")));
+
+    assertThat(sourceFolder.isTest()).isTrue();
   }
 
   @Test
@@ -643,23 +633,19 @@ public class GraphToProjectConverterTest {
 
     ProjectProto.Project project =
         converter.createProject(BuildGraphs.forTestProject(TestData.PROTO_ONLY_QUERY));
-    assertThat(project.getModulesCount()).isEqualTo(1);
-    ProjectProto.Module module = project.getModules(0);
+    assertThat(project.getModules().size()).isEqualTo(1);
+    ProjectProto.Module module = project.getModules().get(0);
 
-    assertThat(module.getContentEntriesCount()).isEqualTo(1);
-    ProjectProto.ContentEntry contentEntry = module.getContentEntries(0);
-    assertThat(contentEntry.getRoot().getPath())
-        .isEqualTo(TestData.ROOT.resolve("protoonly").toString());
+    assertThat(module.getContentEntries().size()).isEqualTo(1);
+    ProjectProto.ContentEntry contentEntry = module.getContentEntries().values().iterator().next();
+    assertThat(contentEntry.getRoot())
+        .isEqualTo(ProjectPath.workspaceRelative(TestData.ROOT.resolve("protoonly")));
 
-    assertThat(contentEntry.getSourcesCount()).isEqualTo(1);
-    ProjectProto.SourceFolder sourceFolder = contentEntry.getSources(0);
+    assertThat(contentEntry.getSourceFolders().size()).isEqualTo(1);
+    ProjectProto.SourceFolder sourceFolder = contentEntry.getSourceFolders().get(0);
 
     assertThat(sourceFolder.getProjectPath())
-        .isEqualTo(
-            ProjectPath.newBuilder()
-                .setBase(Base.WORKSPACE)
-                .setPath(TestData.ROOT.resolve("protoonly").toString())
-                .build());
+      .isEqualTo(ProjectPath.workspaceRelative(TestData.ROOT.resolve("protoonly")));
   }
 
   @Test
@@ -718,18 +704,17 @@ public class GraphToProjectConverterTest {
     BuildGraphData buildGraphData = BuildGraphs.forTestProject(TestData.NESTED_PROTO_QUERY);
 
     ProjectProto.Project projectProto = converter.createProject(buildGraphData);
-    assertThat(projectProto.getModulesCount()).isEqualTo(1);
-    ProjectProto.Module workspaceModule = projectProto.getModules(0);
+    assertThat(projectProto.getModules().size()).isEqualTo(1);
+    ProjectProto.Module workspaceModule = projectProto.getModules().get(0);
 
-    ProjectProto.ContentEntry contentEntry = workspaceModule.getContentEntries(0);
-    assertThat(contentEntry.getSourcesList())
+    ProjectProto.ContentEntry contentEntry = workspaceModule.getContentEntries().values().iterator().next();
+    assertThat(contentEntry.getSourceFolders())
         .containsExactly(
-            ProjectProto.SourceFolder.newBuilder()
-                .setProjectPath(
-                    ProjectPath.newBuilder()
-                        .setBase(Base.WORKSPACE)
-                        .setPath(TestData.ROOT.resolve("nestedproto/java").toString()))
-                .build());
+            new ProjectProto.SourceFolder(
+              ProjectPath.workspaceRelative(TestData.ROOT.resolve("nestedproto/java")),
+              false,
+              false,
+              ""));
   }
 
   @Test
@@ -752,25 +737,18 @@ public class GraphToProjectConverterTest {
         BuildGraphs.forTestProject(TestData.JAVA_LIBRARY_PROTO_DEP_QUERY);
 
     ProjectProto.Project projectProto = converter.createProject(buildGraphData);
-    ProjectProto.Module workspaceModule = Iterables.getOnlyElement(projectProto.getModulesList());
+    ProjectProto.Module workspaceModule = Iterables.getOnlyElement(projectProto.getModules());
     ProjectProto.ContentEntry contentEntry =
-        Iterables.getOnlyElement(workspaceModule.getContentEntriesList());
-    assertThat(contentEntry.getSourcesList())
-        .containsExactly(
-            ProjectProto.SourceFolder.newBuilder()
-                .setProjectPath(
-                    ProjectPath.newBuilder()
-                        .setBase(Base.WORKSPACE)
-                        .setPath(TestData.ROOT.toString()))
-                .setPackagePrefix("com.google.idea.blaze.qsync.testdata")
-                .build());
+        Iterables.getOnlyElement(workspaceModule.getContentEntries().values());
+    assertThat(contentEntry.getSourceFolders())
+        .containsExactly(ProjectPath.workspaceRelative(TestData.ROOT));
   }
 
   @Test
   public void testActiveLanguages_emptyProject() throws Exception {
     GraphToProjectConverter converter = GraphToProjectConvertersForTests.builder().build();
     ProjectProto.Project project = converter.createProject(BuildGraphData.EMPTY);
-    assertThat(project.getActiveLanguagesList()).isEmpty();
+    assertThat(project.getActiveLanguages()).isEmpty();
   }
 
   @Test
@@ -790,7 +768,7 @@ public class GraphToProjectConverterTest {
             .parse();
     ProjectProto.Project project = converter.createProject(buildGraphData);
 
-    assertThat(project.getActiveLanguagesList()).contains(LanguageClass.LANGUAGE_CLASS_JVM);
+    assertThat(project.getActiveLanguages()).contains(QuerySyncLanguage.JVM);
   }
 
   @Test
@@ -807,7 +785,7 @@ public class GraphToProjectConverterTest {
             .parse();
     ProjectProto.Project project = converter.createProject(buildGraphData);
 
-    assertThat(project.getActiveLanguagesList()).contains(LanguageClass.LANGUAGE_CLASS_CC);
+    assertThat(project.getActiveLanguages()).contains(QuerySyncLanguage.CC);
   }
 
   private PackageReader toPackageReader(Function<Path, String> basicReader) {

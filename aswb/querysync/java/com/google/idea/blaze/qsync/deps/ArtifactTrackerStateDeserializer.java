@@ -93,16 +93,26 @@ public class ArtifactTrackerStateDeserializer {
         CcToolchain.builder()
             .id(id)
             .compiler(proto.getCompiler())
-            .compilerExecutable(ProjectPath.create(proto.getCompilerExecutable()))
+            .compilerExecutable(projectPathFrom(proto.getCompilerExecutable()))
             .cpu(proto.getCpu())
             .targetGnuSystemName(proto.getTargetGnuSystemName())
             .builtInIncludeDirectories(
                 proto.getBuiltInIncludeDirectoriesList().stream()
-                    .map(ProjectPath::create)
+                    .map(this::projectPathFrom)
                     .collect(toImmutableList()))
             .cOptions(ImmutableList.copyOf(proto.getCOptionsList()))
             .cppOptions(ImmutableList.copyOf(proto.getCppOptionsList()))
             .build());
+  }
+
+  private ProjectPath projectPathFrom(ArtifactTrackerProto.ProjectPath p) {
+    return switch(p.getBase()) {
+      case UNSPECIFIED -> throw new IllegalStateException("Unexpected value: " + p);
+      case WORKSPACE -> ProjectPath.workspaceRelative(Path.of(p.getPath()));
+      case PROJECT -> ProjectPath.projectRelative(Path.of(p.getPath()));
+      case ABSOLUTE -> ProjectPath.absolute(Path.of(p.getPath()));
+      case UNRECOGNIZED -> throw new IllegalStateException("Unexpected value: " + p);
+    };
   }
 
   private JavaArtifactInfo convertJavaArtifactInfo(
@@ -127,19 +137,19 @@ public class ArtifactTrackerStateDeserializer {
         .defines(proto.getDefinesList())
         .includeDirectories(
             proto.getIncludeDirectoriesList().stream()
-                .map(ProjectPath::create)
+                .map(this::projectPathFrom)
                 .collect(toImmutableList()))
         .quoteIncludeDirectories(
             proto.getQuoteIncludeDirectoriesList().stream()
-                .map(ProjectPath::create)
+                .map(this::projectPathFrom)
                 .collect(toImmutableList()))
         .systemIncludeDirectories(
             proto.getSysytemIncludeDirectoriesList().stream()
-                .map(ProjectPath::create)
+                .map(this::projectPathFrom)
                 .collect(toImmutableList()))
         .frameworkIncludeDirectories(
             proto.getFrameworkIncludeDirectoriesList().stream()
-                .map(ProjectPath::create)
+                .map(this::projectPathFrom)
                 .collect(toImmutableList()))
         .genHeaders(toArtifactList(proto.getGenHeadersList(), owner))
         .toolchainId(proto.getToolchainId())
