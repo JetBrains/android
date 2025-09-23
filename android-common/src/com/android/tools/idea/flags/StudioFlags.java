@@ -2137,6 +2137,11 @@ public final class StudioFlags {
                     "Enable the AGENTS.md Files macro in the context drawer",
                     "This macro attaches AGENTS.md or GEMINI.md Files under directories of the current file and its recursive parents.");
 
+  public static final Flag<Boolean> STUDIOBOT_AGENTS_MD_GENERATION =
+    new BooleanFlag(STUDIOBOT, "agents.md.generation",
+                    "Enable an action to generate AGENTS.md files",
+                    "When enabled, add an action as a right click menu of the file browser. The action will generate AGENTS.md files under directories of the current file and its recursive children.");
+
   public static final Flag<Boolean> STUDIOBOT_KNOWLEDGE_BASE_RAG =
     new BooleanFlag(STUDIOBOT, "knowledge.base.rag",
                     "Enable the Knowledge Base (KB) indexer and search tools",
