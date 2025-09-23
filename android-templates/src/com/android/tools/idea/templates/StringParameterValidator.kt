@@ -200,7 +200,7 @@ fun StringParameter.validateStringType(
       val testSuiteDir = moduleRootDir
         .resolve("src")
         .resolve(testSuiteName)
-      return testSuiteDir.resolve("$value.xml").exists()
+      return testSuiteDir.resolve("$value.journey.xml").exists()
     }
       NONEMPTY, STRING, URI_AUTHORITY -> false
       UNIQUE, EXISTS -> false // not applicable
