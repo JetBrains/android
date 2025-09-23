@@ -25,6 +25,8 @@ import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.RegisteredDependencyId;
+import com.android.tools.idea.projectsystem.RegisteredDependencyQueryId;
 import com.android.tools.idea.projectsystem.RegisteringModuleSystem;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.collect.ImmutableSet;
@@ -55,7 +57,7 @@ import org.jetbrains.ide.PooledThreadExecutor;
  * through the instance of {@link AndroidModuleSystem} associated with the module of the palette.
  * This allows callers to quickly check if a particular palette item has a missing dependency via
  * the {@link #needsLibraryLoad(Palette.Item)} method.
- *
+ * <p>
  * The set of missing dependencies is recomputed each time the project is synced (in case new dependencies have
  * been added to the palette's module) and each time the associated palette changes (see {@link #setPalette}).
  */
@@ -104,7 +106,7 @@ public class DependencyManager implements Disposable {
     else SlowOperations.allowSlowOperations(this::checkForRelevantDependencyChanges);
 
     registerDependencyUpdates();
-    ApplicationManager.getApplication().invokeLater(() -> myListeners.forEach(listener -> listener.onDependenciesChanged()));
+    ApplicationManager.getApplication().invokeLater(() -> myListeners.forEach(DependencyChangeListener::onDependenciesChanged));
   }
 
   public boolean useAndroidXDependencies() {
@@ -156,19 +158,21 @@ public class DependencyManager implements Disposable {
    *
    * @return true if the set of missing libraries has changed. This indicates that users of this service should be notified.
    */
-  // This method is only called from checkForRelevantDependencyChanges where the mySync monitor is already held.
-  @SuppressWarnings("FieldAccessNotGuarded")
   private boolean checkForNewMissingDependencies() {
     Set<GoogleMavenArtifactId> missing = Collections.emptySet();
 
-    if (myModule != null && !myModule.isDisposed() && !myProject.isDisposed()) {
-      RegisteringModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(myModule).getRegisteringModuleSystem();
-      if (moduleSystem != null) {
-        missing = myPalette.getGoogleMavenArtifactIds().stream()
-          .filter(id -> !moduleSystem.hasRegisteredDependency(id))
-          .collect(ImmutableSet.toImmutableSet());
-      } else {
-        missing = ImmutableSet.copyOf(myPalette.getGoogleMavenArtifactIds());
+    synchronized (mySync) {
+      if (myModule != null && !myModule.isDisposed() && !myProject.isDisposed()) {
+        RegisteringModuleSystem<@NotNull RegisteredDependencyQueryId, @NotNull RegisteredDependencyId>
+          moduleSystem = ProjectSystemUtil.getModuleSystem(myModule).getRegisteringModuleSystem();
+        if (moduleSystem != null) {
+          missing = myPalette.getGoogleMavenArtifactIds().stream()
+            .filter(id -> !moduleSystem.hasRegisteredDependency(id))
+            .collect(ImmutableSet.toImmutableSet());
+        }
+        else {
+          missing = ImmutableSet.copyOf(myPalette.getGoogleMavenArtifactIds());
+        }
       }
 
       if (myMissingLibraries.get().equals(missing)) {
@@ -193,12 +197,12 @@ public class DependencyManager implements Disposable {
       return;
     }
     myRegisteredForDependencyUpdates = true;
-    myProject.getMessageBus().connect(this).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
+    myProject.getMessageBus().connect(this).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, (ProjectSystemSyncManager.SyncResultListener)result -> {
       // checkForRelevantDependencyChanges can be quite expensive, run this on a background thread,
       // however the DependencyChangeListeners must be called from the UI thread as they update the UI.
       mySyncTopicConsumer.accept(ensureRunningOnBackgroundThread(() -> {
         if ((result == ProjectSystemSyncManager.SyncResult.SUCCESS && checkForRelevantDependencyChanges()) || myNotifyAlways) {
-          ApplicationManager.getApplication().invokeLater(() -> myListeners.forEach(listener -> listener.onDependenciesChanged()));
+          ApplicationManager.getApplication().invokeLater(() -> myListeners.forEach(DependencyChangeListener::onDependenciesChanged));
         }
       }));
     });
@@ -218,11 +222,15 @@ public class DependencyManager implements Disposable {
   // This method is only called indirectly from checkForRelevantDependencyChanges where the mySync monitor is already held.
   @SuppressWarnings("FieldAccessNotGuarded")
   private boolean computeUseAndroidXDependencies() {
-    if (myProject.isDisposed() || myModule == null || myModule.isDisposed()) {
+    if (myProject.isDisposed()) {
       return true;
     }
-
-    return getModuleSystem(myModule).getUseAndroidX();
+    synchronized (mySync) {
+      if (myModule == null || myModule.isDisposed()) {
+        return true;
+      }
+      return getModuleSystem(myModule).getUseAndroidX();
+    }
   }
 
   public interface DependencyChangeListener {
