@@ -24,7 +24,6 @@ aswb_library(
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps:artifact_tracker_state_java_proto",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
-        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto",
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/shared:artifact",
         "//tools/adt/idea/aswb/third_party/java/auto_value",

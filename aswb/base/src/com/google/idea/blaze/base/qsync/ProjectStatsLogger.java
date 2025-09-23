@@ -53,7 +53,7 @@ public class ProjectStatsLogger {
               scope
                   .getDependenciesInfoStatsBuilder()
                   .setTargetMapSize(instance.graph().getTargetMapSizeForStatsOnly())
-                  .setLibraryCount(instance.project().getLibraryCount())
+                  .setLibraryCount(instance.project().getLibraries().size())
                   .setJarCount(
                       instance.artifactState().targets().stream()
                           .map(TargetBuildInfo::javaInfo)

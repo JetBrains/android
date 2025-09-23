@@ -83,8 +83,8 @@ public class CcProjectModelUpdateOperation implements Disposable {
 
   /** Visit a {@link CcWorkspace} proto. Should be called from a background thread. */
   public void visitWorkspace(CcWorkspace proto) {
-    visitSwitchesMap(proto.getFlagSetsMap());
-    for (CcCompilationContext compilationContext : proto.getContextsList()) {
+    visitSwitchesMap(proto.getFlagSets());
+    for (CcCompilationContext compilationContext : proto.getContexts()) {
       visitCompilationContext(compilationContext);
     }
   }
@@ -100,16 +100,16 @@ public class CcProjectModelUpdateOperation implements Disposable {
     OCResolveConfiguration.ModifiableModel config =
         modifiableOcWorkspace.addConfiguration(ccCc.getId(), ccCc.getHumanReadableName());
 
-    visitLanguageCompilerSettingsMap(ccCc.getLanguageToCompilerSettingsMap(), config);
-    for (CcSourceFile source : ccCc.getSourcesList()) {
+    visitLanguageCompilerSettingsMap(ccCc.getLanguageToCompilerSettings(), config);
+    for (CcSourceFile source : ccCc.getSources()) {
       visitSourceFile(source, config);
     }
     resolveConfigs.put(ccCc.getId(), config);
   }
 
   private void visitLanguageCompilerSettingsMap(
-      Map<String, CcCompilerSettings> map, OCResolveConfiguration.ModifiableModel config) {
-    for (Map.Entry<String, CcCompilerSettings> e : map.entrySet()) {
+      Map<CcLanguage, CcCompilerSettings> map, OCResolveConfiguration.ModifiableModel config) {
+    for (Map.Entry<CcLanguage, CcCompilerSettings> e : map.entrySet()) {
       CidrCompilerSwitches switches =
           checkNotNull(compilerSwitches.get(e.getValue().getFlagSetId()));
       if (!CppSupportChecker.isSupportedCppConfiguration(switches, compilerWorkingDir.toPath())) {
@@ -117,8 +117,7 @@ public class CcProjectModelUpdateOperation implements Disposable {
       }
       CLanguageKind lang =
           getLanguageKind(
-              ProjectProto.CcLanguage.valueOf(
-                  ProjectProto.CcLanguage.getDescriptor().findValueByName(e.getKey())),
+              e.getKey(),
               "compiler settings");
       OCCompilerSettings.ModifiableModel compilerSettings =
           config.getLanguageCompilerSettings(lang);
@@ -136,7 +135,7 @@ public class CcProjectModelUpdateOperation implements Disposable {
       // Ignore the file if it's not supported by the current IDE.
       return;
     }
-    Path srcPath = Path.of(source.getWorkspacePath());
+    Path srcPath = pathResolver.resolve(source.getWorkspacePath());
     CLanguageKind language =
         getLanguageKind(source.getLanguage(), "Source file " + source.getWorkspacePath());
     srcPath = pathResolver.resolve(ProjectPath.workspaceRelative(srcPath));
@@ -166,7 +165,7 @@ public class CcProjectModelUpdateOperation implements Disposable {
 
   private File getCompilerExecutable(CcCompilerSettings compilerSettings) {
     return pathResolver
-        .resolve(ProjectPath.create(compilerSettings.getCompilerExecutablePath()))
+        .resolve(compilerSettings.getCompilerExecutablePath())
         .toFile();
   }
 

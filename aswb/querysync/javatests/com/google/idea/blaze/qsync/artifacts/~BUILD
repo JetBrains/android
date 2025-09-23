@@ -10,7 +10,7 @@ aswb_test(
         ":mock_artifact_cache",
         "//prebuilts/tools/common/m2:jsr305-2.0.1",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts",
-        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/shared:artifact",
         "//tools/adt/idea/aswb/shared/javatests/com/google/idea/blaze/common:test_utils",

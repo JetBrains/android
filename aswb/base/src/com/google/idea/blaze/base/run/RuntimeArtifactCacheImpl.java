@@ -104,11 +104,11 @@ public final class RuntimeArtifactCacheImpl implements RuntimeArtifactCache {
     for (OutputArtifact artifact : artifacts) {
       resultBuilder.put(
           artifact.getArtifactPath(),
-          ProjectProto.ProjectArtifact.newBuilder()
-              .setBuildArtifact(ProjectProto.BuildArtifact.newBuilder().setDigest(artifact.getDigest()))
-              .setTarget(target.toString())
-              .setTransform(ProjectProto.ProjectArtifact.ArtifactTransform.COPY)
-              .build());
+          new ProjectProto.ProjectArtifact(
+            target,
+            new ProjectProto.BuildArtifact(artifact.getDigest()),
+            ProjectProto.ProjectArtifact.ArtifactTransform.COPY
+          ));
     }
     return resultBuilder.build();
   }
@@ -134,17 +134,16 @@ public final class RuntimeArtifactCacheImpl implements RuntimeArtifactCache {
    */
   private static ProjectProto.ArtifactDirectoryContents buildArtifactDirectoryContents(
       Map<Pair<Label, RuntimeArtifactKind>, Map<Path, ProjectProto.ProjectArtifact>> artifacts) {
-    final var artifactDirectoryContents = ProjectProto.ArtifactDirectoryContents.newBuilder();
+    final var contents = new HashMap<String, ProjectProto.ProjectArtifact>();
     for (final var entry : artifacts.entrySet()) {
       final var key = entry.getKey();
       for (final var artifactPathAndDigest : entry.getValue().entrySet()) {
         final var artifactPath = artifactPathAndDigest.getKey();
         final var artifact = artifactPathAndDigest.getValue();
-        artifactDirectoryContents.putContents(
-            getArtifactLocalPath(key.first, key.second, artifactPath).toString(), artifact);
+        contents.put(getArtifactLocalPath(key.first, key.second, artifactPath).toString(), artifact);
       }
     }
-    return artifactDirectoryContents.build();
+    return new ProjectProto.ArtifactDirectoryContents(contents);
   }
 
   /**

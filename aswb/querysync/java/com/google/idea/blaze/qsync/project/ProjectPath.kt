@@ -16,14 +16,11 @@
 package com.google.idea.blaze.qsync.project
 
 import com.google.common.base.Preconditions
-import com.google.idea.blaze.qsync.project.ProjectPath.Companion.absolute
-import com.google.idea.blaze.qsync.project.ProjectPath.Companion.projectRelative
-import com.google.idea.blaze.qsync.project.ProjectPath.Companion.workspaceRelative
 import java.nio.file.Path
 import org.jetbrains.annotations.TestOnly
 
 /** A path to a project artifact, either in the workspace or the project directory.  */
-sealed interface ProjectPath {
+sealed interface ProjectPath: ProjectProtoModel {
   val innerPath: Path
   fun resolveChild(child: Path): ProjectPath
   fun withInnerJarPath(innerPath: Path): ProjectPath
@@ -85,31 +82,6 @@ sealed interface ProjectPath {
       Preconditions.checkArgument(absolutePath.isAbsolute, absolutePath)
       return AbsoluteProjectPath(absolutePath = absolutePath, innerPath = Path.of(""))
     }
-
-    @JvmStatic
-    fun create(path: ProjectProto.ProjectPath): ProjectPath {
-      return when (path.getBase()) {
-        ProjectProto.ProjectPath.Base.UNSPECIFIED -> throw IllegalStateException("Unexpected value: " + this)
-        ProjectProto.ProjectPath.Base.WORKSPACE -> workspaceRelative(Path.of(path.getPath()))
-        ProjectProto.ProjectPath.Base.PROJECT -> projectRelative(Path.of(path.getPath()))
-        ProjectProto.ProjectPath.Base.ABSOLUTE -> absolute(Path.of(path.getPath()))
-        ProjectProto.ProjectPath.Base.UNRECOGNIZED -> throw IllegalStateException("Unexpected value: " + this)
-      }.withInnerJarPath(Path.of(path.innerPath))
-    }
-  }
-
-  fun toProto(): ProjectProto.ProjectPath {
-    val builder = ProjectProto.ProjectPath.newBuilder()
-    when (this) {
-      is WorkspaceRelativeProjectPath,
-        -> builder.setBase(ProjectProto.ProjectPath.Base.WORKSPACE).setPath(relativePath.toString())
-      is ProjectRelativeProjectPath,
-        -> builder.setBase(ProjectProto.ProjectPath.Base.PROJECT).setPath(relativePath.toString())
-      is AbsoluteProjectPath,
-        -> builder.setBase(ProjectProto.ProjectPath.Base.ABSOLUTE).setPath(absolutePath.toString())
-    }
-    builder.setInnerPath(innerPath.toString())
-    return builder.build()
   }
 }
 

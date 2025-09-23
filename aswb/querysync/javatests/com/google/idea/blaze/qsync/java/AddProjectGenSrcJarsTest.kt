@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.qsync.java
 
-import com.google.common.base.Joiner
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import com.google.common.truth.Truth
@@ -31,9 +30,9 @@ import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.SrcJarPrefixedJavaPackageRoots
 import com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder.JarPath
+import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.testdata.TestData
-import com.google.protobuf.TextFormat
 import java.nio.file.Path
 import org.junit.Rule
 import org.junit.Test
@@ -79,9 +78,9 @@ class AddProjectGenSrcJarsTest {
       ProjectProtoUpdate(original.project(), original.graph(), NoopContext())
     javaDeps.update(update, artifactState, NoopContext())
     val newProject = update.build()
-    Truth.assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList())
-    Truth.assertThat(newProject.getModulesList()).isEqualTo(original.project().getModulesList())
-    Truth.assertThat(newProject.getArtifactDirectories().getDirectoriesMap().keys).isEmpty()
+    Truth.assertThat(newProject.libraries).isEqualTo(original.project().libraries)
+    Truth.assertThat(newProject.modules).isEqualTo(original.project().modules)
+    Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys).isEmpty()
   }
 
   @Test
@@ -120,29 +119,24 @@ class AddProjectGenSrcJarsTest {
       ProjectProtoUpdate(original.project(), original.graph(), NoopContext())
     javaDeps.update(update, artifactState, NoopContext())
     val newProject = update.build()
-    Truth.assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList())
-    val workspace = newProject.getModules(0)
+    Truth.assertThat(newProject.libraries).isEqualTo(original.project().libraries)
+    val workspace = newProject.modules[0]
     // check our assumptions:
-    Truth.assertThat(workspace.getName()).isEqualTo(".workspace")
+    Truth.assertThat(workspace.name).isEqualTo(".workspace")
 
-    Truth.assertThat(workspace.getContentEntriesList())
+    Truth.assertThat(workspace.contentEntries.values)
       .contains(
-        TextFormat.parse(
-          Joiner.on("\n")
-            .join(
-              "root {",
-              "      path: \".bazel/gensrc/java/output/path/to/project.srcjar/src\"",
-              "      base: PROJECT",
-              "    }",
-              "    sources {",
-              "      is_generated: true",
-              "      project_path {",
-              "        path: \".bazel/gensrc/java/output/path/to/project.srcjar/src/root\"",
-              "        base: PROJECT",
-              "      }",
-              "    }"
+        ProjectProto.ContentEntry(
+          root = ProjectPath.projectRelative(Path.of(".bazel/gensrc/java/output/path/to/project.srcjar/src")),
+          sourceFolders = listOf(
+            ProjectProto.SourceFolder(
+              projectPath = ProjectPath.projectRelative(Path.of(".bazel/gensrc/java/output/path/to/project.srcjar/src/root")),
+              isGenerated = true,
+              isTest = false,
+              packagePrefix = "",
             ),
-          ProjectProto.ContentEntry::class.java
+          ),
+          excludes = listOf(),
         )
       )
   }
@@ -183,30 +177,24 @@ class AddProjectGenSrcJarsTest {
       ProjectProtoUpdate(original.project(), original.graph(), NoopContext())
     javaDeps.update(update, artifactState, NoopContext())
     val newProject = update.build()
-    Truth.assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList())
-    val workspace = newProject.getModules(0)
+    Truth.assertThat(newProject.libraries).isEqualTo(original.project().libraries)
+    val workspace = newProject.modules[0]
     // check our assumptions:
-    Truth.assertThat(workspace.getName()).isEqualTo(".workspace")
+    Truth.assertThat(workspace.name).isEqualTo(".workspace")
 
-    Truth.assertThat(workspace.getContentEntriesList())
+    Truth.assertThat(workspace.contentEntries.values)
       .contains(
-        TextFormat.parse(
-          Joiner.on("\n")
-            .join(
-              "root {",
-              "      path: \".bazel/gensrc/java/output/path/to/project.srcjar/src\"",
-              "      base: PROJECT",
-              "    }",
-              "    sources {",
-              "      is_generated: true",
-              "      package_prefix: \"com.example\"",
-              "      project_path {",
-              "        path: \".bazel/gensrc/java/output/path/to/project.srcjar/src/root\"",
-              "        base: PROJECT",
-              "      }",
-              "    }"
+        ProjectProto.ContentEntry(
+          root = ProjectPath.projectRelative(Path.of(".bazel/gensrc/java/output/path/to/project.srcjar/src")),
+          sourceFolders = listOf(
+            ProjectProto.SourceFolder(
+              projectPath = ProjectPath.projectRelative(Path.of(".bazel/gensrc/java/output/path/to/project.srcjar/src/root")),
+              isGenerated = true,
+              isTest = false,
+              packagePrefix = "com.example",
             ),
-          ProjectProto.ContentEntry::class.java
+          ),
+          excludes = listOf(),
         )
       )
   }
@@ -242,29 +230,24 @@ class AddProjectGenSrcJarsTest {
       ProjectProtoUpdate(original.project(), original.graph(), NoopContext())
     javaDeps.update(update, artifactState, NoopContext())
     val newProject = update.build()
-    Truth.assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList())
-    val workspace = newProject.getModules(0)
+    Truth.assertThat(newProject.libraries).isEqualTo(original.project().libraries)
+    val workspace = newProject.modules[0]
     // check our assumptions:
-    Truth.assertThat(workspace.getName()).isEqualTo(".workspace")
+    Truth.assertThat(workspace.name).isEqualTo(".workspace")
 
-    Truth.assertThat(workspace.getContentEntriesList())
+    Truth.assertThat(workspace.contentEntries.values)
       .contains(
-        TextFormat.parse(
-          Joiner.on("\n")
-            .join(
-              "root {",
-              "      path: \".bazel/gensrc/java/output/path/to/project.srcjar/src\"",
-              "      base: PROJECT",
-              "    }",
-              "    sources {",
-              "      is_generated: true",
-              "      project_path {",
-              "        path: \".bazel/gensrc/java/output/path/to/project.srcjar/src\"",
-              "        base: PROJECT",
-              "      }",
-              "    }"
+        ProjectProto.ContentEntry(
+          root = ProjectPath.projectRelative(Path.of(".bazel/gensrc/java/output/path/to/project.srcjar/src")),
+          sourceFolders = listOf(
+            ProjectProto.SourceFolder(
+              projectPath = ProjectPath.projectRelative(Path.of(".bazel/gensrc/java/output/path/to/project.srcjar/src")),
+              isGenerated = true,
+              isTest = false,
+              packagePrefix = "",
             ),
-          ProjectProto.ContentEntry::class.java
+            ),
+          excludes = listOf(),
         )
       )
   }

@@ -2,7 +2,9 @@ package com.google.idea.blaze.base.qsync.artifacts;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.idea.blaze.base.qsync.FileRefresher;
+import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.NoopContext;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.artifacts.MockArtifactCache;
@@ -54,26 +56,27 @@ public class ProjectArtifactStoreTest {
   }
 
   @Test
-  public void new_dirs_created() throws IOException, BuildException {
-
-    ArtifactDirectories artifactDirectories = ArtifactDirectories.newBuilder()
-      .putDirectories(
+  public void new_dirs_created() throws BuildException {
+    ArtifactDirectories artifactDirectories = new ArtifactDirectories(
+      ImmutableMap.of(
         "artifactdir",
-        ArtifactDirectoryContents.newBuilder()
-          .putContents(
+        new ArtifactDirectoryContents(
+          ImmutableMap.of(
             "file1.txt",
-            ProjectArtifact.newBuilder()
-              .setTransform(ArtifactTransform.COPY)
-              .setBuildArtifact(
-                BuildArtifact.newBuilder().setDigest("abcd"))
-              .build())
-          .build())
-      .build();
+            new ProjectArtifact(
+              Label.of("//label"),
+              new BuildArtifact("abcd"),
+              ArtifactTransform.COPY
+            )
+          )
+        )
+      )
+    );
     projectArtifactStore.update(artifactDirectories, new NoopContext());
 
     assertThat(Files.exists(projectPath.resolve("artifactdir"))).isTrue();
     assertThat(Files.isDirectory(projectPath.resolve("artifactdir"))).isTrue();
-    assertThat(Files.exists(projectPath.resolve("artifactdir.contents"))).isTrue();
+    assertThat(Files.exists(projectPath.resolve("artifactdir.state"))).isTrue();
   }
 
   @Test
@@ -84,6 +87,6 @@ public class ProjectArtifactStoreTest {
     );
 
     assertThat(Files.exists(projectPath.resolve("artifactdir"))).isFalse();
-    assertThat(Files.exists(projectPath.resolve("artifactdir.contents"))).isFalse();
+    assertThat(Files.exists(projectPath.resolve("artifactdir.state"))).isFalse();
   }
 }

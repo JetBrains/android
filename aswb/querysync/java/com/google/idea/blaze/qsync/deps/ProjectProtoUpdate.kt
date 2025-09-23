@@ -15,14 +15,13 @@
  */
 package com.google.idea.blaze.qsync.deps
 
-import com.google.common.base.Preconditions
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.qsync.project.BlazeProjectDataStorage
 import com.google.idea.blaze.qsync.project.BuildGraphData
-import com.google.idea.blaze.qsync.project.LanguageClassProto.LanguageClass
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
+import com.google.idea.blaze.qsync.project.QuerySyncLanguage
 import java.nio.file.Path
 
 /**
@@ -41,7 +40,7 @@ class ProjectProtoUpdate(
    * A library is a target external to the project scope.
    */
   interface LibraryUpdater {
-    fun addClassJars(jars: Collection<Path>)
+    fun addClassJars(jars: Collection<ProjectPath>)
     fun addSourceJars(jars: Collection<ProjectPath>)
   }
 
@@ -73,7 +72,6 @@ class ProjectProtoUpdate(
 
   private val project: ProjectProto.Project.Builder = existingProject.toBuilder()
   private val workspaceModule: ProjectProto.Module.Builder = getWorkspaceModuleBuilder(project)
-  private val libraries: MutableMap<String, ProjectProto.Library> = project.libraryList.associateBy { it.name }.toMutableMap()
   private val artifactDirs: MutableMap<Path, ArtifactDirectoryBuilder> = hashMapOf()
 
   fun context(): Context<*> = context
@@ -81,28 +79,21 @@ class ProjectProtoUpdate(
 
   /** Gets a builder for a library, creating it if it doesn't already exist.  */
   fun library(name: Label, updater: LibraryUpdater.() -> Unit) {
-    object: LibraryUpdater {
-      private fun update(name: Label, updater: ProjectProto.Library.Builder.() -> ProjectProto.Library.Builder) {
-        libraries.compute(name.toString()) {
-          key, library ->
-          (library?.toBuilder() ?: ProjectProto.Library.newBuilder().setName(key))
-            .let { updater(it) }
-            .build()
+    object : LibraryUpdater {
+      private fun update(name: Label, updater: ProjectProto.Library.() -> ProjectProto.Library) {
+        project.libraries.compute(name) { key, library ->
+          updater((library ?: ProjectProto.Library(key, listOf(), listOf())))
         }
       }
 
-      override fun addClassJars(jars: Collection<Path>) {
+      override fun addClassJars(jars: Collection<ProjectPath>) {
         if (jars.isEmpty()) return
-        update(name) {
-          addAllClassesJar(jars.map { ProjectProto.JarDirectory.newBuilder().setPath(it.toString()).build() })
-        }
+        update(name) { copy(classesJarList = classesJarList + jars) }
       }
 
       override fun addSourceJars(jars: Collection<ProjectPath>) {
         if (jars.isEmpty()) return
-        update(name) {
-          addAllSources(jars.map { ProjectProto.LibrarySource.newBuilder().setSrcjar(it.toProto()).build() })
-        }
+        update(name) { copy(sourcesList = sourcesList + jars) }
       }
     }.updater()
   }
@@ -110,17 +101,19 @@ class ProjectProtoUpdate(
   fun module(name: Label, updater: ModuleUpdater.() -> Unit) {
     object: ModuleUpdater {
       override fun addAndroidResourceJavaPackage(pkg: String) {
-        workspaceModule.addAndroidSourcePackages(pkg)
+        workspaceModule.androidSourcePackages += pkg
       }
 
       override fun addExternalAndroidLibrary(externalAndroidLibrary: ProjectProto.ExternalAndroidLibrary) {
-        workspaceModule.addAndroidExternalLibraries(externalAndroidLibrary)
+        workspaceModule.androidExternalLibraries += externalAndroidLibrary
       }
 
       override fun contentEntry(root: ProjectPath, updater: ContentEntryUpdater.() -> Unit) {
         // This is a linear scan but it is fine for now since we don't have many content entries and we add each one only once.
-        val contentEntryBuilder = workspaceModule.contentEntriesBuilderList.firstOrNull {it.root == root}
-                                  ?: let { workspaceModule.addContentEntriesBuilder().setRoot(root.toProto()) }
+        var contentEntryBuilder =
+          workspaceModule
+            .contentEntries
+            .getOrPut(root) { ProjectProto.ContentEntry(root = root, sourceFolders = listOf(), excludes = listOf()) }
         object: ContentEntryUpdater {
           override fun addSourceRoot(
             root: ProjectPath,
@@ -128,56 +121,54 @@ class ProjectProtoUpdate(
             isTest: Boolean,
             isGenerated: Boolean,
           ) {
-            contentEntryBuilder
-              .addSourcesBuilder()
-              .setProjectPath(root.toProto())
-              .setPackagePrefix(javaPackage)
-              .setIsTest(isTest)
-              .setIsGenerated(isGenerated)
+            contentEntryBuilder = contentEntryBuilder.copy(
+              sourceFolders = contentEntryBuilder.sourceFolders +
+                              ProjectProto.SourceFolder(
+                                projectPath = root,
+                                isGenerated = isGenerated,
+                                isTest = isTest,
+                                packagePrefix = javaPackage,
+                              )
+            )
           }
         }.updater()
+        workspaceModule.contentEntries[root] = contentEntryBuilder
       }
     }.updater()
   }
 
   fun ccWorkspace(updater: CcWorkspaceUpdater.() -> Unit) {
+    val ccWorkspaceBuilder = project.ccWorkspace.toBuilder()
     object: CcWorkspaceUpdater {
       override fun addContexts(compilationContext: ProjectProto.CcCompilationContext) {
-        project.ccWorkspaceBuilder.addContexts(compilationContext)
+        ccWorkspaceBuilder.contexts += compilationContext
       }
 
       override fun putFlagSets(flagSetId: String, build: ProjectProto.CcCompilerFlagSet) {
-        project.ccWorkspaceBuilder.putFlagSets(flagSetId, build)
+        ccWorkspaceBuilder.putFlagSets(flagSetId, build)
       }
     }.updater()
+    project.ccWorkspace = ccWorkspaceBuilder.build()
   }
 
-  fun artifactDirectory(path: ProjectPath): ArtifactDirectoryBuilder {
-    val projectPath = path as ProjectPath.ProjectRelativeProjectPath
-    return artifactDirs.computeIfAbsent(projectPath.relativePath) { path -> ArtifactDirectoryBuilder(path) }
+  fun artifactDirectory(path: ProjectPath.ProjectRelativeProjectPath): ArtifactDirectoryBuilder {
+    return artifactDirs.computeIfAbsent(path.relativePath) { path -> ArtifactDirectoryBuilder(path) }
   }
 
   fun build(): ProjectProto.Project {
-    artifactDirs.values.forEach { it.addToArtifactDirectories(project.getArtifactDirectoriesBuilder()) }
-    if (project.getCcWorkspaceBuilder().getContextsCount() > 0) {
-      if (!project.activeLanguagesList.contains(LanguageClass.LANGUAGE_CLASS_CC)) {
-        project.addActiveLanguages(LanguageClass.LANGUAGE_CLASS_CC)
-      }
+    if (project.ccWorkspace.contexts.isNotEmpty()) {
+      project.activeLanguages += QuerySyncLanguage.CC
     }
-    return project
-      .clearLibrary()
-      .addAllLibrary(libraries.values)
-      .build()
+    artifactDirs.values.forEach { it.addToArtifactDirectories(project.artifactDirectories) }
+    return project.build()
   }
 
   companion object {
     private fun getWorkspaceModuleBuilder(project: ProjectProto.Project.Builder): ProjectProto.Module.Builder {
       return project
-               .modulesBuilderList
+               .modules
                .firstOrNull { it.name == BlazeProjectDataStorage.WORKSPACE_MODULE_NAME }
-             ?: project.addModulesBuilder()
-               .setName(BlazeProjectDataStorage.WORKSPACE_MODULE_NAME)
-               .setType(ProjectProto.ModuleType.MODULE_TYPE_DEFAULT)
+             ?: ProjectProto.Module.Builder(BlazeProjectDataStorage.WORKSPACE_MODULE_NAME)
     }
   }
 }

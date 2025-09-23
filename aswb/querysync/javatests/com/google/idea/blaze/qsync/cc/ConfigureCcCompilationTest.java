@@ -48,7 +48,7 @@ import com.google.idea.blaze.qsync.project.ProjectProto.CcCompilerSettings;
 import com.google.idea.blaze.qsync.project.ProjectProto.CcLanguage;
 import com.google.idea.blaze.qsync.project.ProjectProto.CcSourceFile;
 import com.google.idea.blaze.qsync.project.ProjectProto.CcWorkspace;
-import com.google.idea.blaze.qsync.project.ProjectProto.ProjectPath.Base;
+import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import com.google.idea.blaze.qsync.testdata.TestData;
 import java.nio.file.Path;
 import java.util.List;
@@ -138,20 +138,21 @@ public class ConfigureCcCompilationTest {
 
     ProjectProto.Project project = update.build();
 
-    assertThat(project.getActiveLanguagesList()).contains(LanguageClass.LANGUAGE_CLASS_CC);
+    assertThat(project.getActiveLanguages()).contains(QuerySyncLanguage.CC);
     ProjectProto.CcWorkspace workspace = project.getCcWorkspace();
-    CcCompilationContext context = getOnlyElement(workspace.getContextsList());
+    CcCompilationContext context = getOnlyElement(workspace.getContexts());
     assertThat(context.getHumanReadableName()).isNotEmpty();
-    CcSourceFile sourceFile = getOnlyElement(context.getSourcesList());
+    CcSourceFile sourceFile = getOnlyElement(context.getSources());
     assertThat(sourceFile.getLanguage()).isEqualTo(CcLanguage.CPP);
     assertThat(sourceFile.getWorkspacePath())
         .isEqualTo(
-            TestData.CC_LIBRARY_QUERY.getOnlySourcePath().resolve("TestClass.cc").toString());
+          ProjectPath.workspaceRelative(
+            TestData.CC_LIBRARY_QUERY.getOnlySourcePath().resolve("TestClass.cc")));
     CcCompilerSettings compilerSettings = sourceFile.getCompilerSettings();
     FlagResolver resolver =
         new FlagResolver(
             ProjectPath.Resolver.create(Path.of("/workspace"), Path.of("/project")), false);
-    assertThat(resolver.resolveAll(workspace.getFlagSetsOrThrow(compilerSettings.getFlagSetId())))
+    assertThat(resolver.resolveAll(workspace.getFlagSets().get(compilerSettings.getFlagSetId())))
         .containsExactly(
             "-DDEBUG",
             "-I/project/.bazel/buildout/bazel-out/builtin/include/directory",
@@ -168,21 +169,18 @@ public class ConfigureCcCompilationTest {
             "--sharedopt",
             "--cppopt");
 
-    assertThat(compilerSettings.getCompilerExecutablePath().getBase()).isEqualTo(Base.WORKSPACE);
-    assertThat(compilerSettings.getCompilerExecutablePath().getPath())
-        .isEqualTo("workspace/path/to/clang");
+    assertThat(compilerSettings.getCompilerExecutablePath()).isEqualTo(ProjectPath.workspaceRelative(Path.of("workspace/path/to/clang")));
 
     Truth8.assertThat(
-            context.getLanguageToCompilerSettingsMap().keySet().stream()
-                .map(l -> CcLanguage.valueOf(CcLanguage.getDescriptor().findValueByName(l))))
+            context.getLanguageToCompilerSettings().keySet().stream())
         .containsExactly(CcLanguage.CPP, CcLanguage.C);
 
     assertThat(
             resolver.resolveAll(
-                workspace.getFlagSetsOrThrow(
+                workspace.getFlagSets().get(
                     context
-                        .getLanguageToCompilerSettingsMap()
-                        .get(CcLanguage.CPP.name())
+                        .getLanguageToCompilerSettings()
+                        .get(CcLanguage.CPP)
                         .getFlagSetId())))
         .containsExactly(
             "-I/project/.bazel/buildout/bazel-out/builtin/include/directory",
@@ -192,10 +190,11 @@ public class ConfigureCcCompilationTest {
 
     assertThat(
             resolver.resolveAll(
-                workspace.getFlagSetsOrThrow(
+                workspace.getFlagSets()
+                  .get(
                     context
-                        .getLanguageToCompilerSettingsMap()
-                        .get(CcLanguage.C.name())
+                        .getLanguageToCompilerSettings()
+                        .get(CcLanguage.C)
                         .getFlagSetId())))
         .containsExactly(
             "-I/project/.bazel/buildout/bazel-out/builtin/include/directory",
@@ -208,7 +207,7 @@ public class ConfigureCcCompilationTest {
                 .getArtifactDirectories()
                 .getDirectoriesMap()
                 .get(".bazel/buildout")
-                .getContentsMap()
+                .getContents()
                 .keySet())
         .containsExactly(
             "bazel-out/include/directory/include_header.h",
@@ -260,12 +259,12 @@ public class ConfigureCcCompilationTest {
 
     ProjectProto.CcWorkspace workspace = project.getCcWorkspace();
 
-    assertThat(workspace.getContextsList()).hasSize(2);
+    assertThat(workspace.getContexts()).hasSize(2);
     // Assert that both compilation contexts share a flagset ID (since the two targets share the
     // same flags):
     Truth8.assertThat(
-            workspace.getContextsList().stream()
-                .map(CcCompilationContext::getSourcesList)
+            workspace.getContexts().stream()
+                .map(CcCompilationContext::getSources)
                 .flatMap(List::stream)
                 .map(CcSourceFile::getCompilerSettings)
                 .map(CcCompilerSettings::getFlagSetId)

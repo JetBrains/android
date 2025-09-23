@@ -111,17 +111,17 @@ public class AppInspectorArtifactTrackerImpl implements AppInspectorArtifactTrac
   private static ProjectProto.ArtifactDirectoryContents buildArtifactDirectoryContents(
     Map<Label, Map<Path, ProjectProto.ProjectArtifact>> knownInspectors
   ) {
-    final var artifactDirectoryContents = ProjectProto.ArtifactDirectoryContents.newBuilder();
+    final var contents = new HashMap<String, ProjectProto.ProjectArtifact>();
     for (final var entry : knownInspectors.entrySet()) {
       final var inspectorLabel = entry.getKey();
       for (final var inspectorArtifactPathAndDigest : entry.getValue().entrySet()) {
         final var appInspectorArtifactPath = inspectorArtifactPathAndDigest.getKey();
         final var appInspectorArtifact = inspectorArtifactPathAndDigest.getValue();
         final var artifactLocalPath = inspectorLabel.toFilePath().resolve(appInspectorArtifactPath);
-        artifactDirectoryContents.putContents(artifactLocalPath.toString(), appInspectorArtifact);
+        contents.put(artifactLocalPath.toString(), appInspectorArtifact);
       }
     }
-    return artifactDirectoryContents.build();
+    return new ProjectProto.ArtifactDirectoryContents(contents);
   }
 
   private static ImmutableMap<Path, ProjectProto.ProjectArtifact> buildAppInspectorArtifactLayout(
@@ -132,11 +132,11 @@ public class AppInspectorArtifactTrackerImpl implements AppInspectorArtifactTrac
     for (OutputArtifact jar : appInspectorInfo.getJars()) {
       resultBuilder.put(
         jar.getArtifactPath(),
-        ProjectProto.ProjectArtifact.newBuilder()
-          .setBuildArtifact(ProjectProto.BuildArtifact.newBuilder().setDigest(jar.getDigest()))
-          .setTarget(appInspectorTarget.toString())
-          .setTransform(ProjectProto.ProjectArtifact.ArtifactTransform.COPY)
-          .build());
+        new ProjectProto.ProjectArtifact(
+          appInspectorTarget,
+          new ProjectProto.BuildArtifact(jar.getDigest()),
+          ProjectProto.ProjectArtifact.ArtifactTransform.COPY
+        ));
     }
     return resultBuilder.build();
   }

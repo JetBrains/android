@@ -18,6 +18,7 @@ package com.google.idea.blaze.qsync.java
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import com.google.common.truth.Truth
+import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.Label.Companion.of
 import com.google.idea.blaze.common.NoopContext
 import com.google.idea.blaze.common.artifact.BuildArtifactCache
@@ -31,6 +32,7 @@ import com.google.idea.blaze.qsync.deps.JavaArtifactInfo
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.SrcJarJavaPackageRoots
+import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.testdata.TestData
 import java.nio.file.Path
@@ -77,9 +79,9 @@ class AddDependencyGenSrcsJarsTest {
 
     val newProject = update.build()
 
-    Truth.assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList())
-    Truth.assertThat(newProject.getModulesList()).isEqualTo(original.project().getModulesList())
-    Truth.assertThat(newProject.getArtifactDirectories().getDirectoriesMap().keys).isEmpty()
+    Truth.assertThat(newProject.libraries).isEqualTo(original.project().libraries)
+    Truth.assertThat(newProject.modules).isEqualTo(original.project().modules)
+    Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys).isEmpty()
   }
 
   @Test
@@ -116,9 +118,9 @@ class AddDependencyGenSrcsJarsTest {
 
     Mockito.verify<BuildArtifactCache?>(cache, Mockito.never()).get(ArgumentMatchers.any())
 
-    Truth.assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList())
-    Truth.assertThat(newProject.getModulesList()).isEqualTo(original.project().getModulesList())
-    Truth.assertThat(newProject.getArtifactDirectories().getDirectoriesMap().keys).isEmpty()
+    Truth.assertThat(newProject.libraries).isEqualTo(original.project().libraries)
+    Truth.assertThat(newProject.modules).isEqualTo(original.project().modules)
+    Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys).isEmpty()
   }
 
   @Test
@@ -128,28 +130,14 @@ class AddDependencyGenSrcsJarsTest {
       AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata)
     external_gensrcs_added(
       addGenSrcJars,
-      ProjectProto.Library.newBuilder().setName("//java/com/google/common/collect:collect")
-        .addSources(
-          ProjectProto.LibrarySource.newBuilder()
-            .setSrcjar(
-              ProjectProto.ProjectPath.newBuilder()
-                .setBase(ProjectProto.ProjectPath.Base.PROJECT)
-                .setPath(".bazel/buildout/output/path/to/external.srcjar")
-                .setInnerPath("root")
-            )
-            .build()
+      ProjectProto.Library(
+        name = Label.of("//java/com/google/common/collect:collect"),
+        classesJarList = listOf(),
+        sourcesList = listOf(
+          ProjectPath.projectRelative(Path.of(".bazel/buildout/output/path/to/external.srcjar")).withInnerJarPath(Path.of("root")),
+          ProjectPath.projectRelative(Path.of(".bazel/buildout/output/path/to/external.srcjar")).withInnerJarPath(Path.of("root2")),
         )
-        .addSources(
-          ProjectProto.LibrarySource.newBuilder()
-            .setSrcjar(
-              ProjectProto.ProjectPath.newBuilder()
-                .setBase(ProjectProto.ProjectPath.Base.PROJECT)
-                .setPath(".bazel/buildout/output/path/to/external.srcjar")
-                .setInnerPath("root2")
-            )
-            .build()
-        )
-        .build()
+      )
     )
   }
 
@@ -187,7 +175,7 @@ class AddDependencyGenSrcsJarsTest {
     addGenSrcJars.update(update, artifactState, NoopContext())
     val newProject = update.build()
 
-    Truth.assertThat(newProject.getLibraryList()).containsExactly(*expectedLibraries)
+    Truth.assertThat(newProject.libraries.values).containsExactly(*expectedLibraries)
   }
 
 
@@ -198,17 +186,13 @@ class AddDependencyGenSrcsJarsTest {
       AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata)
     no_metadata_present(
       addGenSrcJars,
-      ProjectProto.Library.newBuilder().setName("//java/com/google/common/collect:collect")
-        .addSources(
-          ProjectProto.LibrarySource.newBuilder()
-            .setSrcjar(
-              ProjectProto.ProjectPath.newBuilder()
-                .setBase(ProjectProto.ProjectPath.Base.PROJECT)
-                .setPath(".bazel/buildout/output/path/to/external.srcjar")
-            )
-            .build()
+      ProjectProto.Library(
+        name = Label.of("//java/com/google/common/collect:collect"),
+        classesJarList = listOf(),
+        sourcesList = listOf(
+          ProjectPath.projectRelative(Path.of(".bazel/buildout/output/path/to/external.srcjar"))
         )
-        .build()
+      )
     )
   }
 
@@ -241,6 +225,6 @@ class AddDependencyGenSrcsJarsTest {
     addGenSrcJars.update(update, artifactState, NoopContext())
     val newProject = update.build()
 
-    Truth.assertThat(newProject.getLibraryList()).containsExactly(*expectedLibraries)
+    Truth.assertThat(newProject.libraries.values).containsExactly(*expectedLibraries)
   }
 }

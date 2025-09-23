@@ -61,7 +61,7 @@ public class CcProjectModelUpdater implements QuerySyncProjectListener {
   }
 
   public void updateProjectModel(ReadonlyQuerySyncProject querySyncProject, ProjectProto.Project spec, Context<?> context) {
-    if (!spec.hasCcWorkspace()) {
+    if (spec.getCcWorkspace().isEmpty()) {
       return;
     }
 

@@ -68,7 +68,7 @@ final class BlazeNdkSupportEnabler implements SyncListener, QuerySyncProjectList
         Set<QuerySyncLanguage> allLanguages =
             Sets.union(
                 instance.queryData().projectDefinition().languageClasses(),
-                QuerySyncLanguage.fromProtoList(instance.project().getActiveLanguagesList()));
+                instance.project().getActiveLanguages());
 
         enableCSupportInIde(querySyncManager.getIdeProject(), allLanguages.contains(QuerySyncLanguage.CC));
       }

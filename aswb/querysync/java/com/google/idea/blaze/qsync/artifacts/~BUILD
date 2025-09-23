@@ -13,7 +13,7 @@ aswb_library(
         ":build_artifact_java_proto",
         "//prebuilts/tools/common/m2:jsr305-2.0.1",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps:artifact_tracker_state_java_proto",
-        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/query",
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/shared:artifact",

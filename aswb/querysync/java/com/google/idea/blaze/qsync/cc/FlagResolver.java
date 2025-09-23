@@ -19,6 +19,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.qsync.project.ProjectPath;
+import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.blaze.qsync.project.ProjectProto.CcCompilerFlag;
 import com.google.idea.blaze.qsync.project.ProjectProto.CcCompilerFlagSet;
 import java.nio.file.Files;
@@ -48,8 +49,8 @@ public class FlagResolver {
   }
 
   private Optional<String> resolve(CcCompilerFlag flag) {
-    if (flag.hasPath()) {
-      Path resolved = pathResolver.resolve(ProjectPath.create(flag.getPath()));
+    if (flag instanceof ProjectProto.CcCompilerPathFlag pathFlag) {
+      Path resolved = pathResolver.resolve(pathFlag.getPath());
       if (!Files.isDirectory(resolved)) {
         // TODO(mathewi) it's unclear if this is necessary, and if so, if this is the right layer to
         //   do it (maybe better in CcWorkspaceBuilder?)
@@ -62,14 +63,16 @@ public class FlagResolver {
         }
       }
       return Optional.of(flag.getFlag() + resolved);
+    } else if (flag instanceof ProjectProto.CcCompilerStringFlag stringFlag) {
+      return Optional.of(flag.getFlag() + stringFlag.getValue());
     } else {
-      return Optional.of(flag.getFlag() + flag.getPlainValue());
+      throw new IllegalArgumentException("Unknown flag type: " + flag.getClass());
     }
   }
 
   public ImmutableList<String> resolveAll(CcCompilerFlagSet flagSet) {
     ImmutableList<String> resolved =
-        flagSet.getFlagsList().stream()
+        flagSet.getFlags().stream()
             .map(this::resolve)
             .flatMap(Optional::stream)
             .collect(toImmutableList());

@@ -32,8 +32,8 @@ import com.google.idea.blaze.qsync.java.PackageReader
 import com.google.idea.blaze.qsync.project.BlazeProjectDataStorage
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
+import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
-import com.google.idea.blaze.qsync.project.ProjectProto.ProjectPath.Base
 import com.google.idea.blaze.qsync.project.ProjectTarget.SourceType
 import com.google.idea.blaze.qsync.project.TestSourceGlobMatcher
 import com.google.idea.blaze.qsync.query.PackageSet
@@ -129,7 +129,9 @@ class GraphToProjectConverter(
     return nonJavaSrcFiles
       .mapNotNull { it.parent }
       .distinct()
-      .mapNotNull { SourceFolder(root = it,  contentRoot = projectDefinition.getIncludingContentRoot(it).getOrNull() ?: return@mapNotNull null) }
+      .mapNotNull {
+        SourceFolder(root = it, contentRoot = projectDefinition.getIncludingContentRoot(it).getOrNull() ?: return@mapNotNull null)
+      }
       .groupBy({ it.contentRoot }, { it.contentRoot.relativize(it.root) })
   }
 
@@ -428,8 +430,8 @@ class GraphToProjectConverter(
   }
 
   @Throws(BuildException::class)
-  fun  createProject(graph: BuildGraphData): ProjectProto.Project {
-    val javaSourceRoots =calculateJavaRootSources(context, graph.getJavaSourceFiles(), graph.packages())
+  fun createProject(graph: BuildGraphData): ProjectProto.Project {
+    val javaSourceRoots = calculateJavaRootSources(context, graph.getJavaSourceFiles(), graph.packages())
     val rootToNonJavaSource = nonJavaSourceFolders(graph.getSourceFilesByRuleKindAndType({ t -> !RuleKinds.isJava(t) }, *SourceType.all()))
     // Note: according to:
     //  https://developer.android.com/guide/topics/resources/providing-resources
@@ -438,75 +440,65 @@ class GraphToProjectConverter(
     // top level res dir:
     val resList = graph.getAndroidResourceFiles()
     val androidResDirs =
-        resList
-            .map(Path::getParent)
-            .distinct()
-            .map(Path::getParent)
-            .distinct()
-            .toSet()
+      resList
+        .map(Path::getParent)
+        .distinct()
+        .map(Path::getParent)
+        .distinct()
+        .toSet()
     val androidResPackages = setOf<String>()
 
     context.output(PrintOutput.log("%-10d Android resource directories", androidResDirs.size))
 
-    val workspaceModule : ProjectProto.Module.Builder =
-        ProjectProto.Module.newBuilder()
-          .setName(BlazeProjectDataStorage.WORKSPACE_MODULE_NAME)
-          .setType(ProjectProto.ModuleType.MODULE_TYPE_DEFAULT)
-          .addAllAndroidResourceDirectories(androidResDirs.map { it.toString() })
-          .addAllAndroidSourcePackages(androidResPackages)
-          .addAllAndroidCustomPackages(graph.getAllCustomPackages())
+    val workspaceModule: ProjectProto.Module.Builder =
+      ProjectProto.Module.Builder(name = BlazeProjectDataStorage.WORKSPACE_MODULE_NAME).also {
+        //          .setType(ProjectProto.ModuleType.MODULE_TYPE_DEFAULT)
+        it.androidResourceDirectories.addAll(androidResDirs.map { ProjectPath.workspaceRelative(it) })
+        it.androidSourcePackages.addAll(androidResPackages)
+        it.androidCustomPackages.addAll(graph.getAllCustomPackages())
+      }
 
-    val excludesByRootDirectory =projectDefinition.getExcludesByRootDirectory()
+    val excludesByRootDirectory = projectDefinition.getExcludesByRootDirectory()
     val testSourceGlobMatcher = TestSourceGlobMatcher.create(projectDefinition)
     for (dir in projectDefinition.projectIncludes()) {
-      val contentEntry =
-          ProjectProto.ContentEntry.newBuilder()
-              .setRoot(
-                  ProjectProto.ProjectPath.newBuilder()
-                      .setPath(dir.toString())
-                      .setBase(Base.WORKSPACE))
       val sourceRootsWithPrefixes = javaSourceRoots.get(dir).orEmpty()
-      for (entry in sourceRootsWithPrefixes.entries) {
-        val path = dir.resolve(entry.key)
-        contentEntry.addSources(
-            ProjectProto.SourceFolder.newBuilder()
-                .setProjectPath(
-                    ProjectProto.ProjectPath.newBuilder()
-                        .setBase(Base.WORKSPACE)
-                        .setPath(path.toString()))
-                .setPackagePrefix(entry.value)
-                .setIsTest(testSourceGlobMatcher.matches(path))
-                .build())
-      }
-      for (nonJavaDirPath in rootToNonJavaSource.get(dir).orEmpty()) {
-        if (javaSourceRoots.get(dir).orEmpty().keys
-            .none {p -> p.toString().isEmpty() || nonJavaDirPath.startsWith(p)}) {
-          val path = dir.resolve(nonJavaDirPath)
-          // TODO(b/305743519): make java source properties like package prefix specific to java
-          // source folders only.
-          contentEntry.addSources(
-              ProjectProto.SourceFolder.newBuilder()
-                  .setProjectPath(
-                      ProjectProto.ProjectPath.newBuilder()
-                          .setBase(Base.WORKSPACE)
-                          .setPath(path.toString()))
-                  .setPackagePrefix("")
-                  .setIsTest(testSourceGlobMatcher.matches(path))
-                  .build())
+      val sourceFolders =
+        sourceRootsWithPrefixes.entries.map { entry ->
+          val path = dir.resolve(entry.key)
+          ProjectProto.SourceFolder(
+            projectPath = ProjectPath.workspaceRelative(path),
+            isGenerated = false,
+            isTest = testSourceGlobMatcher.matches(path),
+            packagePrefix = entry.value
+          )
+        } +
+        rootToNonJavaSource.get(dir).orEmpty().mapNotNull { nonJavaDirPath ->
+          if (javaSourceRoots.get(dir).orEmpty().keys
+              .none { p -> p.toString().isEmpty() || nonJavaDirPath.startsWith(p) }) {
+            val path = dir.resolve(nonJavaDirPath)
+            // TODO(b/305743519): make java source properties like package prefix specific to java
+            // source folders only.
+            ProjectProto.SourceFolder(
+              projectPath = ProjectPath.workspaceRelative(path),
+              isGenerated = false,
+              isTest = testSourceGlobMatcher.matches(path),
+              packagePrefix = ""
+            )
+          }
+          else null
         }
-      }
-      for (exclude in excludesByRootDirectory.get(dir)) {
-        contentEntry.addExcludes(exclude.toString())
-      }
-      workspaceModule.addContentEntries(contentEntry)
+      val excludes = excludesByRootDirectory.get(dir).map { exclude -> ProjectPath.workspaceRelative(exclude) }
+      val contentEntry =
+        ProjectProto.ContentEntry(root = ProjectPath.workspaceRelative(dir), sourceFolders = sourceFolders, excludes = excludes)
+      workspaceModule.contentEntries[contentEntry.root] = contentEntry
     }
 
     val activeLanguages = graph.getActiveLanguages()
 
-    return ProjectProto.Project.newBuilder()
-        .addModules(workspaceModule)
-        .addAllActiveLanguages(activeLanguages.map{it -> it.protoValue}.toList())
-        .build()
+    return ProjectProto.Project.Builder().also {
+      it.modules.add(workspaceModule)
+      it.activeLanguages.addAll(activeLanguages)
+    }.build()
   }
 
   /**
@@ -524,23 +516,22 @@ class GraphToProjectConverter(
     // Map entries are sorted by path length to ensure that, if the map contains keys k1 and k2,
     // where k1 is a prefix of k2, then k2 is checked before k1. We check by string length to ensure
     // the empty path is checked last.
-    val sortedRootToPrefix: Map<Path, List<Map.Entry<Path, String>>>  =
-        rootToPrefix
-            .mapValues{
-                entry ->
-                  val  sourceDirs: Map<Path, String> = entry.value
-                  val sortedEntries: List<Map.Entry<Path, String>>  =
-                    sourceDirs.entries.sortedWith(Collections.reverseOrder(
-                      comparingInt{e -> e.key.toString().length}))
-                  sortedEntries
-                }
+    val sortedRootToPrefix: Map<Path, List<Map.Entry<Path, String>>> =
+      rootToPrefix
+        .mapValues { entry ->
+          val sourceDirs: Map<Path, String> = entry.value
+          val sortedEntries: List<Map.Entry<Path, String>> =
+            sourceDirs.entries.sortedWith(Collections.reverseOrder(
+              comparingInt { e -> e.key.toString().length }))
+          sortedEntries
+        }
 
     for (androidSourceFile in androidSourceFiles) {
       var found = false
       for (root in sortedRootToPrefix.entries) {
         if (androidSourceFile.startsWith(root.key)) {
           val inRoot =
-              androidSourceFile.toString().substring(root.key.toString().length + 1)
+            androidSourceFile.toString().substring(root.key.toString().length + 1)
           val sourceDirs = root.value
           for (prefixes in sourceDirs) {
             if (inRoot.startsWith(prefixes.key.toString())) {
@@ -569,8 +560,8 @@ class GraphToProjectConverter(
       }
       if (!found) {
         context.output(
-            PrintOutput.log(
-                String.format("Android source %s not found in any root", androidSourceFile)))
+          PrintOutput.log(
+            String.format("Android source %s not found in any root", androidSourceFile)))
       }
     }
     return androidSourcePackages.build()

@@ -17,10 +17,13 @@ package com.google.idea.blaze.base.qsync
 
 import com.google.common.collect.ImmutableMap
 import com.google.common.io.ByteSource
+import com.google.common.io.Files.asByteSource
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot
+import com.google.idea.blaze.qsync.project.formatTo
+import java.nio.file.Files
 import java.util.Optional
 import org.jetbrains.annotations.TestOnly
 
@@ -66,7 +69,13 @@ class SnapshotHolder {
     val instance = synchronized(lock) { currentInstance }
     return ImmutableMap.of(
       "projectProto",
-      instance?.let { ByteSource.wrap(it.project().toByteArray()) } ?: ByteSource.empty()
+      instance?.let {
+        runCatching {
+          val tmpFile = Files.createTempFile("ProjectProto", ".yaml")
+          it.project().formatTo(Files.newOutputStream(tmpFile))
+          asByteSource(tmpFile.toFile())
+        }.getOrNull()
+      } ?: ByteSource.empty()
     )
   }
 

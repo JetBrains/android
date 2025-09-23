@@ -15,14 +15,12 @@
  */
 package com.google.idea.blaze.qsync.deps
 
-import com.google.common.base.Joiner
 import com.google.common.truth.Truth
 import com.google.common.truth.Truth8
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
-import com.google.protobuf.TextFormat
 import java.nio.file.Path
 import java.time.Instant
 import org.junit.Test
@@ -41,40 +39,33 @@ class ArtifactDirectoryBuilderTest {
         BuildArtifact.create(
           "digest", Path.of("build-out/path/to/artifact"), Label.of("//path/to:target")
         ),
-        DependencyBuildContext.create(
-          "build-id", Instant.EPOCH.plusSeconds(1)
-        )
+        DependencyBuildContext.create("build-id", Instant.EPOCH.plusSeconds(1))
       )
 
     Truth8.assertThat(added)
       .hasValue(ProjectPath.projectRelative(Path.of("artifactDir/path/to/artifact")))
 
-    val protoBuilder =
-      ProjectProto.ArtifactDirectories.newBuilder()
+    val protoBuilder = ProjectProto.ArtifactDirectories.Builder()
     adb.addToArtifactDirectories(protoBuilder)
 
     Truth.assertThat(protoBuilder.build())
       .isEqualTo(
-        TextFormat.parse(
-          Joiner.on("")
-            .join(
-              "directories {",
-              "  key: \"artifactDir\"",
-              "  value {",
-              "    contents {",
-              "      key: \"path/to/artifact\"",
-              "      value {",
-              "        transform: COPY",
-              "        build_artifact {",
-              "          digest: \"digest\"",
-              "        }",
-              "        target: \"//path/to:target\"",
-              "      }",
-              "    }",
-              "  }",
-              "}"
-            ),
-          ProjectProto.ArtifactDirectories::class.java
+        ProjectProto.ArtifactDirectories(
+          directoriesMap =
+            mapOf(
+              "artifactDir" to
+                ProjectProto.ArtifactDirectoryContents(
+                  contents =
+                    mapOf(
+                      "path/to/artifact" to
+                        ProjectProto.ProjectArtifact(
+                          transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+                          buildArtifact = ProjectProto.BuildArtifact("digest"),
+                          target = Label.of("//path/to:target"),
+                        )
+                    )
+                )
+            )
         )
       )
   }
@@ -97,29 +88,35 @@ class ArtifactDirectoryBuilderTest {
         BuildArtifact.create(
           "digest2", Path.of("build-out/path/to/newartifact"), Label.of("//path/to:target")
         ),
-        DependencyBuildContext.create(
-          "build-id", Instant.EPOCH.plusSeconds(2)
-        )
+        DependencyBuildContext.create("build-id", Instant.EPOCH.plusSeconds(2))
       )
 
     Truth8.assertThat(added)
       .hasValue(ProjectPath.projectRelative(Path.of("artifactDir/path/to/artifact")))
 
-    val protoBuilder =
-      ProjectProto.ArtifactDirectories.newBuilder()
+    val protoBuilder = ProjectProto.ArtifactDirectories.Builder()
     adb.addToArtifactDirectories(protoBuilder)
 
-    val proto = protoBuilder.build()
-    Truth.assertThat(
-      proto
-        .getDirectoriesMap()
-        .get("artifactDir")!!
-        .getContentsMap()
-        .get("path/to/artifact")!!
-        .getBuildArtifact()
-        .getDigest()
-    )
-      .isEqualTo("digest2")
+    Truth.assertThat(protoBuilder.build())
+      .isEqualTo(
+        ProjectProto.ArtifactDirectories(
+          directoriesMap =
+            mapOf(
+              "artifactDir" to
+                ProjectProto.ArtifactDirectoryContents(
+                  contents =
+                    mapOf(
+                      "path/to/artifact" to
+                        ProjectProto.ProjectArtifact(
+                          transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+                          buildArtifact = ProjectProto.BuildArtifact("digest2"),
+                          target = Label.of("//path/to:target"),
+                        )
+                    )
+                )
+            )
+        )
+      )
   }
 
   @Test
@@ -140,27 +137,33 @@ class ArtifactDirectoryBuilderTest {
         BuildArtifact.create(
           "digest2", Path.of("build-out/path/to/newartifact"), Label.of("//path/to:target")
         ),
-        DependencyBuildContext.create(
-          "build-id", Instant.EPOCH.plusSeconds(1)
-        )
+        DependencyBuildContext.create("build-id", Instant.EPOCH.plusSeconds(1))
       )
 
     Truth8.assertThat(added).isEmpty()
 
-    val protoBuilder =
-      ProjectProto.ArtifactDirectories.newBuilder()
+    val protoBuilder = ProjectProto.ArtifactDirectories.Builder()
     adb.addToArtifactDirectories(protoBuilder)
-    val proto = protoBuilder.build()
-    Truth.assertThat(
-      proto
-        .getDirectoriesMap()
-        .get("artifactDir")!!
-        .getContentsMap()
-        .get("path/to/artifact")!!
-        .getBuildArtifact()
-        .getDigest()
-    )
-      .isEqualTo("digest1")
+    Truth.assertThat(protoBuilder.build())
+      .isEqualTo(
+        ProjectProto.ArtifactDirectories(
+          directoriesMap =
+            mapOf(
+              "artifactDir" to
+                ProjectProto.ArtifactDirectoryContents(
+                  contents =
+                    mapOf(
+                      "path/to/artifact" to
+                        ProjectProto.ProjectArtifact(
+                          transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+                          buildArtifact = ProjectProto.BuildArtifact("digest1"),
+                          target = Label.of("//path/to:target"),
+                        )
+                    )
+                )
+            )
+        )
+      )
   }
 
   @Test
@@ -176,63 +179,51 @@ class ArtifactDirectoryBuilderTest {
     )
 
     val protoBuilder =
-      TextFormat.parse(
-        Joiner.on("")
-          .join(
-            "directories {",
-            "  key: \"artifactDir\"",
-            "  value {",
-            "    contents {",
-            "      key: \"path/to/existingartifact\"",
-            "      value {",
-            "        transform: COPY",
-            "        build_artifact {",
-            "          digest: \"digest2\"",
-            "        }",
-            "        target: \"//project:othertarget\"",
-            "      }",
-            "    }",
-            "  }",
-            "}"
-          ),
-        ProjectProto.ArtifactDirectories::class.java
-      )
+      ProjectProto.ArtifactDirectories(
+          directoriesMap =
+            mapOf(
+              "artifactDir" to
+                ProjectProto.ArtifactDirectoryContents(
+                  contents =
+                    mapOf(
+                      "path/to/existingartifact" to
+                        ProjectProto.ProjectArtifact(
+                          transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+                          buildArtifact = ProjectProto.BuildArtifact("digest2"),
+                          target = Label.of("//project:othertarget"),
+                        )
+                    )
+                )
+            )
+        )
         .toBuilder()
 
     adb.addToArtifactDirectories(protoBuilder)
 
     Truth.assertThat(protoBuilder.build())
       .isEqualTo(
-        TextFormat.parse(
-          Joiner.on("")
-            .join(
-              "directories {",
-              "  key: \"artifactDir\"",
-              "  value {",
-              "    contents {",
-              "      key: \"path/to/existingartifact\"",
-              "      value {",
-              "        transform: COPY",
-              "        build_artifact {",
-              "          digest: \"digest2\"",
-              "        }",
-              "        target: \"//project:othertarget\"",
-              "      }",
-              "    }",
-              "    contents {",
-              "      key: \"path/to/artifact\"",
-              "      value {",
-              "        transform: COPY",
-              "        build_artifact {",
-              "          digest: \"digest1\"",
-              "        }",
-              "        target: \"//path/to:target\"",
-              "      }",
-              "    }",
-              "  }",
-              "}"
-            ),
-          ProjectProto.ArtifactDirectories::class.java
+        ProjectProto.ArtifactDirectories(
+          directoriesMap =
+            mapOf(
+              "artifactDir" to
+                ProjectProto.ArtifactDirectoryContents(
+                  contents =
+                    mapOf(
+                      "path/to/existingartifact" to
+                        ProjectProto.ProjectArtifact(
+                          transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+                          buildArtifact = ProjectProto.BuildArtifact("digest2"),
+                          target = Label.of("//project:othertarget"),
+                        ),
+                      "path/to/artifact" to
+                        ProjectProto.ProjectArtifact(
+                          transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+                          buildArtifact = ProjectProto.BuildArtifact("digest1"),
+                          target = Label.of("//path/to:target"),
+                        ),
+                    )
+                )
+            )
         )
       )
   }

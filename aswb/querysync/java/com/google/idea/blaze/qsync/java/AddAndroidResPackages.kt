@@ -31,7 +31,7 @@ class AddAndroidResPackages : ProjectProtoUpdateOperation {
   override fun update(
     update: ProjectProtoUpdate,
     artifactState: ArtifactTracker.State,
-    context: Context<*>
+    context: Context<*>,
   ) {
     artifactState
       .targets()

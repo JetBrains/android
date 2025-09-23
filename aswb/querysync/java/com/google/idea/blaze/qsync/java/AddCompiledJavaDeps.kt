@@ -22,17 +22,16 @@ import com.google.idea.blaze.qsync.deps.ArtifactDirectories
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation
-import com.google.idea.blaze.qsync.project.ProjectProto
-import java.nio.file.Path
+import com.google.idea.blaze.qsync.project.ProjectPath
 import kotlin.jvm.optionals.getOrNull
 
 /** Adds compiled jars from dependencies to the project.  */
-class AddCompiledJavaDeps(private val emptyJarDigests: MutableSet<String>) : ProjectProtoUpdateOperation {
+class AddCompiledJavaDeps(private val emptyJarDigests: Set<String>) : ProjectProtoUpdateOperation {
   override fun update(update: ProjectProtoUpdate, artifactState: ArtifactTracker.State, context: Context<*>) {
     val javaDepsDir = update.artifactDirectory(ArtifactDirectories.JAVADEPS)
     val skipped: MutableSet<String> = hashSetOf()
     val seen: MutableSet<String> = hashSetOf()
-    val libNameToJars: MutableMap<Label, MutableSet<String>> = hashMapOf()
+    val libNameToJars: MutableMap<Label, MutableSet<ProjectPath>> = hashMapOf()
     val outputJarToTarget: Map<String, Label> =
       artifactState.targets()
         .flatMap { it.javaInfo().getOrNull()?.outputJars().orEmpty() }
@@ -64,11 +63,13 @@ class AddCompiledJavaDeps(private val emptyJarDigests: MutableSet<String>) : Pro
             !duplicateJar
           }
           .toList()
-      for (jar in jarsToAdd) {
+      val jars = jarsToAdd.map { jar ->
         seen.add(jar.digest())
         javaDepsDir.addIfNewer(jar.artifactPath(), jar, target.buildContext())
-        libNameToJars.getOrPut(target.label()) { hashSetOf() }
-          .add(javaDepsDir.path().resolve(jar.artifactPath()).toString())
+        ProjectPath.projectRelative(javaDepsDir.path().resolve(jar.artifactPath()))
+      }
+      if (jars.isNotEmpty()) {
+        libNameToJars.getOrPut(target.label()) { hashSetOf() } += jars
       }
     }
     context.output(PrintOutput.output("Skipped ${skipped.size} duplicate jars"))
@@ -77,12 +78,12 @@ class AddCompiledJavaDeps(private val emptyJarDigests: MutableSet<String>) : Pro
   }
 
   private fun updateProjectProtoUpdateOneTargetToOneLibrary(
-    libNameToJars: Map<Label, Set<String>>, update: ProjectProtoUpdate
+    libNameToJars: Map<Label, Set<ProjectPath>>, update: ProjectProtoUpdate
   ) {
     libNameToJars.forEach { (name, jars) ->
       update
         .library(name) {
-          addClassJars(jars.map { Path.of(it) }.distinct())
+          addClassJars(jars)
         }
     }
   }

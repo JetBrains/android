@@ -29,6 +29,7 @@ import com.google.idea.blaze.qsync.project.PostQuerySyncData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
+import com.google.idea.blaze.qsync.project.QuerySyncLanguage
 import java.nio.file.Path
 import java.util.Optional
 import org.junit.Test
@@ -53,14 +54,20 @@ class SnapshotHolderTest {
       readonlyQuerySyncProjectStub,
       QuerySyncProjectSnapshot.EMPTY.toBuilder()
         // Change something in the project.
-        .project(ProjectProto.Project.newBuilder().addActiveLanguages(LanguageClassProto.LanguageClass.LANGUAGE_CLASS_JVM).build()).build()
+        .project(
+          ProjectProto.Project.Builder()
+            .also { it.activeLanguages.add(QuerySyncLanguage.JVM) }.build()
+        )
+        .build()
     )
     assertThat(notified).isTrue()
   }
 
   @Test
   fun `does not notify if project structure NOT changed`() {
-    fun project() = ProjectProto.Project.newBuilder().addActiveLanguages(LanguageClassProto.LanguageClass.LANGUAGE_CLASS_JVM).build()
+    fun project() = ProjectProto.Project.Builder()
+      .also { it.activeLanguages.add(QuerySyncLanguage.JVM) }
+      .build()
 
     val holder = SnapshotHolder()
     holder.setCurrent(
