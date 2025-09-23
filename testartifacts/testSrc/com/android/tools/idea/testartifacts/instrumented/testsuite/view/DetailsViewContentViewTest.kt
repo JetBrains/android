@@ -421,4 +421,24 @@ class DetailsViewContentViewTest {
       assertThat(console.editor!!.document.text).isEqualTo("Hello, World!")
     }
   }
+
+  @Test
+  fun `dispose cleans up resources`() {
+    val parentDisposable = Disposer.newDisposable(disposableRule.disposable)
+    val view = DetailsViewContentView(parentDisposable, projectRule.project, mockLogger)
+
+    val testDevice = device("device id", "device name")
+    whenever(mockTestResults.getLogcat(testDevice)).thenReturn("test logcat message")
+    whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("error stack trace")
+
+    view.setResults(testDevice, mockTestResults)
+
+    assertThat(view.myLogcat).isEqualTo("test logcat message")
+    assertThat(view.myErrorStackTrace).isEqualTo("error stack trace")
+
+    Disposer.dispose(parentDisposable)
+
+    assertThat(view.myLogcat).isEmpty()
+    assertThat(view.myErrorStackTrace).isEmpty()
+  }
 }
