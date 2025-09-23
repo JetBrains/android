@@ -543,7 +543,6 @@ class TestEnvironmentRuleImpl(val withAndroidSdk: Boolean) :
     runInEdtAndWait { Disposer.dispose(testEnvironmentDisposable) }
     checkUndisposedAndroidRelatedObjects()
     ApplicationManager.getApplication().cleanApplicationState()
-    System.setProperty("idea.background.write.action.enabled", "true")
   }
 }
 
