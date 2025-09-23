@@ -22,8 +22,8 @@ import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.AndroidPermissionPurposeConverter;
 
-@Styleable("AndroidManifestPurpose")
-public interface Purpose extends ManifestElementWithName {
+@Styleable("AndroidManifestSpecificPurpose")
+public interface SpecificPurpose extends ManifestElementWithName {
   @Attribute("name")
   @Required
   @Convert(AndroidPermissionPurposeConverter.class)
