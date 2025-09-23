@@ -15,14 +15,19 @@
  */
 package com.android.tools.idea.common.surface.organization
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -34,6 +39,7 @@ import com.android.tools.adtui.compose.StudioComposePanel
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
+import java.awt.event.MouseEvent
 import org.jetbrains.jewel.bridge.toComposeColor
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.enableNewSwingCompositing
@@ -47,38 +53,63 @@ private val toolbarSpacing = 6.dp
 private const val descriptionOpened = "Hide preview group"
 private const val descriptionClosed = "Show preview group"
 
+/**
+ * A header for an organization group.
+ *
+ * @param group The group to display.
+ * @param onScrollEvent The callback to invoke when the scroll event is triggered.
+ */
+@OptIn(ExperimentalJewelApi::class)
 @Composable
-fun OrganizationHeader(group: OrganizationGroup) {
+fun OrganizationHeader(group: OrganizationGroup, onScrollEvent: (MouseEvent) -> Unit = {}) {
   val opened = group.isOpened.collectAsState()
 
-  IconButton(
+  Box(
     modifier =
-      Modifier.testTag("openButton")
-        .height(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE.height.dp),
-    onClick = { group.setOpened(!opened.value) },
+      Modifier.fillMaxWidth().pointerInput(Unit) {
+        // Handle scroll. By default, the Composable will consume the scroll events. For the
+        // headers we pass the event to the parent so it's handled and the scroll happens.
+        while (true) {
+          awaitPointerEventScope {
+            val event = awaitPointerEvent(PointerEventPass.Initial)
+            if (event.type == PointerEventType.Scroll) {
+              val mouseEvent = event.nativeEvent as? MouseEvent
+              if (mouseEvent != null) {
+                onScrollEvent(mouseEvent)
+              }
+            }
+          }
+        }
+      }
   ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-      if (opened.value)
-        Icon(AllIconsKeys.General.ChevronDown, contentDescription = descriptionOpened)
-      else Icon(AllIconsKeys.General.ChevronRight, contentDescription = descriptionClosed)
+    IconButton(
+      modifier =
+        Modifier.testTag("openButton").height(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE.height.dp),
+      onClick = { group.setOpened(!opened.value) },
+    ) {
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        if (opened.value)
+          Icon(AllIconsKeys.General.ChevronDown, contentDescription = descriptionOpened)
+        else Icon(AllIconsKeys.General.ChevronRight, contentDescription = descriptionClosed)
 
-      Spacer(Modifier.width(toolbarSpacing))
+        Spacer(Modifier.width(toolbarSpacing))
 
-      group.groupType.iconKey?.let { it ->
-        Icon(key = it, contentDescription = null, modifier = Modifier.testTag("groupIcon"))
+        group.groupType.iconKey?.let { it ->
+          Icon(key = it, contentDescription = null, modifier = Modifier.testTag("groupIcon"))
+          Spacer(Modifier.width(toolbarSpacing))
+        }
+
+        Text(
+          group.displayName,
+          modifier = Modifier.testTag("displayName"),
+          color = AdtUiUtils.HEADER_COLOR.toComposeColor(),
+          fontSize = TextUnit(UIUtil.getFontSize(UIUtil.FontSize.SMALL), TextUnitType.Sp),
+          overflow = TextOverflow.Ellipsis,
+          maxLines = 1,
+          fontWeight = FontWeight.Bold,
+        )
         Spacer(Modifier.width(toolbarSpacing))
       }
-
-      Text(
-        group.displayName,
-        modifier = Modifier.testTag("displayName"),
-        color = AdtUiUtils.HEADER_COLOR.toComposeColor(),
-        fontSize = TextUnit(UIUtil.getFontSize(UIUtil.FontSize.SMALL), TextUnitType.Sp),
-        overflow = TextOverflow.Ellipsis,
-        maxLines = 1,
-        fontWeight = FontWeight.Bold,
-      )
-      Spacer(Modifier.width(toolbarSpacing))
     }
   }
 }
@@ -87,7 +118,11 @@ fun OrganizationHeader(group: OrganizationGroup) {
 @OptIn(ExperimentalJewelApi::class)
 fun createOrganizationHeader(group: OrganizationGroup): JComponent {
   enableNewSwingCompositing()
-  return StudioComposePanel { OrganizationHeader(group) }
+  var component: JComponent? = null
+  component = StudioComposePanel {
+    OrganizationHeader(group, onScrollEvent = { e -> component?.dispatchEvent(e) })
+  }
+  return component
 }
 
 fun createTestOrganizationHeader(group: OrganizationGroup): JComponent {
