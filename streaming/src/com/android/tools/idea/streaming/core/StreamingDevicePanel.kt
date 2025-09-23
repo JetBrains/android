@@ -75,7 +75,7 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
   val id: DeviceId,
   mainToolbarId: String,
   secondaryToolbarId: String = STREAMING_SECONDARY_TOOLBAR_ID,
-) : BorderLayoutPanel(), UiDataProvider, Disposable {
+) : BorderLayoutPanel(), UiDataProvider, DisplayOwner, Disposable {
 
   /** Plain text name of the device. */
   internal abstract val title: String
@@ -154,11 +154,11 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
     findNotificationHolderPanel()?.removeNotification(notificationPanel)
   }
 
-  fun addDeviceDisplayListener(listener: DeviceDisplayListener) {
+  override fun addDeviceDisplayListener(listener: DeviceDisplayListener) {
     displayListeners.add(listener)
   }
 
-  fun removeDeviceDisplayListener(listener: DeviceDisplayListener) {
+  override fun removeDeviceDisplayListener(listener: DeviceDisplayListener) {
     displayListeners.remove(listener)
   }
 
@@ -328,15 +328,4 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
       primaryDisplayView?.getParentOfType<NotificationHolderPanel>()
 
   internal interface UiState
-
-  /** The listener interface for receiving device display lifecycle events. */
-  @UiThread
-  interface DeviceDisplayListener {
-
-    /** Called when a new display becomes active. */
-    fun displayAdded(displayView: AbstractDisplayView)
-
-    /** Called when a display becomes inactive. */
-    fun displayRemoved(displayView: AbstractDisplayView)
-  }
 }
