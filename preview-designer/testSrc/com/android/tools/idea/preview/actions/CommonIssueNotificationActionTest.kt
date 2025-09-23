@@ -89,14 +89,14 @@ class CommonIssueNotificationActionTest {
     TestActionEvent.createTestEvent(dataContext).let { event ->
       action.update(event)
       assertEquals("Out of date", event.presentation.text)
-      assertEquals("The preview is out of date", event.presentation.description)
+      assertEquals("Some previews might be out of date", event.presentation.description)
     }
     try {
       FastPreviewManager.getInstance(projectRule.project).disable()
       TestActionEvent.createTestEvent(dataContext).let { event ->
         action.update(event)
         assertEquals("Out of date", event.presentation.text)
-        assertEquals("The preview is out of date", event.presentation.description)
+        assertEquals("Some previews might be out of date", event.presentation.description)
       }
     } finally {
       FastPreviewManager.getInstance(projectRule.project).enable()
@@ -107,7 +107,7 @@ class CommonIssueNotificationActionTest {
       action.update(event)
       assertEquals("Paused", event.presentation.text)
       assertEquals(
-        "The preview will not update while your project contains syntax errors.",
+        "The preview will not update while your project contains syntax errors",
         event.presentation.description,
       )
     }
@@ -143,7 +143,7 @@ class CommonIssueNotificationActionTest {
       // Syntax errors take precedence over out of date when Fast Preview is Enabled
       assertEquals("Paused", event.presentation.text)
       assertEquals(
-        "The preview will not update while your project contains syntax errors.",
+        "The preview will not update while your project contains syntax errors",
         event.presentation.description,
       )
     }
@@ -154,7 +154,7 @@ class CommonIssueNotificationActionTest {
         action.update(event)
         // Syntax errors does NOT take precedence over out of date when Fast Preview is Disabled
         assertEquals("Out of date", event.presentation.text)
-        assertEquals("The preview is out of date", event.presentation.description)
+        assertEquals("Some previews might be out of date", event.presentation.description)
       }
     } finally {
       FastPreviewManager.getInstance(projectRule.project).enable()
@@ -193,7 +193,7 @@ class CommonIssueNotificationActionTest {
         action.update(event)
         // Syntax errors does NOT take precedence over out of date when Fast Preview is Disabled
         assertEquals("Out of date", event.presentation.text)
-        assertEquals("The preview is out of date", event.presentation.description)
+        assertEquals("Some previews might be out of date", event.presentation.description)
       }
     } finally {
       FastPreviewManager.getInstance(projectRule.project).enable()
@@ -203,11 +203,11 @@ class CommonIssueNotificationActionTest {
     TestActionEvent.createTestEvent(dataContext).let { event ->
       action.update(event)
       assertEquals(
-        "The preview will not update while your project contains syntax errors.",
+        "The preview will not update while your project contains syntax errors",
         event.presentation.description,
       )
       assertEquals(
-        "The preview will not update while your project contains syntax errors.",
+        "The preview will not update while your project contains syntax errors",
         event.presentation.description,
       )
     }
@@ -238,7 +238,7 @@ class CommonIssueNotificationActionTest {
     run {
       viewModelStatus = TestPreviewViewModelStatus(isOutOfDate = true)
       val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
-      assertEquals("The preview is out of date", popup.labelsDescription())
+      assertEquals("Some previews might be out of date", popup.labelsDescription())
       assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
     }
 
@@ -248,7 +248,7 @@ class CommonIssueNotificationActionTest {
       try {
         viewModelStatus = TestPreviewViewModelStatus(isOutOfDate = true)
         val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
-        assertEquals("The preview is out of date", popup.labelsDescription())
+        assertEquals("Some previews might be out of date", popup.labelsDescription())
         assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
       } finally {
         fastPreviewManager.enable()
@@ -278,7 +278,7 @@ class CommonIssueNotificationActionTest {
         )
       val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
       assertEquals(
-        "The preview will not update while your project contains syntax errors.",
+        "The preview will not update while your project contains syntax errors",
         popup.labelsDescription(),
       )
       assertEquals(
