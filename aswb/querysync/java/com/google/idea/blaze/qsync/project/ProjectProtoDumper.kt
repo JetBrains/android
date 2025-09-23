@@ -44,6 +44,9 @@ inline fun <reified T: FormattableModel> T.format(): String {
   return os.toByteArray().toString(Charsets.UTF_8)
 }
 
+@JvmName("formatTo")
+fun ProjectProto.Project.formatTo_javaShim(to: OutputStream) = formatTo(to)
+
 fun FormattableModel.formatToAs(to: PrintStream, klass: KClass<*>) {
   val printer = PrinterImpl(to)
   @Suppress("UNCHECKED_CAST")
@@ -91,6 +94,10 @@ private object Dumpers {
     String::class to SimpleValueFormatter,
     Boolean::class to SimpleValueFormatter,
     Label::class to SimpleValueFormatter,
+    ProjectPath::class to ProjectPathValueFormatter,
+    ProjectPath.ProjectRelativeProjectPath::class to ProjectPathValueFormatter,
+    ProjectPath.WorkspaceRelativeProjectPath::class to ProjectPathValueFormatter,
+    ProjectPath.AbsoluteProjectPath::class to ProjectPathValueFormatter,
   )
 
   @Suppress("UNCHECKED_CAST")
@@ -107,6 +114,12 @@ private object Dumpers {
   object SimpleValueFormatter : ValueFormatter<Any> {
     override fun formatTo(v: Any?, printer: ValuePrinter) {
       printer.value(value = v?.toString().orEmpty())
+    }
+  }
+
+  object ProjectPathValueFormatter : ValueFormatter<ProjectPath> {
+    override fun formatTo(v: ProjectPath?, printer: ValuePrinter) {
+      printer.value(value = v?.toPrintString().orEmpty())
     }
   }
 }
@@ -305,5 +318,13 @@ private class PrinterImpl(private val to: PrintStream) : ValuePrinter, NestedVal
     out("${name.name}:")
     inValue = true
     v()
+  }
+}
+
+private fun ProjectPath.toPrintString(): String {
+  return when (this) {
+    is ProjectPath.ProjectRelativeProjectPath -> "<project>/$relativePath"
+    is ProjectPath.WorkspaceRelativeProjectPath -> "<workspace>/$relativePath"
+    is ProjectPath.AbsoluteProjectPath -> absolutePath.toString()
   }
 }

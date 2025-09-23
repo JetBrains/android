@@ -16,14 +16,11 @@
 package com.google.idea.blaze.qsync.artifacts
 
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableMap
 import com.google.common.io.Closer
 import com.google.common.truth.Truth
 import com.google.idea.blaze.common.NoopContext
+import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.qsync.project.ProjectProto
-import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectoryContents
-import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact
-import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact.ArtifactTransform
 import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.charset.StandardCharsets
@@ -69,15 +66,15 @@ class ArtifactDirectoryUpdateTest {
         "name",
         cache,
         root,
-        ArtifactDirectoryContents.newBuilder()
-          .putContents(
-            "somefile.txt",
-            ProjectArtifact.newBuilder()
-              .setTransform(ArtifactTransform.COPY)
-              .setBuildArtifact(ProjectProto.BuildArtifact.newBuilder().setDigest("abcde"))
-              .build()
+        ProjectProto.ArtifactDirectoryContents(
+          contents = mapOf(
+            "somefile.txt" to ProjectProto.ProjectArtifact(
+              target = Label.of("//target"),
+              buildArtifact = ProjectProto.BuildArtifact("abcde"),
+              transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+            )
           )
-          .build()
+        ),
       )
     update.update(NoopContext())
 
@@ -90,9 +87,9 @@ class ArtifactDirectoryUpdateTest {
   fun unzip_into_empty_dir() {
     writeZipFile(
       cacheDir!!.resolve("zipdigest"),
-      ImmutableMap.of(
-        "zip/path/file1.txt", "file1 contents",
-        "zip/path/file2.txt", "file2 contents"
+      mapOf(
+        "zip/path/file1.txt" to "file1 contents",
+        "zip/path/file2.txt" to "file2 contents"
       )
     )
     val update =
@@ -100,15 +97,15 @@ class ArtifactDirectoryUpdateTest {
         "name",
         cache,
         root,
-        ArtifactDirectoryContents.newBuilder()
-          .putContents(
-            "unzipped",
-            ProjectArtifact.newBuilder()
-              .setTransform(ArtifactTransform.UNZIP)
-              .setBuildArtifact(ProjectProto.BuildArtifact.newBuilder().setDigest("zipdigest"))
-              .build()
+        ProjectProto.ArtifactDirectoryContents(
+          contents = mapOf(
+            "unzipped" to ProjectProto.ProjectArtifact(
+              target = Label.of("//target"),
+              buildArtifact = ProjectProto.BuildArtifact("zipdigest"),
+              transform = ProjectProto.ProjectArtifact.ArtifactTransform.UNZIP,
+            )
           )
-          .build()
+        )
       )
     update.update(NoopContext())
 
@@ -138,7 +135,7 @@ class ArtifactDirectoryUpdateTest {
         "name",
         cache,
         root,
-        ArtifactDirectoryContents.getDefaultInstance()
+        ProjectProto.ArtifactDirectoryContents.getDefaultInstance()
       )
     update.update(NoopContext())
 
@@ -155,19 +152,19 @@ class ArtifactDirectoryUpdateTest {
         "name",
         cache,
         root,
-        ArtifactDirectoryContents.newBuilder()
-          .putContents(
-            "somefile.txt",
-            ProjectArtifact.newBuilder()
-              .setTransform(ArtifactTransform.COPY)
-              .setBuildArtifact(ProjectProto.BuildArtifact.newBuilder().setDigest("abcde"))
-              .build()
+        ProjectProto.ArtifactDirectoryContents(
+          contents = mapOf(
+            "somefile.txt" to ProjectProto.ProjectArtifact(
+              target = Label.of("//target"),
+              buildArtifact = ProjectProto.BuildArtifact("abcde"),
+              transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+            )
           )
-          .build()
+        )
       )
     update.update(NoopContext())
 
-    val contentsProtoPath = root.resolveSibling(root.fileName.toString() + ".contents")
+    val contentsProtoPath = root.resolveSibling(root.fileName.toString() + ".state")
 
     Truth.assertThat(Files.exists(contentsProtoPath)).isTrue()
 
@@ -176,7 +173,7 @@ class ArtifactDirectoryUpdateTest {
         "name",
         cache,
         root,
-        ArtifactDirectoryContents.getDefaultInstance()
+        ProjectProto.ArtifactDirectoryContents.getDefaultInstance()
       )
     update.update(NoopContext())
 
@@ -190,9 +187,9 @@ class ArtifactDirectoryUpdateTest {
     createFiles("dir/file1.txt", "dir/subdir/file2.txt")
     writeZipFile(
       cacheDir!!.resolve("zipdigest"),
-      ImmutableMap.of(
-        "file3.txt", "file3 contents",
-        "subdir2/file4.txt", "file4 contents"
+      mapOf(
+        "file3.txt" to "file3 contents",
+        "subdir2/file4.txt" to "file4 contents"
       )
     )
     val update =
@@ -200,15 +197,15 @@ class ArtifactDirectoryUpdateTest {
         "name",
         cache,
         root,
-        ArtifactDirectoryContents.newBuilder()
-          .putContents(
-            "dir",
-            ProjectArtifact.newBuilder()
-              .setTransform(ArtifactTransform.UNZIP)
-              .setBuildArtifact(ProjectProto.BuildArtifact.newBuilder().setDigest("zipdigest"))
-              .build()
+        ProjectProto.ArtifactDirectoryContents(
+          contents = mapOf(
+            "dir" to ProjectProto.ProjectArtifact(
+              target = Label.of("//target"),
+              buildArtifact = ProjectProto.BuildArtifact("zipdigest"),
+              transform = ProjectProto.ProjectArtifact.ArtifactTransform.UNZIP,
+            )
           )
-          .build()
+        )
       )
     update.update(NoopContext())
 
@@ -224,24 +221,22 @@ class ArtifactDirectoryUpdateTest {
     createFiles("dir")
     writeZipFile(
       cacheDir!!.resolve("zipdigest"),
-      ImmutableMap.of("file1.txt", "file1 contents")
+      mapOf("file1.txt" to "file1 contents")
     )
     val update =
       ArtifactDirectoryUpdate(
         "name",
         cache,
         root,
-        ArtifactDirectoryContents.newBuilder()
-          .putAllContents(
-            ImmutableMap.of(
-              "dir",
-              ProjectArtifact.newBuilder()
-                .setTransform(ArtifactTransform.UNZIP)
-                .setBuildArtifact(ProjectProto.BuildArtifact.newBuilder().setDigest("zipdigest"))
-                .build()
+        ProjectProto.ArtifactDirectoryContents(
+          contents = mapOf(
+            "dir" to ProjectProto.ProjectArtifact(
+              target = Label.of("//target"),
+              buildArtifact = ProjectProto.BuildArtifact("zipdigest"),
+              transform = ProjectProto.ProjectArtifact.ArtifactTransform.UNZIP,
             )
           )
-          .build()
+        )
       )
     update.update(NoopContext())
 
@@ -258,17 +253,15 @@ class ArtifactDirectoryUpdateTest {
         "name",
         cache,
         root,
-        ArtifactDirectoryContents.newBuilder()
-          .putAllContents(
-            ImmutableMap.of(
-              "dir",
-              ProjectArtifact.newBuilder()
-                .setTransform(ArtifactTransform.COPY)
-                .setBuildArtifact(ProjectProto.BuildArtifact.newBuilder().setDigest("abcde"))
-                .build()
+        ProjectProto.ArtifactDirectoryContents(
+          contents = mapOf(
+            "dir" to ProjectProto.ProjectArtifact(
+              target = Label.of("//target"),
+              buildArtifact = ProjectProto.BuildArtifact("abcde"),
+              transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
             )
           )
-          .build()
+        )
       )
     update.update(NoopContext())
 
@@ -286,22 +279,20 @@ class ArtifactDirectoryUpdateTest {
         "name",
         cache,
         root,
-        ArtifactDirectoryContents.newBuilder()
-          .putContents(
-            "dir/file3.txt",
-            ProjectArtifact.newBuilder()
-              .setTransform(ArtifactTransform.COPY)
-              .setBuildArtifact(ProjectProto.BuildArtifact.newBuilder().setDigest("abcde"))
-              .build()
+        ProjectProto.ArtifactDirectoryContents(
+          contents = mapOf(
+            "dir/file3.txt" to ProjectProto.ProjectArtifact(
+              target = Label.of("//target"),
+              buildArtifact = ProjectProto.BuildArtifact("abcde"),
+              transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+            ),
+            "dir/subdir2/file4.txt" to ProjectProto.ProjectArtifact(
+              target = Label.of("//target"),
+              buildArtifact = ProjectProto.BuildArtifact("abcdf"),
+              transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+            )
           )
-          .putContents(
-            "dir/subdir2/file4.txt",
-            ProjectArtifact.newBuilder()
-              .setTransform(ArtifactTransform.COPY)
-              .setBuildArtifact(ProjectProto.BuildArtifact.newBuilder().setDigest("abcdf"))
-              .build()
-          )
-          .build()
+        )
       )
     update.update(NoopContext())
 
@@ -319,22 +310,20 @@ class ArtifactDirectoryUpdateTest {
         "name",
         cache,
         root,
-        ArtifactDirectoryContents.newBuilder()
-          .putContents(
-            "file1.txt",
-            ProjectArtifact.newBuilder()
-              .setTransform(ArtifactTransform.COPY)
-              .setBuildArtifact(ProjectProto.BuildArtifact.newBuilder().setDigest("file1digest"))
-              .build()
+        ProjectProto.ArtifactDirectoryContents(
+          contents = mapOf(
+            "file1.txt" to ProjectProto.ProjectArtifact(
+              target = Label.of("//target"),
+              buildArtifact = ProjectProto.BuildArtifact("file1digest"),
+              transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+            ),
+            "file2.txt" to ProjectProto.ProjectArtifact(
+              target = Label.of("//target"),
+              buildArtifact = ProjectProto.BuildArtifact("file2digest"),
+              transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+            )
           )
-          .putContents(
-            "file2.txt",
-            ProjectArtifact.newBuilder()
-              .setTransform(ArtifactTransform.COPY)
-              .setBuildArtifact(ProjectProto.BuildArtifact.newBuilder().setDigest("file2digest"))
-              .build()
-          )
-          .build()
+        )
       )
     populate.update(NoopContext())
     cache!!.takeRequestedDigests()
@@ -345,22 +334,20 @@ class ArtifactDirectoryUpdateTest {
         "name",
         cache,
         root,
-        ArtifactDirectoryContents.newBuilder()
-          .putContents(
-            "file1.txt",
-            ProjectArtifact.newBuilder()
-              .setTransform(ArtifactTransform.COPY)
-              .setBuildArtifact(ProjectProto.BuildArtifact.newBuilder().setDigest("file1digest"))
-              .build()
+        ProjectProto.ArtifactDirectoryContents(
+          contents = mapOf(
+            "file1.txt" to ProjectProto.ProjectArtifact(
+              target = Label.of("//target"),
+              buildArtifact = ProjectProto.BuildArtifact("file1digest"),
+              transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+            ),
+            "file2.txt" to ProjectProto.ProjectArtifact(
+              target = Label.of("//target"),
+              buildArtifact = ProjectProto.BuildArtifact("file2digest"),
+              transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+            )
           )
-          .putContents(
-            "file2.txt",
-            ProjectArtifact.newBuilder()
-              .setTransform(ArtifactTransform.COPY)
-              .setBuildArtifact(ProjectProto.BuildArtifact.newBuilder().setDigest("file2digest"))
-              .build()
-          )
-          .build()
+        )
       )
     update.update(NoopContext())
     Truth.assertThat(update.updatedPaths).isEmpty()
@@ -375,22 +362,20 @@ class ArtifactDirectoryUpdateTest {
         "name",
         cache,
         root,
-        ArtifactDirectoryContents.newBuilder()
-          .putContents(
-            "file1.txt",
-            ProjectArtifact.newBuilder()
-              .setTransform(ArtifactTransform.COPY)
-              .setBuildArtifact(ProjectProto.BuildArtifact.newBuilder().setDigest("abcd"))
-              .build()
+        ProjectProto.ArtifactDirectoryContents(
+          contents = mapOf(
+            "file1.txt" to ProjectProto.ProjectArtifact(
+              target = Label.of("//target"),
+              buildArtifact = ProjectProto.BuildArtifact("abcd"),
+              transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+            ),
+            "file2.txt" to ProjectProto.ProjectArtifact(
+              target = Label.of("//target"),
+              buildArtifact = ProjectProto.BuildArtifact("defg"),
+              transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+            )
           )
-          .putContents(
-            "file2.txt",
-            ProjectArtifact.newBuilder()
-              .setTransform(ArtifactTransform.COPY)
-              .setBuildArtifact(ProjectProto.BuildArtifact.newBuilder().setDigest("defg"))
-              .build()
-          )
-          .build()
+        )
       )
     populate.update(NoopContext())
     cache!!.takeRequestedDigests()
@@ -401,22 +386,20 @@ class ArtifactDirectoryUpdateTest {
         "name",
         cache,
         root,
-        ArtifactDirectoryContents.newBuilder()
-          .putContents(
-            "file1.txt",
-            ProjectArtifact.newBuilder()
-              .setTransform(ArtifactTransform.COPY)
-              .setBuildArtifact(ProjectProto.BuildArtifact.newBuilder().setDigest("abcd"))
-              .build()
+        ProjectProto.ArtifactDirectoryContents(
+          contents = mapOf(
+            "file1.txt" to ProjectProto.ProjectArtifact(
+              target = Label.of("//target"),
+              buildArtifact = ProjectProto.BuildArtifact("abcd"),
+              transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+            ),
+            "file2.txt" to ProjectProto.ProjectArtifact(
+              target = Label.of("//target"),
+              buildArtifact = ProjectProto.BuildArtifact("efgh"),
+              transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+            )
           )
-          .putContents(
-            "file2.txt",
-            ProjectArtifact.newBuilder()
-              .setTransform(ArtifactTransform.COPY)
-              .setBuildArtifact(ProjectProto.BuildArtifact.newBuilder().setDigest("efgh"))
-              .build()
-          )
-          .build()
+        )
       )
     update.update(NoopContext())
     Truth.assertThat(update.updatedPaths).containsExactly(root.resolve("file2.txt"))

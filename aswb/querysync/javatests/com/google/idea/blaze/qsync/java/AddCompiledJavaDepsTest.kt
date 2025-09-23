@@ -18,6 +18,7 @@ package com.google.idea.blaze.qsync.java
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import com.google.common.truth.Truth
+import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.Label.Companion.of
 import com.google.idea.blaze.common.NoopContext
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
@@ -25,6 +26,7 @@ import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.BuildGraphData
+import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact.ArtifactTransform
 import com.google.idea.blaze.qsync.testdata.ProjectProtos
@@ -52,16 +54,16 @@ class AddCompiledJavaDepsTest {
       ProjectProtoUpdate(original, BuildGraphData.EMPTY, NoopContext())
     javaDeps.update(update, ArtifactTracker.State.EMPTY, NoopContext())
     val newProject = update.build()
-    Truth.assertThat(newProject.getLibraryList()).isEqualTo(original.getLibraryList())
-    Truth.assertThat(newProject.getModulesList()).isEqualTo(original.getModulesList())
-    Truth.assertThat(newProject.getArtifactDirectories().getDirectoriesMap().keys)
+    Truth.assertThat(newProject.libraries).isEqualTo(original.libraries)
+    Truth.assertThat(newProject.modules).isEqualTo(original.modules)
+    Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys)
       .containsExactly(".bazel/javadeps")
     Truth.assertThat(
       newProject
-        .getArtifactDirectories()
-        .getDirectoriesMap()
+        .artifactDirectories
+        .directoriesMap
         .get(".bazel/javadeps")!!
-        .getContentsMap()
+        .contents
     )
       .isEmpty()
   }
@@ -84,14 +86,12 @@ class AddCompiledJavaDepsTest {
         .build()
     )
     val expectedLibraries =
-      arrayOf<ProjectProto.Library>(
-        ProjectProto.Library.newBuilder().setName("//java/com/google/common/collect:collect")
-          .addClassesJar(
-            ProjectProto.JarDirectory.newBuilder()
-              .setPath(".bazel/javadeps/build-out/java/com/google/common/collect/libcollect.jar")
-              .setRecursive(false)
-              .build()
-          ).build()
+      arrayOf(
+        ProjectProto.Library(
+          name = Label.of("//java/com/google/common/collect:collect"),
+          classesJarList =  listOf(ProjectPath.projectRelative(Path.of(".bazel/javadeps/build-out/java/com/google/common/collect/libcollect.jar"))),
+          sourcesList = emptyList()
+        )
       )
     val original =
       ProjectProtos.forTestProject(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY)
@@ -100,22 +100,22 @@ class AddCompiledJavaDepsTest {
       ProjectProtoUpdate(original, BuildGraphData.EMPTY, NoopContext())
     javaDeps.update(update, artifactState, NoopContext())
     val newProject = update.build()
-    Truth.assertThat(newProject.getLibraryList()).containsExactly(*expectedLibraries)
-    Truth.assertThat(newProject.getArtifactDirectories().getDirectoriesMap().keys)
+    Truth.assertThat(newProject.libraries.values).containsExactly(*expectedLibraries)
+    Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys)
       .containsExactly(".bazel/javadeps")
     Truth.assertThat(
       newProject
-        .getArtifactDirectories()
-        .getDirectoriesMap()[".bazel/javadeps"]!!
-        .getContentsMap()
+        .artifactDirectories
+        .directoriesMap[".bazel/javadeps"]!!
+        .contents
     )
       .containsExactly(
         "build-out/java/com/google/common/collect/libcollect.jar",
-        ProjectProto.ProjectArtifact.newBuilder()
-          .setBuildArtifact(ProjectProto.BuildArtifact.newBuilder().setDigest("jardigest"))
-          .setTransform(ArtifactTransform.COPY)
-          .setTarget("//java/com/google/common/collect:collect")
-          .build()
+        ProjectProto.ProjectArtifact(
+          target = Label.of("//java/com/google/common/collect:collect"),
+          buildArtifact = ProjectProto.BuildArtifact("jardigest"),
+          transform = ArtifactTransform.COPY
+        )
       )
   }
 
@@ -144,15 +144,15 @@ class AddCompiledJavaDepsTest {
       ProjectProtoUpdate(original, BuildGraphData.EMPTY, NoopContext())
     javaDeps.update(update, artifactState, NoopContext())
     val newProject = update.build()
-    Truth.assertThat(newProject.getLibraryList()).containsExactly(*expectedLibraries)
-    Truth.assertThat(newProject.getArtifactDirectories().getDirectoriesMap().keys)
+    Truth.assertThat(newProject.libraries.values).containsExactly(*expectedLibraries)
+    Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys)
       .containsExactly(".bazel/javadeps")
     Truth.assertThat(
       newProject
-        .getArtifactDirectories()
-        .getDirectoriesMap()
+        .artifactDirectories
+        .directoriesMap
         .get(".bazel/javadeps")!!
-        .getContentsMap()
+        .contents
     )
       .isEmpty()
   }

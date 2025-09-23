@@ -465,13 +465,13 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem, Registering
         return ImmutableList.of();
       }
       ImmutableList<ProjectProto.Module> matchingModules =
-          projectProto.getModulesList().stream()
+          projectProto.getModules().stream()
               .filter(m -> m.getName().equals(module.getName()))
               .collect(ImmutableList.toImmutableList());
       if (matchingModules.isEmpty()) {
         return ImmutableList.of();
       }
-      return Iterables.getOnlyElement(matchingModules).getAndroidExternalLibrariesList().stream()
+      return Iterables.getOnlyElement(matchingModules).getAndroidExternalLibraries().stream()
           .map(this::fromProto)
           .collect(toImmutableList());
     }
@@ -530,8 +530,8 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem, Registering
     return lib;
   }
 
-  private PathString toPathString(ProjectProto.ProjectPath projectPath) {
-    return new PathString(pathResolver.resolve(ProjectPath.create(projectPath)));
+  private PathString toPathString(ProjectPath projectPath) {
+    return new PathString(pathResolver.resolve(projectPath));
   }
 
   private static ImmutableList<ExternalAndroidLibrary> getLibrariesForWorkspaceModule(

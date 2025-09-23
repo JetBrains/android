@@ -15,9 +15,6 @@
  */
 package com.google.idea.blaze.qsync.java
 
-import com.google.common.collect.ImmutableCollection
-import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableSetMultimap
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata
@@ -33,8 +30,6 @@ import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact.ArtifactTransform
 import java.nio.file.Path
-import java.util.function.Consumer
-import java.util.function.Function
 import kotlin.jvm.optionals.getOrNull
 
 /**
@@ -79,15 +74,14 @@ class AddDependencyAars(
               .addIfNewer(aar.artifactPath(), aar, target.buildContext(), ArtifactTransform.UNZIP)
               .orElse(null)
           if (dest != null) {
-            val lib =
-              ProjectProto.ExternalAndroidLibrary.newBuilder()
-                .setName(aar.artifactPath().toString().replace('/', '_'))
-                .setLocation(dest.toProto())
-                .setManifestFile(dest.resolveChild(Path.of("AndroidManifest.xml")).toProto())
-                .setResFolder(dest.resolveChild(Path.of("res")).toProto())
-                .setSymbolFile(dest.resolveChild(Path.of("R.txt")).toProto())
-            packageName?.let { lib.setPackageName(it) }
-            addExternalAndroidLibrary(lib.build())
+            addExternalAndroidLibrary(ProjectProto.ExternalAndroidLibrary(
+              name = aar.artifactPath().toString().replace('/', '_'),
+              location = dest,
+              manifestFile = dest.resolveChild(Path.of("AndroidManifest.xml")),
+              resFolder = dest.resolveChild(Path.of("res")),
+              symbolFile = dest.resolveChild(Path.of("R.txt")),
+              packageName = packageName.orEmpty()
+            ))
           }
         }
       }

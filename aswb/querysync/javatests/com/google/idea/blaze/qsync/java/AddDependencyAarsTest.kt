@@ -17,10 +17,8 @@ package com.google.idea.blaze.qsync.java
 
 import com.google.common.base.Joiner
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.Iterables
-import com.google.common.io.ByteSource
 import com.google.common.truth.Truth
-import com.google.idea.blaze.common.Label.Companion.of
+import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.NoopContext
 import com.google.idea.blaze.qsync.QuerySyncTestUtils
 import com.google.idea.blaze.qsync.TestDataSyncRunner
@@ -31,14 +29,11 @@ import com.google.idea.blaze.qsync.deps.JavaArtifactInfo
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.AarResPackage
+import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.testdata.TestData
 import com.google.protobuf.TextFormat
-import java.io.ByteArrayOutputStream
-import java.io.IOException
 import java.nio.file.Path
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -70,9 +65,9 @@ class AddDependencyAarsTest {
     addAars.update(update, ArtifactTracker.State.EMPTY, NoopContext())
     val newProject = update.build()
 
-    Truth.assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList())
-    Truth.assertThat(newProject.getModulesList()).isEqualTo(original.project().getModulesList())
-    Truth.assertThat(newProject.getArtifactDirectories().getDirectoriesMap().keys).isEmpty()
+    Truth.assertThat(newProject.libraries).isEqualTo(original.project().libraries)
+    Truth.assertThat(newProject.modules).isEqualTo(original.project().modules)
+    Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys).isEmpty()
   }
 
   @Test
@@ -90,13 +85,13 @@ class AddDependencyAarsTest {
       update,
       ArtifactTracker.State.forTargets(
         TargetBuildInfo.forJavaTarget(
-          JavaArtifactInfo.empty(of("//path/to:dep")).toBuilder()
+          JavaArtifactInfo.empty(Label.of("//path/to:dep")).toBuilder()
             .setIdeAars(
               ImmutableList.of(
                 BuildArtifact.create(
                   "aardigest",
                   Path.of("path/to/dep.aar"),
-                  of("//path/to:dep")
+                  Label.of("//path/to:dep")
                 )
                   .withMetadata(
                     AarResPackage(
@@ -112,59 +107,35 @@ class AddDependencyAarsTest {
     )
     val newProject = update.build()
 
-    Truth.assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList())
+    Truth.assertThat(newProject.libraries).isEqualTo(original.project().libraries)
     Truth.assertThat(
-          newProject.getModulesList().singleOrNull()?.getAndroidExternalLibrariesList()?.singleOrNull()
+      newProject.modules.singleOrNull()?.androidExternalLibraries?.singleOrNull()
     )
       .isEqualTo(
-        TextFormat.parse(
-          Joiner.on("\n")
-            .join(
-              "name: \"path_to_dep.aar\"",
-              "  location {",
-              "    path: \".bazel/buildout/path/to/dep.aar\"",
-              "    base: PROJECT",
-              "  }",
-              "  manifest_file {",
-              "    path: \".bazel/buildout/path/to/dep.aar/AndroidManifest.xml\"",
-              "    base: PROJECT",
-              "  }",
-              "  res_folder {",
-              "    path: \".bazel/buildout/path/to/dep.aar/res\"",
-              "    base: PROJECT",
-              "  }",
-              "  symbol_file {",
-              "    path: \".bazel/buildout/path/to/dep.aar/R.txt\"",
-              "    base: PROJECT",
-              "  }",
-              "  package_name: \"com.google.idea.blaze.qsync.testdata.android\""
-            ),
-          ProjectProto.ExternalAndroidLibrary::class.java
+        ProjectProto.ExternalAndroidLibrary(
+          name = "path_to_dep.aar",
+          location = ProjectPath.projectRelative(Path.of(".bazel/buildout/path/to/dep.aar")),
+          manifestFile = ProjectPath.projectRelative(Path.of(".bazel/buildout/path/to/dep.aar/AndroidManifest.xml")),
+          resFolder = ProjectPath.projectRelative(Path.of(".bazel/buildout/path/to/dep.aar/res")),
+          symbolFile = ProjectPath.projectRelative(Path.of(".bazel/buildout/path/to/dep.aar/R.txt")),
+          packageName = "com.google.idea.blaze.qsync.testdata.android"
         )
       )
 
-    Truth.assertThat(newProject.getArtifactDirectories())
+    Truth.assertThat(newProject.artifactDirectories)
       .isEqualTo(
-        TextFormat.parse(
-          Joiner.on("\n")
-            .join(
-              "directories {",
-              "  key: \".bazel/buildout\"",
-              "  value {",
-              "    contents {",
-              "      key: \"path/to/dep.aar\"",
-              "      value {",
-              "        transform: UNZIP",
-              "        build_artifact {",
-              "          digest: \"aardigest\"",
-              "        }",
-              "        target: \"//path/to:dep\"",
-              "      }",
-              "    }",
-              "  }",
-              "}"
+        ProjectProto.ArtifactDirectories(
+          directoriesMap = mapOf(
+            ".bazel/buildout" to ProjectProto.ArtifactDirectoryContents(
+              contents = mapOf(
+                "path/to/dep.aar" to ProjectProto.ProjectArtifact(
+                  target = Label.of("//path/to:dep"),
+                  buildArtifact = ProjectProto.BuildArtifact("aardigest"),
+                  transform = ProjectProto.ProjectArtifact.ArtifactTransform.UNZIP,
+                )
+              )
             ),
-          ProjectProto.ArtifactDirectories::class.java
+          )
         )
       )
   }
@@ -184,13 +155,13 @@ class AddDependencyAarsTest {
       update,
       ArtifactTracker.State.forJavaArtifacts(
         ImmutableList.of(
-          JavaArtifactInfo.empty(of("//path/to:dep")).toBuilder()
+          JavaArtifactInfo.empty(Label.of("//path/to:dep")).toBuilder()
             .setIdeAars(
               ImmutableList.of(
                 BuildArtifact.create(
                   "aardigest",
                   Path.of("path/to/dep.aar"),
-                  of("//path/to:dep")
+                  Label.of("//path/to:dep")
                 )
               )
             )
@@ -200,33 +171,26 @@ class AddDependencyAarsTest {
     )
     val newProject = update.build()
 
-    Truth.assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList())
+    Truth.assertThat(newProject.libraries).isEqualTo(original.project().libraries)
     Truth.assertThat(
-      newProject.getModulesList().singleOrNull()?.getAndroidExternalLibrariesList()?.singleOrNull()?.getPackageName()
+      newProject.modules.singleOrNull()?.androidExternalLibraries?.singleOrNull()?.packageName
     ).isEmpty()
 
-    Truth.assertThat(newProject.getArtifactDirectories())
+    Truth.assertThat(newProject.artifactDirectories)
       .isEqualTo(
-        TextFormat.parse(
-          Joiner.on("\n")
-            .join(
-              "directories {",
-              "  key: \".bazel/buildout\"",
-              "  value {",
-              "    contents {",
-              "      key: \"path/to/dep.aar\"",
-              "      value {",
-              "        transform: UNZIP",
-              "        build_artifact {",
-              "          digest: \"aardigest\"",
-              "        }",
-              "        target: \"//path/to:dep\"",
-              "      }",
-              "    }",
-              "  }",
-              "}"
-            ),
-          ProjectProto.ArtifactDirectories::class.java
+        ProjectProto.ArtifactDirectories(
+          directoriesMap = mapOf(
+            ".bazel/buildout" to ProjectProto.ArtifactDirectoryContents(
+              contents = mapOf(
+                "path/to/dep.aar" to ProjectProto.ProjectArtifact(
+                  target = Label.of("//path/to:dep"),
+                  buildArtifact = ProjectProto.BuildArtifact("aardigest"),
+                  transform = ProjectProto.ProjectArtifact.ArtifactTransform.UNZIP,
+
+                  )
+              )
+            )
+          )
         )
       )
   }

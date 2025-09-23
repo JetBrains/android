@@ -29,13 +29,13 @@ import com.google.idea.blaze.qsync.deps.DependencyBuildContext
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation
 import com.google.idea.blaze.qsync.project.ProjectPath
+import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectProto.CcCompilationContext
 import com.google.idea.blaze.qsync.project.ProjectProto.CcCompilerFlag
 import com.google.idea.blaze.qsync.project.ProjectProto.CcCompilerFlagSet
 import com.google.idea.blaze.qsync.project.ProjectProto.CcCompilerSettings
 import com.google.idea.blaze.qsync.project.ProjectProto.CcLanguage
 import com.google.idea.blaze.qsync.project.ProjectProto.CcSourceFile
-import com.google.idea.blaze.qsync.project.ProjectProto.CcWorkspace
 import com.google.idea.blaze.qsync.project.ProjectTarget.SourceType
 import com.intellij.util.containers.orNull
 import java.nio.file.Path
@@ -131,34 +131,30 @@ class ConfigureCcCompilation(
       val srcs = update.buildGraph().getTargetSources(ccInfo.target(), *SourceType.all())
         .mapNotNull { srcPath ->
           val lang = getLanguage(srcPath) ?: return@mapNotNull null
-          CcSourceFile.newBuilder()
-            .setLanguage(lang)
-            .setWorkspacePath(srcPath.toString())
-            .setCompilerSettings(
-              CcCompilerSettings.newBuilder()
-                .setCompilerExecutablePath(toolchain.compilerExecutable().toProto())
-                .setFlagSetId(addFlagSet(targetFlags + toolchainLanguageFlags[toolchain.id()]?.get(lang).orEmpty()))
+          CcSourceFile(
+            workspacePath = ProjectPath.workspaceRelative(srcPath),
+            language = lang,
+            compilerSettings =
+              CcCompilerSettings(
+                compilerExecutablePath = toolchain.compilerExecutable(),
+                flagSetId = addFlagSet(targetFlags + toolchainLanguageFlags[toolchain.id()]?.get(lang).orEmpty()))
             )
-            .build()
         }
 
-
       val targetContext =
-        CcCompilationContext.newBuilder()
-          .setId(ccInfo.target().toString() + "%" + toolchain.targetGnuSystemName())
-          .setHumanReadableName(ccInfo.target().toString() + " - " + toolchain.targetGnuSystemName())
-          .addAllSources(srcs)
-          .putAllLanguageToCompilerSettings(
+        CcCompilationContext(
+          id = ccInfo.target().toString() + "%" + toolchain.targetGnuSystemName(),
+          humanReadableName = ccInfo.target().toString() + " - " + toolchain.targetGnuSystemName(),
+          sources = srcs,
+          languageToCompilerSettings =
             toolchainLanguageFlags[toolchain.id()]?.asMap()?.entries?.associate {
-              it.key.getValueDescriptor().name to CcCompilerSettings.newBuilder()
-                .setCompilerExecutablePath(
-                  toolchain.compilerExecutable().toProto())
-                .setFlagSetId(addFlagSet(it.value))
-                .build()
+              it.key to CcCompilerSettings(
+                compilerExecutablePath = toolchain.compilerExecutable(),
+                flagSetId = addFlagSet(it.value)
+              )
             }
               .orEmpty()
           )
-          .build()
       workspaceUpdater.addContexts(targetContext)
 
       val headersDir = update.artifactDirectory(ArtifactDirectories.GEN_CC_HEADERS)
@@ -173,17 +169,17 @@ class ConfigureCcCompilation(
       val canonicalFlagSet: kotlin.collections.Set<CcCompilerFlag> = flags.toSet()
       return uniqueFlagSetIds[canonicalFlagSet] ?: nextFlagSetId.incrementAndGet().toString().also { flagSetId ->
         uniqueFlagSetIds[canonicalFlagSet] = flagSetId
-        workspaceUpdater.putFlagSets(flagSetId, CcCompilerFlagSet.newBuilder().addAllFlags(flags).build())
+        workspaceUpdater.putFlagSets(flagSetId, CcCompilerFlagSet(flags.toList()))
       }
     }
   }
 
   private fun makeStringFlag(flag: String, value: String): CcCompilerFlag {
-    return CcCompilerFlag.newBuilder().setFlag(flag).setPlainValue(value).build()
+    return ProjectProto.CcCompilerStringFlag(flag = flag, value = value);
   }
 
   private fun makePathFlag(flag: String, path: ProjectPath): CcCompilerFlag {
-    return CcCompilerFlag.newBuilder().setFlag(flag).setPath(path.toProto()).build()
+    return ProjectProto.CcCompilerPathFlag(flag = flag, path = path);
   }
 
   companion object {
