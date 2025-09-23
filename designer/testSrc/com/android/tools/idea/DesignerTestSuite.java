@@ -24,7 +24,6 @@ import org.junit.runner.RunWith;
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({
   DesignerTestSuite.class,
-  NlDesignSurfaceTest.class, // Flaky
 })
 public class DesignerTestSuite extends IdeaTestSuiteBase {
 
