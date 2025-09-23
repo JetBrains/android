@@ -19,6 +19,7 @@ import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.error.RenderIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.visuallint.VisualLintErrorType
 import com.android.utils.HtmlBuilder
@@ -140,17 +141,51 @@ class DesignerCommonIssueSidePanelTest {
   }
 
   @Test
-  fun testFixWithAiButtonWhenFlagEnabled() {
+  fun testFixWithAiButtonWhenUiCheckFlagIsEnabled() {
     assertFixWithAiButton(fixWithAiFlagEnabled = true)
   }
 
   @Test
-  fun testFixWithAiButtonNotVisibleWhenFlagDisabled() {
+  fun testFixWithAiButtonNotVisibleUiCheckFlagIsFlagDisabled() {
     assertFixWithAiButton(fixWithAiFlagEnabled = false)
   }
 
   @Test
-  fun testFixWithAiButtonNotVisibleWhenComposeRenderErrorFlagIsOff() {
+  fun testFixWithAiButtonVisibleWhenComposeRenderErrorFlagIsEnabled() {
+    StudioFlags.COMPOSE_RENDER_ERROR_FIX_WITH_AI.override(true)
+
+    val issue = MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR)
+    val nlRenderIssue = RenderIssueProvider.NlRenderIssueWrapper.wrapIssue(issue, null)
+    val panel =
+      DesignerCommonIssueSidePanel(rule.project, rule.testRootDisposable) {
+        object : AnAction("Fix with AI") {
+          override fun actionPerformed(e: AnActionEvent) {}
+        }
+      }
+    panel.loadIssueNode(TestIssueNode(nlRenderIssue))
+
+    val actionToolbar = panel.findDescendant(ActionToolbar::class.java)
+    assertNotNull(actionToolbar)
+  }
+
+  @Test
+  fun testFixWithAiButtonNotVisibleWhenComposeRenderErrorFlagIsEnabledAndInvalidIssueType() {
+    StudioFlags.COMPOSE_RENDER_ERROR_FIX_WITH_AI.override(true)
+    val issue = TestIssue()
+    val panel =
+      DesignerCommonIssueSidePanel(rule.project, rule.testRootDisposable) {
+        object : AnAction("Fix with AI") {
+          override fun actionPerformed(e: AnActionEvent) {}
+        }
+      }
+    panel.loadIssueNode(TestIssueNode(issue))
+
+    val actionToolbar = panel.findDescendant(ActionToolbar::class.java)
+    assertNull(actionToolbar)
+  }
+
+  @Test
+  fun testFixWithAiButtonNotVisibleWhenComposeRenderErrorFlagIsDisabled() {
     StudioFlags.COMPOSE_RENDER_ERROR_FIX_WITH_AI.override(false)
 
     val issue = TestIssue()

@@ -49,7 +49,6 @@ public class RenderIssueProvider extends IssueProvider {
   /**
    * Wrapper class to use a {@link RenderErrorModel.Issue} as an {@link Issue}
    */
-  @VisibleForTesting
   public static class NlRenderIssueWrapper extends Issue {
 
     private final RenderErrorModel.Issue myIssue;
