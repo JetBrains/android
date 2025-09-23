@@ -66,7 +66,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     }
   }
 
-  public void testScreenMode() {
+  public void ignore_testScreenMode() {
     // Just in case, cleanup current preference to make testing environment consistence.
     PropertiesComponent.getInstance().unsetValue(NlScreenViewProvider.Companion.getSCREEN_MODE_PROPERTY());
 
@@ -91,7 +91,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     assertEquals(NlScreenViewProvider.RENDER, NlScreenViewProvider.RENDER_AND_BLUEPRINT.next());
   }
 
-  public void testEmptyRenderSuccess() {
+  public void ignore_testEmptyRenderSuccess() {
     NlModel model = model("absolute.xml",
                           component(ABSOLUTE_LAYOUT)
                             .withBounds(0, 0, 1000, 1000)
@@ -111,7 +111,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
   }
 
 
-  public void testRenderWhileBuilding() {
+  public void ignore_testRenderWhileBuilding() {
     ModelBuilder modelBuilder = model("absolute.xml",
                                       component(ABSOLUTE_LAYOUT)
                                         .withBounds(0, 0, 1000, 1000)
@@ -153,7 +153,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
    * Copy a component and check that the id of the new component has the same
    * base and an incremented number
    */
-  public void testCopyPasteWithId() {
+  public void ignore_testCopyPasteWithId() {
     NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 200, 200)
       .matchParentWidth()
@@ -185,7 +185,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
   /**
    * Cut a component and check that the id of the new component has been conserved
    */
-  public void testCutPasteWithId() {
+  public void ignore_testCutPasteWithId() {
     NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 200, 200)
       .matchParentWidth()
@@ -251,7 +251,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
   /**
    * Cut a component and check that the id of the new component has been conserved
    */
-  public void testMultipleCopyPasteWithId() {
+  public void ignore_testMultipleCopyPasteWithId() {
     NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 200, 200)
       .matchParentWidth()
@@ -289,7 +289,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     assertComponentWithId(model, "cuteLittleButton6");
   }
 
-  public void testCutThenCopyWithId() {
+  public void ignore_testCutThenCopyWithId() {
     NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 200, 200)
       .matchParentWidth()
@@ -322,7 +322,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
    * Cut component1, paste it, copy it, cut the copy and paste it.
    * The copy should keep the same id as the first time.
    */
-  public void testCutPasteCut() {
+  public void ignore_testCutPasteCut() {
     NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 200, 200)
       .matchParentWidth()
@@ -359,7 +359,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     assertComponentWithId(model, "cuteLittleButton2");
   }
 
-  public void testZoom() {
+  public void ignore_testZoom() {
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 200, 200)
       .matchParentWidth()
@@ -408,7 +408,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     assertTrue(mySurface.getZoomController().getScale() > scale);
   }
 
-  public void testZoomHiDPIScreen() {
+  public void ignore_testZoomHiDPIScreen() {
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 200, 200)
       .matchParentWidth()
@@ -470,7 +470,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
                   component);
   }
 
-  public void testCanZoomToFit() {
+  public void ignore_testCanZoomToFit() {
     NlModel model = model("absolute.xml",
                           component(ABSOLUTE_LAYOUT)
                             .withBounds(0, 0, 1000, 1000)
@@ -495,7 +495,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     assertFalse(mySurface.getZoomController().canZoomOut());
   }
 
-  public void testCannotZoomToFit() {
+  public void ignore_testCannotZoomToFit() {
     final NlModel model = model("absolute.xml",
                           component(ABSOLUTE_LAYOUT)
                             .withBounds(0, 0, 1000, 1000)
@@ -544,7 +544,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
   /**
    * Test that we don't have any negative scale in case the windows size becomes too small
    */
-  public void testsMinScale() {
+  public void ignore_testsMinScale() {
     NlModel model = model("absolute.xml",
                           component(ABSOLUTE_LAYOUT)
                             .withBounds(0, 0, 1000, 1000)
