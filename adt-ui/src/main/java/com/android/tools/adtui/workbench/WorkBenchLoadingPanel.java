@@ -126,7 +126,7 @@ public class WorkBenchLoadingPanel extends JPanel {
   public void abortLoading(@NotNull String message,
                            @Nullable @SuppressWarnings("SameParameterValue") Icon icon,
                            @Nullable UrlData helpUrlData,
-                           @Nullable ActionData actionData) {
+                           @Nullable ActionData... actionData) {
     if (myMessagePanel != null) {
       super.remove(myMessagePanel);
     }

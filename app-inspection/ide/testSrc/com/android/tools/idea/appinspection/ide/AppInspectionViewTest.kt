@@ -675,11 +675,11 @@ class AppInspectionViewTest {
           .isEqualTo(
             AppInspectionBundle.message("inspector.launch.error", tab.provider.displayName)
           )
-        assertThat(initialComponent.actionData!!.text)
+        assertThat(initialComponent.actionData.single()!!.text)
           .isEqualTo(AppInspectionBundle.message("inspector.launch.restart"))
 
         setUpRelaunchingCommandHandler()
-        launch(uiDispatcher) { initialComponent.actionData!!.callback() }
+        launch(uiDispatcher) { initialComponent.actionData.single()!!.callback() }
         val restartedComponent = tab.componentUpdates.first()
         assertThat(restartedComponent).isNotSameAs(initialComponent)
         assertThat(restartedComponent).isInstanceOf(TestAppInspectorTabComponent::class.java)
