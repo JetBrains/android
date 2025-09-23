@@ -35,9 +35,9 @@ import com.android.tools.idea.streaming.actions.FloatingXrToolbarState
 import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.actions.ToggleFloatingXrToolbarAction
 import com.android.tools.idea.streaming.core.AbstractDisplayView
+import com.android.tools.idea.streaming.core.DeviceDisplayListener
 import com.android.tools.idea.streaming.core.DisplayType
 import com.android.tools.idea.streaming.core.FloatingToolbarContainer
-import com.android.tools.idea.streaming.core.StreamingDevicePanel
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
@@ -556,7 +556,7 @@ class DeviceToolWindowPanelTest {
   fun testMultipleDisplays() {
     device = agentRule.connectDevice("Pixel 7 Pro", 33, Dimension(1440, 3120))
     val displayIds = mutableSetOf<Int>()
-    panel.addDeviceDisplayListener(object: StreamingDevicePanel.DeviceDisplayListener {
+    panel.addDeviceDisplayListener(object: DeviceDisplayListener {
       override fun displayAdded(displayView: AbstractDisplayView) {
         displayIds.add(displayView.displayId)
       }
