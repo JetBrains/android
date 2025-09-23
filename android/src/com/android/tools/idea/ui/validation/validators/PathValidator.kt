@@ -122,11 +122,10 @@ class PathValidator
       withWarning(WHITESPACE)
       if (SystemInfo.isWindows) {
         withError(ILLEGAL_WINDOWS_FILENAME)
-        withError(NON_ASCII_CHARS)
       } else {
         withWarning(ILLEGAL_WINDOWS_FILENAME)
-        withWarning(NON_ASCII_CHARS)
       }
+      withWarning(NON_ASCII_CHARS)
       withError(PARENT_DIRECTORY_NOT_WRITABLE)
       withError(LOCATION_IS_A_FILE)
       withError(LOCATION_IS_ROOT)
