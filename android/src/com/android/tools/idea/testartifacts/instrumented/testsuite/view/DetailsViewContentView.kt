@@ -65,7 +65,11 @@ import javax.swing.JPanel
 /**
  * Shows detailed tests results for a selected device.
  */
-class DetailsViewContentView(parentDisposable: Disposable, private val project: Project, logger: AndroidTestSuiteLogger) {
+class DetailsViewContentView(
+  parentDisposable: Disposable,
+  private val project: Project,
+  logger: AndroidTestSuiteLogger
+) : Disposable {
 
   /**
    * Returns the root panel.
@@ -89,18 +93,22 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
   @VisibleForTesting
   val myJourneyScreenshotsTab: TabInfo
   @VisibleForTesting val logsTab: TabInfo
-  @VisibleForTesting val tabs: JBTabs = createTabs(project, parentDisposable)
+  @VisibleForTesting val tabs: JBTabs = createTabs(project, this)
 
   @VisibleForTesting
   var lastTabSelectedByUser: TabInfo? = null
 
   private var myAndroidDevice: AndroidDevice? = null
   private var myAndroidTestCaseResult: AndroidTestCaseResult? = null
-  private var myLogcat = ""
-  private var myErrorStackTrace = ""
+  @get:VisibleForTesting var myLogcat: String = ""
+    private set
+  @get:VisibleForTesting var myErrorStackTrace: String = ""
+    private set
   private var needsRefreshLogsView: Boolean = true
 
   init {
+    Disposer.register(parentDisposable, this)
+
     // Journey results tab
     myJourneysResultsPanel = JourneysResultsPanel(project)
     myJourneyScreenshotsTab = TabInfo(myJourneysResultsPanel)
@@ -127,7 +135,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
 
     // Create logcat tab.
     myLogsView = ConsoleViewImpl(project,  /*viewer=*/true)
-    Disposer.register(parentDisposable, myLogsView)
+    Disposer.register(this, myLogsView)
     logger.addImpressionWhenDisplayed(
       myLogsView.component,
       ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_LOG_VIEW)
@@ -146,7 +154,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
 
     // Create benchmark tab.
     myBenchmarkView = ConsoleViewImpl(project,  /*viewer=*/true)
-    Disposer.register(parentDisposable, myBenchmarkView)
+    Disposer.register(this, myBenchmarkView)
     val benchmarkViewWithVerticalToolbar = NonOpaquePanel(BorderLayout())
     benchmarkViewWithVerticalToolbar.add(myBenchmarkView.component, BorderLayout.CENTER)
     val benchmarkViewToolbar = ActionManager.getInstance().createActionToolbar(
@@ -419,6 +427,12 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
       view.lastTabSelectedByUser = info
       return doChangeSelection.run()
     }
+  }
+
+  override fun dispose() {
+    // Clear the logcat message to reduce the impact of the memory leak. b/446684393.
+    myLogcat = ""
+    myErrorStackTrace = ""
   }
 }
 
