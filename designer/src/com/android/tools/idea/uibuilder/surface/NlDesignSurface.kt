@@ -362,9 +362,7 @@ internal constructor(
       .invokeOnCompletion { refreshProgressIndicator.processFinish() }
   }
 
-  fun findSceneViewRectangles(): Map<SceneView, Rectangle?> {
-    return sceneViewPanel.findSceneViewRectangles()
-  }
+  fun findSceneViewRectangles() = sceneViewPanel.findSceneViewRectangles()
 
   override val layoutManagerSwitcher: LayoutManagerSwitcher?
     get() = sceneViewPanel.layout as? LayoutManagerSwitcher

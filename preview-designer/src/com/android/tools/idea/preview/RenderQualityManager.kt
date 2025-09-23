@@ -17,13 +17,14 @@ package com.android.tools.idea.preview
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.rendering.isCancellationException
 import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import java.awt.Rectangle
+import java.util.WeakHashMap
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.math.abs
@@ -81,10 +82,11 @@ class DefaultRenderQualityManager(
   private val myPolicy: RenderQualityPolicy,
   private val onQualityChangeMightBeNeeded: () -> Unit,
 ) : RenderQualityManager {
-  private val scope = AndroidCoroutineScope(mySurface)
+  private val scope = mySurface.createCoroutineScope()
 
   private val uiDataLock = ReentrantLock()
-  @GuardedBy("uiDataLock") private var sceneViewRectangles: Map<SceneView, Rectangle?> = emptyMap()
+  @GuardedBy("uiDataLock")
+  private val sceneViewRectangles: WeakHashMap<SceneView, Rectangle?> = WeakHashMap()
   @GuardedBy("uiDataLock") private var scrollRectangle: Rectangle? = null
   @GuardedBy("uiDataLock") private var isUiDataUpToDate = false
 
@@ -118,7 +120,8 @@ class DefaultRenderQualityManager(
         // Update rectangles if any UI related dimensions changed or a sceneView instance changed
         !isUiDataUpToDate || sceneManager.sceneViews.any { !sceneViewRectangles.containsKey(it) }
       ) {
-        sceneViewRectangles = mySurface.findSceneViewRectangles()
+        sceneViewRectangles.clear()
+        sceneViewRectangles.putAll(mySurface.findSceneViewRectangles())
         scrollRectangle = mySurface.currentScrollRectangle
         isUiDataUpToDate = true
       }
