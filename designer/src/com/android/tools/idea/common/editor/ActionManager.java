@@ -23,6 +23,8 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.SceneViewErrorsPanel;
 import com.android.tools.idea.common.surface.sceneview.LabelPanel;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManagerUtilsKt;
+import com.android.tools.rendering.ProblemSeverity;
+import com.android.tools.rendering.RenderResult;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
@@ -30,6 +32,7 @@ import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 import kotlinx.coroutines.CoroutineScope;
@@ -100,7 +103,7 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
    * Creates the actions for the pop-up menu (a.k.a. context menu) for the given {@link NlComponent}.
    *
    * @param leafComponent The target component for the pop-up menu (e.g. The right-clicked component)
-   * @param mouseEvent The mouse event that triggered the pop-up menu.
+   * @param mouseEvent    The mouse event that triggered the pop-up menu.
    */
   public abstract @NotNull DefaultActionGroup getPopupMenuActions(@Nullable NlComponent leafComponent, @NotNull MouseEvent mouseEvent);
 
@@ -129,6 +132,7 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
 
   /**
    * Creates a {@link LabelPanel} with a label for a {@link SceneView}.
+   *
    * @param isPartOfOrganizationGroup defines whenever created {@link LabelPanel} belongs to Organization Group.
    */
   public @NotNull LabelPanel createSceneViewLabel(@NotNull SceneView sceneView,
@@ -139,19 +143,39 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
   }
 
   /**
+   * Returns a list of throwables of the errors in the given {@link SceneView}.
+   */
+  @NotNull
+  private static List<Throwable> getErrorThrowables(@NotNull SceneView sceneView) {
+    RenderResult result = LayoutlibSceneManagerUtilsKt.getRenderResultIfError(sceneView);
+    if (result == null) {
+      return Collections.emptyList();
+    }
+    return result
+      .getLogger()
+      .getMessages()
+      .stream()
+      .filter(it -> it.getSeverity() == ProblemSeverity.ERROR && it.getThrowable() != null)
+      .map(it -> it.getThrowable())
+      .collect(Collectors.toList());
+  }
+
+  /**
    * Creates a {@link SceneViewErrorsPanel} for a {link SceneView}.
    */
   public @NotNull JComponent createErrorPanel(@NotNull SceneView sceneView) {
-    return new SceneViewErrorsPanel(() -> {
-      // If there is a valid image, never display the error panel.
-      if (LayoutlibSceneManagerUtilsKt.hasValidImage(sceneView)){
+    return new SceneViewErrorsPanel(
+      () -> getErrorThrowables(sceneView),
+      () -> {
+        // If there is a valid image, never display the error panel.
+        if (LayoutlibSceneManagerUtilsKt.hasValidImage(sceneView)) {
+          return SceneViewErrorsPanel.Style.HIDDEN;
+        }
+        if (LayoutlibSceneManagerUtilsKt.getRenderResultIfError(sceneView) != null) {
+          return SceneViewErrorsPanel.Style.SOLID;
+        }
         return SceneViewErrorsPanel.Style.HIDDEN;
-      }
-      if (LayoutlibSceneManagerUtilsKt.hasRenderErrors(sceneView)) {
-        return SceneViewErrorsPanel.Style.SOLID;
-      }
-      return SceneViewErrorsPanel.Style.HIDDEN;
-    });
+      });
   }
 
   /**
