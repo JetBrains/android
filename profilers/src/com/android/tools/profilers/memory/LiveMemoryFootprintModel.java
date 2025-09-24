@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.model.DurationDataModel;
 import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
@@ -110,5 +111,14 @@ public class LiveMemoryFootprintModel extends LiveDataModel {
 
   public void exit() {
     myUpdatables.forEach(updatable -> myProfilers.getUpdater().unregister(updatable));
+  }
+
+  /**
+   * Manually triggers a refresh of the underlying duration data models. This is used to force an initial data load for completed
+   * sessions, where the initial "range changed" event is missed before UI components have registered their listeners.
+   */
+  public void refreshModels() {
+    myMemoryDataProvider.getDetailedMemoryUsage().getGcDurations().changed(DurationDataModel.Aspect.DURATION_DATA);
+    myMemoryDataProvider.getDetailedMemoryUsage().getAllocationSamplingRateDurations().changed(DurationDataModel.Aspect.DURATION_DATA);
   }
 }
