@@ -28,11 +28,11 @@ import javax.swing.Icon
  * Service responsible for showing notification popups related to ADB device pairing (see
  * [WiFiPairingController])
  */
-@UiThread
 interface WiFiPairingNotificationService {
 
   val project: Project
 
+  @UiThread
   fun showBalloon(
     title: String,
     content: String,
