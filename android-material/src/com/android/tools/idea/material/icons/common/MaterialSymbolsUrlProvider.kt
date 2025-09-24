@@ -132,64 +132,83 @@ data class SymbolConfiguration(
 }
 
 /** Provides utility functions for obtaining URLs and file paths for Material Symbols fonts. */
-class MaterialSymbolsFontUrlProvider {
+interface MaterialSymbolsUrlProvider {
+  /**
+   * Generates the [URL] used to download a font file for Material Symbols from the remote server
+   *
+   * @param type [Symbols] enum instance indicating which style of Material Symbols to download the
+   *   font for
+   * @return the [URL] used for download
+   */
+  fun getRemoteFontUrl(type: Symbols): URL
 
-  companion object {
-    private const val HOST =
-      "https://raw.githubusercontent.com/google/material-design-icons/master/"
-    private const val EXTENSION = ".ttf"
+  /**
+   * Gets the local directory where the font files used for Material Symbols rendering are located
+   *
+   * @param type The [Symbols] type
+   * @return The [File] object of the directory
+   */
+  fun getLocalFontDirectoryFile(type: Symbols): File?
 
-    private const val FOLDER = "variablefont/"
+  /**
+   * Gets the local [File] where a font file used for Material Symbols rendering is located
+   *
+   * @param type The [Symbols] type
+   * @return The [File] object of the font file
+   */
+  fun getLocalFontFile(type: Symbols): File?
 
-    /**
-     * Generates the [URL] used to download a font file for Material Symbols from the remote server
-     *
-     * @param type [Symbols] enum instance indicating which style of Material Symbols to download
-     *   the font for
-     * @return the [URL] used for download
-     */
-    fun getRemoteFontUrl(type: Symbols): URL {
-      val fileName = type.remoteFileName
-      val encodedString = URLEncoder.encode(fileName, "UTF-8")
-      val url = URL(HOST + FOLDER + encodedString + EXTENSION)
+  /**
+   * Gets the local [File] where all the resources related to Material Symbols reside (Metadata,
+   * Fonts, Vector Drawables)
+   */
+  fun getLocalSymbolsPath(): File?
 
-      return url
-    }
+  /**
+   * Checks if the font file for a particular Material Symbol style exists already in the Sdk
+   *
+   * @param type The [Symbols] type
+   * @return If the font file exists in the Sdk
+   */
+  fun hasFontPathInSdk(type: Symbols): Boolean
+}
 
-    /**
-     * Gets the local directory where the font files used for Material Symbols rendering are located
-     *
-     * @param type The [Symbols] type
-     * @return The [File] object of the directory
-     */
-    fun getLocalFontDirectoryFile(type: Symbols): File? {
-      val directoryName = type.localName
-      val fontDirectoryPath =
-        MaterialIconsUtils.getIconsSdkTargetPath()?.resolve(FOLDER + directoryName) ?: return null
-      return fontDirectoryPath
-    }
+/**
+ * Provides the resources defined in [MaterialSymbolsUrlProvider] from the SDK.
+ *
+ * It is the only implementation of this interface used in the source code, as this pattern was
+ * implemented for testing purposes
+ */
+class SymbolsSdkUrlProvider : MaterialSymbolsUrlProvider {
+  private val HOST = "https://raw.githubusercontent.com/google/material-design-icons/master/"
+  private val EXTENSION = ".ttf"
 
-    /**
-     * Gets the local [File] where a font file used for Material Symbols rendering is located
-     *
-     * @param type The [Symbols] type
-     * @return The [File] object of the font file
-     */
-    fun getLocalFontFile(type: Symbols): File? {
-      val fileName = type.localName + EXTENSION
-      val fontFilePath = getLocalFontDirectoryFile(type)?.resolve(fileName) ?: return null
-      return fontFilePath
-    }
+  private val FOLDER = "variablefont/"
 
-    /**
-     * Checks if the font file for a particular Material Symbol style exists already in the Sdk
-     *
-     * @param type The [Symbols] type
-     * @return If the font file exists in the Sdk
-     */
-    fun hasFontPathInSdk(type: Symbols): Boolean {
-      val fontFilePath = getLocalFontFile(type)
-      return fontFilePath?.exists() ?: false
-    }
+  override fun getRemoteFontUrl(type: Symbols): URL {
+    val fileName = type.remoteFileName
+    val encodedString = URLEncoder.encode(fileName, "UTF-8")
+    val url = URL(HOST + FOLDER + encodedString + EXTENSION)
+    return url
+  }
+
+  override fun getLocalFontDirectoryFile(type: Symbols): File? {
+    val directoryName = type.localName
+    val fontDirectoryPath =
+      MaterialIconsUtils.getIconsSdkTargetPath()?.resolve(FOLDER + directoryName) ?: return null
+    return fontDirectoryPath
+  }
+
+  override fun getLocalFontFile(type: Symbols): File? {
+    val fileName = type.localName + EXTENSION
+    val fontFilePath = getLocalFontDirectoryFile(type)?.resolve(fileName) ?: return null
+    return fontFilePath
+  }
+
+  override fun getLocalSymbolsPath() = MaterialIconsUtils.getIconsSdkTargetPath()
+
+  override fun hasFontPathInSdk(type: Symbols): Boolean {
+    val fontFilePath = getLocalFontFile(type)
+    return fontFilePath?.exists() ?: false
   }
 }

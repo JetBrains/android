@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.assetstudio.assets
 
-import com.android.tools.idea.material.icons.common.MaterialSymbolsFontUrlProvider
 import com.android.tools.idea.material.icons.common.SymbolConfiguration
 import com.android.tools.idea.material.icons.metadata.MaterialMetadataIcon
 import com.intellij.ide.highlighter.XmlFileType
@@ -42,7 +41,7 @@ private const val BASE_XML =
         'opsz' %s"
     android:text="\u%s"
     android:textSize="100px"
-    android:background="%s"
+    android:background="@android:color/transparent"
     android:textColor="%s"
     />
   """
@@ -64,7 +63,7 @@ private fun Color.toHex(): String {
 private fun getXMLString(
   symbolConfiguration: SymbolConfiguration,
   unicode: Int,
-  backgroundColor: Color,
+  fontPath: String,
 ): String {
   val fillStr = symbolConfiguration.filled.compareTo(false).toString()
   val weightStr = symbolConfiguration.weight.coerceIn(100, 700).toString()
@@ -72,13 +71,12 @@ private fun getXMLString(
   val opticalSizeStr = symbolConfiguration.opticalSize.coerceIn(20, 48).toString()
   val hexCodeStr = unicode.toString(16)
   return BASE_XML.format(
-    MaterialSymbolsFontUrlProvider.getLocalFontFile(symbolConfiguration.type)!!.path,
+    fontPath,
     fillStr,
     weightStr,
     gradeStr,
     opticalSizeStr,
     hexCodeStr,
-    backgroundColor.toHex(),
     JBColor.foreground().toHex(),
   )
 }
@@ -107,11 +105,11 @@ private fun getFileName(
 class MaterialSymbolsVirtualFile(
   val symbolConfiguration: SymbolConfiguration,
   val metadata: MaterialMetadataIcon,
-  backgroundColor: Color,
+  fontPath: String,
 ) :
   LightVirtualFile(
     getFileName(symbolConfiguration, metadata),
-    getXMLString(symbolConfiguration, metadata.unicode, backgroundColor),
+    getXMLString(symbolConfiguration, metadata.unicode, fontPath),
   ),
   BackedVirtualFile,
   Comparable<MaterialSymbolsVirtualFile> {
