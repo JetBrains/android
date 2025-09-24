@@ -128,9 +128,21 @@ class StudioRendererPanel(
 
     // The order of the draw operations matters.
     if (overlay != null) {
-      val bounds = renderModel.inspectorModel.root.layoutBounds
+      val overlayBounds =
+        transform
+          // revert the scale applied to the transform
+          .createInverse()
+          .createTransformedShape(scaledDisplayRectangle)
+          .bounds
       g2d.composite = AlphaComposite.SrcOver.derive(renderModel.overlayAlpha.value)
-      g2d.drawImage(overlay, bounds.x, bounds.y, bounds.width, bounds.height, null)
+      g2d.drawImage(
+        overlay,
+        overlayBounds.x,
+        overlayBounds.y,
+        overlayBounds.width,
+        overlayBounds.height,
+        null,
+      )
     }
     renderModel.recomposingNodes.value.forEach { it.paint(g2d, fill = true) }
     renderModel.visibleNodes.value.forEach { it.paint(g2d) }
