@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.resolveWorkspacePathUnchecked
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.swing.FakeMouse
@@ -681,6 +680,24 @@ class StudioRendererPanelTest {
   }
 
   @Test
+  fun testOverlayAlphaZero() = runTest {
+    val file = resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile()
+    val imageBytes = file.readBytes()
+
+    val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
+
+    val (model, renderer) = createRenderer(scope = scope)
+    model.setOverlay(imageBytes)
+    model.setOverlayTransparency(0f)
+
+    testScheduler.advanceUntilIdle()
+
+    val renderImage = createRenderImage()
+    paint(renderImage, renderer)
+    assertSimilar(renderImage, testName.methodName, maxDiff = 0.2)
+  }
+
+  @Test
   fun testViewsFromOtherDisplayAreNotRendered() {
     val customModel =
       model(disposable, displayId = 1) {
@@ -774,12 +791,16 @@ class StudioRendererPanelTest {
    * Check that the generated [renderImage] is similar to the one stored on disk. If the image
    * stored on disk does not exist, it is created.
    */
-  private fun assertSimilar(renderImage: BufferedImage, imageName: String) {
+  private fun assertSimilar(
+    renderImage: BufferedImage,
+    imageName: String,
+    maxDiff: Double = DIFF_THRESHOLD,
+  ) {
     val testDataPath = TEST_DATA_PATH.resolve(this.javaClass.simpleName)
     ImageDiffUtil.assertImageSimilar(
-      TestUtils.resolveWorkspacePathUnchecked(testDataPath.resolve("$imageName.png").pathString),
+      resolveWorkspacePathUnchecked(testDataPath.resolve("$imageName.png").pathString),
       renderImage,
-      DIFF_THRESHOLD,
+      maxDiff,
     )
   }
 }
