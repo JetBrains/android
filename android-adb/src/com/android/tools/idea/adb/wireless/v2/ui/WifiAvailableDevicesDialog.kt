@@ -104,10 +104,17 @@ class WifiAvailableDevicesDialog(
   internal fun WifiDialog() {
     val state by
       produceState<MdnsSupportState?>(null) {
-        value = wifiPairingService.checkMdnsSupport()
-        if (value == MdnsSupportState.Supported) {
-          startTrackingMdnsServices()
+        val supportState = wifiPairingService.checkMdnsSupport()
+        if (supportState != MdnsSupportState.Supported) {
+          value = supportState
+          return@produceState
         }
+        if (!wifiPairingService.isTrackMdnsServiceAvailable()) {
+          value = MdnsSupportState.AdbVersionTooLow
+          return@produceState
+        }
+        value = supportState
+        trackMdnsServices()
       }
 
     when (state) {
@@ -196,7 +203,7 @@ class WifiAvailableDevicesDialog(
     dialog.init()
   }
 
-  private suspend fun startTrackingMdnsServices() {
+  private suspend fun trackMdnsServices() {
     wifiPairingService
       .trackMdnsServices()
       .map { it.tlsMdnsServices.toSet() }
