@@ -25,8 +25,6 @@ import com.google.common.math.Quantiles
 import com.intellij.openapi.util.SystemInfo
 import org.junit.Rule
 import org.junit.Test
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
 
 class EditorPerformanceTest {
   @JvmField
@@ -67,29 +65,12 @@ class EditorPerformanceTest {
       studio.closeAllEditorTabs()
     }
 
-    private fun disableGradleDownloadSourcesAutomatically(system: AndroidSystem) {
-      val filetypePaths = system.installation.configDir.resolve("options/advancedSettings.xml")
-      Files.createDirectories(filetypePaths.parent)
-
-      Files.writeString(filetypePaths, """
-      <application>
-        <component name="AdvancedSettings">
-          <option name="settings">
-            <map>
-              <entry key="gradle.download.sources.automatically" value="false" />
-            </map>
-          </option>
-        </component>
-      </application>""", StandardCharsets.UTF_8)
-    }
-
     fun doTestCompletionAndGotoDeclaration(system: AndroidSystem, watcher: MemoryDashboardNameProviderWatcher) {
       // Create a new android project, and set a fixed distribution
       val project = AndroidProject("tools/adt/idea/android/integration/testData/architecture-samples")
       // Don't show Decompiler legal notice in case of resolving in .class files.
       system.installation.acceptLegalDecompilerNotice()
 
-      disableGradleDownloadSourcesAutomatically(system)
       // Create a maven repo and set it up in the installation and environment
       system.installRepo(MavenRepo("tools/adt/idea/android/integration/editor_performance_test_deps.manifest"))
       project.setDistribution("tools/external/gradle/gradle-8.6-bin.zip")
