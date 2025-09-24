@@ -2638,12 +2638,26 @@ public final class StudioFlags {
 
   // region Wifi 2.0
   private static final FlagGroup WIFI_V2 = new FlagGroup(FLAGS, "wifiv2", "Wifi V2");
-  public static final Flag<Boolean> WIFI_V2_ENABLED =
+  public static final Flag<Boolean> WIFI_V2_DIALOG =
     new BooleanFlag(
       WIFI_V2,
-      "enable",
-      "Enable Wifi 2.0",
-      "Enable Wifi 2.0 feature");
+      "wifiv2.dialog.enable",
+      "Enable Wifi 2.0 dialog",
+      "Enable Wifi 2.0 dialog");
+
+  public static final Flag<Boolean> WIFI_V2_DEVICE_MANAGER =
+    new BooleanFlag(
+      WIFI_V2,
+      "wifiv2.device.manager.enable",
+      "Enable Wifi 2.0 in device manager",
+      "Show wifi pairable devices in device manager");
+
+  public static final Flag<Boolean> WIFI_V2_DEVICE_MANAGER_HIDE_SETTINGS =
+    new BooleanFlag(
+      WIFI_V2,
+      "wifiv2.hide.settings.enable",
+      "Wifi pairable devices in device manager hide settings",
+      "Enable settings to hide wifi pairable devices in device manager");
   // endregion Wifi 2.0
 
   // region Benchmark Survey
