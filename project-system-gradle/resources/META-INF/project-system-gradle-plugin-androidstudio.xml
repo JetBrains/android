@@ -21,8 +21,6 @@
                                     implementation="com.android.tools.idea.projectsystem.gradle.DisableGradleProjectOpenProcessor"/>
     <applicationInitializedListener id="Startup.HideNotApplicableSettings"
                                     implementation="com.android.tools.idea.projectsystem.gradle.AndroidStudioSettingsInitializer"/>
-    <applicationInitializedListener id="DisableGradleAttachSourcesProvider"
-                                    implementation="com.android.tools.idea.projectsystem.gradle.DisableGradleAttachSourcesProvider" />
     <applicationInitializedListener id="DisableKotlinGradleTomlVersionCatalogReferencesSearcher"
                                     implementation="com.android.tools.idea.projectsystem.gradle.DisableKotlinGradleTomlVersionCatalogReferencesSearcher" />
 
