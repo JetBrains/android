@@ -309,10 +309,13 @@ class StudioRendererPanel(
   }
 
   private fun updateOverlay(byteArray: ByteArray?) {
-    if (byteArray != null) {
-      overlay = ImageIO.read(ByteArrayInputStream(byteArray))
-      refresh()
-    }
+    overlay =
+      if (byteArray != null) {
+        ImageIO.read(ByteArrayInputStream(byteArray))
+      } else {
+        null
+      }
+    refresh()
   }
 
   private inner class LayoutInspectorPopupHandler : PopupHandler() {
