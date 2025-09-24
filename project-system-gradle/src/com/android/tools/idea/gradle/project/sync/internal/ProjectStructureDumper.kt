@@ -21,11 +21,11 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfigurati
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetConfiguration
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.projectsystem.gradle.LINKED_ANDROID_GRADLE_MODULE_GROUP
+import com.android.tools.idea.projectsystem.gradle.LinkedAndroidGradleModuleGroup
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.profiler.CpuProfilerConfig
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
-import com.android.tools.idea.projectsystem.gradle.LinkedAndroidGradleModuleGroup
 import com.android.tools.idea.util.toIoFile
 import com.android.utils.FileUtils
 import com.intellij.execution.RunManagerEx
@@ -305,7 +305,7 @@ private fun ProjectDumper.dump(library: Library) {
   val androidVersion = library.name?.getAndroidVersionFromDependencyName()
   head("LIBRARY") { library.name?.removeAndroidVersionsFromDependencyNames()?.replaceKnownPaths() }
   nest {
-    val orderRootTypes = OrderRootType.getAllPersistentTypes().toList() + OrderRootType.DOCUMENTATION
+    val orderRootTypes = OrderRootType.getAllPersistentTypesList() + OrderRootType.DOCUMENTATION
     orderRootTypes.forEach { type ->
       library
         .getUrls(type).toList().let {
