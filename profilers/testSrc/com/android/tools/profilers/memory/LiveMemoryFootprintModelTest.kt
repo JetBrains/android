@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory
 
+import com.android.tools.adtui.model.DurationDataModel
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.StreamingTimeline
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel
@@ -26,6 +27,7 @@ import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 class LiveMemoryFootprintModelTest {
@@ -158,5 +160,19 @@ class LiveMemoryFootprintModelTest {
     myLiveMemoryFootprintModel = LiveMemoryFootprintModel(myProfilers, mockMemoryDataProvider)
     val result = myLiveMemoryFootprintModel.name
     assertThat(result).isEqualTo("LIVE_MEMORY")
+  }
+
+  @Test
+  fun `refreshModels triggers change on duration models`() {
+    // Arrange: The mock data provider is a deep stub, so we can get the mock duration models from it.
+    val mockGcDurations = myLiveMemoryFootprintModel.detailedMemoryUsage.gcDurations
+    val mockAllocationDurations = myLiveMemoryFootprintModel.detailedMemoryUsage.allocationSamplingRateDurations
+
+    // Act: Call the method under test.
+    myLiveMemoryFootprintModel.refreshModels()
+
+    // Assert: Verify that the `changed` method was called on both duration models with the correct aspect.
+    verify(mockGcDurations).changed(DurationDataModel.Aspect.DURATION_DATA)
+    verify(mockAllocationDurations).changed(DurationDataModel.Aspect.DURATION_DATA)
   }
 }

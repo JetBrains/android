@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers
 
+import com.android.tools.adtui.model.DurationDataModel
 import com.android.tools.adtui.RangeTooltipComponent
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.model.ViewBinder
@@ -109,6 +110,15 @@ class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) :
     topPanel.add(TimelineScrollbar(liveStage.timeline, topPanel), TabularLayout.Constraint(4, 0))
 
     component.add(topPanel, BorderLayout.CENTER)
+
+    // For completed sessions, the data models miss the initial "range changed" event from the timeline, so they never load their data.
+    // By manually triggering a refresh here in the view's constructor, we can be certain that the view is ready and listening for the
+    // resulting "data changed" event, ensuring the data is loaded and displayed correctly.
+    //
+    // This is only necessary for models whose UI components are event-driven (like the DurationDataRenderer for GC events). Other models
+    // (like LiveCpuUsageModel) use a "continuous pull" pattern where the view redraws on every frame, which is not affected by the
+    // initial missed event.
+    stage.liveModels.filterIsInstance<LiveMemoryFootprintModel>().firstOrNull()?.refreshModels()
   }
 
   private val isLiveRecordingOngoing get() = stage.studioProfilers.sessionsManager.isSessionAlive

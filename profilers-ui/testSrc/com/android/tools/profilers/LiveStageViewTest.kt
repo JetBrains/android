@@ -33,10 +33,12 @@ import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.ui.components.JBLabel
+import com.android.tools.profilers.memory.LiveMemoryFootprintModel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -305,5 +307,22 @@ class LiveStageViewTest {
     Mockito.doReturn(isSessionAlive).whenever(spySessionManager).isSessionAlive
     val stageView = LiveStageView(myProfilersView, myStage)
     return stageView.toolbar
+  }
+
+  @Test
+  fun viewCreationTriggersModelRefresh() {
+    // Arrange: Create a spy of the real LiveMemoryFootprintModel from the stage created in setUp().
+    // A spy lets us verify interactions (e.g., method calls) while still using the real object's implementation,
+    // avoiding the need to mock every dependency of the stage and timeline.
+    val realMemoryModel = myStage.liveModels.filterIsInstance<LiveMemoryFootprintModel>().first()
+    val spyMemoryModel = Mockito.spy(realMemoryModel)
+    // Replace the real model in the stage's list with our spy.
+    myStage.liveModels[myStage.liveModels.indexOf(realMemoryModel)] = spyMemoryModel
+
+    // Act: Create the LiveStageView. The constructor should trigger the refresh.
+    LiveStageView(myProfilersView, myStage)
+
+    // Assert: Verify that refreshModels() was called exactly once on our spy.
+    verify(spyMemoryModel).refreshModels()
   }
 }
