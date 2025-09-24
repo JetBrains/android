@@ -643,6 +643,27 @@ class StudioRendererPanelTest {
   }
 
   @Test
+  fun testOverlayIsRemoved() = runTest {
+    val file = resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile()
+    val imageBytes = file.readBytes()
+
+    val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
+
+    val (model, renderer) = createRenderer(scope = scope)
+    model.setOverlay(imageBytes)
+
+    testScheduler.advanceUntilIdle()
+
+    model.setOverlay(null)
+
+    testScheduler.advanceUntilIdle()
+
+    val renderImage = createRenderImage()
+    paint(renderImage, renderer)
+    assertSimilar(renderImage, testName.methodName)
+  }
+
+  @Test
   fun testOverlayAlpha() = runTest {
     val file = resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile()
     val imageBytes = file.readBytes()
