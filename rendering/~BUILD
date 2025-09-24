@@ -116,6 +116,7 @@ kotlin_test(
         "@maven//:org.bouncycastle.bcpkix-jdk18on",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect",
         "@maven//:org.jetbrains.kotlin.kotlin-test",
+        "@maven//:org.mockito.mockito-core",
         "@maven//:org.ow2.asm.asm-commons",
         "@maven//:org.ow2.asm.asm-util",
     ],
