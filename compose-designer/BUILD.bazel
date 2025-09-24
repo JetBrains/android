@@ -115,6 +115,7 @@ jvm_library(
         "//android/preview-fast-compile",
         "//libraries/grpc",
         "//android/visual-lint",
+        "//platform/refactoring",
     ],
 )
 
@@ -214,6 +215,7 @@ jvm_library(
         "//android/preview-fast-compile:preview-fast-compile_test_lib",
         "//libraries/grpc:grpc_test_lib",
         "//android/visual-lint:visual-lint_test_lib",
+        "//platform/refactoring:refactoring_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.compose-designer` end
@@ -617,6 +619,8 @@ jvm_library(
         "//android/execution/common:common_test_lib",
         "//libraries/kotlinx/coroutines/test",
         "//libraries/kotlinx/coroutines/test:test_test_lib",
+        "//platform/refactoring",
+        "//platform/refactoring:refactoring_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.compose-designer.tests` end

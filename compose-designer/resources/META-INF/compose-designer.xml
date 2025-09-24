@@ -129,6 +129,7 @@
                                   implementationClass="com.android.tools.idea.compose.preview.util.device.ComposeDeviceSpecInjectionContributor"/>
 
     <deadCode implementation="com.android.tools.idea.compose.preview.PreviewEntryPoint"/>
+    <automaticRenamerFactory implementation="com.android.tools.idea.compose.preview.rename.ComposePreviewAutomaticRenamerFactory" order="first"/>
 
     <postStartupActivity
         implementation="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationStartupActivity"/>
