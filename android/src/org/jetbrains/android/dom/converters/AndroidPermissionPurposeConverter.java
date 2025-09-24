@@ -16,7 +16,10 @@
 package org.jetbrains.android.dom.converters;
 
 import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.TAG_GENERAL_PURPOSE;
 import static com.android.SdkConstants.TAG_PERMISSION;
+import static com.android.SdkConstants.TAG_SPECIFIC_PURPOSE;
+import static com.android.SdkConstants.TAG_VALID_GENERAL_PURPOSE;
 import static com.android.SdkConstants.TAG_VALID_SPECIFIC_PURPOSE;
 
 import com.android.sdklib.IAndroidTarget;
@@ -24,6 +27,7 @@ import com.android.tools.sdk.AndroidPlatform;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.ResolvingConverter;
@@ -48,23 +52,24 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 /**
- * Provides completion for <specific-purpose> tags in the manifest.
+ * Provides completion for <specific-purpose> and <general-purpose> tags in the manifest.
  */
 public class AndroidPermissionPurposeConverter extends ResolvingConverter<String> {
   private static final Logger LOG = Logger.getInstance(AndroidPermissionPurposeConverter.class);
 
-  // TODO (b/442571488) - Add support for general purposes.
   private static class PermissionPurposes {
     @NotNull final List<String> specificPurposes;
+    @NotNull final List<String> generalPurposes;
 
-    PermissionPurposes(List<String> specificPurposes) {
+    PermissionPurposes(List<String> specificPurposes, List<String> generalPurposes) {
       this.specificPurposes = Collections.unmodifiableList(specificPurposes);
+      this.generalPurposes = Collections.unmodifiableList(generalPurposes);
     }
   }
 
   // A map where the key is the build hash and the value is a map containing information in the
   // permission versions XML file from the SDK; the keys of the inner map are permission names
-  // and values are a list of corresponding valid specific purposes for the permission.
+  // and values are a list of corresponding valid specific and general purposes for the permission.
   private static Map<String, Map<String, PermissionPurposes>> purposeMapCache = new ConcurrentHashMap<>();
 
   @NotNull
@@ -92,8 +97,23 @@ public class AndroidPermissionPurposeConverter extends ResolvingConverter<String
 
     Map<String, PermissionPurposes> permissionsMap = getPermissionsMap(context);
     PermissionPurposes permissionPurposes = permissionsMap.get(permissionName);
+    if (permissionPurposes == null) {
+      return Collections.emptyList();
+    }
+    XmlTag tag = invocationElement.getXmlTag();
+    if (tag == null) {
+      return Collections.emptyList();
+    }
+    String tagName = tag.getLocalName();
 
-    return permissionPurposes != null ? permissionPurposes.specificPurposes : Collections.emptyList();
+    if (TAG_SPECIFIC_PURPOSE.equals(tagName)) {
+      return permissionPurposes.specificPurposes;
+    }
+    else if (TAG_GENERAL_PURPOSE.equals(tagName)) {
+      return permissionPurposes.generalPurposes;
+    }
+
+    return Collections.emptyList();
   }
 
   @Nullable
@@ -156,20 +176,27 @@ public class AndroidPermissionPurposeConverter extends ResolvingConverter<String
       if (permissionName.isEmpty()) {
         continue;
       }
-      List<String> specificPurposes = new ArrayList<>();
-      NodeList purposeNodes = permissionElement.getElementsByTagName(TAG_VALID_SPECIFIC_PURPOSE);
-      for (int j = 0; j < purposeNodes.getLength(); j++) {
-        Element purposeElement = (Element)purposeNodes.item(j);
-        String purposeName = purposeElement.getAttribute(ATTR_NAME);
-        if (!purposeName.isEmpty()) {
-          specificPurposes.add(purposeName);
-        }
-      }
-      if (!specificPurposes.isEmpty()) {
-        mapBuilder.put(permissionName, new PermissionPurposes(specificPurposes));
+      List<String> specificPurposes = getValidPurposes(
+        permissionElement.getElementsByTagName(TAG_VALID_SPECIFIC_PURPOSE));
+      List<String> generalPurposes = getValidPurposes(
+        permissionElement.getElementsByTagName(TAG_VALID_GENERAL_PURPOSE));
+      if (!specificPurposes.isEmpty() || !generalPurposes.isEmpty()) {
+        mapBuilder.put(permissionName, new PermissionPurposes(specificPurposes, generalPurposes));
       }
     }
 
     return mapBuilder;
+  }
+
+  private static List<String> getValidPurposes(NodeList purposeNodes) {
+    List<String> purposes = new ArrayList<>();
+    for (int j = 0; j < purposeNodes.getLength(); j++) {
+      Element purposeElement = (Element)purposeNodes.item(j);
+      String purposeName = purposeElement.getAttribute(ATTR_NAME);
+      if (!purposeName.isEmpty()) {
+        purposes.add(purposeName);
+      }
+    }
+    return purposes;
   }
 }
