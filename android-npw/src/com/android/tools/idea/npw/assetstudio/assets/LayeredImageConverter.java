@@ -83,6 +83,10 @@ class LayeredImageConverter {
     Element vector = new Element(SdkConstants.TAG_VECTOR);
     extractPathLayers(vector, image.getLayers());
 
+    if (vector.children.isEmpty()) {
+      throw new IOException("No vector shapes were found in the selected file.");
+    }
+
     vector
       .attribute("width", String.valueOf((int) bounds.getWidth()) + "dp")
       .attribute("height", String.valueOf((int) bounds.getHeight()) + "dp")
