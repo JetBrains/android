@@ -128,6 +128,12 @@ class FakeUi @JvmOverloads constructor(
    */
   fun layout() {
     val layoutRoot = UIUtil.getParentOfType(JRootPane::class.java, root) ?: root
+    doLayout(layoutRoot)
+    layoutRoot.revalidate()
+    doLayout(layoutRoot)
+  }
+
+  private fun doLayout(layoutRoot: Component) {
     TreeWalker(layoutRoot).descendantStream().forEach(Component::doLayout)
   }
 

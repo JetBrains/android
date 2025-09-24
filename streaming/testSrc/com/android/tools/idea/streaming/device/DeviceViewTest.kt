@@ -593,7 +593,7 @@ internal class DeviceViewTest {
       val expected = when {
         view.displayOrientationQuadrants % 2 == 0 -> SetMaxVideoResolutionMessage(view.displayId, Dimension(270, 586))
         SystemInfo.isMac && !isRunningInBazelTest() -> SetMaxVideoResolutionMessage(view.displayId, Dimension(294, 372))
-        else -> SetMaxVideoResolutionMessage(view.displayId, Dimension(294, 400))
+        else -> SetMaxVideoResolutionMessage(view.displayId, Dimension(294, 380))
       }
       assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(expected)
       executeAction("android.device.rotate.right", view, project)

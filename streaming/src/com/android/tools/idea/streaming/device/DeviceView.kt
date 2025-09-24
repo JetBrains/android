@@ -265,11 +265,12 @@ internal class DeviceView(
     val resized = width != this.width || height != this.height
     super.setBounds(x, y, width, height)
     if (resized && physicalWidth > 0 && physicalHeight > 0) {
-      if (connectionState == ConnectionState.INITIAL) {
-        connectToAgentAsync(initialDisplayOrientation)
-      }
-      else {
-        updateVideoSize()
+      EventQueue.invokeLater { // Postpone reaction to size change to reduce redundant video size changes.
+        when (connectionState) {
+          ConnectionState.INITIAL -> connectToAgentAsync(initialDisplayOrientation)
+          ConnectionState.CONNECTED -> updateVideoSize()
+          else -> {}
+        }
       }
     }
   }
