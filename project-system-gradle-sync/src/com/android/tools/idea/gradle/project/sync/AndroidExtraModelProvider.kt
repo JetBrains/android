@@ -44,7 +44,7 @@ import java.time.Instant
  * To avoid interference with Java serialization this class redirects calls to its methods to a non-serializable
  * [AndroidExtraModelProviderImpl], which is instantiated on demand and the reference is stored in a Java-serialization-transitive property.
  */
-class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : ProjectImportModelProvider {
+class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions, private val cachedModels: ModelProviderCachedData) : ProjectImportModelProvider {
 
   @Transient
   private var _impl: AndroidExtraModelProviderImpl? = null
@@ -56,10 +56,14 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
     buildModels: Collection<GradleBuild>,
     modelConsumer: GradleModelConsumer,
   ) {
+    if (!cachedModels.shouldRunLegacyModelProviders) {
+      return
+    }
     for (buildModel in buildModels) {
       impl.populateProjectModels(controller, buildModel.projects, modelConsumer)
       impl.populateBuildModels(controller, buildModel, modelConsumer)
     }
+    cachedModels.clear()
   }
 }
 

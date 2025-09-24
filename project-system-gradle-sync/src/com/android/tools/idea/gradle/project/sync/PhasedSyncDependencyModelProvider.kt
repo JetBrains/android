@@ -116,6 +116,9 @@ class PhasedSyncDependencyModelProvider(val syncOptions: SyncActionOptions, val 
     result.filterNotNull().forEach { (gradleProject, variantWithPostProcessor) ->
       val ideVariant = variantWithPostProcessor.postProcess()
       modelConsumer.consumeProjectModel(gradleProject, ideVariant, IdeVariantCore::class.java)
+      // Store the selected variant to later create IdeAndroidModels with it in the additional model provider. IdeAndroidModels is still
+      // required by a few different code paths.
+      cachedData.selectedVariant[gradleProject] = ideVariant
     }
 
     exceptionsPerProject
@@ -127,7 +130,6 @@ class PhasedSyncDependencyModelProvider(val syncOptions: SyncActionOptions, val 
         val issuesAndExceptions = IdeAndroidSyncIssuesAndExceptions(syncIssues = emptyList(), exceptions = exceptions)
         modelConsumer.consumeProjectModel(gradleProject, issuesAndExceptions, IdeAndroidSyncIssuesAndExceptions::class.java)
       }
-    cachedData.data.clear()
   }
 }
 

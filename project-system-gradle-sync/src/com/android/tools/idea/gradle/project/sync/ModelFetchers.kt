@@ -194,7 +194,7 @@ internal fun BuildController.findNativeModuleModel(
   }
 }
 
-private val androidArtifactSuffixes = listOf("", "unitTest", "androidTest", "screenshotTest", "testFixtures")
+internal val androidArtifactSuffixes = listOf("", "unitTest", "androidTest", "screenshotTest", "testFixtures")
 
 /** Kotlin related models that are fetched when importing Android projects. */
 internal data class AllKotlinModels(val kotlinModel: KotlinGradleModel?, val kaptModel: KaptGradleModel?)
