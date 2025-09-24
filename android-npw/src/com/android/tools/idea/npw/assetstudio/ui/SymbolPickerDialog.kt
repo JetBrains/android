@@ -23,8 +23,12 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.localization.MessageBundleReference
 import com.android.tools.idea.material.icons.MaterialSymbolsLoader
 import com.android.tools.idea.material.icons.MaterialSymbolsLoader.Companion.getMaterialSymbolsFontsAndMetadata
+import com.android.tools.idea.material.icons.common.MaterialIconsMetadataUrlProvider
+import com.android.tools.idea.material.icons.common.MaterialSymbolsUrlProvider
+import com.android.tools.idea.material.icons.common.SdkMetadataUrlProvider
 import com.android.tools.idea.material.icons.common.SymbolConfiguration
 import com.android.tools.idea.material.icons.common.Symbols
+import com.android.tools.idea.material.icons.common.SymbolsSdkUrlProvider
 import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
 import com.android.tools.idea.npw.assetstudio.assets.MaterialSymbolsVirtualFile
 import com.android.tools.idea.ui.resourcemanager.plugin.LayoutRenderOptions
@@ -40,10 +44,10 @@ import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.CollectionComboBoxModel
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.HyperlinkLabel
-import com.intellij.ui.JBColor
 import com.intellij.ui.SearchTextField
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
@@ -82,6 +86,8 @@ import kotlinx.coroutines.launch
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.PropertyKey
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val BUNDLE_NAME = "messages.SymbolPickerBundle"
 
@@ -91,8 +97,12 @@ private const val ICON_HEIGHT = 64
 private const val TEXT_HEIGHT = 16
 private const val MAX_CACHE_SIZE = 2048
 
-class SymbolPickerDialog(facet: AndroidFacet, parentDisposable: Disposable) :
-  DialogWrapper(false), DataProvider, Disposable {
+class SymbolPickerDialog(
+  facet: AndroidFacet,
+  parentDisposable: Disposable,
+  materialSymbolsUrlProvider: MaterialSymbolsUrlProvider? = null,
+  materialIconsMetadataUrlProvider: MaterialIconsMetadataUrlProvider? = null,
+) : DialogWrapper(false), DataProvider {
 
   // The following arrays are the possible values for the visual customizations of Material Symbols
   // Check out https://fonts.google.com/icons/ for more details
@@ -129,12 +139,10 @@ class SymbolPickerDialog(facet: AndroidFacet, parentDisposable: Disposable) :
     super.init()
     setupUI()
     title = SymbolsBundle.message("title")
-    Disposer.register(parentDisposable, this)
+    Disposer.register(parentDisposable, myDisposable)
   }
 
-  private val coroutineScope = this.createCoroutineScope()
-
-  private var time: Long = 0
+  private val coroutineScope = myDisposable.createCoroutineScope()
 
   private lateinit var selectedIcon: VdIcon
 
@@ -157,11 +165,13 @@ class SymbolPickerDialog(facet: AndroidFacet, parentDisposable: Disposable) :
       updateIconList()
     }
 
-  private val disposable = Disposer.newDisposable("SketchImporter")
-  private val imageCache = ImageCache.createImageCache(disposable, null)
+  private val imageCache = ImageCache.createImageCache(myDisposable, null)
+  private val materialSymbolsUrlProvider = materialSymbolsUrlProvider ?: SymbolsSdkUrlProvider()
+  private val materialIconsMetadataUrlProvider =
+    materialIconsMetadataUrlProvider ?: SdkMetadataUrlProvider()
   private val resourceResolver =
     ConfigurationManager.getOrCreateInstance(facet.module)
-      .getConfiguration(facet.module.project.projectFile!!)
+      .getConfiguration(LightVirtualFile())
       .getResourceResolver()
 
   // The default panel color in darcula mode is too dark given that our icons are all black.
@@ -195,8 +205,10 @@ class SymbolPickerDialog(facet: AndroidFacet, parentDisposable: Disposable) :
   private val layoutModel = TableModel(MaterialSymbolsVirtualFile::class, filteredSymbolList)
 
   private val iconTable = JBTable()
+  private var isBusy = true
 
   init {
+    isBusy = true
     setupTable()
     ensureFontsAndMetadataAreDownloaded(false)
 
@@ -237,8 +249,11 @@ class SymbolPickerDialog(facet: AndroidFacet, parentDisposable: Disposable) :
     val items = metadata.categories.toMutableList()
     categoriesBoxNameMap.clear()
     items.forEach { item -> categoriesBoxNameMap[item.replaceFirstChar { it.uppercase() }] = item }
-    items.sort()
-    items.add(0, SymbolsBundle.message("categories.all"))
+    items.apply {
+      sort()
+      replaceAll { it.replaceFirstChar { char -> char.uppercase() } }
+      add(0, SymbolsBundle.message("categories.all"))
+    }
     val collectionComboBoxModel =
       CollectionComboBoxModel(items, SymbolsBundle.message("categories.all"))
     categoriesBox.model = collectionComboBoxModel
@@ -249,7 +264,12 @@ class SymbolPickerDialog(facet: AndroidFacet, parentDisposable: Disposable) :
 
     coroutineScope.launch {
       val vdIcon =
-        MaterialSymbolsLoader.loadVdIcon(icon.symbolConfiguration, icon.metadata, metadata)
+        MaterialSymbolsLoader.loadVdIcon(
+          icon.symbolConfiguration,
+          icon.metadata,
+          metadata,
+          materialSymbolsUrlProvider,
+        )
       selectedIcon = vdIcon
       isOKActionEnabled = true
     }
@@ -291,13 +311,25 @@ class SymbolPickerDialog(facet: AndroidFacet, parentDisposable: Disposable) :
       imageCache.clear()
     }
 
-    layoutIconList =
-      metadata.icons
-        .filter { !it.unsupportedFamilies.contains(style.displayName) }
-        .map { MaterialSymbolsVirtualFile(symbolConfiguration, it, JBColor.WHITE) }
+    val fontPath = materialSymbolsUrlProvider.getLocalFontFile(symbolConfiguration.type)
 
-    iconListMap[symbolConfiguration] = layoutIconList
-    iconTable.emptyText.text = SymbolsBundle.message("table.empty")
+    if (fontPath?.exists() ?: false) {
+      layoutIconList =
+        metadata.icons
+          .filter { !it.unsupportedFamilies.contains(style.displayName) }
+          .map {
+            MaterialSymbolsVirtualFile(
+              symbolConfiguration,
+              it,
+              materialSymbolsUrlProvider.getLocalFontFile(symbolConfiguration.type)!!.path,
+            )
+          }
+
+      iconListMap[symbolConfiguration] = layoutIconList
+      iconTable.emptyText.text = SymbolsBundle.message("table.empty")
+    } else {
+      iconTable.emptyText.text = SymbolsBundle.message("table.no_font")
+    }
   }
 
   /**
@@ -308,7 +340,6 @@ class SymbolPickerDialog(facet: AndroidFacet, parentDisposable: Disposable) :
    * This is triggered on [searchField], [categoriesBox] and [layoutIconList] update
    */
   private fun updateFilter() {
-    time = System.currentTimeMillis()
     filteredSymbolList.clear()
     val filtered =
       layoutIconList
@@ -328,7 +359,8 @@ class SymbolPickerDialog(facet: AndroidFacet, parentDisposable: Disposable) :
     repaint()
   }
 
-  override fun createCenterPanel(): JComponent {
+  @VisibleForTesting
+  public override fun createCenterPanel(): JComponent {
     return loadingPanel
   }
 
@@ -340,21 +372,49 @@ class SymbolPickerDialog(facet: AndroidFacet, parentDisposable: Disposable) :
     return selectedIcon
   }
 
+  @TestOnly
+  fun isBusy(): Boolean {
+    return isBusy
+  }
+
   /**
    * Function that, if required, downloads missing font files and metadata to the Sdk
    *
    * @param forceMetadataDownload even though some automatic checks for updates are in-place, we
    *   allow the user to manually trigger a redownload through the [refreshButton]
    */
-  private fun ensureFontsAndMetadataAreDownloaded(forceMetadataDownload: Boolean) {
+  private fun ensureFontsAndMetadataAreDownloaded(forceDownload: Boolean) {
     coroutineScope.launch {
       loadingPanel.startLoading()
       try {
         getMaterialSymbolsFontsAndMetadata(
+          materialSymbolsUrlProvider,
+          materialIconsMetadataUrlProvider,
           coroutineScope,
-          forceMetadataDownload,
-          ({ metadata = it }),
+          forceDownload,
+          ({
+            // Metadata contains duplicates of entries with the same codepoint, some only allowing
+            // for Material Symbols, others only for Material Icons. Since these have the same name,
+            // codepoint, but different unsupported families and categories, they spoil the metadata
+            // causing issues, so we need to filter them out
+            val displayNames = Symbols.entries.map { it.displayName }
+            val icons =
+              it.icons.filter { icon ->
+                !icon.unsupportedFamilies.toMutableList().containsAll(displayNames)
+              }
+            val categories =
+              icons.flatMap { icon -> icon.categories.toList() }.distinct().sorted().toTypedArray()
+            metadata =
+              MaterialIconsMetadata(
+                it.host,
+                urlPattern = it.urlPattern,
+                families = displayNames.toTypedArray(),
+                icons = icons.toTypedArray(),
+                categories = categories,
+              )
+          }),
         )
+        isBusy = false
       } catch (e: Exception) {
         println("Error: " + e.message)
       } finally {
@@ -464,10 +524,7 @@ class SymbolPickerDialog(facet: AndroidFacet, parentDisposable: Disposable) :
       }
     }
 
-    filledCheckBox.addItemListener {
-      time = System.currentTimeMillis()
-      updateIconList()
-    }
+    filledCheckBox.addItemListener { updateIconList() }
 
     // Add listeners for the refresh button and the search field
     refreshButton.addActionListener { ensureFontsAndMetadataAreDownloaded(true) }
@@ -591,9 +648,6 @@ class SymbolPickerDialog(facet: AndroidFacet, parentDisposable: Disposable) :
     if (gridWidth != null) gbc.gridwidth = gridWidth
     return gbc
   }
-
-  /** Must override to keep visibility modifier from defaulting to private */
-  override fun dispose() = super.dispose()
 
   class TableModel<T : Any>(
     private val columnClass: KClass<T>,

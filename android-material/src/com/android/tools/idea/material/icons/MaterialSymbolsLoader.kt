@@ -19,9 +19,9 @@ import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ide.common.vectordrawable.VdIcon
 import com.android.tools.idea.material.icons.common.BundledMetadataUrlProvider
-import com.android.tools.idea.material.icons.common.MaterialSymbolsFontUrlProvider
+import com.android.tools.idea.material.icons.common.MaterialIconsMetadataUrlProvider
+import com.android.tools.idea.material.icons.common.MaterialSymbolsUrlProvider
 import com.android.tools.idea.material.icons.common.SdkMaterialIconsUrlProvider
-import com.android.tools.idea.material.icons.common.SdkMetadataUrlProvider
 import com.android.tools.idea.material.icons.common.SymbolConfiguration
 import com.android.tools.idea.material.icons.common.Symbols
 import com.android.tools.idea.material.icons.download.MaterialSymbolsUpdater
@@ -43,45 +43,53 @@ import java.nio.file.Path
 class MaterialSymbolsLoader {
   companion object {
 
-    private const val METADATA_REFRESH_INTERVAL_DAYS = 3
+    private const val REFRESH_INTERVAL_DAYS = 14
 
     /**
      * Function that ensures Material Symbols Metadata and font files are downloaded and up-to-date
      *
      * @param scope The [CoroutineScope] for launching all downloads
-     * @param forceMetadataDownload If true, will update the metadata regardless of automated
-     *   internal checks
+     * @param forceDownload If true, will update resources regardless of automated internal checks
      * @param callback Callback function to be called when metadata has been provided
      */
     suspend fun getMaterialSymbolsFontsAndMetadata(
+      materialSymbolsUrlProvider: MaterialSymbolsUrlProvider,
+      materialIconsMetadataUrlProvider: MaterialIconsMetadataUrlProvider,
       scope: CoroutineScope,
-      forceMetadataDownload: Boolean,
+      forceDownload: Boolean,
       callback: @UiThread (MaterialIconsMetadata) -> Unit,
     ) {
       val symbolDownloadsToStart =
-        Symbols.entries.filter { !MaterialSymbolsFontUrlProvider.hasFontPathInSdk(it) }
+        Symbols.entries.filter {
+          !materialSymbolsUrlProvider.hasFontPathInSdk(it) ||
+            checkAgeForRefresh(
+              materialSymbolsUrlProvider.getLocalFontFile(it)!!,
+              REFRESH_INTERVAL_DAYS,
+            ) ||
+            forceDownload
+        }
       val downloads: MutableList<Job> =
-        symbolDownloadsToStart.map { scope.launch { downloadFonts(it) } }.toMutableList()
+        symbolDownloadsToStart
+          .map { scope.launch { downloadFonts(it, materialSymbolsUrlProvider) } }
+          .toMutableList()
 
-      val metadataParsingResult = tryToParseMetadata(callback)
-      if (!metadataParsingResult || forceMetadataDownload) {
-        downloads.add(scope.launch { downloadMaterialMetadata() })
+      val metadataParsingResult = tryToParseMetadata(callback, materialIconsMetadataUrlProvider)
+      if (!metadataParsingResult || forceDownload) {
+        downloads.add(scope.launch { downloadMaterialMetadata(materialSymbolsUrlProvider) })
       }
 
       downloads.joinAll()
 
-      if (!metadataParsingResult || forceMetadataDownload) {
-        tryToParseMetadata(callback)
+      if (!metadataParsingResult || forceDownload) {
+        tryToParseMetadata(callback, materialIconsMetadataUrlProvider)
       }
     }
 
     @WorkerThread
-    private fun downloadFonts(type: Symbols) {
-      MaterialSymbolsUpdater.downloadFontFiles(
-        MaterialSymbolsFontUrlProvider.getRemoteFontUrl(type),
-        type,
-      )
-    }
+    private fun downloadFonts(
+      type: Symbols,
+      materialSymbolsUrlProvider: MaterialSymbolsUrlProvider,
+    ) = MaterialSymbolsUpdater.downloadFontFiles(type, materialSymbolsUrlProvider)
 
     /**
      * Tries to locate and parse [MaterialIconsMetadata] in the Sdk, on failure falls back
@@ -90,9 +98,12 @@ class MaterialSymbolsLoader {
      * @param callback Callback function to be called when metadata has been successfully parsed
      * @return true if parsing the file in the Sdk succeeded, false otherwise
      */
-    private fun tryToParseMetadata(callback: (MaterialIconsMetadata) -> Unit): Boolean {
-      val metadataUrl = SdkMetadataUrlProvider().getMetadataUrl() ?: return false
-      val shouldRefresh = checkAgeForRefresh(Path.of(metadataUrl.toURI()).toFile(), METADATA_REFRESH_INTERVAL_DAYS)
+    private fun tryToParseMetadata(
+      callback: (MaterialIconsMetadata) -> Unit,
+      materialIconsUrlProvider: MaterialIconsMetadataUrlProvider,
+    ): Boolean {
+      val metadataUrl = materialIconsUrlProvider.getMetadataUrl() ?: return false
+      val shouldRefresh = checkAgeForRefresh(Path.of(metadataUrl.toURI()).toFile(), REFRESH_INTERVAL_DAYS)
       val metadataParseResult = metadataUrl.let { MaterialIconsMetadata.parse(it) }
 
       if (metadataParseResult.isSuccess) {
@@ -119,8 +130,8 @@ class MaterialSymbolsLoader {
     }
 
     @WorkerThread
-    private fun downloadMaterialMetadata() {
-      MaterialSymbolsUpdater.downloadMetadataFile()
+    private fun downloadMaterialMetadata(materialSymbolsUrlProvider: MaterialSymbolsUrlProvider) {
+      MaterialSymbolsUpdater.downloadMetadataFile(materialSymbolsUrlProvider)
     }
 
     /**
@@ -137,6 +148,7 @@ class MaterialSymbolsLoader {
       symbolConfiguration: SymbolConfiguration,
       iconMetadata: MaterialMetadataIcon,
       iconsMetadata: MaterialIconsMetadata,
+      materialSymbolsUrlProvider: MaterialSymbolsUrlProvider,
     ): VdIcon {
       val iconFileName = symbolConfiguration.toFileName(iconMetadata.name)
       val loader = MaterialVdIconsLoader(iconsMetadata, SdkMaterialIconsUrlProvider())
@@ -147,7 +159,11 @@ class MaterialSymbolsLoader {
         return loadedIcon
       }
 
-      MaterialSymbolsUpdater.downloadVdIcon(symbolConfiguration, iconMetadata.name)
+      MaterialSymbolsUpdater.downloadVdIcon(
+        symbolConfiguration,
+        iconMetadata.name,
+        materialSymbolsUrlProvider,
+      )
 
       return loader.loadVdIcon(
         symbolConfiguration.type.localName,

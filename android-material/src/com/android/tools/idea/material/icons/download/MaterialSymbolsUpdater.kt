@@ -16,10 +16,9 @@
 package com.android.tools.idea.material.icons.download
 
 import com.android.annotations.concurrency.Slow
-import com.android.tools.idea.material.icons.common.MaterialSymbolsFontUrlProvider
+import com.android.tools.idea.material.icons.common.MaterialSymbolsUrlProvider
 import com.android.tools.idea.material.icons.common.SymbolConfiguration
 import com.android.tools.idea.material.icons.common.Symbols
-import com.android.tools.idea.material.icons.utils.MaterialIconsUtils
 import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.METADATA_FILE_NAME
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.download.DownloadableFileService
@@ -50,8 +49,9 @@ class MaterialSymbolsUpdater {
      * @param type The [Symbols] type that corresponds to the font pack rquired
      */
     @Slow
-    fun downloadFontFiles(url: URL, type: Symbols) {
-      val folder = MaterialSymbolsFontUrlProvider.getLocalFontDirectoryFile(type) ?: return
+    fun downloadFontFiles(type: Symbols, materialSymbolsUrlProvider: MaterialSymbolsUrlProvider) {
+      val url = materialSymbolsUrlProvider.getRemoteFontUrl(type)
+      val folder = materialSymbolsUrlProvider.getLocalFontDirectoryFile(type) ?: return
       val fileName = type.remoteFileName
       downloadAndMove(
         url.toString(),
@@ -64,8 +64,8 @@ class MaterialSymbolsUpdater {
 
     /** Downloads the metadata file for the Material Symbols */
     @Slow
-    fun downloadMetadataFile() {
-      val folder = MaterialIconsUtils.getIconsSdkTargetPath() ?: return
+    fun downloadMetadataFile(materialSymbolsUrlProvider: MaterialSymbolsUrlProvider) {
+      val folder = materialSymbolsUrlProvider.getLocalSymbolsPath() ?: return
       downloadAndMove(
         METADATA_DOWNLOAD_URL,
         DOWNLOADED_METADATA_FILE_NAME,
@@ -84,9 +84,14 @@ class MaterialSymbolsUpdater {
      * @param symbolName The name of the Material Symbol to be downloaded
      */
     @Slow
-    fun downloadVdIcon(symbolConfiguration: SymbolConfiguration, symbolName: String) {
+    fun downloadVdIcon(
+      symbolConfiguration: SymbolConfiguration,
+      symbolName: String,
+      materialSymbolsUrlProvider: MaterialSymbolsUrlProvider,
+    ) {
       val folder =
-        MaterialIconsUtils.getIconsSdkTargetPath()
+        materialSymbolsUrlProvider
+          .getLocalSymbolsPath()
           ?.resolve("${symbolConfiguration.type.localName}/${symbolName}") ?: return
       val fileName = symbolConfiguration.toFileName(symbolName)
       val remoteUrl = symbolConfiguration.toUrlString(symbolName)
