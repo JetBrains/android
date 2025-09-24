@@ -511,6 +511,59 @@ class PreviewAnnotationGeneratorTest {
   }
 
   @Test
+  fun `toPreviewAnnotationText with avd device generates device spec`() = runTest {
+    val avdId = "_android_virtual_device_id_my_avd"
+    val manager = ConfigurationManager.getOrCreateInstance(projectRule.fixture.module)
+    val avdDevice =
+      Device.Builder()
+        .apply {
+          setTagId("")
+          setName("My AVD")
+          setId(avdId)
+          setManufacturer("Google")
+          addSoftware(com.android.sdklib.devices.Software())
+          addState(
+            State().apply {
+              name = "default"
+              isDefaultState = true
+              orientation = ScreenOrientation.PORTRAIT
+              hardware =
+                Hardware().apply {
+                  screen =
+                    Screen().apply {
+                      yDimension = 1920
+                      xDimension = 1080
+                      pixelDensity = Density.HIGH
+                    }
+                }
+            }
+          )
+        }
+        .build()
+
+    val configuration = Configuration.create(manager, FolderConfiguration())
+    configuration.setEffectiveDevice(avdDevice, avdDevice.defaultState)
+
+    val previewElement = createPreviewElement(name = "AvdDevicePreview")
+
+    val generatedText = toPreviewAnnotationText(previewElement, configuration, "AvdDevicePreview")
+
+    // For an AVD, a 'spec' should be generated instead of an 'id'.
+    // 1080px at 240dpi -> 1080 * (160/240) = 720dp
+    // 1920px at 240dpi -> 1920 * (160/240) = 1280dp
+    assertThat(generatedText)
+      .isEqualTo(
+        """
+      @androidx.compose.ui.tooling.preview.Preview(
+          name = "AvdDevicePreview",
+          device = "spec:width=720dp,height=1280dp,dpi=240"
+      )
+      """
+          .trimIndent()
+      )
+  }
+
+  @Test
   fun `toPreviewAnnotationText handles backgroundColor with hash prefix`() = runTest {
     val previewElement =
       createPreviewElement(
