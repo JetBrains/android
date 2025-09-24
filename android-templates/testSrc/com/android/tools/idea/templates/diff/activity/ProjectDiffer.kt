@@ -53,8 +53,10 @@ class ProjectDiffer(template: Template, goldenDirName: String) :
  */
 private fun diffDirectories(goldenDir: Path, projectDir: Path, printPrefix: String = "") {
   val goldenFiles = getNonEmptyDirEntries(goldenDir, printPrefix)
+  goldenFiles.removeAll(FILES_TO_IGNORE)
+
   val projectFiles = getNonEmptyDirEntries(projectDir, printPrefix)
-  projectFiles.removeAll(FILES_TO_IGNORE.toSet())
+  projectFiles.removeAll(FILES_TO_IGNORE)
 
   Assert.assertEquals(goldenFiles, projectFiles)
 

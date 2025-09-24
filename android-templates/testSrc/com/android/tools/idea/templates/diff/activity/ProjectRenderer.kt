@@ -51,7 +51,7 @@ import java.nio.file.Path
 
 // We ignore these directories because they just contain metadata uninteresting to templates, and it
 // saves space for golden files
-val FILES_TO_IGNORE = emptyArray<String>()
+val FILES_TO_IGNORE = setOf("OWNERS")
 
 // val FILES_TO_IGNORE = arrayOf(".gradle", ".idea", "local.properties")
 
