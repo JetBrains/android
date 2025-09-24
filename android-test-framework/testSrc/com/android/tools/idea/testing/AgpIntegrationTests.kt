@@ -23,7 +23,9 @@ import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_11
 import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_17
 import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8
 
-const val GRADLE_SNAPSHOT_VERSION = "9.1.0-20250726001724+0000"
+// This Gradle version is exclusively used for the Sync Comparison Benchmarks and gets updated frequently. Please do not use for other purposes
+const val GRADLE_SNAPSHOT_VERSION = "9.2.0-20250924014502+0000"
+const val GRADLE_DECLARATIVE_SNAPSHOT_VERSION = "9.1.0-20250726001724+0000"
 // For available versions: https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml
 const val KOTLIN_SNAPSHOT_VERSION = "2.2.20-dev-8371"
 
@@ -102,7 +104,7 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
 
   AGP_LATEST_KOTLIN_SNAPSHOT(agpVersion = null, gradleVersion = null, kotlinVersion = KOTLIN_SNAPSHOT_VERSION, compileSdk = "34"),
   AGP_LATEST_GRADLE_SNAPSHOT(agpVersion = null, gradleVersion = GRADLE_SNAPSHOT_VERSION, compileSdk = "34"),
-  AGP_DECLARATIVE_GRADLE_SNAPSHOT(agpVersion = null, gradleVersion = GRADLE_SNAPSHOT_VERSION, compileSdk = "34"),
+  AGP_DECLARATIVE_GRADLE_SNAPSHOT(agpVersion = null, gradleVersion = GRADLE_DECLARATIVE_SNAPSHOT_VERSION, compileSdk = "34"),
   // Must be last to represent the newest version.
   AGP_LATEST(null, gradleVersion = null, compileSdk = "34");
   override fun toString(): String {

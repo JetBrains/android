@@ -39,7 +39,6 @@ import com.android.tools.idea.gradle.project.sync.snapshots.DeclarativeTestProje
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_DECLARATIVE_GRADLE_SNAPSHOT
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_GRADLE_SNAPSHOT
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.SnapshotContext
@@ -71,7 +70,6 @@ data class DeclarativeSchemaModelTestDef(
 
   override fun isCompatible(): Boolean {
     return agpVersion == AGP_DECLARATIVE_GRADLE_SNAPSHOT ||
-           agpVersion == AGP_LATEST_GRADLE_SNAPSHOT ||
            agpVersion == AGP_CURRENT
   }
 
