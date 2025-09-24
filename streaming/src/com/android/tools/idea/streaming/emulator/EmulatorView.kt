@@ -529,8 +529,12 @@ class EmulatorView(
     val resized = width != this.width || height != this.height
     super.setBounds(x, y, width, height)
     if (resized) {
-      requestScreenshotFeed()
       mouseCoordinates = null
+      EventQueue.invokeLater { // Postpone reaction to size change to reduce redundant streamScreenshot calls.
+        if (emulator.connectionState == ConnectionState.CONNECTED) {
+          requestScreenshotFeed()
+        }
+      }
     }
   }
 

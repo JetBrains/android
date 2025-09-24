@@ -84,14 +84,6 @@ import com.intellij.testFramework.replaceService
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.LayeredIcon
 import icons.StudioIcons
-import kotlinx.coroutines.runBlocking
-import org.junit.Before
-import org.junit.ClassRule
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.kotlin.any
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.MouseInfo
@@ -127,6 +119,14 @@ import javax.swing.JViewport
 import kotlin.test.fail
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.runBlocking
+import org.junit.Before
+import org.junit.ClassRule
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /** Tests for [EmulatorToolWindowPanel] and some of its toolbar actions. */
 @Suppress("OPT_IN_USAGE", "OverrideOnly")
@@ -751,7 +751,7 @@ class EmulatorToolWindowPanelTest {
     panel.size = Dimension(200, 400)
     fakeUi.layoutAndDispatchEvents()
     var call = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 186 height: 321")
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 186 height: 279")
 
     val foldingGroup = ActionManager.getInstance().getAction("android.device.postures") as ActionGroup
     val event = createTestEvent(emulatorView, project, ActionPlaces.TOOLBAR)
@@ -777,7 +777,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setPhysicalModel")
     assertThat(shortDebugString(call.request)).isEqualTo("target: HINGE_ANGLE0 value { data: 0.0 }")
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
-    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 170 height: 341")
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 170 height: 296")
     waitForCondition(2.seconds) { foldingGroup.update(event); event.presentation.text == "Fold/Unfold (currently Closed)" }
     panel.waitForFrame(++frameNumber, 2.seconds)
     assertThat(emulatorView.deviceDisplaySize).isEqualTo(Dimension(1080, 2092))
@@ -821,7 +821,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(emulatorView.scale).isWithin(0.0001).of(0.25)
     assertThat(emulatorView.preferredSize).isEqualTo(Dimension(396, 811))
     val viewport = emulatorView.parent as JViewport
-    assertThat(viewport.viewSize).isEqualTo(Dimension(400, 811))
+    assertThat(viewport.viewSize).isEqualTo(Dimension(396, 811))
     // Scroll to the bottom.
     val scrollPosition = Point(viewport.viewPosition.x, viewport.viewSize.height - viewport.height)
     viewport.viewPosition = scrollPosition
@@ -834,7 +834,7 @@ class EmulatorToolWindowPanelTest {
 
     // Check that zoom level and scroll position are restored.
     assertThat(emulatorView.scale).isWithin(0.0001).of(0.25)
-    assertThat(viewport.viewSize).isEqualTo(Dimension(400, 811))
+    assertThat(viewport.viewSize).isEqualTo(Dimension(396, 811))
     assertThat(viewport.viewPosition).isEqualTo(scrollPosition)
 
     panel.destroyContent()
@@ -857,7 +857,7 @@ class EmulatorToolWindowPanelTest {
     panel.size = Dimension(200, 400)
     fakeUi.layoutAndDispatchEvents()
     val call1 = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
-    assertThat(shortDebugString(call1.request)).isEqualTo("format: RGB888 width: 168 height: 307")
+    assertThat(shortDebugString(call1.request)).isEqualTo("format: RGB888 width: 168 height: 287")
     assertThat(emulatorView.displayRectangle!!.width).isEqualTo(168)
     assertThat(emulatorView.canZoomIn()).isTrue()
     assertThat(emulatorView.canZoomOut()).isFalse()
