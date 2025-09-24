@@ -46,6 +46,7 @@ import javax.swing.JComponent
 import javax.swing.JLayeredPane
 import javax.swing.JScrollBar
 import javax.swing.JScrollPane
+import javax.swing.JViewport
 import javax.swing.border.Border
 import javax.swing.border.EmptyBorder
 import javax.swing.plaf.ScrollBarUI
@@ -216,11 +217,14 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
       viewport.background = background
     }
 
+    override fun createViewport(): JViewport =
+        CenterAnchoredViewport()
+
     override fun createVerticalScrollBar(): JScrollBar =
-      MyScrollBar(Adjustable.VERTICAL)
+        MyScrollBar(Adjustable.VERTICAL)
 
     override fun createHorizontalScrollBar(): JScrollBar =
-      MyScrollBar(Adjustable.HORIZONTAL)
+        MyScrollBar(Adjustable.HORIZONTAL)
 
     override fun setBorder(border: Border?) {
       // Don't allow borders to be set by the UI framework.
