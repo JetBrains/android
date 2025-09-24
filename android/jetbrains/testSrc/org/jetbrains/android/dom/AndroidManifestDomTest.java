@@ -88,13 +88,41 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     assertThat(myFixture.getLookupElementStrings()).contains("android:name");
   }
 
+  public void testUsesPermissionGeneralPurposeNameAttributeCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "  <uses-permission android:name=\"android.permission.USE_SOME_PERMISSION\">" +
+      "    <general-purpose <caret>\n" +
+      "  </uses-permission>" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).contains("android:name");
+  }
+
   public void testUsesPermissionSdk23SpecificPurposeNameAttributeCompletion() {
     VirtualFile file = myFixture.addFileToProject(
       "AndroidManifest.xml",
       "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
       "  <uses-permission-sdk-23 android:name=\"android.permission.USE_SOME_PERMISSION\">" +
       "    <specific-purpose <caret>\n" +
-      "  </uses-permission>" +
+      "  </uses-permission-sdk-23>" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).contains("android:name");
+  }
+
+  public void testUsesPermissionSdk23GeneralPurposeNameAttributeCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "  <uses-permission-sdk-23 android:name=\"android.permission.USE_SOME_PERMISSION\">" +
+      "    <general-purpose <caret>\n" +
+      "  </uses-permission-sdk-23>" +
       "</manifest>").getVirtualFile();
 
     myFixture.configureFromExistingVirtualFile(file);
