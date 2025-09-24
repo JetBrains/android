@@ -26,10 +26,12 @@ private val EP_NAME =
 /** Extension point to provide actions for issues in the issue panel. */
 interface IssueFixActionProvider {
   companion object {
-    fun getFixes(issue: Issue): List<AnAction> {
-      return EP_NAME.extensionList.flatMap { it.getFixes(issue) }
+    /** Returns all the AI fix actions from the running extensions. */
+    fun getAiActions(issue: Issue): List<AnAction> {
+      return EP_NAME.extensionList.flatMap { it.getAiActions(issue) }
     }
   }
 
-  fun getFixes(issue: Issue): List<AnAction>
+  /** Returns the AI fix actions for the given [issue]. */
+  fun getAiActions(issue: Issue): List<AnAction>
 }

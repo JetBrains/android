@@ -19,13 +19,13 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.diagnostic.Logger
 
 /**
- * Returns an action to fix the given [issue] using StudioBot. The [issue] is expected to be a
+ * Returns an action to fix the given [issue] using an Agent. The [issue] is expected to be a
  * render issue in Compose preview.
  *
  * @param issue The [Issue] to fix.
  */
 fun fixWithAiActionProvider(issue: Issue): AnAction? {
-  val fixes = IssueFixActionProvider.getFixes(issue)
+  val fixes = IssueFixActionProvider.getAiActions(issue)
   if (fixes.size > 1) {
     Logger.getInstance("FixWithAiUtils")
       .warn("Multiple AI fix providers found for issue: $issue. Only the first one will be used.")

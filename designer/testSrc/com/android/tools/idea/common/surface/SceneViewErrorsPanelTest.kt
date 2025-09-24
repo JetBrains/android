@@ -125,7 +125,7 @@ class SceneViewErrorsPanelTest {
       }
     val issueFixActionProvider =
       object : IssueFixActionProvider {
-        override fun getFixes(issue: Issue): List<AnAction> {
+        override fun getAiActions(issue: Issue): List<AnAction> {
           return listOf(testAction)
         }
       }
@@ -158,7 +158,7 @@ class SceneViewErrorsPanelTest {
       }
     val issueFixActionProvider =
       object : IssueFixActionProvider {
-        override fun getFixes(issue: Issue): List<AnAction> {
+        override fun getAiActions(issue: Issue): List<AnAction> {
           return listOf(testAction)
         }
       }
