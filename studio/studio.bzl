@@ -292,6 +292,12 @@ def _studio_plugin_impl(ctx):
     )
 
     missing = [s.label for s in _depset_subtract(have, need)]
+
+    # TODO(b/446705343): Filter out kotlinx-serialization.
+    # We should find a way to use it for compilation only in the Bazel rules, such that it doesn't
+    # appear among regular dependencies.
+    missing = [m for m in missing if _label_str(m) != "//tools/adt/idea/.idea/libraries:kotlinx-serialization"]
+
     if missing:
         error = "\n".join(["\"%s\"," % _label_str(label) for label in missing])
         fail("Plugin '" + ctx.attr.name + "' has compile-time dependencies which are not on the " +
