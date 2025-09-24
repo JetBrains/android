@@ -156,9 +156,10 @@ public class RenderTask {
   };
 
   /**
-   * When quality < 1.0, the max allowed size for the rendering is DOWNSCALED_IMAGE_MAX_BYTES * downscalingFactor
+   * Limit each render image size (width x height) to 2^23 pixels, i.e. 32 MB (4 bytes per pixel
+   * due to using type = TYPE_INT_ARGB_PRE in SIMPLE_IMAGE_FACTORY)
    */
-  private static final int DEFAULT_DOWNSCALED_IMAGE_MAX_BYTES = 2_500_000; // 2.5MB
+  private static final Long MAX_IMAGE_SIZE = 8L * 1024 * 1024;
 
   /**
    * Maximum amount of native memory linked through JNI by layoutlib before triggering a garbage collection.
@@ -196,7 +197,6 @@ public class RenderTask {
    *  or in the current one when a render is being executed.
    */
   private float myCurrentQuality = 1f;
-  private final long myDownScaledImageMaxBytes;
   @Nullable private IncludeReference myIncludedWithin;
   @NotNull private RenderingMode myRenderingMode = RenderingMode.NORMAL;
   private boolean mySetTransparentBackground = false;
@@ -209,7 +209,7 @@ public class RenderTask {
   @NotNull private final Locale myLocale;
   @NotNull private final Object myCredential;
   @Nullable private RenderSession myRenderSession;
-  @NotNull private IImageFactory myCachingImageFactory = SIMPLE_IMAGE_FACTORY;
+  @NotNull private final IImageFactory myCachingImageFactory;
   @Nullable private IImageFactory myImageFactoryDelegate;
   private final boolean isSecurityManagerEnabled;
   @NotNull private CrashReporter myCrashReporter;
@@ -319,21 +319,7 @@ public class RenderTask {
         myLayoutlibCallback.loadAndParseRClass();
       }
       myLocale = renderContext.getConfiguration().getLocale();
-      // Some devices need more memory to avoid the blur when rendering. These are special cases.
-      // The image looks acceptable after dividing both width and height to half. So we divide memory usage by 4 for these devices.
-      if (DEVICE_CLASS_DESKTOP_ID.equals(device.getId())) {
-        // Desktop device is 1920dp * 1080dp with XXHDPI density, it needs roughly 6K * 3K * 32 (ARGB) / 8 = 72 MB.
-        // We divide it by 4, which is 18 MB.
-        myDownScaledImageMaxBytes = 18_000_000L;
-      }
-      else if (DEVICE_CLASS_TABLET_ID.equals(device.getId())) {
-        // Desktop device is 1280dp * 800dp with XXHDPI density, it needs roughly (1280 * 3) * (800 * 3) * 32 (ARGB) / 8 = 36 MB.
-        // We divide it by 4, which is 9 MB.
-        myDownScaledImageMaxBytes = 9_000_000L;
-      }
-      else {
-        myDownScaledImageMaxBytes = DEFAULT_DOWNSCALED_IMAGE_MAX_BYTES;
-      }
+      myCachingImageFactory = new ConstrainedImageFactory(MAX_IMAGE_SIZE, () -> myTargetQuality, new CachingImageFactory(SIMPLE_IMAGE_FACTORY));
       setQuality(quality);
 
       stackTraceCaptureElement.bind(this);
@@ -350,31 +336,7 @@ public class RenderTask {
   public void setQuality(float quality) {
     if (myEnableLayoutScanner) quality = 1f;
     quality = Math.max(0f, Math.min(quality, 1f));
-    if (quality == myTargetQuality) return;
     myTargetQuality = quality;
-    if (quality >= 1.f) {
-      myCachingImageFactory = SIMPLE_IMAGE_FACTORY;
-      return;
-    }
-    long maxSize = myDownScaledImageMaxBytes;
-    // Each dimension should be scaled using the sqrt(quality), so that
-    // the whole image is scaled with quality as a consequence.
-    double dimensionScale = Math.sqrt(quality);
-    myCachingImageFactory = new CachingImageFactory(((width, height) -> {
-      double downscaleWidth = width * dimensionScale;
-      double downscaleHeight = height * dimensionScale;
-      double size = width * height;
-      // Use maxSize as absolute upper bound
-      if (size > maxSize) {
-        double newDimensionScale = Math.sqrt(maxSize / size);
-        downscaleWidth *= newDimensionScale;
-        downscaleHeight *= newDimensionScale;
-      }
-      // Make sure both dimensions are positive integers
-      int w = Math.max(1, (int)downscaleWidth);
-      int h = Math.max(1, (int)downscaleHeight);
-      return SIMPLE_IMAGE_FACTORY.getImage(w, h);
-    }));
   }
 
   public void setXmlFile(@NotNull RenderXmlFile file) {
