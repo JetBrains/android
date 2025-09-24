@@ -18,6 +18,7 @@ package com.android.tools.idea.material.icons.download
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.idea.material.icons.common.SymbolConfiguration
 import com.android.tools.idea.material.icons.common.Symbols
+import com.android.tools.idea.material.icons.common.SymbolsSdkUrlProvider
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Pair
@@ -30,7 +31,6 @@ import com.intellij.util.download.impl.DownloadableFileDescriptionImpl
 import com.intellij.util.io.createDirectories
 import com.intellij.util.io.delete
 import java.io.File
-import java.net.URL
 import java.nio.file.Path
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.readText
@@ -121,6 +121,7 @@ class MaterialSymbolsUpdaterTest {
       .resolve(downloadName)
       .writeText(OLD_FILE_CONTENT)
 
+    val urlProvider = SymbolsSdkUrlProvider()
     mockDownloadService(
       listOf(
         FakeDownload(
@@ -134,7 +135,7 @@ class MaterialSymbolsUpdaterTest {
     val fontFile = downloadDir.resolve("${downloadPathDir}/${downloadName}")
     assertEquals(OLD_FILE_CONTENT, fontFile.readText())
 
-    MaterialSymbolsUpdater.downloadFontFiles(URL(downloadUrl), testStyle)
+    MaterialSymbolsUpdater.downloadFontFiles(testStyle, urlProvider)
 
     val updatedFontFile = downloadDir.resolve("${downloadPathDir}/${downloadName}")
     assertThat(updatedFontFile).exists()
@@ -169,7 +170,7 @@ class MaterialSymbolsUpdaterTest {
     assertEquals(OLD_FILE_CONTENT, fontFile.readText())
     fontFile.delete()
 
-    MaterialSymbolsUpdater.downloadFontFiles(URL(downloadUrl), testStyle)
+    MaterialSymbolsUpdater.downloadFontFiles(testStyle, SymbolsSdkUrlProvider())
 
     val updatedFontFile = downloadDir.resolve("${downloadPathDir}/${downloadName}")
     assertThat(updatedFontFile).exists()
@@ -198,7 +199,7 @@ class MaterialSymbolsUpdaterTest {
     assertEquals(OLD_FILE_CONTENT, fontFile.readText())
     fontFile.delete()
 
-    MaterialSymbolsUpdater.downloadMetadataFile()
+    MaterialSymbolsUpdater.downloadMetadataFile(SymbolsSdkUrlProvider())
 
     val updatedFontFile = downloadDir.resolve(finalDownloadName)
     assertThat(updatedFontFile).exists()
@@ -226,7 +227,7 @@ class MaterialSymbolsUpdaterTest {
     val fontFile = downloadDir.resolve(tempDownloadName)
     assertEquals(OLD_FILE_CONTENT, fontFile.readText())
 
-    MaterialSymbolsUpdater.downloadMetadataFile()
+    MaterialSymbolsUpdater.downloadMetadataFile(SymbolsSdkUrlProvider())
 
     val updatedFontFile = downloadDir.resolve(finalDownloadName)
     assertThat(updatedFontFile).exists()
@@ -261,7 +262,7 @@ class MaterialSymbolsUpdaterTest {
     assertEquals(OLD_FILE_CONTENT, fontFile.readText())
     fontFile.delete()
 
-    MaterialSymbolsUpdater.downloadVdIcon(symbolConfiguration, symbolName)
+    MaterialSymbolsUpdater.downloadVdIcon(symbolConfiguration, symbolName, SymbolsSdkUrlProvider())
 
     val updatedFontFile = downloadDir.resolve("${downloadPathDir}/${downloadName}")
     assertThat(updatedFontFile).exists()
@@ -296,7 +297,7 @@ class MaterialSymbolsUpdaterTest {
     assertEquals(OLD_FILE_CONTENT, fontFile.readText())
     fontFile.delete()
 
-    MaterialSymbolsUpdater.downloadVdIcon(symbolConfiguration, symbolName)
+    MaterialSymbolsUpdater.downloadVdIcon(symbolConfiguration, symbolName, SymbolsSdkUrlProvider())
 
     val updatedFontFile = downloadDir.resolve("${downloadPathDir}/${downloadName}")
     assertThat(updatedFontFile).exists()
