@@ -19,6 +19,7 @@ import static com.intellij.patterns.PlatformPatterns.psiComment;
 import static com.intellij.patterns.PlatformPatterns.psiElement;
 import static com.intellij.patterns.PlatformPatterns.psiFile;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.lang.buildfile.language.BuildFileLanguage;
 import com.google.idea.blaze.base.lang.buildfile.language.semantics.BuildLanguageSpec;
@@ -32,6 +33,7 @@ import com.google.idea.blaze.base.lang.buildfile.psi.BuildFileWithCustomCompleti
 import com.google.idea.blaze.base.lang.buildfile.psi.FunctionStatement;
 import com.google.idea.blaze.base.lang.buildfile.psi.ReferenceExpression;
 import com.google.idea.blaze.base.lang.buildfile.psi.StatementList;
+import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.codeInsight.completion.AutoCompletionContext;
 import com.intellij.codeInsight.completion.AutoCompletionDecision;
 import com.intellij.codeInsight.completion.CompletionContributor;
@@ -48,10 +50,20 @@ import com.intellij.codeInsight.template.TemplateManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ProcessingContext;
 import icons.BlazeIcons;
+import java.util.List;
 import javax.annotation.Nullable;
 
 /** Completes built-in blaze function names. */
 public class BuiltInFunctionCompletionContributor extends CompletionContributor {
+
+  public static final BoolExperiment ignoreBuiltInFunctionCompletionsExperiment =
+    new BoolExperiment("blaze.IgnoreBuiltInFunctionCompletions", true);
+
+  /**
+   * These are ignored here but are later overridden in the implementation
+   * of the {@link CommonMacroContributor} extension point
+   */
+  private static final List<String> IGNORED_BUILT_IN_FUNCTIONS = ImmutableList.of("java_binary", "java_library");
 
   @Override
   public AutoCompletionDecision handleAutoCompletionPossibility(AutoCompletionContext context) {
@@ -97,6 +109,10 @@ public class BuiltInFunctionCompletionContributor extends CompletionContributor 
             BuildLanguageSpec spec =
                 BuildLanguageSpecProvider.getInstance(project).getLanguageSpec();
             for (String ruleName : builtInNames) {
+              if (ignoreBuiltInFunctionCompletionsExperiment.getValue()
+                  && IGNORED_BUILT_IN_FUNCTIONS.contains(ruleName)) {
+                continue;
+              }
               result.addElement(
                   LookupElementBuilder.create(ruleName)
                       .withIcon(BlazeIcons.BuildRule)
