@@ -111,6 +111,7 @@ jvm_library(
     "//libraries/grpc",
     "//android/visual-lint",
     "//plugins/kotlin/idea",
+    "//platform/refactoring",
   ],
   plugins = ["@lib//:compose-plugin"]
 )
@@ -346,6 +347,7 @@ jvm_library(
     "//android/backup:backup-api",
     "//android/execution/common",
     "//libraries/kotlinx/coroutines/test",
+    "//platform/refactoring",
   ],
   runtime_deps = [":compose-designer-tests"],
   plugins = ["@lib//:compose-plugin"]
