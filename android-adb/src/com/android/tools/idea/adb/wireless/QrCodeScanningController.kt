@@ -68,7 +68,7 @@ class QrCodeScanningController(
     view.showQrCodePairingStarted()
     generateQrCode(view.model)
     state = State.Polling
-    if (StudioFlags.WIFI_V2_ENABLED.get() && service.isTrackMdnsServiceAvailable()) {
+    if (StudioFlags.WIFI_V2_DIALOG.get() && service.isTrackMdnsServiceAvailable()) {
       startMdnsTrackingService()
     } else {
       pollMdnsServices()

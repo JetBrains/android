@@ -25,7 +25,7 @@ import kotlinx.coroutines.CoroutineScope
 /** Builds a WifiPairableDeviceProvisionerPlugin with its dependencies provided by Studio. */
 class WifiPairableDeviceProvisionerFactory : DeviceProvisionerFactory {
   override val isEnabled: Boolean
-    get() = StudioFlags.WIFI_V2_ENABLED.get()
+    get() = StudioFlags.WIFI_V2_DEVICE_MANAGER.get()
 
   override fun create(coroutineScope: CoroutineScope, project: Project) =
     WifiPairableDeviceProvisionerPlugin(

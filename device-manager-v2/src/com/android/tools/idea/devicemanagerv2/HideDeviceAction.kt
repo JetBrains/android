@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanagerv2
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.idea.deviceprovisioner.deviceHandle
 import com.android.tools.idea.deviceprovisioner.launchCatchingDeviceActionException
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
@@ -27,7 +28,11 @@ class HideDeviceAction : DumbAwareAction("Hide", "Hide from device manager", nul
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.updateFromDeviceAction(DeviceHandle::hideDeviceAction)
+    if (StudioFlags.WIFI_V2_DEVICE_MANAGER_HIDE_SETTINGS.get()) {
+      e.updateFromDeviceAction(DeviceHandle::hideDeviceAction)
+      return
+    }
+    e.presentation.isEnabledAndVisible = false
   }
 
   override fun actionPerformed(e: AnActionEvent) {
