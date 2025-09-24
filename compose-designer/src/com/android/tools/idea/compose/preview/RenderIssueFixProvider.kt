@@ -20,7 +20,13 @@ import com.android.tools.idea.common.error.IssueFixActionProvider
 import com.intellij.openapi.actionSystem.AnAction
 
 class RenderIssueFixProvider : IssueFixActionProvider {
-  override fun getFixes(issue: Issue): List<AnAction> {
+  /**
+   * Returns a list of AI-powered fix actions for the given [Issue].
+   *
+   * This implementation uses the [ComposeStudioBotActionFactory] to create a fix action for a Compose
+   * render issue.
+   */
+  override fun getAiActions(issue: Issue): List<AnAction> {
     return listOfNotNull(
       ComposeStudioBotActionFactory.EP_NAME.extensionList
         .firstOrNull()
