@@ -137,19 +137,25 @@ private class DesignerCommonIssueDetailPanel(
     descriptionPane.addHyperlinkListener(issue.hyperlinkListener)
     descriptionPane.alignmentX = LEFT_ALIGNMENT
     descriptionPane.readHTML("<html><body>${issue.description}</body></html>")
-    var alignment = BorderLayout.SOUTH
-    if (issue is VisualLintRenderIssue) {
-      alignment = BorderLayout.NORTH
-    }
-    val contentPanel = JPanel(BorderLayout()).apply { add(descriptionPane, alignment) }
 
     if (issue is VisualLintRenderIssue) {
+      val contentPanel = JPanel(BorderLayout())
+      contentPanel.add(descriptionPane, BorderLayout.NORTH)
       contentPanel.addVisualRenderIssue(issue)
-    } else if (
-      issue is NlRenderIssueWrapper && StudioFlags.COMPOSE_RENDER_ERROR_FIX_WITH_AI.get()
-    ) {
+      return JBScrollPane(
+          contentPanel,
+          ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+          ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER,
+        )
+        .apply { border = JBUI.Borders.emptyTop(12) }
+    }
+
+    // Not a visual lint issue.
+    val contentPanel = JPanel(VerticalLayout(0))
+    if (issue is NlRenderIssueWrapper && StudioFlags.COMPOSE_RENDER_ERROR_FIX_WITH_AI.get()) {
       addFixWithAiButton(contentPanel, offSetBottom = true)
     }
+    contentPanel.add(descriptionPane)
 
     return JBScrollPane(
         contentPanel,
