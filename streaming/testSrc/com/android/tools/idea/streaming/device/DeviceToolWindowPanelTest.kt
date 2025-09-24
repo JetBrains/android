@@ -620,7 +620,7 @@ class DeviceToolWindowPanelTest {
     assertThat(deviceView.scale).isWithin(0.0001).of(0.25)
     assertThat(deviceView.preferredSize).isEqualTo(Dimension(270, 570))
     val viewport = deviceView.parent as JViewport
-    assertThat(viewport.viewSize).isEqualTo(Dimension(310, 570))
+    assertThat(viewport.viewSize).isEqualTo(Dimension(300, 570))
     // Scroll to the bottom.
     val scrollPosition = Point(viewport.viewPosition.x, viewport.viewSize.height - viewport.height)
     viewport.viewPosition = scrollPosition
@@ -638,14 +638,13 @@ class DeviceToolWindowPanelTest {
 
     // Check that zoom level and scroll position are restored.
     assertThat(deviceView.scale).isWithin(0.0001).of(0.25)
-    assertThat(viewport.viewSize).isEqualTo(Dimension(310, 570))
+    assertThat(viewport.viewSize).isEqualTo(Dimension(300, 570))
     assertThat(viewport.viewPosition).isEqualTo(scrollPosition)
 
     panel.destroyContent()
     assertThat(panel.primaryDisplayView).isNull()
     waitForCondition(2.seconds) { !agent.videoStreamActive }
   }
-
 
   @Test
   fun testAudio() {
