@@ -88,13 +88,14 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
 private fun configureLayoutlibSceneManagerForPreviewElement(
   displaySettings: PreviewDisplaySettings,
@@ -125,14 +126,28 @@ private fun InstructionsPanel.toDisplayText(): String =
     }
     .joinToString("")
 
-class ComposePreviewViewImplTest {
+@RunWith(Parameterized::class)
+class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeFlag: Boolean) {
   @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
-  @get:Rule val flagRule = FlagRule(StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW)
+  @get:Rule
+  val generatePreviewFlagRule =
+    FlagRule(StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW, generatePreviewFlag)
+  @get:Rule
+  val screenshotToCodeFlagRule =
+    FlagRule(StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE, screenshotToCodeFlag)
 
-  @After
-  fun tearDown() {
-    StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.clearOverride()
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters(name = "generatePreview={0}, screenshotToCode={1}")
+    fun data(): Collection<Array<Boolean>> {
+      return listOf(
+        arrayOf(true, true),
+        arrayOf(true, false),
+        arrayOf(false, true),
+        arrayOf(false, false),
+      )
+    }
   }
 
   private val project: Project
@@ -367,10 +382,7 @@ class ComposePreviewViewImplTest {
   fun `empty preview state when context-sharing is disabled`() {
     StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
     geminiPluginApi.contextAllowed = false
-    checkEmptyPreviewState(
-      showAutoGenerateAction = false,
-      showScreenshotToAction = StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.get(),
-    )
+    checkEmptyPreviewState(showAutoGenerateAction = false, showScreenshotToAction = false)
   }
 
   @Test
@@ -406,10 +418,7 @@ class ComposePreviewViewImplTest {
       wolfTheProblemSolver,
       fixture.testRootDisposable,
     )
-    checkEmptyPreviewState(
-      showAutoGenerateAction = false,
-      showScreenshotToAction = StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.get(),
-    )
+    checkEmptyPreviewState(showAutoGenerateAction = false, showScreenshotToAction = false)
   }
 
   @Test
