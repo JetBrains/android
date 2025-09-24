@@ -55,6 +55,7 @@ import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncError
 import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncIssuesAndExceptions
 import com.android.tools.idea.gradle.project.sync.IdeSyncExecutionReport
 import com.android.tools.idea.gradle.project.sync.PhasedSyncDependencyModelProvider
+import com.android.tools.idea.gradle.project.sync.PhasedSyncAdditionalModelProvider
 import com.android.tools.idea.gradle.project.sync.PhasedSyncProjectModelProvider
 import com.android.tools.idea.gradle.project.sync.SdkSync
 import com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors
@@ -712,16 +713,16 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
   override fun getModelProviders(): List<ProjectImportModelProvider> {
     val project = checkNotNull(project) { "Project is null!" }
     val syncOptions = resolverCtx.getSyncOptions(project)
-
-    return listOf<ProjectImportModelProvider>(AndroidExtraModelProvider(syncOptions)) +
+    val dependencyResolutionEnabled = StudioFlags.PHASED_SYNC_DEPENDENCY_RESOLUTION_ENABLED.get()
+    val disableLegacyModelProvidersForSupportedProjects = StudioFlags.PHASED_SYNC_DISABLE_LEGACY_MODEL_PROVIDERS_FOR_SUPPORTED_PROJECTS.get()
+    val cachedModels = ModelProviderCachedData(disableLegacyModelProvidersForSupportedProjects)
+    return listOf<ProjectImportModelProvider>(AndroidExtraModelProvider(syncOptions, cachedModels)) +
            if (resolverCtx.isPhasedSyncEnabled) {
-             val cachedModels = ModelProviderCachedData()
              listOfNotNull(
                PhasedSyncProjectModelProvider(syncOptions, cachedModels),
-               PhasedSyncDependencyModelProvider(syncOptions, cachedModels).takeIf {
-                 StudioFlags.PHASED_SYNC_DEPENDENCY_RESOLUTION_ENABLED.get()
-               }
-              )
+               PhasedSyncDependencyModelProvider(syncOptions, cachedModels).takeIf { dependencyResolutionEnabled },
+               PhasedSyncAdditionalModelProvider(cachedModels)
+             )
            } else {
              emptyList()
            }

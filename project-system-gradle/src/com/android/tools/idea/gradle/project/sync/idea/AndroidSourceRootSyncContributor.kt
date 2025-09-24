@@ -127,8 +127,8 @@ internal typealias ModuleAction = (Module) -> Unit
 /** This class is used to keep track of */
 internal data class SourceSetUpdateResult(
   /** Represents list of module actions by name. Mutable because actions are removed as they are performed. */
-  val allModuleActions: Map<String, List<ModuleAction>>,
-  val allAndroidProjectContexts: List<SyncContributorAndroidProjectContext>,
+  val allModuleActions: Map<String, List<ModuleAction>> = emptyMap(),
+  val allAndroidProjectContexts: List<SyncContributorAndroidProjectContext> = emptyList(),
 
   /** To be used with [MutableEntityStorage.replaceBySource], to make sure we only update relevant entities. */
   val updatedStorage: EntityStorage,

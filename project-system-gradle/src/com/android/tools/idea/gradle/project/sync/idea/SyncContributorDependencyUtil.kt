@@ -232,8 +232,11 @@ internal fun setupAndroidDependenciesForAllProjects(
 ) : SourceSetUpdateResult {
   val project = context.project
 
+  val libraryTable = context.getRootModel(IdeUnresolvedLibraryTableImpl::class.java) ?: run {
+    LOG.info("No library table found, returning early with no updates")
+    return SourceSetUpdateResult(updatedStorage = storage, knownEntitySources = emptySet())
+  }
   val updatedEntities = MutableEntityStorage.from(storage)
-  val libraryTable = context.getRootModel(IdeUnresolvedLibraryTableImpl::class.java)!!
   val ideLibraryModelResolver: IdeLibraryModelResolver = buildIdeLibraryModelResolver(context, libraryTable)
   val sourceSetModuleIdToModuleEntityMap = buildSourceSetModuleIdToModuleEntityMap(storage, context, project, phase, allAndroidContexts)
 
@@ -258,8 +261,6 @@ internal fun setupAndroidDependenciesForAllProjects(
   }
 
   return SourceSetUpdateResult (
-    allModuleActions = emptyMap(), // unused
-    allAndroidProjectContexts =  emptyList(), // unused
     updatedStorage = updatedEntities,
     knownEntitySources = allKnownEntitySources.toSet()
   )
