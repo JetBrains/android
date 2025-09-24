@@ -201,6 +201,18 @@ public class BuiltInFunctionCompletionContributorTest extends BuildFileIntegrati
     assertFileContents(file, "abc_rule()");
   }
 
+  @Test
+  public void testIgnoredBuiltInFunctions() throws Throwable {
+    setRules("java_binary", "java_library");
+
+    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "java_");
+
+    Editor editor = editorTest.openFileInEditor(file.getVirtualFile());
+    editorTest.setCaretPosition(editor, 0, "java_".length());
+
+    assertThat(editorTest.getCompletionItemsAsStrings()).isEmpty();
+  }
+
   private void setRules(String... ruleNames) {
     ImmutableMap.Builder<String, RuleDefinition> rules = ImmutableMap.builder();
     for (String name : ruleNames) {
