@@ -33,4 +33,7 @@ public interface UsesPermission extends ManifestElementWithName {
 
   @SubTagList("specific-purpose")
   List<SpecificPurpose> getSpecificPurposes();
+
+  @SubTagList("general-purpose")
+  List<GeneralPurpose> getGeneralPurposes();
 }
