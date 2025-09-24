@@ -134,14 +134,10 @@ class StudioRendererPanel(
           .createInverse()
           .createTransformedShape(scaledDisplayRectangle)
           .bounds
-      g2d.composite = AlphaComposite.SrcOver.derive(renderModel.overlayAlpha.value)
       g2d.drawImage(
-        overlay,
-        overlayBounds.x,
-        overlayBounds.y,
-        overlayBounds.width,
-        overlayBounds.height,
-        null,
+        image = overlay!!,
+        bounds = overlayBounds,
+        alpha = renderModel.overlayAlpha.value,
       )
     }
     renderModel.recomposingNodes.value.forEach { it.paint(g2d, fill = true) }
@@ -415,3 +411,11 @@ private fun Rectangle.scale(physicalToLogicalScale: Double): Rectangle {
 private fun Point2D.scale(scale: Double) = Point2D.Double(x * scale, y * scale)
 
 private fun MouseEvent.coordinates() = Point2D.Double(x.toDouble(), y.toDouble())
+
+private fun Graphics2D.drawImage(image: Image, bounds: Rectangle, alpha: Float) {
+  val previousComposite = composite
+  composite = AlphaComposite.SrcOver.derive(alpha)
+  drawImage(image, bounds.x, bounds.y, bounds.width, bounds.height, null)
+  // Restore the alpha
+  composite = previousComposite
+}
