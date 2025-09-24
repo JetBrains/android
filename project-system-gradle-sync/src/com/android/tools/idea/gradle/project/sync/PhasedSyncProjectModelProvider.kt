@@ -22,13 +22,17 @@ import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.AndroidProject
 import com.android.builder.model.v2.models.BasicAndroidProject
 import com.android.builder.model.v2.models.Versions
+import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
+import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.composites.BuildMap
 import com.android.ide.gradle.model.dependencies.DeclaredDependencies
 import com.android.tools.idea.gradle.model.IdeAndroidProject
+import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.ignoreExceptionsAndGet
+import com.android.utils.appendCapitalized
 import com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase
 import com.intellij.openapi.diagnostic.logger
 import org.gradle.tooling.BuildAction
@@ -40,6 +44,7 @@ import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
+import org.jetbrains.plugins.gradle.tooling.ModelBuilderService
 
 
 class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cachedModels: ModelProviderCachedData) : ProjectImportModelProvider {
@@ -61,17 +66,34 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
     // Apart from that, we use interned models only to intern strings.
     val buildRootDirectory = null
     val internedModels = InternedModels(buildRootDirectory)
+    // Run a check for all subprojects in parallel to check if they are all supported.
+    val allSubProjectsSupported = controller.all(buildModels.flatMap { buildModel ->
+      buildModel.projects.mapNotNull { gradleProject ->
+        BuildAction {
+          val versions = controller.findModel(gradleProject, Versions::class.java)
+            // TODO(b/384022658): Reconsider this check if we implement a cache between model providers to avoid fetching the models twice
+            ?.takeIf { it.isAtLeastAgp8() }
+
+          val supported =
+            // sub-projects without any android models are considered supported by the platform
+            (versions?.hasV2Modules() ?: return@BuildAction true) &&
+            !gradleProject.hasKotlinMultiplatformPlugin(controller) &&
+            !gradleProject.hasNativeModels(controller)
+          if (supported) {
+            cachedModels.versions[gradleProject] = versions
+          }
+          supported
+        }
+      }
+    })
+    if (allSubProjectsSupported) {
+      cachedModels.markAllProjectsSupportedByPhasedSync()
+    }
     controller.run(buildModels.flatMap { buildModel ->
       buildModel.projects.mapNotNull { gradleProject ->
         BuildAction {
           runCatching {
-            if (controller.findModel(gradleProject, GradlePluginModel::class.java)?.hasKotlinMultiPlatform() == true) {
-              // Kotlin multiplatform projects are not supported for phased sync yet.
-              return@BuildAction null
-            }
-            val versions = controller.findModel(gradleProject, Versions::class.java)
-                             // TODO(b/384022658): Reconsider this check if we implement a cache between model providers to avoid fetching the models twice
-                             ?.takeIf { it.isAtLeastAgp8() } ?: return@BuildAction null
+            val versions = cachedModels.versions[gradleProject] ?: return@BuildAction null
             val modelVersions = versions.convert()
             val basicAndroidProject = controller.findModel(gradleProject, BasicAndroidProject::class.java)!!
             val androidProject = controller.findModel(gradleProject, AndroidProject::class.java)!!
@@ -219,10 +241,27 @@ private data class AndroidProjectData(
   val declaredDependencies: DeclaredDependencies,
   val gradlePluginModel: GradlePluginModel,
   val kaptGradleModel: KaptGradleModel?,
-  val ideAndroidProject: IdeAndroidProject,
+  val ideAndroidProject: IdeAndroidProjectImpl,
   val selectedVariantName: String,
   val shouldSkipRuntimeClassPathForLibraries: Boolean
 )
+
+internal inline fun <reified T> BuildController.fetchModel(gradleProject: BasicGradleProject, selectedVariantName: String?) =
+  if (selectedVariantName != null) {
+    findModel(
+      gradleProject,
+      T::class.java,
+      ModelBuilderService.Parameter::class.java,
+      {
+        it.value = androidArtifactSuffixes.joinToString(separator = ",") { artifactSuffix ->
+          selectedVariantName.appendCapitalized(artifactSuffix)
+        }
+      }
+    )
+  }
+  else {
+    findModel(gradleProject, T::class.java)
+  }
 
 private fun IdeaProject.getAllChildren() = modules.flatMap { it.getAllChildren { it.children.filterIsInstance<IdeaModule>().toList() }}
 
@@ -240,6 +279,22 @@ private fun <T> T.getAllChildren(childrenFunction: (T) -> List<out T>): List<T> 
   return result
 }
 
-internal fun shouldSkipRuntimeClasspathForLibraries(flags: AndroidGradlePluginProjectFlags, gradlePropertiesModel: GradlePropertiesModel) =
+private fun shouldSkipRuntimeClasspathForLibraries(flags: AndroidGradlePluginProjectFlags, gradlePropertiesModel: GradlePropertiesModel) =
   !AndroidGradlePluginProjectFlags.BooleanFlag.ENABLE_COMPILE_RUNTIME_CLASSPATH_ALIGNMENT.getValue(flags, true) || // true because we always used to align
   AndroidGradlePluginProjectFlags.BooleanFlag.EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS.getValue(flags, gradlePropertiesModel.excludeLibraryComponentsFromConstraints)
+
+private fun BasicGradleProject.hasKotlinMultiplatformPlugin(controller: BuildController)  =
+  controller.findModel(this, GradlePluginModel::class.java)?.hasKotlinMultiPlatform() == true
+
+private fun BasicGradleProject.hasNativeModels(controller: BuildController) =
+  controller.findModel(this, NativeModule::class.java, NativeModelBuilderParameter::class.java) {
+    it.variantsToGenerateBuildInformation = emptyList()
+    it.abisToGenerateBuildInformation = emptyList()
+  } != null
+
+private fun Versions.hasV2Modules() = this.convert()[ModelFeature.HAS_V2_MODELS] == true
+
+/** Helper method to run a collection of [BuildAction]s that return booleans to make sure they are all true. */
+private fun BuildController.all(actions: Collection<BuildAction<Boolean>>) = run(actions).all { it }
+
+

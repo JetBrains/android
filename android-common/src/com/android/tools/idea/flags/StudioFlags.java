@@ -1059,6 +1059,13 @@ public final class StudioFlags {
     "this behaviour completely. This flag is a fail-safe to make sure we can switch this behaviour back to platform's default, if needed."
   );
 
+  public static final Flag<Boolean> PHASED_SYNC_DISABLE_LEGACY_MODEL_PROVIDERS_FOR_SUPPORTED_PROJECTS = new BooleanFlag(
+    PHASED_SYNC,
+    "disable.legacy.model.providers.for.supported.projects",
+    "Disables legacy model providers for supported projects",
+    "Disables legacy model providers for supported projects. This is an internal implementation detail for an optimization."
+  );
+
   public static final Flag<Boolean> PHASED_SYNC_DEPENDENCY_RESOLUTION_ENABLED = new BooleanFlag(
     PHASED_SYNC,
     "dependency.resolution.enabled",
