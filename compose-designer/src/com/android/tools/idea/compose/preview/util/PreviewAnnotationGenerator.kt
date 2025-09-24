@@ -22,6 +22,7 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.deviceSizeDp
 import com.android.tools.idea.compose.pickers.preview.enumsupport.UiMode
 import com.android.tools.idea.compose.pickers.preview.enumsupport.Wallpaper
+import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ReferenceDevice
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.ConfigurablePreviewElement
@@ -243,9 +244,10 @@ internal fun toPreviewAnnotationText(
     if (
       targetDevice != null &&
         targetDevice.id != Configuration.CUSTOM_DEVICE_ID &&
-        !isReferenceDevice
+        !isReferenceDevice &&
+        !ConfigurationManager.isAvdDevice(targetDevice)
     ) {
-      // If the current configuration's device is a known, non-custom device and non-reference
+      // If the current configuration's device is a known, non-custom, non-reference, and not an AVD
       // device, use its ID.
       if (targetDevice.id != DEFAULT_DEVICE_ID) {
         // If device is default we can omit device parameter
@@ -254,7 +256,11 @@ internal fun toPreviewAnnotationText(
     } else {
       val deviceSpec = createDeviceSpec(configuration)
 
-      if (displaySettings.showDecoration || isReferenceDevice) {
+      if (
+        displaySettings.showDecoration ||
+          isReferenceDevice ||
+          (targetDevice != null && ConfigurationManager.isAvdDevice(targetDevice))
+      ) {
         params.add("$PARAMETER_DEVICE = \"$deviceSpec\"")
       } else {
         if (
