@@ -30,7 +30,7 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.util.net.HttpConfigurable
+import com.intellij.util.net.HttpConnectionUtils
 import java.io.IOException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
@@ -185,11 +185,30 @@ class AndroidStudioWelcomeScreenServiceTest {
 
   @Test
   fun checkInternetConnection_showsIdeaMessageDialog_whenThereAreNetworkIssues() {
-    val mockHttpConfigurable = mock(HttpConfigurable::class.java)
-    whenever(mockHttpConfigurable.openHttpConnection(any())).thenThrow(IOException::class.java)
+    mockStatic(HttpConnectionUtils::class.java) {
+      whenever(HttpConnectionUtils.openHttpConnection(any())).thenThrow(IOException::class.java)
 
-    mockStatic(Messages::class.java).use { mockMessages ->
-      whenever(
+      mockStatic(Messages::class.java).use { mockMessages ->
+        whenever(
+            Messages.showIdeaMessageDialog(
+              anyOrNull(),
+              any(),
+              any(),
+              any(),
+              any(),
+              anyOrNull(),
+              anyOrNull(),
+            )
+          )
+          .thenReturn(1)
+        val checkComplete = CompletableFuture<Boolean>()
+        executeOnPooledThread {
+          AndroidStudioWelcomeScreenService.instance.checkInternetConnection()
+          checkComplete.complete(true)
+        }
+        pumpEventsAndWaitForFuture(checkComplete, 5, TimeUnit.SECONDS)
+
+        mockMessages.verify {
           Messages.showIdeaMessageDialog(
             anyOrNull(),
             any(),
@@ -199,40 +218,23 @@ class AndroidStudioWelcomeScreenServiceTest {
             anyOrNull(),
             anyOrNull(),
           )
-        )
-        .thenReturn(1)
-      val checkComplete = CompletableFuture<Boolean>()
-      executeOnPooledThread {
-        AndroidStudioWelcomeScreenService.instance.checkInternetConnection(mockHttpConfigurable)
-        checkComplete.complete(true)
-      }
-      pumpEventsAndWaitForFuture(checkComplete, 5, TimeUnit.SECONDS)
-
-      mockMessages.verify {
-        Messages.showIdeaMessageDialog(
-          anyOrNull(),
-          any(),
-          any(),
-          any(),
-          any(),
-          anyOrNull(),
-          anyOrNull(),
-        )
+        }
       }
     }
   }
 
   @Test
   fun checkInternetConnection_doesNotCrash_whenUnknownErrorThrown() {
-    val mockHttpConfigurable = mock(HttpConfigurable::class.java)
-    whenever(mockHttpConfigurable.openHttpConnection(any()))
-      .thenThrow(NoClassDefFoundError::class.java)
-
     val checkComplete = CompletableFuture<Boolean>()
     executeOnPooledThread {
-      AndroidStudioWelcomeScreenService.instance.checkInternetConnection(mockHttpConfigurable)
-      checkComplete.complete(true)
+      mockStatic(HttpConnectionUtils::class.java) {
+        whenever(HttpConnectionUtils.openHttpConnection(any()))
+          .thenThrow(NoClassDefFoundError::class.java)
+
+        AndroidStudioWelcomeScreenService.instance.checkInternetConnection()
+        checkComplete.complete(true)
+      }
+      pumpEventsAndWaitForFuture(checkComplete, 5, TimeUnit.SECONDS)
     }
-    pumpEventsAndWaitForFuture(checkComplete, 5, TimeUnit.SECONDS)
   }
 }
