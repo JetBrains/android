@@ -117,12 +117,16 @@ class ComposePreviewRunConfigurationTest {
   @Test
   fun testReadExternal() {
     assertNull(runConfiguration.composableMethodFqn)
+    assertNull(runConfiguration.providerClassFqn)
+    assertEquals(-1, runConfiguration.providerIndex)
 
     val testConfig =
       // language=xml
       """
         <root>
-          <compose-preview-run-configuration composable-fqn="com.example.MyClassKt.ExampleComposable"/>
+          <compose-preview-run-configuration composable-fqn="com.example.MyClassKt.ExampleComposable"
+                                             parameter-provider-class-name="com.example.MyClassKt.MyProvider"
+                                             parameter-provider-index="1"/>
         </root>
       """
         .trimIndent()
@@ -130,11 +134,15 @@ class ComposePreviewRunConfigurationTest {
     runConfiguration.readExternal(JDOMUtil.load(testConfig))
 
     assertEquals("com.example.MyClassKt.ExampleComposable", runConfiguration.composableMethodFqn)
+    assertEquals("com.example.MyClassKt.MyProvider", runConfiguration.providerClassFqn)
+    assertEquals(1, runConfiguration.providerIndex)
   }
 
   @Test
   fun testWriteExternal() {
     runConfiguration.composableMethodFqn = "com.example.MyClassKt.ExampleComposable"
+    runConfiguration.providerClassFqn = "com.example.MyClassKt.MyProvider"
+    runConfiguration.providerIndex = 1
 
     val testElement = Element("test")
     runConfiguration.writeExternal(testElement)
@@ -142,7 +150,10 @@ class ComposePreviewRunConfigurationTest {
     val config = JDOMUtil.write(testElement)
     assertTrue(
       config.contains(
-        "<compose-preview-run-configuration composable-fqn=\"com.example.MyClassKt.ExampleComposable\" />"
+        "<compose-preview-run-configuration " +
+          "composable-fqn=\"com.example.MyClassKt.ExampleComposable\" " +
+          "parameter-provider-class-name=\"com.example.MyClassKt.MyProvider\" " +
+          "parameter-provider-index=\"1\" />"
       )
     )
   }
