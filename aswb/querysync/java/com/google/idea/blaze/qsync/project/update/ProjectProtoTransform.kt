@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.qsync
+package com.google.idea.blaze.qsync.project.update
 
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.exception.BuildException
