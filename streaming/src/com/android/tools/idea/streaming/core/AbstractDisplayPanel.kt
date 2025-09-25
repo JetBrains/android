@@ -69,8 +69,7 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
   protected val loadingPanel: StreamingLoadingPanel
   private var _displayView: T? = null
   var displayView: T
-    get() =
-      _displayView ?: throw IllegalStateException("displayView is not initialized")
+    get() = _displayView ?: throw IllegalStateException("displayView is not initialized")
     protected set(view) {
       _displayView = view
       scrollPane.setViewportView(displayView)
