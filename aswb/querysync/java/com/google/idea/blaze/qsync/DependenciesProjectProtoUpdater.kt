@@ -36,8 +36,6 @@ import com.google.idea.blaze.qsync.java.SrcJarPrefixedPackageRootsExtractor
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
-import com.google.idea.blaze.qsync.project.ProjectProto
-import com.google.idea.blaze.qsync.project.update.ProjectProtoTransform
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 
@@ -50,7 +48,7 @@ class DependenciesProjectProtoUpdater(
   pathResolver: ProjectPath.Resolver,
   emptyJarDigests: Set<String>,
   attachDepsSrcjarsExperiment: Supplier<Boolean>
-) : ProjectProtoTransform {
+) : ProjectProtoUpdateOperation {
   private val updateOperations: List<ProjectProtoUpdateOperation>
 
   init {
@@ -79,7 +77,7 @@ class DependenciesProjectProtoUpdater(
       else emptyList()
   }
 
-  override fun getRequiredArtifactMetadata(forTarget: TargetBuildInfo): Map<BuildArtifact, Set<ArtifactMetadata.Extractor<*>>> {
+  override fun getRequiredArtifacts(forTarget: TargetBuildInfo): Map<BuildArtifact, Collection<ArtifactMetadata.Extractor<*>>> {
     return buildMap {
       for (op in updateOperations) {
         for (entry in op.getRequiredArtifacts(forTarget).entries) {
@@ -92,14 +90,14 @@ class DependenciesProjectProtoUpdater(
   }
 
   @Throws(BuildException::class)
-  override fun apply(
+  override fun update(
     update: ProjectProtoUpdate,
-    graph: BuildGraphData,
+    buildGraph: BuildGraphData,
     artifactState: ArtifactTracker.State,
-    context: Context<*>
+    context: Context<*>,
   ) {
     for (op in updateOperations) {
-      op.update(update, graph, artifactState, context)
+      op.update(update, buildGraph, artifactState, context)
     }
   }
 }
