@@ -17,6 +17,7 @@ package com.android.tools.idea.actions
 
 import com.android.ide.common.resources.Locale
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.resources.Density
 import com.android.resources.ScreenRatio
 import com.android.resources.ScreenSize
 import com.android.sdklib.IAndroidTarget
@@ -376,6 +377,47 @@ class DeviceMenuActionTest {
         Toggleable.isSelected(updateEvent.presentation)
       }
     assertThat(selectedActions).isEmpty()
+  }
+
+  @Test
+  fun testOtherDevicesAreShown() = runBlocking {
+    val otherDeviceBuilder = Device.Builder()
+    otherDeviceBuilder.setId("my-other-device")
+    otherDeviceBuilder.setName("My Other Device")
+    otherDeviceBuilder.setManufacturer("My Manufacturer")
+    val hardware = Hardware()
+    val screen = Screen()
+    screen.xDimension = 1080
+    screen.yDimension = 1920
+    screen.pixelDensity = Density.HIGH
+    hardware.screen = screen
+    val state = State()
+    state.isDefaultState = true
+    state.hardware = hardware
+    otherDeviceBuilder.addState(state)
+    otherDeviceBuilder.addSoftware(Software())
+    val otherDevice = otherDeviceBuilder.build()
+
+    val configurationSettings = TestConfigurationSettings(listOf(otherDevice))
+    val configuration =
+      Configuration.create(configurationSettings, FolderConfiguration.createDefault())
+    val dataContext = SimpleDataContext.getSimpleContext(CONFIGURATIONS, listOf(configuration))
+
+    val menuAction = DeviceMenuAction()
+    menuAction.updateActions(dataContext)
+    val actual =
+      withContext(Dispatchers.EDT) {
+        prettyPrintActions(menuAction, { action: AnAction -> !isAvdAction(action) }, dataContext)
+      }
+
+    // prettyPrintActions adds indentation, so we check for the expected formatted block.
+    val expectedSection =
+      """
+      Other
+          My Other Device (720 × 1280 dp, hdpi)
+      """
+        .trimIndent()
+    assertThat(actual).contains(expectedSection)
   }
 }
 
