@@ -30,8 +30,8 @@ import com.android.tools.idea.kotlin.findValueArgument
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.layoutlib.isLayoutLibTarget
-import com.android.tools.preview.MAX_DIMENSION
-import com.android.tools.preview.MIN_DIMENSION
+import com.android.tools.preview.MAX_DIMENSION_DP
+import com.android.tools.preview.MIN_DIMENSION_DP
 import com.android.tools.preview.config.PARAMETER_API_LEVEL
 import com.android.tools.preview.config.PARAMETER_DEVICE
 import com.android.tools.preview.config.PARAMETER_FONT_SCALE
@@ -222,9 +222,9 @@ open class ComposePreviewDimensionRespectsLimit :
   PreviewDimensionRespectsLimit(
     PARAMETER_WIDTH_DP,
     PARAMETER_HEIGHT_DP,
-    MIN_DIMENSION,
-    MAX_DIMENSION,
-    message("inspection.width.height.limit.description", MIN_DIMENSION, MAX_DIMENSION),
+    MIN_DIMENSION_DP,
+    MAX_DIMENSION_DP,
+    message("inspection.width.height.limit.description", MIN_DIMENSION_DP, MAX_DIMENSION_DP),
     composePreviewGroupDisplayName,
     ComposePreviewAnnotationChecker,
   )
