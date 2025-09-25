@@ -88,7 +88,7 @@ class ComposeAnimationPreview(
       val clockTimeMs = newValue.toLong()
       val animationsToUpdate = animations.filterIsInstance<ComposeSupportedAnimationManager>()
 
-      executeInRenderSession(longTimeout) {
+      executeInRenderSession(longTimeout = longTimeout, requestAnimationRender = true) {
         setClockTimes(
           animationsToUpdate.associate {
             val newTime =

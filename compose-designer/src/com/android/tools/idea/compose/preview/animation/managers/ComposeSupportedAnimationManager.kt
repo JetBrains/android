@@ -54,7 +54,8 @@ abstract class ComposeSupportedAnimationManager(
   protected val animationClock: AnimationClock,
   private val maxDurationPerIteration: StateFlow<Long>,
   getCurrentTime: () -> Int,
-  protected val executeInRenderSession: suspend (Boolean, () -> Unit) -> Unit,
+  protected val executeInRenderSession:
+    suspend (longTimeout: Boolean, requestRender: Boolean, () -> Unit) -> Unit,
   tabbedPane: AnimationTabs,
   rootComponent: JComponent,
   playbackControls: PlaybackControls,
@@ -111,7 +112,7 @@ abstract class ComposeSupportedAnimationManager(
 
   final override suspend fun loadAnimatedPropertiesAtCurrentTime(longTimeout: Boolean) {
     var properties = emptyList<AnimationUnit.TimelineUnit>()
-    executeInRenderSession(longTimeout) {
+    executeInRenderSession(longTimeout, false) {
       animationClock.apply {
         try {
           properties =

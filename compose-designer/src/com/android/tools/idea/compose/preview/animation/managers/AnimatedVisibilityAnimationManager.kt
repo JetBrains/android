@@ -40,7 +40,8 @@ class AnimatedVisibilityAnimationManager(
   animationClock: AnimationClock,
   maxDurationPerIteration: StateFlow<Long>,
   getCurrentTime: () -> Int,
-  executeInRenderSession: suspend (Boolean, () -> Unit) -> Unit,
+  executeInRenderSession:
+    suspend (longTimeout: Boolean, requestRender: Boolean, () -> Unit) -> Unit,
   tabbedPane: AnimationTabs,
   rootComponent: JComponent,
   playbackControls: PlaybackControls,
@@ -67,7 +68,7 @@ class AnimatedVisibilityAnimationManager(
 
   /** Initializes the state of the Compose animation before it starts */
   override suspend fun setupInitialAnimationState() {
-    executeInRenderSession(true) {
+    executeInRenderSession(true, false) {
       animationState.setInitialState(animationClock.getAnimatedVisibilityState(animation))
     }
   }
@@ -79,7 +80,7 @@ class AnimatedVisibilityAnimationManager(
   override suspend fun syncAnimationWithState() {
     animationClock.apply {
       val state = animationState.state.value ?: return
-      executeInRenderSession(false) { updateAnimatedVisibilityState(animation, state) }
+      executeInRenderSession(false, true) { updateAnimatedVisibilityState(animation, state) }
     }
   }
 }

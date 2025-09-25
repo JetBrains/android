@@ -430,8 +430,20 @@ abstract class AnimationPreview<T : AnimationManager>(
     updateTimelineElements()
   }
 
-  protected suspend fun executeInRenderSession(longTimeout: Boolean = false, function: () -> Unit) {
+  /**
+   * Execute [function] in render session.
+   *
+   * @param longTimeout is true when long timeout should be used to execute [function]
+   * @param requestAnimationRender is true when extra animation render should be done after
+   *   executing [function]
+   */
+  protected suspend fun executeInRenderSession(
+    longTimeout: Boolean = false,
+    requestAnimationRender: Boolean = false,
+    function: () -> Unit,
+  ) {
     sceneManagerProvider()?.executeInRenderSession(longTimeout) { function() }
+    if (requestAnimationRender) scope.launch { renderAnimation() }
   }
 
   @UiThread

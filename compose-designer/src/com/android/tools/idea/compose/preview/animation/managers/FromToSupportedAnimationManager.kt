@@ -56,7 +56,8 @@ class FromToSupportedAnimationManager(
   animationClock: AnimationClock,
   maxDurationPerIteration: StateFlow<Long>,
   getCurrentTime: () -> Int,
-  executeInRenderSession: suspend (Boolean, () -> Unit) -> Unit,
+  executeInRenderSession:
+    suspend (longTimeout: Boolean, requestRender: Boolean, () -> Unit) -> Unit,
   tabbedPane: AnimationTabs,
   rootComponent: JComponent,
   playbackControls: PlaybackControls,
@@ -87,11 +88,11 @@ class FromToSupportedAnimationManager(
     animationClock.apply {
       val (initial, target) = animationState.state.value
       if (initial is AnimationUnit.Unit<*> && target is AnimationUnit.Unit<*>) {
-        executeInRenderSession(false) {
+        executeInRenderSession(false, true) {
           updateFromAndToStates(animation, initial.components, target.components)
         }
       } else {
-        executeInRenderSession(false) {
+        executeInRenderSession(false, true) {
           updateFromAndToStates(animation, listOf(initial), listOf(target))
         }
       }

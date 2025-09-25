@@ -90,7 +90,7 @@ internal class ComposeSupportedAnimationManagerTest {
         animationClock = AnimationClock(testClock),
         maxDurationPerIteration = MutableStateFlow(100L),
         getCurrentTime = { 0 },
-        executeInRenderSession = { _, job -> job() },
+        executeInRenderSession = { _, _, job -> job() },
         tabbedPane = AnimationTabs(projectRule.project, projectRule.testRootDisposable),
         rootComponent = JPanel(),
         playbackControls = mock<PlaybackControls>(),

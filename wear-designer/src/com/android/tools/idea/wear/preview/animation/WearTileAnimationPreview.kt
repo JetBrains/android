@@ -63,7 +63,7 @@ class WearTileAnimationPreview(
   ) {
 
   override suspend fun setClockTime(newValue: Int, longTimeout: Boolean) {
-    executeInRenderSession(longTimeout) {
+    executeInRenderSession(longTimeout = longTimeout, requestAnimationRender = true) {
       animations.forEach {
         if (!it.frozenState.value.isFrozen) {
           it.animation.setTime(newValue.toLong())

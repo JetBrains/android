@@ -53,7 +53,8 @@ class SupportedWearTileAnimationManager(
   val animation: ProtoAnimation,
   private val tracker: AnimationTracker,
   private val getCurrentTime: () -> Int,
-  private val executeInRenderSession: suspend (Boolean, () -> Unit) -> Unit,
+  private val executeInRenderSession:
+    suspend (longTimeout: Boolean, requestRender: Boolean, () -> Unit) -> Unit,
   private val tabbedPane: AnimationTabs,
   private val rootComponent: JComponent,
   override val tabTitle: String,
@@ -89,7 +90,7 @@ class SupportedWearTileAnimationManager(
   }
 
   override suspend fun loadAnimatedPropertiesAtCurrentTime(longTimeout: Boolean) {
-    executeInRenderSession(false) {
+    executeInRenderSession(false, false) {
       animatedPropertiesAtCurrentTime =
         listOf(AnimationUnit.TimelineUnit("value", animation.getAnimationUnit()))
     }
@@ -98,11 +99,11 @@ class SupportedWearTileAnimationManager(
   override lateinit var animationState: WearTileAnimationState<*>
 
   override suspend fun setupInitialAnimationState() {
-    executeInRenderSession(true) { animationState = animation.createStateManager(tracker) }
+    executeInRenderSession(true, false) { animationState = animation.createStateManager(tracker) }
   }
 
   override suspend fun syncAnimationWithState() {
-    executeInRenderSession(true) { animationState.updateAnimation(animation) }
+    executeInRenderSession(true, false) { animationState.updateAnimation(animation) }
     setClockTime(getCurrentTime(), false)
   }
 }
