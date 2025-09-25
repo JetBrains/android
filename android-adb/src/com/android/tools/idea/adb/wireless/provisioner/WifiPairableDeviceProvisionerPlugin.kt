@@ -214,7 +214,8 @@ class WifiPairableDeviceProvisionerPlugin(
                     isVirtual = false
                     isRemote = false
                     populateDeviceInfoProto(PLUGIN_ID, null, emptyMap(), randomConnectionId())
-                  }
+                  },
+                status = "Available for Wi-Fi pairing",
               ),
               project,
               notificationService,
