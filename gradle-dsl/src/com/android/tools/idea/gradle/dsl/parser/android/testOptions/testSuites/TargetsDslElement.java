@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android.testOptions.testSuites;
 
+import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.isGradleContainerMethodName;
 import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.testSuites.TargetDslElement.TARGET;
 
 import com.android.tools.idea.gradle.dsl.api.android.testOptions.testSuites.TargetModel;
@@ -26,50 +27,12 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainCon
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class TargetsDslElement extends GradleDslElementMap implements GradleDslNamedDomainContainer {
   public static final PropertiesElementDescription<TargetsDslElement> TARGETS =
     new PropertiesElementDescription<>("targets", TargetsDslElement.class, TargetsDslElement::new);
-
-  @NotNull
-  private static final String[] KNOWN_METHOD_NAMES_ARRAY = {
-    "add",
-    "addAll",
-    "addRule",
-    "all",
-    "clear",
-    "create",
-    "configure",
-    "configureEach",
-    "each",
-    "equals",
-    "findAll",
-    "forEach",
-    "getAsMap",
-    "getAt",
-    "getByName",
-    "hashcode",
-    "isEmpty",
-    "matching",
-    "maybeCreate",
-    "named",
-    "register",
-    "remove",
-    "removeIf",
-    "removeAll",
-    "retainAll",
-    "size",
-    "stream",
-    "whenObjectAdded",
-    "whenObjectRemoved",
-    "withType",
-  };
-
-  @NotNull
-  protected static final List<String> KNOWN_METHOD_NAMES = Arrays.asList(KNOWN_METHOD_NAMES_ARRAY);
 
   @Override
   public PropertiesElementDescription getChildPropertiesElementDescription(
@@ -92,7 +55,7 @@ public class TargetsDslElement extends GradleDslElementMap implements GradleDslN
   public List<TargetModel> get() {
     List<TargetModel> result = new ArrayList<>();
     for (TargetDslElement dslElement : getValues(TargetDslElement.class)) {
-      if (!KNOWN_METHOD_NAMES.contains(dslElement.getName())) {
+      if (!isGradleContainerMethodName(dslElement.getName())) {
         result.add(new TargetModelImpl(dslElement));
       }
     }

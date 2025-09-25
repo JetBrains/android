@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.isGradleContainerMethodName;
+
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
@@ -56,7 +58,7 @@ public final class BuildTypesDslElement extends AbstractFlavorTypeCollectionDslE
     List<BuildTypeModel> result = new ArrayList<>();
     for (BuildTypeDslElement dslElement : getValues(BuildTypeDslElement.class)) {
       // Filter any buildtypes that we have wrongly detected.
-      if (!KNOWN_METHOD_NAMES.contains(dslElement.getName())) {
+      if (!isGradleContainerMethodName(dslElement.getName())) {
         result.add(new BuildTypeModelImpl(dslElement));
       }
     }
