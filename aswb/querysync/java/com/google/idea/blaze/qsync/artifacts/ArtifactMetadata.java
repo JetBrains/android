@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
  * Metadata associated with a {@link BuildArtifact}.
  *
  * <p>Metadata is used to derive information from a build artifact that is required by a {@link
- * com.google.idea.blaze.qsync.ProjectProtoTransform}. Projects transforms cannot directly access
+ * ProjectProtoTransform}. Projects transforms cannot directly access
  * build artifacts from {@link com.google.idea.blaze.common.artifact.BuildArtifactCache} since there
  * is no guarantee that such artifacts will always be present when it is run. Instead, a project
  * proto transform can supply the identities of build artifacts together with the a {@link

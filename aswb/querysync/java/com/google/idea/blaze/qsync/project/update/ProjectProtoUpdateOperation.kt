@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.qsync.deps
+package com.google.idea.blaze.qsync.project.update
 
 import com.google.common.collect.ImmutableSet
-import com.google.common.collect.ImmutableSetMultimap
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
+import com.google.idea.blaze.qsync.deps.ArtifactTracker
+import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 
 /**
  * An update to the project proto that operates on a [ProjectProtoUpdate]. Also defines some

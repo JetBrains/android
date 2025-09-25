@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.qsync.deps
+package com.google.idea.blaze.qsync.project.update
 
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
+import com.google.idea.blaze.qsync.deps.DependencyBuildContext
 import com.google.idea.blaze.qsync.project.BlazeProjectDataStorage
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
-import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact.ArtifactTransform
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage
 import com.intellij.util.containers.with
 import java.nio.file.Path
+import kotlin.collections.plus
+import kotlin.collections.plusAssign
 
 /**
  * Helper class for making a number of updates to the project proto.
@@ -82,7 +84,7 @@ class ProjectProtoUpdate(
       artifactPath: Path,
       artifact: BuildArtifact,
       buildContext: DependencyBuildContext,
-      transform: ArtifactTransform = ArtifactTransform.COPY,
+      transform: ProjectProto.ProjectArtifact.ArtifactTransform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
     ): ProjectPath.ProjectRelativeProjectPath?
   }
 
@@ -174,7 +176,7 @@ class ProjectProtoUpdate(
         artifactPath: Path,
         artifact: BuildArtifact,
         buildContext: DependencyBuildContext,
-        transform: ArtifactTransform,
+        transform: ProjectProto.ProjectArtifact.ArtifactTransform,
       ): ProjectPath.ProjectRelativeProjectPath? {
         val relativePath = artifactPath.toString()
         val existing = contents[relativePath]

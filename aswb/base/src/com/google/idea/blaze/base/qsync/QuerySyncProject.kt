@@ -23,12 +23,10 @@ import com.google.common.io.MoreFiles
 import com.google.idea.blaze.base.bazel.BuildSystem
 import com.google.idea.blaze.base.logging.utils.querysync.BuildDepsStatsScope
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
-import com.google.idea.blaze.base.plugin.BazelVersionChecker
 import com.google.idea.blaze.base.plugin.BuildSystemVersionChecker
 import com.google.idea.blaze.base.projectview.ProjectViewSet
 import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.base.settings.BlazeImportSettings
-import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver
 import com.google.idea.blaze.base.targetmaps.SourceToTargetMap
@@ -41,7 +39,7 @@ import com.google.idea.blaze.common.vcs.VcsState
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.BlazeQueryParser
 import com.google.idea.blaze.qsync.ProjectBuilder
-import com.google.idea.blaze.qsync.ProjectProtoTransform
+import com.google.idea.blaze.qsync.project.update.ProjectProtoTransform
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.PostQuerySyncData

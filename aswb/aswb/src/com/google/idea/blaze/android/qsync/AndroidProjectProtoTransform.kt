@@ -19,12 +19,12 @@ import com.google.idea.blaze.android.manifest.ManifestParser
 import com.google.idea.blaze.base.qsync.ProjectProtoTransformProvider
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.exception.BuildException
-import com.google.idea.blaze.qsync.ProjectProtoTransform
+import com.google.idea.blaze.qsync.project.update.ProjectProtoTransform
 import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
-import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate
-import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.java.AarPackageNameExtractor
 import com.google.idea.blaze.qsync.java.AddAndroidResPackages

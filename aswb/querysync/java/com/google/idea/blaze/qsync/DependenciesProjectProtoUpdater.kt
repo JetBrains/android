@@ -22,8 +22,8 @@ import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
 import com.google.idea.blaze.qsync.cc.ConfigureCcCompilation.UpdateOperation
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
-import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate
-import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.java.AddCompiledJavaDeps
 import com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars
@@ -39,6 +39,7 @@ import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
+import com.google.idea.blaze.qsync.project.update.ProjectProtoTransform
 
 /**
  * A [ProjectProtoTransform] that adds built artifact information to the project proto, based

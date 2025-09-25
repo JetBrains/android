@@ -26,8 +26,8 @@ import com.google.idea.blaze.qsync.deps.ArtifactTracker.State
 import com.google.idea.blaze.qsync.deps.CcCompilationInfo
 import com.google.idea.blaze.qsync.deps.CcToolchain
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext
-import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate
-import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectProto.CcCompilationContext
