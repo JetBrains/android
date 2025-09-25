@@ -466,6 +466,7 @@ Android Studio Preview.app/Contents/lib/modules/intellij.grid.impl.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.grid.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.grid.types.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.libraries.ai.grazie.spell.gec.engine.local.jar
+Android Studio Preview.app/Contents/lib/modules/intellij.libraries.coil.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.libraries.compose.foundation.desktop.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.libraries.grpc.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.libraries.grpc.netty.shaded.jar
@@ -538,7 +539,6 @@ Android Studio Preview.app/Contents/lib/modules/intellij.platform.recentFiles.fr
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.recentFiles.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.rpc.backend.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.scopes.backend.jar
-Android Studio Preview.app/Contents/lib/modules/intellij.platform.scopes.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.searchEverywhere.backend.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.searchEverywhere.frontend.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.searchEverywhere.jar
@@ -3183,6 +3183,7 @@ Android Studio Preview.app/Contents/plugins/json/lib/modules/intellij.json.backe
 Android Studio Preview.app/Contents/plugins/junit/lib/junit-rt.jar
 Android Studio Preview.app/Contents/plugins/junit/lib/junit.jar
 Android Studio Preview.app/Contents/plugins/junit/lib/junit5-rt.jar
+Android Studio Preview.app/Contents/plugins/junit/lib/junit6-rt.jar
 Android Studio Preview.app/Contents/plugins/keymap-eclipse/lib/keymap-eclipse.jar
 Android Studio Preview.app/Contents/plugins/keymap-netbeans/lib/keymap-netbeans.jar
 Android Studio Preview.app/Contents/plugins/keymap-visualStudio/lib/keymap-visualStudio.jar
