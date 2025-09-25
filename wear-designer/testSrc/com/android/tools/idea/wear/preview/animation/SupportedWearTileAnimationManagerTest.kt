@@ -281,7 +281,7 @@ class SupportedWearTileAnimationManagerTest {
       animation,
       NoopAnimationTracker,
       getCurrentTime = { 0 }, // Simplified for testing,
-      { _, runnable -> runnable.invoke() },
+      { _, _, runnable -> runnable.invoke() },
       AnimationTabs(projectRule.project, projectRule.testRootDisposable),
       rootComponent,
       tabTitle,
