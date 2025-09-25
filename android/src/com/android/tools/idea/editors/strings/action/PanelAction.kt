@@ -20,7 +20,6 @@ import com.android.tools.idea.editors.strings.StringResourceViewPanel
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NlsActions.ActionDescription
@@ -40,10 +39,13 @@ abstract class PanelAction(
 ) : AnAction(text, description, icon) {
   /** The [StringResourceViewPanel] associated with `this` [AnActionEvent]. */
   protected val AnActionEvent.panel: StringResourceViewPanel
-    get() = (getRequiredData(PlatformDataKeys.FILE_EDITOR) as StringResourceEditor).panel
+    get() {
+      return (getData(PlatformDataKeys.FILE_EDITOR) as? StringResourceEditor)?.panel ?:
+          throw AssertionError("Action is called outside of an editor context")
+    }
   /** The non-`null` [Project] associated with `this` [AnActionEvent]. */
   protected val AnActionEvent.requiredProject: Project
-    get() = getRequiredData(CommonDataKeys.PROJECT)
+    get() = project ?: throw AssertionError("Action is called outside of a project context")
 
   private fun AnActionEvent.hasRequiredData(): Boolean =
       (getData(PlatformDataKeys.FILE_EDITOR) is StringResourceEditor) && (project != null)
@@ -57,7 +59,7 @@ abstract class PanelAction(
    * Handles action-specific [AnAction.update(AnActionEvent)] functionality. Only called if the
    * [AnActionEvent] has a valid `panel` and `requiredProject`.
    *
-   * @return whether or not the action should be enabled
+   * @return whether the action should be enabled
    */
   protected abstract fun doUpdate(event: AnActionEvent): Boolean
 }
