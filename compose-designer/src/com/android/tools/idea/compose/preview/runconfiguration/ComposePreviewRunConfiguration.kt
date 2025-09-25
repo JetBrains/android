@@ -40,6 +40,8 @@ import org.jetbrains.uast.toUElementOfType
 
 private const val CONFIGURATION_ELEMENT_NAME = "compose-preview-run-configuration"
 private const val COMPOSABLE_FQN_ATR_NAME = "composable-fqn"
+private const val PROVIDER_CLASS_FQN_ATR_NAME = "parameter-provider-class-name"
+private const val PROVIDER_INDEX_ATR_NAME = "parameter-provider-index"
 
 /**
  * A run configuration to launch the Compose tooling PreviewActivity to a device/emulator passing a
@@ -129,17 +131,23 @@ open class ComposePreviewRunConfiguration(
 
     element.getChild(CONFIGURATION_ELEMENT_NAME)?.let {
       it.getAttribute(COMPOSABLE_FQN_ATR_NAME)?.let { attr -> composableMethodFqn = attr.value }
+      it.getAttribute(PROVIDER_CLASS_FQN_ATR_NAME)?.let { attr -> providerClassFqn = attr.value }
+      it.getAttribute(PROVIDER_INDEX_ATR_NAME)?.let { attr ->
+        providerIndex = attr.value.toIntOrNull() ?: -1
+      }
     }
   }
 
   override fun writeExternal(element: Element) {
     super.writeExternal(element)
 
-    composableMethodFqn?.let {
-      val configurationElement = Element(CONFIGURATION_ELEMENT_NAME)
-      configurationElement.setAttribute(COMPOSABLE_FQN_ATR_NAME, it)
-      element.addContent(configurationElement)
-    }
+    val configurationElement = Element(CONFIGURATION_ELEMENT_NAME)
+    composableMethodFqn?.let { configurationElement.setAttribute(COMPOSABLE_FQN_ATR_NAME, it) }
+    providerClassFqn?.let { configurationElement.setAttribute(PROVIDER_CLASS_FQN_ATR_NAME, it) }
+    providerIndex
+      .takeIf { it >= 0 }
+      ?.let { configurationElement.setAttribute(PROVIDER_INDEX_ATR_NAME, it.toString()) }
+    element.addContent(configurationElement)
   }
 
   override fun validate(executor: Executor?): MutableList<ValidationError> {
