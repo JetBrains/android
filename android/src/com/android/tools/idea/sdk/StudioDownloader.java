@@ -26,7 +26,6 @@ import com.android.tools.idea.progress.StudioProgressIndicatorAdapter;
 import com.android.utils.PathUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.io.HttpRequests;
 import com.intellij.util.io.RequestBuilder;
@@ -223,7 +222,7 @@ public class StudioDownloader implements Downloader {
         rb.tuner(c -> c.setRequestProperty("Range", rangeHeader));
       }
       else {
-        FileUtil.delete(interimDownload);
+        Files.deleteIfExists(interimDownload);
       }
     }
 
