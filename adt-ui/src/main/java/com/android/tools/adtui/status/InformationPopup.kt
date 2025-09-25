@@ -22,6 +22,7 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.invokeLater
@@ -38,7 +39,6 @@ import com.intellij.util.ui.GridBag
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.xml.util.XmlStringUtil
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.GridBagConstraints
@@ -54,6 +54,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingUtilities
 import javax.swing.Timer
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Creates a popup that displays a title, a description, a list of actions as an overflow menu and a list of links at the bottom.
@@ -294,7 +295,7 @@ class InformationPopupImpl(
     if (additionalActions.isNotEmpty()) {
       val presentation = Presentation()
       presentation.icon = AllIcons.Actions.More
-      presentation.putClientProperty(ActionButton.HIDE_DROPDOWN_ICON, java.lang.Boolean.TRUE)
+      presentation.putClientProperty(ActionUtil.HIDE_DROPDOWN_ICON, java.lang.Boolean.TRUE)
       val dropDownAction = DropDownAction(null, null , AllIcons.Actions.More).also {
         it.addAll(additionalActions)
       }
