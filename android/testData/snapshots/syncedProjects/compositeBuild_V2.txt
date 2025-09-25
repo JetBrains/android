@@ -242,7 +242,7 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
             -                             : file://<PROJECT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugAndroidTest
-            -                             : jar://<PROJECT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
+            -                             : jar://<PROJECT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
             -                             : file://<PROJECT>/TestCompositeLib1/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
                 CLEAN                         : <PROJECT>::includedLib1:app:generateDebugAndroidTestSources
@@ -375,7 +375,7 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : file://<PROJECT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debug
-            -                             : jar://<PROJECT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
+            -                             : jar://<PROJECT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
             -                             : file://<PROJECT>/TestCompositeLib1/app/build/generated/res/resValues/debug
         BUILD_TASKS
                 CLEAN                         : <PROJECT>::includedLib1:app:generateDebugSources
@@ -551,7 +551,7 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
             -                             : file://<PROJECT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugUnitTest
-            -                             : jar://<PROJECT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
+            -                             : jar://<PROJECT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
         BUILD_TASKS
                 CLEAN                         : <PROJECT>::includedLib1:app:createMockableJar
                 ASSEMBLE                      : <PROJECT>::includedLib1:app:assembleDebugUnitTest
@@ -771,7 +771,7 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
             -                             : file://<PROJECT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugAndroidTest
-            -                             : jar://<PROJECT>/TestCompositeLib1/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
+            -                             : jar://<PROJECT>/TestCompositeLib1/lib/build/intermediates/compile_and_runtime_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
             -                             : file://<PROJECT>/TestCompositeLib1/lib/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
                 CLEAN                         : <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources
@@ -1066,7 +1066,7 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
             -                             : file://<PROJECT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugUnitTest
-            -                             : jar://<PROJECT>/TestCompositeLib1/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar!/
+            -                             : jar://<PROJECT>/TestCompositeLib1/lib/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar!/
         BUILD_TASKS
                 CLEAN                         : <PROJECT>::includedLib1:lib:createMockableJar
                 ASSEMBLE                      : <PROJECT>::includedLib1:lib:assembleDebugUnitTest
@@ -1312,7 +1312,7 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
             -                             : file://<PROJECT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugAndroidTest
-            -                             : jar://<PROJECT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
+            -                             : jar://<PROJECT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
             -                             : file://<PROJECT>/TestCompositeLib3/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
                 CLEAN                         : <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources
@@ -1443,7 +1443,7 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : file://<PROJECT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debug
-            -                             : jar://<PROJECT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
+            -                             : jar://<PROJECT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
             -                             : file://<PROJECT>/TestCompositeLib3/app/build/generated/res/resValues/debug
         BUILD_TASKS
                 CLEAN                         : <PROJECT>::TestCompositeLib3:app:generateDebugSources
@@ -1615,7 +1615,7 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
             -                             : file://<PROJECT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugUnitTest
-            -                             : jar://<PROJECT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
+            -                             : jar://<PROJECT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
         BUILD_TASKS
                 CLEAN                         : <PROJECT>::TestCompositeLib3:app:createMockableJar
                 ASSEMBLE                      : <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest
@@ -1804,7 +1804,7 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
-            -                             : jar://<PROJECT>/TestCompositeLib3/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
+            -                             : jar://<PROJECT>/TestCompositeLib3/lib/build/intermediates/compile_and_runtime_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
             -                             : file://<PROJECT>/TestCompositeLib3/lib/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
                 CLEAN                         : <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources
@@ -2042,7 +2042,7 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
-            -                             : jar://<PROJECT>/TestCompositeLib3/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar!/
+            -                             : jar://<PROJECT>/TestCompositeLib3/lib/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar!/
         BUILD_TASKS
                 CLEAN                         : <PROJECT>::TestCompositeLib3:lib:createMockableJar
                 ASSEMBLE                      : <PROJECT>::TestCompositeLib3:lib:assembleDebugUnitTest
@@ -2603,7 +2603,7 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugAndroidTest
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugAndroidTestSources
@@ -2736,7 +2736,7 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debug
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/debug
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugSources
@@ -2912,7 +2912,7 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugUnitTest
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :app:createMockableJar
                 ASSEMBLE                      : :app:assembleDebugUnitTest
@@ -3126,7 +3126,7 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/lib/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
             -                             : file://<PROJECT>/lib/build/tmp/kotlin-classes/debugAndroidTest
-            -                             : jar://<PROJECT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
+            -                             : jar://<PROJECT>/lib/build/intermediates/compile_and_runtime_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
             -                             : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
                 CLEAN                         : :lib:generateDebugAndroidTestSources
@@ -3412,7 +3412,7 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
             -                             : file://<PROJECT>/lib/build/tmp/kotlin-classes/debugUnitTest
-            -                             : jar://<PROJECT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar!/
+            -                             : jar://<PROJECT>/lib/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :lib:createMockableJar
                 ASSEMBLE                      : :lib:assembleDebugUnitTest
