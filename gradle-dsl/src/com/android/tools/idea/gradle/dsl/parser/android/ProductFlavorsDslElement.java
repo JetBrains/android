@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.isGradleContainerMethodName;
 import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement.PRODUCT_FLAVOR;
 
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
@@ -55,7 +56,7 @@ public final class ProductFlavorsDslElement extends AbstractFlavorTypeCollection
   public List<ProductFlavorModel> get() {
     List<ProductFlavorModel> result = new ArrayList<>();
     for (ProductFlavorDslElement dslElement : getValues(ProductFlavorDslElement.class)) {
-      if (!KNOWN_METHOD_NAMES.contains(dslElement.getName())) {
+      if (!isGradleContainerMethodName(dslElement.getName())) {
         result.add(new ProductFlavorModelImpl(dslElement));
       }
     }

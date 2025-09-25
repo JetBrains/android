@@ -18,48 +18,9 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import java.util.Arrays;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractFlavorTypeCollectionDslElement extends GradleDslElementMap {
-  @NotNull
-  private static final String[] KNOWN_METHOD_NAMES_ARRAY = {
-    "add",
-    "addAll",
-    "addRule",
-    "all",
-    "clear",
-    "create",
-    "configure",
-    "configureEach",
-    "each",
-    "equals",
-    "findAll",
-    "forEach",
-    "getAsMap",
-    "getAt",
-    "getByName",
-    "hashcode",
-    "isEmpty",
-    "matching",
-    "maybeCreate",
-    "named",
-    "register",
-    "remove",
-    "removeIf",
-    "removeAll",
-    "retainAll",
-    "size",
-    "stream",
-    "whenObjectAdded",
-    "whenObjectRemoved",
-    "withType",
-  };
-
-  @NotNull
-  protected static final List<String> KNOWN_METHOD_NAMES = Arrays.asList(KNOWN_METHOD_NAMES_ARRAY);
-
   protected AbstractFlavorTypeCollectionDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
   }

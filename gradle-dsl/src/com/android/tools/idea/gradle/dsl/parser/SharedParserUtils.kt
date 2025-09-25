@@ -226,3 +226,50 @@ fun GradlePropertiesDslElement.setMaybeIndirectedElement(propertyElement: Gradle
  */
 fun isDomainObjectConfiguratorMethodName(methodName : String?) =
   methodName != null && methodName in listOf("create", "getByName", "maybeCreate", "named", "register")
+
+private val KNOWN_METHOD_NAMES =
+  setOf(
+    "add",
+    "addAll",
+    "addRule",
+    "all",
+    "clear",
+    "create",
+    "configure",
+    "configureEach",
+    "each",
+    "equals",
+    "findAll",
+    "forEach",
+    "getAsMap",
+    "getAt",
+    "getByName",
+    "hashcode",
+    "isEmpty",
+    "matching",
+    "maybeCreate",
+    "named",
+    "register",
+    "remove",
+    "removeIf",
+    "removeAll",
+    "retainAll",
+    "size",
+    "stream",
+    "whenObjectAdded",
+    "whenObjectRemoved",
+    "withType",
+  )
+
+/**
+ * Checks if the given [name] is a known method on Gradle container-like objects.
+ *
+ * This is used to help differentiate between method calls that are likely operating on a collection
+ * (e.g., `add`, `all`, `create`) versus those that might be defining new properties or blocks.
+ *
+ * @param name the name to check.
+ * @return `true` if the name is one of the known Gradle container methods, `false` otherwise.
+ */
+fun isGradleContainerMethodName(name: String): Boolean {
+  return KNOWN_METHOD_NAMES.contains(name)
+}
