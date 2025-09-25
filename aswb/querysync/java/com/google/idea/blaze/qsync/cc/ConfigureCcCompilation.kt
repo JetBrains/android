@@ -26,6 +26,7 @@ import com.google.idea.blaze.qsync.deps.ArtifactTracker.State
 import com.google.idea.blaze.qsync.deps.CcCompilationInfo
 import com.google.idea.blaze.qsync.deps.CcToolchain
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext
+import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import com.google.idea.blaze.qsync.project.ProjectPath
@@ -50,10 +51,11 @@ class ConfigureCcCompilation(
   class UpdateOperation : ProjectProtoUpdateOperation {
     override fun update(
       update: ProjectProtoUpdate,
+      buildGraph: BuildGraphData,
       artifactState: State,
       context: Context<*>,
     ) {
-      ConfigureCcCompilation(artifactState, update).update()
+      ConfigureCcCompilation(artifactState, update).update(buildGraph, context)
     }
   }
 
@@ -66,9 +68,9 @@ class ConfigureCcCompilation(
   private val uniqueFlagSetIds: MutableMap<Set<CcCompilerFlag>, String> = hashMapOf()
 
   @Throws(BuildException::class)
-  fun update() {
+  fun update(buildGraph: BuildGraphData, context: Context<*>) {
     update.ccWorkspace {
-      val visitor = Visitor(this)
+      val visitor = Visitor(context, buildGraph, this)
       visitor.visitToolchainMap(artifactState.ccToolchainMap())
 
       for (target in artifactState.targets()) {
@@ -78,7 +80,11 @@ class ConfigureCcCompilation(
     }
   }
 
-  private inner class Visitor(private val workspaceUpdater: ProjectProtoUpdate.CcWorkspaceUpdater) {
+  private inner class Visitor(
+    private val context: Context<*>,
+    private val buildGraph: BuildGraphData,
+    private val workspaceUpdater: ProjectProtoUpdate.CcWorkspaceUpdater
+  ) {
 
     fun visitToolchainMap(toolchainInfoMap: Map<String, CcToolchain>) {
       toolchainInfoMap.values.forEach(this::visitToolchain)
@@ -105,7 +111,7 @@ class ConfigureCcCompilation(
 
     fun visitTarget(ccInfo: CcCompilationInfo, buildContext: DependencyBuildContext) {
       val projectTarget =
-        update.buildGraph().getProjectTarget(ccInfo.target())
+        buildGraph.getProjectTarget(ccInfo.target())
         // This target is no longer present in the project. Ignore it.
         // We should really clean up the dependency cache itself to remove any artifacts relating to
         // no-longer-present targets, but that will be a lot more work. For now, just ensure we
@@ -128,7 +134,7 @@ class ConfigureCcCompilation(
       // TODO(mathewi): The handling of flag sets here is not optimal, since we recalculate an
       //  identical flag set for each source of the same language, then immediately de-dupe them in
       //  the addFlagSet call. For large flag sets this may be slow.
-      val srcs = update.buildGraph().getTargetSources(ccInfo.target(), *SourceType.all())
+      val srcs = buildGraph.getTargetSources(ccInfo.target(), *SourceType.all())
         .mapNotNull { srcPath ->
           val lang = getLanguage(srcPath) ?: return@mapNotNull null
           CcSourceFile(
@@ -173,6 +179,27 @@ class ConfigureCcCompilation(
         workspaceUpdater.putFlagSets(flagSetId, CcCompilerFlagSet(flags.toList()))
       }
     }
+
+    private fun getLanguage(srcPath: Path): CcLanguage? {
+      // logic in here based on https://bazel.build/reference/be/c-cpp#cc_library.srcs
+      val lastDot = srcPath.fileName.toString().lastIndexOf('.')
+      if (lastDot < 0) {
+        // default to cpp
+        context.output(PrintOutput.log("No extension for c/c++ source file %s; assuming cpp", srcPath))
+        return CcLanguage.CPP
+      }
+      val ext = srcPath.fileName.toString().substring(lastDot + 1)
+      if (IGNORE_SRC_FILE_EXTENSIONS.contains(ext)) {
+        return null
+      }
+      if (EXTENSION_TO_LANGUAGE_MAP.containsKey(ext)) {
+        return EXTENSION_TO_LANGUAGE_MAP[ext]
+      }
+      context.output(
+        PrintOutput.log(
+          "Unrecognized extension %s for c/c++ source file %s; assuming cpp", ext, srcPath))
+      return CcLanguage.CPP
+    }
   }
 
   private fun makeStringFlag(flag: String, value: String): CcCompilerFlag {
@@ -198,30 +225,5 @@ class ConfigureCcCompilation(
     /* Files we ignore because they are not top level source files: */
     private val IGNORE_SRC_FILE_EXTENSIONS =
       setOf("h", "hh", "hpp", "hxx", "inc", "inl", "H", "S", "a", "lo", "so", "o")
-  }
-
-  private fun getLanguage(srcPath: Path): CcLanguage? {
-    // logic in here based on https://bazel.build/reference/be/c-cpp#cc_library.srcs
-    val lastDot = srcPath.fileName.toString().lastIndexOf('.')
-    if (lastDot < 0) {
-      // default to cpp
-      update
-        .context()
-        .output(PrintOutput.log("No extension for c/c++ source file %s; assuming cpp", srcPath))
-      return CcLanguage.CPP
-    }
-    val ext = srcPath.fileName.toString().substring(lastDot + 1)
-    if (IGNORE_SRC_FILE_EXTENSIONS.contains(ext)) {
-      return null
-    }
-    if (EXTENSION_TO_LANGUAGE_MAP.containsKey(ext)) {
-      return EXTENSION_TO_LANGUAGE_MAP[ext]
-    }
-    update
-      .context()
-      .output(
-        PrintOutput.log(
-          "Unrecognized extension %s for c/c++ source file %s; assuming cpp", ext, srcPath))
-    return CcLanguage.CPP
   }
 }

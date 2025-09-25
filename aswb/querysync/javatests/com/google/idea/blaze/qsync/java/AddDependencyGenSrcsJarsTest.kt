@@ -73,9 +73,9 @@ class AddDependencyGenSrcsJarsTest {
   @Throws(Exception::class)
   private fun no_deps_built(addGenSrcJars: AddDependencyGenSrcsJars) {
     val update =
-      ProjectProtoUpdate(original.project(), original.graph(), NoopContext())
+      ProjectProtoUpdate(original.project())
 
-    addGenSrcJars.update(update, ArtifactTracker.State.EMPTY, NoopContext())
+    addGenSrcJars.update(update, original.graph(), ArtifactTracker.State.EMPTY, NoopContext())
 
     val newProject = update.build()
 
@@ -113,8 +113,8 @@ class AddDependencyGenSrcsJarsTest {
       )
 
     val update =
-      ProjectProtoUpdate(original.project(), original.graph(), NoopContext())
-    addGenSrcJars.update(update, artifactState, NoopContext())
+      ProjectProtoUpdate(original.project())
+    addGenSrcJars.update(update, original.graph(), artifactState, NoopContext())
     val newProject = update.build()
 
     Mockito.verify<BuildArtifactCache?>(cache, Mockito.never()).get(ArgumentMatchers.any())
@@ -172,8 +172,8 @@ class AddDependencyGenSrcsJarsTest {
       )
 
     val update =
-      ProjectProtoUpdate(original.project(), original.graph(), NoopContext())
-    addGenSrcJars.update(update, artifactState, NoopContext())
+      ProjectProtoUpdate(original.project())
+    addGenSrcJars.update(update, original.graph(), artifactState, NoopContext())
     val newProject = update.build()
 
     Truth.assertThat(newProject.libraries.values).containsExactly(*expectedLibraries)
@@ -222,8 +222,8 @@ class AddDependencyGenSrcsJarsTest {
       )
 
     val update =
-      ProjectProtoUpdate(original.project(), original.graph(), NoopContext())
-    addGenSrcJars.update(update, artifactState, NoopContext())
+      ProjectProtoUpdate(original.project())
+    addGenSrcJars.update(update, original.graph(), artifactState, NoopContext())
     val newProject = update.build()
 
     Truth.assertThat(newProject.libraries.values).containsExactly(*expectedLibraries)

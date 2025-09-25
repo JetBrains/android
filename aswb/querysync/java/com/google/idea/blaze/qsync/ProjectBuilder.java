@@ -77,7 +77,7 @@ public class ProjectBuilder {
             context,
             postQuerySyncData.projectDefinition(),
             executor);
-    final var update = new ProjectProtoUpdate(graphToProjectConverter.createProject(graph), graph, context);
+    final var update = new ProjectProtoUpdate(graphToProjectConverter.createProject(graph));
     projectProtoTransform.apply(update, graph, artifactTrackerState, context);
     return update.build();
   }

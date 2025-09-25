@@ -79,9 +79,9 @@ class AddDependencySrcJarsTest {
   @Throws(Exception::class)
   private fun no_deps_built(addSrcJars: AddDependencySrcJars) {
     val update =
-      ProjectProtoUpdate(original.project(), original.graph(), NoopContext())
+      ProjectProtoUpdate(original.project())
 
-    addSrcJars.update(update, ArtifactTracker.State.EMPTY, NoopContext())
+    addSrcJars.update(update, original.graph(), ArtifactTracker.State.EMPTY, NoopContext())
 
     val newProject = update.build()
 
@@ -116,7 +116,7 @@ class AddDependencySrcJarsTest {
   ) {
     ZipOutputStream(
       FileOutputStream(
-        Files.createDirectories(workspaceRoot!!.resolve("source/path"))
+        Files.createDirectories(workspaceRoot.resolve("source/path"))
           .resolve("external.srcjar")
           .toFile()
       )
@@ -133,9 +133,9 @@ class AddDependencySrcJarsTest {
       )
 
     val update =
-      ProjectProtoUpdate(original.project(), original.graph(), NoopContext())
+      ProjectProtoUpdate(original.project())
 
-    addSrcJars.update(update, artifactState, NoopContext())
+    addSrcJars.update(update, original.graph(), artifactState, NoopContext())
 
     val newProject = update.build()
 

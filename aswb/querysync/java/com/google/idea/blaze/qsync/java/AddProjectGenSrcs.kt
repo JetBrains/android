@@ -27,6 +27,7 @@ import com.google.idea.blaze.qsync.deps.DependencyBuildContext
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo
+import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.TestSourceGlobMatcher
 import java.nio.file.Path
@@ -90,6 +91,7 @@ class AddProjectGenSrcs(
   @Throws(BuildException::class)
   override fun update(
     update: ProjectProtoUpdate,
+    buildGraph: BuildGraphData,
     artifactState: ArtifactTracker.State,
     context: Context<*>
   ) {
@@ -119,7 +121,7 @@ class AddProjectGenSrcs(
       }
       if (!missingPackageArtifacts.isEmpty()) {
         val showSourcesLimit = 10
-        update.context().output(
+        context.output(
           PrintOutput.error(
             "WARNING: Ignoring %d generated source file(s) due to missing package info:\n  %s",
             missingPackageArtifacts.size,
@@ -130,7 +132,7 @@ class AddProjectGenSrcs(
             ) { it.artifactPath().toString() }
           )
         )
-        update.context().setHasWarnings()
+        context.setHasWarnings()
       }
       val destinationToChosenArtifact = srcsByJavaPath.entries.map { entry ->
         val finalDest = entry.key
@@ -139,9 +141,7 @@ class AddProjectGenSrcs(
         // same artifact underneath, there's no actual conflict.
         val uniqueDigests = candidates.map { it.artifact.digest() }.distinct().count()
         if (uniqueDigests > 1) {
-          update
-            .context()
-            .output(
+          context.output(
               PrintOutput.error(
                 ("WARNING: your project contains conflicting generated java sources for:\n"
                  + "  %s\n"
@@ -157,7 +157,7 @@ class AddProjectGenSrcs(
                   }
               )
             )
-          update.context().setHasWarnings()
+          context.setHasWarnings()
         }
 
         val chosen = candidates.minOrNull() ?: error("No candidates")
