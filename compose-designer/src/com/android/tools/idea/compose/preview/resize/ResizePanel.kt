@@ -65,7 +65,6 @@ import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBUI.scale
 import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
 import java.awt.BorderLayout
-import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.event.ActionListener
 import java.awt.event.FocusAdapter
@@ -82,8 +81,6 @@ import javax.swing.text.AttributeSet
 import javax.swing.text.DocumentFilter
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
-
-private const val TEXT_FIELD_WIDTH = 60
 
 /**
  * Panel that allows resizing the preview by selecting a device or entering custom dimensions. It is
@@ -395,7 +392,7 @@ class ResizePanel(parentDisposable: Disposable) :
 
     private fun createDimensionTextField(valueName: String): IntegerField {
       return IntegerField(valueName, MIN_DIMENSION_DP, MAX_DIMENSION_DP).apply {
-        preferredSize = Dimension(scale(TEXT_FIELD_WIDTH), preferredSize.height)
+        columns = 4
         (document as? AbstractDocument)?.documentFilter =
           object : DocumentFilter() {
             override fun insertString(
