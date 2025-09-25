@@ -76,6 +76,7 @@ jvm_library(
     "//android/designer",
     "//android/designer/gradle",
     "//android/android-common:common",
+    "//android/logcat/gradle",
   ]
 )
 
