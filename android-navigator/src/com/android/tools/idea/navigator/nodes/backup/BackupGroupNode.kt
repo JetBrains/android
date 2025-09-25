@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes.backup
 
+import com.android.tools.idea.util.relativeToProject
 import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ProjectViewNode
@@ -23,11 +24,11 @@ import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VirtualFile
-import kotlinx.collections.immutable.toImmutableList
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.name
 import kotlin.io.path.pathString
+import kotlinx.collections.immutable.toImmutableList
 
 /**
  * A group node in the Android Project View that contains all the backup files in the project
@@ -51,8 +52,12 @@ internal class BackupGroupNode(project: Project, settings: ViewSettings)
     children.clear()
     ProjectFileIndex.getInstance(project).iterateContent(
       {
-        val parent = it.parent.path.removePrefix(project.basePath ?: "")
-        dirs.getOrCreateDirectoryNode(parent).addChild(BackupFileNode(project, it, settings))
+        val parent = it.parent.toNioPath().relativeToProject(project)
+        if (parent.isAbsolute) {
+          // If the file is not under the project dir, ignore it.
+          return@iterateContent true
+        }
+        dirs.getOrCreateDirectoryNode(parent.pathString).addChild(BackupFileNode(project, it, settings))
         true
       }, { it.extension == "backup" })
 
@@ -79,7 +84,7 @@ internal class BackupGroupNode(project: Project, settings: ViewSettings)
   }
 
   private fun MutableMap<String, DirectoryNode>.getOrCreateDirectoryNode(pathString: String): DirectoryNode {
-    if (pathString.isEmpty() || pathString == File.separator) {
+    if (pathString.isEmpty()) {
       return this@BackupGroupNode
     }
     return getOrPut(pathString) {
