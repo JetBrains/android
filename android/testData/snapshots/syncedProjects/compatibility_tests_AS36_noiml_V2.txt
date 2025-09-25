@@ -235,7 +235,7 @@ PROJECT                       : AS36_noiml
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugAndroidTestSources
@@ -340,7 +340,7 @@ PROJECT                       : AS36_noiml
         LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/debug
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugSources
@@ -485,7 +485,7 @@ PROJECT                       : AS36_noiml
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :app:createMockableJar
                 ASSEMBLE                      : :app:assembleDebugUnitTest
@@ -1288,7 +1288,7 @@ PROJECT                       : AS36_noiml
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/libs/android_library/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
-            -                             : jar://<PROJECT>/libs/android_library/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
+            -                             : jar://<PROJECT>/libs/android_library/build/intermediates/compile_and_runtime_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
             -                             : file://<PROJECT>/libs/android_library/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
                 CLEAN                         : :libs:android_library:generateDebugAndroidTestSources
@@ -1536,7 +1536,7 @@ PROJECT                       : AS36_noiml
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/libs/android_library/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
-            -                             : jar://<PROJECT>/libs/android_library/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar!/
+            -                             : jar://<PROJECT>/libs/android_library/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :libs:android_library:createMockableJar
                 ASSEMBLE                      : :libs:android_library:assembleDebugUnitTest

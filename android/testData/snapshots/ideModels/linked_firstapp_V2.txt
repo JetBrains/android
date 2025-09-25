@@ -1731,7 +1731,7 @@ MODULE                        : My_First_App.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/firstapp/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                ClassesFolder                 : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar [-]
                 ClassesFolder                 : <ROOT>/firstapp/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
                 ClassesFolder                 : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debugUnitTest [-]
                 Dependencies
@@ -2851,7 +2851,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/shared/mysharedlibrary/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                ClassesFolder                 : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
+                ClassesFolder                 : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
                 ClassesFolder                 : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debugUnitTest [-]
                 Dependencies

@@ -790,7 +790,7 @@ MODULE                        : MultiFlavor.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugUnitTest/out [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebug/processFirstAbcSecondAbcDebugResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_r_class_jar/firstAbcSecondAbcDebug/processFirstAbcSecondAbcDebugResources/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebugUnitTest/compileFirstAbcSecondAbcDebugUnitTestJavaWithJavac/classes [-]
                 VariantSourceProvider
                     Name                          : testFirstAbcSecondAbcDebug

@@ -595,7 +595,7 @@ PROJECT                       : project
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugUnitTest
             -                             : file://<PROJECT>/app/build/tmp/kapt3/classes/debugUnitTest
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :app:createMockableJar
                 ASSEMBLE                      : :app:assembleDebugUnitTest
@@ -1117,7 +1117,7 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/awesomeandroidlibrary/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
             -                             : file://<PROJECT>/awesomeandroidlibrary/build/tmp/kotlin-classes/debugUnitTest
-            -                             : jar://<PROJECT>/awesomeandroidlibrary/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar!/
+            -                             : jar://<PROJECT>/awesomeandroidlibrary/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :awesomeandroidlibrary:createMockableJar
                 ASSEMBLE                      : :awesomeandroidlibrary:assembleDebugUnitTest

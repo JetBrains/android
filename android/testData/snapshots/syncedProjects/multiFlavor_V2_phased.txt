@@ -525,7 +525,7 @@ PROJECT                       : MultiFlavor
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/firstAbcSecondAbcDebugUnitTest/compileFirstAbcSecondAbcDebugUnitTestJavaWithJavac/classes
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebug/processFirstAbcSecondAbcDebugResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/firstAbcSecondAbcDebug/processFirstAbcSecondAbcDebugResources/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :app:createMockableJar
                 ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebugUnitTest

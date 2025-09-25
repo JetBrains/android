@@ -175,7 +175,7 @@ MODULE                        : project.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-            - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/processBasicBarDebugResources/R.jar [-]
+            - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_r_class_jar/basicBarDebug/processBasicBarDebugResources/R.jar [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/basicBarDebugUnitTest/compileBasicBarDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.psd.sample.app.default.test
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
@@ -831,7 +831,7 @@ MODULE                        : project.dyn_feature
                     artifacts::dyn_feature        : null => :dyn_feature@main
                 PackageDependencies
                     artifacts::dyn_feature        : null => :dyn_feature@main
-            - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+            - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar [-]
             - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.dyn_feature.test
         - GeneratedSourceFolders      : <ROOT>/dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -1047,7 +1047,7 @@ MODULE                        : project.lib
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-            - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
+            - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.projectwithappandlib.lib.test
         - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -1530,7 +1530,7 @@ MODULE                        : project.nested1
                     artifacts::nested1            : null => :nested1@main
                 PackageDependencies
                     artifacts::nested1            : null => :nested1@main
-            - ClassOutputs                : <ROOT>/nested1/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
+            - ClassOutputs                : <ROOT>/nested1/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/nested1/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.nested1.test
         - GeneratedSourceFolders      : <ROOT>/nested1/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -1617,7 +1617,7 @@ MODULE                        : project.nested1.deep
                     artifacts::nested1:deep       : null => :nested1:deep@main
                 PackageDependencies
                     artifacts::nested1:deep       : null => :nested1:deep@main
-            - ClassOutputs                : <ROOT>/nested1/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
+            - ClassOutputs                : <ROOT>/nested1/deep/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/nested1/deep/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.nested1.deep.test
         - GeneratedSourceFolders      : <ROOT>/nested1/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -1710,7 +1710,7 @@ MODULE                        : project.nested2
                     artifacts::nested2            : null => :nested2@main
                 PackageDependencies
                     artifacts::nested2            : null => :nested2@main
-            - ClassOutputs                : <ROOT>/nested2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicDebugUnitTest/generateBasicDebugUnitTestStubRFile/R.jar [-]
+            - ClassOutputs                : <ROOT>/nested2/build/intermediates/compile_and_runtime_r_class_jar/basicDebugUnitTest/generateBasicDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/nested2/build/intermediates/javac/basicDebugUnitTest/compileBasicDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.nested2.test
         - GeneratedSourceFolders      : <ROOT>/nested2/build/generated/ap_generated_sources/basicDebugAndroidTest/out [-]
@@ -1817,7 +1817,7 @@ MODULE                        : project.nested2.deep
                     artifacts::nested2:deep       : null => :nested2:deep@main
                 PackageDependencies
                     artifacts::nested2:deep       : null => :nested2:deep@main
-            - ClassOutputs                : <ROOT>/nested2/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
+            - ClassOutputs                : <ROOT>/nested2/deep/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/nested2/deep/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.nested2.deep.test
         - GeneratedSourceFolders      : <ROOT>/nested2/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -1908,7 +1908,7 @@ MODULE                        : project.nested2.trans.deep2
                     artifacts::nested2:trans:deep2          : null => :nested2:trans:deep2@main
                 PackageDependencies
                     artifacts::nested2:trans:deep2          : null => :nested2:trans:deep2@main
-            - ClassOutputs                : <ROOT>/nested2/trans/deep2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
+            - ClassOutputs                : <ROOT>/nested2/trans/deep2/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.nested2.trans.deep2.test
         - GeneratedSourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugAndroidTest/out [-]

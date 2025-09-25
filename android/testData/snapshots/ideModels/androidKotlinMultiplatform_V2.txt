@@ -2257,7 +2257,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebugUnitTest/out [-]
-                ClassesFolder                 : <ROOT>/androidLib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/typeoneModetwoDebugUnitTest/generateTypeoneModetwoDebugUnitTestStubRFile/R.jar [-]
+                ClassesFolder                 : <ROOT>/androidLib/build/intermediates/compile_and_runtime_r_class_jar/typeoneModetwoDebugUnitTest/generateTypeoneModetwoDebugUnitTestStubRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/androidLib/build/intermediates/javac/typeoneModetwoDebugUnitTest/compileTypeoneModetwoDebugUnitTestJavaWithJavac/classes [-]
                 VariantSourceProvider
                     Name                          : testTypeoneModetwoDebug
@@ -2622,7 +2622,7 @@ MODULE                        : Kotlin_Multiplatform.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath

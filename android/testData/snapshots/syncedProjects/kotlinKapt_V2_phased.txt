@@ -527,7 +527,7 @@ PROJECT                       : MainActivity
             -                             : file://<PROJECT>/app/build/intermediates/javac/localDebugUnitTest/compileLocalDebugUnitTestJavaWithJavac/classes
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/localDebugUnitTest
             -                             : file://<PROJECT>/app/build/tmp/kapt3/classes/localDebugUnitTest
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/localDebug/processLocalDebugResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/localDebug/processLocalDebugResources/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :app:createMockableJar
                 ASSEMBLE                      : :app:assembleLocalDebugUnitTest

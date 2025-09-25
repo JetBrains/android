@@ -35,7 +35,7 @@ MODULE                        : project.app
                     artifacts::app                : null => :app@main
                 PackageDependencies
                     artifacts::app                : null => :app@main
-            - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+            - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long.test
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
