@@ -32,7 +32,7 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class ArtifactDirectoryBuilderTest {
   val artifactDirProjectPath = ProjectPath.projectRelative(Path.of("artifactDir"))
-  val update = ProjectProtoUpdate(ProjectProto.Project.getDefaultInstance(), BuildGraphData.EMPTY, NoopContext())
+  val update = ProjectProtoUpdate(ProjectProto.Project.getDefaultInstance())
   val buildTimestamp1 = Instant.EPOCH.plusSeconds(1)
   val buildTimestamp2 = Instant.EPOCH.plusSeconds(2)
 
@@ -192,9 +192,8 @@ class ArtifactDirectoryBuilderTest {
                     )
                 )
             )
-        )),
-      BuildGraphData.EMPTY,
-      NoopContext()
+        )
+      )
     )
     update.artifactDirectory(ProjectPath.projectRelative(Path.of("artifactDir"))) {
 

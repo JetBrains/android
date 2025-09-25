@@ -81,10 +81,10 @@ public class ConfigureCcCompilationTest {
   public void empty() throws Exception {
     QuerySyncProjectSnapshot original = syncRunner.sync(TestData.CC_LIBRARY_QUERY);
     ProjectProtoUpdate update =
-        new ProjectProtoUpdate(original.project(), original.graph(), context);
+        new ProjectProtoUpdate(original.project());
     ConfigureCcCompilation ccConfig =
         new ConfigureCcCompilation(ArtifactTracker.State.EMPTY, update);
-    ccConfig.update();
+    ccConfig.update(original.graph(), context);
     ProjectProto.Project project = update.build();
     assertThat(project.getCcWorkspace()).isEqualTo(CcWorkspace.getDefaultInstance());
   }
@@ -93,7 +93,7 @@ public class ConfigureCcCompilationTest {
   public void basics() throws Exception {
     QuerySyncProjectSnapshot original = syncRunner.sync(TestData.CC_LIBRARY_QUERY);
     ProjectProtoUpdate update =
-        new ProjectProtoUpdate(original.project(), original.graph(), context);
+        new ProjectProtoUpdate(original.project());
 
     Label ccTargetLabel = getOnlyElement(TestData.CC_LIBRARY_QUERY.getAssumedLabels());
     CcCompilationInfo compilationInfo =
@@ -134,7 +134,7 @@ public class ConfigureCcCompilationTest {
 
     ConfigureCcCompilation ccConfig =
         new ConfigureCcCompilation(toArtifactState(compilationInfo), update);
-    ccConfig.update();
+    ccConfig.update(original.graph(), context);
 
     ProjectProto.Project project = update.build();
 
@@ -221,7 +221,7 @@ public class ConfigureCcCompilationTest {
   public void multi_srcs_share_flagset() throws Exception {
     QuerySyncProjectSnapshot original = syncRunner.sync(TestData.CC_MULTISRC_QUERY);
     ProjectProtoUpdate update =
-        new ProjectProtoUpdate(original.project(), original.graph(), context);
+        new ProjectProtoUpdate(original.project());
     Path pkgPath = getOnlyElement(TestData.CC_MULTISRC_QUERY.getRelativeSourcePaths());
     ImmutableList<Label> labels =
         ImmutableList.of(
@@ -253,7 +253,7 @@ public class ConfigureCcCompilationTest {
             .build();
 
     ConfigureCcCompilation ccConfig = new ConfigureCcCompilation(toArtifactState(ccCi), update);
-    ccConfig.update();
+    ccConfig.update(original.graph(), context);
 
     ProjectProto.Project project = update.build();
 

@@ -36,11 +36,7 @@ import kotlin.collections.plusAssign
  * This class provides a convenient way of accessing and updating various interesting parts of
  * the project proto, such as the `.workspace` module and libraries by name.
  */
-class ProjectProtoUpdate(
-  existingProject: ProjectProto.Project,
-  private val buildGraph: BuildGraphData,
-  private val context: Context<*>
-) {
+class ProjectProtoUpdate(existingProject: ProjectProto.Project) {
   /**
    * A library is a target external to the project scope.
    */
@@ -90,9 +86,6 @@ class ProjectProtoUpdate(
 
   private val project: ProjectProto.Project.Builder = existingProject.toBuilder()
   private val workspaceModule: ProjectProto.Module.Builder = getWorkspaceModuleBuilder(project)
-
-  fun context(): Context<*> = context
-  fun buildGraph(): BuildGraphData = buildGraph
 
   /** Gets a builder for a library, creating it if it doesn't already exist.  */
   fun library(name: Label, updater: LibraryUpdater.() -> Unit) {

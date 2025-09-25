@@ -62,9 +62,9 @@ class AddDependencyAarsTest {
       AddDependencyAars(original.queryData().projectDefinition(), aarPackageMetadata)
 
     val update =
-      ProjectProtoUpdate(original.project(), original.graph(), NoopContext())
+      ProjectProtoUpdate(original.project())
 
-    addAars.update(update, ArtifactTracker.State.EMPTY, NoopContext())
+    addAars.update(update, original.graph(), ArtifactTracker.State.EMPTY, NoopContext())
     val newProject = update.build()
 
     Truth.assertThat(newProject.libraries).isEqualTo(original.project().libraries)
@@ -81,10 +81,11 @@ class AddDependencyAarsTest {
       AddDependencyAars(original.queryData().projectDefinition(), aarPackageMetadata)
 
     val update =
-      ProjectProtoUpdate(original.project(), original.graph(), NoopContext())
+      ProjectProtoUpdate(original.project())
 
     addAars.update(
       update,
+      original.graph(),
       ArtifactTracker.State.forTargets(
         TargetBuildInfo.forJavaTarget(
           JavaArtifactInfo.empty(Label.of("//path/to:dep")).toBuilder()
@@ -150,10 +151,11 @@ class AddDependencyAarsTest {
       AddDependencyAars(original.queryData().projectDefinition(), aarPackageMetadata)
 
     val update =
-      ProjectProtoUpdate(original.project(), original.graph(), NoopContext())
+      ProjectProtoUpdate(original.project())
 
     addAars.update(
       update,
+      original.graph(),
       ArtifactTracker.State.forJavaArtifacts(
         DependencyBuildContext.create("", buildTimestamp),
         ImmutableList.of(

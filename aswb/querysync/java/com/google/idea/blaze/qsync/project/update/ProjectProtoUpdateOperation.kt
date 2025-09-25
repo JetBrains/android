@@ -22,6 +22,7 @@ import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo
+import com.google.idea.blaze.qsync.project.BuildGraphData
 
 /**
  * An update to the project proto that operates on a [ProjectProtoUpdate]. Also defines some
@@ -36,6 +37,7 @@ interface ProjectProtoUpdateOperation {
   @Throws(BuildException::class)
   fun update(
     update: ProjectProtoUpdate,
+    buildGraph: BuildGraphData,
     artifactState: ArtifactTracker.State,
     context: Context<*>
   )
