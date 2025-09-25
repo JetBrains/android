@@ -39,7 +39,6 @@ import com.google.idea.blaze.common.vcs.VcsState
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.BlazeQueryParser
 import com.google.idea.blaze.qsync.ProjectBuilder
-import com.google.idea.blaze.qsync.project.update.ProjectProtoTransform
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
@@ -47,6 +46,7 @@ import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.TargetsToBuild
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import com.intellij.openapi.project.Project
 import java.io.IOException
 import java.nio.file.Path
@@ -102,7 +102,7 @@ class QuerySyncProject(
   val workspaceLanguageSettings: WorkspaceLanguageSettings,
   val sourceToTargetMap: QuerySyncSourceToTargetMap,
   override val buildSystem: BuildSystem,
-  val projectProtoTransforms: ProjectProtoTransform.Registry,
+  val projectProtoUpdateOperations: Collection<ProjectProtoUpdateOperation>,
   val handledRuleKinds: Set<String>,
 ) : ReadonlyQuerySyncProject {
   override val projectData: QuerySyncProjectData
@@ -249,7 +249,7 @@ class QuerySyncProject(
         queryData,
         graph,
         artifactTrackerState,
-        projectProtoTransforms.composedTransform
+        projectProtoUpdateOperations
       )
     return CreateProjectStructureResult(newProjectStructure, artifactTrackerState)
   }

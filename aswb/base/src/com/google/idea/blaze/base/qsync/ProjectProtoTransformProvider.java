@@ -16,13 +16,13 @@
 package com.google.idea.blaze.base.qsync;
 
 import com.google.common.collect.ImmutableList;
-import com.google.idea.blaze.qsync.project.update.ProjectProtoTransform;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import java.util.List;
 
 /**
- * Provides a {@link ProjectProtoTransform} that requires AS specific dependencies so cannot be
+ * Provides a {@link ProjectProtoUpdateOperation} that requires AS specific dependencies so cannot be
  * created directly by the base code.
  */
 public interface ProjectProtoTransformProvider {
@@ -30,12 +30,12 @@ public interface ProjectProtoTransformProvider {
   ExtensionPointName<ProjectProtoTransformProvider> EP_NAME =
       new ExtensionPointName<>("com.google.idea.blaze.base.qsync.ProjectProtoTransformProvider");
 
-  static ImmutableList<ProjectProtoTransform> getAll(ProjectDefinition projectDef) {
+  static ImmutableList<ProjectProtoUpdateOperation> getAll(ProjectDefinition projectDef) {
     return EP_NAME.getExtensionList().stream()
         .map(ep -> ep.createTransforms(projectDef))
         .flatMap(List::stream)
         .collect(ImmutableList.toImmutableList());
   }
 
-  List<ProjectProtoTransform> createTransforms(ProjectDefinition projectDef);
+  List<ProjectProtoUpdateOperation> createTransforms(ProjectDefinition projectDef);
 }
