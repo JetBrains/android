@@ -20,8 +20,8 @@ import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
-import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate
-import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import com.google.idea.blaze.qsync.project.ProjectPath
 import kotlin.jvm.optionals.getOrNull
 

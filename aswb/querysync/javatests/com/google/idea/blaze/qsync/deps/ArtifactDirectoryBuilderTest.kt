@@ -22,6 +22,7 @@ import com.google.idea.blaze.qsync.artifacts.BuildArtifact
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import java.nio.file.Path
 import java.time.Instant
 import org.junit.Test
