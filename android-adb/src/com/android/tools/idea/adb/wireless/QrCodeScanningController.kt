@@ -148,10 +148,6 @@ class QrCodeScanningController(
     scope.launch(Dispatchers.EDT + ModalityState.any().asContextElement()) {
       val mdnsTrackServicesFlow = service.trackMdnsServices().map { it.pairingMdnsServices }
       combine(mdnsTrackServicesFlow, state) { pairingServices, currentState ->
-          if (currentState != State.Polling) {
-            return@combine
-          }
-
           val newServices =
             pairingServices.map {
               PairingMdnsService(
@@ -162,16 +158,41 @@ class QrCodeScanningController(
               )
             }
 
-          view.model.pairingCodeServices =
-            newServices.filter {
-              it.serviceType == ServiceType.PairingCode &&
-                (mdnsServiceUnderPairing == null ||
-                  mdnsServiceUnderPairing.serviceName == it.serviceName)
+          when (currentState) {
+            State.Polling -> {
+              updateQrCodeServices(newServices)
+              updatePairingCodeServices(newServices)
             }
-          view.model.qrCodeServices = newServices.filter { it.serviceType == ServiceType.QrCode }
+
+            // When QR pairing fails (i.e. state == PairingError), we continue looking for pairing
+            // code services. This addresses the issue where users not seeing any entries in the
+            // pairing code tab if QR code pairing fails and they switch to the pairing code tab
+            // without clicking "Scan new device" in the QR code tab.
+
+            // We stop looking for new QR services to avoid re-scanning the old greyed out QR code
+            // before the user clicks on "Scan new device"
+            State.PairingError -> {
+              updatePairingCodeServices(newServices)
+            }
+            else -> {
+              // do nothing
+            }
+          }
         }
         .collect()
     }
+  }
+
+  private fun updateQrCodeServices(newServices: List<PairingMdnsService>) {
+    view.model.qrCodeServices = newServices.filter { it.serviceType == ServiceType.QrCode }
+  }
+
+  private fun updatePairingCodeServices(newServices: List<PairingMdnsService>) {
+    view.model.pairingCodeServices =
+      newServices.filter {
+        it.serviceType == ServiceType.PairingCode &&
+          (mdnsServiceUnderPairing == null || mdnsServiceUnderPairing.serviceName == it.serviceName)
+      }
   }
 
   private fun MdnsPairingService.toPairingType(): ServiceType {
