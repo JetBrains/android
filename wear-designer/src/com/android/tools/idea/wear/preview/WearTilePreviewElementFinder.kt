@@ -110,6 +110,7 @@ internal class WearTilePreviewElementFinder(
    * be garbage collected, in which case the results will be recomputed.
    */
   override suspend fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean {
+    if (DumbService.isDumb(project)) return false
     return try {
       withContext(workerThread) {
         if (!isTileAnnotationUsed(project, vFile)) {
@@ -141,6 +142,7 @@ internal class WearTilePreviewElementFinder(
     project: Project,
     vFile: VirtualFile,
   ): Collection<PsiWearTilePreviewElement> {
+    if (DumbService.isDumb(project)) return emptyList()
     return try {
       withContext(workerThread) {
         cachedAsyncValue(
@@ -175,6 +177,8 @@ fun UElement?.hasTilePreviewAnnotation(): Boolean {
   assert(this is UMethod? || this is UAnnotation?) {
     "The UElement should be either a UMethod or a UAnnotation"
   }
+  val project = this?.sourcePsi?.project ?: return false
+  if (DumbService.isDumb(project)) return false
   // TODO(b/381827960): avoid using runBlockingCancellable
   return runBlockingCancellable {
     this@hasTilePreviewAnnotation?.findAllTilePreviewAnnotations()?.firstOrNull() != null
