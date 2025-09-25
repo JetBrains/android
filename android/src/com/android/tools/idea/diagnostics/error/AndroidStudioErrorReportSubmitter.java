@@ -120,7 +120,7 @@ public class AndroidStudioErrorReportSubmitter extends ErrorReportSubmitter {
         null, "Issue " + token, SubmittedReportInfo.SubmissionStatus.NEW_ISSUE);
       callback.consume(reportInfo);
 
-      new Notification("Error Report", "Report Submitted", NotificationType.INFORMATION)
+      new Notification("Error Report", "Report submitted", NotificationType.INFORMATION)
         .setImportant(false)
         .notify(project);
     };
