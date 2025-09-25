@@ -156,7 +156,10 @@ public class QrCodeTabPanel {
     setBold(myPairingStatusLabel, true);
     myPairingStatusLabel.setText(device.getDisplayString() + " connected");
 
-    myScanNewDeviceLink.setVisible(true);
+    if (mdnsServiceUnderPairing == null) {
+      // dialog is to pair a single device, don't allow to re-generate another QR code.
+      myScanNewDeviceLink.setVisible(true);
+    }
   }
 
   /**
@@ -271,7 +274,11 @@ public class QrCodeTabPanel {
       BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0), null, TitledBorder.DEFAULT_JUSTIFICATION,
                                        TitledBorder.DEFAULT_POSITION, null, null));
     myScanNewDeviceLink = new LinkLabel();
-    myScanNewDeviceLink.setText("Scan new device");
+    if (mdnsServiceUnderPairing == null) {
+      myScanNewDeviceLink.setText("Scan new device");
+    } else {
+      myScanNewDeviceLink.setText("Try again");
+    }
     myScanNewDevicePanel.add(myScanNewDeviceLink,
                              new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, 1,
                                                  GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
