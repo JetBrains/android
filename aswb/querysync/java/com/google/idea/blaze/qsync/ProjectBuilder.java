@@ -25,6 +25,7 @@ import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.google.idea.blaze.qsync.project.PostQuerySyncData;
 import com.google.idea.blaze.qsync.project.ProjectProto.Project;
 import com.google.idea.blaze.qsync.project.update.ProjectProtoTransform;
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -76,7 +77,8 @@ public class ProjectBuilder {
             context,
             postQuerySyncData.projectDefinition(),
             executor);
-    return projectProtoTransform.apply(
-      graphToProjectConverter.createProject(graph), graph, artifactTrackerState, context);
+    final var update = new ProjectProtoUpdate(graphToProjectConverter.createProject(graph), graph, context);
+    projectProtoTransform.apply(update, graph, artifactTrackerState, context);
+    return update.build();
   }
 }
