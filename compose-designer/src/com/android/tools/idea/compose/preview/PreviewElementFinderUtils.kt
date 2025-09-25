@@ -268,7 +268,7 @@ private suspend fun UMethod.toMultiPreviewNode(
   if (areAssertionsEnabled) {
     // This assertion is expensive as it runs a read action. We don't want to compute the value if
     // the assertions are not enabled.
-    assert(isComposable())
+    assert(readAction { isComposable() })
   }
   val nonPreviewChildNodes = getUAnnotations().nonPreviewNodes(multiPreviewNodesByFqn)
 
@@ -327,6 +327,6 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.toMultiPreviewNode(
 private suspend fun Collection<UAnnotation>.nonPreviewNodes(
   multiPreviewNodesByFqn: MutableMap<String, MultiPreviewNode>
 ) =
-  filter { !it.isPreviewAnnotation() }
+  filter { readAction { !it.isPreviewAnnotation() } }
     .mapNotNull { readAction { it.qualifiedName } }
     .map { multiPreviewNodesByFqn[it]?.nodeInfo }
