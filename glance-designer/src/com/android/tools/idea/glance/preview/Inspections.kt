@@ -22,8 +22,8 @@ import com.android.tools.compose.inspection.PreviewNeedsComposableAnnotationInsp
 import com.android.tools.compose.inspection.PreviewNotSupportedInUnitTestFiles
 import com.android.tools.idea.glance.preview.GlancePreviewBundle.message
 import com.android.tools.idea.kotlin.fqNameMatches
-import com.android.tools.preview.MAX_DIMENSION
-import com.android.tools.preview.MIN_DIMENSION
+import com.android.tools.preview.MAX_DIMENSION_DP
+import com.android.tools.preview.MIN_DIMENSION_DP
 import com.android.tools.preview.config.PARAMETER_HEIGHT_DP
 import com.android.tools.preview.config.PARAMETER_WIDTH_DP
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -70,9 +70,9 @@ class GlancePreviewDimensionRespectsLimit :
   PreviewDimensionRespectsLimit(
     PARAMETER_WIDTH_DP,
     PARAMETER_HEIGHT_DP,
-    MIN_DIMENSION,
-    MAX_DIMENSION,
-    message("inspection.width.height.limit.description", MIN_DIMENSION, MAX_DIMENSION),
+    MIN_DIMENSION_DP,
+    MAX_DIMENSION_DP,
+    message("inspection.width.height.limit.description", MIN_DIMENSION_DP, MAX_DIMENSION_DP),
     glancePreviewGroupDisplayName,
     GlancePreviewAnnotationChecker,
   )
