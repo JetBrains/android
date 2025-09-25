@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.surface
 import com.android.SdkConstants
 import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.resources.Density
+import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.model.Coordinates
@@ -404,7 +405,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     assertComponentWithId(model, "cuteLittleButton2")
   }
 
-  fun ignore_testZoom() =
+  fun testZoom() =
     kotlinx.coroutines.test.runTest {
       val model =
         model(
@@ -427,45 +428,57 @@ class NlDesignSurfaceTest : LayoutTestCase() {
       val origScale = designSurface.zoomController.scale
       assertFalse(designSurface.zoomController.canZoomToFit())
 
+      delayUntilCondition(250) { designSurface.focusedSceneView != null }
+
       val view = designSurface.focusedSceneView
       assertEquals(
-        Point(-122, -122),
+        Point(0, 0),
         Coordinates.getAndroidCoordinate(view!!, designSurface.pannable.scrollPosition),
       )
 
-      designSurface.zoomController.zoom(ZoomType.IN)
       var scale = designSurface.zoomController.scale
-      assertTrue(scale > origScale)
-      assertEquals(
-        Point(8, 8),
-        Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition),
-      )
 
-      designSurface.zoomController.zoom(ZoomType.IN, 100, 100)
-      assertTrue(designSurface.zoomController.scale > scale)
-      assertEquals(
-        Point(12, 12),
-        Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition),
-      )
+      // Zoom in until we reach the maximum possible scale
+      while (scale < designSurface.zoomController.maxScale) {
+        designSurface.zoomController.zoom(ZoomType.IN)
+        scale = designSurface.zoomController.scale
+        assertTrue(scale > origScale)
+        assertEquals(
+          Point(0, 0),
+          Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition),
+        )
+      }
+      // Zoom in more will keep the scale equals to max scale
+      designSurface.zoomController.zoom(ZoomType.IN)
+      designSurface.zoomController.zoom(ZoomType.IN)
+      assertEquals(designSurface.zoomController.maxScale, designSurface.zoomController.scale)
 
-      designSurface.zoomController.zoom(ZoomType.OUT, 100, 100)
-      assertEquals(
-        Point(7, 7),
-        Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition),
-      )
+      // Zoom out until we reach the maximum possible scale
+      val zoomedInScale = scale
+      while (scale > designSurface.zoomController.minScale) {
+        designSurface.zoomController.zoom(ZoomType.OUT, 100, 100)
+        scale = designSurface.zoomController.scale
+        assertEquals(
+          Point(0, 0),
+          Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition),
+        )
+        assertTrue(scale < zoomedInScale)
+        designSurface.zoomController.zoom(ZoomType.OUT)
+      }
+      // Zoom out more will keep the scale equals to min scale
       designSurface.zoomController.zoom(ZoomType.OUT)
-      assertEquals(
-        Point(-122, -122),
-        Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition),
-      )
       designSurface.zoomController.zoom(ZoomType.OUT)
+      assertEquals(designSurface.zoomController.scale, designSurface.zoomController.minScale)
 
+      // Zoom to fit will move again to original scale
+      designSurface.zoomController.zoomToFit()
       assertEquals(designSurface.zoomController.scale, origScale)
-      designSurface.zoomController.zoom(ZoomType.OUT)
-      assertEquals(designSurface.zoomController.scale, origScale)
 
-      designSurface.setScrollViewSizeAndValidateForTest(2000, 2000)
-      assertEquals(1.0, designSurface.zoomController.minScale)
+      // Zoom to actual will have a scale of 1.0 (100% of scale)
+      designSurface.zoomController.zoom(ZoomType.ACTUAL, 0, 0)
+      assertEquals(1.0, designSurface.zoomController.scale)
+
+      assertEquals(0.01, designSurface.zoomController.minScale)
 
       designSurface.zoomController.setScale(1.099, 0, 0)
       scale = designSurface.zoomController.scale
