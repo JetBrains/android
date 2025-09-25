@@ -438,7 +438,7 @@ android-studio/jbr/release
 android-studio/lib/annotations.jar
 android-studio/lib/app.jar
 android-studio/lib/bouncy-castle.jar
-android-studio/lib/build-marker-AI-252.25557.131.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-252.27397.103.__BUILD_NUMBER__
 android-studio/lib/eclipse.lsp4j.debug.jar
 android-studio/lib/eclipse.lsp4j.jar
 android-studio/lib/eclipse.lsp4j.jsonrpc.debug.jar
@@ -466,6 +466,7 @@ android-studio/lib/modules/intellij.grid.impl.jar
 android-studio/lib/modules/intellij.grid.jar
 android-studio/lib/modules/intellij.grid.types.jar
 android-studio/lib/modules/intellij.libraries.ai.grazie.spell.gec.engine.local.jar
+android-studio/lib/modules/intellij.libraries.coil.jar
 android-studio/lib/modules/intellij.libraries.compose.foundation.desktop.jar
 android-studio/lib/modules/intellij.libraries.grpc.jar
 android-studio/lib/modules/intellij.libraries.grpc.netty.shaded.jar
@@ -537,7 +538,6 @@ android-studio/lib/modules/intellij.platform.recentFiles.frontend.jar
 android-studio/lib/modules/intellij.platform.recentFiles.jar
 android-studio/lib/modules/intellij.platform.rpc.backend.jar
 android-studio/lib/modules/intellij.platform.scopes.backend.jar
-android-studio/lib/modules/intellij.platform.scopes.jar
 android-studio/lib/modules/intellij.platform.searchEverywhere.backend.jar
 android-studio/lib/modules/intellij.platform.searchEverywhere.frontend.jar
 android-studio/lib/modules/intellij.platform.searchEverywhere.jar
@@ -3172,6 +3172,7 @@ android-studio/plugins/json/lib/modules/intellij.json.backend.jar
 android-studio/plugins/junit/lib/junit-rt.jar
 android-studio/plugins/junit/lib/junit.jar
 android-studio/plugins/junit/lib/junit5-rt.jar
+android-studio/plugins/junit/lib/junit6-rt.jar
 android-studio/plugins/keymap-eclipse/lib/keymap-eclipse.jar
 android-studio/plugins/keymap-netbeans/lib/keymap-netbeans.jar
 android-studio/plugins/keymap-visualStudio/lib/keymap-visualStudio.jar

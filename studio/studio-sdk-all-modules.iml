@@ -43,6 +43,7 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.json.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.jvm.analysis.impl" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.ai.grazie.spell.gec.engine.local" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.coil" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.compose.foundation.desktop" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.grpc" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.grpc.netty.shaded" level="project" />
@@ -116,7 +117,6 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.recentFiles.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.recentFiles.frontend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.rpc.backend" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.scopes" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.scopes.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.searchEverywhere" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.searchEverywhere.backend" level="project" />
