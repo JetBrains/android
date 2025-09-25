@@ -275,7 +275,46 @@ class DeviceMenuAction(
     selectionMade = addXrDeviceSection(groupedDevices, currentDevice, selectionMade)
     selectionMade =
       addAvdDeviceSection(configuration.settings.avdDevices, currentDevice, selectionMade)
+    selectionMade = addOtherDeviceSection(groupedDevices, currentDevice, selectionMade)
     addGenericDeviceAndNewDefinitionSection(groupedDevices, currentDevice, selectionMade)
+  }
+
+  /**
+   * Adds the "Other" device section to the device menu.
+   *
+   * @param groupedDevices The map of device groups to lists of devices.
+   * @param currentDevice The currently selected device.
+   * @param selectionMade A boolean indicating whether a selection has already been made.
+   * @return A boolean indicating whether a selection was made in this section.
+   */
+  private fun addOtherDeviceSection(
+    groupedDevices: Map<DeviceGroup, List<Device>>,
+    currentDevice: Device?,
+    selectionMade: Boolean,
+  ): Boolean {
+    var newSelectionMade = selectionMade
+    val otherDevices = groupedDevices.get(DeviceGroup.OTHER) ?: return newSelectionMade
+    add(DeviceCategory("Other", "Other devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_PHONE))
+    for (device in otherDevices) {
+      val isMatch = isSameDevice(device, currentDevice)
+      var selected = false
+      if (isMatch && !newSelectionMade) {
+        newSelectionMade = true
+        selected = true
+      }
+      add(
+        SetDeviceAction(
+          getDeviceLabel(device),
+          { updatePresentation(it) },
+          deviceChangeListener,
+          device,
+          null,
+          selected,
+        )
+      )
+    }
+    addSeparator()
+    return newSelectionMade
   }
 
   /**
