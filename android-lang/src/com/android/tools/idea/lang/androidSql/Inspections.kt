@@ -77,10 +77,11 @@ class AndroidSqlUnresolvedReferenceInspection : AndroidSqlKnownContextInspection
       private fun checkReference(referenceElement: PsiElement) {
         val sqlFile = referenceElement.containingFile as? AndroidSqlFile ?: return
 
-        // FRANKENSTEIN_INJECTION means the file should not be checked, see e.g. FrankensteinErrorFilter. This may be the case if we're
-        // parsing a string expression and for some reason cannot compute its value. KotlinLanguageInjector marks every injection in a
-        // string template as such, see the splitLiteralToInjectionParts function and b/77211318. See KT-25906.
-        if (sqlFile.getUserData(InjectedLanguageManager.FRANKENSTEIN_INJECTION) == true) return
+        // Frankenstein injection means the file should not be checked, see e.g. FrankensteinErrorFilter.
+        // This may be the case if we're parsing a string expression and for some reason cannot compute
+        // its value. KotlinLanguageInjector marks every injection in a string template as such, see
+        // the splitLiteralToInjectionParts function and b/77211318. See KT-25906.
+        if (InjectedLanguageManager.getInstance(sqlFile.project).isFrankensteinInjection(sqlFile)) return
 
         if (!(isWellUnderstood(PsiTreeUtil.findPrevParent(referenceElement.containingFile, referenceElement)))) return
 
@@ -91,7 +92,7 @@ class AndroidSqlUnresolvedReferenceInspection : AndroidSqlKnownContextInspection
       }
 
       /**
-       * Checks if we have understand the given query type enough to highlight unresolved references.
+       * Checks if we have understood the given query type enough to highlight unresolved references.
        */
       private fun isWellUnderstood(stmt: PsiElement): Boolean = when (stmt) {
         is AndroidSqlSelectStatement,
