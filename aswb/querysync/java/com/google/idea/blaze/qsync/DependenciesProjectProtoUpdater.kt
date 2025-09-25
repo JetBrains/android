@@ -99,7 +99,7 @@ class DependenciesProjectProtoUpdater(
     context: Context<*>
   ) {
     for (op in updateOperations) {
-      op.update(update, artifactState, context)
+      op.update(update, graph, artifactState, context)
     }
   }
 }

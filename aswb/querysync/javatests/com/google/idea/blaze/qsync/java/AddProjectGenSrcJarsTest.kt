@@ -76,8 +76,8 @@ class AddProjectGenSrcJarsTest {
       AddProjectGenSrcJars(original.queryData().projectDefinition(), innerPathsMetadata)
 
     val update =
-      ProjectProtoUpdate(original.project(), original.graph(), NoopContext())
-    javaDeps.update(update, artifactState, NoopContext())
+      ProjectProtoUpdate(original.project())
+    javaDeps.update(update, original.graph(), artifactState, NoopContext())
     val newProject = update.build()
     Truth.assertThat(newProject.libraries).isEqualTo(original.project().libraries)
     Truth.assertThat(newProject.modules).isEqualTo(original.project().modules)
@@ -117,8 +117,8 @@ class AddProjectGenSrcJarsTest {
       AddProjectGenSrcJars(original.queryData().projectDefinition(), innerPathsMetadata)
 
     val update =
-      ProjectProtoUpdate(original.project(), original.graph(), NoopContext())
-    javaDeps.update(update, artifactState, NoopContext())
+      ProjectProtoUpdate(original.project())
+    javaDeps.update(update, original.graph(), artifactState, NoopContext())
     val newProject = update.build()
     Truth.assertThat(newProject.libraries).isEqualTo(original.project().libraries)
     val workspace = newProject.modules[0]
@@ -175,8 +175,8 @@ class AddProjectGenSrcJarsTest {
       AddProjectGenSrcJars(original.queryData().projectDefinition(), innerPathsMetadata)
 
     val update =
-      ProjectProtoUpdate(original.project(), original.graph(), NoopContext())
-    javaDeps.update(update, artifactState, NoopContext())
+      ProjectProtoUpdate(original.project())
+    javaDeps.update(update, original.graph(), artifactState, NoopContext())
     val newProject = update.build()
     Truth.assertThat(newProject.libraries).isEqualTo(original.project().libraries)
     val workspace = newProject.modules[0]
@@ -228,8 +228,8 @@ class AddProjectGenSrcJarsTest {
       AddProjectGenSrcJars(original.queryData().projectDefinition(), innerPathsMetadata)
 
     val update =
-      ProjectProtoUpdate(original.project(), original.graph(), NoopContext())
-    javaDeps.update(update, artifactState, NoopContext())
+      ProjectProtoUpdate(original.project())
+    javaDeps.update(update, original.graph(), artifactState, NoopContext())
     val newProject = update.build()
     Truth.assertThat(newProject.libraries).isEqualTo(original.project().libraries)
     val workspace = newProject.modules[0]

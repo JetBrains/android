@@ -86,8 +86,8 @@ class AddProjectGenSrcsTest {
       AddProjectGenSrcs(original.queryData().projectDefinition(), javaSourcePackageExtractor)
 
     val update =
-      ProjectProtoUpdate(original.project(), original.graph(), context)
-    addGensrcs.update(update, artifactState, context)
+      ProjectProtoUpdate(original.project())
+    addGensrcs.update(update, original.graph(), artifactState, context)
     val newProject = update.build()
 
     val workspace = newProject.modules.single()
@@ -184,8 +184,8 @@ class AddProjectGenSrcsTest {
       AddProjectGenSrcs(original.queryData().projectDefinition(), javaSourcePackageExtractor)
 
     val update =
-      ProjectProtoUpdate(original.project(), original.graph(), context)
-    addGenSrcs.update(update, artifactState, context)
+      ProjectProtoUpdate(original.project())
+    addGenSrcs.update(update, original.graph(), artifactState, context)
     val newProject = update.build()
 
     val workspace = newProject.modules.single()
@@ -282,8 +282,8 @@ class AddProjectGenSrcsTest {
       AddProjectGenSrcs(original.queryData().projectDefinition(), javaSourcePackageExtractor)
 
     val update =
-      ProjectProtoUpdate(original.project(), original.graph(), context)
-    addGenSrcs.update(update, artifactState, context)
+      ProjectProtoUpdate(original.project())
+    addGenSrcs.update(update, original.graph(), artifactState, context)
     Mockito.verify(context, Mockito.never())!!.setHasWarnings()
   }
 
@@ -315,8 +315,8 @@ class AddProjectGenSrcsTest {
       AddProjectGenSrcs(original.queryData().projectDefinition(), javaSourcePackageExtractor)
 
     val update =
-      ProjectProtoUpdate(original.project(), original.graph(), context)
-    addGensrcs.update(update, artifactState, context)
+      ProjectProtoUpdate(original.project())
+    addGensrcs.update(update, original.graph(), artifactState, context)
     val newProject = update.build()
 
     val workspace = newProject.modules.single()

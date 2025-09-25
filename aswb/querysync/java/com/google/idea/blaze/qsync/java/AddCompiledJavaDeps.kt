@@ -20,6 +20,7 @@ import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
+import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import com.google.idea.blaze.qsync.project.ProjectPath
@@ -27,7 +28,12 @@ import kotlin.jvm.optionals.getOrNull
 
 /** Adds compiled jars from dependencies to the project.  */
 class AddCompiledJavaDeps(private val emptyJarDigests: Set<String>) : ProjectProtoUpdateOperation {
-  override fun update(update: ProjectProtoUpdate, artifactState: ArtifactTracker.State, context: Context<*>) {
+  override fun update(
+    update: ProjectProtoUpdate,
+    buildGraph: BuildGraphData,
+    artifactState: ArtifactTracker.State,
+    context: Context<*>
+  ) {
     update.artifactDirectory(ArtifactDirectories.JAVADEPS) {
       val skipped: MutableSet<String> = hashSetOf()
       val seen: MutableSet<String> = hashSetOf()

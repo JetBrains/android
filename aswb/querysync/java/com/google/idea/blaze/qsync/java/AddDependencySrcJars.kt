@@ -21,6 +21,7 @@ import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder.AllowPackagePrefixes
+import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
 import kotlin.jvm.optionals.getOrNull
@@ -37,6 +38,7 @@ class AddDependencySrcJars(
   @Throws(BuildException::class)
   override fun update(
     update: ProjectProtoUpdate,
+    buildGraph: BuildGraphData,
     artifactState: ArtifactTracker.State,
     context: Context<*>
   ) {

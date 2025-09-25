@@ -54,8 +54,8 @@ class AddCompiledJavaDepsTest {
   private fun no_deps_built(javaDeps: AddCompiledJavaDeps) {
     val original = ProjectProtos.forTestProject(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY)
 
-    val update = ProjectProtoUpdate(original, BuildGraphData.EMPTY, NoopContext())
-    javaDeps.update(update, ArtifactTracker.State.EMPTY, NoopContext())
+    val update = ProjectProtoUpdate(original)
+    javaDeps.update(update, BuildGraphData.EMPTY, ArtifactTracker.State.EMPTY, NoopContext())
     val newProject = update.build()
     Truth.assertThat(newProject.libraries).isEqualTo(original.libraries)
     Truth.assertThat(newProject.modules).isEqualTo(original.modules)
@@ -92,8 +92,8 @@ class AddCompiledJavaDepsTest {
       ProjectProtos.forTestProject(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY)
 
     val update =
-      ProjectProtoUpdate(original, BuildGraphData.EMPTY, NoopContext())
-    javaDeps.update(update, artifactState, NoopContext())
+      ProjectProtoUpdate(original)
+    javaDeps.update(update, BuildGraphData.EMPTY, artifactState, NoopContext())
     val newProject = update.build()
     Truth.assertThat(newProject.libraries.values).containsExactly(*expectedLibraries)
     Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys)
@@ -140,8 +140,8 @@ class AddCompiledJavaDepsTest {
       ProjectProtos.forTestProject(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY)
 
     val update =
-      ProjectProtoUpdate(original, BuildGraphData.EMPTY, NoopContext())
-    javaDeps.update(update, artifactState, NoopContext())
+      ProjectProtoUpdate(original)
+    javaDeps.update(update, BuildGraphData.EMPTY, artifactState, NoopContext())
     val newProject = update.build()
     Truth.assertThat(newProject.libraries.values).containsExactly(*expectedLibraries)
     Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys)

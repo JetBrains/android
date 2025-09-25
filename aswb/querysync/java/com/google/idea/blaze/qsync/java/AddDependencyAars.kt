@@ -25,6 +25,7 @@ import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.AarResPackage
+import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact.ArtifactTransform
@@ -54,6 +55,7 @@ class AddDependencyAars(
   @Throws(BuildException::class)
   override fun update(
     update: ProjectProtoUpdate,
+    buildGraph: BuildGraphData,
     artifactState: ArtifactTracker.State,
     context: Context<*>
   ) {
