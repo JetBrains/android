@@ -16,8 +16,9 @@
 package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule
+import com.android.adblib.ddmlibcompatibility.testutils.waitForOnlineDevice
+import com.android.adblib.testingutils.CoroutineTestUtils
 import com.android.adblib.testingutils.FakeAdbServerRule
-import com.android.ddmlib.AndroidDebugBridge
 import com.android.fakeadbserver.DeviceState
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -147,26 +148,19 @@ class LegacyDeviceRule(
 
   override fun before() {
     val device = LEGACY_DEVICE
-    adbRule
-      .connectDevice(
-        device.serial,
-        device.manufacturer,
-        device.model,
-        device.version,
-        device.apiLevel,
-        DeviceState.HostConnectionType.USB,
-      )
-      .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
-    // TODO: This test relies on device being found using
-    //  `AndroidDebugBridge.getBridge()?.devices` call (see `AndroidDebugBridge.findDevice`
-    //  in `AdbUtils.kt`). We should make this wait a part of `FakeAdbServerRule.connectDevice`.
-    while (true) {
-      if (
-        AndroidDebugBridge.getBridge()?.devices?.any { it.serialNumber == device.serial } ?: false
-      ) {
-        break
-      }
-    }
+    val deviceState =
+      adbRule
+        .connectDevice(
+          device.serial,
+          device.manufacturer,
+          device.model,
+          device.version,
+          device.apiLevel,
+          DeviceState.HostConnectionType.USB,
+        )
+        .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
+    CoroutineTestUtils.runBlockingWithTimeout { deviceState.waitForOnlineDevice() }
+
     projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
     projectRule.fixture.addFileToProject("/AndroidManifest.xml", manifest)
     projectRule.fixture.addFileToProject("res/values/themes.xml", themes)
