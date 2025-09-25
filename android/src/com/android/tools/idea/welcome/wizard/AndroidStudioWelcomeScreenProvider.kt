@@ -27,7 +27,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.wm.WelcomeScreen
 import com.intellij.openapi.wm.WelcomeScreenProvider
-import com.intellij.util.net.HttpConfigurable
 import javax.swing.JRootPane
 
 val log = logger<AndroidStudioWelcomeScreenProvider>()
@@ -37,9 +36,7 @@ class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
   override fun createWelcomeScreen(rootPane: JRootPane): WelcomeScreen? {
     ApplicationManager.getApplication().executeOnPooledThread {
       if (!StudioFlags.NPW_OFFLINE.get()) {
-        AndroidStudioWelcomeScreenService.instance.checkInternetConnection(
-          HttpConfigurable.getInstance()
-        )
+        AndroidStudioWelcomeScreenService.instance.checkInternetConnection()
       }
     }
 

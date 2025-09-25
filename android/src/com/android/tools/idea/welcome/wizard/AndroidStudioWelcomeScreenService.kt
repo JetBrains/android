@@ -27,8 +27,11 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.ui.Messages
-import com.intellij.util.net.HttpConfigurable
-import com.intellij.util.proxy.CommonProxy
+import com.intellij.util.net.HttpConnectionUtils
+import com.intellij.util.net.HttpProxyConfigurable
+import com.intellij.util.net.JdkProxyProvider
+import com.intellij.util.net.ProxySettings
+import com.intellij.util.net.editConfigurable
 import java.io.IOException
 
 /**
@@ -105,14 +108,14 @@ class AndroidStudioWelcomeScreenService {
    * @param httpConfigurable The IDE's HTTP settings configurable.
    */
   @WorkerThread
-  fun checkInternetConnection(httpConfigurable: HttpConfigurable) {
+  fun checkInternetConnection() {
     ApplicationManager.getApplication().assertIsNonDispatchThread()
-    CommonProxy.isInstalledAssertion()
+    JdkProxyProvider.ensureDefault()
 
     do {
       var retryConnection: Boolean
       try {
-        val connection = httpConfigurable.openHttpConnection("http://developer.android.com")
+        val connection = HttpConnectionUtils.openHttpConnection("http://developer.android.com")
         connection.connect()
         connection.disconnect()
         retryConnection = false
@@ -154,7 +157,7 @@ class AndroidStudioWelcomeScreenService {
       )
     val showSetupProxy = selection == 0
     if (showSetupProxy) {
-      HttpConfigurable.editConfigurable(null)
+      HttpProxyConfigurable.editConfigurable(null)
     }
     return showSetupProxy
   }
