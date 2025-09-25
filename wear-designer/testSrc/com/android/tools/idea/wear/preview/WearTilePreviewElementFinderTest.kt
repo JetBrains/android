@@ -993,6 +993,37 @@ class WearTilePreviewElementFinderTest {
         )
       }
   }
+
+  @Test
+  fun testFindPreviewElementsIsCached() = runBlocking {
+    val testFile =
+      fixture.addFileToProjectAndInvalidate(
+        "app/src/main/java/com/android/test/Src.kt",
+        // language=kotlin
+        """
+        package com.android.test
+
+        import androidx.wear.tiles.tooling.preview.Preview
+        import androidx.wear.tiles.tooling.preview.TilePreviewData
+
+        @Preview
+        fun tilePreview(): TilePreviewData {
+          return TilePreviewData()
+        }
+        """
+          .trimIndent(),
+      )
+
+    val firstCall = elementFinder.findPreviewElements(project, testFile.virtualFile)
+    val secondCall = elementFinder.findPreviewElements(project, testFile.virtualFile)
+    val thirdCall = elementFinder.findPreviewElements(project, testFile.virtualFile)
+
+    assertTrue(firstCall.isNotEmpty())
+    assertTrue(
+      "The same instances of collections should be returned for each call",
+      firstCall === secondCall && firstCall === thirdCall,
+    )
+  }
 }
 
 private fun PsiFile.textRange(methodName: String): TextRange {
