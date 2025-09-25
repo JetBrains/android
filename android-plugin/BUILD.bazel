@@ -83,6 +83,7 @@ jvm_library(
         "//android/designer",
         "//android/designer/gradle",
         "//android/android-common:common",
+        "//android/logcat/gradle",
     ],
 )
 
@@ -170,6 +171,7 @@ jvm_library(
         "//android/designer:designer_test_lib",
         "//android/designer/gradle:gradle_test_lib",
         "//android/android-common:common_test_lib",
+        "//android/logcat/gradle:gradle_test_lib",
     ],
     deps = [
         # do not sort,
