@@ -46,6 +46,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -55,6 +56,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
@@ -69,6 +71,7 @@ import java.awt.Insets
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -388,7 +391,15 @@ internal class ComposePreviewViewImpl(
 
   @RequiresBackgroundThread
   private suspend fun handleUpdateVisibilityAndNotificationsRequest() {
-    withContext(uiThread) {
+    val virtualFile = psiFilePointer.virtualFile
+    val isInLibrary =
+      virtualFile == null ||
+        readAction {
+          if (project.isDisposed) true
+          else ProjectFileIndex.getInstance(project).isInLibrary(virtualFile)
+        }
+
+    withContext(Dispatchers.EDT) {
       if (
         workbench.isMessageVisible &&
           renderingBuildStatusManager.status == RenderingBuildStatus.NeedsBuild
@@ -406,20 +417,25 @@ internal class ComposePreviewViewImpl(
             workbench.hideLoading()
             workbench.showContent()
           } else {
+            // Do not show AI actions for files in libraries, since they are read-only.
             val actions =
-              withContext(workerThread) {
-                listOfNotNull(
-                  if (StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.get()) {
-                    createGeneratePreviewsActionData()
-                  } else {
-                    null
-                  },
-                  if (StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.get()) {
-                    createScreenshotToCodeActionData()
-                  } else {
-                    null
-                  },
-                )
+              if (isGeminiAvailable() && !isInLibrary) {
+                withContext(Dispatchers.Default) {
+                  listOfNotNull(
+                    if (StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.get()) {
+                      createGeneratePreviewsActionData()
+                    } else {
+                      null
+                    },
+                    if (StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.get()) {
+                      createScreenshotToCodeActionData()
+                    } else {
+                      null
+                    },
+                  )
+                }
+              } else {
+                emptyList()
               }
             workbench.hideLoading()
             workbench.hideContent()
@@ -449,9 +465,7 @@ internal class ComposePreviewViewImpl(
    * only be visible if the containing file has Composables.
    */
   private suspend fun createGeneratePreviewsActionData(): ActionData? {
-    if (!isGeminiAvailable()) {
-      return null
-    }
+    val virtualFile = psiFilePointer.virtualFile ?: return null
 
     val previewGeneratorFactory = getComposeStudioBotActionFactory() ?: return null
 
@@ -487,10 +501,6 @@ internal class ComposePreviewViewImpl(
 
   /** Creates an [ActionData] to invoke an action that generates code from a screenshot. */
   private fun createScreenshotToCodeActionData(): ActionData? {
-    if (!isGeminiAvailable()) {
-      return null
-    }
-
     val factory = getComposeStudioBotActionFactory() ?: return null
 
     return factory.screenshotToCodeAction().let {
