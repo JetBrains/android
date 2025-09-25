@@ -193,7 +193,7 @@ class WifiAvailableDevicesDialog(
         project,
         true,
         DialogWrapper.IdeModalityType.IDE,
-        title = "Pair new devices over Wi-Fi",
+        title = "Pair devices over Wi-Fi",
         isModal = true,
         hasOkButton = false,
         cancelButtonText = "Close",
