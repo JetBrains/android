@@ -17,6 +17,8 @@ package com.android.tools.idea.compose.preview.animation
 
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
+import androidx.compose.runtime.mutableStateOf
+import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
@@ -29,10 +31,13 @@ import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.preview.animation.AllTabPanel
 import com.android.tools.idea.preview.animation.AnimationCard
 import com.android.tools.idea.preview.animation.LabelCard
+import com.android.tools.idea.preview.animation.SupportedAnimationManager
 import com.android.tools.idea.preview.animation.TestUtils.findAllCards
 import com.android.tools.idea.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.preview.animation.TimelinePanel
 import com.android.tools.idea.preview.animation.UnsupportedAnimationManager
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneRenderConfiguration
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
@@ -43,9 +48,12 @@ import com.intellij.testFramework.assertInstanceOf
 import com.intellij.util.containers.getIfSingle
 import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.stream.Collectors
 import javax.swing.JComponent
 import javax.swing.JSlider
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -59,6 +67,9 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class ComposeAnimationPreviewTest : InspectorTests() {
 
@@ -443,33 +454,50 @@ class ComposeAnimationPreviewTest : InspectorTests() {
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun addAndRemoveAllAnimations() = runTest {
-    val animationPreview = createAnimationPreview(backgroundScope)
+    val scope = backgroundScope.createChildScope()
+    val animationPreview = createAnimationPreview(scope)
 
     animationPreview.addAnimation(createComposeAnimation("1"))
     animationPreview.addAnimation(createComposeAnimation("2"))
     animationPreview.removeAllAnimations().join()
+    runCurrent()
     advanceUntilIdle()
     assertEquals(0, animationPreview.animations.size)
 
     animationPreview.addAnimation(createComposeAnimation("3"))
     animationPreview.addAnimation(createComposeAnimation("4")).join()
+    runCurrent()
     advanceUntilIdle()
     assertEquals(2, animationPreview.animations.size)
     assertEquals(listOf("3", "4"), animationPreview.animations.map { it.animation.label })
+    withContext(Dispatchers.EDT) {
+      scope.cancel()
+      val ui = FakeUi(animationPreview.component)
+      ui.layoutAndDispatchEvents()
+      ui.updateToolbarsIfNecessary()
+    }
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun addAndRemoveAnimation() = runTest {
-    val animationPreview = createAnimationPreview(backgroundScope)
+    val scope = backgroundScope.createChildScope()
+    val animationPreview = createAnimationPreview(scope)
 
     val animation = createComposeAnimation("1")
     animationPreview.addAnimation(animation)
     animationPreview.removeAnimation(animation)
     animationPreview.addAnimation(createComposeAnimation("2")).join()
+    runCurrent()
     advanceUntilIdle()
     assertEquals(1, animationPreview.animations.size)
     assertEquals("2", animationPreview.animations.first().animation.label)
+    withContext(Dispatchers.EDT) {
+      scope.cancel()
+      val ui = FakeUi(animationPreview.component)
+      ui.layoutAndDispatchEvents()
+      ui.updateToolbarsIfNecessary()
+    }
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -504,6 +532,49 @@ class ComposeAnimationPreviewTest : InspectorTests() {
     advanceUntilIdle()
     // One AllTabPanel's dispose call and three TimelinePanel's dispose calls.
     assertEquals(4, disposeCount)
+  }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  @Test
+  fun renderIsRequested() = runTest {
+    val calls = mutableStateOf(0)
+    val sceneManager =
+      mock<LayoutlibSceneManager>().apply {
+        whenever(this.requestRenderAndWait()).then { calls.value++ }
+        whenever(this.executeInRenderSessionAsync(any(), any(), any())).then {
+          CompletableFuture.completedFuture(null)
+        }
+
+        val configuration =
+          mock<LayoutlibSceneRenderConfiguration>().apply {
+            whenever(this.executeCallbacksAfterRender).then { AtomicBoolean(false) }
+          }
+        whenever(this.sceneRenderConfiguration).then { configuration }
+      }
+
+    val animationPreview =
+      ComposeAnimationPreview(
+          backgroundScope,
+          surface.project,
+          NoopComposeAnimationTracker,
+          { sceneManager },
+          surface,
+          psiFilePointer,
+        )
+        .also { it.animationClock = AnimationClock(TestClock()) }
+
+    animationPreview
+      .addAnimation(createComposeAnimation("1", ComposeAnimationType.TRANSITION_ANIMATION))
+      .join()
+    runCurrent()
+    val animationManager = animationPreview.animations.first() as SupportedAnimationManager
+
+    /** We want to check what after syncing states - new render request was called. */
+    val previousCalls = calls.value
+    animationManager.syncAnimationWithState()
+    runCurrent()
+    advanceUntilIdle()
+    delayUntilCondition(100, 5.seconds) { calls.value > previousCalls }
   }
 
   private fun ComposeAnimationPreview.getAnimationTitleAt(index: Int): String =

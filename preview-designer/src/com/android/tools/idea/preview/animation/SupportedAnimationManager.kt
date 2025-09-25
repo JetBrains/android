@@ -56,7 +56,8 @@ abstract class SupportedAnimationManager(
   private val tabbedPane: AnimationTabs,
   private val rootComponent: JComponent,
   private val tracker: AnimationTracker,
-  private val executeInRenderSession: suspend (Boolean, () -> Unit) -> Unit,
+  private val executeInRenderSession:
+    suspend (longTimeout: Boolean, requestRender: Boolean, () -> Unit) -> Unit,
   parentScope: CoroutineScope,
   private val updateTimelineElementsCallback: suspend () -> Unit,
 ) : AnimationManager {
@@ -147,7 +148,7 @@ abstract class SupportedAnimationManager(
 
   /** Load transition for current animation state. */
   private suspend fun loadTransition(longTimeout: Boolean = false) {
-    executeInRenderSession(longTimeout) { currentTransition = loadTransitionFromLibrary() }
+    executeInRenderSession(longTimeout, false) { currentTransition = loadTransitionFromLibrary() }
   }
 
   abstract suspend fun loadAnimatedPropertiesAtCurrentTime(longTimeout: Boolean)
