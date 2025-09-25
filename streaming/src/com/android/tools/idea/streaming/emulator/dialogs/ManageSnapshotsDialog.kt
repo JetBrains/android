@@ -54,7 +54,7 @@ import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.util.DimensionService
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.NlsSafe
-import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.NioFiles
 import com.intellij.ui.BooleanTableCellEditor
 import com.intellij.ui.BooleanTableCellRenderer
 import com.intellij.ui.DoubleClickListener
@@ -489,7 +489,7 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
       var errors = false
       for (folder in foldersToDelete) {
         try {
-          snapshotIoLock.write { FileUtil.delete(folder) }
+          snapshotIoLock.write { NioFiles.deleteRecursively(folder) }
         } catch (e: IOException) {
           thisLogger().error(e)
           errors = true
