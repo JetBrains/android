@@ -49,11 +49,11 @@ interface ProjectProtoTransform {
    */
   @Throws(BuildException::class)
   fun apply(
-    proto: ProjectProto.Project,
+    update: ProjectProtoUpdate,
     graph: BuildGraphData,
     artifactState: ArtifactTracker.State,
     context: Context<*>
-  ): ProjectProto.Project
+  )
 
   /**
    * Simple registry for transforms that also supports returning all transforms combined into one.
@@ -84,16 +84,14 @@ interface ProjectProtoTransform {
 
         @Throws(BuildException::class)
         override fun apply(
-          proto: ProjectProto.Project,
+          update: ProjectProtoUpdate,
           graph: BuildGraphData,
           artifactState: ArtifactTracker.State,
           context: Context<*>
-        ): ProjectProto.Project {
-          var proto = proto
+        ) {
           for (transform in transforms) {
-            proto = transform.apply(proto, graph, artifactState, context)
+            transform.apply(update, graph, artifactState, context)
           }
-          return proto
         }
       }
     }

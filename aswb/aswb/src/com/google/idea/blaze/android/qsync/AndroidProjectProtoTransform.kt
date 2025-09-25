@@ -63,15 +63,13 @@ class AndroidProjectProtoTransform private constructor(projectDefinition: Projec
 
   @Throws(BuildException::class)
   override fun apply(
-    proto: ProjectProto.Project,
+    update: ProjectProtoUpdate,
     graph: BuildGraphData,
     artifactState: ArtifactTracker.State,
     context: Context<*>
-  ): ProjectProto.Project {
-    val update = ProjectProtoUpdate(proto, graph, context)
+  ) {
     for (op in updateOperations) {
       op.update(update, artifactState, context)
     }
-    return update.build()
   }
 }
