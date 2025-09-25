@@ -19,6 +19,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -46,12 +48,14 @@ import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.DependenciesProjectProtoUpdater;
 import com.google.idea.blaze.qsync.ProjectBuilder;
-import com.google.idea.blaze.qsync.project.update.ProjectProtoTransform.Registry;
 import com.google.idea.blaze.qsync.ProjectRefresher;
 import com.google.idea.blaze.qsync.VcsStateDiffer;
+import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata;
+import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.NewArtifactTracker;
+import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
 import com.google.idea.blaze.qsync.java.JavaArtifactMetadata;
 import com.google.idea.blaze.qsync.java.PackageReader;
 import com.google.idea.blaze.qsync.java.PackageStatementParser;
@@ -60,6 +64,7 @@ import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.ProjectDirectoryConfigurator;
 import com.google.idea.blaze.qsync.project.ProjectPath;
 import com.google.idea.blaze.qsync.project.QuerySyncProjectDirectory;
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation;
 import com.google.idea.blaze.qsync.query.QuerySpec.QueryStrategy;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.google.idea.common.experiments.EnumExperiment;
@@ -67,7 +72,15 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Loads a project, either from saved state or from a {@code .blazeproject} file, yielding a {@link
@@ -100,7 +113,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
                                      WorkspaceLanguageSettings workspaceLanguageSettings,
                                      ProjectDefinition latestProjectDef,
                                      ProjectPath.Resolver projectPathResolver,
-                                     Registry projectTransformRegistry,
+                                     Collection<? extends ProjectProtoUpdateOperation> projectProtoUpdateOperations,
                                      SnapshotHolder snapshotHolder,
                                      BuildArtifactCache artifactCache,
                                      ArtifactTracker<BlazeContext> artifactTracker,
@@ -158,11 +171,11 @@ public class ProjectLoaderImpl implements ProjectLoader {
           result.workspaceLanguageSettings(),
           result.sourceToTargetMap(),
           result.buildSystem(),
-          result.projectTransformRegistry(),
+          ImmutableList.<ProjectProtoUpdateOperation>builder()
+            .addAll(result.projectProtoUpdateOperations())
+            .addAll(ProjectProtoTransformProvider.getAll(result.latestProjectDef()))
+            .build(),
           result.handledRuleKinds());
-    for (var t: ProjectProtoTransformProvider.getAll(result.latestProjectDef())) {
-      result.projectTransformRegistry().add(t);
-    }
 
     return querySyncProject;
   }
@@ -214,7 +227,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
     ProjectPath.Resolver projectPathResolver =
         ProjectPath.Resolver.create(workspaceRoot.path(), ideProjectBasePath);
 
-    Registry projectTransformRegistry = new Registry();
+    final var projectTransformRegistry = new ArrayList<ProjectProtoUpdateOperation>();
     SnapshotHolder snapshotHolder = QuerySyncManager.getInstance(project).getSnapshotHolder();
     BuildArtifactCache artifactCache = project.getService(BuildArtifactCache.class);
 
@@ -228,20 +241,20 @@ public class ProjectLoaderImpl implements ProjectLoader {
     ArtifactTracker<BlazeContext> artifactTracker;
     RenderJarArtifactTracker renderJarArtifactTracker;
     AppInspectorArtifactTracker appInspectorArtifactTracker;
+    projectTransformRegistry.add(
+      new DependenciesProjectProtoUpdater(
+        latestProjectDef,
+        projectPathResolver,
+        buildSystem.getEmptyJarDigests(),
+        QuerySync.ATTACH_DEP_SRCJARS::getValue));
     NewArtifactTracker<BlazeContext> tracker =
         new NewArtifactTracker<>(
             projectDirectoryConfigurator.configureDirectory(QuerySyncProjectDirectory.BAZEL_SYSTEM),
             artifactCache,
             // don't pass the composed transform directly as it's not fully constructed yet:
-            t -> projectTransformRegistry.getComposedTransform().getRequiredArtifactMetadata(t),
+            t -> getRequiredArtifactMetadata(projectTransformRegistry, t),
             new JavaArtifactMetadata.Factory(),
             executor);
-    projectTransformRegistry.add(
-        new DependenciesProjectProtoUpdater(
-            latestProjectDef,
-            projectPathResolver,
-            buildSystem.getEmptyJarDigests(),
-            QuerySync.ATTACH_DEP_SRCJARS::getValue));
 
     artifactTracker = tracker;
     renderJarArtifactTracker = new RenderJarArtifactTrackerImpl();
@@ -280,6 +293,19 @@ public class ProjectLoaderImpl implements ProjectLoader {
                                     snapshotHolder, artifactCache, artifactTracker, renderJarArtifactTracker, appInspectorArtifactTracker,
                                     appInspectorTracker,  dependencyBuilder, dependencyTracker, snapshotBuilder,
                                     projectQuerier, sourceToTargetMap, handledRules);
+  }
+
+  private static Map<BuildArtifact, ? extends Collection<? extends ArtifactMetadata.Extractor<?>>> getRequiredArtifactMetadata(
+    Collection<ProjectProtoUpdateOperation> projectTransformRegistry,
+    TargetBuildInfo targetInfo
+  ) {
+    final var result = new HashMap<BuildArtifact, Set<ArtifactMetadata.Extractor<?>>>();
+    for (ProjectProtoUpdateOperation op : projectTransformRegistry) {
+      for (var entry : op.getRequiredArtifacts(targetInfo).entrySet()) {
+        result.computeIfAbsent(entry.getKey(), k -> new HashSet<>()).addAll(entry.getValue());
+      }
+    }
+    return result;
   }
 
   private PackageReader createPackageReader() {
