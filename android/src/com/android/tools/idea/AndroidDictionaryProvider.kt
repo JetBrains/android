@@ -16,6 +16,7 @@
 package com.android.tools.idea
 
 import com.intellij.spellchecker.dictionary.Dictionary
+import com.intellij.spellchecker.dictionary.Dictionary.LookupStatus
 import com.intellij.spellchecker.dictionary.RuntimeDictionaryProvider
 import org.jetbrains.android.util.AndroidBundle
 
@@ -34,7 +35,13 @@ private object androidDictionary : Dictionary {
 
   override fun getName(): String = AndroidBundle.message("android.dictionary.name")
 
-  override fun contains(word: String) = WORDS.contains(word)
+  @Deprecated("Safe to remove")
+  override fun contains(word: String): Boolean {
+    throw NotImplementedError("Not supposed to be called")
+  }
+
+  override fun lookup(word: String): LookupStatus =
+    if (WORDS.contains(word)) LookupStatus.Present else LookupStatus.Absent
 
   override fun getWords() = WORDS
 }
