@@ -184,7 +184,7 @@ MODULE                        : My_First_App.app
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
-            - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+            - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar [-]
             - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             - ClassOutputs                : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.example.firstapp.test
@@ -816,7 +816,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
-            - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
+            - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.example.mysharedlibrary.test

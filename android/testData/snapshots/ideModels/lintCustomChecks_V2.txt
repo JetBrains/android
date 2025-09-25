@@ -1076,7 +1076,7 @@ MODULE                        : project.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
@@ -1363,7 +1363,7 @@ MODULE                        : project.library
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/library/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                ClassesFolder                 : <ROOT>/library/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
+                ClassesFolder                 : <ROOT>/library/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/library/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
@@ -1644,7 +1644,7 @@ MODULE                        : project.library-remote
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/library-remote/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                ClassesFolder                 : <ROOT>/library-remote/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
+                ClassesFolder                 : <ROOT>/library-remote/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/library-remote/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath

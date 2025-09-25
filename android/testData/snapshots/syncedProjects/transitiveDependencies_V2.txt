@@ -225,7 +225,7 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugAndroidTestSources
@@ -339,7 +339,7 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.library2.main
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/debug
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugSources
@@ -498,7 +498,7 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :app:createMockableJar
                 ASSEMBLE                      : :app:assembleDebugUnitTest
@@ -879,7 +879,7 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/library1/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
-            -                             : jar://<PROJECT>/library1/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
+            -                             : jar://<PROJECT>/library1/build/intermediates/compile_and_runtime_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
             -                             : file://<PROJECT>/library1/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
                 CLEAN                         : :library1:generateDebugAndroidTestSources
@@ -1121,7 +1121,7 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/library1/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
-            -                             : jar://<PROJECT>/library1/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar!/
+            -                             : jar://<PROJECT>/library1/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :library1:createMockableJar
                 ASSEMBLE                      : :library1:assembleDebugUnitTest
@@ -1316,7 +1316,7 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/library2/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
-            -                             : jar://<PROJECT>/library2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
+            -                             : jar://<PROJECT>/library2/build/intermediates/compile_and_runtime_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
             -                             : file://<PROJECT>/library2/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
                 CLEAN                         : :library2:generateDebugAndroidTestSources
@@ -1567,7 +1567,7 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/library2/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
-            -                             : jar://<PROJECT>/library2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar!/
+            -                             : jar://<PROJECT>/library2/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :library2:createMockableJar
                 ASSEMBLE                      : :library2:assembleDebugUnitTest

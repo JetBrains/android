@@ -144,7 +144,7 @@ MODULE                        : MultiFlavor.app
                     artifacts::app                : null => :app@main
                     junit:junit                   : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
-            - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebug/processFirstAbcSecondAbcDebugResources/R.jar [-]
+            - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_r_class_jar/firstAbcSecondAbcDebug/processFirstAbcSecondAbcDebugResources/R.jar [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebugUnitTest/compileFirstAbcSecondAbcDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.multiflavor.firstAbc.secondAbc.debug.test
         - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/androidTest/firstAbcSecondAbc/debug [-]

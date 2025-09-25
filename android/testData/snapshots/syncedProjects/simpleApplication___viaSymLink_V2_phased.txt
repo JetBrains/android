@@ -463,7 +463,7 @@ PROJECT                       : project_sm_src
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>_sm_src/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
-            -                             : jar://<PROJECT>_sm_src/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
+            -                             : jar://<PROJECT>_sm_src/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :app:createMockableJar
                 ASSEMBLE                      : :app:assembleDebugUnitTest

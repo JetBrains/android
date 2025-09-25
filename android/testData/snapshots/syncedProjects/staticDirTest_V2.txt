@@ -269,7 +269,7 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugAndroidTest
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugAndroidTestSources
@@ -401,7 +401,7 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debug
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/debug
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugSources
@@ -559,7 +559,7 @@ PROJECT                       : project
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugScreenshotTest/compileDebugScreenshotTestJavaWithJavac/classes
             -                             : file://<PROJECT>/app/build/intermediates/built_in_kotlinc/debugScreenshotTest/compileDebugScreenshotTestKotlin/classes
             -                             : file://<PROJECT>/app/build/intermediates/unit_test_config_directory/debugScreenshotTest/generateDebugScreenshotTestConfig/out
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :app:createMockableJar
                 ASSEMBLE                      : :app:assembleDebugScreenshotTest
@@ -844,7 +844,7 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugUnitTest
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :app:createMockableJar
                 ASSEMBLE                      : :app:assembleDebugUnitTest

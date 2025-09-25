@@ -480,7 +480,7 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :app:createMockableJar
                 ASSEMBLE                      : :app:assembleDebugUnitTest
@@ -1079,7 +1079,7 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/library1/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
-            -                             : jar://<PROJECT>/library1/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar!/
+            -                             : jar://<PROJECT>/library1/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :library1:createMockableJar
                 ASSEMBLE                      : :library1:assembleDebugUnitTest
@@ -1507,7 +1507,7 @@ PROJECT                       : project
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/library2/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
-            -                             : jar://<PROJECT>/library2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar!/
+            -                             : jar://<PROJECT>/library2/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :library2:createMockableJar
                 ASSEMBLE                      : :library2:assembleDebugUnitTest
