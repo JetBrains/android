@@ -22,13 +22,15 @@ import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.COMPOSABLE_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.PREVIEW_TOOLING_PACKAGE
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.preview.find.findAnnotatedMethodsValues
+import com.android.tools.idea.preview.find.findAnnotatedMethods
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.vfs.VirtualFile
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.junit.Assert.assertEquals
@@ -479,15 +481,14 @@ class MultiPreviewUsageTrackerTest {
   }
 
   private fun getPreviewNodes(vFile: VirtualFile) = runBlocking {
-    findAnnotatedMethodsValues(
+    val methods =
+      findAnnotatedMethods(
         project,
         vFile,
         COMPOSABLE_ANNOTATION_FQ_NAME,
         COMPOSABLE_ANNOTATION_NAME,
-      ) { methods ->
-        getPreviewNodes(methods, true)
-      }
-      .filterIsInstance<MultiPreviewNode>()
+      )
+    getPreviewNodes(methods, true).filterIsInstance<MultiPreviewNode>().toList()
   }
 }
 

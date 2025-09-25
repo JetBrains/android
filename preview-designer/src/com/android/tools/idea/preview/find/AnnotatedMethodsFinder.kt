@@ -24,7 +24,6 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
@@ -45,8 +44,6 @@ import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.concurrency.Promise
@@ -176,40 +173,26 @@ fun UAnnotation.getContainingUMethodAnnotatedWith(annotationFqn: String): UMetho
 }
 
 /**
- * Returns a [CachedValueProvider] that provides values of type [T] from the methods annotated with
- * [annotationFqn] and [shortAnnotationName], from [vFile] of [project]. Technically, this function
- * could just return a collection of methods, but [toValues] might be slow to calculate so caching
- * the values rather than methods is more useful. To benefit from caching make sure the same
- * parameters are passed to the function call as all the parameters constitute the key.
+ * Returns a [CachedValueProvider] that provides all the methods annotated with [annotationFqn] and
+ * [shortAnnotationName], from [vFile] of [project].
  */
-private fun <T> findAnnotatedMethodsCachedValues(
+private fun findAnnotatedMethodsCached(
   project: Project,
   vFile: VirtualFile,
   annotationFqn: String,
   shortAnnotationName: String,
-  toValues: (methods: List<UMethod>) -> Flow<T>,
-): CachedValueProvider<CompletableDeferred<Collection<T>>> = CachedValueProvider {
+): CachedValueProvider<CompletableDeferred<List<UMethod>>> = CachedValueProvider {
   // This Deferred should not be needed, the promise could be returned directly. However, it seems
   // there is a compiler issue that
-  // causes the findAnnotatedMethodsValues to fail when using the "dist" build (not from source).
+  // causes the findAnnotatedMethods to fail when using the "dist" build (not from source).
   // Using the deferred seems to avoid the problem. b/222843951.
-  val deferred = CompletableDeferred<Collection<T>>()
-
+  val deferred = CompletableDeferred<List<UMethod>>()
   val promise =
     ReadAction.nonBlocking(
-        Callable<Collection<T>> {
-          val uMethods =
-            findAnnotations(project, vFile, shortAnnotationName)
-              .mapNotNull { it.getContainingUMethodAnnotatedWith(annotationFqn) }
-              .distinct() // avoid looking more than once per method
-
-          // TODO(b/381827960): avoid using runBlockingCancellable
-          // At the moment we use runBlockingCancellable to calculate the list of values within this
-          // smart read lock.
-          // Callers of findAnnotatedMethodsValues must first ensure that any processing on their
-          // flow provides smart read locks where necessary before removing the terminal .toList()
-          // call.
-          runBlockingCancellable { toValues(uMethods).toList() }
+        Callable {
+          findAnnotations(project, vFile, shortAnnotationName)
+            .mapNotNull { it.getContainingUMethodAnnotatedWith(annotationFqn) }
+            .distinct() // avoid looking more than once per method
         }
       )
       .inSmartMode(project)
@@ -230,23 +213,21 @@ private fun <T> findAnnotatedMethodsCachedValues(
   )
 }
 
-private data class CachedValuesKey<T>(
+private data class CachedAnnotatedMethodsKey(
   val annotationFqn: String,
   val shortAnnotationName: String,
-  val toValues: (methods: List<UMethod>) -> Flow<T>,
 )
 
 /**
- * Finds all the values calculated by [toValues] associated with the methods annotated with
- * [annotationFqn] and [shortAnnotationName] from [vFile] in [project].
+ * Finds all the methods annotated with [annotationFqn] and [shortAnnotationName] from [vFile] in
+ * [project].
  */
-suspend fun <T> findAnnotatedMethodsValues(
+suspend fun findAnnotatedMethods(
   project: Project,
   vFile: VirtualFile,
   annotationFqn: String,
   shortAnnotationName: String,
-  toValues: (methods: List<UMethod>) -> Flow<T>,
-): Collection<T> {
+): List<UMethod> {
   val psiFile = getPsiFileSafely(project, vFile) ?: return emptyList()
   return withContext(Dispatchers.Default) {
     val promiseResult =
@@ -254,19 +235,13 @@ suspend fun <T> findAnnotatedMethodsValues(
         .getCachedValue(
           psiFile,
           CacheKeysManager.getInstance(project)
-            .getKey(CachedValuesKey(annotationFqn, shortAnnotationName, toValues)),
-          findAnnotatedMethodsCachedValues(
-            project,
-            vFile,
-            annotationFqn,
-            shortAnnotationName,
-            toValues,
-          ),
+            .getKey(CachedAnnotatedMethodsKey(annotationFqn, shortAnnotationName)),
+          findAnnotatedMethodsCached(project, vFile, annotationFqn, shortAnnotationName),
         )
     try {
-      return@withContext promiseResult.await()
+      promiseResult.await()
     } catch (_: Throwable) {
-      return@withContext emptyList()
+      emptyList()
     }
   }
 }

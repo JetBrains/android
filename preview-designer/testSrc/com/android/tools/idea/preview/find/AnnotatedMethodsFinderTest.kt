@@ -17,18 +17,13 @@ package com.android.tools.idea.preview.find
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runReadAction
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.uast.UMethod
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-
-private fun identity(methods: List<UMethod>) = methods.asFlow()
-
-private fun nameLetters(methods: List<UMethod>) = methods.flatMap { it.name.toList() }.asFlow()
 
 class AnnotatedMethodsFinderTest {
 
@@ -87,7 +82,7 @@ class AnnotatedMethodsFinderTest {
   }
 
   @Test
-  fun `test findAnnotatedMethodsValues`() = runBlocking {
+  fun `test findAnnotatedMethods`() = runBlocking {
     fixture.addFileToProjectAndInvalidate(
       "com/android/annotations/MyAnnotationA.kt",
       // language=kotlin
@@ -119,16 +114,14 @@ class AnnotatedMethodsFinderTest {
           .trimIndent(),
       )
 
-    val nLetters = 10 // There are 10 letters in "abcde and "fghia" altogether
     assertEquals(0, CacheKeysManager.getInstance(project).map().size)
     assertEquals(
-      nLetters,
-      findAnnotatedMethodsValues(
+      2,
+      findAnnotatedMethods(
           project,
           sourceFile.virtualFile,
           "com.android.annotations.MyAnnotationA",
           "MyAnnotationA",
-          toValues = ::nameLetters,
         )
         .size,
     )
@@ -138,43 +131,32 @@ class AnnotatedMethodsFinderTest {
     )
     val cacheKeys = CacheKeysManager.getInstance(project).map().size
     assertEquals(
-      nLetters,
-      findAnnotatedMethodsValues(
+      2,
+      findAnnotatedMethods(
           project,
           sourceFile.virtualFile,
           "com.android.annotations.MyAnnotationA",
           "MyAnnotationA",
-          toValues = ::nameLetters,
         )
         .size,
     )
     // Check that call with the same args combination does not create new keys and reuses the cache:
     assertEquals(cacheKeys, CacheKeysManager.getInstance(project).map().size)
+
+    // When calling with a new argument combination, check that a new cache key is created
     assertEquals(
-      2,
-      findAnnotatedMethodsValues(
+      0,
+      findAnnotatedMethods(
           project,
           sourceFile.virtualFile,
-          "com.android.annotations.MyAnnotationA",
-          "MyAnnotationA",
-          toValues = ::identity,
+          "com.android.annotations.MyAnnotationB",
+          "MyAnnotationB",
         )
         .size,
     )
     assertTrue(
       "Unexpectedly no new cache keys",
       cacheKeys < CacheKeysManager.getInstance(project).map().size,
-    )
-    assertEquals(
-      0,
-      findAnnotatedMethodsValues(
-          project,
-          sourceFile.virtualFile,
-          "com.android.annotations.MyAnnotationB",
-          "MyAnnotationB",
-          toValues = ::identity,
-        )
-        .size,
     )
   }
 
@@ -198,5 +180,49 @@ class AnnotatedMethodsFinderTest {
     }
     assertTrue(withoutReadLock.isFailure)
     assertTrue(withReadLock.isSuccess)
+  }
+
+  // Regression test for b/397205975
+  @Test
+  fun `findAnnotationMethods is cached`() = runBlocking {
+    val sourceFile =
+      fixture.addFileToProjectAndInvalidate(
+        "com/android/test/SourceFile.kt",
+        // language=kotlin
+        """
+        package com.android.annotations
+
+        annotation class MyAnnotationA
+
+        @MyAnnotationA
+        fun Foo() { }
+        """
+          .trimIndent(),
+      )
+
+    val firstCall =
+      findAnnotatedMethods(
+        project,
+        sourceFile.virtualFile,
+        "com.android.annotations.MyAnnotationA",
+        "MyAnnotationA",
+      )
+    val secondCall =
+      findAnnotatedMethods(
+        project,
+        sourceFile.virtualFile,
+        "com.android.annotations.MyAnnotationA",
+        "MyAnnotationA",
+      )
+    val thirdCall =
+      findAnnotatedMethods(
+        project,
+        sourceFile.virtualFile,
+        "com.android.annotations.MyAnnotationA",
+        "MyAnnotationA",
+      )
+
+    assertThat(firstCall).isNotEmpty()
+    assertTrue(firstCall == secondCall && secondCall == thirdCall)
   }
 }
