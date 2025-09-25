@@ -35,6 +35,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.NioFiles;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -183,7 +184,7 @@ public class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepo
       stream.forEach(subCache -> {
         if (!subCache.getFileName().toString().equals(INVALIDATION_MARKER_FILE)) {
           try {
-            FileUtil.delete(subCache);
+            NioFiles.deleteRecursively(subCache);
           }
           catch (IOException e) {
             getLogger().error("Failed to delete " + subCache + " directory", e);
@@ -199,7 +200,7 @@ public class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepo
       // Finally, delete the invalidation marker file.
       Path invalidationMarker = rootDir.resolve(INVALIDATION_MARKER_FILE);
       try {
-        FileUtil.delete(invalidationMarker);
+        Files.deleteIfExists(invalidationMarker);
       }
       catch (IOException e) {
         getLogger().error("Failed to delete " + invalidationMarker + " file", e);
