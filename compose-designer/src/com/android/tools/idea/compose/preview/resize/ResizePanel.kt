@@ -191,6 +191,7 @@ class ResizePanel(parentDisposable: Disposable) :
     currentSceneManager?.sceneRenderConfiguration?.clearOverrideRenderSize = true
     currentSceneManager?.forceNextResizeToUseOriginalSize = true
     currentConfiguration?.setEffectiveDevice(originalDeviceSnapshot, originalDeviceStateSnapshot)
+    dimensionInputsAction.updateTextFieldsFromConfiguration()
     ComposeResizeToolingUsageTracker.logResizeReverted(
       currentSceneManager?.scene?.designSurface,
       currentSceneManager?.resizeMode ?: ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE,
@@ -223,6 +224,7 @@ class ResizePanel(parentDisposable: Disposable) :
   private fun handleDeviceSelection(selectedItem: Device) {
     dimensionInputsAction.resetErrors()
     currentConfiguration?.setEffectiveDevice(selectedItem, selectedItem.defaultState)
+    dimensionInputsAction.updateTextFieldsFromConfiguration()
     ComposeResizeToolingUsageTracker.logResizeStopped(
       currentSceneManager?.scene?.designSurface,
       currentSceneManager?.resizeMode ?: ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE,
@@ -379,7 +381,7 @@ class ResizePanel(parentDisposable: Disposable) :
       }
     }
 
-    private fun updateTextFieldsFromConfiguration() {
+    fun updateTextFieldsFromConfiguration() {
       resetErrors()
       val config = currentConfiguration ?: return
       val (wDp, hDp) = config.deviceSizeDp()
