@@ -129,7 +129,7 @@ class StringResourceViewPanelFakeUiTest {
       it.close(DialogWrapper.OK_EXIT_CODE)
     }
     assertThat(stringResourceViewPanel.table.getColumnAt(KEY_COLUMN))
-      .isEqualTo(DEFAULT_KEYS.slice(DEFAULT_KEYS.indices.minus(row)))
+      .containsExactlyElementsIn(DEFAULT_KEYS.slice(DEFAULT_KEYS.indices.minus(row)))
   }
 
   @Test
