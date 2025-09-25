@@ -333,6 +333,8 @@ jvm_library(
         "//platform/testFramework:testFramework_test_lib",
         "//platform/util",
         "//platform/util:util_test_lib",
+        "//platform/util-ex",
+        "//platform/util-ex:util-ex_test_lib",
         "//platform/util/base",
         "//platform/util/base:base_test_lib",
         "//platform/util-rt",

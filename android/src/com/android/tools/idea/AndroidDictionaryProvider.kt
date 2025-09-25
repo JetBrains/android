@@ -35,6 +35,11 @@ private object androidDictionary : Dictionary {
 
   override fun getName(): String = AndroidBundle.message("android.dictionary.name")
 
+  @Deprecated("Safe to remove")
+  override fun contains(word: String): Boolean {
+    throw NotImplementedError("Not supposed to be called")
+  }
+
   override fun lookup(word: String): LookupStatus =
     if (WORDS.contains(word)) LookupStatus.Present else LookupStatus.Absent
 
