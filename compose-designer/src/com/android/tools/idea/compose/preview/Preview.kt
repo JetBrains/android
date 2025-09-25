@@ -75,7 +75,7 @@ import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.essentials.essentialsModeFlow
 import com.android.tools.idea.preview.fast.CommonFastPreviewSurface
 import com.android.tools.idea.preview.fast.FastPreviewSurface
-import com.android.tools.idea.preview.find.findAnnotatedMethodsValues
+import com.android.tools.idea.preview.find.findAnnotatedMethods
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.focus.CommonFocusEssentialsModeManager
 import com.android.tools.idea.preview.focus.FocusMode
@@ -161,7 +161,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.take
@@ -1485,14 +1484,7 @@ class ComposePreviewRepresentation(
    */
   override suspend fun hasPreviews(): Boolean {
     val vFile = readAction { psiFilePointer.element?.virtualFile } ?: return false
-    findAnnotatedMethodsValues(
-        project,
-        vFile,
-        COMPOSABLE_ANNOTATION_FQ_NAME,
-        COMPOSABLE_ANNOTATION_NAME,
-      ) { methods ->
-        methods.asFlow()
-      }
+    findAnnotatedMethods(project, vFile, COMPOSABLE_ANNOTATION_FQ_NAME, COMPOSABLE_ANNOTATION_NAME)
       .forEach { composableMethod ->
         if (composableMethod.hasPreviewElements()) {
           hasPreviewsCachedValue.set(true)
