@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -79,7 +80,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import org.jetbrains.jewel.ui.component.CircularProgressIndicator
 import org.jetbrains.jewel.ui.component.Icon
-import org.jetbrains.jewel.ui.component.IconButton
+import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.styling.LocalLinkStyle
 
@@ -343,8 +344,23 @@ class WifiAvailableDevicesDialog(
 
   private val columns =
     listOf<TableColumn<MdnsTlsService>>(
-      TableColumn("", TableColumnWidth.Fixed(16.dp)) { device, _ ->
-        IconButton(
+      TableTextColumn<MdnsTlsService>(
+        "Name",
+        TableColumnWidth.Weighted(2f),
+        attribute = { buildDeviceName(it.service) },
+        maxLines = 2,
+      ),
+      TableTextColumn(
+        "IP Address & Port",
+        TableColumnWidth.Weighted(2f),
+        attribute = { "${it.service.ipv4}:${it.service.port}" },
+      ),
+      TableTextColumn<MdnsTlsService>(
+        "API",
+        attribute = { it.service.buildVersionSdkFull ?: "Unknown" },
+      ),
+      TableColumn("", TableColumnWidth.Weighted(1f)) { device, _ ->
+        OutlinedButton(
           onClick = {
             val controller =
               PairDevicesUsingWiFiService.getInstance(project)
@@ -359,30 +375,16 @@ class WifiAvailableDevicesDialog(
             controller.showDialog()
           }
         ) {
-          Icon(
-            key = StudioIconsCompose.Avd.PairOverWifi,
-            contentDescription = "pair device over wifi",
-          )
+          Row {
+            Icon(
+              key = StudioIconsCompose.Avd.PairOverWifi,
+              contentDescription = "pair device over wifi",
+            )
+            Spacer(Modifier.width(4.dp))
+            Text("Pair")
+          }
         }
       },
-      TableTextColumn<MdnsTlsService>(
-        "Name",
-        TableColumnWidth.Weighted(2f),
-        attribute = { buildDeviceName(it.service) },
-        maxLines = 2,
-      ),
-      TableTextColumn("IP Address & Port", attribute = { "${it.service.ipv4}:${it.service.port}" }),
-      TableTextColumn(
-        "Serial Number",
-        attribute = {
-          it.service.serviceInstanceName.instance.substringAfter("-").substringBefore("-")
-        },
-      ),
-      TableTextColumn<MdnsTlsService>(
-        "API",
-        width = TableColumnWidth.ToFit("API", extraPadding = 16.dp),
-        attribute = { it.service.buildVersionSdkFull ?: "Unknown" },
-      ),
     )
 
   fun showDialog() {
