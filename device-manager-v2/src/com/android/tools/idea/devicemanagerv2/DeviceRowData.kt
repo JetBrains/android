@@ -82,7 +82,6 @@ data class DeviceRowData(
         handleType =
           when {
             handle.reservationAction != null -> HandleType.REMOTE
-            handle.wifiPairDeviceAction != null -> HandleType.DISCOVERED_OVER_WIFI
             properties.isVirtual == true -> HandleType.VIRTUAL
             properties.isVirtual == false -> HandleType.PHYSICAL
             else -> HandleType.UNKNOWN
@@ -122,15 +121,9 @@ data class DeviceRowData(
     UNKNOWN,
     PHYSICAL,
     VIRTUAL,
-    REMOTE,
-    DISCOVERED_OVER_WIFI;
+    REMOTE;
 
-    override fun toString(): String {
-      return when (this) {
-        DISCOVERED_OVER_WIFI -> "Available for Wi-Fi Pairing"
-        else -> name.titlecase()
-      }
-    }
+    override fun toString() = name.titlecase()
   }
 }
 

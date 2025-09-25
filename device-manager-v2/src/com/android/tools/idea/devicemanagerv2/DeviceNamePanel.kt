@@ -116,14 +116,22 @@ internal class DeviceNamePanel : JBPanel<DeviceNamePanel>(null) {
    * 1. The status message, if the device state is transitioning and one is present.
    * 2. The error message, if there's an error.
    * 3. Reservation information, if present.
-   * 4. Android version
+   * 4. Wi-Fi pairing information, if present.
+   * 5. Android version
    */
   private fun DeviceRowData.toLine2Text() =
-    stateTransitionText() ?: errorText() ?: reservationText() ?: androidVersionText()
+    stateTransitionText()
+      ?: errorText()
+      ?: reservationText()
+      ?: wifiPairingText()
+      ?: androidVersionText()
 
   private fun DeviceRowData.errorText() = error?.message
 
   private fun DeviceRowData.reservationText() = handle?.state?.reservation?.line2Text()
+
+  private fun DeviceRowData.wifiPairingText() =
+    handle?.takeIf { it.wifiPairDeviceAction != null }?.state?.status
 
   private fun DeviceRowData.androidVersionText() =
     when (androidVersion) {
