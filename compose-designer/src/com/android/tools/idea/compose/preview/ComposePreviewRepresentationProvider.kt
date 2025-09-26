@@ -150,6 +150,8 @@ class ComposePreviewRepresentationProvider(
    * `PreviewRepresentation` of them.
    */
   override suspend fun accept(project: Project, psiFile: PsiFile): Boolean {
+    // We need to be in smart mode to be able to access the index for the annotations.
+    if (DumbService.isDumb(project)) return false
     return psiFile.virtualFile.isKotlinFileType() &&
       (readAction {
         (psiFile.getModuleSystem()?.usesCompose == true ||
@@ -181,9 +183,6 @@ class ComposePreviewRepresentationProvider(
 }
 
 private fun isCompatibleComposableClassAvailable(file: PsiFile): Boolean {
-  // We need to be in smart mode to be able to access the index for the annotations.
-  if (DumbService.getInstance(file.project).isDumb) return false
-
   val module = ModuleUtilCore.findModuleForFile(file) ?: return false
   // we only accept modules that are:
   // - Android modules

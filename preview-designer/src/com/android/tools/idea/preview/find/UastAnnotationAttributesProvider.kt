@@ -16,8 +16,6 @@
 package com.android.tools.idea.preview.find
 
 import com.android.tools.preview.AnnotationAttributesProvider
-import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.psi.PsiLiteralExpression
 import com.intellij.util.text.nullize
 import org.jetbrains.kotlin.analysis.api.analyze
@@ -39,14 +37,7 @@ class UastAnnotationAttributesProvider(
 ) : AnnotationAttributesProvider {
 
   override fun <T> getAttributeValue(attributeName: String): T? =
-    try {
-      val expression = annotation.findAttributeValue(attributeName)
-      expression?.getValueOfType() ?: findAttributeConstantValue(attributeName) as? T
-    } catch (e: IndexNotReadyException) {
-      // TODO(b/398265392): Remove this catch once all paths ensure that we are in smart mode
-      thisLogger().warn("Resolution of $attributeName attempted while index not ready", e)
-      null
-    }
+    annotation.findAttributeValue(attributeName)?.getValueOfType() ?: findAttributeConstantValue(attributeName) as? T
 
   override fun getIntAttribute(attributeName: String): Int? {
     return getAttributeValue(attributeName) ?: defaultValues[attributeName]?.toInt()
@@ -65,25 +56,11 @@ class UastAnnotationAttributesProvider(
   }
 
   override fun <T> getDeclaredAttributeValue(attributeName: String): T? =
-    try {
-      val expression = annotation.findDeclaredAttributeValue(attributeName)
-      expression?.getValueOfType() as T? ?: findAttributeConstantValue(attributeName) as? T
-    } catch (e: IndexNotReadyException) {
-      // TODO(b/398265392): Remove this catch once all paths ensure that we are in smart mode
-      thisLogger()
-        .warn("Resolution of declared attribute $attributeName attempted while index not ready", e)
-      null
-    }
+    annotation.findDeclaredAttributeValue(attributeName)?.getValueOfType() as T? as T? ?: findAttributeConstantValue(attributeName) as? T
 
   override fun findClassNameValue(name: String): String? =
-    try {
-      (annotation.findAttributeValue(name) as? UClassLiteralExpression)?.type?.canonicalText
-      ?: findAttributeClassLiteralClassId(name)
-    } catch (e: IndexNotReadyException) {
-      // TODO(b/398265392): Remove this catch once all paths ensure that we are in smart mode
-      thisLogger().warn("Resolution of class name $name attempted while index not ready", e)
-      null
-    }
+    (annotation.findAttributeValue(name) as? UClassLiteralExpression)?.type?.canonicalText
+    ?: findAttributeClassLiteralClassId(name)
 
   /**
    * Be aware not to get some [org.jetbrains.kotlin.analysis.api.lifetime.KaLifetimeOwner] from

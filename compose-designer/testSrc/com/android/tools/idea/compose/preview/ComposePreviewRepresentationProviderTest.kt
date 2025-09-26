@@ -22,9 +22,11 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisi
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.psi.PsiFile
+import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.RuleChain
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.android.uipreview.AndroidEditorSettings.EditorMode
 import org.junit.Assert.assertEquals
@@ -209,6 +211,36 @@ class ComposePreviewRepresentationProviderTest {
     whenever(mockProjectFileIndex.isInLibrary(any())).thenReturn(true)
 
     assertFalse(previewProvider.accept(project, mockPsiFile))
+  }
+
+  // Regression test for b/398265392
+  @Test
+  fun providerShouldNotAcceptFilesWhenInDumbMode() = runTest {
+    val file =
+      fixture.addFileToProjectAndInvalidate(
+        "Composable.kt",
+        // language=kotlin
+        """
+        import androidx.compose.ui.tooling.preview.Devices
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.runtime.Composable
+
+        @Composable
+        fun Composable1() {
+        }
+
+        @Composable
+        fun Composable2() {
+        }
+      """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    assertTrue(previewProvider.accept(project, file))
+    DumbModeTestUtils.runInDumbModeSynchronously(project) {
+      runBlocking { assertFalse(previewProvider.accept(project, file)) }
+    }
   }
 
   private fun PsiFile.getPreferredVisibility() =
