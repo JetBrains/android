@@ -18,11 +18,13 @@ package com.android.tools.idea.gradle.project.sync.idea
 import com.android.SdkConstants.DOT_JAR
 import com.android.SdkConstants.FN_ANNOTATIONS_ZIP
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeDependenciesCore
+import com.android.tools.idea.gradle.model.IdeJavaArtifactCore
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
@@ -31,6 +33,7 @@ import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreDirect
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
+import com.android.tools.idea.gradle.model.impl.IdeTestSuiteVariantTargetImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTable
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
@@ -283,18 +286,21 @@ internal fun setupAndroidDependenciesForAllProjects(
 
 private fun SyncContributorAndroidProjectDependenciesContext.populateDependenciesForAndroidProject() : Set<EntitySource> {
   val ideVariant: IdeVariantCoreImpl = with(androidProjectContext) { context.getProjectModel(projectModel, IdeVariantCore::class.java)} as IdeVariantCoreImpl? ?: return emptySet()
-  ideVariant.mainArtifact.let { it.compileClasspathCore.populateDependenciesForModule(DependencyScope.COMPILE, it.name) }
-  ideVariant.testFixturesArtifact?.let { it.compileClasspathCore.populateDependenciesForModule(DependencyScope.COMPILE, it.name) }
-  ideVariant.hostTestArtifacts.forEach { it.compileClasspathCore.populateDependenciesForModule(DependencyScope.TEST, it.name)}
-  ideVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.let {
-    it.compileClasspathCore.populateDependenciesForModule(DependencyScope.TEST, it.name)
+  val classpathsToProcess = listOfNotNull(
+    ideVariant.mainArtifact.asCompileDependency(),
+    ideVariant.testFixturesArtifact?.asCompileDependency(),
+    ideVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.asTestDependency(),
+  ) + ideVariant.hostTestArtifacts.map {
+    it.asTestDependency()
+  } + if (StudioFlags.AGP_TEST_SUITES_ENABLED.get()) {
+    // TODO(445381129): Pass the dependencies through once they have been added to the test suite artifact
+    ideVariant.testSuiteArtifacts.map { it.asEmptyTestDependency() }
+  } else {
+    emptyList()
   }
 
-  if (StudioFlags.AGP_TEST_SUITES_ENABLED.get()) {
-    // TODO(445381129): Pass the dependencies through once they have been added to the test suite artifact
-    ideVariant.testSuiteArtifacts.forEach { testSuite ->
-      IdeDependenciesCoreDirect(emptyList()).populateDependenciesForModule(DependencyScope.TEST, testSuite.suiteName)
-    }
+  classpathsToProcess.forEach { (name, classpath, scope) ->
+    classpath.populateDependenciesForModule(scope, name)
   }
 
   val allKnownModuleEntities = listOfNotNull(moduleNameToEntityMap[androidProjectContext.resolveHolderModuleName()]) +
@@ -426,3 +432,9 @@ private fun buildAndroidSourceSetModuleIdsMap(
     }
   }
 }.toMap()
+
+
+private fun IdeAndroidArtifactCore.asCompileDependency() = Triple(name.toWellKnownSourceSet().sourceSetName, compileClasspathCore, DependencyScope.COMPILE)
+private fun IdeAndroidArtifactCore.asTestDependency() = Triple(name.toWellKnownSourceSet().sourceSetName, compileClasspathCore, DependencyScope.TEST)
+private fun IdeJavaArtifactCore.asTestDependency() = Triple(name.toWellKnownSourceSet().sourceSetName, compileClasspathCore, DependencyScope.TEST)
+private fun IdeTestSuiteVariantTargetImpl.asEmptyTestDependency() = Triple(suiteName, IdeDependenciesCoreDirect(emptyList()), DependencyScope.TEST)
