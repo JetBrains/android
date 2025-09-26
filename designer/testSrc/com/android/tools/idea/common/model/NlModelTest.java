@@ -30,11 +30,17 @@ import static com.android.tools.idea.common.model.NlTreeReaderKt.findAttributeBy
 import static com.android.tools.idea.projectsystem.TestRepositories.NON_PLATFORM_SUPPORT_LAYOUT_LIBS;
 import static com.android.tools.idea.projectsystem.TestRepositories.PLATFORM_SUPPORT_LIBS;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.only;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -671,6 +677,24 @@ public class NlModelTest extends LayoutTestCase {
     model.activate();
     waitForCondition(2, TimeUnit.SECONDS, () -> !configuration.getTheme().equals("@android:style/InvalidTheme"));
     assertEquals(defaultTheme, configuration.getTheme());
+  }
+
+  // Regression test for b/218369913
+  public void testThemeIsOnlyUpdatedOnActivePreviews() {
+    SyncNlModel model = createDefaultModelBuilder(true).build(true);
+    Configuration configuration = spy(model.getConfiguration());
+    model.setConfiguration(configuration);
+
+    // The configuration should be updated when the model is active
+    clearInvocations(configuration);
+    model.notifyModified(ChangeType.BUILD);
+    verify(configuration, atLeastOnce()).getResourceResolver();
+
+    // The configuration should not be updated when the model is deactivated
+    model.deactivate();
+    clearInvocations(configuration);
+    model.notifyModified(ChangeType.BUILD);
+    verifyNoInteractions(configuration);
   }
 
   public void testMergeTag() {
