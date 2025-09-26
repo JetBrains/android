@@ -232,12 +232,7 @@ class DeviceClient(
     val agentPushed = coroutineScope {
       async {
         pushSerializer.executeSeriallyFor(deviceSerialNumber) { // Don't allow concurrent pushes to the same device.
-          try {
-            pushAgent(deviceSelector, adbSession, project)
-          }
-          catch (e: Throwable) {
-            throw RuntimeException("Unable to copy the screen sharing agent to the device", e)
-          }
+          pushAgent(deviceSelector, adbSession, project)
         }
       }
     }
@@ -411,20 +406,32 @@ class DeviceClient(
     }
 
     coroutineScope {
-      val adb = adbSession.deviceServices
-      // "chown shell:shell" ensures proper ownership of /data/local/tmp/.studio if adb is rooted.
-      val command = "mkdir -p $DEVICE_PATH_BASE; chmod 755 $DEVICE_PATH_BASE; chown shell:shell $DEVICE_PATH_BASE"
-      adb.shellAsLines(deviceSelector, command).collect {
-        if (it is ShellCommandOutputElement.ExitCode && it.exitCode != 0) {
-          logger.warn("Unable to create $DEVICE_PATH_BASE directory: ${it.exitCode}")
+      try {
+        val adb = adbSession.deviceServices
+        // "chown shell:shell" ensures proper ownership of /data/local/tmp/.studio if adb is rooted.
+        val command = "mkdir -p $DEVICE_PATH_BASE; chmod 755 $DEVICE_PATH_BASE; chown shell:shell $DEVICE_PATH_BASE"
+        adb.shellAsLines(deviceSelector, command).collect {
+          if (it is ShellCommandOutputElement.ExitCode && it.exitCode != 0) {
+            logger.warn("Unable to create $DEVICE_PATH_BASE directory: ${it.exitCode}")
+          }
         }
+        val permissions = RemoteFileMode.fromPosixPermissions(PosixFilePermission.OWNER_READ)
+        val nativeLibraryPushed = async {
+          logger.info("Copying $SCREEN_SHARING_AGENT_SO_NAME to $deviceName")
+          adbSession.pushFile(deviceSelector, soFile, "$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_SO_NAME", permissions)
+          logger.info("Finished copying $SCREEN_SHARING_AGENT_SO_NAME to $deviceName")
+        }
+        logger.info("Copying $SCREEN_SHARING_AGENT_JAR_NAME to $deviceName")
+        adbSession.pushFile(deviceSelector, jarFile, "$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME", permissions)
+        logger.info("Finished copying $SCREEN_SHARING_AGENT_JAR_NAME to $deviceName")
+        nativeLibraryPushed.await()
       }
-      val permissions = RemoteFileMode.fromPosixPermissions(PosixFilePermission.OWNER_READ)
-      val nativeLibraryPushed = async {
-        adbSession.pushFile(deviceSelector, soFile, "$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_SO_NAME", permissions)
+      catch (e: Throwable) {
+        if (adbSession.isDeviceConnected() == false) {
+          throw RuntimeException("$deviceName disconnected while copying the screen sharing agent")
+        }
+        throw RuntimeException("Unable to copy the screen sharing agent to $deviceName", e)
       }
-      adbSession.pushFile(deviceSelector, jarFile, "$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME", permissions)
-      nativeLibraryPushed.await()
     }
     streamingSessionTracker.agentPushEnded()
   }
