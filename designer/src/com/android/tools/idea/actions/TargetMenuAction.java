@@ -33,6 +33,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Toggleable;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
 import java.util.ArrayList;
@@ -75,8 +76,18 @@ public class TargetMenuAction extends DropDownAction {
     Configuration configuration = Iterables.getFirst(configurations, null);
     boolean visible = configuration != null;
     if (visible) {
-      IAndroidTarget target = configuration.getTarget();
-      String brief = getRenderingTargetLabel(target, true);
+      int minSdk = getMinSdkVersion(configuration);
+      IAndroidTarget compatibleTarget = ConfigurationManager.getFromConfiguration(configuration).getTarget(minSdk);
+      IAndroidTarget currentTarget = configuration.getTarget();
+
+      if (compatibleTarget != null) {
+        if (currentTarget == null || compatibleTarget.getVersion().compareTo(currentTarget.getVersion()) > 0) {
+          configuration.setTarget(compatibleTarget);
+          currentTarget = compatibleTarget;
+        }
+      }
+
+      String brief = getRenderingTargetLabel(currentTarget, true);
       if (!brief.equals(presentation.getText())) {
         presentation.setText(brief, false);
       }
