@@ -37,6 +37,7 @@ import com.intellij.openapi.util.Pair;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -100,6 +101,7 @@ public final class RuntimeArtifactCacheImpl implements RuntimeArtifactCache {
 
   private static ImmutableMap<Path, ProjectArtifact> buildArtifactLayout(
       Label target, List<? extends OutputArtifact> artifacts) {
+    final var buildTimestamp = Instant.now();
     final var resultBuilder = ImmutableMap.<Path, ProjectProto.ProjectArtifact>builder();
     for (OutputArtifact artifact : artifacts) {
       resultBuilder.put(
@@ -107,6 +109,7 @@ public final class RuntimeArtifactCacheImpl implements RuntimeArtifactCache {
           new ProjectProto.ProjectArtifact(
             target,
             new ProjectProto.BuildArtifact(artifact.getDigest()),
+            buildTimestamp,
             ProjectProto.ProjectArtifact.ArtifactTransform.COPY
           ));
     }

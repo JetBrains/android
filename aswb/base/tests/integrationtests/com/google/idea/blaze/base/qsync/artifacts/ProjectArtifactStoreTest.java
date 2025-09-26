@@ -8,6 +8,7 @@ import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.NoopContext;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.artifacts.MockArtifactCache;
+import com.google.idea.blaze.qsync.project.ProjectPath;
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectories;
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectoryContents;
 import com.google.idea.blaze.qsync.project.ProjectProto.BuildArtifact;
@@ -16,6 +17,7 @@ import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact.Artifact
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,6 +30,7 @@ import org.mockito.junit.MockitoRule;
 
 @RunWith(JUnit4.class)
 public class ProjectArtifactStoreTest {
+  private final Instant buildTimestamp = Instant.now();
 
   @Rule public TemporaryFolder tmpDir = new TemporaryFolder();
   @Rule public MockitoRule rule = MockitoJUnit.rule();
@@ -59,13 +62,14 @@ public class ProjectArtifactStoreTest {
   public void new_dirs_created() throws BuildException {
     ArtifactDirectories artifactDirectories = new ArtifactDirectories(
       ImmutableMap.of(
-        "artifactdir",
+        ProjectPath.projectRelative(Path.of("artifactdir")),
         new ArtifactDirectoryContents(
           ImmutableMap.of(
             "file1.txt",
             new ProjectArtifact(
               Label.of("//label"),
               new BuildArtifact("abcd"),
+              buildTimestamp,
               ArtifactTransform.COPY
             )
           )
