@@ -15,6 +15,8 @@
  */
 package com.android.tools.adtui.compose
 
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
@@ -25,7 +27,6 @@ import org.jetbrains.jewel.intui.markdown.standalone.styling.dark
 import org.jetbrains.jewel.intui.markdown.standalone.styling.light
 import org.jetbrains.jewel.intui.standalone.theme.createEditorTextStyle
 import org.jetbrains.jewel.markdown.extensions.MarkdownRendererExtension
-import org.jetbrains.jewel.markdown.rendering.DefaultInlineMarkdownRenderer
 import org.jetbrains.jewel.markdown.rendering.InlineMarkdownRenderer
 import org.jetbrains.jewel.markdown.rendering.InlinesStyling
 import org.jetbrains.jewel.markdown.rendering.MarkdownBlockRenderer
@@ -117,6 +118,53 @@ class TestMarkdownFactory(private val isDark: Boolean) : MarkdownFactory {
       MarkdownStyling.dark(baseTextStyle = defaultTextStyle, editorTextStyle = editorTextStyle)
     } else {
       MarkdownStyling.light(baseTextStyle = defaultTextStyle, editorTextStyle = editorTextStyle)
+    }
+
+  override fun createUndecoratedCodeStyling(
+    editorTextStyle: TextStyle,
+    padding: PaddingValues,
+    background: Color,
+  ): MarkdownStyling.Code =
+    if (isDark) {
+      MarkdownStyling.Code.dark(
+        editorTextStyle,
+        indented =
+          MarkdownStyling.Code.Indented.dark(
+            editorTextStyle,
+            padding = padding,
+            background = background,
+            scrollsHorizontally = false,
+            fillWidth = false,
+          ),
+        fenced =
+          MarkdownStyling.Code.Fenced.dark(
+            editorTextStyle,
+            padding = padding,
+            background = background,
+            scrollsHorizontally = false,
+            fillWidth = false,
+          ),
+      )
+    } else {
+      MarkdownStyling.Code.light(
+        editorTextStyle,
+        indented =
+          MarkdownStyling.Code.Indented.light(
+            editorTextStyle,
+            padding = padding,
+            background = background,
+            scrollsHorizontally = false,
+            fillWidth = false,
+          ),
+        fenced =
+          MarkdownStyling.Code.Fenced.light(
+            editorTextStyle,
+            padding = padding,
+            background = background,
+            scrollsHorizontally = false,
+            fillWidth = false,
+          ),
+      )
     }
 
   override fun createBlockRenderer(
