@@ -16,8 +16,9 @@
 package com.android.tools.idea.gservices
 
 import com.intellij.ide.BrowserUtil
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.updateSettings.impl.UpdateChecker
+import com.intellij.openapi.updateSettings.impl.UpdateCheckerFacade
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
@@ -53,7 +54,7 @@ abstract class DeprecationBanner(
     if (deprecationData.showUpdateAction) {
       hasAction = true
       createActionLabel("Update Android Studio") {
-        UpdateChecker.updateAndShowResult(project)
+        service<UpdateCheckerFacade>().updateAndShowResult(project)
         trackUpdateClicked()
       }
     }

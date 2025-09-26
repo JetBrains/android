@@ -18,8 +18,9 @@ package com.android.tools.idea.whatsnew.assistant.actions;
 import com.android.tools.idea.assistant.AssistActionHandler;
 import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.android.tools.idea.whatsnew.assistant.WhatsNewMetricsTracker;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.updateSettings.impl.UpdateChecker;
+import com.intellij.openapi.updateSettings.impl.UpdateCheckerFacade;
 import org.jetbrains.annotations.NotNull;
 
 final class WhatsNewUpdateStableAction implements AssistActionHandler {
@@ -34,7 +35,7 @@ final class WhatsNewUpdateStableAction implements AssistActionHandler {
   @Override
   public void handleAction(@NotNull ActionData actionData, @NotNull Project project) {
     // TODO: b/126602033 Use methods from UpdateChecker after it's refactored, to avoid showing the extra update info dialog
-    UpdateChecker.updateAndShowResult(project);
+    ApplicationManager.getApplication().getService(UpdateCheckerFacade.class).updateAndShowResult(project);
     WhatsNewMetricsTracker.getInstance().setUpdateTime(project);
   }
 }

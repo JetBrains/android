@@ -37,7 +37,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.ui.popup.JBPopupListener
 import com.intellij.openapi.ui.popup.LightweightWindowEvent
-import com.intellij.openapi.updateSettings.impl.UpdateChecker
+import com.intellij.openapi.updateSettings.impl.UpdateCheckerFacade
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -108,7 +108,7 @@ class StudioDeprecationChecker : ProjectActivity {
 
       notification.addAction(
         NotificationAction.createSimpleExpiring("Update Android Studio") {
-          UpdateChecker.updateAndShowResult(project)
+          service<UpdateCheckerFacade>().updateAndShowResult(project)
           trackEvent(deprecationData.status, updateClicked = true)
         }
       )
