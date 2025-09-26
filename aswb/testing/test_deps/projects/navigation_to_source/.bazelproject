@@ -1,6 +1,6 @@
 
 directories:
-  navigation_to_source_java/project
+  navigation_to_source/project
 
 android_sdk_platform: android-34
 
