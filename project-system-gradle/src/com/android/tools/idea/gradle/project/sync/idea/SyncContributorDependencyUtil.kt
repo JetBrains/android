@@ -54,6 +54,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.roots.AnnotationOrderRootType
 import com.intellij.openapi.roots.JavadocOrderRootType
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.platform.workspace.jps.entities.DependencyScope
 import com.intellij.platform.workspace.jps.entities.LibraryDependency
 import com.intellij.platform.workspace.jps.entities.LibraryEntity
@@ -71,6 +72,7 @@ import com.intellij.platform.workspace.jps.entities.modifyModuleEntity
 import com.intellij.platform.workspace.storage.EntitySource
 import com.intellij.platform.workspace.storage.ImmutableEntityStorage
 import com.intellij.platform.workspace.storage.MutableEntityStorage
+import com.intellij.platform.workspace.storage.url.VirtualFileUrl
 import com.intellij.util.PathUtil
 import java.io.File
 import org.jetbrains.plugins.gradle.model.GradleSourceSetModel
@@ -103,6 +105,7 @@ private class SyncContributorAndroidProjectDependenciesContext(
   val moduleNameToInstanceMap: Map<String, Module>,
   // Library id map is mutable to track newly created entities
   val libraryIdToEntityMap: MutableMap<LibraryId, LibraryEntity>,
+  val libraryRootPathCache: MutableMap<File, VirtualFileUrl>,
 ) {
   val knownEntitySources = mutableSetOf<EntitySource>(androidProjectContext.holderModuleEntity.entitySource)
   val knownModuleNames = mutableSetOf<String>()
@@ -116,6 +119,13 @@ private class SyncContributorAndroidProjectDependenciesContext(
   fun IdeDependenciesCore.populateDependenciesForModule(scope: DependencyScope, sourceSetName: String) {
     val moduleName = "${androidProjectContext.resolveHolderModuleName()}.$sourceSetName"
     val entitySource = AndroidGradleSourceSetEntitySource(androidProjectContext.projectEntitySource, sourceSetName)
+    val moduleEntity = moduleNameToEntityMap[moduleName]
+    if (moduleEntity == null) {
+      LOG.error("Expected module not found: $moduleName")
+      return
+    }
+
+    val existingDependencies = moduleEntity.dependencies.toSet()
 
     knownEntitySources += entitySource
     knownModuleNames += moduleName
@@ -139,14 +149,15 @@ private class SyncContributorAndroidProjectDependenciesContext(
             )
           }
         else -> null
+      }.takeIf { it !in existingDependencies }
+    }.distinct().let { dependenciesToAdd: List<ModuleDependencyItem> ->
+      if(LOG.isTraceEnabled) {
+        LOG.trace("Adding dependencies for $moduleName: $dependenciesToAdd")
       }
-    }.distinct().let { newDependencies: List<ModuleDependencyItem> ->
-      val moduleEntity = moduleNameToEntityMap[moduleName]!!
-      val existingDependencies = moduleEntity.dependencies
-      val dependenciesToAdd = newDependencies.filter { it !in existingDependencies }
-      LOG.trace("Adding dependencies for $moduleName: $dependenciesToAdd")
-      updatedEntities.modifyModuleEntity(moduleEntity) {
-        dependencies.addAll(dependenciesToAdd)
+      if (dependenciesToAdd.isNotEmpty()) {
+        updatedEntities.modifyModuleEntity(moduleEntity) {
+          dependencies.addAll(dependenciesToAdd)
+        }
       }
     }
   }
@@ -161,12 +172,13 @@ private class SyncContributorAndroidProjectDependenciesContext(
   fun IdeArtifactLibrary.processName() = "Gradle: $name"
 
   /** Converts a file to the exact format required by the platform .*/
-  fun File.toLibraryRootPath() = androidProjectContext.context.virtualFileUrl(this)
+  fun File.toLibraryRootPath() = libraryRootPathCache.computeIfAbsent(this) {
+    androidProjectContext.context.virtualFileUrl(this)
+  }
 
   /* Creates a library entity or find an existing one from storage, also counting any newly created ones. */
-  fun getOrCreateLibraryEntity(moduleName: String, libraryEntityProvider: () -> LibraryEntityBuilder): LibraryEntity {
-    val libraryEntityToBeAdded = libraryEntityProvider()
-    fun lookup(tableId: LibraryTableId) = libraryIdToEntityMap[LibraryId(libraryEntityToBeAdded.name, tableId)]
+  fun getOrCreateLibraryEntity(moduleName: String, name: String, libraryEntityProvider: () -> LibraryEntityBuilder): LibraryEntity {
+    fun lookup(tableId: LibraryTableId) = libraryIdToEntityMap[LibraryId(name, tableId)]
     // Look up existing modules, reducing specificity of the table each time
     val existingProjectLibrary = lookup(LibraryTableId.ModuleLibraryTableId(ModuleId(moduleName)))
                                  ?: lookup(LibraryTableId.ProjectLibraryTableId)
@@ -175,9 +187,9 @@ private class SyncContributorAndroidProjectDependenciesContext(
       return existingProjectLibrary
     }
 
-    return libraryIdToEntityMap.computeIfAbsent(LibraryId(libraryEntityToBeAdded.name, LibraryTableId.ProjectLibraryTableId)) {
-      LOG.trace("Creating new library entity in project table: ${libraryEntityToBeAdded.name}")
-      updatedEntities addEntity libraryEntityToBeAdded
+    return libraryIdToEntityMap.computeIfAbsent(LibraryId(name, LibraryTableId.ProjectLibraryTableId)) {
+      LOG.trace("Creating new library entity in project table: $name")
+      updatedEntities addEntity libraryEntityProvider()
     }
   }
 
@@ -195,7 +207,7 @@ private class SyncContributorAndroidProjectDependenciesContext(
 
 
   fun IdeJavaLibrary.getOrCreateLibraryEntity(entitySource: AndroidGradleSourceSetEntitySource, moduleName: String) =
-    getOrCreateLibraryEntity(moduleName) {
+    getOrCreateLibraryEntity(moduleName, processName()) {
       LibraryEntity(
         processName(),
         LibraryTableId.ProjectLibraryTableId,
@@ -210,7 +222,7 @@ private class SyncContributorAndroidProjectDependenciesContext(
 
 
   fun IdeAndroidLibrary.getOrCreateLibraryEntity(entitySource: AndroidGradleSourceSetEntitySource, moduleName: String) =
-    getOrCreateLibraryEntity(moduleName) {
+    getOrCreateLibraryEntity(moduleName, processName()) {
       LibraryEntity(
         processName(),
         LibraryTableId.ProjectLibraryTableId,
@@ -244,9 +256,10 @@ internal fun setupAndroidDependenciesForAllProjects(
   val libraryIdToEntityMap: MutableMap<LibraryId, LibraryEntity> =
     updatedEntities.entities(LibraryEntity::class.java).associateBy { it.symbolicId }.toMutableMap()
   val moduleNameToEntityMap: Map<String, ModuleEntity> =
-    updatedEntities.entities(ModuleEntity::class.java).associateBy { it.name }
+    storage.entities(ModuleEntity::class.java).associateBy { it.name }
   val moduleNameToInstanceMap: Map<String, Module> =
     project.modules.associateBy { it.name }
+  val libraryRootPathCache = mutableMapOf<File, VirtualFileUrl>()
 
   val allKnownEntitySources = allAndroidContexts.flatMap {
     SyncContributorAndroidProjectDependenciesContext(
@@ -257,6 +270,7 @@ internal fun setupAndroidDependenciesForAllProjects(
       moduleNameToEntityMap,
       moduleNameToInstanceMap,
       libraryIdToEntityMap,
+      libraryRootPathCache
     ).populateDependenciesForAndroidProject()
   }
 
