@@ -539,7 +539,7 @@ class EmulatorView(
   }
 
   internal fun getSkin(): SkinDefinition? =
-      emulator.getSkin(currentPosture?.posture)
+      if (displayId == PRIMARY_DISPLAY_ID) emulator.getSkin(currentPosture?.posture) else null
 
   override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
     EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
