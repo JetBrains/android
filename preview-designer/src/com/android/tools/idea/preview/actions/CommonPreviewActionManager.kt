@@ -63,8 +63,7 @@ open class CommonPreviewActionManager(
 
   override fun getToolbarActions(selection: MutableList<NlComponent>) = DefaultActionGroup()
 
-  override fun getSceneViewStatusIconAction(): AnAction =
-    PreviewStatusIcon().visibleOnlyInStaticPreview()
+  override fun getSceneViewStatusIconAction(): AnAction = PreviewStatusIcon()
 
   override fun createSceneViewLabel(
     sceneView: SceneView,

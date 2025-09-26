@@ -1153,10 +1153,10 @@ public class RenderTask {
           .whenComplete((result, ex) -> myTestEventListener.onAfterRender())
           .whenComplete((result, ex) -> {
             ModuleClassLoader moduleClassLoader = myModuleClassLoaderReference.getClassLoader();
-            // After render clean-up. Dispose the GapWorker cache.
-            RenderSessionCleaner.clearGapWorkerCache(moduleClassLoader);
-            RenderSessionCleaner.clearFontRequestWorker(moduleClassLoader);
-            RenderSessionCleaner.clearCompositions(moduleClassLoader);
+            // This step only applies to Compose and it's used to report composition errors
+            RenderTaskPatcher.collectHotReloadErrors(moduleClassLoader).forEach((compositionError) -> {
+              myLogger.error("CompositionError", compositionError.getMessage(), compositionError, null, null);
+            });
           })
           .handle((result, ex) -> {
             if (ex != null) {
