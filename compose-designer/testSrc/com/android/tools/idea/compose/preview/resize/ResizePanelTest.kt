@@ -528,4 +528,37 @@ class ResizePanelTest {
     fakeUi.layoutAndDispatchEvents()
     return initialDevice
   }
+
+  @Test
+  fun `setVisible updates text fields`() = runInEdtAndGet {
+    resizePanel.setSceneManager(sceneManager)
+    resizePanel.isVisible = true
+    fakeUi.layoutAndDispatchEvents()
+
+    val (widthTextField, heightTextField) =
+      fakeUi.findAllComponents<IntegerField>().let { it.first() to it.last() }
+
+    val initialWidth = widthTextField.value
+    val initialHeight = heightTextField.value
+    assertTrue(initialWidth > 0)
+    assertTrue(initialHeight > 0)
+
+    // Simulate user clearing the fields
+    widthTextField.text = ""
+    heightTextField.text = ""
+    assertEquals("", widthTextField.text)
+    assertEquals("", heightTextField.text)
+
+    // Hide the panel without reverting
+    resizePanel.isVisible = false
+    fakeUi.layoutAndDispatchEvents()
+
+    // Show the panel again
+    resizePanel.isVisible = true
+    fakeUi.layoutAndDispatchEvents()
+
+    // Verify the values have been restored from the configuration
+    assertEquals(initialWidth, widthTextField.value)
+    assertEquals(initialHeight, heightTextField.value)
+  }
 }
