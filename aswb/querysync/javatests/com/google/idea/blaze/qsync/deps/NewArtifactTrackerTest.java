@@ -89,7 +89,7 @@ public class NewArtifactTrackerTest extends BlazeTestCase {
       new NewArtifactTracker<>(
         cacheDir.getRoot().toPath(),
         cache,
-        t -> artifactMetadataMap.getOrDefault(t.label(), ImmutableSetMultimap.of()),
+        t -> artifactMetadataMap.getOrDefault(t.label(), ImmutableSetMultimap.of()).asMap(),
         new JavaArtifactMetadata.Factory(),
         MoreExecutors.directExecutor());
   }
