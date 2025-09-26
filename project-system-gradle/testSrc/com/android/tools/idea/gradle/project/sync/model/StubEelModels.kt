@@ -18,18 +18,16 @@ package com.android.tools.idea.gradle.project.sync.model
 import com.intellij.platform.eel.EelApi
 import com.intellij.platform.eel.EelDescriptor
 import com.intellij.platform.eel.EelExecApi
-import com.intellij.platform.eel.path.EelPath
-//import com.intellij.platform.eel.provider.EelNioBridgeService
-import com.intellij.platform.eel.provider.LocalPosixEelApi
 import com.intellij.platform.eel.EelExecPosixApi
 import com.intellij.platform.eel.EelMachine
 import com.intellij.platform.eel.EelOsFamily
 import com.intellij.platform.eel.EelPosixProcess
 import com.intellij.platform.eel.ExecuteProcessException
+import com.intellij.platform.eel.path.EelPath
+import com.intellij.platform.eel.provider.LocalPosixEelApi
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
 import org.jetbrains.annotations.NonNls
-import java.nio.file.FileSystem
-import java.nio.file.Path
-import java.nio.file.spi.FileSystemProvider
 
 // TODO KMT-1388
 class StubLocalPosixEelApi(private val envVariables: Map<String, String>) : EelExecPosixApi {
@@ -37,7 +35,8 @@ class StubLocalPosixEelApi(private val envVariables: Map<String, String>) : EelE
     ExecuteProcessException(errno = 12345, message = "mock result")
   }
   override val descriptor: EelDescriptor get() = throw UnsupportedOperationException()
-  override suspend fun fetchLoginShellEnvVariables(): Map<String, String> = envVariables
+  override fun environmentVariables(opts: EelExecApi.EnvironmentVariablesOptions): Deferred<Map<String, String>> =
+    CompletableDeferred(envVariables)
   override suspend fun findExeFilesInPath(binaryName: String): List<EelPath> {
     return emptyList()
   }
