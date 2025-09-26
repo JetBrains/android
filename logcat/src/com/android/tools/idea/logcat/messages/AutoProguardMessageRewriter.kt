@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat.messages
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.logcat.LogcatR8MappingsToken
 import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.Error
 import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.Reason.BUILD_DIR_NOT_FOUND
 import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.Reason.MAPPINGS_DIR_NOT_FOUND
@@ -43,6 +44,7 @@ import com.intellij.openapi.project.modules
 import com.intellij.util.Alarm
 import com.intellij.util.io.directoryStreamIfExists
 import java.nio.file.Path
+import kotlin.io.path.exists
 import kotlin.io.path.fileSize
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
@@ -84,12 +86,8 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
       try {
         val match = exceptionLinePattern.find(message) ?: return message
         val id = match.groups["mapId"]?.value ?: return message
-        val modules = getModuleCandidates(applicationId)
-        if (modules.isEmpty()) {
-          LogcatUsageTracker.logRetrace(MODULES_NOT_FOUND.toString())
-          return message
-        }
-        val retracer = getAutoRetracer(id, modules) ?: return message // tracked by getAutoRetracer
+        val retracer =
+          getAutoRetracer(id, applicationId) ?: return message // tracked by getAutoRetracer
 
         val (retraced, duration) = measureTimedValue { retracer.builder.rewrite(message) }
         val result = if (retraced != message) "SUCCESS" else "NOOP"
@@ -121,14 +119,14 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
    *    <module-dir>/build/outputs/mapping/<variant>/mapping.txt
    * ```
    */
-  private fun getAutoRetracer(id: String, modules: Collection<Module>): AutoRetracer? {
+  private fun getAutoRetracer(id: String, applicationId: String): AutoRetracer? {
     synchronized(lock) {
       val retracer = autoRetracer
       if (retracer?.id == id) {
         rescheduleCachePurge()
         return retracer.copy(isCached = true)
       }
-      val result = findMapping(modules, id)
+      val result = findMapping(applicationId, id)
       if (result is Error) {
         LogcatUsageTracker.logRetrace(result.reason.toString())
         return null
@@ -149,28 +147,39 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
     )
   }
 
-  private fun findMapping(modules: Collection<Module>, mapId: String): Result {
-    val moduleDirs =
-      modules.mapNotNull { it.getModuleSystem().getHolderModule().guessModuleDir()?.toNioPath() }
-    if (moduleDirs.isEmpty()) {
-      return Error(MODULE_DIR_NOT_FOUND)
-    }
-    val buildDirs =
-      moduleDirs.mapNotNull { it.resolve(BUILD_DIR).takeIf { path -> path.isDirectory() } }
-    if (buildDirs.isEmpty()) {
-      return Error(BUILD_DIR_NOT_FOUND)
-    }
-    val mappingsDirs =
-      buildDirs.mapNotNull { it.resolve(MAPPINGS_DIR).takeIf { path -> path.isDirectory() } }
-    if (mappingsDirs.isEmpty()) {
-      return Error(MAPPINGS_DIR_NOT_FOUND)
-    }
-    val mappingsFiles = mappingsDirs.flatMap { it.findMappingFiles() }
-    if (mappingsFiles.isEmpty()) {
-      return Error(MAPPINGS_FILE_NOT_FOUND)
-    }
+  private fun findMapping(applicationId: String, mapId: String): Result {
+    val mappingsFiles =
+      LogcatR8MappingsToken.getR8TextMappings(project).ifEmpty {
+        val modules = getModuleCandidates(applicationId)
+        if (modules.isEmpty()) {
+          return Error(MODULES_NOT_FOUND)
+        }
 
-    val mappingsById = mappingsFiles.associateByNotNull { it.getMapId() }
+        val moduleDirs =
+          modules.mapNotNull {
+            it.getModuleSystem().getHolderModule().guessModuleDir()?.toNioPath()
+          }
+        if (moduleDirs.isEmpty()) {
+          return Error(MODULE_DIR_NOT_FOUND)
+        }
+        val buildDirs =
+          moduleDirs.mapNotNull { it.resolve(BUILD_DIR).takeIf { path -> path.isDirectory() } }
+        if (buildDirs.isEmpty()) {
+          return Error(BUILD_DIR_NOT_FOUND)
+        }
+        val mappingsDirs =
+          buildDirs.mapNotNull { it.resolve(MAPPINGS_DIR).takeIf { path -> path.isDirectory() } }
+        if (mappingsDirs.isEmpty()) {
+          return Error(MAPPINGS_DIR_NOT_FOUND)
+        }
+        val mappingsFiles = mappingsDirs.flatMap { it.findMappingFiles() }
+        if (mappingsFiles.isEmpty()) {
+          return Error(MAPPINGS_FILE_NOT_FOUND)
+        }
+        mappingsFiles
+      }
+
+    val mappingsById = mappingsFiles.filter { it.exists() }.associateByNotNull { it.getMapId() }
     if (mappingsById.isEmpty()) {
       return Error(MAPPINGS_HAVE_NO_MAP_ID)
     }

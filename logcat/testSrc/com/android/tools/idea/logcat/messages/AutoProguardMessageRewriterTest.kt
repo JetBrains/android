@@ -18,8 +18,10 @@ package com.android.tools.idea.logcat.messages
 import com.android.testutils.TestResources
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.logcat.LogcatR8MappingsToken
 import com.android.tools.idea.logcat.util.logcatEvents
 import com.android.tools.idea.logcat.util.waitForCondition
+import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
@@ -31,6 +33,7 @@ import com.google.wireless.android.sdk.stats.LogcatUsageEvent.StackRetraceEvent
 import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.guessModuleDir
+import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.RuleChain
 import com.intellij.util.io.createDirectories
 import com.intellij.util.io.createParentDirectories
@@ -284,10 +287,45 @@ class AutoProguardMessageRewriterTest {
     waitForCondition { rewriter.autoRetracer == null }
   }
 
+  @Test
+  fun rewrite_usingLogcatR8MappingsToken() {
+    val rewriter = projectRule.project.service<AutoProguardMessageRewriter>()
+    val mapId = "map-id-12345"
+    val path = copyMapToModule(findModules("app1").first(), "release", mapId)
+    registerLogcatR8MappingsTokenExtension(path)
+
+    // This would fail if we didn't register the LogcatR8MappingsTokenExtension
+    val text = rewriter.rewrite(MESSAGE.withMapId(mapId), "random-app")
+
+    assertThat(text).isEqualTo(CLEAR_MESSAGE)
+  }
+
   private fun findModules(applicationId: String): List<Module> {
     return projectRule.project.getProjectSystem().findModulesWithApplicationId(applicationId).map {
       it.getModuleSystem().getHolderModule()
     }
+  }
+
+  private fun registerLogcatR8MappingsTokenExtension(path: Path) {
+    val element: LogcatR8MappingsToken<AndroidProjectSystem> =
+      FakeLogcatR8MappingsToken(listOf(path))
+    val extensionsToAdd: List<LogcatR8MappingsToken<AndroidProjectSystem>> = listOf(element)
+    ExtensionTestUtil.addExtensions(
+      LogcatR8MappingsToken.EP_NAME,
+      extensionsToAdd,
+      projectRule.testRootDisposable,
+    )
+  }
+
+  private class FakeLogcatR8MappingsToken(private val mappings: List<Path>) :
+    LogcatR8MappingsToken<AndroidProjectSystem> {
+    override fun getR8TextMappings(projectSystem: AndroidProjectSystem): List<Path> = mappings
+
+    override fun getR8PartitionMappings(projectSystem: AndroidProjectSystem): List<Path> {
+      TODO("Not yet implemented")
+    }
+
+    override fun isApplicable(projectSystem: AndroidProjectSystem) = true
   }
 }
 
