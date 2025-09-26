@@ -69,6 +69,10 @@ fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Voi
   var globalWriteObserversRef: WeakReference<MutableCollection<*>?>? = null
   var toRunTrampolinedRef: WeakReference<MutableCollection<*>?>? = null
   if (classLoader.hasLoadedClass(CLASS_COMPOSE_VIEW_ADAPTER)) {
+    // After render clean-up. Dispose the GapWorker cache.
+    clearGapWorkerCache(classLoader)
+    clearFontRequestWorker(classLoader)
+    clearCompositions(classLoader)
     try {
       val composeViewAdapter: Class<*> = classLoader.loadClass(CLASS_COMPOSE_VIEW_ADAPTER)
       // Kotlin bytecode generation converts dispose() method into dispose$ui_tooling() therefore we
@@ -240,7 +244,7 @@ private fun findLocalBroadcastManagerInstance(classLoader: ModuleClassLoader): F
   }
 }
 
-fun clearFontRequestWorker(classLoader: ModuleClassLoader) {
+private fun clearFontRequestWorker(classLoader: ModuleClassLoader) {
   if (!classLoader.hasLoadedClass(FONT_REQUEST_WORKER_FQN)) return
 
   try {
@@ -258,7 +262,7 @@ fun clearFontRequestWorker(classLoader: ModuleClassLoader) {
 }
 
 /** Clear static gap worker variable used by Recycler View. */
-fun clearGapWorkerCache(classLoader: ModuleClassLoader) {
+private fun clearGapWorkerCache(classLoader: ModuleClassLoader) {
   if (
     !classLoader.hasLoadedClass(AndroidXConstants.RECYCLER_VIEW.newName()) &&
       !classLoader.hasLoadedClass(AndroidXConstants.RECYCLER_VIEW.oldName())
@@ -290,7 +294,7 @@ fun clearGapWorkerCache(classLoader: ModuleClassLoader) {
 }
 
 /** Clear any pending re-compositions */
-fun clearCompositions(classLoader: ModuleClassLoader) {
+private fun clearCompositions(classLoader: ModuleClassLoader) {
   if (!classLoader.hasLoadedClass(RECOMPOSER_CLASS)) return
 
   try {
