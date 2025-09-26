@@ -273,6 +273,37 @@ class StudioRendererPanelTest {
   }
 
   @Test
+  fun testHoveredNodeIsClearedWhenMouseExitPanel() {
+    val parent = BorderLayoutPanel()
+    val (model, renderer) = createRenderer()
+    parent.add(renderer)
+    parent.size = screenDimension
+    renderer.size = screenDimension
+    val fakeUi = FakeUi(renderer)
+
+    model.setInterceptClicks(true)
+
+    assertThat(model.hoveredNode.value).isNull()
+
+    // move mouse above VIEW1.
+    fakeUi.mouse.moveTo(deviceDisplayRectangle.x + 10, deviceDisplayRectangle.y + 15)
+
+    fakeUi.render()
+
+    assertThat(model.hoveredNode.value!!.bounds)
+      .isEqualTo(model.inspectorModel[VIEW1]!!.layoutBounds)
+
+    // move mouse out of screen.
+    fakeUi.mouse.moveTo(screenDimension.width + 10, screenDimension.height + 10)
+
+    assertThat(model.hoveredNode.value).isNull()
+
+    val renderImage = createRenderImage()
+    paint(renderImage, renderer)
+    assertSimilar(renderImage, testName.methodName)
+  }
+
+  @Test
   @RunsInEdt
   fun testSelectedNode() {
     renderSettings.drawLabel = false
