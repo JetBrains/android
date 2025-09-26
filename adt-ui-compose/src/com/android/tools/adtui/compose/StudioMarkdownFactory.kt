@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.compose
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
@@ -51,9 +52,10 @@ internal object StudioMarkdownFactory : MarkdownFactory {
       inlinesStyling
         ?: InlinesStyling.create(
           baseTextStyle,
-          inlineCode = editorTextStyle
-            .copy(fontSize = baseTextStyle.fontSize * .85, background = inlineCodeBackgroundColor)
-            .toSpanStyle()
+          editorTextStyle.copy(
+            fontSize = baseTextStyle.fontSize * .85,
+            background = inlineCodeBackgroundColor,
+          )
         )
 
     return MarkdownStyling.create(
@@ -76,6 +78,31 @@ internal object StudioMarkdownFactory : MarkdownFactory {
     defaultTextStyle: TextStyle,
     editorTextStyle: TextStyle,
   ): MarkdownStyling = MarkdownStyling.create(defaultTextStyle, editorTextStyle)
+
+  override fun createUndecoratedCodeStyling(
+    editorTextStyle: TextStyle,
+    padding: PaddingValues,
+    background: Color,
+  ): MarkdownStyling.Code =
+    MarkdownStyling.Code.create(
+      editorTextStyle,
+      indented =
+        MarkdownStyling.Code.Indented.create(
+          editorTextStyle,
+          padding = padding,
+          background = background,
+          scrollsHorizontally = false,
+          fillWidth = false,
+        ),
+      fenced =
+        MarkdownStyling.Code.Fenced.create(
+          editorTextStyle,
+          padding = padding,
+          background = background,
+          scrollsHorizontally = false,
+          fillWidth = false,
+        ),
+    )
 
   override fun createBlockRenderer(
     styling: MarkdownStyling,
