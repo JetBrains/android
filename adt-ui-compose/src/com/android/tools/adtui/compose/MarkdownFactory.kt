@@ -15,8 +15,10 @@
  */
 package com.android.tools.adtui.compose
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
@@ -44,7 +46,7 @@ import org.jetbrains.jewel.markdown.rendering.MarkdownStyling.ThematicBreak
  * example, in production, it might delegate to `StudioMarkdownFactory`, while in tests, it could
  * use a test-specific implementation based on Standalone themes.
  *
- * To access the factory, use [JewelTheme.markdownFactory].
+ * To access the factory, use [`JewelTheme.markdownFactory`][JewelTheme.Companion.markdownFactory].
  */
 @OptIn(ExperimentalJewelApi::class)
 interface MarkdownFactory {
@@ -91,6 +93,25 @@ interface MarkdownFactory {
    * @return A new [MarkdownStyling] instance with default styling.
    */
   fun createDefaultStyling(defaultTextStyle: TextStyle, editorTextStyle: TextStyle): MarkdownStyling
+
+  /**
+   * Creates a [MarkdownStyling.Code] for rendering code blocks that blend seamlessly with
+   * surrounding content.
+   *
+   * This style is ideal for embedded code snippets, as it removes all decorations—such as borders,
+   * backgrounds, and horizontal scrolling. The resulting code block will inherit the styling of its
+   * container, making it appear as a natural part of the text flow.
+   *
+   * @param editorTextStyle The text style for the code.
+   * @param padding The padding to apply around the code block. Defaults to none.
+   * @param background The background color for the code block. Defaults to transparent.
+   * @return A new, undecorated [MarkdownStyling.Code] instance.
+   */
+  fun createUndecoratedCodeStyling(
+    editorTextStyle: TextStyle,
+    padding: PaddingValues = PaddingValues(),
+    background: Color = Color.Unspecified,
+  ): Code
 
   /**
    * Creates a [MarkdownBlockRenderer] based on the provided styling, extensions, and inline
