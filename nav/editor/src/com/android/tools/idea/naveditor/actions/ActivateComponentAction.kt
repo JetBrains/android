@@ -38,6 +38,6 @@ class ActivateComponentAction(text: String?, private val component: NlComponent)
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    e.getRequiredData(DESIGN_SURFACE).notifyComponentActivate(component)
+    e.getData(DESIGN_SURFACE)?.notifyComponentActivate(component)
   }
 }
