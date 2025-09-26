@@ -224,6 +224,18 @@ class WifiAvailableDevicesDialogTest {
   }
 
   @Test
+  fun mdnsSupported_filtersOutEmulators() = runTest {
+    whenever(mockWiFiPairingService.isTrackMdnsServiceAvailable()).thenReturn(true)
+    whenever(mockWiFiPairingService.checkMdnsSupport()).thenReturn(MdnsSupportState.Supported)
+    val service =
+      createMdnsTlsService("adb-EMULATOR2342-ABCDEF", "192.168.1.101", 5555, "Device A", "30")
+    adblibMdnsServicesFlow.value = MdnsServices(emptyList(), listOf(service), emptyList())
+    composeTestRule.setContent { wifiAvailableDevicesDialog.WifiDialog() }
+
+    composeTestRule.onNodeWithText("No devices found.", substring = true).assertIsDisplayed()
+  }
+
+  @Test
   fun mdnsSupported_addDevice_updatesTable() = runTest {
     whenever(mockWiFiPairingService.isTrackMdnsServiceAvailable()).thenReturn(true)
     whenever(mockWiFiPairingService.checkMdnsSupport()).thenReturn(MdnsSupportState.Supported)

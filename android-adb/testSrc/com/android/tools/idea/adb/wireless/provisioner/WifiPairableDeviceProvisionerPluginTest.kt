@@ -134,6 +134,16 @@ class WifiPairableDeviceProvisionerPluginTest {
   }
 
   @Test
+  fun newMdnsService_emulatorService_filtersOut() = runTest {
+    mdnsFlow.value = createMdnsTlsService("adb-EMULATOR2342-ABCDE")
+    val plugin =
+      WifiPairableDeviceProvisionerPlugin(backgroundScope, adbService, project, notificationService)
+    advanceTimeBy(6000) // Past initial delay
+
+    assertThat(plugin.devices.value).isEmpty()
+  }
+
+  @Test
   fun newMdnsService_withNullModel_createsDeviceHandleWithFallbackName() = runTest {
     mdnsFlow.value = createMdnsTlsService("service1", model = null)
     val plugin =
