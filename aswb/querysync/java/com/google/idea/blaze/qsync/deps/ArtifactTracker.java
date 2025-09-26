@@ -70,24 +70,24 @@ public interface ArtifactTracker<ContextT extends Context<?>> {
     }
 
     @VisibleForTesting
-    public static State forJavaArtifacts(ImmutableCollection<JavaArtifactInfo> infos) {
+    public static State forJavaArtifacts(DependencyBuildContext buildContext, ImmutableCollection<JavaArtifactInfo> infos) {
       return create(
           infos.stream()
               .collect(
                   toImmutableMap(
                       JavaArtifactInfo::label,
-                      j -> TargetBuildInfo.forJavaTarget(j, DependencyBuildContext.NONE))),
+                      j -> TargetBuildInfo.forJavaTarget(j, buildContext))),
           ImmutableMap.of());
     }
 
     @VisibleForTesting
-    public static State forJavaArtifacts(JavaArtifactInfo... infos) {
+    public static State forJavaArtifacts(DependencyBuildContext buildContext, JavaArtifactInfo... infos) {
       return create(
           Stream.of(infos)
               .collect(
                   toImmutableMap(
                       JavaArtifactInfo::label,
-                      j -> TargetBuildInfo.forJavaTarget(j, DependencyBuildContext.NONE))),
+                      j -> TargetBuildInfo.forJavaTarget(j, buildContext))),
           ImmutableMap.of());
     }
 
@@ -101,13 +101,13 @@ public interface ArtifactTracker<ContextT extends Context<?>> {
     @VisibleForTesting
     public static State forJavaLabels(Label... labels) {
       return forJavaArtifacts(
-          Stream.of(labels).map(JavaArtifactInfo::empty).collect(ImmutableSet.toImmutableSet()));
+        DependencyBuildContext.NONE, Stream.of(labels).map(JavaArtifactInfo::empty).collect(ImmutableSet.toImmutableSet()));
     }
 
     @VisibleForTesting
     public static State forJavaLabels(Collection<Label> labels) {
       return forJavaArtifacts(
-          labels.stream().map(JavaArtifactInfo::empty).collect(ImmutableSet.toImmutableSet()));
+        DependencyBuildContext.NONE, labels.stream().map(JavaArtifactInfo::empty).collect(ImmutableSet.toImmutableSet()));
     }
   }
 

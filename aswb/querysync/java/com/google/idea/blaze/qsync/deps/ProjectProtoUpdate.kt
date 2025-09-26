@@ -17,11 +17,14 @@ package com.google.idea.blaze.qsync.deps
 
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.Label
+import com.google.idea.blaze.qsync.artifacts.BuildArtifact
 import com.google.idea.blaze.qsync.project.BlazeProjectDataStorage
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
+import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact.ArtifactTransform
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage
+import com.intellij.util.containers.with
 import java.nio.file.Path
 
 /**
@@ -70,9 +73,21 @@ class ProjectProtoUpdate(
     fun putFlagSets(flagSetId: String, build: ProjectProto.CcCompilerFlagSet)
   }
 
+  /**
+   * An artifact directory is a directory under the IDE project directory and is populated with copies of remote artifacts in a structure
+   * resembling the original artifact tree under bazel-out and in a way which is suitable for the IDE.
+   */
+  interface ArtifactDirectoryUpdater {
+    fun addIfNewer(
+      artifactPath: Path,
+      artifact: BuildArtifact,
+      buildContext: DependencyBuildContext,
+      transform: ArtifactTransform = ArtifactTransform.COPY,
+    ): ProjectPath.ProjectRelativeProjectPath?
+  }
+
   private val project: ProjectProto.Project.Builder = existingProject.toBuilder()
   private val workspaceModule: ProjectProto.Module.Builder = getWorkspaceModuleBuilder(project)
-  private val artifactDirs: MutableMap<Path, ArtifactDirectoryBuilder> = hashMapOf()
 
   fun context(): Context<*> = context
   fun buildGraph(): BuildGraphData = buildGraph
@@ -151,15 +166,44 @@ class ProjectProtoUpdate(
     project.ccWorkspace = ccWorkspaceBuilder.build()
   }
 
-  fun artifactDirectory(path: ProjectPath.ProjectRelativeProjectPath): ArtifactDirectoryBuilder {
-    return artifactDirs.computeIfAbsent(path.relativePath) { path -> ArtifactDirectoryBuilder(path) }
+  fun artifactDirectory(path: ProjectPath.ProjectRelativeProjectPath, updater: ArtifactDirectoryUpdater.() -> Unit) {
+    var updated = false
+    val contents = project.artifactDirectories.directoriesMap[path]?.contents?.toMutableMap() ?: mutableMapOf()
+    object: ArtifactDirectoryUpdater {
+      override fun addIfNewer(
+        artifactPath: Path,
+        artifact: BuildArtifact,
+        buildContext: DependencyBuildContext,
+        transform: ArtifactTransform,
+      ): ProjectPath.ProjectRelativeProjectPath? {
+        val relativePath = artifactPath.toString()
+        val existing = contents[relativePath]
+        if (existing != null && existing.fromBuild > buildContext.startTime()) {
+          // we already have the same artifact from a more recent build.
+          return null
+        }
+        contents[relativePath] =
+          ProjectProto.ProjectArtifact(
+            target = artifact.target(),
+            buildArtifact = ProjectProto.BuildArtifact(artifact.digest()),
+            fromBuild = buildContext.startTime(),
+            transform = transform
+          )
+        updated = true
+        return path.resolveChild(artifactPath)
+      }
+    }.updater()
+    if (updated) {
+      project.artifactDirectories =
+        project.artifactDirectories.copy(
+          directoriesMap = project.artifactDirectories.directoriesMap.with(path, ProjectProto.ArtifactDirectoryContents(contents)))
+    }
   }
 
   fun build(): ProjectProto.Project {
     if (project.ccWorkspace.contexts.isNotEmpty()) {
       project.activeLanguages += QuerySyncLanguage.CC
     }
-    artifactDirs.values.forEach { it.addToArtifactDirectories(project.artifactDirectories) }
     return project.build()
   }
 

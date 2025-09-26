@@ -60,42 +60,41 @@ class AddProjectGenSrcJars(
     artifactState: ArtifactTracker.State,
     context: Context<*>
   ) {
-    for (target in artifactState.targets()) {
-      val genSrcJars = getProjectGenSrcJars(target)
-      if (genSrcJars.isEmpty()) continue
-      update.module(target.label()) {
-        genSrcJars
-          .forEach { genSrc ->
-            // a zip of generated sources
-            val added =
-              update
-                .artifactDirectory(ArtifactDirectories.JAVA_GEN_SRC)
-                .addIfNewer(
-                  genSrc.artifactPath().resolve("src"),
-                  genSrc,
-                  target.buildContext(),
-                  ArtifactTransform.UNZIP
-                )
-                .orElse(null)
-            if (added != null) {
-              contentEntry(added) {
-                val packageRoots =
-                  genSrc
-                    .getMetadata(SrcJarPrefixedJavaPackageRoots::class.java)
-                    .getOrNull()
-                    ?.paths()
-                  ?: ImmutableSet.of(JarPath.create("", ""))
-                for (innerPath in packageRoots) {
-                  addSourceRoot(
-                    root = added.resolveChild(innerPath.path),
-                    javaPackage = innerPath.packagePrefix,
-                    isTest = testSourceMatcher.matches(genSrc.target().getBuildPackagePath()),
-                    isGenerated = true
+    update.artifactDirectory(ArtifactDirectories.JAVA_GEN_SRC) {
+      for (target in artifactState.targets()) {
+        val genSrcJars = getProjectGenSrcJars(target)
+        if (genSrcJars.isEmpty()) continue
+        update.module(target.label()) {
+          genSrcJars
+            .forEach { genSrc ->
+              // a zip of generated sources
+              val added =
+                  addIfNewer(
+                    genSrc.artifactPath().resolve("src"),
+                    genSrc,
+                    target.buildContext(),
+                    ArtifactTransform.UNZIP
                   )
+              if (added != null) {
+                contentEntry(added) {
+                  val packageRoots =
+                    genSrc
+                      .getMetadata(SrcJarPrefixedJavaPackageRoots::class.java)
+                      .getOrNull()
+                      ?.paths()
+                    ?: ImmutableSet.of(JarPath.create("", ""))
+                  for (innerPath in packageRoots) {
+                    addSourceRoot(
+                      root = added.resolveChild(innerPath.path),
+                      javaPackage = innerPath.packagePrefix,
+                      isTest = testSourceMatcher.matches(genSrc.target().getBuildPackagePath()),
+                      isGenerated = true
+                    )
+                  }
                 }
               }
             }
-          }
+        }
       }
     }
   }

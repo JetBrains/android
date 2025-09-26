@@ -27,13 +27,12 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.truth.Expect;
 import com.google.idea.blaze.base.TestData;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
-import com.google.idea.blaze.base.qsync.ReadonlyQuerySyncProject;
-import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
+import com.google.idea.blaze.qsync.deps.DependencyBuildContext;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.testing.EdtRule;
 import com.google.idea.testing.java.LightJavaCodeInsightFixtureTestCase4Concrete;
@@ -122,7 +121,7 @@ public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTe
           psiClassFile);
     ArtifactTracker.State artifactState =
       ArtifactTracker.State.forJavaArtifacts(
-        ImmutableList.of(
+        DependencyBuildContext.NONE, ImmutableList.of(
           JavaArtifactInfo.empty(Label.of("//com/test:test")).toBuilder()
             .setSources(
               ImmutableSet.of(
@@ -160,7 +159,7 @@ public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTe
         psiClassFile);
     ArtifactTracker.State artifactState =
       ArtifactTracker.State.forJavaArtifacts(
-        ImmutableList.of(
+        DependencyBuildContext.NONE, ImmutableList.of(
           JavaArtifactInfo.empty(Label.of("//com/test:test")).toBuilder()
             .setSources(
               ImmutableSet.of(

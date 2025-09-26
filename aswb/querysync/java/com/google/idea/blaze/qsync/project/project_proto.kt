@@ -8,6 +8,7 @@ import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.OutputStream
 import java.io.Serializable
+import java.time.Instant
 
 class ProjectProto {
   data class Project(
@@ -20,14 +21,14 @@ class ProjectProto {
     class Builder(
       val modules: MutableList<Module.Builder> = mutableListOf(),
       val libraries: MutableMap<Label, Library> = mutableMapOf(),
-      var artifactDirectories: ArtifactDirectories.Builder = ArtifactDirectories.Builder(mutableMapOf()),
+      var artifactDirectories: ArtifactDirectories = ArtifactDirectories.getDefaultInstance(),
       var ccWorkspace: CcWorkspace = CcWorkspace.getDefaultInstance(),
       val activeLanguages: MutableSet<QuerySyncLanguage> = mutableSetOf(),
     ) {
       fun build(): Project = Project(
         modules = modules.map { it.build() },
         libraries = libraries.toMap(),
-        artifactDirectories = artifactDirectories.build(),
+        artifactDirectories = artifactDirectories,
         ccWorkspace = ccWorkspace,
         activeLanguages = activeLanguages
       )
@@ -36,7 +37,7 @@ class ProjectProto {
     fun toBuilder(): Builder = Builder(
       modules = modules.map { it.toBuilder() }.toMutableList(),
       libraries = libraries.toMutableMap(),
-      artifactDirectories = artifactDirectories.toBuilder(),
+      artifactDirectories = artifactDirectories,
       ccWorkspace = ccWorkspace,
       activeLanguages = activeLanguages.toMutableSet()
     )
@@ -97,16 +98,13 @@ class ProjectProto {
     val sourcesList: List<ProjectPath>,
   ): ProjectProtoModel
 
-  data class ArtifactDirectories(val directoriesMap: Map<String, ArtifactDirectoryContents>): ProjectProtoModel {
-    class Builder(val directoriesMap: MutableMap<String, ArtifactDirectoryContents> = mutableMapOf()) {
-      fun build(): ArtifactDirectories = ArtifactDirectories(directoriesMap.toMap())
-    }
-
-    fun toBuilder(): Builder = Builder(directoriesMap = directoriesMap.toMutableMap())
+  data class ArtifactDirectories(
+    val directoriesMap: Map<ProjectPath.ProjectRelativeProjectPath, ArtifactDirectoryContents>
+  ): ProjectProtoModel {
 
     companion object {
       @JvmStatic
-      fun getDefaultInstance(): ArtifactDirectories = Builder().build()
+      fun getDefaultInstance(): ArtifactDirectories = ArtifactDirectories(emptyMap())
     }
   }
 
@@ -133,6 +131,7 @@ class ProjectProto {
   data class ProjectArtifact(
     val target: Label,
     val buildArtifact: BuildArtifact,
+    val fromBuild: Instant,
     val transform: ArtifactTransform,
   ): ProjectProtoModel {
 

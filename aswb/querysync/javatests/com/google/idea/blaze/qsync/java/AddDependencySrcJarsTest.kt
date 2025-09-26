@@ -24,6 +24,7 @@ import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot
 import com.google.idea.blaze.qsync.QuerySyncTestUtils
 import com.google.idea.blaze.qsync.TestDataSyncRunner
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
+import com.google.idea.blaze.qsync.deps.DependencyBuildContext
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.ProjectPath
@@ -125,6 +126,7 @@ class AddDependencySrcJarsTest {
     }
     val artifactState =
       ArtifactTracker.State.forJavaArtifacts(
+        DependencyBuildContext.NONE,
         JavaArtifactInfo.empty(of("//java/com/google/common/collect:collect")).toBuilder()
           .setSrcJars(ImmutableSet.of(Path.of("source/path/external.srcjar")))
           .build()

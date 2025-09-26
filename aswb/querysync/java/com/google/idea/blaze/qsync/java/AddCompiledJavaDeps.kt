@@ -28,53 +28,54 @@ import kotlin.jvm.optionals.getOrNull
 /** Adds compiled jars from dependencies to the project.  */
 class AddCompiledJavaDeps(private val emptyJarDigests: Set<String>) : ProjectProtoUpdateOperation {
   override fun update(update: ProjectProtoUpdate, artifactState: ArtifactTracker.State, context: Context<*>) {
-    val javaDepsDir = update.artifactDirectory(ArtifactDirectories.JAVADEPS)
-    val skipped: MutableSet<String> = hashSetOf()
-    val seen: MutableSet<String> = hashSetOf()
-    val libNameToJars: MutableMap<Label, MutableSet<ProjectPath>> = hashMapOf()
-    val outputJarToTarget: Map<String, Label> =
-      artifactState.targets()
-        .flatMap { it.javaInfo().getOrNull()?.outputJars().orEmpty() }
-        .associate { it.digest() to it.target() }
-    var emptySkipped = 0
-    for (target in artifactState.targets()) {
+    update.artifactDirectory(ArtifactDirectories.JAVADEPS) {
+      val skipped: MutableSet<String> = hashSetOf()
+      val seen: MutableSet<String> = hashSetOf()
+      val libNameToJars: MutableMap<Label, MutableSet<ProjectPath>> = hashMapOf()
+      val outputJarToTarget: Map<String, Label> =
+        artifactState.targets()
+          .flatMap { it.javaInfo().getOrNull()?.outputJars().orEmpty() }
+          .associate { it.digest() to it.target() }
+      var emptySkipped = 0
+      for (target in artifactState.targets()) {
         val javaInfo = target.javaInfo().getOrNull() ?: continue
 
-      val jarsToAdd =
-        javaInfo
-          .jars()
-          .filter { jar ->
-            val emptyJar = emptyJarDigests.contains(jar.digest())
-            if (emptyJar) {
-              emptySkipped++
+        val jarsToAdd =
+          javaInfo
+            .jars()
+            .filter { jar ->
+              val emptyJar = emptyJarDigests.contains(jar.digest())
+              if (emptyJar) {
+                emptySkipped++
+              }
+              !emptyJar
             }
-            !emptyJar
-          }
-          .filter { jar ->
-            val targetLabelByDigest = outputJarToTarget[jar.digest()]
-            // Unknown or directly produced target.
-            targetLabelByDigest == null || target.label() == targetLabelByDigest
-          }
-          .filter { jar ->
-            val duplicateJar = seen.contains(jar.digest())
-            if (duplicateJar) {
-              skipped.add(jar.artifactPath().toString())
+            .filter { jar ->
+              val targetLabelByDigest = outputJarToTarget[jar.digest()]
+              // Unknown or directly produced target.
+              targetLabelByDigest == null || target.label() == targetLabelByDigest
             }
-            !duplicateJar
-          }
-          .toList()
-      val jars = jarsToAdd.map { jar ->
-        seen.add(jar.digest())
-        javaDepsDir.addIfNewer(jar.artifactPath(), jar, target.buildContext())
-        ProjectPath.projectRelative(javaDepsDir.path().resolve(jar.artifactPath()))
+            .filter { jar ->
+              val duplicateJar = seen.contains(jar.digest())
+              if (duplicateJar) {
+                skipped.add(jar.artifactPath().toString())
+              }
+              !duplicateJar
+            }
+            .toList()
+        val jars = jarsToAdd.map { jar ->
+          seen.add(jar.digest())
+          addIfNewer(jar.artifactPath(), jar, target.buildContext())
+          ArtifactDirectories.JAVADEPS.resolveChild(jar.artifactPath())
+        }
+        if (jars.isNotEmpty()) {
+          libNameToJars.getOrPut(target.label()) { hashSetOf() } += jars
+        }
       }
-      if (jars.isNotEmpty()) {
-        libNameToJars.getOrPut(target.label()) { hashSetOf() } += jars
-      }
+      context.output(PrintOutput.output("Skipped ${skipped.size} duplicate jars"))
+      context.output(PrintOutput.output("Skipped $emptySkipped empty jars"))
+      updateProjectProtoUpdateOneTargetToOneLibrary(libNameToJars, update)
     }
-    context.output(PrintOutput.output("Skipped ${skipped.size} duplicate jars"))
-    context.output(PrintOutput.output("Skipped $emptySkipped empty jars"))
-    updateProjectProtoUpdateOneTargetToOneLibrary(libNameToJars, update)
   }
 
   private fun updateProjectProtoUpdateOneTargetToOneLibrary(

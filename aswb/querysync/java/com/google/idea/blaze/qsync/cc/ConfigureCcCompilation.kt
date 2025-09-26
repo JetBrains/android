@@ -157,9 +157,10 @@ class ConfigureCcCompilation(
           )
       workspaceUpdater.addContexts(targetContext)
 
-      val headersDir = update.artifactDirectory(ArtifactDirectories.GEN_CC_HEADERS)
-      for (artifact in ccInfo.genHeaders()) {
-        headersDir.addIfNewer(artifact.artifactPath(), artifact, buildContext)
+      val headersDir = update.artifactDirectory(ArtifactDirectories.GEN_CC_HEADERS) {
+        for (artifact in ccInfo.genHeaders()) {
+          addIfNewer(artifact.artifactPath(), artifact, buildContext)
+        }
       }
     }
 

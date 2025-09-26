@@ -98,6 +98,7 @@ class AddDependencyGenSrcsJarsTest {
 
     val artifactState =
       ArtifactTracker.State.forJavaArtifacts(
+        DependencyBuildContext.NONE,
         JavaArtifactInfo.empty(testProject.getAssumedOnlyLabel()).toBuilder()
           .setGenSrcs(
             ImmutableList.of(
