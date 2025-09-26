@@ -136,6 +136,15 @@ class OnDeviceRendererPanelImpl(
 
   private var lastMousePosition: Point? = null
 
+  /** Indicates if the mouse is currently above the renderer. */
+  private var isMouseOnPanel = false
+    set(value) {
+      field = value
+      if (!value && interceptClicks) {
+        renderModel.clearHoverNode()
+      }
+    }
+
   init {
     Disposer.register(disposable, this)
     isOpaque = false
@@ -147,7 +156,10 @@ class OnDeviceRendererPanelImpl(
       addMouseMotionListener(it)
       addMouseWheelListener(it)
     }
-    MouseListener().also { addMouseMotionListener(it) }
+    MouseListener().also {
+      addMouseListener(it)
+      addMouseMotionListener(it)
+    }
 
     childScope.launch { client.enableOnDeviceRendering(true) }
 
@@ -186,7 +198,7 @@ class OnDeviceRendererPanelImpl(
 
     childScope.launch {
       client.hoverEvents.filterNotNull().collect { event ->
-        if (interceptClicks) {
+        if (interceptClicks && isMouseOnPanel) {
           renderModel.hoverNode(event.x.toDouble(), event.y.toDouble(), event.rootId)
         }
       }
@@ -239,6 +251,14 @@ class OnDeviceRendererPanelImpl(
     override fun mouseMoved(e: MouseEvent) {
       if (e.isConsumed || !interceptClicks) return
       lastMousePosition = Point(e.x, e.y)
+    }
+
+    override fun mouseEntered(e: MouseEvent) {
+      isMouseOnPanel = true
+    }
+
+    override fun mouseExited(e: MouseEvent) {
+      isMouseOnPanel = false
     }
   }
 }
