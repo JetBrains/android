@@ -77,6 +77,7 @@ import icons.StudioIconsCompose
 import javax.swing.JComponent
 import kotlin.collections.forEach
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.map
 import org.jetbrains.jewel.ui.component.CircularProgressIndicator
 import org.jetbrains.jewel.ui.component.Icon
@@ -209,6 +210,11 @@ class WifiAvailableDevicesDialog(
       .trackMdnsServices()
       .map { it.tlsMdnsServices.toSet() }
       .trackSetChanges()
+      // It's not possible to pair emulators.
+      .filterNot {
+        it is SetChange.Add &&
+          it.value.service.serviceInstanceName.instance.startsWith("adb-EMULATOR")
+      }
       .collect {
         when (it) {
           is SetChange.Remove -> {
