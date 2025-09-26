@@ -60,6 +60,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -96,8 +97,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
     new FeatureRolloutExperiment("qsync.enable.jdeps.dependency.graph.2");
 
   private final BuildArtifactCache artifactCache;
-  private final Function<
-          TargetBuildInfo, ImmutableSetMultimap<BuildArtifact, ArtifactMetadata.Extractor<?>>>
+  private final Function<TargetBuildInfo, Map<BuildArtifact, ? extends Collection<? extends ArtifactMetadata.Extractor<?>>>>
       targetToMetadataFn;
   private final ArtifactMetadata.Factory metadataFactory;
   private final Executor executor;
@@ -117,7 +117,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
   public NewArtifactTracker(
       Path projectDirectory,
       BuildArtifactCache artifactCache,
-      Function<TargetBuildInfo, ImmutableSetMultimap<BuildArtifact, ArtifactMetadata.Extractor<?>>>
+      Function<TargetBuildInfo, Map<BuildArtifact, ? extends Collection<? extends ArtifactMetadata.Extractor<?>>>>
           targetToMetadataFn,
       ArtifactMetadata.Factory metadataFactory,
       Executor executor) {
@@ -243,8 +243,9 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
           throws BuildException {
     Map<MetadataKey, ListenableFuture<ArtifactMetadata>> metadataFutures = Maps.newHashMap();
     for (TargetBuildInfo targetInfo : targetBuildInfo) {
-      for (Map.Entry<BuildArtifact, ArtifactMetadata.Extractor<?>> entry :
-          targetToMetadataFn.apply(targetInfo).entries()) {
+      for (Map.Entry<BuildArtifact, ? extends ArtifactMetadata.Extractor<?>> entry :
+        targetToMetadataFn.apply(targetInfo).entrySet().stream()
+          .flatMap(o -> o.getValue().stream().map(i -> new SimpleEntry<>(o.getKey(), i))).toList()) {
         MetadataKey key = new MetadataKey(entry.getKey(), entry.getValue().metadataClass());
         if (metadataFutures.containsKey(key)) {
           // this metadata has already been requested.

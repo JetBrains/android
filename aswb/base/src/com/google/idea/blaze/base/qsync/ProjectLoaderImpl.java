@@ -160,7 +160,9 @@ public class ProjectLoaderImpl implements ProjectLoader {
           result.buildSystem(),
           result.projectTransformRegistry(),
           result.handledRuleKinds());
-    result.projectTransformRegistry().addAll(ProjectProtoTransformProvider.getAll(result.latestProjectDef()));
+    for (var t: ProjectProtoTransformProvider.getAll(result.latestProjectDef())) {
+      result.projectTransformRegistry().add(t);
+    }
 
     return querySyncProject;
   }
