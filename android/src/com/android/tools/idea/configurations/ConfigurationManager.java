@@ -527,20 +527,27 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
   }
 
   /**
-   * Returns the best render target to use for the given minimum API level
+   * Returns the best render target to use for the given minimum API level.
+   * If the current target is at least {@code min}, it is returned. Otherwise,
+   * the smallest available target that is at least {@code min} is returned.
+   *
+   * @param min the minimum API level
+   * @return the best render target or null if not found
    */
   @Override
   @Nullable
   public IAndroidTarget getTarget(int min) {
     IAndroidTarget target = getTarget();
-    if (target != null && target.getVersion().getApiLevel() >= min) {
+    if (target != null && target.getVersion().getFeatureLevel() >= min) {
       return target;
     }
 
     IAndroidTarget[] targetList = getTargets();
-    for (int i = targetList.length - 1; i >= 0; i--) {
-      target = targetList[i];
-      if (AndroidTargets.isLayoutLibTarget(target) && target.getVersion().getFeatureLevel() >= min && isLayoutLibSupported(target)) {
+    for (IAndroidTarget androidTarget : targetList) {
+      target = androidTarget;
+      if (AndroidTargets.isLayoutLibTarget(target) &&
+          target.getVersion().getFeatureLevel() >= min &&
+          isLayoutLibSupported(target)) {
         return target;
       }
     }
