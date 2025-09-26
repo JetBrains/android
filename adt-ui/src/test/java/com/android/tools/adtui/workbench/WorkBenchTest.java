@@ -38,6 +38,7 @@ import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.util.EventDispatcher;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -113,7 +114,8 @@ public class WorkBenchTest extends WorkBenchTestCase {
     myRightMinimizePanel.setLayout(new BoxLayout(myRightMinimizePanel, BoxLayout.Y_AXIS));
     WorkBench.InitParams<String> initParams = new WorkBench.InitParams<>(myModel, mySplitter, myLeftMinimizePanel, myRightMinimizePanel);
     mySplitter.setSize(1000, 600);
-    myWorkBench = new WorkBench<>(getProject(), "BENCH", myFileEditor, initParams, myFloatingToolWindowManager, 1000);
+    ServiceContainerUtil.replaceService(getProject(), DetachedToolWindowManager.class, myFloatingToolWindowManager, getTestRootDisposable());
+    myWorkBench = new WorkBench<>(getProject(), "BENCH", myFileEditor, initParams, 1000);
     JRootPane rootPane = new JRootPane();
     rootPane.add(myWorkBench);
     myDefinitions = ImmutableList.of(PalettePanelToolContent.getDefinition(),
