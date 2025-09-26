@@ -49,7 +49,7 @@ public class BazelModuleSystemResourceModuleDependenciesTest
 
     MockExperimentService experimentService = new MockExperimentService();
     experimentService.setExperiment(
-        BlazeModuleSystemBase.returnSimpleDirectResourceDependents, false);
+      BazelModuleSystem.returnSimpleDirectResourceDependents, false);
     registerApplicationService(ExperimentService.class, experimentService);
   }
 
