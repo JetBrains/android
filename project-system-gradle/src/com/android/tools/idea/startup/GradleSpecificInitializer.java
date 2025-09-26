@@ -31,7 +31,7 @@ import com.intellij.notification.Notifications;
 import com.intellij.notification.NotificationsConfiguration;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
-import com.intellij.openapi.application.ConfigImportHelper;
+import com.intellij.openapi.application.InitialConfigImportState;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.registry.Registry;
 import java.util.List;
@@ -51,7 +51,7 @@ public class GradleSpecificInitializer implements AppLifecycleListener {
   public void appFrameCreated(@NotNull List<String> arguments) {
     checkInstallPath();
 
-    if (ConfigImportHelper.isConfigImported()) {
+    if (InitialConfigImportState.INSTANCE.isConfigImported()) {
       cleanProjectJdkTableForNewIdeVersion();
       migrateAgpUpgradeAssistantSettingForNewIdeVersion();
     }
