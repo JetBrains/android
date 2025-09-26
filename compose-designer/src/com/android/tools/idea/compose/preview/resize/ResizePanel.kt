@@ -276,6 +276,17 @@ class ResizePanel(parentDisposable: Disposable) :
     clearAndHide()
   }
 
+  override fun setVisible(isVisible: Boolean) {
+    if (this.isVisible == isVisible) return
+    if (isVisible) {
+      // When the panel is becoming visible, ensure that the text fields are updated from the
+      // current configuration. This is to prevent stale values from being displayed, for example
+      // when the user has cleared the text fields and hidden the panel.
+      dimensionInputsAction.updateTextFieldsFromConfiguration()
+    }
+    super.setVisible(isVisible)
+  }
+
   @TestOnly
   fun getCurrentPreviewElementForTest(): PsiComposePreviewElementInstance? {
     return currentFocusedPreviewElement
