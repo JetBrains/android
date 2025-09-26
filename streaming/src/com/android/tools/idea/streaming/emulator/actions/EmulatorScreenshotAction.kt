@@ -16,7 +16,6 @@
 package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.SdkConstants.DOT_PNG
-import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.emulator.control.ImageFormat
 import com.android.io.writeImage
 import com.android.tools.adtui.ImageUtils
@@ -81,15 +80,14 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
           try {
             val screenshotProto = emulatorController.getScreenshot(createScreenshotRequest(displayId))
             val format = screenshotProto.format
-            val skin = displayInfoProvider.getSkin(displayId)
             val imageBytes = screenshotProto.image
             val image = ImageIO.read(imageBytes.newInput()) ?: throw IIOException("Corrupted screenshot image")
             val emulatorConfig = emulatorController.emulatorConfig
             val displaySize = displayInfoProvider.getDisplaySize(displayId)
             val screenshotImage = ScreenshotImage(image, format.rotation.rotationValue,
                                                   emulatorConfig.deviceType, emulatorConfig.avdName, displayId, displaySize)
-            val screenshotDecorator = EmulatorScreenshotDecorator(skin)
-            val framingOptions = if (displayId == PRIMARY_DISPLAY_ID && skin != null) listOf(AvdFrame()) else listOf()
+            val screenshotDecorator = EmulatorScreenshotDecorator { displayInfoProvider.getSkin(displayId) }
+            val framingOptions = displayInfoProvider.getSkin(displayId)?.let { listOf(AvdFrame()) } ?: listOf()
             val decoration = ScreenshotViewer.getDefaultDecoration(screenshotImage, screenshotDecorator, framingOptions.firstOrNull())
             val decoratedImage = when (decoration) {
               ScreenshotDecorationOption.RECTANGULAR -> screenshotImage.image
@@ -166,17 +164,18 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
     }
   }
 
-  private class EmulatorScreenshotDecorator(private val skinDefinition: SkinDefinition?) : ScreenshotDecorator {
+  private class EmulatorScreenshotDecorator(private val skinDefinitionProvider: () -> SkinDefinition?) : ScreenshotDecorator {
 
     override val canClipToDisplayShape: Boolean
-      get() = skinDefinition != null
+      get() = skinDefinitionProvider() != null
 
     override fun decorate(screenshotImage: ScreenshotImage, framingOption: FramingOption?, backgroundColor: Color?): BufferedImage {
-      // Decorations are applied only to the primary display.
-      if (skinDefinition == null || screenshotImage.displayId != PRIMARY_DISPLAY_ID) {
-        return if (screenshotImage.isRoundDisplay) ellipticalClip(screenshotImage.image, backgroundColor) else screenshotImage.image
+      val skinDefinition = skinDefinitionProvider()
+      return when {
+        skinDefinition != null -> screenshotImage.decorate(framingOption != null, skinDefinition, backgroundColor)
+        screenshotImage.isRoundDisplay -> ellipticalClip(screenshotImage.image, backgroundColor)
+        else -> screenshotImage.image
       }
-      return screenshotImage.decorate(framingOption != null, skinDefinition, backgroundColor)
     }
   }
 }
