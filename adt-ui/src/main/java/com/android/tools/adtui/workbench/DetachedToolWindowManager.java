@@ -106,6 +106,8 @@ public class DetachedToolWindowManager implements Disposable {
     for (DetachedToolWindow detachedToolWindow : myToolWindowMap.values()) {
       detachedToolWindow.updateSettingsInAttachedToolWindow();
     }
+    myToolWindowMap.clear();
+    myWorkBenchMap.clear();
   }
 
   @Nullable
