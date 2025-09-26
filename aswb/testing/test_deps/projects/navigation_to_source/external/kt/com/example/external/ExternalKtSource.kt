@@ -13,19 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.project;
+package com.example.external
 
-import com.example.external.ExternalJavaInSrcJar;
-import com.example.external.ExternalJavaSource;
-import com.example.external.gensrcjar.ExternalJavaSourceInGenSrcjar;
+/** ExternalKtSource test class  */
+class ExternalKtSource {
+  fun copy(s: String?): String? {
+    return s
+  }
 
-/** Class1 test class */
-public class Class1 {
-
-  public String getString() {
-    final var s = new ExternalJavaSource();
-    return s.copy(ExternalJavaSource.STRING)
-        + ExternalJavaInSrcJar.STRING
-        + ExternalJavaSourceInGenSrcjar.STRING;
+  companion object {
+    const val STRING: String = "ExternalKtSource"
   }
 }
