@@ -68,8 +68,8 @@ private class SetScreenViewProviderAction(
 ) : ToggleAction(name, description, null) {
 
   override fun isSelected(e: AnActionEvent): Boolean {
-    val project = e.getRequiredData(PlatformDataKeys.PROJECT)
-    val file = e.getRequiredData(PlatformDataKeys.VIRTUAL_FILE)
+    val project = e.getData(PlatformDataKeys.PROJECT) ?: return false
+    val file = e.getData(PlatformDataKeys.VIRTUAL_FILE) ?: return false
 
     val currentType =
       DesignSurfaceSettings.getInstance(project)
@@ -79,8 +79,8 @@ private class SetScreenViewProviderAction(
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
-    val project = e.getRequiredData(PlatformDataKeys.PROJECT)
-    val file = e.getRequiredData(PlatformDataKeys.VIRTUAL_FILE)
+    val project = e.getData(PlatformDataKeys.PROJECT) ?: return
+    val file = e.getData(PlatformDataKeys.VIRTUAL_FILE) ?: return
 
     DesignSurfaceSettings.getInstance(project)
       .surfaceState
