@@ -22,7 +22,9 @@ import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.Label.Companion.of
 import com.google.idea.blaze.common.NoopContext
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
+import com.google.idea.blaze.qsync.deps.ArtifactDirectories
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
+import com.google.idea.blaze.qsync.deps.DependencyBuildContext
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.BuildGraphData
@@ -32,12 +34,15 @@ import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact.Artifact
 import com.google.idea.blaze.qsync.testdata.ProjectProtos
 import com.google.idea.blaze.qsync.testdata.TestData
 import java.nio.file.Path
+import java.time.Instant
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class AddCompiledJavaDepsTest {
+  val buildTimestamp = Instant.now()
+
   @Test
   @Throws(Exception::class)
   fun no_deps_built() {
@@ -47,25 +52,14 @@ class AddCompiledJavaDepsTest {
 
   @Throws(Exception::class)
   private fun no_deps_built(javaDeps: AddCompiledJavaDeps) {
-    val original =
-      ProjectProtos.forTestProject(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY)
+    val original = ProjectProtos.forTestProject(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY)
 
-    val update =
-      ProjectProtoUpdate(original, BuildGraphData.EMPTY, NoopContext())
+    val update = ProjectProtoUpdate(original, BuildGraphData.EMPTY, NoopContext())
     javaDeps.update(update, ArtifactTracker.State.EMPTY, NoopContext())
     val newProject = update.build()
     Truth.assertThat(newProject.libraries).isEqualTo(original.libraries)
     Truth.assertThat(newProject.modules).isEqualTo(original.modules)
-    Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys)
-      .containsExactly(".bazel/javadeps")
-    Truth.assertThat(
-      newProject
-        .artifactDirectories
-        .directoriesMap
-        .get(".bazel/javadeps")!!
-        .contents
-    )
-      .isEmpty()
+    Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys).doesNotContain(ArtifactDirectories.JAVADEPS)
   }
 
   @Test
@@ -73,6 +67,7 @@ class AddCompiledJavaDepsTest {
   fun dep_built() {
     val javaDeps = AddCompiledJavaDeps(ImmutableSet.of())
     val artifactState = ArtifactTracker.State.forJavaArtifacts(
+      DependencyBuildContext.create("", buildTimestamp),
       JavaArtifactInfo.empty(of("//java/com/google/common/collect:collect")).toBuilder()
         .setJars(
           ImmutableList.of(
@@ -102,11 +97,11 @@ class AddCompiledJavaDepsTest {
     val newProject = update.build()
     Truth.assertThat(newProject.libraries.values).containsExactly(*expectedLibraries)
     Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys)
-      .containsExactly(".bazel/javadeps")
+      .containsExactly(ArtifactDirectories.JAVADEPS)
     Truth.assertThat(
       newProject
         .artifactDirectories
-        .directoriesMap[".bazel/javadeps"]!!
+        .directoriesMap[ArtifactDirectories.JAVADEPS]!!
         .contents
     )
       .containsExactly(
@@ -114,6 +109,7 @@ class AddCompiledJavaDepsTest {
         ProjectProto.ProjectArtifact(
           target = Label.of("//java/com/google/common/collect:collect"),
           buildArtifact = ProjectProto.BuildArtifact("jardigest"),
+          fromBuild = buildTimestamp,
           transform = ArtifactTransform.COPY
         )
       )
@@ -124,7 +120,10 @@ class AddCompiledJavaDepsTest {
   fun dep_built_empty_jar() {
     val javaDeps = AddCompiledJavaDeps(ImmutableSet.of("empty_jar_digest"))
     val artifactState = ArtifactTracker.State.forJavaArtifacts(
-      JavaArtifactInfo.empty(of("//java/com/google/common/collect:collect")).toBuilder()
+      DependencyBuildContext.create("", buildTimestamp),
+      JavaArtifactInfo
+        .empty(of("//java/com/google/common/collect:collect"))
+        .toBuilder()
         .setJars(
           ImmutableList.of(
             BuildArtifact.create(
@@ -146,14 +145,6 @@ class AddCompiledJavaDepsTest {
     val newProject = update.build()
     Truth.assertThat(newProject.libraries.values).containsExactly(*expectedLibraries)
     Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys)
-      .containsExactly(".bazel/javadeps")
-    Truth.assertThat(
-      newProject
-        .artifactDirectories
-        .directoriesMap
-        .get(".bazel/javadeps")!!
-        .contents
-    )
-      .isEmpty()
+      .doesNotContain(ArtifactDirectories.JAVADEPS)
   }
 }

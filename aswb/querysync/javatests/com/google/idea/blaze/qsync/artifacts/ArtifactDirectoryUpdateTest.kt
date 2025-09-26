@@ -29,6 +29,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
+import java.time.Instant
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import org.junit.Before
@@ -42,6 +43,7 @@ import org.junit.runners.JUnit4
 class ArtifactDirectoryUpdateTest {
   @get:Rule
   var tmpDir: TemporaryFolder = TemporaryFolder()
+  val buildTimestamp = Instant.now()
 
   lateinit var root: Path
   var workspaceRoot: Path? = null
@@ -71,6 +73,7 @@ class ArtifactDirectoryUpdateTest {
             "somefile.txt" to ProjectProto.ProjectArtifact(
               target = Label.of("//target"),
               buildArtifact = ProjectProto.BuildArtifact("abcde"),
+              fromBuild = buildTimestamp,
               transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
             )
           )
@@ -102,6 +105,7 @@ class ArtifactDirectoryUpdateTest {
             "unzipped" to ProjectProto.ProjectArtifact(
               target = Label.of("//target"),
               buildArtifact = ProjectProto.BuildArtifact("zipdigest"),
+              fromBuild = buildTimestamp,
               transform = ProjectProto.ProjectArtifact.ArtifactTransform.UNZIP,
             )
           )
@@ -157,6 +161,7 @@ class ArtifactDirectoryUpdateTest {
             "somefile.txt" to ProjectProto.ProjectArtifact(
               target = Label.of("//target"),
               buildArtifact = ProjectProto.BuildArtifact("abcde"),
+              fromBuild = buildTimestamp,
               transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
             )
           )
@@ -202,6 +207,7 @@ class ArtifactDirectoryUpdateTest {
             "dir" to ProjectProto.ProjectArtifact(
               target = Label.of("//target"),
               buildArtifact = ProjectProto.BuildArtifact("zipdigest"),
+              fromBuild = buildTimestamp,
               transform = ProjectProto.ProjectArtifact.ArtifactTransform.UNZIP,
             )
           )
@@ -233,6 +239,7 @@ class ArtifactDirectoryUpdateTest {
             "dir" to ProjectProto.ProjectArtifact(
               target = Label.of("//target"),
               buildArtifact = ProjectProto.BuildArtifact("zipdigest"),
+              fromBuild = buildTimestamp,
               transform = ProjectProto.ProjectArtifact.ArtifactTransform.UNZIP,
             )
           )
@@ -258,6 +265,7 @@ class ArtifactDirectoryUpdateTest {
             "dir" to ProjectProto.ProjectArtifact(
               target = Label.of("//target"),
               buildArtifact = ProjectProto.BuildArtifact("abcde"),
+              fromBuild = buildTimestamp,
               transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
             )
           )
@@ -284,11 +292,13 @@ class ArtifactDirectoryUpdateTest {
             "dir/file3.txt" to ProjectProto.ProjectArtifact(
               target = Label.of("//target"),
               buildArtifact = ProjectProto.BuildArtifact("abcde"),
+              fromBuild = buildTimestamp,
               transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
             ),
             "dir/subdir2/file4.txt" to ProjectProto.ProjectArtifact(
               target = Label.of("//target"),
               buildArtifact = ProjectProto.BuildArtifact("abcdf"),
+              fromBuild = buildTimestamp,
               transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
             )
           )
@@ -315,11 +325,13 @@ class ArtifactDirectoryUpdateTest {
             "file1.txt" to ProjectProto.ProjectArtifact(
               target = Label.of("//target"),
               buildArtifact = ProjectProto.BuildArtifact("file1digest"),
+              fromBuild = buildTimestamp,
               transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
             ),
             "file2.txt" to ProjectProto.ProjectArtifact(
               target = Label.of("//target"),
               buildArtifact = ProjectProto.BuildArtifact("file2digest"),
+              fromBuild = buildTimestamp,
               transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
             )
           )
@@ -339,11 +351,13 @@ class ArtifactDirectoryUpdateTest {
             "file1.txt" to ProjectProto.ProjectArtifact(
               target = Label.of("//target"),
               buildArtifact = ProjectProto.BuildArtifact("file1digest"),
+              fromBuild = buildTimestamp,
               transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
             ),
             "file2.txt" to ProjectProto.ProjectArtifact(
               target = Label.of("//target"),
               buildArtifact = ProjectProto.BuildArtifact("file2digest"),
+              fromBuild = buildTimestamp,
               transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
             )
           )
@@ -367,11 +381,13 @@ class ArtifactDirectoryUpdateTest {
             "file1.txt" to ProjectProto.ProjectArtifact(
               target = Label.of("//target"),
               buildArtifact = ProjectProto.BuildArtifact("abcd"),
+              fromBuild = buildTimestamp,
               transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
             ),
             "file2.txt" to ProjectProto.ProjectArtifact(
               target = Label.of("//target"),
               buildArtifact = ProjectProto.BuildArtifact("defg"),
+              fromBuild = buildTimestamp,
               transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
             )
           )
@@ -391,11 +407,13 @@ class ArtifactDirectoryUpdateTest {
             "file1.txt" to ProjectProto.ProjectArtifact(
               target = Label.of("//target"),
               buildArtifact = ProjectProto.BuildArtifact("abcd"),
+              fromBuild = buildTimestamp,
               transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
             ),
             "file2.txt" to ProjectProto.ProjectArtifact(
               target = Label.of("//target"),
               buildArtifact = ProjectProto.BuildArtifact("efgh"),
+              fromBuild = buildTimestamp,
               transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
             )
           )

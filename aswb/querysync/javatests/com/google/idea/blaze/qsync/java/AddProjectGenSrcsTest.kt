@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.qsync.java
 
-import com.google.common.base.Joiner
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.truth.Truth
@@ -24,6 +23,7 @@ import com.google.idea.blaze.common.NoopContext
 import com.google.idea.blaze.qsync.QuerySyncTestUtils
 import com.google.idea.blaze.qsync.TestDataSyncRunner
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
+import com.google.idea.blaze.qsync.deps.ArtifactDirectories
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo
@@ -33,7 +33,6 @@ import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectoryContents
 import com.google.idea.blaze.qsync.testdata.TestData
-import com.google.protobuf.TextFormat
 import java.nio.file.Path
 import java.time.Instant
 import org.junit.Rule
@@ -47,6 +46,8 @@ import org.mockito.junit.MockitoRule
 
 @RunWith(JUnit4::class)
 class AddProjectGenSrcsTest {
+  val buildTimestamp = Instant.now()
+
   @get:Rule
   val mockito: MockitoRule = MockitoJUnit.rule()
 
@@ -77,7 +78,7 @@ class AddProjectGenSrcsTest {
                   .withMetadata(JavaArtifactMetadata.JavaSourcePackage("com.org"))
             )
             .build(),
-          DependencyBuildContext.NONE
+          DependencyBuildContext.create("", buildTimestamp)
         )
       )
 
@@ -109,12 +110,13 @@ class AddProjectGenSrcsTest {
       )
     Truth.assertThat(newProject.artifactDirectories.directoriesMap)
       .containsEntry(
-        ".bazel/gensrc/java",
+        ArtifactDirectories.JAVA_GEN_SRC,
         ArtifactDirectoryContents(
           contents = mapOf(
             "com/org/Class.java" to ProjectProto.ProjectArtifact(
               target = testData.assumedOnlyLabel,
               buildArtifact = ProjectProto.BuildArtifact("gensrcdigest"),
+              fromBuild = buildTimestamp,
               transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
             )
           )
@@ -146,7 +148,7 @@ class AddProjectGenSrcsTest {
           )
           .build(),
         DependencyBuildContext.create(
-          "abc-def", Instant.now().minusSeconds(60)
+          "abc-def", buildTimestamp.minusSeconds(60)
         )
       )
 
@@ -165,7 +167,7 @@ class AddProjectGenSrcsTest {
             )
           )
           .build(),
-        DependencyBuildContext.create("abc-def", Instant.now())
+        DependencyBuildContext.create("abc-def", buildTimestamp)
       )
 
     val artifactState =
@@ -207,12 +209,13 @@ class AddProjectGenSrcsTest {
       )
     Truth.assertThat(newProject.artifactDirectories.directoriesMap)
       .containsEntry(
-        ".bazel/gensrc/java",
+        ArtifactDirectories.JAVA_GEN_SRC,
         ArtifactDirectoryContents(
           contents = mapOf(
             "com/org/Class.java" to ProjectProto.ProjectArtifact(
               target = genSrc2Label,
               buildArtifact = ProjectProto.BuildArtifact("gensrc2"),
+              fromBuild = buildTimestamp,
               transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
             )
           )
@@ -304,7 +307,7 @@ class AddProjectGenSrcsTest {
               )
             )
             .build(),
-          DependencyBuildContext.NONE
+          DependencyBuildContext.create("", buildTimestamp)
         )
       )
 

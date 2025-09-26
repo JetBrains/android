@@ -93,8 +93,6 @@ class AddProjectGenSrcs(
     artifactState: ArtifactTracker.State,
     context: Context<*>
   ) {
-    val javaSrc = update.artifactDirectory(ArtifactDirectories.JAVA_GEN_SRC)
-    val javatestsSrc = update.artifactDirectory(ArtifactDirectories.JAVA_GEN_TESTSRC)
     val srcsByJavaPath = mutableMapOf<Path, MutableList<ArtifactWithOrigin>>()
     val missingPackageArtifacts = mutableListOf<BuildArtifact>()
     // @@aswb_generated_sources// is a temporary generated sources anchor used unitl we can split generated sources
@@ -134,7 +132,7 @@ class AddProjectGenSrcs(
         )
         update.context().setHasWarnings()
       }
-      for (entry in srcsByJavaPath.entries) {
+      val destinationToChosenArtifact = srcsByJavaPath.entries.map { entry ->
         val finalDest = entry.key
         val candidates: MutableCollection<ArtifactWithOrigin> = entry.value
         // before warning, check that the conflicting sources do actually differ. If they're the
@@ -163,21 +161,38 @@ class AddProjectGenSrcs(
         }
 
         val chosen = candidates.minOrNull() ?: error("No candidates")
-        if (testSourceMatcher.matches(chosen.artifact.target().getBuildPackagePath())) {
-          javatestsSrc.addIfNewer(finalDest, chosen.artifact, chosen.origin)
-        }
-        else {
-          javaSrc.addIfNewer(finalDest, chosen.artifact, chosen.origin)
+        finalDest to chosen
+      }
+
+      val (testSrcs, srcs) =
+        destinationToChosenArtifact.partition { (_, chosen) -> testSourceMatcher.matches(chosen.artifact.target().getBuildPackagePath()) }
+
+      if (srcs.isNotEmpty()) {
+        update.artifactDirectory(ArtifactDirectories.JAVA_GEN_SRC) {
+          for ((finalDest, chosen) in srcs) {
+            addIfNewer(finalDest, chosen.artifact, chosen.origin)
+          }
+          contentEntry(ArtifactDirectories.JAVA_GEN_SRC) {
+            addSourceRoot(
+              root = ArtifactDirectories.JAVA_GEN_SRC,
+              javaPackage = "",
+              isTest = false,
+              isGenerated = true
+            )
+          }
         }
       }
-      for (gensrcDir in listOf(javaSrc, javatestsSrc)) {
-        if (!gensrcDir.isEmpty) {
-          val path = gensrcDir.root()
-          contentEntry(path) {
+
+      if (testSrcs.isNotEmpty()) {
+        update.artifactDirectory(ArtifactDirectories.JAVA_GEN_TESTSRC) {
+          for ((finalDest, chosen) in testSrcs) {
+            addIfNewer(finalDest, chosen.artifact, chosen.origin)
+          }
+          contentEntry(ArtifactDirectories.JAVA_GEN_TESTSRC) {
             addSourceRoot(
-              root = path,
+              root = ArtifactDirectories.JAVA_GEN_TESTSRC,
               javaPackage = "",
-              isTest = gensrcDir === javatestsSrc,
+              isTest = true,
               isGenerated = true
             )
           }

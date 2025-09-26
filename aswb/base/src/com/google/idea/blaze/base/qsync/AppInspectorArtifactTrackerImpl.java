@@ -29,6 +29,7 @@ import com.google.idea.blaze.qsync.artifacts.ArtifactDirectoryUpdate;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -129,12 +130,14 @@ public class AppInspectorArtifactTrackerImpl implements AppInspectorArtifactTrac
     AppInspectorInfo appInspectorInfo
   ) {
     final var resultBuilder = ImmutableMap.<Path, ProjectProto.ProjectArtifact>builder();
+    final var buildTimetamp = Instant.now();
     for (OutputArtifact jar : appInspectorInfo.getJars()) {
       resultBuilder.put(
         jar.getArtifactPath(),
         new ProjectProto.ProjectArtifact(
           appInspectorTarget,
           new ProjectProto.BuildArtifact(jar.getDigest()),
+          buildTimetamp,
           ProjectProto.ProjectArtifact.ArtifactTransform.COPY
         ));
     }

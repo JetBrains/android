@@ -20,7 +20,6 @@ import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories
-import com.google.idea.blaze.qsync.deps.ArtifactDirectoryBuilder
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation
@@ -58,30 +57,26 @@ class AddDependencyAars(
     artifactState: ArtifactTracker.State,
     context: Context<*>
   ) {
-    var aarDir: ArtifactDirectoryBuilder? = null
-    for (target in artifactState.targets()) {
-      val aars = getDependencyAars(target)
-      if (aars.isEmpty()) continue
-      update.module(target.label()) {
-        for (aar in aars) {
-          if (aarDir == null) {
-            aarDir = update.artifactDirectory(ArtifactDirectories.DEFAULT)
-          }
-          val packageName =
-            aar.getMetadata(AarResPackage::class.java).getOrNull()?.name
-          val dest =
-            aarDir
-              .addIfNewer(aar.artifactPath(), aar, target.buildContext(), ArtifactTransform.UNZIP)
-              .orElse(null)
-          if (dest != null) {
-            addExternalAndroidLibrary(ProjectProto.ExternalAndroidLibrary(
-              name = aar.artifactPath().toString().replace('/', '_'),
-              location = dest,
-              manifestFile = dest.resolveChild(Path.of("AndroidManifest.xml")),
-              resFolder = dest.resolveChild(Path.of("res")),
-              symbolFile = dest.resolveChild(Path.of("R.txt")),
-              packageName = packageName.orEmpty()
-            ))
+    update.artifactDirectory(ArtifactDirectories.DEFAULT) {
+      for (target in artifactState.targets()) {
+        val aars = getDependencyAars(target)
+        if (aars.isEmpty()) continue
+        update.module(target.label()) {
+          for (aar in aars) {
+            val packageName =
+              aar.getMetadata(AarResPackage::class.java).getOrNull()?.name
+            val added =
+                addIfNewer(aar.artifactPath(), aar, target.buildContext(), ArtifactTransform.UNZIP)
+            if (added != null) {
+                addExternalAndroidLibrary(ProjectProto.ExternalAndroidLibrary(
+                  name = aar.artifactPath().toString().replace('/', '_'),
+                  location = added,
+                  manifestFile = added.resolveChild(Path.of("AndroidManifest.xml")),
+                  resFolder = added.resolveChild(Path.of("res")),
+                  symbolFile = added.resolveChild(Path.of("R.txt")),
+                  packageName = packageName.orEmpty()
+                ))
+            }
           }
         }
       }

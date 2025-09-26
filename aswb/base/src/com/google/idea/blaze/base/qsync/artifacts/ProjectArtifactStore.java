@@ -29,6 +29,7 @@ import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.artifacts.ArtifactDirectoryUpdate;
+import com.google.idea.blaze.qsync.project.ProjectPath;
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectories;
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectoryContents;
 import com.intellij.openapi.diagnostic.Logger;
@@ -68,20 +69,22 @@ public class ProjectArtifactStore {
     this.projectDirectoriesFile = projectDir.resolve(".project-artifact-dirs");
   }
 
-  private ImmutableSet<String> readPreviousProjectDirectories() {
+  private ImmutableSet<ProjectPath.ProjectRelativeProjectPath> readPreviousProjectDirectories() {
     if (!Files.exists(projectDirectoriesFile)) {
       return ImmutableSet.of();
     }
     try {
-      return ImmutableSet.copyOf(Files.readAllLines(projectDirectoriesFile));
+      return ImmutableSet.copyOf(
+        Files.readAllLines(projectDirectoriesFile).stream().map(it -> ProjectPath.projectRelative(Path.of(it))).toList()
+      );
     } catch (IOException ioe) {
       logger.warn("Cannot read " + projectDirectoriesFile, ioe);
       return ImmutableSet.of();
     }
   }
 
-  private void writeProjectDirectories(Collection<String> paths) throws IOException {
-    Files.write(projectDirectoriesFile, paths);
+  private void writeProjectDirectories(Collection<ProjectPath.ProjectRelativeProjectPath> paths) throws IOException {
+    Files.write(projectDirectoriesFile, paths.stream().map(it -> it.relativePath().toString()).toList());
   }
 
   /**
@@ -98,18 +101,18 @@ public class ProjectArtifactStore {
     }
     List<IOException> exceptions = Lists.newArrayList();
     ImmutableSet.Builder<Path> updatedPaths = ImmutableSet.builder();
-    Map<String, ArtifactDirectoryContents> toUpdate = Maps.newHashMap();
+    Map<ProjectPath.ProjectRelativeProjectPath, ArtifactDirectoryContents> toUpdate = Maps.newHashMap();
     toUpdate.putAll(newArtifactDirectoriesSnapshot.getDirectoriesMap());
     // add empty contents for any dirs that are no longer present, to ensure they're cleaned up:
     readPreviousProjectDirectories()
         .forEach(dir -> toUpdate.putIfAbsent(dir, ArtifactDirectoryContents.getDefaultInstance()));
 
     ImmutableSet.Builder<Label> incompleteTargets = ImmutableSet.builder();
-    for (Map.Entry<String, ArtifactDirectoryContents> entry : toUpdate.entrySet()) {
-      Path root = projectDir.resolve(entry.getKey());
+    for (Map.Entry<ProjectPath.ProjectRelativeProjectPath, ArtifactDirectoryContents> entry : toUpdate.entrySet()) {
+      Path root = projectDir.resolve(entry.getKey().relativePath());
       ArtifactDirectoryUpdate dirUpdate =
           new ArtifactDirectoryUpdate(
-              entry.getKey(),
+              entry.getKey().relativePath().getFileName().toString(),
               artifactCache,
               root,
               entry.getValue());
@@ -138,8 +141,8 @@ public class ProjectArtifactStore {
 
   public ImmutableMap<String, ByteSource> getBugreportFiles() {
     ImmutableMap.Builder<String, ByteSource> bugreportFiles = ImmutableMap.builder();
-    for (String name : readPreviousProjectDirectories()) {
-      Path contentsFile = ArtifactDirectoryUpdate.getContentsFile(projectDir.resolve(name));
+    for (var directory : readPreviousProjectDirectories()) {
+      Path contentsFile = ArtifactDirectoryUpdate.getContentsFile(projectDir.resolve(directory.relativePath()));
       if (Files.exists(contentsFile)) {
         bugreportFiles.put(
             contentsFile.getFileName().toString(), MoreFiles.asByteSource(contentsFile));

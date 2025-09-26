@@ -30,6 +30,7 @@ import com.google.idea.blaze.common.NoopContext;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.blaze.qsync.TestDataSyncRunner;
 import com.google.idea.blaze.qsync.artifacts.DigestMap;
+import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker.State;
 import com.google.idea.blaze.qsync.deps.CcToolchain;
@@ -206,7 +207,7 @@ public class ConfigureCcCompilationTest {
             project
                 .getArtifactDirectories()
                 .getDirectoriesMap()
-                .get(".bazel/buildout")
+                .get(ArtifactDirectories.DEFAULT)
                 .getContents()
                 .keySet())
         .containsExactly(

@@ -57,25 +57,25 @@ class AddDependencyGenSrcsJars(
     artifactState: ArtifactTracker.State,
     context: Context<*>,
   ) {
-    for (target in artifactState.targets()) {
-      val projectPaths = getDependencyGenSrcJars(target)
-        .flatMap { genSrc ->
-          val projectPath = update
-                              .artifactDirectory(ArtifactDirectories.DEFAULT)
-                              .addIfNewer(genSrc.artifactPath(), genSrc, target.buildContext())
-                              .orElse(null)
-                            ?: return@flatMap emptyList()
+    update
+      .artifactDirectory(ArtifactDirectories.DEFAULT) {
+        for (target in artifactState.targets()) {
+          val projectPaths = getDependencyGenSrcJars(target)
+            .flatMap { genSrc ->
+              val projectPath = addIfNewer(genSrc.artifactPath(), genSrc, target.buildContext())
+               ?: return@flatMap emptyList()
 
-          val innerJavaRoots = genSrc
-                                 .getMetadata(SrcJarJavaPackageRoots::class.java)
-                                 .getOrNull()
-                                 ?.roots()
-                               ?: setOf(Path.of(""))
-          innerJavaRoots.map { projectPath.withInnerJarPath(it) }
+              val innerJavaRoots = genSrc
+                                     .getMetadata(SrcJarJavaPackageRoots::class.java)
+                                     .getOrNull()
+                                     ?.roots()
+                                   ?: setOf(Path.of(""))
+              innerJavaRoots.map { projectPath.withInnerJarPath(it) }
+            }
+          update.library(target.label()) {
+            addSourceJars(projectPaths)
+          }
         }
-      update.library(target.label()) {
-        addSourceJars(projectPaths)
       }
-    }
   }
 }

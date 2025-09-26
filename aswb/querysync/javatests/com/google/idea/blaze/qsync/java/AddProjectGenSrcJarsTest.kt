@@ -58,6 +58,7 @@ class AddProjectGenSrcJarsTest {
 
     val artifactState =
       ArtifactTracker.State.forJavaArtifacts(
+        DependencyBuildContext.NONE,
         JavaArtifactInfo.empty(of("//java/com/google/common/collect:collect")).toBuilder()
           .setGenSrcs(
             ImmutableList.of(
