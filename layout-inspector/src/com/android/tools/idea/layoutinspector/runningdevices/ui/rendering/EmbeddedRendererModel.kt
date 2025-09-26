@@ -206,6 +206,10 @@ class EmbeddedRendererModel(
     inspectorModel.hoveredNode = node
   }
 
+  fun clearHoverNode() {
+    inspectorModel.hoveredNode = null
+  }
+
   fun doubleClickNode(x: Double, y: Double, rootId: Long = inspectorModel.root.drawId) {
     selectNode(x, y, rootId)
     if (selectedNode.value != null) {

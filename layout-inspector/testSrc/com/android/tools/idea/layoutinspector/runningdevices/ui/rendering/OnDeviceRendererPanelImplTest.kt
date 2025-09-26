@@ -373,13 +373,25 @@ class OnDeviceRendererPanelImplTest {
 
     val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
 
-    OnDeviceRendererPanelImpl(
-      disposable = disposableRule.disposable,
-      scope = scope,
-      client = onDeviceRenderingClient,
-      renderModel = renderModel,
-      enableSendRightClicksToDevice = {},
-    )
+    val onDeviceRenderer =
+      OnDeviceRendererPanelImpl(
+        disposable = disposableRule.disposable,
+        scope = scope,
+        client = onDeviceRenderingClient,
+        renderModel = renderModel,
+        enableSendRightClicksToDevice = {},
+      )
+
+    val parent = BorderLayoutPanel()
+    parent.add(onDeviceRenderer)
+    parent.size = Dimension(100, 100)
+    onDeviceRenderer.size = Dimension(100, 100)
+    val fakeUi = FakeUi(parent)
+    fakeUi.render()
+
+    // move the cursor on the panel, to enable handling hover
+    fakeUi.mouse.moveTo(42, 42)
+    withContext(Dispatchers.EDT) { fakeUi.layoutAndDispatchEvents() }
 
     testScheduler.advanceUntilIdle()
 
@@ -398,6 +410,12 @@ class OnDeviceRendererPanelImplTest {
     testScheduler.advanceUntilIdle()
 
     assertThat(inspectorModel.hoveredNode).isEqualTo(inspectorModel[COMPOSE1])
+
+    // move the cursor outside the panel, should clear hover
+    fakeUi.mouse.moveTo(200, 200)
+    withContext(Dispatchers.EDT) { fakeUi.layoutAndDispatchEvents() }
+
+    assertThat(inspectorModel.hoveredNode).isEqualTo(null)
   }
 
   @Test

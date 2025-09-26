@@ -362,6 +362,12 @@ class StudioRendererPanel(
 
       renderModel.hoverNode(modelCoordinates.x, modelCoordinates.y)
     }
+
+    override fun mouseExited(e: MouseEvent) {
+      if (e.isConsumed || !interceptClicks) return
+
+      renderModel.clearHoverNode()
+    }
   }
 
   /** Transform panel coordinates to model coordinates. */
