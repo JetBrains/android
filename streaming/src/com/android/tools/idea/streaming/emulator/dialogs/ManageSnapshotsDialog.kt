@@ -632,7 +632,7 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
     var incompatibleSnapshotsSize = 0L
     if (snapshotAutoDeletionPolicy != SnapshotAutoDeletionPolicy.DO_NOT_DELETE) {
       for (snapshot in snapshots) {
-        if (!snapshot.isCompatible) {
+        if (!snapshot.isCompatible && !snapshot.isQuickBoot) {
           incompatibleSnapshotsCount++
           incompatibleSnapshotsSize += snapshot.sizeOnDisk
         }
@@ -654,8 +654,9 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
   }
 
   private fun MutableList<SnapshotInfo>.deleteIncompatibleSnapshots() {
-    val foldersToDelete = filter { !it.isCompatible }.map { it.snapshotFolder }
-    removeIf { !it.isCompatible }
+    val deletionCondition: (SnapshotInfo) -> Boolean = { !it.isCompatible && !it.isQuickBoot }
+    val foldersToDelete = filter(deletionCondition).map { it.snapshotFolder }
+    removeIf(deletionCondition)
     deleteSnapshotFolders(foldersToDelete)
   }
 
