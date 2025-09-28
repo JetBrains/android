@@ -1,5 +1,5 @@
 ### auto-generated section `build intellij.android.adt.ui` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "kt_javac_options")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "kt_javac_options", "resourcegroup")
 
 kt_javac_options(
   name = "custom-javac-options",
@@ -14,15 +14,15 @@ kt_javac_options(
   no_proc = True
 )
 
-jvm_resources(
+resourcegroup(
   name = "adt-ui_resources",
-  files = glob(["resources/**/*"]),
+  srcs = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
-jvm_resources(
+resourcegroup(
   name = "adt-ui_test_resources",
-  files = glob(["src/test/resources/**/*"]),
+  srcs = glob(["src/test/resources/**/*"]),
   strip_prefix = "src/test/resources"
 )
 
@@ -31,6 +31,7 @@ jvm_library(
   module_name = "intellij.android.adt.ui",
   visibility = ["//visibility:public"],
   srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java", "src/main/java/**/*.form"], allow_empty = True),
+  resources = [":adt-ui_resources"],
   javac_opts = ":custom-javac-options",
   deps = [
     "@lib//:studio-platform-provided",
@@ -64,14 +65,14 @@ jvm_library(
     "//xml/xml-psi-impl:psi-impl",
     "//platform/platform-impl/ui",
   ],
-  exports = ["@lib//:android-adt-ui-ibm-db2-jcc"],
-  runtime_deps = [":adt-ui_resources"]
+  exports = ["@lib//:android-adt-ui-ibm-db2-jcc"]
 )
 
 jvm_library(
   name = "adt-ui_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["src/test/java/**/*.kt", "src/test/java/**/*.java", "src/test/java/**/*.form"], allow_empty = True),
+  resources = [":adt-ui_test_resources"],
   javac_opts = ":custom-javac-options",
   associates = [":adt-ui"],
   deps = [
@@ -131,8 +132,7 @@ jvm_library(
     "//platform/platform-impl/ui",
     "@lib//:android-adt-ui-ibm-db2-jcc",
   ],
-  exports = ["@lib//:android-adt-ui-ibm-db2-jcc"],
-  runtime_deps = [":adt-ui_test_resources"]
+  exports = ["@lib//:android-adt-ui-ibm-db2-jcc"]
 )
 ### auto-generated section `build intellij.android.adt.ui` end
 

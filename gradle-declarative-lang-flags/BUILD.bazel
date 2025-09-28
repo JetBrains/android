@@ -1,9 +1,9 @@
 ### auto-generated section `build intellij.android.gradle.declarative.lang.flags` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
-jvm_resources(
+resourcegroup(
   name = "gradle-declarative-lang-flags_resources",
-  files = glob(["resources/**/*"]),
+  srcs = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
@@ -12,10 +12,10 @@ jvm_library(
   module_name = "intellij.android.gradle.declarative.lang.flags",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":gradle-declarative-lang-flags_resources"],
   deps = [
     "@lib//:kotlin-stdlib",
     "//platform/util",
-  ],
-  runtime_deps = [":gradle-declarative-lang-flags_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.gradle.declarative.lang.flags` end

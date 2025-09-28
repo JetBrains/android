@@ -1,9 +1,9 @@
 ### auto-generated section `build intellij.android.kotlin.idea.k1` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
-jvm_resources(
+resourcegroup(
   name = "k1_resources",
-  files = glob(["resources/**/*"]),
+  srcs = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
@@ -12,6 +12,7 @@ jvm_library(
   module_name = "intellij.android.kotlin.idea.k1",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":k1_resources"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
@@ -39,7 +40,6 @@ jvm_library(
     "//plugins/kotlin/code-insight/utils",
     "//plugins/kotlin/core",
     "//plugins/kotlin/idea",
-  ],
-  runtime_deps = [":k1_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.kotlin.idea.k1` end

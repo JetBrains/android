@@ -1,15 +1,15 @@
 ### auto-generated section `build intellij.android.app-inspection.ide` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
-jvm_resources(
+resourcegroup(
   name = "ide_resources",
-  files = glob(["resources/**/*"]),
+  srcs = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
-jvm_resources(
+resourcegroup(
   name = "ide_test_resources",
-  files = glob(["testData/**/*"]),
+  srcs = glob(["testData/**/*"]),
   strip_prefix = "testData"
 )
 
@@ -18,6 +18,7 @@ jvm_library(
   module_name = "intellij.android.app-inspection.ide",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":ide_resources"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:guava",
@@ -55,15 +56,22 @@ jvm_library(
     "//platform/util",
     "//platform/util-ex",
     "//platform/util:util-ui",
-  ],
-  runtime_deps = [":ide_resources"]
+  ]
+)
+
+jvm_library(
+  name = "ide_test_lib",
+  module_name = "intellij.android.app-inspection.ide",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  resources = [":ide_test_resources"]
 )
 ### auto-generated section `build intellij.android.app-inspection.ide` end
 
 ### auto-generated section `build intellij.android.app-inspection.ide.tests` start
-jvm_resources(
+resourcegroup(
   name = "android-app-inspection-ide-tests_test_resources",
-  files = glob(["testResources/**/*"]),
+  srcs = glob(["testResources/**/*"]),
   strip_prefix = "testResources"
 )
 
@@ -72,6 +80,7 @@ jvm_library(
   module_name = "intellij.android.app-inspection.ide.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  resources = [":android-app-inspection-ide-tests_test_resources"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -126,8 +135,7 @@ jvm_library(
     "//platform/util",
     "//platform/util/jdom",
     "@lib//:mockito-kotlin",
-  ],
-  runtime_deps = [":android-app-inspection-ide-tests_test_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.app-inspection.ide.tests` end
 

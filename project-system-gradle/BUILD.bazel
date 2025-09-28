@@ -1,6 +1,6 @@
 ### auto-generated section `build intellij.android.projectSystem.gradle` start
 load("//build:compiler-options.bzl", "create_kotlinc_options")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
 create_kotlinc_options(
   name = "custom_projectSystem-gradle",
@@ -10,9 +10,9 @@ create_kotlinc_options(
   ]
 )
 
-jvm_resources(
+resourcegroup(
   name = "projectSystem-gradle_resources",
-  files = glob(["resources/**/*"]),
+  srcs = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
@@ -21,6 +21,7 @@ jvm_library(
   module_name = "intellij.android.projectSystem.gradle",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form", "gen/**/*.kt", "gen/**/*.java"], allow_empty = True),
+  resources = [":projectSystem-gradle_resources"],
   kotlinc_opts = ":custom_projectSystem-gradle",
   deps = [
     "@lib//:studio-platform-provided",
@@ -173,15 +174,14 @@ jvm_library(
     "//android/gradle-declarative-lang-flags",
     "//plugins/kotlin/base/scripting/scripting.k1",
     "//plugins/kotlin/base/scripting/scripting.shared",
-  ],
-  runtime_deps = [":projectSystem-gradle_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle` end
 
 ### auto-generated section `build intellij.android.projectSystem.gradle.tests` start
-jvm_resources(
+resourcegroup(
   name = "projectSystem-gradle-tests_test_resources",
-  files = glob(["testResources/**/*"]),
+  srcs = glob(["testResources/**/*"]),
   strip_prefix = "testResources"
 )
 
@@ -196,6 +196,7 @@ jvm_library(
   module_name = "intellij.android.projectSystem.gradle.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  resources = [":projectSystem-gradle-tests_test_resources"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -333,7 +334,6 @@ jvm_library(
     "//plugins/kotlin/code-insight/api",
   ],
   runtime_deps = [
-    ":projectSystem-gradle-tests_test_resources",
     "//android/gradle-dsl-groovy",
     "//android/gradle-dsl-kotlin",
     "//android/gradle-dsl-toml",

@@ -1,9 +1,9 @@
 ### auto-generated section `build intellij.android.mlkit` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
-jvm_resources(
+resourcegroup(
   name = "mlkit_resources",
-  files = glob(["resources/**/*"]),
+  srcs = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
@@ -12,6 +12,7 @@ jvm_library(
   module_name = "intellij.android.mlkit",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":mlkit_resources"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:guava",
@@ -60,15 +61,14 @@ jvm_library(
     "//xml/dom-openapi:dom",
     "//jps/model-api:model",
     "//plugins/kotlin/base/project-structure",
-  ],
-  runtime_deps = [":mlkit_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.mlkit` end
 
 ### auto-generated section `build intellij.android.mlkit.tests` start
-jvm_resources(
+resourcegroup(
   name = "mlkit-tests_test_resources",
-  files = glob(["testData/**/*"]),
+  srcs = glob(["testData/**/*"]),
   strip_prefix = "testData"
 )
 
@@ -77,6 +77,7 @@ jvm_library(
   module_name = "intellij.android.mlkit.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  resources = [":mlkit-tests_test_resources"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -124,8 +125,7 @@ jvm_library(
     "//android/observable",
     "//android/observable:observable_test_lib",
     "@lib//:kotlin-test",
-  ],
-  runtime_deps = [":mlkit-tests_test_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.mlkit.tests` end
 

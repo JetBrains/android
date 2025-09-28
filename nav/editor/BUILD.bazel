@@ -1,9 +1,9 @@
 ### auto-generated section `build intellij.android.nav.editor` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
-jvm_resources(
+resourcegroup(
   name = "editor_resources",
-  files = glob(["resources/**/*"]),
+  srcs = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
@@ -12,6 +12,7 @@ jvm_library(
   module_name = "intellij.android.nav.editor",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":editor_resources"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:android-nav-editor-eclipse-layout-kernel",
@@ -60,8 +61,7 @@ jvm_library(
     "//xml/xml-psi-api:psi",
     "//plugins/kotlin/base/project-structure",
     "//plugins/kotlin/base/util",
-  ],
-  runtime_deps = [":editor_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.nav.editor` end
 

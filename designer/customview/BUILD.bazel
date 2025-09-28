@@ -1,9 +1,9 @@
 ### auto-generated section `build intellij.android.designer.customview` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
-jvm_resources(
+resourcegroup(
   name = "customview_resources",
-  files = glob(["resources/**/*"]),
+  srcs = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
@@ -12,6 +12,7 @@ jvm_library(
   module_name = "intellij.android.designer.customview",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":customview_resources"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:guava",
@@ -46,15 +47,14 @@ jvm_library(
     "//platform/util",
     "//platform/util:util-ui",
     "//xml/xml-psi-api:psi",
-  ],
-  runtime_deps = [":customview_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.designer.customview` end
 
 ### auto-generated section `build intellij.android.designer.customview.tests` start
-jvm_resources(
+resourcegroup(
   name = "android-designer-customview-tests_test_resources",
-  files = glob(["testData/**/*"]),
+  srcs = glob(["testData/**/*"]),
   strip_prefix = "testData"
 )
 
@@ -63,6 +63,7 @@ jvm_library(
   module_name = "intellij.android.designer.customview.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  resources = [":android-designer-customview-tests_test_resources"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -96,8 +97,7 @@ jvm_library(
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
-  ],
-  runtime_deps = [":android-designer-customview-tests_test_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.designer.customview.tests` end
 

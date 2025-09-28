@@ -1,9 +1,9 @@
 ### auto-generated section `build intellij.android.gradle.declarative.lang.ide` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
-jvm_resources(
+resourcegroup(
   name = "gradle-declarative-lang-ide_resources",
-  files = glob(["resources/**/*"]),
+  srcs = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
@@ -12,6 +12,7 @@ jvm_library(
   module_name = "intellij.android.gradle.declarative.lang.ide",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":gradle-declarative-lang-ide_resources"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
@@ -39,8 +40,7 @@ jvm_library(
     "//plugins/kotlin/base/util",
     "//plugins/gradle",
     "//plugins/gradle/java",
-  ],
-  runtime_deps = [":gradle-declarative-lang-ide_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.gradle.declarative.lang.ide` end
 

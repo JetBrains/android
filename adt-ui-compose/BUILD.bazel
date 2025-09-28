@@ -1,6 +1,6 @@
 ### auto-generated section `build intellij.android.adt.ui.compose` start
 load("//build:compiler-options.bzl", "create_kotlinc_options")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
 create_kotlinc_options(
   name = "custom_adt-ui-compose",
@@ -8,15 +8,15 @@ create_kotlinc_options(
   x_sam_conversions = "class"
 )
 
-jvm_resources(
+resourcegroup(
   name = "adt-ui-compose_resources",
-  files = glob(["resources/**/*"]),
+  srcs = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
-jvm_resources(
+resourcegroup(
   name = "adt-ui-compose_test_resources",
-  files = glob(["testResources/**/*"]),
+  srcs = glob(["testResources/**/*"]),
   strip_prefix = "testResources"
 )
 
@@ -25,6 +25,7 @@ jvm_library(
   module_name = "intellij.android.adt.ui.compose",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":adt-ui-compose_resources"],
   kotlinc_opts = ":custom_adt-ui-compose",
   deps = [
     "@lib//:studio-platform-provided",
@@ -44,10 +45,7 @@ jvm_library(
     "@lib//:android-adt-ui-compose-jewel-int-ui-standalone-243",
     "@lib//:android-adt-ui-compose-jewel-ide-laf-bridge-243",
   ],
-  runtime_deps = [
-    ":adt-ui-compose_resources",
-    "@lib//:android-adt-ui-compose-jetbrains-skiko-awt-runtime-all-0-8-18",
-  ],
+  runtime_deps = ["@lib//:android-adt-ui-compose-jetbrains-skiko-awt-runtime-all-0-8-18"],
   plugins = ["@lib//:compose-plugin"]
 )
 
@@ -55,6 +53,7 @@ jvm_library(
   name = "adt-ui-compose_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  resources = [":adt-ui-compose_test_resources"],
   kotlinc_opts = ":custom_adt-ui-compose",
   associates = [":adt-ui-compose"],
   deps = [
@@ -82,7 +81,6 @@ jvm_library(
     "@lib//:android-adt-ui-compose-jewel-int-ui-standalone-243",
     "@lib//:android-adt-ui-compose-jewel-ide-laf-bridge-243",
   ],
-  runtime_deps = [":adt-ui-compose_test_resources"],
   plugins = ["@lib//:compose-plugin"]
 )
 ### auto-generated section `build intellij.android.adt.ui.compose` end

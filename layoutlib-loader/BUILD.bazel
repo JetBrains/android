@@ -1,9 +1,9 @@
 ### auto-generated section `build intellij.android.layoutlib-loader` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
-jvm_resources(
+resourcegroup(
   name = "layoutlib-loader_resources",
-  files = glob(["resources/**/*"]),
+  srcs = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
@@ -12,13 +12,13 @@ jvm_library(
   module_name = "intellij.android.layoutlib-loader",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":layoutlib-loader_resources"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:guava",
     "@lib//:kotlin-stdlib",
     "//platform/core-api:core",
     "//platform/util",
-  ],
-  runtime_deps = [":layoutlib-loader_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.layoutlib-loader` end

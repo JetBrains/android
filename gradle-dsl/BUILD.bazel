@@ -1,9 +1,9 @@
 ### auto-generated section `build intellij.android.gradle.dsl` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
-jvm_resources(
+resourcegroup(
   name = "gradle-dsl_resources",
-  files = glob(["resources/**/*"]),
+  srcs = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
@@ -12,6 +12,7 @@ jvm_library(
   module_name = "intellij.android.gradle.dsl",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":gradle-dsl_resources"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:jetbrains-annotations",
@@ -38,8 +39,7 @@ jvm_library(
     "//platform/backend/workspace",
     "//platform/workspace/storage",
     "//platform/workspace/jps",
-  ],
-  runtime_deps = [":gradle-dsl_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.gradle.dsl` end
 

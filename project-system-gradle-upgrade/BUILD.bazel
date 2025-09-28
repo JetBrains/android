@@ -1,9 +1,9 @@
 ### auto-generated section `build intellij.android.projectSystem.gradle.upgrade` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
-jvm_resources(
+resourcegroup(
   name = "projectSystem-gradle-upgrade_resources",
-  files = glob(["resources/**/*"]),
+  srcs = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
@@ -12,6 +12,7 @@ jvm_library(
   module_name = "intellij.android.projectSystem.gradle.upgrade",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":projectSystem-gradle-upgrade_resources"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:gradle",
@@ -58,8 +59,7 @@ jvm_library(
     "//plugins/properties/properties-psi-api:psi",
     "//xml/xml-psi-api:psi",
     "//android/gmaven",
-  ],
-  runtime_deps = [":projectSystem-gradle-upgrade_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.upgrade` end
 

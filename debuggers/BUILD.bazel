@@ -1,15 +1,15 @@
 ### auto-generated section `build intellij.android.debuggers` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
-jvm_resources(
+resourcegroup(
   name = "debuggers_resources",
-  files = glob(["resources/**/*"]),
+  srcs = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
-jvm_resources(
+resourcegroup(
   name = "debuggers_resources_1",
-  files = glob(["testResources/**/*"]),
+  srcs = glob(["testResources/**/*"]),
   strip_prefix = "testResources"
 )
 
@@ -18,6 +18,10 @@ jvm_library(
   module_name = "intellij.android.debuggers",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [
+    ":debuggers_resources",
+    ":debuggers_resources_1",
+  ],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:guava",
@@ -69,10 +73,6 @@ jvm_library(
     "//android/project-system",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "//platform/xdebugger-impl/shared",
-  ],
-  runtime_deps = [
-    ":debuggers_resources",
-    ":debuggers_resources_1",
   ]
 )
 ### auto-generated section `build intellij.android.debuggers` end

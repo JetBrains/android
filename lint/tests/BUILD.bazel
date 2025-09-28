@@ -1,9 +1,9 @@
 ### auto-generated section `build intellij.android.lint.common.tests` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
-jvm_resources(
+resourcegroup(
   name = "tests_test_resources",
-  files = glob(["testData/**/*"]),
+  srcs = glob(["testData/**/*"]),
   strip_prefix = "testData"
 )
 
@@ -12,6 +12,7 @@ jvm_library(
   module_name = "intellij.android.lint.common.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  resources = [":tests_test_resources"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -53,8 +54,7 @@ jvm_library(
     "//xml/xml-psi-api:psi",
     "//plugins/kotlin/base/plugin",
     "//plugins/kotlin/base/plugin:plugin_test_lib",
-  ],
-  runtime_deps = [":tests_test_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.lint.common.tests` end
 

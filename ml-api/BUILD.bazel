@@ -1,9 +1,9 @@
 ### auto-generated section `build intellij.android.ml-api` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
-jvm_resources(
+resourcegroup(
   name = "ml-api_resources",
-  files = glob(["src/resources/**/*"]),
+  srcs = glob(["src/resources/**/*"]),
   strip_prefix = "src/resources"
 )
 
@@ -12,14 +12,14 @@ jvm_library(
   module_name = "intellij.android.ml-api",
   visibility = ["//visibility:public"],
   srcs = glob(["src/main/kotlin/**/*.kt", "src/main/kotlin/**/*.java", "src/main/kotlin/**/*.form"], allow_empty = True),
+  resources = [":ml-api_resources"],
   deps = [
     "@lib//:kotlin-stdlib",
     "@lib//:studio-platform-provided",
     "//platform/extensions",
     "//platform/core-api:core",
     "//platform/util",
-  ],
-  runtime_deps = [":ml-api_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.ml-api` end
 

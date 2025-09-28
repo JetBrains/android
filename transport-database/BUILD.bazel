@@ -1,9 +1,9 @@
 ### auto-generated section `build intellij.android.transportDatabase` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
-jvm_resources(
+resourcegroup(
   name = "transport-database_test_resources",
-  files = glob(["testData/**/*"]),
+  srcs = glob(["testData/**/*"]),
   strip_prefix = "testData"
 )
 
@@ -28,6 +28,7 @@ jvm_library(
   name = "transport-database_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  resources = [":transport-database_test_resources"],
   associates = [":transport-database"],
   deps = [
     "@lib//:studio-platform-provided",
@@ -46,8 +47,7 @@ jvm_library(
     "//android/android-common:common",
     "//android/intellij.android.testutils:testutils_test_lib",
     "//libraries/hamcrest",
-  ],
-  runtime_deps = [":transport-database_test_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.transportDatabase` end
 

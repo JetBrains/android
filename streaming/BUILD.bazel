@@ -1,9 +1,9 @@
 ### auto-generated section `build intellij.android.streaming` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
-jvm_resources(
+resourcegroup(
   name = "streaming_resources",
-  files = glob(["resources/**/*"]),
+  srcs = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
@@ -12,6 +12,7 @@ jvm_library(
   module_name = "intellij.android.streaming",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":streaming_resources"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:android-streaming-ffmpeg-javacpp",
@@ -56,7 +57,6 @@ jvm_library(
     "//platform/execution",
   ],
   runtime_deps = [
-    ":streaming_resources",
     "@lib//:android-streaming-ffmpeg-linux-x64",
     "@lib//:android-streaming-ffmpeg-macos-aarch64",
     "@lib//:android-streaming-ffmpeg-macos-x64",

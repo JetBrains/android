@@ -1,6 +1,6 @@
 ### auto-generated section `build intellij.android.compose-ide-plugin` start
 load("//build:compiler-options.bzl", "create_kotlinc_options")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
 create_kotlinc_options(
   name = "custom_compose-ide-plugin",
@@ -11,9 +11,9 @@ create_kotlinc_options(
   x_context_parameters = True
 )
 
-jvm_resources(
+resourcegroup(
   name = "compose-ide-plugin_resources",
-  files = glob(["resources/**/*"]),
+  srcs = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
@@ -22,6 +22,7 @@ jvm_library(
   module_name = "intellij.android.compose-ide-plugin",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":compose-ide-plugin_resources"],
   kotlinc_opts = ":custom_compose-ide-plugin",
   deps = [
     "@lib//:studio-platform-provided",
@@ -115,8 +116,7 @@ jvm_library(
     "//plugins/kotlin/bundled-compiler-plugins-support",
     "//plugins/kotlin/jvm-debugger/base/util",
     "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared",
-  ],
-  runtime_deps = [":compose-ide-plugin_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.compose-ide-plugin` end
 

@@ -24,11 +24,11 @@ jvm_library(
 ### auto-generated section `build intellij.android.android-material` end
 
 ### auto-generated section `build intellij.android.android-material.tests` start
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "resourcegroup")
 
-jvm_resources(
+resourcegroup(
   name = "android-material-tests_test_resources",
-  files = glob(["testResources/**/*"]),
+  srcs = glob(["testResources/**/*"]),
   strip_prefix = "testResources"
 )
 
@@ -36,6 +36,7 @@ jvm_library(
   name = "android-material-tests_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  resources = [":android-material-tests_test_resources"],
   associates = ["//android/android-material"],
   deps = [
     "@lib//:studio-platform-provided",
@@ -61,8 +62,7 @@ jvm_library(
     "//platform/util-rt:util-rt_test_lib",
     "@lib//:gson",
     "//android/android-common:common",
-  ],
-  runtime_deps = [":android-material-tests_test_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.android-material.tests` end
 

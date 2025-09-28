@@ -1,9 +1,9 @@
 ### auto-generated section `build intellij.android.designer` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
-jvm_resources(
+resourcegroup(
   name = "designer_resources",
-  files = glob(["resources/**/*"]),
+  srcs = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
@@ -12,6 +12,7 @@ jvm_library(
   module_name = "intellij.android.designer",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":designer_resources"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:commons-lang3",
@@ -93,7 +94,6 @@ jvm_library(
     "//android/avd",
     "//libraries/xerces",
   ],
-  runtime_deps = [":designer_resources"],
   plugins = ["@lib//:compose-plugin"]
 )
 
@@ -244,9 +244,9 @@ jps_test(
 ### auto-generated section `test intellij.android.designer.integration` end
 
 ### auto-generated section `build intellij.android.designer.tests` start
-jvm_resources(
+resourcegroup(
   name = "designer-tests_test_resources",
-  files = glob(["testResources/**/*"]),
+  srcs = glob(["testResources/**/*"]),
   strip_prefix = "testResources"
 )
 
@@ -260,6 +260,7 @@ jvm_library(
   name = "designer-tests_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  resources = [":designer-tests_test_resources"],
   associates = [
     "//android/designer",
     "//android/designer:designer_test_lib",
@@ -359,7 +360,6 @@ jvm_library(
     "//android/visual-lint",
     "//platform/util/base",
   ],
-  runtime_deps = [":designer-tests_test_resources"],
   plugins = ["@lib//:compose-plugin"]
 )
 ### auto-generated section `build intellij.android.designer.tests` end

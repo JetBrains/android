@@ -1,6 +1,6 @@
 ### auto-generated section `build intellij.android.profilers.ui` start
 load("//build:compiler-options.bzl", "create_kotlinc_options")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
 create_kotlinc_options(
   name = "custom_profilers-ui",
@@ -8,9 +8,9 @@ create_kotlinc_options(
   x_sam_conversions = "class"
 )
 
-jvm_resources(
+resourcegroup(
   name = "profilers-ui_resources",
-  files = glob(["resources/**/*"]),
+  srcs = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
@@ -19,6 +19,7 @@ jvm_library(
   module_name = "intellij.android.profilers.ui",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":profilers-ui_resources"],
   kotlinc_opts = ":custom_profilers-ui",
   deps = [
     "@lib//:studio-platform-provided",
@@ -52,7 +53,6 @@ jvm_library(
     "//platform/util:util-ui",
     "//android/artwork-compose",
   ],
-  runtime_deps = [":profilers-ui_resources"],
   plugins = ["@lib//:compose-plugin"]
 )
 

@@ -1,9 +1,9 @@
 ### auto-generated section `build intellij.android.layout-inspector` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
-jvm_resources(
+resourcegroup(
   name = "layout-inspector_resources",
-  files = glob(["resources/**/*"]),
+  srcs = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
@@ -12,6 +12,7 @@ jvm_library(
   module_name = "intellij.android.layout-inspector",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":layout-inspector_resources"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:jetbrains-annotations",
@@ -83,8 +84,7 @@ jvm_library(
     "//plugins/kotlin/base/scripting/scripting.shared",
     "//plugins/kotlin/base/util",
     "//android/device-manager-v2",
-  ],
-  runtime_deps = [":layout-inspector_resources"]
+  ]
 )
 
 jvm_library(
@@ -206,9 +206,9 @@ jps_test(
 ### auto-generated section `test intellij.android.layout-inspector` end
 
 ### auto-generated section `build intellij.android.layout-inspector.integration` start
-jvm_resources(
+resourcegroup(
   name = "layout-inspector-integration_test_resources",
-  files = glob(["integration/testData/**/*"]),
+  srcs = glob(["integration/testData/**/*"]),
   strip_prefix = "integration/testData"
 )
 
@@ -217,6 +217,7 @@ jvm_library(
   module_name = "intellij.android.layout-inspector.integration",
   visibility = ["//visibility:public"],
   srcs = glob(["integration/testSrc/**/*.kt", "integration/testSrc/**/*.java", "integration/testSrc/**/*.form"], allow_empty = True),
+  resources = [":layout-inspector-integration_test_resources"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -228,8 +229,7 @@ jvm_library(
     "//android/as-driver/utils:utils_test_lib",
     "//plugins/kotlin/plugin",
     "//plugins/kotlin/plugin/k1",
-  ],
-  runtime_deps = [":layout-inspector-integration_test_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.layout-inspector.integration` end
 
@@ -243,9 +243,9 @@ jps_test(
 ### auto-generated section `test intellij.android.layout-inspector.integration` end
 
 ### auto-generated section `build intellij.android.layout-inspector.tests` start
-jvm_resources(
+resourcegroup(
   name = "layout-inspector-tests_test_resources",
-  files = glob(["testResources/**/*"]),
+  srcs = glob(["testResources/**/*"]),
   strip_prefix = "testResources"
 )
 
@@ -254,6 +254,7 @@ jvm_library(
   module_name = "intellij.android.layout-inspector.tests",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
+  resources = [":layout-inspector-tests_test_resources"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -344,8 +345,7 @@ jvm_library(
     "@lib//:jimfs",
     "//android/device-manager-v2",
     "//android/device-manager-v2:device-manager-v2_test_lib",
-  ],
-  runtime_deps = [":layout-inspector-tests_test_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.layout-inspector.tests` end
 

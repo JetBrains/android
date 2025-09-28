@@ -1,6 +1,6 @@
 ### auto-generated section `build intellij.android.testartifacts` start
 load("//build:compiler-options.bzl", "create_kotlinc_options")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
 create_kotlinc_options(
   name = "custom_testartifacts",
@@ -8,9 +8,9 @@ create_kotlinc_options(
   x_sam_conversions = "class"
 )
 
-jvm_resources(
+resourcegroup(
   name = "testartifacts_resources",
-  files = glob(["resources/**/*"]),
+  srcs = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
@@ -19,6 +19,7 @@ jvm_library(
   module_name = "intellij.android.testartifacts",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":testartifacts_resources"],
   kotlinc_opts = ":custom_testartifacts",
   deps = [
     "@lib//:studio-platform-provided",
@@ -48,7 +49,6 @@ jvm_library(
     "//android/adt-ui-compose",
     "//android/artwork-compose",
   ],
-  runtime_deps = [":testartifacts_resources"],
   plugins = ["@lib//:compose-plugin"]
 )
 ### auto-generated section `build intellij.android.testartifacts` end

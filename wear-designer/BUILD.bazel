@@ -1,9 +1,9 @@
 ### auto-generated section `build intellij.android.wear-designer` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
-jvm_resources(
+resourcegroup(
   name = "wear-designer_resources",
-  files = glob(["resources/**/*"]),
+  srcs = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
@@ -12,6 +12,7 @@ jvm_library(
   module_name = "intellij.android.wear-designer",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":wear-designer_resources"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:guava",
@@ -57,8 +58,7 @@ jvm_library(
     "//android/rendering",
     "//android/project-system",
     "//android/wear-preview-elements",
-  ],
-  runtime_deps = [":wear-designer_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.wear-designer` end
 

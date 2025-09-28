@@ -1,9 +1,9 @@
 ### auto-generated section `build intellij.android.render-resources` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
-jvm_resources(
+resourcegroup(
   name = "render-resources_resources",
-  files = glob(["resources/**/*"]),
+  srcs = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
@@ -12,6 +12,7 @@ jvm_library(
   module_name = "intellij.android.render-resources",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":render-resources_resources"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:guava",
@@ -35,8 +36,7 @@ jvm_library(
     "//platform/util",
     "//platform/util/base",
     "//platform/util/trove",
-  ],
-  runtime_deps = [":render-resources_resources"]
+  ]
 )
 ### auto-generated section `build intellij.android.render-resources` end
 
