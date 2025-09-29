@@ -18,6 +18,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
         "//tools/base/common:studio.android.sdktools.common",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+        "//tools/base/adblib-ddmlibcompatibility:studio.android.sdktools.adblib.ddmlibcompatibility",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
