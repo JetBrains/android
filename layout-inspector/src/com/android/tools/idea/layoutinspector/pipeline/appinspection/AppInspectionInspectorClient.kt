@@ -43,7 +43,6 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorConnectionError
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.Compatibility.NotCompatible.Reason.API_29_PLAY_STORE
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadResult
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
@@ -140,11 +139,8 @@ class AppInspectionInspectorClient(
   override val provider: PropertiesProvider
     get() = propertiesProvider
 
-  override suspend fun getRecompositionStateReadsFromCache(
-    view: ComposeViewNode,
-    recomposition: Int,
-  ): RecomposeStateReadResult? {
-    return composeInspector?.getRecompositionStateReadsFromCache(view, recomposition)
+  override suspend fun requestRecompositionStateReads(view: ComposeViewNode, recomposition: Int) {
+    composeInspector?.requestRecompositionStateReads(view, recomposition)
   }
 
   override val inLiveMode: Boolean

@@ -33,7 +33,6 @@ import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetr
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadResult
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.metrics.MetricsTrackerRule
@@ -870,8 +869,5 @@ private open class FakeInspectorClient(
   override val provider: PropertiesProvider
     get() = throw NotImplementedError()
 
-  override suspend fun getRecompositionStateReadsFromCache(
-    view: ComposeViewNode,
-    recomposition: Int,
-  ): RecomposeStateReadResult? = null
+  override suspend fun requestRecompositionStateReads(view: ComposeViewNode, recomposition: Int) {}
 }
