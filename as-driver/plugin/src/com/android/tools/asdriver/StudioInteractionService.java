@@ -93,27 +93,25 @@ public class StudioInteractionService {
   private static final String LOG_PREFIX = "[StudioInteractionService]";
 
   public StudioInteractionService() { }
-
-  public void findAndInvokeComponent(List<ASDriver.ComponentMatcher> matchers) throws InterruptedException, TimeoutException, InvocationTargetException {
-    log("Attempting to find and invoke a component with matchers: " + matchers);
-    // TODO(b/234067246): consider this timeout when addressing b/234067246. At 10000 or less, this fails occasionally on Windows.
-    long timeoutMillis = 180000;
-    Function<Component, Boolean> filter = this::isComponentInvokable;
+  public void findAndInvokeComponent(List<ASDriver.ComponentMatcher> matchers) throws InterruptedException, TimeoutException {
     Consumer<Component> invoke = this::invokeComponent;
-    long startTime = System.currentTimeMillis();
-    filterAndExecuteComponent(matchers, timeoutMillis, filter, invoke);
-    log(String.format(Locale.getDefault(), "Found and invoked the component in %dms", System.currentTimeMillis() - startTime));
+    findAndExecute(matchers, "Attempting to find and invoke a component", "invoked", invoke);
   }
 
-  public void findAndSetTextOnComponent(List<ASDriver.ComponentMatcher> matchers, String text) throws InterruptedException, TimeoutException, InvocationTargetException {
-    log("Attempting to set text on a component with matchers: " + matchers);
+  public void findAndSetTextOnComponent(List<ASDriver.ComponentMatcher> matchers, String text) throws InterruptedException, TimeoutException {
+    Consumer<Component> setText = (component) -> setTextOnComponent(component, text);
+    findAndExecute(matchers, "Attempting to set text on a component", "set text on", setText);
+  }
+
+  private void findAndExecute(List<ASDriver.ComponentMatcher> matchers, String initialLog, String completionLog, Consumer<Component> exec)
+    throws InterruptedException, TimeoutException {
+    log(String.format(Locale.ROOT, "%s with matchers: %s", initialLog, matchers));
     // TODO(b/234067246): consider this timeout when addressing b/234067246. At 10000 or less, this fails occasionally on Windows.
     long timeoutMillis = 180000;
     Function<Component, Boolean> filter = this::isComponentInvokable;
-    Consumer<Component> setText = (component) -> setTextOnComponent(component, text);
     long startTime = System.currentTimeMillis();
-    filterAndExecuteComponent(matchers, timeoutMillis, filter, setText);
-    log(String.format(Locale.getDefault(), "Found and invoked the component in %dms", System.currentTimeMillis() - startTime));
+    filterAndExecuteComponent(matchers, timeoutMillis, filter, exec);
+    log(String.format(Locale.ROOT, "Found and %s the component in %dms", completionLog, System.currentTimeMillis() - startTime));
   }
 
   public void waitForComponent(List<ASDriver.ComponentMatcher> matchers, boolean waitForEnabled)
@@ -161,7 +159,7 @@ public class StudioInteractionService {
       log("Invoking ActionMenuItem: " + componentAsMenuItem);
       componentAsMenuItem.doClick();
     } else {
-      throw new IllegalArgumentException(String.format("Don't know how to invoke a component of class \"%s\"", component.getClass()));
+      throw new IllegalArgumentException(String.format(Locale.ROOT, "Don't know how to invoke a component of class \"%s\"", component.getClass()));
     }
   }
 
@@ -170,7 +168,7 @@ public class StudioInteractionService {
       log("Setting text on JTextField: " + componentAsJTextField);
       componentAsJTextField.setText(text);
     } else {
-      throw new IllegalArgumentException(String.format("Don't know how to invoke set text on class \"%s\"", component.getClass()));
+      throw new IllegalArgumentException(String.format(Locale.ROOT, "Don't know how to invoke set text on class \"%s\"", component.getClass()));
     }
   }
 
@@ -220,9 +218,9 @@ public class StudioInteractionService {
       for (Component component : componentsFound) {
         // Some components override toString(), which means the class isn't guaranteed to show.
         // Given that most searches for components rely on the class name, we explicitly print it.
-        sb.append(String.format(Locale.getDefault(), "\t#%d: class: [%s] toString: %s%n", index++, component.getClass(), component));
+        sb.append(String.format(Locale.ROOT, "\t#%d: class: [%s] toString: %s%n", index++, component.getClass(), component));
       }
-      throw new IllegalStateException(String.format("Found %s component(s) but expected exactly one:%n%s%n\tPlease construct more specific match criteria.",
+      throw new IllegalStateException(String.format(Locale.ROOT, "Found %s component(s) but expected exactly one:%n%s%n\tPlease construct more specific match criteria.",
                                                     numComponentsFound, sb));
     }
 
@@ -542,7 +540,7 @@ public class StudioInteractionService {
 
     if (elapsedTime >= timeoutMillis) {
       throw new TimeoutException(
-        String.format("Timed out after %dms to find and invoke a component with these matchers: %s", elapsedTime, matchers));
+        String.format(Locale.ROOT, "Timed out after %dms to find and invoke a component with these matchers: %s", elapsedTime, matchers));
     }
   }
 
