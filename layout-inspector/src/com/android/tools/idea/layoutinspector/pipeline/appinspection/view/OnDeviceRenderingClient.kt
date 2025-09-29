@@ -16,13 +16,12 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import com.android.tools.idea.layoutinspector.common.ephemeralFlow
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.DrawInstruction
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Event
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.UserInputEvent
 import com.android.tools.idea.protobuf.ByteString
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
 /** A touch event received from the on-device renderer. */
@@ -182,22 +181,4 @@ private fun DrawInstruction.toProto(): LayoutInspectorViewProtocol.DrawInstructi
     }
     .setStrokeThickness(strokeThickness)
     .build()
-}
-
-/**
- * Creates a [MutableSharedFlow] that emits only the most recent value published after a subscriber
- * starts collecting. This ensures that new collectors receive only future emissions and do not
- * retain past values.
- *
- * @return A [MutableSharedFlow] that buffers only the latest emitted value, dropping older values
- *   if a new one arrives before being collected.
- */
-private fun <T> ephemeralFlow(): MutableSharedFlow<T?> {
-  return MutableSharedFlow<T?>(
-    // When a new collector starts, it only sees future events.
-    replay = 0,
-    // Store only one event at a time.
-    extraBufferCapacity = 1,
-    onBufferOverflow = BufferOverflow.DROP_OLDEST,
-  )
 }
