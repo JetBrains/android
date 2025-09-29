@@ -61,8 +61,8 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvide
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Iterables
-import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.project.Project
@@ -83,7 +83,7 @@ import kotlinx.coroutines.launch
  * more device renderings, etc
  *
  * @param sceneManagerProvider Allows customizing the generation of [SceneManager]s
- * @param delegateDataProvider See [NlSurfaceBuilder.setDelegateDataProvider]
+ * @param delegateUiDataProvider See [NlSurfaceBuilder.setDelegateUiDataProvider]
  */
 class NlDesignSurface
 internal constructor(
@@ -99,7 +99,7 @@ internal constructor(
     (DesignSurface<LayoutlibSceneManager>) -> DesignSurfaceActionHandler<
         DesignSurface<LayoutlibSceneManager>
       >,
-  private val delegateDataProvider: DataProvider?,
+  private val delegateUiDataProvider: UiDataProvider?,
   selectionModel: SelectionModel,
   zoomControlsPolicy: ZoomControlsPolicy,
   private val supportedActionsProvider: Supplier<ImmutableSet<NlSupportedActions>>,
@@ -536,7 +536,7 @@ internal constructor(
   override fun uiDataSnapshot(sink: DataSink) {
     super.uiDataSnapshot(sink)
     sink[LAYOUT_PREVIEW_HANDLER_KEY] = layoutPreviewHandler
-    DataSink.uiDataSnapshot(sink, delegateDataProvider)
+    delegateUiDataProvider?.let { sink.uiDataSnapshot(it) }
   }
 
   fun getGlobalImageTransformation(): Consumer<BufferedImage>? {

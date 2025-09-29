@@ -61,7 +61,7 @@ import com.intellij.codeInsight.daemon.impl.MockWolfTheProblemSolver
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.Logger
@@ -156,7 +156,7 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
   private val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
 
-  private val nopDataProvider = DataProvider { null }
+  private val nopUiDataProvider = UiDataProvider {}
 
   private val statusManager =
     object : RenderingBuildStatusManager {
@@ -272,7 +272,7 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
           project,
           navigationHandler,
           interactionHandler,
-          nopDataProvider,
+          nopUiDataProvider,
           fixture.testRootDisposable,
           sceneComponentProvider,
           ComposeScreenViewProvider(NopComposePreviewManager()),
@@ -283,7 +283,7 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
           project,
           mainFileSmartPointer,
           statusManager,
-          nopDataProvider,
+          nopUiDataProvider,
           mainSurfaceBuilder,
           fixture.testRootDisposable,
         )

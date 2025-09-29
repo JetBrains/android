@@ -190,12 +190,9 @@ class VisualizationForm(
         }
         .setLayoutOption(myLayoutOption)
         .setSupportedActions(VISUALIZATION_SUPPORTED_ACTIONS)
-        .setDelegateDataProvider {
-          when {
-            VIRTUAL_FILE.`is`(it) -> myFile
-            VISUALIZATION_FORM.`is`(it) -> this
-            else -> null
-          }
+        .setDelegateUiDataProvider {
+          it[VIRTUAL_FILE] = myFile
+          it[VISUALIZATION_FORM] = this
         }
         .build()
     surface.setSceneViewAlignment(SceneViewAlignment.LEFT)

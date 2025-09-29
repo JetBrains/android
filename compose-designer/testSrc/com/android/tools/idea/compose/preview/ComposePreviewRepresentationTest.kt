@@ -50,7 +50,6 @@ import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.modes.UI_CHECK_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
-import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
@@ -67,13 +66,16 @@ import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.util.TestToolWindowManager
-import com.google.common.base.Preconditions.checkState
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
+import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
@@ -102,6 +104,7 @@ import java.nio.file.Path
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import kotlin.test.assertFails
+import kotlin.test.assertNotNull
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -489,12 +492,19 @@ class ComposePreviewRepresentationTest {
   @Test
   fun testPreviewManagersShouldBeRegisteredInDataProvider() = runComposePreviewRepresentationTest {
     createPreviewAndCompile()
-    assertTrue(getData(PreviewModeManager.KEY.name) is PreviewModeManager)
-    assertTrue(getData(PreviewGroupManager.KEY.name) is PreviewGroupManager)
-    assertTrue(getData(PreviewFlowManager.KEY.name) is PreviewFlowManager<*>)
-    assertTrue(getData(PREVIEW_VIEW_MODEL_STATUS.name) is PreviewViewModelStatus)
-    assertTrue(getData(FastPreviewSurface.KEY.name) is FastPreviewSurface)
-    assertTrue(getData(PreviewInvalidationManager.KEY.name) is PreviewInvalidationManager)
+    val context =
+      DataManager.getInstance()
+        .customizeDataContext(
+          DataContext.EMPTY_CONTEXT,
+          EdtNoGetDataProvider { sink -> DataSink.uiDataSnapshot(sink, uiDataProvider) },
+        )
+
+    assertNotNull(context.getData(PreviewModeManager.KEY))
+    assertNotNull(context.getData(PreviewGroupManager.KEY))
+    assertNotNull(context.getData(PreviewFlowManager.KEY))
+    assertNotNull(context.getData(PREVIEW_VIEW_MODEL_STATUS))
+    assertNotNull(context.getData(FastPreviewSurface.KEY))
+    assertNotNull(context.getData(PreviewInvalidationManager.KEY))
   }
 
   @Test
@@ -1324,7 +1334,7 @@ class ComposePreviewRepresentationTest {
 
     lateinit var composeView: TestComposePreviewView
 
-    private lateinit var dataProvider: DataProvider
+    lateinit var uiDataProvider: UiDataProvider
 
     private lateinit var newModelAddedLatch: CountDownLatch
 
@@ -1353,7 +1363,7 @@ class ComposePreviewRepresentationTest {
             provider,
             _,
             _ ->
-            dataProvider = provider
+            uiDataProvider = provider
             composeView
           }
       Disposer.register(fixture.testRootDisposable, preview)
@@ -1388,15 +1398,6 @@ class ComposePreviewRepresentationTest {
       delayUntilCondition(250) {
         !(preview.status().isRefreshing || DumbService.getInstance(fixture.project).isDumb)
       }
-    }
-
-    fun getData(dataId: String): Any? {
-      checkState(
-        ::dataProvider.isInitialized,
-        "createPreviewAndCompile() must be called before getData() to make sure the DataProvider " +
-          "is initialized.",
-      )
-      return dataProvider.getData(dataId)
     }
 
     fun cleanup() {
