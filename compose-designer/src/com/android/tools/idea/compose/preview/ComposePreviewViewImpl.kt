@@ -459,12 +459,10 @@ internal class ComposePreviewViewImpl(
     ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull()
 
   /**
-   * Creates an [ActionData] to invoke [GenerateComposePreviewsForFileAction]. The action should
-   * only be visible if the containing file has Composables.
+   * Creates an [ActionData] to invoke an Action to generate Compose Previews for this file. The
+   * action should only be visible if the containing file has Composables.
    */
   private suspend fun createGeneratePreviewsActionData(): ActionData? {
-    val virtualFile = psiFilePointer.virtualFile ?: return null
-
     val previewGeneratorFactory = getComposeStudioBotActionFactory() ?: return null
 
     try {
