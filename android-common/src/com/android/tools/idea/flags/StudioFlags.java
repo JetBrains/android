@@ -1767,6 +1767,13 @@ public final class StudioFlags {
     "XR Device Support Enabled",
     "Enable the support of XR device in the device manager"
   );
+
+  public static final Flag<Boolean> AI_GLASSES_PHONE_EMULATOR_PAIRING_WIZARD_ENABLED = new BooleanFlag(
+    DEVICE_MANAGER,
+    "ai.glasses.phone.emulator.pairing.wizard.enabled",
+    "Enable microxr glasses emulator and phone emulator pairing wizard",
+    "Enables the pairing assistant for glasses and phone emulators."
+  );
   // endregion
 
   //region DDMLIB
