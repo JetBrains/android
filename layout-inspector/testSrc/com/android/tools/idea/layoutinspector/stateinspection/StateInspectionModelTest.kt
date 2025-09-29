@@ -399,7 +399,7 @@ class StateInspectionModelTest {
         ActionUiKind.NONE,
         null,
       )
-    ActionUtil.performDumbAwareUpdate(this, event, false)
+    ActionUtil.updateAction(this, event)
     return presentation.isEnabled
   }
 
@@ -413,8 +413,8 @@ class StateInspectionModelTest {
         ActionUiKind.NONE,
         null,
       )
-    ActionUtil.performDumbAwareUpdate(this, event, true)
-    ActionUtil.performActionDumbAwareWithCallbacks(this, event)
+    ActionUtil.updateAction(this, event)
+    ActionUtil.performAction(this, event)
   }
 
   private fun GetRecompositionStateReadResponse.convert(
