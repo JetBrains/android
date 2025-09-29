@@ -19,6 +19,10 @@ import static com.android.fakeadbserver.DeviceState.DeviceStatus.ONLINE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotNull;
 
+import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule;
+import com.android.adblib.ddmlibcompatibility.testutils.UseAdbLibAndroidDebugBridgeRule;
+import com.android.adblib.testingutils.FakeAdbServerProvider;
+import com.android.adblib.testingutils.FakeAdbServerProviderRule;
 import com.android.annotations.Nullable;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
@@ -35,6 +39,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -49,7 +54,9 @@ import kotlinx.coroutines.CoroutineScope;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 
 public class DeviceTest {
   private static final String PROCESS_NAME = "com.example.android.notdisplayingbitmaps";
@@ -67,43 +74,47 @@ public class DeviceTest {
 
   private static final int WAIT_TIME_S = 1000;
 
-  private FakeAdbServer myAdbServer;
-
   private DeviceBinder myPreOBinder;
   private DeviceBinder myOBinder;
 
-  private List<String> myPreOResult;
-  private volatile CountDownLatch myPreOContinuationLatch;
-  private volatile CountDownLatch myPreOFinishedLatch;
+  private final List<String> myPreOResult = Collections.synchronizedList(new ArrayList<>());
+  private volatile CountDownLatch myPreOContinuationLatch = new CountDownLatch(1);
+  private volatile CountDownLatch myPreOFinishedLatch = new CountDownLatch(1);
 
-  private List<String> myOResult;
-  private volatile CountDownLatch myOContinuationLatch;
-  private volatile CountDownLatch myOFinishedLatch;
-  private Map<String, List<String>> myStatPidMap;
+  private final List<String> myOResult = Collections.synchronizedList(new ArrayList<>(Arrays.asList(String.format("package:%s ", APP_ID))));
+  private volatile CountDownLatch myOContinuationLatch = new CountDownLatch(1);
+  private volatile CountDownLatch myOFinishedLatch = new CountDownLatch(1);
+  private final Map<String, List<String>> myStatPidMap = new HashMap<>(ImmutableMap.of(getStatLookup(O_VALID_PID), myOResult));
 
-  private ApplicationIdResolver myApplicationIdResolver;
+  private final ApplicationIdResolver myApplicationIdResolver = new ApplicationIdResolver();
+
+  private final FakeAdbServerProviderRule fakeAdbRule = new FakeAdbServerProviderRule(
+    (FakeAdbServerProvider provider) ->
+      provider.installDefaultCommandHandlers()
+        .installDeviceHandler(
+          getShellHandler(
+            Pattern.compile("^uid.*"), ImmutableMap.of(APP_ID, myPreOResult), () -> myPreOContinuationLatch, () -> myPreOFinishedLatch))
+        .installDeviceHandler(getShellHandler(Pattern.compile("^stat.*"), myStatPidMap, () -> myOContinuationLatch, () -> myOFinishedLatch))
+  );
+
+  private final UseAdbLibAndroidDebugBridgeRule useAdbLibAndroidDebugBridgeRule =
+    new UseAdbLibAndroidDebugBridgeRule(
+      () -> fakeAdbRule.getAdbSession()
+    );
+
+  private final InitAndroidDebugBridgeRule initAndroidDebugBridgeRule =
+    // TODO merge
+    new InitAndroidDebugBridgeRule(false, () -> fakeAdbRule.getFakeAdb().getPort());
+
+  @Rule
+  public final RuleChain ruleChain =
+    RuleChain.outerRule(fakeAdbRule)
+      .around(useAdbLibAndroidDebugBridgeRule)
+      .around(initAndroidDebugBridgeRule);
 
   @Before
   public void setup() throws Exception {
-    myPreOContinuationLatch = new CountDownLatch(1);
-    myPreOFinishedLatch = new CountDownLatch(1);
-    myPreOResult = Collections.synchronizedList(new ArrayList<>());
-    myOContinuationLatch = new CountDownLatch(1);
-    myOFinishedLatch = new CountDownLatch(1);
-    myOResult = Collections.synchronizedList(new ArrayList<>());
-    myOResult.add(String.format("package:%s ", APP_ID));
-    myStatPidMap = new HashMap<>(ImmutableMap.of(getStatLookup(O_VALID_PID), myOResult));
-
-    // Build the server and configure it to use the default ADB command handlers.
-    FakeAdbServer.Builder builder = new FakeAdbServer.Builder();
-    myAdbServer = builder.installDefaultCommandHandlers()
-      .addDeviceHandler(
-        getShellHandler(
-          Pattern.compile("^uid.*"), ImmutableMap.of(APP_ID, myPreOResult), () -> myPreOContinuationLatch, () -> myPreOFinishedLatch))
-      .addDeviceHandler(getShellHandler(Pattern.compile("^stat.*"), myStatPidMap, () -> myOContinuationLatch, () -> myOFinishedLatch))
-      .build();
-
-    DeviceState preODeviceState = myAdbServer.connectDevice(
+    DeviceState preODeviceState = fakeAdbRule.getFakeAdb().getFakeAdbServer().connectDevice(
       "test_device_N",
       "Google",
       "Nexus Gold",
@@ -111,7 +122,7 @@ public class DeviceTest {
       new AndroidApiLevel(25),
       DeviceState.HostConnectionType.USB).get();
 
-    DeviceState oDeviceState = myAdbServer.connectDevice(
+    DeviceState oDeviceState = fakeAdbRule.getFakeAdb().getFakeAdbServer().connectDevice(
       "test_device_O",
       "Google",
       "Nexus Gold",
@@ -119,17 +130,10 @@ public class DeviceTest {
       new AndroidApiLevel(26),
       DeviceState.HostConnectionType.USB).get();
 
-    // Start server execution.
-    myAdbServer.start();
-
     // Test that we obtain 1 device via the ddmlib APIs
     AndroidDebugBridge.terminate();
-    AndroidDebugBridge.enableFakeAdbServerMode(myAdbServer.getPort());
-    AndroidDebugBridge.initIfNeeded(true);
     AndroidDebugBridge bridge = AndroidDebugBridge.createBridge();
     assertNotNull("Debug bridge", bridge);
-
-    myApplicationIdResolver = new ApplicationIdResolver();
 
     myPreOBinder = new DeviceBinder(preODeviceState);
     myOBinder = new DeviceBinder(oDeviceState);
@@ -140,11 +144,7 @@ public class DeviceTest {
 
   @After
   public void teardown() throws Exception {
-    if (myApplicationIdResolver != null) myApplicationIdResolver.dispose();
-    myAdbServer.close();
-    AndroidDebugBridge.disconnectBridge();
-    AndroidDebugBridge.terminate();
-    AndroidDebugBridge.disableFakeAdbServerMode();
+    myApplicationIdResolver.dispose();
   }
 
   @Test

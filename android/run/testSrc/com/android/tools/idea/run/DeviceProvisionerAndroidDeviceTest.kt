@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.run
 
-import com.android.adblib.ddmlibcompatibility.AdbLibIDeviceManagerFactory
-import com.android.ddmlib.AdbInitOptions
+import com.android.adblib.ddmlibcompatibility.testutils.InitAndroidDebugBridgeRule
+import com.android.adblib.ddmlibcompatibility.testutils.UseAdbLibAndroidDebugBridgeRule
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.google.common.truth.Truth.assertThat
@@ -28,25 +28,29 @@ import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 
 class DeviceProvisionerAndroidDeviceTest {
-  @get:Rule val deviceProvisionerRule = DeviceProvisionerRule()
+  private val deviceProvisionerRule = DeviceProvisionerRule()
+
+  private val useAdbLibAndroidDebugBridgeRule =
+    UseAdbLibAndroidDebugBridgeRule { deviceProvisionerRule.adbSession }
+
+  private val initAndroidDebugBridgeRule =
+    InitAndroidDebugBridgeRule { deviceProvisionerRule.fakeAdb.port }
+
+  @get:Rule
+  val ruleChain = RuleChain.outerRule(deviceProvisionerRule)
+    .around(useAdbLibAndroidDebugBridgeRule)
+    .around(initAndroidDebugBridgeRule)!!
 
   lateinit var bridge: AndroidDebugBridge
 
   @Before
   fun initAdb() {
-    AndroidDebugBridge.enableFakeAdbServerMode(deviceProvisionerRule.fakeAdb.fakeAdbServer.port)
-    val options =
-      AdbInitOptions.builder()
-        .setIDeviceManagerFactory(AdbLibIDeviceManagerFactory(deviceProvisionerRule.adbSession))
-        .useJdwpProxyService(false)
-        .build()
-    AndroidDebugBridge.init(options)
     bridge =
       AndroidDebugBridge.createBridge(10, TimeUnit.SECONDS) ?: error("Could not create ADB bridge")
     val startTime = System.currentTimeMillis()
@@ -57,13 +61,6 @@ class DeviceProvisionerAndroidDeviceTest {
       Uninterruptibles.sleepUninterruptibly(100, TimeUnit.MILLISECONDS)
     }
     deviceProvisionerRule.deviceProvisionerPlugin.explicitBoot = true
-  }
-
-  @After
-  fun terminateAdb() {
-    AndroidDebugBridge.disconnectBridge()
-    AndroidDebugBridge.terminate()
-    AndroidDebugBridge.disableFakeAdbServerMode()
   }
 
   @Test
