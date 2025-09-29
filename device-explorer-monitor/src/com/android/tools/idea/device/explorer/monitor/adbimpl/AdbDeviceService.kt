@@ -147,10 +147,8 @@ class AdbDeviceService @NonInjectable constructor(private val adbSupplier: () ->
         }
         this@AdbDeviceService.bridge = bridge
         if (bridge != null) {
-          if (bridge.hasInitialDeviceList()) {
-            for (device in bridge.devices) {
-              devices[device.serialNumber] = device
-            }
+          for (device in bridge.devices) {
+            devices[device.serialNumber] = device
           }
         }
         // From this point on, either we already got the device from the bridge,
