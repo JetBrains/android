@@ -23,7 +23,6 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.LiveStage
 import com.android.tools.profilers.NullMonitorStage
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
@@ -37,7 +36,6 @@ import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
-import com.android.tools.profilers.tasks.taskhandlers.singleartifact.LiveTaskHandler
 import com.google.common.truth.Truth
 import org.junit.Before
 import org.junit.Rule
@@ -59,44 +57,6 @@ class SessionItemTest {
   fun setup() {
     val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(myProfilers.sessionsManager)
     taskHandlers.forEach{ (type, handler)  -> myProfilers.addTaskHandler(type, handler) }
-  }
-
-  @Test
-  fun testNavigateToLiveStageWhenTaskBasedUxEnabled() {
-    myIdeServices.enableTaskBasedUx(true)
-    // Bypass error that selected task does not have corresponding task handler by adding a task handler for UNSPECIFIED task type.
-    myProfilers.addTaskHandler(ProfilerTaskType.UNSPECIFIED, LiveTaskHandler(myProfilers.sessionsManager))
-
-    val device = onlineDevice { deviceId = NEW_DEVICE_ID }
-    val process = debuggableProcess { deviceId = NEW_DEVICE_ID; pid = NEW_PROCESS_ID }
-    startSession(device, process)
-
-    myProfilers.stage = MainMemoryProfilerStage(myProfilers)
-    Truth.assertThat(myProfilers.stageClass).isEqualTo(MainMemoryProfilerStage::class.java)
-    val sessionItem = myProfilers.sessionsManager.sessionArtifacts[0] as SessionItem
-    // In TaskBasedUx, `sessionItem.onSelect()` is invoked after selecting a live view past recording and clicking on
-    // 'Open profiler task'.
-    sessionItem.onSelect()
-    Truth.assertThat(myProfilers.stageClass).isEqualTo(LiveStage::class.java)
-  }
-
-  @Test
-  fun testNavigateToLiveStageWhenTaskBasedUxEnabledAlreadyLiveStage() {
-    myIdeServices.enableTaskBasedUx(true)
-    // Bypass error that selected task does not have corresponding task handler by adding a task handler for UNSPECIFIED task type.
-    myProfilers.addTaskHandler(ProfilerTaskType.UNSPECIFIED, LiveTaskHandler(myProfilers.sessionsManager))
-
-    val device = onlineDevice { deviceId = NEW_DEVICE_ID }
-    val process = debuggableProcess { deviceId = NEW_DEVICE_ID; pid = NEW_PROCESS_ID }
-    startSession(device, process)
-    myProfilers.stage = LiveStage(myProfilers)
-
-    Truth.assertThat(myProfilers.stageClass).isEqualTo(LiveStage::class.java)
-    val sessionItem = myProfilers.sessionsManager.sessionArtifacts[0] as SessionItem
-    // In TaskBasedUx, `sessionItem.onSelect()` is invoked after selecting a live view past recording and clicking on
-    // 'Open profiler task'.
-    sessionItem.onSelect()
-    Truth.assertThat(myProfilers.stageClass).isEqualTo(LiveStage::class.java)
   }
 
   @Test
@@ -244,37 +204,6 @@ class SessionItemTest {
   }
 
   @Test
-  fun `session with no child artifacts is not exportable`() {
-    val session = Common.Session.newBuilder().build()
-
-    val sessionItem = SessionItem(myProfilers, session, Common.SessionMetaData.newBuilder().apply {
-      sessionName = "com.google.app (Pixel 3A XL)"
-      type = Common.SessionMetaData.SessionType.MEMORY_CAPTURE
-    }.build())
-
-    // Make sure there are no child artifacts.
-    Truth.assertThat(sessionItem.getChildArtifacts()).isEmpty()
-    // Despite being a valid session type (MEMORY_CAPTURE), no child artifacts will lead to canExport being false.
-    Truth.assertThat(sessionItem.canExport).isFalse()
-  }
-
-  @Test
-  fun `session with a single child artifacts is exportable`() {
-    val session = Common.Session.newBuilder().build()
-
-    val sessionItem = SessionItem(myProfilers, session, Common.SessionMetaData.newBuilder().apply {
-      sessionName = "com.google.app (Pixel 3A XL)"
-      type = Common.SessionMetaData.SessionType.MEMORY_CAPTURE
-    }.build())
-
-    sessionItem.setChildArtifacts(listOf(
-      CpuCaptureSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), Common.SessionMetaData.getDefaultInstance(),
-                                Trace.TraceInfo.getDefaultInstance())))
-    // The session item has a single child artifact, thus canExport should be true.
-    Truth.assertThat(sessionItem.canExport).isTrue()
-  }
-
-  @Test
   fun `system trace task recording shows correct supported tasks`() {
     val sessionId = 1L
     val traceId = 1L
@@ -361,12 +290,14 @@ class SessionItemTest {
   }
 
   @Test
-  fun `recording with no artifacts shows live view tasks available`() {
+  fun `recording with no artifacts shows unspecified task available`() {
     val sessionId = 1L
     val session = Common.Session.newBuilder().setSessionId(sessionId).build()
+    // A recording without artifacts has no data for any specific task to handle. Therefore, its type is UNSPECIFIED,
+    // regardless of the intended task type from metadata.
     val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, ProfilerTaskType.LIVE_VIEW, listOf())
     val supportedTask = sessionItem.getTaskType()
-    Truth.assertThat(supportedTask).isEqualTo(ProfilerTaskType.LIVE_VIEW)
+    Truth.assertThat(supportedTask).isEqualTo(ProfilerTaskType.UNSPECIFIED)
   }
 
   @Test

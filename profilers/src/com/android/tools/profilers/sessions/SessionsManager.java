@@ -20,7 +20,6 @@ import static com.android.tools.profilers.StudioProfilers.buildSessionName;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.protobuf.GeneratedMessageV3;
 import com.android.tools.idea.transport.EventStreamServer;
 import com.android.tools.idea.transport.TransportService;
@@ -35,6 +34,7 @@ import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
+import com.android.tools.profilers.LiveViewSessionArtifact;
 import com.android.tools.profilers.LogUtils;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
@@ -46,6 +46,7 @@ import com.android.tools.profilers.tasks.ProfilerTaskType;
 import com.android.tools.profilers.tasks.TaskTypeMappingUtils;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
@@ -167,6 +168,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     myArtifactsFetchers.add(HeapProfdSessionArtifact::getSessionArtifacts);
     myArtifactsFetchers.add(AllocationSessionArtifact::getSessionArtifacts);
     myArtifactsFetchers.add(LeakCanarySessionArtifact::getSessionArtifacts);
+    myArtifactsFetchers.add(LiveViewSessionArtifact::getSessionArtifacts);
   }
 
   @NotNull
@@ -200,11 +202,19 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   }
 
   /**
-   * Return the meta data of current selected session
+   * Return the metadata of current selected session
    */
   @NotNull
   public Common.SessionMetaData getSelectedSessionMetaData() {
     return mySessionMetaDatas.get(mySelectedSession.getSessionId());
+  }
+
+  /**
+   * Return the metadata of a given session id if it exists
+   */
+  @Nullable
+  public Common.SessionMetaData getSessionMetaData(long sessionId) {
+    return mySessionMetaDatas.getOrDefault(sessionId, null);
   }
 
   public ProfilerTaskType getCurrentTaskType() {
@@ -372,7 +382,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
    * on reselection of an artifact.
    */
   private void registerImplicitlySelectedArtifactProto(List<SessionArtifact> sessionArtifacts,
-                                                     List<GeneratedMessageV3> previousArtifactProtos) {
+                                                       List<GeneratedMessageV3> previousArtifactProtos) {
     // Get the newly added artifacts based off their backing proto
     SessionArtifact[] newlyAddedArtifacts =
       (sessionArtifacts.stream().filter(i -> !previousArtifactProtos.contains(i.getArtifactProto()))).toArray(SessionArtifact[]::new);
@@ -426,6 +436,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       .setSessionName(sessionData.getSessionName())
       .setTaskType(sessionData.getTaskType())
       .setIsStartupTask(sessionData.getIsStartupTask())
+      .setExposureLevel(sessionData.getExposureLevel())
       .build();
     SessionItem sessionItem = new SessionItem(myProfilers, session, metadata);
     mySessionItems.put(session.getSessionId(), sessionItem);
@@ -517,7 +528,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       .setRequestTimeEpochMs(System.currentTimeMillis())
       .setProcessAbi(process.getAbiCpuArch())
       .setTaskType(taskType)
-      .setIsStartupTask(isStartupTask);
+      .setIsStartupTask(isStartupTask)
+      .setExposureLevel(process.getExposureLevel());
     // Attach agent for advanced profiling if JVMTI is enabled and the process is debuggable
     doBeginSession(streamId, device, process, requestBuilder);
   }
@@ -571,7 +583,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
 
   /**
    * Terminates the selected session, rather than the profiling session (as done by `endCurrentSession`).
-   *
+   * <p>
    * In the Task-Based UX, if a session is started it is noticed quickly enough that is faulty (before it is set as the profiling session,
    * but after it is set as the selected session), this method is utilized to end the session.
    */
@@ -633,6 +645,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   /**
    * Create and a new session with a specific type. Note that this function will generate the corresponding session begin and end event
    * pair, so the caller does not have to include those into the input events list.
+   *
    * @param sessionName           the name of the session to be created.
    * @param sessionType           the type of the session (e.g. HPROF, CPU_CAPTURE).
    * @param startTimestampEpochMs epoch timestamp of the session - this is used for ordering in the sessions panel.
@@ -646,16 +659,65 @@ public class SessionsManager extends AspectModel<SessionAspect> {
                                     long startTimestampEpochMs,
                                     Map<String, String> filePathCacheMap,
                                     Common.Event... events) {
+
+    long streamId = createImportedSessionStream(startTimestampEpochMs);
+    if (streamId == 0L) {
+      return;
+    }
+
+    EventStreamServer streamServer = getEventStreamServer(streamId);
+    if (streamServer == null) {
+      getLogger().error("Failed to retrieve EventStreamServer for streamId: " + streamId);
+      return;
+    }
+
+    populateImportedSession(startTimestampNs, endTimestampNs, startTimestampEpochMs, streamId, streamServer, sessionName,
+                            sessionType,
+                            filePathCacheMap,
+                            false,
+                            Common.Process.ExposureLevel.UNKNOWN,
+                            events);
+
+    // New imported session will be auto selected once it is queried in the update loop.
+  }
+
+  /**
+   * Creates and registers an {@link EventStreamServer} for an imported session.
+   * This is the first step of importing a session and should be called to obtain a stream ID
+   * before any session data is created.
+   *
+   * @param startTimestampEpochMs The epoch timestamp used to uniquely identify the stream server.
+   * @return The new stream ID, or 0L if creation fails.
+   */
+  public long createImportedSessionStream(long startTimestampEpochMs) {
     EventStreamServer streamServer = new EventStreamServer(Long.toString(startTimestampEpochMs));
     try {
       streamServer.start();
     }
     catch (IOException exception) {
-      getLogger().error(String.format("Failed to create a event server. Aborting import for session %s", sessionName));
-      return;
+      getLogger().error("Failed to create an event server for imported session.", exception);
+      return 0;
     }
     Common.Stream stream = TransportService.getInstance().registerStreamServer(Common.Stream.Type.FILE, streamServer);
     myStreamIdToStreamServerMap.put(stream.getStreamId(), streamServer);
+    return stream.getStreamId();
+  }
+
+  /**
+   * Populates an imported session stream with session metadata and artifact events.
+   * This is the final step of importing a session.
+   */
+  public void populateImportedSession(long startTimestampNs,
+                                      long endTimestampNs,
+                                      long startTimestampEpochMs,
+                                      long streamId,
+                                      @NotNull EventStreamServer streamServer,
+                                      @NotNull String sessionName,
+                                      @NotNull SessionData.SessionStarted.SessionType sessionType,
+                                      @NotNull Map<String, String> filePathCacheMap,
+                                      boolean jmvtiEnabled,
+                                      Common.Process.ExposureLevel exposureLevel,
+                                      Common.Event... events) {
     streamServer.getFilePathCache().putAll(filePathCacheMap);
     BlockingDeque<Event> deque = streamServer.getEventDeque();
     for (Event event : events) {
@@ -668,11 +730,13 @@ public class SessionsManager extends AspectModel<SessionAspect> {
                   .setTimestamp(startTimestampNs)
                   .setSession(Common.SessionData.newBuilder()
                                 .setSessionStarted(Common.SessionData.SessionStarted.newBuilder()
-                                                     .setStreamId(stream.getStreamId())
+                                                     .setStreamId(streamId)
                                                      .setSessionId(startTimestampNs)
                                                      .setType(sessionType)
                                                      .setStartTimestampEpochMs(startTimestampEpochMs)
-                                                     .setSessionName(sessionName)))
+                                                     .setSessionName(sessionName)
+                                                     .setJvmtiEnabled(jmvtiEnabled)
+                                                     .setExposureLevel(exposureLevel)))
                   .build());
     deque.offer(Common.Event.newBuilder()
                   .setKind(Common.Event.Kind.SESSION)
@@ -680,8 +744,6 @@ public class SessionsManager extends AspectModel<SessionAspect> {
                   .setTimestamp(endTimestampNs)
                   .setIsEnded(true)
                   .build());
-
-    // New imported session will be auto selected once it is queried in the update loop.
   }
 
   /**
@@ -769,6 +831,32 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     // If it was not reselected, register this current selection
     registerSelectedArtifactProto(artifactProto);
     return true;
+  }
+
+  /**
+   * For a given session, looks up the corresponding database file and tells transport to associate it with the task.
+   */
+  public void setTaskDb(@NotNull Common.Session session) {
+    // The events are in the associated file. The file ID is the session's start timestamp.
+    Transport.BytesRequest request = Transport.BytesRequest.newBuilder()
+      .setStreamId(session.getStreamId())
+      .setId(Long.toString(session.getStartTimestamp()))
+      .build();
+    String filePath = myProfilers.getClient().getTransportClient().getFile(request).getFilePath();
+    if (!filePath.isEmpty() && new File(filePath).exists()) {
+      myProfilers.getClient().getTransportClient().setTaskDb(Transport.SetTaskDbRequest.newBuilder()
+                                                               .setSessionId(session.getSessionId())
+                                                               .setDbPath(filePath).build());
+    }
+  }
+
+  /**
+   * For a given session, tells transport to disconnect the associated task database.
+   */
+  public void unsetTaskDb(@NotNull Common.Session session) {
+    myProfilers.getClient().getTransportClient().unsetTaskDb(Transport.UnsetTaskDbRequest.newBuilder()
+                                                             .setSessionId(session.getSessionId())
+                                                             .build());
   }
 
   private static class SessionArtifactComparator implements Comparator<SessionArtifact> {

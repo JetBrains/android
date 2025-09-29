@@ -1151,8 +1151,16 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   @NotNull
   public SupportLevel getSupportLevelForSession(Common.Session session) {
-    return SupportLevel.of(
-      getProcessForStreamIdPidTimestamp(session.getStreamId(), session.getPid(), session.getStartTimestamp()).getExposureLevel());
+    var process = getProcessForStreamIdPidTimestamp(session.getStreamId(), session.getPid(), session.getStartTimestamp());
+    if (!process.equals(Common.Process.getDefaultInstance())) {
+      return SupportLevel.of(process.getExposureLevel());
+    }
+    // Fallback to SessionMetaData for imported recordings
+    Common.SessionMetaData metaData = mySessionsManager.getSessionMetaData(session.getSessionId());
+    if (metaData != null) {
+      return SupportLevel.of(metaData.getExposureLevel());
+    }
+    return SupportLevel.NONE;
   }
 
   @NotNull

@@ -122,6 +122,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
    * Mapping a stream id to its DataStoreClient.
    */
   private final Map<Long, DataStoreClient> myConnectedClients = new HashMap<>();
+  @NotNull private final TaskDatabaseManager myTaskDatabaseManager;
 
   private final Timer myReportTimer;
 
@@ -151,6 +152,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     // Calling set with null resets the exception handler to the default exception handler.
     // getLogger().error(exception);
     setNoPiiExceptionHandler(null);
+    myTaskDatabaseManager = new TaskDatabaseManager(myLogService, t -> myNoPiiExceptionHandler.accept(t), this);
     createPollers();
     myServer = myServerBuilder.build();
     try {
@@ -263,9 +265,28 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     for (DataStoreClient client : myConnectedClients.values()) {
       client.getChannel().shutdownNow();
     }
+    myTaskDatabaseManager.shutdown();
     myConnectedClients.clear();
     myDatabases.forEach((name, db) -> db.disconnect());
     DataStoreTable.removeDataStoreErrorCallback(this);
+  }
+
+  @Nullable
+  public UnifiedEventsTable getTaskEventsTable() {
+    return myTaskDatabaseManager.getTaskEventsTable();
+  }
+
+  @Nullable
+  public TaskDatabaseManager.ImportedSessionMapping getImportedSessionMapping() {
+    return myTaskDatabaseManager.getImportedSessionMapping();
+  }
+
+  public void setTaskDb(long sessionId, @Nullable String path, @Nullable Common.ProfilerTaskType taskType, long streamId, int pid) {
+    myTaskDatabaseManager.setTaskDb(sessionId, path, taskType, streamId, pid);
+  }
+
+  public void unsetTaskDb(long sessionId) {
+    myTaskDatabaseManager.unsetTaskDb(sessionId);
   }
 
   @VisibleForTesting

@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profilers.LiveViewSessionArtifact
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.SessionArtifactUtils
@@ -56,9 +57,10 @@ class TaskSupportUtilsTest {
 
   @Test
   fun `test LiveTask returns true for isTaskSupportedByRecording`() {
-    val session = Common.Session.getDefaultInstance()
-    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, 1L, listOf())
-    assertTrue(TaskSupportUtils.isTaskSupportedByRecording(ProfilerTaskType.LIVE_VIEW,
-                                                           LiveTaskHandler(myProfilers.sessionsManager), sessionItem))
+    val session = Common.Session.newBuilder().setSessionId(1L).build()
+    val sessionMetadata = Common.SessionMetaData.newBuilder().setSessionId(1L).build()
+    val liveViewArtifact = LiveViewSessionArtifact(myProfilers, session, sessionMetadata)
+    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, 1L, listOf(liveViewArtifact))
+    assertTrue(TaskSupportUtils.isTaskSupportedByRecording(LiveTaskHandler(myProfilers.sessionsManager), sessionItem))
   }
 }

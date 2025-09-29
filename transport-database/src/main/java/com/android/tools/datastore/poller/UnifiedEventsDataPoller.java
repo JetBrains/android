@@ -24,6 +24,7 @@ import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.Consumer;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,20 +34,20 @@ import org.jetbrains.annotations.NotNull;
  */
 public class UnifiedEventsDataPoller implements Runnable, DataStoreTable.DataStoreTableErrorCallback {
   private final long myStreamId;
-  @NotNull private final UnifiedEventsTable myTable;
+  @NotNull private final Consumer<Event> myEventsHandler;
   @NotNull private final TransportServiceGrpc.TransportServiceBlockingStub myEventPollingService;
   @NotNull private final DataStoreService myDataStoreService;
   @NotNull private final CountDownLatch myRunningLatch;
   @NotNull private final AtomicBoolean myIsRunning = new AtomicBoolean(false);
 
   public UnifiedEventsDataPoller(long streamId,
-                                 @NotNull UnifiedEventsTable unifiedEventsTable,
+                                 @NotNull Consumer<Event> eventsHandler,
                                  @NotNull TransportServiceGrpc.TransportServiceBlockingStub pollingService,
                                  @NotNull DataStoreService dataStoreService) {
     myEventPollingService = pollingService;
     myDataStoreService = dataStoreService;
     myStreamId = streamId;
-    myTable = unifiedEventsTable;
+    myEventsHandler = eventsHandler;
     myRunningLatch = new CountDownLatch(1);
   }
 
@@ -75,7 +76,7 @@ public class UnifiedEventsDataPoller implements Runnable, DataStoreTable.DataSto
       while (events.hasNext()) {
         Event event = events.next();
         if (event != null) {
-          myTable.insertUnifiedEvent(myStreamId, event);
+          myEventsHandler.accept(event);
         }
       }
     }

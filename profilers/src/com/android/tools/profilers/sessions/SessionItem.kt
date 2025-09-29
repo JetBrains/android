@@ -74,10 +74,9 @@ class SessionItem(
   override val isOngoing
     get() = SessionsManager.isSessionAlive(activeSession)
 
-  override val canExport get() = childArtifacts.size == 1 && isImported()
+  override val canExport get() = true
 
   override fun export(outputStream: OutputStream) {
-    assert(canExport)
     assert(childArtifacts.size == 1)
     val artifact = childArtifacts.first()
     artifact.export(outputStream)
@@ -95,10 +94,8 @@ class SessionItem(
   override fun doSelect() {
     // Navigate to the new session
     profilers.sessionsManager.setSession(activeSession)
-    if (sessionMetaData.type == SessionMetaData.SessionType.FULL) {
-      val targetStageClass =
-        if (profilers.ideServices.featureConfig.isTaskBasedUxEnabled) LiveStage(profilers) else StudioMonitorStage(profilers)
-
+    if (sessionMetaData.type == SessionMetaData.SessionType.FULL && !profilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
+      val targetStageClass = StudioMonitorStage(profilers)
       if (profilers.stageClass != targetStageClass::class.java
           || profilers.sessionsManager.selectedSession != profilers.sessionsManager.profilingSession) {
         profilers.stage = targetStageClass
@@ -172,7 +169,7 @@ class SessionItem(
   fun getTaskType(): ProfilerTaskType {
     // Attempt to find the supported task type.
     val supportedTaskTypes = profilers.taskHandlers.filter { (taskType, taskHandler) ->
-      TaskSupportUtils.isTaskSupportedByRecording(taskType, taskHandler, this)
+      TaskSupportUtils.isTaskSupportedByRecording(taskHandler, this)
     }.keys
 
     // Assumes each SessionItem/recording only has one associated task type.
@@ -184,18 +181,12 @@ class SessionItem(
     // wants to initiate. This verification is crucial for identifying failed tasks. For instance, a startup task failing to gather an
     // artifact shares the same structure as a live view task (both lack a child artifact). Hence, cross-checking with the intended task
     // prevents misrepresentation of a live view recording.
-    if (!isImported() && TaskTypeMappingUtils.convertTaskType(sessionMetaData.taskType) != supportedTaskType) {
+    if (!SessionsManager.isSessionImported(this.session) && TaskTypeMappingUtils.convertTaskType(sessionMetaData.taskType) != supportedTaskType) {
       return ProfilerTaskType.UNSPECIFIED
     }
 
     return supportedTaskType
   }
-
-  /**
-   * The MEMORY_CAPTURE and CPU_CAPTURE session types are indicative of imported memory and CPU sessions respectively.
-   */
-  fun isImported() = sessionMetaData.type == SessionMetaData.SessionType.CPU_CAPTURE
-                     || sessionMetaData.type == SessionMetaData.SessionType.MEMORY_CAPTURE
 
   companion object {
     private const val SESSION_INITIALIZING = "Starting..."

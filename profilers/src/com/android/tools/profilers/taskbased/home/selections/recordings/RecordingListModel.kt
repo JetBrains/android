@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.sessions.SessionAspect
 import com.android.tools.profilers.sessions.SessionItem
+import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.TaskSupportUtils
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler
@@ -77,7 +78,7 @@ class RecordingListModel(val profilers: StudioProfilers,
   private fun updateTaskSelection() {
     // If only one task is supported after the recording is selected, that task is auto-selected.
     val supportedTasks = taskHandlers.entries.toList().filter {
-      _selectedRecording.value != null && TaskSupportUtils.isTaskSupportedByRecording(it.key, it.value, _selectedRecording.value!!) }
+      _selectedRecording.value != null && TaskSupportUtils.isTaskSupportedByRecording(it.value, _selectedRecording.value!!) }
     if (supportedTasks.size == 1) {
       setTaskSelection(supportedTasks.first().key)
     }
@@ -101,8 +102,9 @@ class RecordingListModel(val profilers: StudioProfilers,
   private fun autoOpenRecordingIfNewlyImported(oldRecordingList: List<SessionItem>, newRecordingList: List<SessionItem>) {
     val difference = newRecordingList.toSet() - oldRecordingList.toSet()
     // Confirm there is one, new recording added. If so, auto open the new recording.
-    if (newRecordingList.size > oldRecordingList.size && difference.size == 1 && difference.first().isImported()) {
-      openRecording(difference.first())
+    val newRecording = difference.firstOrNull()
+    if (difference.size == 1 && newRecording != null && SessionsManager.isSessionImported(newRecording.session)) {
+      openRecording(newRecording)
     }
   }
 

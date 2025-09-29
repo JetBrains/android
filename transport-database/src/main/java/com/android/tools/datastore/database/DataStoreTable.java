@@ -79,7 +79,7 @@ public abstract class DataStoreTable<T extends Enum> {
 
   /**
    * Error handling is handled in the callbacks. One of the callbacks is
-   * expected in the {@link DataStoreService}. One of the callbacks will log all errors
+   * expected in the {@link com.android.tools.datastore.DataStoreService}. One of the callbacks will log all errors
    * without being elided.
    *
    * @param t A throwable object that contains information about the error encountered.
@@ -103,6 +103,12 @@ public abstract class DataStoreTable<T extends Enum> {
     myConnection.createStatement().execute(String.format("DROP TABLE IF EXISTS %s ", table));
     StringBuilder statement = new StringBuilder();
     statement.append(String.format("CREATE TABLE %s", table));
+    executeUniqueStatement(statement, columns);
+  }
+
+  protected void createTableIfNotExists(@NotNull String table, String... columns) throws SQLException {
+    StringBuilder statement = new StringBuilder();
+    statement.append(String.format("CREATE TABLE IF NOT EXISTS %s", table));
     executeUniqueStatement(statement, columns);
   }
 

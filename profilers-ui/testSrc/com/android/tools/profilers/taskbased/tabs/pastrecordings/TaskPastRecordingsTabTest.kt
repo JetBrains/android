@@ -246,7 +246,7 @@ class TaskPastRecordingsTabTest {
     val recordingListModel = pastRecordingsTabModel.recordingListModel
 
     // Create a complete live task recording. To invoke the delete session functionality, a real session must be started and finished.
-    SessionArtifactUtils.generateLiveTaskRecording(myManager)
+    SessionArtifactUtils.generateLiveTaskRecording(myManager, myTransportService)
 
     // Assert both the data model and the UI reflect the past recording entry.
     assertThat(recordingListModel.recordingList.value).hasSize(1)
