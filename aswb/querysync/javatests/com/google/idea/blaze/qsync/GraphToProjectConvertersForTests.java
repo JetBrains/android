@@ -15,29 +15,20 @@
  */
 package com.google.idea.blaze.qsync;
 
-import static com.google.common.util.concurrent.MoreExecutors.newDirectExecutorService;
-import static com.google.idea.blaze.qsync.QuerySyncTestUtils.EMPTY_PACKAGE_READER;
-import static com.google.idea.blaze.qsync.QuerySyncTestUtils.SIMPLE_PARALLEL_PACKAGE_READER;
+import static com.google.idea.blaze.qsync.QuerySyncTestUtils.EMPTY_PREFIX_READER;
 import static com.google.idea.blaze.qsync.QuerySyncTestUtils.NOOP_CONTEXT;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.idea.blaze.qsync.java.PackageReader;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import java.nio.file.Path;
-import java.util.function.Predicate;
 
 /** Test utility for building {@link GraphToProjectConverter} instances */
 @AutoValue
 abstract class GraphToProjectConvertersForTests {
-  public abstract PackageReader packageReader();
-
-  public abstract PackageReader.ParallelReader parallelPackageReader();
-
-  public abstract Predicate<Path> fileExistenceCheck();
+  public abstract JavaPackagePrefixReader prefixReader();
 
   public abstract ImmutableSet<Path> projectIncludes();
 
@@ -51,9 +42,7 @@ abstract class GraphToProjectConvertersForTests {
 
   static Builder builder() {
     return new AutoValue_GraphToProjectConvertersForTests.Builder()
-        .setPackageReader(EMPTY_PACKAGE_READER)
-        .setParallelPackageReader(SIMPLE_PARALLEL_PACKAGE_READER)
-        .setFileExistenceCheck(Predicates.alwaysTrue())
+        .setPrefixReader(EMPTY_PREFIX_READER)
         .setLanguageClasses(ImmutableSet.of())
         .setProjectIncludes(ImmutableSet.of())
         .setProjectExcludes(ImmutableSet.of())
@@ -63,11 +52,7 @@ abstract class GraphToProjectConvertersForTests {
 
   @AutoValue.Builder
   abstract static class Builder {
-    abstract Builder setPackageReader(PackageReader value);
-
-    abstract Builder setParallelPackageReader(PackageReader.ParallelReader value);
-
-    abstract Builder setFileExistenceCheck(Predicate<Path> value);
+    abstract Builder setPrefixReader(JavaPackagePrefixReader value);
 
     abstract Builder setProjectIncludes(ImmutableSet<Path> value);
 
@@ -84,9 +69,7 @@ abstract class GraphToProjectConvertersForTests {
     public GraphToProjectConverter build() {
       GraphToProjectConvertersForTests info = autoBuild();
       return new GraphToProjectConverter(
-          info.packageReader(),
-          new PackageReader.ParallelReader.SingleThreadedForTests(),
-          v -> info.fileExistenceCheck().test(v),
+          info.prefixReader(),
           NOOP_CONTEXT,
           new ProjectDefinition(
             info.projectIncludes(),
@@ -97,8 +80,7 @@ abstract class GraphToProjectConvertersForTests {
             info.languageClasses(),
             info.testSources(),
             info.systemExcludes()
-      ),
-          newDirectExecutorService());
+      ));
     }
   }
 }

@@ -26,9 +26,9 @@ import com.google.idea.blaze.qsync.project.PostQuerySyncData;
 import com.google.idea.blaze.qsync.project.ProjectProto.Project;
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Project refresher creates an appropriate {@link RefreshOperation} based on the project and
@@ -58,26 +58,22 @@ public class ProjectBuilder {
    * applies transformations required to account for any currently synced(i.e. built) dependencies.
    */
   public Project createBlazeProjectStructure(
-    Context<?> context,
-    PostQuerySyncData postQuerySyncData,
-    BuildGraphData graph,
-    ArtifactTracker.State artifactTrackerState,
-    Collection<? extends ProjectProtoUpdateOperation> projectProtoUpdates)
+      Context<?> context,
+      PostQuerySyncData postQuerySyncData,
+      BuildGraphData graph,
+      ArtifactTracker.State artifactTrackerState,
+      Collection<? extends ProjectProtoUpdateOperation> projectProtoUpdates)
       throws BuildException {
     Path effectiveWorkspaceRoot =
         postQuerySyncData.vcsState().flatMap(s -> s.workspaceSnapshotPath).orElse(workspaceRoot);
     WorkspaceResolvingPackageReader packageReader =
         new WorkspaceResolvingPackageReader(effectiveWorkspaceRoot, this.packageReader);
+    JavaPackagePrefixReader javaPackagePrefixReader =
+        new JavaPackagePrefixReaderImpl(workspaceRoot, packageReader, parallelPackageReader);
+
     GraphToProjectConverter graphToProjectConverter =
         new GraphToProjectConverter(
-            packageReader,
-            parallelPackageReader,
-            // Note: Files.isReadable(path) may help avoid hitting siloed files but it may also hide issues, if it happens that a file at the
-            // "top" level of the project view inclusion is not readable.
-            p -> Files.isRegularFile(workspaceRoot.resolve(p)),
-            context,
-            postQuerySyncData.projectDefinition(),
-            executor);
+            javaPackagePrefixReader, context, postQuerySyncData.projectDefinition());
     final var update = new ProjectProtoUpdate(graphToProjectConverter.createProject(graph));
     for (ProjectProtoUpdateOperation updateOperation : projectProtoUpdates) {
       updateOperation.update(update, graph, artifactTrackerState, context);

@@ -55,7 +55,7 @@ class AddProjectGenSrcsTest {
   lateinit var context: Context<*>
 
   private val syncer =
-    TestDataSyncRunner(NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PACKAGE_READER)
+    TestDataSyncRunner(NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PREFIX_READER)
 
   private val javaSourcePackageExtractor = JavaSourcePackageExtractor(null)
 
