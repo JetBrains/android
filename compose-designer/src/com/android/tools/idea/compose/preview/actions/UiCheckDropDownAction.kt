@@ -32,7 +32,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.wm.ToolWindowManager
 
 class UiCheckDropDownAction :
@@ -42,7 +42,7 @@ class UiCheckDropDownAction :
     AllIcons.General.ChevronDown,
   ) {
   init {
-    templatePresentation.putClientProperty(ActionButton.HIDE_DROPDOWN_ICON, java.lang.Boolean.TRUE)
+    templatePresentation.putClientProperty(ActionUtil.HIDE_DROPDOWN_ICON, java.lang.Boolean.TRUE)
   }
 
   override fun updateActions(context: DataContext): Boolean {
