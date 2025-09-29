@@ -30,7 +30,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
 import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.project.Project
 
 private val COMPOSE_SUPPORTED_ACTIONS =
@@ -46,7 +46,7 @@ private fun createPreviewDesignSurfaceBuilder(
   project: Project,
   navigationHandler: NavigationHandler,
   delegateInteractionHandler: InteractionHandler,
-  dataProvider: DataProvider,
+  uiDataProvider: UiDataProvider,
   parentDisposable: Disposable,
   sceneComponentProvider: ComposeSceneComponentProvider,
   screenViewProvider: ScreenViewProvider,
@@ -73,7 +73,7 @@ private fun createPreviewDesignSurfaceBuilder(
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface, navigationHandler) }
     .setInteractionHandlerProvider { delegateInteractionHandler }
     .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }
-    .setDelegateDataProvider(dataProvider)
+    .setDelegateUiDataProvider(uiDataProvider)
     .setSelectionModel(DefaultSelectionModel())
     .setZoomControlsPolicy(ZoomControlsPolicy.AUTO_HIDE)
     .setSupportedActionsProvider {
@@ -92,7 +92,7 @@ internal fun createMainDesignSurfaceBuilder(
   project: Project,
   navigationHandler: NavigationHandler,
   delegateInteractionHandler: InteractionHandler,
-  dataProvider: DataProvider,
+  uiDataProvider: UiDataProvider,
   parentDisposable: Disposable,
   sceneComponentProvider: ComposeSceneComponentProvider,
   screenViewProvider: ScreenViewProvider,
@@ -102,7 +102,7 @@ internal fun createMainDesignSurfaceBuilder(
       project,
       navigationHandler,
       delegateInteractionHandler,
-      dataProvider, // Will be overridden by the preview provider
+      uiDataProvider, // Will be overridden by the preview provider
       parentDisposable,
       sceneComponentProvider,
       screenViewProvider,

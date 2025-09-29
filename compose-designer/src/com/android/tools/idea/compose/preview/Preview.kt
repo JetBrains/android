@@ -119,8 +119,7 @@ import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
@@ -674,30 +673,20 @@ class ComposePreviewRepresentation(
       requestRefresh()
     }
 
-  private val dataProvider = DataProvider {
-    when (it) {
-      COMPOSE_PREVIEW_MANAGER.name,
-      PreviewModeManager.KEY.name -> this@ComposePreviewRepresentation
-      PreviewPaginationManager.KEY.name -> composePreviewFlowManager.previewFlowPaginator
-      PreviewGroupManager.KEY.name,
-      PreviewFlowManager.KEY.name -> composePreviewFlowManager
-      PlatformCoreDataKeys.BGT_DATA_PROVIDER.name -> DataProvider { slowId -> getSlowData(slowId) }
-      CommonDataKeys.PROJECT.name -> project
-      PREVIEW_VIEW_MODEL_STATUS.name -> status()
-      FastPreviewSurface.KEY.name -> this@ComposePreviewRepresentation
-      PreviewInvalidationManager.KEY.name -> this@ComposePreviewRepresentation
-      RESIZE_PANEL_INSTANCE_KEY.name -> activeResizePanelInFocusMode
-      else -> null
-    }
-  }
-
-  private fun getSlowData(dataId: String): Any? {
-    return when {
-      // The Compose preview NlModels do not point to the actual file but to a synthetic file
-      // generated for Layoutlib. This ensures we return the right file.
-      CommonDataKeys.VIRTUAL_FILE.`is`(dataId) -> psiFilePointer.virtualFile
-      else -> null
-    }
+  private val uiDataProvider = UiDataProvider {
+    it[COMPOSE_PREVIEW_MANAGER] = this@ComposePreviewRepresentation
+    it[PreviewModeManager.KEY] = this@ComposePreviewRepresentation
+    it[PreviewPaginationManager.KEY] = composePreviewFlowManager.previewFlowPaginator
+    it[PreviewGroupManager.KEY] = composePreviewFlowManager
+    it[PreviewFlowManager.KEY] = composePreviewFlowManager
+    // The Compose preview NlModels do not point to the actual file but to a synthetic file
+    // generated for Layoutlib. This ensures we return the right file.
+    it.lazy(CommonDataKeys.VIRTUAL_FILE) { psiFilePointer.virtualFile }
+    it[CommonDataKeys.PROJECT] = project
+    it[PREVIEW_VIEW_MODEL_STATUS] = status()
+    it[FastPreviewSurface.KEY] = this@ComposePreviewRepresentation
+    it[PreviewInvalidationManager.KEY] = this@ComposePreviewRepresentation
+    it[RESIZE_PANEL_INSTANCE_KEY] = activeResizePanelInFocusMode
   }
 
   private val delegateInteractionHandler = DelegateInteractionHandler()
@@ -717,12 +706,12 @@ class ComposePreviewRepresentation(
             project,
             psiFilePointer,
             renderingBuildStatusManager,
-            dataProvider,
+            uiDataProvider,
             createMainDesignSurfaceBuilder(
               project,
               navigationHandler,
               delegateInteractionHandler,
-              dataProvider, // Will be overridden by the preview provider
+              uiDataProvider, // Will be overridden by the preview provider
               this,
               sceneComponentProvider,
               ComposeScreenViewProvider(this),

@@ -38,7 +38,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.ViewVisualLintIssuePro
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import java.util.function.Supplier
@@ -125,10 +125,10 @@ class NlSurfaceBuilder(
   private var surfaceLayoutOption: SurfaceLayoutOption? = null
 
   /**
-   * An optional [DataProvider] that allows users of the surface to provide additional information
+   * An optional [UiDataProvider] that allows users of the surface to provide additional information
    * associated with this surface.
    */
-  private var _delegateDataProvider: DataProvider? = null
+  private var _delegateUiDataProvider: UiDataProvider? = null
 
   /** Factory to create an action manager for the DesignSurface */
   private var _actionManagerProvider:
@@ -239,11 +239,11 @@ class NlSurfaceBuilder(
   }
 
   /**
-   * Sets a delegate [DataProvider] that allows users of the surface to provide additional
+   * Sets a delegate [UiDataProvider] that allows users of the surface to provide additional
    * information associated with this surface.
    */
-  fun setDelegateDataProvider(dataProvider: DataProvider): NlSurfaceBuilder {
-    _delegateDataProvider = dataProvider
+  fun setDelegateUiDataProvider(uiDataProvider: UiDataProvider): NlSurfaceBuilder {
+    _delegateUiDataProvider = uiDataProvider
     return this
   }
 
@@ -317,7 +317,7 @@ class NlSurfaceBuilder(
         _interactableProvider,
         _interactionHandlerProvider,
         _actionHandlerProvider,
-        _delegateDataProvider,
+        _delegateUiDataProvider,
         _selectionModel ?: DefaultSelectionModel(),
         _zoomControlsPolicy,
         _supportedActionsProvider,

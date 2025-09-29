@@ -66,7 +66,7 @@ class TestComposePreviewView : ComposePreviewView, JPanel {
           project,
           navigationHandler,
           delegateInteractionHandler,
-          { null },
+          {},
           parentDisposable,
           ComposeSceneComponentProvider(),
           ComposeScreenViewProvider(NopComposePreviewManager()),

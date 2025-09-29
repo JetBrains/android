@@ -259,17 +259,14 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
             }
           }
           .waitForRenderBeforeRestoringZoom(true)
-          .setDelegateDataProvider {
-            when (it) {
-              PREVIEW_VIEW_MODEL_STATUS.name -> previewViewModel
-              PreviewModeManager.KEY.name -> this@CommonPreviewRepresentation
-              PreviewPaginationManager.KEY.name -> previewFlowManager.previewFlowPaginator
-              PreviewGroupManager.KEY.name,
-              PreviewFlowManager.KEY.name -> previewFlowManager
-              FastPreviewSurface.KEY.name -> this@CommonPreviewRepresentation
-              PreviewInvalidationManager.KEY.name -> this@CommonPreviewRepresentation
-              else -> null
-            }
+          .setDelegateUiDataProvider {
+            it[PREVIEW_VIEW_MODEL_STATUS] = previewViewModel
+            it[PreviewModeManager.KEY] = this@CommonPreviewRepresentation
+            it[PreviewPaginationManager.KEY] = previewFlowManager.previewFlowPaginator
+            it[PreviewGroupManager.KEY] = previewFlowManager
+            it[PreviewFlowManager.KEY] = previewFlowManager
+            it[FastPreviewSurface.KEY] = this@CommonPreviewRepresentation
+            it[PreviewInvalidationManager.KEY] = this@CommonPreviewRepresentation
           }
           .apply { configureDesignSurface(navigationHandler) },
         this,
