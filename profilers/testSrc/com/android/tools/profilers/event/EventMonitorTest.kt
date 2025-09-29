@@ -57,13 +57,13 @@ class EventMonitorTest {
   }
 
   @Test
-  fun monitorEnabledOnAgentAttached() {
+  fun monitorEnabledOnAgentAttachedInLiveSession() {
     ideProfilerServices.enableTaskBasedUx(false)
 
     assertThat(monitor.isEnabled).isFalse() // Monitor is not enabled on start.
 
     val session = Common.Session.newBuilder()
-      .setSessionId(2).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS).setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS * 2).build()
+      .setSessionId(2).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS).setEndTimestamp(Long.MAX_VALUE).build()
     val sessionOMetadata = Common.SessionMetaData.newBuilder()
       .setSessionId(2).setType(Common.SessionMetaData.SessionType.FULL).setJvmtiEnabled(true).setStartTimestampEpochMs(1).build()
     transportService.addSession(session, sessionOMetadata)
@@ -90,13 +90,33 @@ class EventMonitorTest {
   }
 
   @Test
-  fun monitorEnabledChangedOnAgentAttachable() {
+  fun monitorEnabledInFinishedSession() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
+    assertThat(monitor.isEnabled).isFalse() // Monitor is not enabled on start.
+
+    // Create a finished session (end timestamp is not Long.MAX_VALUE).
+    // For finished sessions, the monitor is enabled if the session metadata has `jvmtiEnabled` set to true.
+    val session = Common.Session.newBuilder()
+      .setSessionId(2).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS).setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS * 2).build()
+    val sessionOMetadata = Common.SessionMetaData.newBuilder()
+      .setSessionId(2).setType(Common.SessionMetaData.SessionType.FULL).setJvmtiEnabled(true).setStartTimestampEpochMs(1).build()
+    transportService.addSession(session, sessionOMetadata)
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+
+    // Set the session. The monitor should be enabled because jvmtiEnabled is true.
+    profilers.sessionsManager.setSession(session)
+    assertThat(monitor.isEnabled).isTrue()
+  }
+
+  @Test
+  fun monitorEnabledChangedOnAgentAttachableInLiveSession() {
     ideProfilerServices.enableTaskBasedUx(false)
 
     assertThat(monitor.isEnabled).isFalse()
 
     val session = Common.Session.newBuilder()
-      .setSessionId(2).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS).setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS * 2).build()
+      .setSessionId(2).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS).setEndTimestamp(Long.MAX_VALUE).build()
     val sessionOMetadata = Common.SessionMetaData.newBuilder()
       .setSessionId(2).setType(Common.SessionMetaData.SessionType.FULL).setJvmtiEnabled(true).setStartTimestampEpochMs(1).build()
     transportService.addSession(session, sessionOMetadata)

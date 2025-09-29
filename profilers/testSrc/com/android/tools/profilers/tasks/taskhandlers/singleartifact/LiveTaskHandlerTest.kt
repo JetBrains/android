@@ -21,6 +21,7 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.LiveViewSessionArtifact
 import com.android.tools.profilers.LiveStage
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.SessionArtifactUtils.createHeapProfdSessionArtifact
@@ -28,7 +29,6 @@ import com.android.tools.profilers.SessionArtifactUtils.createHprofSessionArtifa
 import com.android.tools.profilers.SessionArtifactUtils.createSessionItem
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
-import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.LiveTaskArgs
@@ -42,6 +42,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.spy
 import kotlin.test.assertNull
 
 class LiveTaskHandlerTest {
@@ -155,8 +156,9 @@ class LiveTaskHandlerTest {
 
   @Test
   fun `test supportsArtifact when its SessionItem`() {
-    val selectedSession = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(100).build()
-    assertThat(liveTaskHandler.supportsArtifact(createSessionItem(myProfilers, selectedSession, 1, listOf()))).isTrue()
+    val liveViewSessionArtifact = LiveViewSessionArtifact(myProfilers, Common.Session.getDefaultInstance(),
+                                                          Common.SessionMetaData.getDefaultInstance())
+    assertThat(liveTaskHandler.supportsArtifact(liveViewSessionArtifact)).isTrue()
   }
 
   @Test
@@ -168,8 +170,10 @@ class LiveTaskHandlerTest {
   @Test
   fun testCreateArgsSuccessfully() {
     val selectedSession = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(100).build()
+    val liveViewArtifact = LiveViewSessionArtifact(myProfilers, selectedSession,
+                                                   Common.SessionMetaData.newBuilder().setType(Common.SessionMetaData.SessionType.FULL).build())
     val sessionIdToSessionItems = mapOf(
-      1L to createSessionItem(myProfilers, selectedSession, 1, listOf()),
+      1L to createSessionItem(myProfilers, selectedSession, 1, listOf(liveViewArtifact)),
     )
     // Begin live view session
     TaskHandlerTestUtils.startSession(Common.Process.ExposureLevel.DEBUGGABLE,
@@ -178,8 +182,7 @@ class LiveTaskHandlerTest {
     val liveTaskHandlerCreateArgs = liveTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     assertThat(liveTaskHandlerCreateArgs).isNotNull()
     assertThat(liveTaskHandlerCreateArgs).isInstanceOf(LiveTaskArgs::class.java)
-    assertThat((liveTaskHandlerCreateArgs as LiveTaskArgs).getLiveTaskArtifact()).isEqualTo(
-      sessionIdToSessionItems[selectedSession.sessionId])
+    assertThat((liveTaskHandlerCreateArgs as LiveTaskArgs).getLiveTaskArtifact()).isEqualTo(liveViewArtifact)
   }
 
   @Test
@@ -220,10 +223,11 @@ class LiveTaskHandlerTest {
 
   @Test
   fun testLoadArgsWithValidArgs() {
-    val finishedSession = Common.Session.getDefaultInstance()
-    val sessionItem = SessionItem(myProfilers, finishedSession,
-                                  Common.SessionMetaData.newBuilder().setType(Common.SessionMetaData.SessionType.FULL).build())
-    val result = liveTaskHandler.loadTask(LiveTaskArgs(artifact = sessionItem))
+    val liveViewArtifact = spy(LiveViewSessionArtifact(myProfilers, Common.Session.getDefaultInstance(),
+                                                       Common.SessionMetaData.getDefaultInstance()))
+    Mockito.doAnswer { myProfilers.stage = LiveStage(myProfilers) }.`when`(liveViewArtifact).doSelect()
+
+    val result = liveTaskHandler.loadTask(LiveTaskArgs(artifact = liveViewArtifact))
     assertThat(result).isTrue()
     assertThat(myProfilers.stage).isInstanceOf(LiveStage::class.java)
   }

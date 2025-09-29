@@ -44,14 +44,22 @@ public class DataStoreDatabase {
    */
   @SuppressWarnings("JDBCResourceOpenedButNotSafelyClosed")
   public DataStoreDatabase(@NotNull String dbPath, @NotNull Characteristic characteristic, @NotNull LogService logService) {
-    this(dbPath, characteristic, logService, (t) -> {
-    });
+    this(dbPath, characteristic, logService, (t) -> {}, true, false);
   }
 
   public DataStoreDatabase(@NotNull String dbPath,
                            @NotNull Characteristic characteristic,
                            @NotNull LogService logService,
                            @NotNull Consumer<Throwable> noPiiExceptionHandler) {
+    this(dbPath, characteristic, logService, noPiiExceptionHandler, true, false);
+  }
+
+  public DataStoreDatabase(@NotNull String dbPath,
+                           @NotNull Characteristic characteristic,
+                           @NotNull LogService logService,
+                           @NotNull Consumer<Throwable> noPiiExceptionHandler,
+                           boolean deleteFileOnOpen,
+                           boolean useAutoCommit) {
     myLogService = logService;
     Connection connection = null;
     try {
@@ -68,7 +76,7 @@ public class DataStoreDatabase {
           // Due to an incompatible update in SQLite we do not support loading SQL files from previous versions of studio.
           // As a intermediate measure we delete the file until we support loading existing databases.
           // TODO: Investigate removing this when we add a feature to restore sessions from prior Studio runs.
-          if (dbFile.exists()) {
+          if (deleteFileOnOpen && dbFile.exists()) {
             dbFile.delete();
           }
 
@@ -86,7 +94,7 @@ public class DataStoreDatabase {
 
       // Performance optimization.
       // TODO: Create a timer and commit the database transaction every X seconds.
-      connection.setAutoCommit(false);
+      connection.setAutoCommit(useAutoCommit);
     }
     catch (ClassNotFoundException e) {
       getLogger().error(e);
@@ -102,7 +110,9 @@ public class DataStoreDatabase {
 
   public void disconnect() {
     try {
-      myConnection.commit();
+      if (!myConnection.getAutoCommit()) {
+        myConnection.commit();
+      }
     }
     catch (SQLException e) {
       getLogger().error(e);

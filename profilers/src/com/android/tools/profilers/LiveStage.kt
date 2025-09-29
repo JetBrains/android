@@ -38,6 +38,13 @@ class LiveStage(@NotNull private val profilers : StudioProfilers, val stopTask: 
 
   override fun enter() {
     logEnterStage()
+    // If we are entering this stage for a past recording (i.e., the session is not live),
+    // we need to tell the backend which database to query. For a new, live recording,
+    // this is handled by TransportService when the session starts.
+    if (!studioProfilers.sessionsManager.isSessionAlive) {
+      profilers.sessionsManager.setTaskDb(studioProfilers.session)
+    }
+
     eventMonitor.ifPresent(EventMonitor::enter)
 
     // Clear the selection
@@ -76,20 +83,18 @@ class LiveStage(@NotNull private val profilers : StudioProfilers, val stopTask: 
   }
 
   override fun exit() {
-    liveModels.clear()
     liveModels.stream().forEach { liveModel -> liveModel.exit() }
+    liveModels.clear()
     eventMonitor.ifPresent(EventMonitor::exit)
+    // Disconnects the task DB on the backend when navigating away from the stage.
+    studioProfilers.sessionsManager.unsetTaskDb(studioProfilers.session)
   }
 
-  private fun getEventMonitorInstance() =
-    if (profilers.selectedSessionSupportLevel == SupportLevel.DEBUGGABLE && isOPlus()) EventMonitor(profilers) else null
+  private fun getEventMonitorInstance(): EventMonitor? {
+    val jvmtiEnabled = profilers.sessionsManager.selectedSessionMetaData.jvmtiEnabled
+    // The event monitor is supported for any session (live or imported) where JVMTI was enabled.
+    return if (jvmtiEnabled) EventMonitor(profilers) else null
+  }
 
   override fun getStageType(): AndroidProfilerEvent.Stage = AndroidProfilerEvent.Stage.LIVE_STAGE
-
-  private fun isOPlus(): Boolean {
-    val device = MemoryDataProvider.getDeviceForSelectedSession(profilers)
-    return device != null && device.featureLevel >= AndroidVersion.VersionCodes.O
-  }
 }
-
-

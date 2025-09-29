@@ -24,6 +24,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.sessions.SessionsManager;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,8 +55,8 @@ public class EventMonitor extends ProfilerMonitor {
       new RangedSeries<>(getTimeline().getViewRange(), activities, getTimeline().getDataRange()),
       new RangedSeries<>(getTimeline().getViewRange(), fragments, getTimeline().getDataRange()));
 
-    myProfilers.addDependency(this).onChange(ProfilerAspect.AGENT, this::onAgentStatusChanged);
-    onAgentStatusChanged();
+    myProfilers.addDependency(this).onChange(ProfilerAspect.AGENT, this::updateEnabledState);
+    updateEnabledState();
   }
 
   @Override
@@ -108,13 +109,31 @@ public class EventMonitor extends ProfilerMonitor {
    * its status is set to ATTACHED. The timeframe is defined in begin_session.cc (kAgentStatusRateUs, kAgentStatusRetries). If unable to
    * attach within timeframe it sets its status to UNATTACHABLE.
    */
-  private void onAgentStatusChanged() {
-    boolean agentAttached = myProfilers.isAgentAttached();
-    Common.AgentData.Status agentStatus = myProfilers.getAgentData().getStatus();
-    if (myAgentStatus != agentStatus) {
-      myEnabled = agentAttached;
+  private void updateEnabledState() {
+    boolean newEnabledState = isNewEnabledState();
+
+    // To prevent unnecessary UI churn, only fire a change event if the state has actually changed.
+    // We check against both the previous agent status (for live sessions) and the previous enabled state
+    // (for session switching).
+    Common.AgentData.Status newAgentStatus = myProfilers.getAgentData().getStatus();
+    if (myAgentStatus != newAgentStatus || myEnabled != newEnabledState) {
+      myEnabled = newEnabledState;
+      myAgentStatus = newAgentStatus;
       changed(Aspect.ENABLE);
     }
-    myAgentStatus = agentStatus;
+  }
+
+  private boolean isNewEnabledState() {
+    // The monitor is enabled in two cases:
+    // 1. For a live session, if the agent is attached.
+    boolean agentAttached = myProfilers.isAgentAttached();
+
+    // 2. For a past recording, if it was captured from a debuggable app on an O+ device.
+    //    The `jvmtiEnabled` flag in the session's metadata is a reliable indicator for this.
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+    boolean isAlive = sessionsManager.isSessionAlive();
+    boolean recordingHasEvents = !isAlive && sessionsManager.getSelectedSessionMetaData().getJvmtiEnabled();
+
+    return agentAttached || recordingHasEvents;
   }
 }

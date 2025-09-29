@@ -22,6 +22,7 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Device
+import com.android.tools.profiler.proto.Transport
 import com.android.tools.profiler.proto.Memory.AllocationsInfo
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo
 import com.android.tools.profiler.proto.Trace
@@ -46,6 +47,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
+import java.io.File
 
 class SessionsManagerTest {
   private val myTimer = FakeTimer()
@@ -1005,6 +1007,40 @@ class SessionsManagerTest {
     assertThat(myManager.selectedSession.sessionId).isEqualTo(123)
     // The profilingSession should have been reset as there is no ongoing session.
     assertThat(myManager.profilingSession.sessionId).isNotEqualTo(123)
+  }
+
+  @Test
+  fun testSetAndUnsetTaskDb() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
+    val streamId = 1L
+    val pid = 10
+    val onlineDevice = Common.Device.newBuilder().setDeviceId(streamId).setState(Common.Device.State.ONLINE).build()
+    val onlineProcess = Common.Process.newBuilder().setPid(pid).setState(Common.Process.State.ALIVE).build()
+    beginSessionHelper(onlineDevice, onlineProcess)
+    val session = myManager.selectedSession
+
+    val tempDbFile = File.createTempFile("tmp-db-file", ".db")
+    tempDbFile.deleteOnExit()
+
+    val fileId = session.startTimestamp.toString()
+    val fileResponse = Transport.FileResponse.newBuilder().setFilePath(tempDbFile.absolutePath).build()
+    myTransportService.addFile(fileId, fileResponse.filePath)
+
+    // Test setTaskDb
+    myManager.setTaskDb(session)
+
+    val setRequest = myTransportService.lastSetTaskDbRequest
+    assertThat(setRequest).isNotNull()
+    assertThat(setRequest!!.sessionId).isEqualTo(session.sessionId)
+    assertThat(setRequest.dbPath).isEqualTo(tempDbFile.absolutePath)
+
+    // Test unsetTaskDb
+    myManager.unsetTaskDb(session)
+
+    val unsetRequest = myTransportService.lastUnsetTaskDbRequest
+    assertThat(unsetRequest).isNotNull()
+    assertThat(unsetRequest!!.sessionId).isEqualTo(session.sessionId)
   }
 
   private fun beginSessionHelper(device: Common.Device, process: Common.Process) {

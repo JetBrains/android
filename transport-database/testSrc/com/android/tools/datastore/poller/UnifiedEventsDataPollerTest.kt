@@ -57,7 +57,7 @@ class UnifiedEventsDataPollerTest : DataStorePollerTest() {
     val managedChannel = InProcessChannelBuilder.forName("UnifiedEventsPollerServer").build()
     val serviceStub = TransportServiceGrpc.newBlockingStub(managedChannel)
 
-    poller = UnifiedEventsDataPoller(1, table, serviceStub, dataStore)
+    poller = UnifiedEventsDataPoller(1, { event -> table.insertUnifiedEvent(1, event) }, serviceStub, dataStore)
   }
 
   @After

@@ -17,6 +17,7 @@ package com.android.tools.datastore.service;
 
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.ServicePassThrough;
+import com.android.tools.datastore.TaskDatabaseManager;
 import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.database.DeviceProcessTable;
 import com.android.tools.datastore.database.UnifiedEventsTable;
@@ -24,6 +25,7 @@ import com.android.tools.datastore.poller.UnifiedEventsDataPoller;
 import com.android.tools.idea.io.grpc.Channel;
 import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import com.android.tools.profiler.proto.Commands;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Common.Stream;
@@ -44,12 +46,19 @@ import com.android.tools.profiler.proto.Transport.GetProcessesResponse;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profiler.proto.Transport.VersionRequest;
+import com.android.tools.profiler.proto.Transport.SetTaskDbRequest;
+import com.android.tools.profiler.proto.Transport.SetTaskDbResponse;
+import com.android.tools.profiler.proto.Transport.UnsetTaskDbRequest;
+import com.android.tools.profiler.proto.Transport.UnsetTaskDbResponse;
 import com.android.tools.profiler.proto.Transport.VersionResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.io.FileUtil;
+import java.io.IOException;
 import java.sql.Connection;
 import java.util.Collection;
 import java.util.Collections;
@@ -57,6 +66,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Set;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,6 +77,48 @@ import org.jetbrains.annotations.NotNull;
  */
 public class TransportService extends TransportServiceGrpc.TransportServiceImplBase implements ServicePassThrough {
   private static final Logger LOG = Logger.getInstance(TransportService.class);
+  /**
+   * A set of event kinds that should be stored in a task-specific database ("task DB") if one is active.
+   * The task DB is a separate database file dedicated to a single, profiler task (e.g., Live View, Allocations),
+   * which can be exported and shared as a file.
+   * All other events are stored in the main, shared profiler database.
+   */
+  private static final Set<Event.Kind> TASK_DB_EVENT_KINDS =
+    ImmutableSet.of(
+      Event.Kind.SESSION,
+
+      Event.Kind.CPU_USAGE,
+      Event.Kind.CPU_THREAD,
+      Event.Kind.CPU_TRACE,
+
+      Event.Kind.MEMORY_GC,
+      Event.Kind.MEMORY_ALLOC_SAMPLING,
+      Event.Kind.MEMORY_ALLOC_TRACKING,
+      Event.Kind.MEMORY_ALLOC_TRACKING_STATUS,
+      Event.Kind.MEMORY_ALLOC_CONTEXTS,
+      Event.Kind.MEMORY_ALLOC_EVENTS,
+      Event.Kind.MEMORY_JNI_REF_EVENTS,
+      Event.Kind.MEMORY_ALLOC_STATS,
+      Event.Kind.MEMORY_USAGE,
+
+      Event.Kind.VIEW,
+      Event.Kind.INTERACTION,
+      Event.Kind.LIVE_VIEW_STATUS
+    );
+
+  /**
+   * A subset of {@link #TASK_DB_EVENT_KINDS} that should be written to *both* the active task DB and the main profiler database.
+   * This is necessary for events that need to be discoverable from outside the context of a specific task (e.g., to populate the list
+   * of past recordings).
+   * Writing them to the task DB also ensures their metadata and information are included when the database is
+   * shared as a trace file.
+   */
+  private static final Set<Event.Kind> DUAL_WRITE_EVENT_KINDS =
+    ImmutableSet.of(
+      Event.Kind.SESSION,
+      Event.Kind.MEMORY_ALLOC_TRACKING,
+      Event.Kind.LIVE_VIEW_STATUS
+    );
 
   private final Consumer<Runnable> myFetchExecutor;
   @NotNull private final UnifiedEventsTable myTable;
@@ -115,7 +167,8 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
     TransportServiceGrpc.TransportServiceBlockingStub stub = myService.getTransportClient(streamId);
     assert (stub != null);
     streamConnected(stream);
-    UnifiedEventsDataPoller unifiedPoller = new UnifiedEventsDataPoller(stream.getStreamId(), myTable, stub, myService);
+    UnifiedEventsDataPoller unifiedPoller =
+      new UnifiedEventsDataPoller(stream.getStreamId(), event -> insertEvent(stream.getStreamId(), event), stub, myService);
     myUnifiedEventsPollers.put(channel, unifiedPoller);
     myChannelToStream.put(channel, stream);
     DataStoreTable.addDataStoreErrorCallback(unifiedPoller);
@@ -129,6 +182,93 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
       DataStoreTable.removeDataStoreErrorCallback(poller);
       streamDisconnected(myChannelToStream.remove(channel));
     }
+  }
+
+  /**
+   * Inserts an event into the appropriate database.
+   *
+   * <p>This method is the primary sink for all events polled from the device. It is called by
+   * {@link UnifiedEventsDataPoller} for each event received from the transport pipeline.
+   *
+   * <p>The method first checks if the event should trigger the creation of a new, task-specific
+   * database (e.g. for a Live View or Allocations recording).
+   *
+   * <p>Then, it determines where to write the event based on its kind and whether a task database
+   * is currently active:
+   * <ul>
+   *   <li>If a task DB is active and the event is task-related (its kind is in {@link
+   *       #TASK_DB_EVENT_KINDS}), it is written to the task DB.
+   *   <li>If the event is also marked for dual-writing (its kind is in {@link
+   *       #DUAL_WRITE_EVENT_KINDS}), it is additionally written to the main database for
+   *       discoverability.
+   *   <li>Otherwise, the event is written only to the main database.
+   * </ul>
+   *
+   * @param streamId The ID of the stream the event belongs to.
+   * @param event The event to insert.
+   */
+  private void insertEvent(long streamId, @NotNull Event event) {
+    tryAutoStartTaskDb(streamId, event);
+
+    // Decide where to insert
+    UnifiedEventsTable taskTable = myService.getTaskEventsTable();
+    if (taskTable != null && TASK_DB_EVENT_KINDS.contains(event.getKind())) {
+      // This event belongs to a task. Write it to the task-specific DB.
+      taskTable.insertUnifiedEvent(streamId, event);
+
+      if (DUAL_WRITE_EVENT_KINDS.contains(event.getKind())) {
+        // This event should also be in the main DB for discoverability.
+        myTable.insertUnifiedEvent(streamId, event);
+      }
+    }
+    else {
+      // Not a task event, or no task active. Write to main DB.
+      myTable.insertUnifiedEvent(streamId, event);
+    }
+  }
+
+  /**
+   * For certain task types, we want to automatically create a dedicated database file when the task session starts.
+   * This method checks if the given event is a session start for such a task, and if so, creates and sets the task DB.
+   */
+  private void tryAutoStartTaskDb(long streamId, @NotNull Event event) {
+    if (event.getKind() != Event.Kind.SESSION ||
+        event.getIsEnded() ||
+        !event.hasSession() ||
+        !event.getSession().hasSessionStarted()) {
+      return;
+    }
+
+    var sessionStarted = event.getSession().getSessionStarted();
+    var taskType = sessionStarted.getTaskType();
+    if (taskType != Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS && taskType != Common.ProfilerTaskType.LIVE_VIEW) {
+      return;
+    }
+
+    String dbPath;
+    try {
+      dbPath = FileUtil.createTempFile(getTaskDbPath(taskType, event.getTimestamp()), ".asdb", true).getAbsolutePath();
+    }
+    catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    myService.setTaskDb(sessionStarted.getSessionId(), dbPath, taskType, streamId, event.getPid());
+
+    // Store a reference to this DB in the main database, so it can be looked up later
+    // via getFile (e.g. for exporting, or for re-associating the DB with the task
+    // via SessionsManager.setTaskDb).
+    myTable.insertFile(streamId, Long.toString(event.getTimestamp()), FileResponse.newBuilder().setFilePath(dbPath).build());
+  }
+
+  private String getTaskDbPath(Common.ProfilerTaskType taskType, long timestamp) {
+    String nameHint = "task";
+    if (taskType == Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS) {
+      nameHint = "java-kotlin-allocs";
+    }
+    else if (taskType == Common.ProfilerTaskType.LIVE_VIEW) {
+      nameHint = "live-view";
+    }
+    return nameHint + "-" + timestamp;
   }
 
   private void streamConnected(Stream stream) {
@@ -245,7 +385,24 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
   @Override
   public void getEventGroups(GetEventGroupsRequest request, StreamObserver<GetEventGroupsResponse> responseObserver) {
     GetEventGroupsResponse.Builder response = GetEventGroupsResponse.newBuilder();
-    Collection<EventGroup> events = myTable.queryUnifiedEventGroups(request);
+    Collection<EventGroup> events;
+    UnifiedEventsTable tableToQuery = myTable;
+
+    UnifiedEventsTable taskTable = myService.getTaskEventsTable();
+    if (taskTable != null && (TASK_DB_EVENT_KINDS.contains(request.getKind()) && !DUAL_WRITE_EVENT_KINDS.contains(request.getKind()))) {
+      tableToQuery = taskTable;
+
+      // For imported sessions, the request contains a fake streamId and pid=0.
+      // We need to translate these to the real IDs from the database file before querying.
+      if (request.getPid() == 0) {
+        TaskDatabaseManager.ImportedSessionMapping mapping = myService.getImportedSessionMapping();
+        if (mapping != null) {
+          request = request.toBuilder().setStreamId(mapping.realStreamId()).setPid(mapping.realPid()).build();
+        }
+      }
+    }
+
+    events = tableToQuery.queryUnifiedEventGroups(request);
     response.addAllGroups(events);
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
@@ -260,6 +417,20 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
                          request.getFromTimestamp(),
                          request.getToTimestamp());
     responseObserver.onNext(Transport.DeleteEventsResponse.getDefaultInstance());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void setTaskDb(SetTaskDbRequest request, StreamObserver<SetTaskDbResponse> responseObserver) {
+    myService.setTaskDb(request.getSessionId(), request.getDbPath(), null, 0, 0);
+    responseObserver.onNext(SetTaskDbResponse.getDefaultInstance());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void unsetTaskDb(UnsetTaskDbRequest request, StreamObserver<UnsetTaskDbResponse> responseObserver) {
+    myService.unsetTaskDb(request.getSessionId());
+    responseObserver.onNext(UnsetTaskDbResponse.getDefaultInstance());
     responseObserver.onCompleted();
   }
 }

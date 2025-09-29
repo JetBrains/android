@@ -76,7 +76,7 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
   public void initialize(@NotNull Connection connection) {
     super.initialize(connection);
     try {
-      createTable("UnifiedEventsTable",
+      createTableIfNotExists("UnifiedEventsTable",
                   "StreamId INTEGER NOT NULL", // Optional filter, required for all data.
                   "ProcessId INTEGER NOT NULL", // Optional filter, not required for data (eg device/process).
                   "GroupId INTEGER NOT NULL", // Optional filter, not required for data.
@@ -85,7 +85,7 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
                   "Timestamp INTEGER NOT NULL", // Optional filter, required for all data.
                   "IsEnded INTEGER NOT NULL", // Optional filter, required for all data.
                   "Data BLOB");
-      createTable("BytesTable", "StreamId INTEGER NOT NULL", "Id STRING NOT NULL", "Path STRING NOT NULL");
+      createTableIfNotExists("BytesTable", "StreamId INTEGER NOT NULL", "Id STRING NOT NULL", "Path STRING NOT NULL");
       createUniqueIndex("UnifiedEventsTable", "Kind", "StreamId", "ProcessId", "GroupId", "Timestamp", "IsEnded");
       createUniqueIndex("BytesTable", "StreamId", "Id");
     }

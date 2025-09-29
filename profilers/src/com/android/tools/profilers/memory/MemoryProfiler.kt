@@ -18,10 +18,10 @@ package com.android.tools.profilers.memory
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.io.grpc.StatusRuntimeException
-import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Common.Event
 import com.android.tools.profiler.proto.Memory
 import com.android.tools.profiler.proto.Memory.AllocationsInfo
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo
@@ -32,8 +32,11 @@ import com.android.tools.profiler.proto.Trace.TraceInfo
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest
 import com.android.tools.profiler.proto.Transport.TimeRequest
+import com.android.tools.profilers.ImportedSessionUtils
+import com.android.tools.profilers.ImportedSessionUtils.importEventBasedArtifact
 import com.android.tools.profilers.ImportedSessionUtils.importFileWithArtifactEvent
 import com.android.tools.profilers.ImportedSessionUtils.makeEndedEvent
+import com.android.tools.profilers.ImportedSessionUtils.makeStartedEvent
 import com.android.tools.profilers.ProfilerAspect
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfiler
@@ -61,6 +64,7 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
     sessionsManager.registerImportHandler("hprof", Consumer(::importHprof))
     sessionsManager.registerImportHandler("alloc", Consumer(::importLegacyAllocations))
     sessionsManager.registerImportHandler("heapprofd", Consumer(::importHeapprofd))
+    sessionsManager.registerImportHandler("asdb") { file -> ImportedSessionUtils.importAsdbTask(profilers, file) }
     this.profilers.registerSessionChangeListener(Common.SessionMetaData.SessionType.MEMORY_CAPTURE) {
       val stage = MainMemoryProfilerStage(this.profilers)
       this.profilers.stage = stage
@@ -102,6 +106,7 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
           (profilers.stage as AllocationStage).stopTrackingDueToUnattachableAgent()
         }
       }
+
       else -> try {
         if (profilers.ideServices.featureConfig.isTaskBasedUxEnabled &&
             profilers.sessionsManager.isSessionAlive &&
@@ -109,7 +114,8 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
             profilers.stage is AllocationStage && !(profilers.stage as AllocationStage).hasStartedTracking) {
           // If, current stage is allocation stage and tracking has not started, then start the tracking
           (profilers.stage as AllocationStage).startTracking()
-        } else {
+        }
+        else {
           // Attempts to stop an existing tracking session.
           // This should only happen if we are restarting Studio and reconnecting to an app that already has an agent attached.
           trackAllocations(profilers, session, false, false, null)
@@ -145,6 +151,7 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
         )
       }
     }
+    featureTracker.trackCreateSession(Common.SessionMetaData.SessionType.MEMORY_CAPTURE, SessionsManager.SessionCreationSource.MANUAL)
   }
 
   private fun importLegacyAllocations(file: File) {
@@ -161,6 +168,26 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
   companion object {
     private val logger: Logger
       get() = Logger.getInstance(MemoryProfiler::class.java)
+
+    @JvmStatic
+    fun importAllocations(profilers: StudioProfilers, file: File) {
+      importEventBasedArtifact(profilers.sessionsManager,
+                               file,
+                               Common.SessionData.SessionStarted.SessionType.FULL,
+                               Common.SessionMetaData.SessionType.FULL) { start, end ->
+        val startInfo = AllocationsInfo.newBuilder().setStartTime(start).setEndTime(Long.MAX_VALUE).build()
+        val endInfo = AllocationsInfo.newBuilder().setStartTime(start).setEndTime(end).setSuccess(true).build()
+        listOf(
+          makeStartedEvent(start, start, Common.Event.Kind.MEMORY_ALLOC_TRACKING) {
+            setMemoryAllocTracking(Memory.MemoryAllocTrackingData.newBuilder().setInfo(startInfo))
+          },
+          makeEndedEvent(start, end, Common.Event.Kind.MEMORY_ALLOC_TRACKING) {
+            setMemoryAllocTracking(Memory.MemoryAllocTrackingData.newBuilder().setInfo(endInfo))
+          }
+        )
+      }
+      profilers.ideServices.featureTracker.trackCreateSession(Common.SessionMetaData.SessionType.MEMORY_CAPTURE, SessionsManager.SessionCreationSource.MANUAL)
+    }
 
     /**
      * @return whether live allocation is active for the specified session.
@@ -189,12 +216,21 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
       saveToFile(client, session, info.startTime, outputStream, featureTracker::trackExportHeap, "Failed to export heap dump file")
 
     @JvmStatic
+    fun saveAllocationToFile(client: ProfilerClient,
+                             session: Common.Session,
+                             outputStream: OutputStream,
+                             featureTracker: FeatureTracker) =
+      saveToFile(client, session, session.startTimestamp, outputStream, featureTracker::trackExportAllocation,
+                 "Failed to export heap dump file")
+
+    @JvmStatic
     fun saveLegacyAllocationToFile(client: ProfilerClient,
                                    session: Common.Session,
                                    info: AllocationsInfo,
                                    outputStream: OutputStream,
                                    featureTracker: FeatureTracker) =
-      saveToFile(client, session, info.startTime, outputStream, featureTracker::trackExportAllocation, "Failed to export allocation records")
+      saveToFile(client, session, info.startTime, outputStream, featureTracker::trackExportAllocation,
+                 "Failed to export legacy allocation records")
 
     @JvmStatic
     fun saveHeapProfdSampleToFile(client: ProfilerClient,
@@ -309,9 +345,11 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
                                                     { event -> event.commandId == response.commandId },
                                                     { session.streamId },
                                                     { session.pid },
-                                                    callback = { event -> true.also {
-                                                      responseHandler.accept(event.memoryAllocTrackingStatus.status)
-                                                    }})
+                                                    callback = { event ->
+                                                      true.also {
+                                                        responseHandler.accept(event.memoryAllocTrackingStatus.status)
+                                                      }
+                                                    })
         profilers.transportPoller.registerListener(statusListener)
       }
     }
