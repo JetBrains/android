@@ -41,11 +41,12 @@ import com.android.tools.idea.preview.focus.FocusModeProperty
 import com.android.tools.idea.preview.mvvm.PreviewRepresentationView
 import com.android.tools.idea.rendering.tokens.requestBuildArtifactsForRendering
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
-import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
@@ -172,7 +173,7 @@ internal class ComposePreviewViewImpl(
   dataProvider: DataProvider,
   mainDesignSurfaceBuilder: NlSurfaceBuilder,
   parentDisposable: Disposable,
-) : ComposePreviewView, DataProvider {
+) : ComposePreviewView, UiDataProvider {
 
   private val workbench =
     WorkBench<DesignSurface<*>>(project, "Compose Preview", null, parentDisposable, 0)
@@ -218,7 +219,7 @@ internal class ComposePreviewViewImpl(
     return null
   }
 
-  override val component: JComponent = workbench
+  override val component: JComponent = UiDataProvider.wrapComponent(workbench, this)
 
   private val notificationPanel =
     NotificationPanel(
@@ -319,9 +320,6 @@ internal class ComposePreviewViewImpl(
         handleUpdateVisibilityAndNotificationsRequest()
       }
     }
-
-    DataManager.registerDataProvider(workbench) { getData(it) }
-    Disposer.register(parentDisposable) { DataManager.removeDataProvider(workbench) }
   }
 
   override var focusMode by FocusModeProperty(content, mainSurface)
@@ -539,7 +537,7 @@ internal class ComposePreviewViewImpl(
     }
     get() = mainPanelSplitter.secondComponent
 
-  override fun getData(dataId: String): Any? {
-    return if (DESIGN_SURFACE.`is`(dataId)) mainSurface else null
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[DESIGN_SURFACE] = mainSurface
   }
 }
