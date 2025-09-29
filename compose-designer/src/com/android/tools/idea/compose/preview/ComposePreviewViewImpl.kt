@@ -65,10 +65,10 @@ import com.intellij.ui.EditorNotifications
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
-import java.awt.Insets
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
@@ -234,7 +234,7 @@ internal class ComposePreviewViewImpl(
    * inspector that lists all the animations the preview has.
    */
   private val mainPanelSplitter =
-    OnePixelSplitter(true, 0.7f).apply { this.setBlindZone { Insets(1, 0, 1, 0) } }
+    OnePixelSplitter(true, 0.7f).apply { this.setBlindZone { JBUI.insets(1, 0) } }
 
   /** [ActionData] that triggers Build and Refresh of the preview. */
   private val buildAndRefreshAction: ActionData
