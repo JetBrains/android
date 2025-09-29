@@ -435,11 +435,6 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     return splitter;
   }
 
-  public void setMinimizePanelsVisible(boolean visible) {
-    myLeftMinimizePanel.setVisible(visible);
-    myRightMinimizePanel.setVisible(visible);
-  }
-
   @NotNull
   private String getUnscaledWidthPropertyName(@NotNull Layout layout, @NotNull Side side) {
     return TOOL_WINDOW_PROPERTY_PREFIX + layout.getPrefix() + myName + "." + side.name() + ".UNSCALED.WIDTH";
@@ -676,11 +671,6 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     return !wasVisible;
   }
 
-  @TestOnly
-  public boolean isShowingContent() {
-    return myMainPanel.isShowing();
-  }
-
   public List<AttachedToolWindow<T>> getDetachedToolWindows() {
     return myModel.getDetachedTools();
   }
@@ -803,12 +793,6 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   @Nullable
   public List<JComponent> getBottomComponents(Side side) {
     return myModel.getBottomTools(side).stream().map(AttachedToolWindow::getComponent).toList();
-  }
-
-  @TestOnly
-  public void minimizeAllAttachedToolWindows() {
-    myModel.getAllTools().forEach((window) -> window.setMinimized(true));
-    updateModel();
   }
 
   @TestOnly
