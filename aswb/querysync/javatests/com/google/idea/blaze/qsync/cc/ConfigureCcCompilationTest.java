@@ -28,14 +28,15 @@ import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.NoopContext;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
+import com.google.idea.blaze.qsync.QuerySyncTestUtils;
 import com.google.idea.blaze.qsync.TestDataSyncRunner;
+import com.google.idea.blaze.qsync.JavaPackagePrefixReaderImpl;
 import com.google.idea.blaze.qsync.artifacts.DigestMap;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker.State;
 import com.google.idea.blaze.qsync.deps.CcToolchain;
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext;
-import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
 import com.google.idea.blaze.qsync.java.PackageStatementParser;
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcCompilationInfo;
@@ -49,6 +50,7 @@ import com.google.idea.blaze.qsync.project.ProjectProto.CcLanguage;
 import com.google.idea.blaze.qsync.project.ProjectProto.CcSourceFile;
 import com.google.idea.blaze.qsync.project.ProjectProto.CcWorkspace;
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.testdata.TestData;
 import java.nio.file.Path;
 import java.util.List;
@@ -61,7 +63,13 @@ public class ConfigureCcCompilationTest {
 
   private final Context<?> context = new NoopContext();
   private final TestDataSyncRunner syncRunner =
-      new TestDataSyncRunner(context, new PackageStatementParser());
+      new TestDataSyncRunner(
+          context,
+          new JavaPackagePrefixReaderImpl(
+              Path.of("/"),
+              new PackageStatementParser(),
+              QuerySyncTestUtils.SIMPLE_PARALLEL_PACKAGE_READER,
+              (p) -> true));
 
   private static State toArtifactState(CcCompilationInfo proto) {
     DigestMap digestMap = DigestMap.ofFunction(p -> Integer.toHexString(p.hashCode()));
@@ -80,8 +88,7 @@ public class ConfigureCcCompilationTest {
   @Test
   public void empty() throws Exception {
     QuerySyncProjectSnapshot original = syncRunner.sync(TestData.CC_LIBRARY_QUERY);
-    ProjectProtoUpdate update =
-        new ProjectProtoUpdate(original.project());
+    ProjectProtoUpdate update = new ProjectProtoUpdate(original.project());
     ConfigureCcCompilation ccConfig =
         new ConfigureCcCompilation(ArtifactTracker.State.EMPTY, update);
     ccConfig.update(original.graph(), context);
@@ -92,8 +99,7 @@ public class ConfigureCcCompilationTest {
   @Test
   public void basics() throws Exception {
     QuerySyncProjectSnapshot original = syncRunner.sync(TestData.CC_LIBRARY_QUERY);
-    ProjectProtoUpdate update =
-        new ProjectProtoUpdate(original.project());
+    ProjectProtoUpdate update = new ProjectProtoUpdate(original.project());
 
     Label ccTargetLabel = getOnlyElement(TestData.CC_LIBRARY_QUERY.getAssumedLabels());
     CcCompilationInfo compilationInfo =
@@ -146,8 +152,8 @@ public class ConfigureCcCompilationTest {
     assertThat(sourceFile.getLanguage()).isEqualTo(CcLanguage.CPP);
     assertThat(sourceFile.getWorkspacePath())
         .isEqualTo(
-          ProjectPath.workspaceRelative(
-            TestData.CC_LIBRARY_QUERY.getOnlySourcePath().resolve("TestClass.cc")));
+            ProjectPath.workspaceRelative(
+                TestData.CC_LIBRARY_QUERY.getOnlySourcePath().resolve("TestClass.cc")));
     CcCompilerSettings compilerSettings = sourceFile.getCompilerSettings();
     FlagResolver resolver =
         new FlagResolver(
@@ -169,19 +175,21 @@ public class ConfigureCcCompilationTest {
             "--sharedopt",
             "--cppopt");
 
-    assertThat(compilerSettings.getCompilerExecutablePath()).isEqualTo(ProjectPath.workspaceRelative(Path.of("workspace/path/to/clang")));
+    assertThat(compilerSettings.getCompilerExecutablePath())
+        .isEqualTo(ProjectPath.workspaceRelative(Path.of("workspace/path/to/clang")));
 
-    Truth8.assertThat(
-            context.getLanguageToCompilerSettings().keySet().stream())
+    Truth8.assertThat(context.getLanguageToCompilerSettings().keySet().stream())
         .containsExactly(CcLanguage.CPP, CcLanguage.C);
 
     assertThat(
             resolver.resolveAll(
-                workspace.getFlagSets().get(
-                    context
-                        .getLanguageToCompilerSettings()
-                        .get(CcLanguage.CPP)
-                        .getFlagSetId())))
+                workspace
+                    .getFlagSets()
+                    .get(
+                        context
+                            .getLanguageToCompilerSettings()
+                            .get(CcLanguage.CPP)
+                            .getFlagSetId())))
         .containsExactly(
             "-I/project/.bazel/buildout/bazel-out/builtin/include/directory",
             "-I/workspace/src/builtin/include/directory",
@@ -190,12 +198,9 @@ public class ConfigureCcCompilationTest {
 
     assertThat(
             resolver.resolveAll(
-                workspace.getFlagSets()
-                  .get(
-                    context
-                        .getLanguageToCompilerSettings()
-                        .get(CcLanguage.C)
-                        .getFlagSetId())))
+                workspace
+                    .getFlagSets()
+                    .get(context.getLanguageToCompilerSettings().get(CcLanguage.C).getFlagSetId())))
         .containsExactly(
             "-I/project/.bazel/buildout/bazel-out/builtin/include/directory",
             "-I/workspace/src/builtin/include/directory",
@@ -220,8 +225,7 @@ public class ConfigureCcCompilationTest {
   @Test
   public void multi_srcs_share_flagset() throws Exception {
     QuerySyncProjectSnapshot original = syncRunner.sync(TestData.CC_MULTISRC_QUERY);
-    ProjectProtoUpdate update =
-        new ProjectProtoUpdate(original.project());
+    ProjectProtoUpdate update = new ProjectProtoUpdate(original.project());
     Path pkgPath = getOnlyElement(TestData.CC_MULTISRC_QUERY.getRelativeSourcePaths());
     ImmutableList<Label> labels =
         ImmutableList.of(

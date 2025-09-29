@@ -39,9 +39,7 @@ object ProjectProtos {
     val workspaceImportDirectory = project.getQueryOutputPath()
     val converter =
       GraphToProjectConverter(
-        packageReader = QuerySyncTestUtils.EMPTY_PACKAGE_READER,
-        parallelPackageReader = PackageReader.ParallelReader.SingleThreadedForTests(),
-        fileExistenceCheck = { true },
+        javaPackagePrefixReader = QuerySyncTestUtils.EMPTY_PREFIX_READER,
         context = QuerySyncTestUtils.NOOP_CONTEXT,
         projectDefinition = ProjectDefinition(
           projectIncludes = setOf(workspaceImportDirectory),
@@ -52,8 +50,7 @@ object ProjectProtos {
           isAndroidWorkspace = true,
           languageClasses = setOf(QuerySyncLanguage.JVM),
           deriveTargetsFromDirectories = false,
-        ),
-        executor = MoreExecutors.newDirectExecutorService()
+        )
       )
     return converter.createProject(BuildGraphs.forTestProject(project))
   }

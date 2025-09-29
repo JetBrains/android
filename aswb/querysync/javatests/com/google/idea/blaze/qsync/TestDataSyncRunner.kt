@@ -35,7 +35,7 @@ import java.util.Optional
  */
 class TestDataSyncRunner(
   private val context: Context<*>,
-  private val packageReader: PackageReader
+  private val javaPackagePrefixReader: JavaPackagePrefixReader
 ) {
   @Throws(IOException::class, BuildException::class)
   fun sync(testProject: TestData): QuerySyncProjectSnapshot {
@@ -62,12 +62,9 @@ class TestDataSyncRunner(
       BlazeQueryParser(querySummary, context, ImmutableSet.of()).parse()
     val converter =
       GraphToProjectConverter(
-        packageReader = packageReader,
-        parallelPackageReader = PackageReader.ParallelReader.SingleThreadedForTests(),
-        fileExistenceCheck = { true },
+        javaPackagePrefixReader = javaPackagePrefixReader,
         context = context,
-        projectDefinition = projectDefinition,
-        executor = MoreExecutors.newDirectExecutorService()
+        projectDefinition = projectDefinition
       )
     val project = converter.createProject(buildGraphData)
     return QuerySyncProjectSnapshot.builder()
