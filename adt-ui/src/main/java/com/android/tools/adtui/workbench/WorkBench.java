@@ -17,7 +17,6 @@ package com.android.tools.adtui.workbench;
 
 import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX;
 
-import com.android.annotations.Nullable;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.stdui.ActionData;
 import com.android.tools.adtui.stdui.UrlData;
@@ -66,6 +65,7 @@ import javax.swing.JPanel;
 import javax.swing.LayoutFocusTraversalPolicy;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 /**
