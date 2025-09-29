@@ -56,6 +56,7 @@ class InspectorModel(
   val scheduler: ScheduledExecutorService? = null,
   processesModel: ProcessesModel? = null,
 ) : ViewNodeAndResourceLookup {
+  val stateReadsModel = InspectorStateReadModel()
 
   fun interface SelectionListener {
     fun onSelection(oldNode: ViewNode?, newNode: ViewNode?, origin: SelectionOrigin)

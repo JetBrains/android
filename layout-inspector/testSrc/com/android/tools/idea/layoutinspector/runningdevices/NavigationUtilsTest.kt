@@ -26,7 +26,6 @@ import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadResult
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.tree.GotoDeclaration
 import com.android.tools.idea.layoutinspector.util.DemoExample
@@ -157,8 +156,5 @@ private class FakeInspectorClient : InspectorClient {
   override val provider: PropertiesProvider
     get() = throw NotImplementedError()
 
-  override suspend fun getRecompositionStateReadsFromCache(
-    view: ComposeViewNode,
-    recomposition: Int,
-  ): RecomposeStateReadResult? = null
+  override suspend fun requestRecompositionStateReads(view: ComposeViewNode, recomposition: Int) {}
 }

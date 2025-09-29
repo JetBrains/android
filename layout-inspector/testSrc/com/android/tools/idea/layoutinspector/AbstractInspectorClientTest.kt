@@ -25,7 +25,6 @@ import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadResult
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
@@ -121,8 +120,5 @@ private class MyClient(
   override val inLiveMode = false
   override val provider: PropertiesProvider = mock()
 
-  override suspend fun getRecompositionStateReadsFromCache(
-    view: ComposeViewNode,
-    recomposition: Int,
-  ): RecomposeStateReadResult? = null
+  override suspend fun requestRecompositionStateReads(view: ComposeViewNode, recomposition: Int) {}
 }

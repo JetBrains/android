@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.stateinspection
 
+import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -23,6 +24,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterGroupItem
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterItem
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadData
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadResult
 import com.android.tools.idea.layoutinspector.properties.PropertyType
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.intellij.icons.AllIcons
@@ -39,6 +41,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 
 private const val MAX_EXPRESSION_LENGTH = 80
@@ -80,11 +83,12 @@ internal interface StateInspectionModel {
 
 internal class StateInspectionModelImpl(
   private val model: InspectorModel,
-  private val scope: CoroutineScope,
+  parentScope: CoroutineScope,
   private val treeSettings: TreeSettings,
   private val client: () -> InspectorClient,
   parentDisposable: Disposable,
 ) : StateInspectionModel {
+  private val scope = parentScope.createChildScope(parentDisposable = parentDisposable)
   private var currentNode: ComposeViewNode? = null
   private var currentRecomposition = 0
   private var firstRecomposition = 0
@@ -141,10 +145,25 @@ internal class StateInspectionModelImpl(
   init {
     model.addStateReadsNodeListener(listener)
     model.addModificationListener(updateListener)
+    scope.launch {
+      model.stateReadsModel.stateReads.filterNotNull().collect { result -> showResult(result) }
+    }
     Disposer.register(parentDisposable) {
       model.removeStateReadsNodeListener(listener)
       model.removeModificationListener(updateListener)
     }
+  }
+
+  private fun showResult(result: RecomposeStateReadResult) {
+    currentNode = result.node
+    currentRecomposition = result.recomposition
+    firstRecomposition = result.firstObservedRecomposition
+    _recompositionText.value = generateRecompositionText()
+    _stateReadsText.value = generateStateReadsText(result.reads.size)
+    _stackTraceText.value = generateStackTraces(result.reads)
+    _composableInspected.value =
+      ComposableDefinition(result.node.qualifiedName, result.node.composeFilename)
+    _updates.value += 1
   }
 
   private fun loadRecompositionStateReads(composable: ComposeViewNode, recomposition: Int) {
@@ -156,26 +175,18 @@ internal class StateInspectionModelImpl(
       _stackTraceText.value = ""
       _updates.value += 1
     }
-    scope.launch {
-      val result =
-        client().getRecompositionStateReadsFromCache(composable, recomposition) ?: return@launch
-      currentNode = result.node
-      currentRecomposition = result.recomposition
-      firstRecomposition = result.firstObservedRecomposition
-      _recompositionText.value = generateRecompositionText()
-      _stateReadsText.value = generateStateReadsText(result.reads.size)
-      _stackTraceText.value = generateStackTraces(result.reads)
-      _composableInspected.value =
-        ComposableDefinition(composable.qualifiedName, composable.composeFilename)
-      _updates.value += 1
-    }
+    scope.launch { client().requestRecompositionStateReads(composable, recomposition) }
   }
 
   private fun stopStateObservations() {
     val node = currentNode ?: return
     if (!treeSettings.observeStateReadsForAll) {
-      scope.launch { client().getRecompositionStateReadsFromCache(node, 0) }
+      scope.launch { client().requestRecompositionStateReads(node, 0) }
     }
+    clear()
+  }
+
+  private fun clear() {
     currentNode = null
     currentRecomposition = 0
     _recompositionText.value = ""
