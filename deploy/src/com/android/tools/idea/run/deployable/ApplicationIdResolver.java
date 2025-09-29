@@ -67,7 +67,7 @@ public class ApplicationIdResolver implements IDebugBridgeChangeListener, IDevic
 
   @Override
   public void bridgeChanged(@Nullable AndroidDebugBridge bridge) {
-    if (bridge != null && bridge.isConnected() && bridge.hasInitialDeviceList()) {
+    if (bridge != null && bridge.isConnected()) {
       for (IDevice iDevice : bridge.getDevices()) {
         refresh(iDevice);
       }
