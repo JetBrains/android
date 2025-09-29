@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.adb.wireless
 
+import com.android.adblib.MdnsPairingService
 import com.android.annotations.concurrency.UiThread
-import com.android.sdklib.deviceprovisioner.SetChange.Add
-import com.android.sdklib.deviceprovisioner.SetChange.Remove
-import com.android.sdklib.deviceprovisioner.trackSetChanges
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.google.wireless.android.sdk.stats.WifiPairingEvent.PairingMethod.QR_CODE
@@ -32,8 +30,10 @@ import java.net.InetAddress
 import java.time.Duration
 import java.util.concurrent.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.time.delay
 import kotlinx.coroutines.withContext
@@ -49,7 +49,7 @@ class QrCodeScanningController(
   private val LOG = logger<QrCodeScanningController>()
   private val modelListener = MyModelListener()
   private val viewListener = MyViewListener()
-  private var state = State.Init
+  private val state = MutableStateFlow(State.Init)
   private val scope = AndroidCoroutineScope(this)
 
   init {
@@ -61,16 +61,19 @@ class QrCodeScanningController(
   override fun dispose() {
     view.model.removeListener(modelListener)
     view.removeListener(viewListener)
-    state = State.Disposed
+    state.value = State.Disposed
   }
 
   suspend fun startPairingProcess() {
     view.showQrCodePairingStarted()
     generateQrCode(view.model)
-    state = State.Polling
     if (StudioFlags.WIFI_V2_DIALOG.get() && service.isTrackMdnsServiceAvailable()) {
-      startMdnsTrackingService()
+      if (state.value == State.Init) {
+        startMdnsTrackingService()
+      }
+      state.value = State.Polling
     } else {
+      state.value = State.Polling
       pollMdnsServices()
     }
   }
@@ -81,7 +84,7 @@ class QrCodeScanningController(
   }
 
   private fun startPairingDevice(pairingMdnsService: PairingMdnsService, password: String) {
-    state = State.Pairing
+    state.value = State.Pairing
     view.showQrCodePairingInProgress(pairingMdnsService)
     scope.launch(Dispatchers.EDT + ModalityState.any().asContextElement()) {
       val now = System.currentTimeMillis()
@@ -97,7 +100,7 @@ class QrCodeScanningController(
           device.properties["ro.build.version.codename"],
           System.currentTimeMillis() - now,
         )
-        state = State.PairingSuccess
+        state.value = State.PairingSuccess
         view.showQrCodePairingSuccess(pairingMdnsService, device)
       } catch (error: Throwable) {
         if (!isCancelled(error)) {
@@ -108,7 +111,7 @@ class QrCodeScanningController(
             System.currentTimeMillis() - now,
           )
           LOG.warn("Error pairing device ${pairingMdnsService}", error)
-          state = State.PairingError
+          state.value = State.PairingError
           view.showQrCodePairingError(pairingMdnsService, error)
         }
       }
@@ -122,7 +125,7 @@ class QrCodeScanningController(
   private fun pollMdnsServices() {
     scope.launch {
       // Don't start a new polling request if we are not in "polling" mode
-      while (state == State.Polling) {
+      while (state.value == State.Polling) {
         try {
           val services = service.scanMdnsServices()
           withContext(Dispatchers.EDT + ModalityState.any().asContextElement()) {
@@ -141,39 +144,41 @@ class QrCodeScanningController(
     }
   }
 
-  private suspend fun startMdnsTrackingService() {
-    service
-      .trackMdnsServices()
-      .map { it.pairingMdnsServices.toSet() }
-      .trackSetChanges()
-      .takeWhile { state == State.Polling }
-      .collect {
-        val newServices =
-          when (it) {
-            is Add -> {
-              listOf(
-                PairingMdnsService(
-                  it.value.mdnsService.serviceInstanceName.instance,
-                  if (it.value.mdnsService.serviceInstanceName.instance.startsWith("studio-"))
-                    ServiceType.QrCode
-                  else ServiceType.PairingCode,
-                  InetAddress.getByName(it.value.mdnsService.ipv4),
-                  it.value.mdnsService.port,
-                )
+  private fun startMdnsTrackingService() {
+    scope.launch(Dispatchers.EDT + ModalityState.any().asContextElement()) {
+      val mdnsTrackServicesFlow = service.trackMdnsServices().map { it.pairingMdnsServices }
+      combine(mdnsTrackServicesFlow, state) { pairingServices, currentState ->
+          if (currentState != State.Polling) {
+            return@combine
+          }
+
+          val newServices =
+            pairingServices.map {
+              PairingMdnsService(
+                it.mdnsService.serviceInstanceName.instance,
+                it.toPairingType(),
+                InetAddress.getByName(it.mdnsService.ipv4),
+                it.mdnsService.port,
               )
             }
-            is Remove -> {
-              emptyList()
+
+          view.model.pairingCodeServices =
+            newServices.filter {
+              it.serviceType == ServiceType.PairingCode &&
+                (mdnsServiceUnderPairing == null ||
+                  mdnsServiceUnderPairing.serviceName == it.serviceName)
             }
-          }
-        view.model.pairingCodeServices =
-          newServices.filter {
-            it.serviceType == ServiceType.PairingCode &&
-              (mdnsServiceUnderPairing == null ||
-                mdnsServiceUnderPairing.serviceName == it.serviceName)
-          }
-        view.model.qrCodeServices = newServices.filter { it.serviceType == ServiceType.QrCode }
-      }
+          view.model.qrCodeServices = newServices.filter { it.serviceType == ServiceType.QrCode }
+        }
+        .collect()
+    }
+  }
+
+  private fun MdnsPairingService.toPairingType(): ServiceType {
+    if (this.mdnsService.serviceInstanceName.instance.startsWith("studio-")) {
+      return ServiceType.QrCode
+    }
+    return ServiceType.PairingCode
   }
 
   enum class State {
@@ -188,7 +193,7 @@ class QrCodeScanningController(
   @UiThread
   inner class MyViewListener : WiFiPairingView.Listener {
     override fun onScanAnotherQrCodeDeviceAction() {
-      when (state) {
+      when (state.value) {
         State.PairingError,
         State.PairingSuccess -> {
           scope.launch(Dispatchers.EDT + ModalityState.any().asContextElement()) {
