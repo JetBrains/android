@@ -43,9 +43,7 @@ import com.android.tools.idea.rendering.tokens.requestBuildArtifactsForRendering
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DataSink
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
@@ -59,6 +57,7 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.Disposer
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.EditorNotifications
@@ -129,7 +128,7 @@ fun interface ComposePreviewViewProvider {
     project: Project,
     psiFilePointer: SmartPsiElementPointer<PsiFile>,
     renderingBuildStatusManager: RenderingBuildStatusManager,
-    dataProvider: DataProvider,
+    uiDataProvider: UiDataProvider,
     mainDesignSurfaceBuilder: NlSurfaceBuilder,
     parentDisposable: Disposable,
   ): ComposePreviewView
@@ -162,7 +161,7 @@ fun interface ComposePreviewViewProvider {
  *   panel. Used to handle which notifications should be displayed.
  * @param renderingBuildStatusManager [RenderingBuildStatusManager] used to detect the current build
  *   status and show/hide the correct loading message.
- * @param dataProvider the [DataProvider] to be used by the [mainSurface] panel.
+ * @param uiDataProvider the [UiDataProvider] to be used by the [mainSurface] panel.
  * @param mainDesignSurfaceBuilder a builder to create main design surface
  * @param parentDisposable the [Disposable] to use as parent disposable for this panel.
  */
@@ -170,7 +169,7 @@ internal class ComposePreviewViewImpl(
   private val project: Project,
   private val psiFilePointer: SmartPsiElementPointer<PsiFile>,
   private val renderingBuildStatusManager: RenderingBuildStatusManager,
-  dataProvider: DataProvider,
+  uiDataProvider: UiDataProvider,
   mainDesignSurfaceBuilder: NlSurfaceBuilder,
   parentDisposable: Disposable,
 ) : ComposePreviewView, UiDataProvider {
@@ -184,16 +183,12 @@ internal class ComposePreviewViewImpl(
 
   override val mainSurface =
     mainDesignSurfaceBuilder
-      .setDelegateDataProvider { key ->
-        when {
-          PANNABLE_KEY.`is`(key) -> pannable
-          // TODO(b/229842640): We should actually pass the [scrollPane] here, but it does not work
-          GuiInputHandler.CURSOR_RECEIVER.`is`(key) -> workbench
-          PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(key) -> {
-            DataProvider { getDataInBackground(it) }
-          }
-          else -> dataProvider.getData(key)
-        }
+      .setDelegateUiDataProvider { sink ->
+        sink[PANNABLE_KEY] = pannable
+        // TODO(b/229842640): We should actually pass the [scrollPane] here, but it does not work
+        sink[GuiInputHandler.CURSOR_RECEIVER] = workbench
+        sink.lazy(CommonDataKeys.PSI_ELEMENT) { getOriginFileAsPsiElement() }
+        sink.uiDataSnapshot(uiDataProvider)
       }
       .build()
       .apply {
@@ -204,19 +199,16 @@ internal class ComposePreviewViewImpl(
 
   private val pannable: Pannable = mainSurface.pannable
 
-  private fun getDataInBackground(dataId: String): Any? {
-    if (CommonDataKeys.PSI_ELEMENT.`is`(dataId)) {
-      // DesignSurface's data provider will return the root XML element, which for Compose
-      // Previews is a ComposeViewAdapter. This is used, for example, to populate the editor's
-      // navigation bar. If we return ComposeViewAdapter, the navigation bar will show the file
-      // that contains it, i.e. the ComposeAdapterLightVirtualFile XML file. Instead, we should
-      // return its origin file, so the navigation bar will show the kotlin file containing the
-      // composable.
-      return (mainSurface.models.firstOrNull()?.virtualFile as? ComposeAdapterLightVirtualFile)
-        ?.originFile
-        ?.toPsiFile(project)
-    }
-    return null
+  private fun getOriginFileAsPsiElement(): PsiElement? {
+    // DesignSurface's data provider will return the root XML element, which for Compose
+    // Previews is a ComposeViewAdapter. This is used, for example, to populate the editor's
+    // navigation bar. If we return ComposeViewAdapter, the navigation bar will show the file
+    // that contains it, i.e. the ComposeAdapterLightVirtualFile XML file. Instead, we should
+    // return its origin file, so the navigation bar will show the kotlin file containing the
+    // composable.
+    return (mainSurface.models.firstOrNull()?.virtualFile as? ComposeAdapterLightVirtualFile)
+      ?.originFile
+      ?.toPsiFile(project)
   }
 
   override val component: JComponent = UiDataProvider.wrapComponent(workbench, this)
