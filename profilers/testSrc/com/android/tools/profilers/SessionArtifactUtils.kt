@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers
 
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.LeakCanary
 import com.android.tools.profiler.proto.Memory
@@ -152,13 +153,25 @@ object SessionArtifactUtils {
   /**
    * Generates the session start and stop events in the transport pipeline to simulate a real live task recording.
    *
-   * Note: A live task recording is simply a completed session (start and stop session events) with no underlying recording artifact.
+   * Note: A live task recording is a completed session (start and stop session events) with a `LIVE_VIEW_STATUS` event, but no
+   * other underlying recording artifact.
+   *
+   * @param transportService The [FakeTransportService] to add the event to. This is needed to mimic the behavior of
+   * SessionsManager::BeginSession in tools/base.
    */
-  fun generateLiveTaskRecording(sessionsManager: SessionsManager) {
+  fun generateLiveTaskRecording(sessionsManager: SessionsManager, transportService: FakeTransportService) {
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process = Utils.debuggableProcess { pid = 10; deviceId = 1 }
     sessionsManager.beginSession(1, device, process, Common.ProfilerTaskType.LIVE_VIEW, false)
     sessionsManager.update()
+    val session = sessionsManager.selectedSession
+    val liveViewEvent = Common.Event.newBuilder()
+      .setKind(Common.Event.Kind.LIVE_VIEW_STATUS)
+      .setGroupId(session.sessionId)
+      .setPid(session.pid)
+      .setTimestamp(session.startTimestamp)
+      .build()
+    transportService.addEventToStream(session.streamId, liveViewEvent)
     sessionsManager.endCurrentSession()
     sessionsManager.update()
   }

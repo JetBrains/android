@@ -20,6 +20,7 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory
+import com.android.tools.profiler.proto.LeakCanary
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
@@ -27,6 +28,7 @@ import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.SessionArtifactUtils
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
+import com.android.tools.profilers.leakcanary.LeakCanarySessionArtifact
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.HprofSessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
@@ -166,8 +168,10 @@ class RecordingListModelTest {
   fun `recording with one non-exportable artifact is not exportable`() {
     val sessionId = 1L
     val session = Common.Session.newBuilder().setSessionId(sessionId).build()
-    val javaKotlinAllocationsArtifact = SessionArtifactUtils.createAllocationSessionArtifact(myProfilers, session, 0L, 1L)
-    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(javaKotlinAllocationsArtifact))
+    val leakCanaryEnded = LeakCanary.LeakCanaryLogcatEnded.newBuilder().setStatus(LeakCanary.LeakCanaryLogcatEnded.Status.SUCCESS).build()
+    val leakCanaryArtifact = LeakCanarySessionArtifact(myProfilers, session, Common.SessionMetaData.getDefaultInstance(), leakCanaryEnded)
+
+    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(leakCanaryArtifact))
     recordingListModel.onRecordingSelection(sessionItem)
     assertThat(recordingListModel.isSelectedRecordingExportable()).isFalse()
   }
@@ -224,12 +228,9 @@ class RecordingListModelTest {
     var recordingList = recordingListModel.recordingList.value.toList()
     assertThat(recordingList.isEmpty()).isTrue()
 
-    val sessionTimestamp = 1L
-    myTimer.currentTimeNs = sessionTimestamp
     // Start and end a session, simulating a finished task recording.
-    startAndStopSession(device, process, Common.ProfilerTaskType.LIVE_VIEW, myManager)
+    SessionArtifactUtils.generateLiveTaskRecording(myManager, myTransportService)
 
-    // Because the session/task is still ongoing, it should be filtered out of the recording list.
     recordingList = recordingListModel.recordingList.value.toList()
     assertThat(recordingList.size).isEqualTo(1)
 

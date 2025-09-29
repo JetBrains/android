@@ -30,12 +30,7 @@ import com.android.tools.datastore.service.EventService;
 import com.android.tools.datastore.service.MemoryService;
 import com.android.tools.datastore.service.ProfilerService;
 import com.android.tools.datastore.service.TransportService;
-import com.android.tools.idea.io.grpc.ManagedChannel;
-import com.android.tools.idea.io.grpc.Server;
-import com.android.tools.idea.io.grpc.StatusRuntimeException;
-import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder;
-import com.android.tools.idea.io.grpc.inprocess.InProcessServerBuilder;
-import com.android.tools.idea.io.grpc.stub.StreamObserver;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.EventServiceGrpc;
@@ -51,7 +46,15 @@ import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profiler.proto.Transport.VersionRequest;
 import com.android.tools.profiler.proto.Transport.VersionResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
+import com.android.tools.idea.io.grpc.ManagedChannel;
+import com.android.tools.idea.io.grpc.Server;
+import com.android.tools.idea.io.grpc.StatusRuntimeException;
+import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder;
+import com.android.tools.idea.io.grpc.inprocess.InProcessServerBuilder;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
+import java.io.File;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -68,6 +71,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 
 public class DataStoreServiceTest extends DataStorePollerTest {
   private static final String SERVICE_NAME = "DataStoreServiceTest";
@@ -77,11 +81,14 @@ public class DataStoreServiceTest extends DataStorePollerTest {
   private Server myService;
 
   @Rule
+  public TemporaryFolder myTemporaryFolder = new TemporaryFolder();
+
+  @Rule
   public ExpectedException myExpectedException = ExpectedException.none();
 
   @Before
   public void setUp() throws Exception {
-    myServicePath = TestUtils.createTempDirDeletedOnExit().toString();
+    myServicePath = myTemporaryFolder.newFolder().getAbsolutePath();
     myDataStore = new DataStoreService(SERVICE_NAME, myServicePath, getPollTicker()::run, new FakeLogService());
     myService = InProcessServerBuilder
       .forName(myServicePath)
@@ -179,6 +186,63 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     // then we close the connection.
     myExpectedException.expect(AssertionError.class);
     dataStoreService.shutdown();
+  }
+
+  @Test
+  public void testTaskDatabaseManager() throws Exception {
+    assertThat(myDataStore.getTaskEventsTable()).isNull();
+
+    File taskDbFile = myTemporaryFolder.newFile("task.db");
+    long sessionId = 1234;
+    myDataStore.setTaskDb(sessionId, taskDbFile.getAbsolutePath(), Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS, 5678, 10);
+    UnifiedEventsTable table = myDataStore.getTaskEventsTable();
+    assertThat(table).isNotNull();
+    assertThat(myDataStore.getImportedSessionMapping()).isNull();
+
+    // Verify we can use the table.
+    com.android.tools.profiler.proto.Common.Event event = com.android.tools.profiler.proto.Common.Event.newBuilder().setTimestamp(1).build();
+    table.insertUnifiedEvent(sessionId, event);
+    assertThat(table.queryUnifiedEvents()).containsExactly(event);
+
+    // Unsetting with a different session ID should be a no-op.
+    long otherSessionId = 5678;
+    myDataStore.unsetTaskDb(otherSessionId);
+    assertThat(myDataStore.getTaskEventsTable()).isNotNull();
+
+    // Unset the task DB with the correct session ID and verify the table is gone.
+    myDataStore.unsetTaskDb(sessionId);
+    assertThat(myDataStore.getTaskEventsTable()).isNull();
+
+    // Verify the database file was created.
+    assertThat(taskDbFile.exists()).isTrue();
+  }
+
+  @Test
+  public void testTaskDatabaseManagerForImportedSession() throws Exception {
+    assertThat(myDataStore.getImportedSessionMapping()).isNull();
+
+    File taskDbFile = myTemporaryFolder.newFile("imported.db");
+    long realStreamId = 99L;
+    int realPid = 999;
+
+    // Create a DB file with pre-existing metadata, simulating an imported trace.
+    try (Connection c = DriverManager.getConnection("jdbc:sqlite:" + taskDbFile.getAbsolutePath());
+         Statement stmt = c.createStatement()) {
+      stmt.execute("CREATE TABLE IF NOT EXISTS _metadata (key TEXT PRIMARY KEY, value TEXT)");
+      stmt.execute(String.format("INSERT INTO _metadata (key, value) VALUES ('%s', '%d')",
+                                 TaskDatabaseManager.METADATA_KEY_ORIGINAL_STREAM_ID, realStreamId));
+      stmt.execute(String.format("INSERT INTO _metadata (key, value) VALUES ('%s', '%d')",
+                                 TaskDatabaseManager.METADATA_KEY_ORIGINAL_PID, realPid));
+    }
+
+    // Set the task DB with pid=0, simulating an import.
+    long fakeSessionId = 12345;
+    myDataStore.setTaskDb(fakeSessionId, taskDbFile.getAbsolutePath(), null, 0, 0);
+
+    TaskDatabaseManager.ImportedSessionMapping mapping = myDataStore.getImportedSessionMapping();
+    assertThat(mapping).isNotNull();
+    assertThat(mapping.realStreamId()).isEqualTo(realStreamId);
+    assertThat(mapping.realPid()).isEqualTo(realPid);
   }
 
   private static class MemoryServiceStub extends MemoryServiceGrpc.MemoryServiceImplBase {

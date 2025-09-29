@@ -17,8 +17,8 @@ package com.android.tools.profilers.tasks.taskhandlers.singleartifact
 
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.LiveStage
+import com.android.tools.profilers.LiveViewSessionArtifact
 import com.android.tools.profilers.sessions.SessionArtifact
-import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
 import com.android.tools.profilers.tasks.args.TaskArgs
@@ -32,7 +32,7 @@ class LiveTaskHandler(private val sessionsManager: SessionsManager) : ProfilerTa
    * Returns whether the task supports a given session artifact (backing data construct).
    */
   override fun supportsArtifact(artifact: SessionArtifact<*>?): Boolean {
-    return artifact is SessionItem
+    return artifact is LiveViewSessionArtifact
   }
 
 
@@ -64,16 +64,17 @@ class LiveTaskHandler(private val sessionsManager: SessionsManager) : ProfilerTa
 
     val liveTaskArtifact = args.getLiveTaskArtifact()
     if (liveTaskArtifact == null) {
-      handleError("The task arguments (LiveTaskArgs) supplied do not contains a valid artifact to load")
+      handleError("The task arguments (LiveTaskArgs) supplied do not contain a valid artifact to load")
       return false
     }
+    // The artifact from the arguments is the LiveViewSessionArtifact itself, which knows how to select and load the stage.
     TaskHandlerUtils.executeTaskAction(action = { liveTaskArtifact.doSelect() }, errorHandler = ::handleError)
     return true
   }
 
   override fun createStartTaskArgs(isStartupTask: Boolean) = LiveTaskArgs(false, null)
 
-  override fun createLoadingTaskArgs(artifact: SessionArtifact<*>) = LiveTaskArgs(false, artifact as SessionItem)
+  override fun createLoadingTaskArgs(artifact: SessionArtifact<*>) = LiveTaskArgs(false, artifact)
 
   /**
    * Returns the name of the task.

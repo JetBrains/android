@@ -50,7 +50,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
-
+import org.jetbrains.annotations.Nullable;
 /**
  * This class is thread-safe, allowing {@link CommandHandler} to publish new events on one thread (usually test) and
  * {@link com.android.tools.idea.transport.poller.TransportEventPoller} to poll on a thread from its own thread-pool
@@ -99,6 +99,10 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
   private boolean myThrowErrorOnGetDevices;
   private Common.AgentData myAgentStatus;
   private final AtomicInteger myNextCommandId = new AtomicInteger();
+  @Nullable
+  private Transport.SetTaskDbRequest myLastSetTaskDbRequest;
+  @Nullable
+  private Transport.UnsetTaskDbRequest myLastUnsetTaskDbRequest;
   private final boolean myIsTaskBasedUxEnabled;
 
   public FakeTransportService(@NotNull FakeTimer timer) {
@@ -286,8 +290,10 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
           .setSessionStarted(
             Common.SessionData.SessionStarted.newBuilder()
               .setSessionId(session.getSessionId())
+              .setStreamId(session.getStreamId())
               .setPid(session.getPid())
               .setStartTimestampEpochMs(metadata.getStartTimestampEpochMs())
+              .setTaskType(metadata.getTaskType())
               .setJvmtiEnabled(metadata.getJvmtiEnabled())
               .setSessionName(metadata.getSessionName())
               .setType(Common.SessionData.SessionStarted.SessionType.FULL)))
@@ -557,5 +563,29 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     }
     responseObserver.onNext(Transport.DeleteEventsResponse.getDefaultInstance());
     responseObserver.onCompleted();
+  }
+
+  @Override
+  public void setTaskDb(Transport.SetTaskDbRequest request, StreamObserver<Transport.SetTaskDbResponse> responseObserver) {
+    myLastSetTaskDbRequest = request;
+    responseObserver.onNext(Transport.SetTaskDbResponse.getDefaultInstance());
+    responseObserver.onCompleted();
+  }
+
+  @Nullable
+  public Transport.SetTaskDbRequest getLastSetTaskDbRequest() {
+    return myLastSetTaskDbRequest;
+  }
+
+  @Override
+  public void unsetTaskDb(Transport.UnsetTaskDbRequest request, StreamObserver<Transport.UnsetTaskDbResponse> responseObserver) {
+    myLastUnsetTaskDbRequest = request;
+    responseObserver.onNext(Transport.UnsetTaskDbResponse.getDefaultInstance());
+    responseObserver.onCompleted();
+  }
+
+  @Nullable
+  public Transport.UnsetTaskDbRequest getLastUnsetTaskDbRequest() {
+    return myLastUnsetTaskDbRequest;
   }
 }

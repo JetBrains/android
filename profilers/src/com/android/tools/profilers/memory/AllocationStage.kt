@@ -100,6 +100,7 @@ class AllocationStage private constructor(profilers: StudioProfilers,
     logEnterStage()
     super.enter()
     if (isStatic) {
+      studioProfilers.sessionsManager.setTaskDb(sessionData)
       timeline.viewRange.set(minTrackingTimeUs, maxTrackingTimeUs)
       timeline.selectionRange.set(minTrackingTimeUs, maxTrackingTimeUs)
       // Entering a static allocation stage indicates the opening of a task recorded in the past.
@@ -113,9 +114,12 @@ class AllocationStage private constructor(profilers: StudioProfilers,
 
   override fun exit() {
     super.exit()
-    stopTracking()
+    if (!isStatic) {
+      stopTracking()
+    }
     timeline.selectionRange.removeDependencies(this)
     captureSelection.selectedCapture?.unload()
+    studioProfilers.sessionsManager.unsetTaskDb(sessionData)
   }
 
   @VisibleForTesting

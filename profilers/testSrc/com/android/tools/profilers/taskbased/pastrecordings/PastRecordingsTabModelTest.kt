@@ -24,10 +24,8 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.SessionArtifactUtils
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.Utils
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
-import com.android.tools.profilers.taskbased.selections.recordings.RecordingListModelTest
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.LiveTaskHandler
@@ -131,9 +129,7 @@ class PastRecordingsTabModelTest {
     Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.LIVE_VIEW)
 
     myProfilers.addTaskHandler(ProfilerTaskType.LIVE_VIEW, LiveTaskHandler(myManager))
-    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
-    val process = Utils.debuggableProcess { pid = 10; deviceId = 1 }
-    RecordingListModelTest.startAndStopSession(device, process, Common.ProfilerTaskType.LIVE_VIEW, myManager)
+    SessionArtifactUtils.generateLiveTaskRecording(myManager, myTransportService)
     val recordingListModel = pastRecordingsTabModel.recordingListModel
     // Select the recording.
     val recording = recordingListModel.recordingList.value.first()

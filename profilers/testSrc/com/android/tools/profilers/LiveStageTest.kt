@@ -85,11 +85,10 @@ class LiveStageTest {
   }
 
   @Test
-  fun testEventMonitorDebuggablePostO() {
-    val device = Common.Device.newBuilder().setFeatureLevel(26).build()
-    val stream = Common.Stream.newBuilder().setStreamId(123).setDevice(device).setType(Common.Stream.Type.DEVICE).build()
-    Mockito.`when`(myProfilers.device).thenReturn(device)
-    Mockito.`when`(myProfilers.getStream(anyLong())).thenReturn(stream)
+  fun eventMonitorPresentWhenJvmtiIsEnabled() {
+    // Simulate a session (live or imported) where JVMTI was enabled.
+    val metadata = Common.SessionMetaData.newBuilder().setJvmtiEnabled(true).build()
+    Mockito.`when`(myProfilers.sessionsManager.selectedSessionMetaData).thenReturn(metadata)
 
     myLiveStage.enter()
     val result = myLiveStage.eventMonitor
@@ -98,9 +97,11 @@ class LiveStageTest {
   }
 
   @Test
-  fun testEventMonitorDebuggablePreO() {
-    val device = Common.Device.newBuilder().setFeatureLevel(25).build()
-    Mockito.`when`(myProfilers.device).thenReturn(device)
+  fun eventMonitorNotPresentWhenJvmtiIsDisabled() {
+    // Simulate a session (live or imported) where JVMTI was NOT enabled.
+    val metadata = Common.SessionMetaData.newBuilder().setJvmtiEnabled(false).build()
+    Mockito.`when`(myProfilers.sessionsManager.selectedSessionMetaData).thenReturn(metadata)
+
     myLiveStage.enter()
     val result = myLiveStage.eventMonitor
     assertThat(result.isPresent).isFalse()
@@ -108,9 +109,12 @@ class LiveStageTest {
 
   @Test
   fun testEventMonitorNotDebuggable() {
+    // The `getEventMonitorInstance` logic no longer checks for support level directly, but this test remains valid.
+    // If a process is not debuggable, SessionsManager would set `jvmtiEnabled` to false.
     Mockito.`when`(myProfilers.selectedSessionSupportLevel).thenReturn(SupportLevel.PROFILEABLE)
+    val metadata = Common.SessionMetaData.newBuilder().setJvmtiEnabled(false).build()
+    Mockito.`when`(myProfilers.sessionsManager.selectedSessionMetaData).thenReturn(metadata)
     myLiveStage.enter()
-    myLiveStage = LiveStage(myProfilers)
     val result = myLiveStage.eventMonitor
     assertThat(result.isPresent).isFalse()
   }

@@ -166,6 +166,7 @@ class AllocationStageTest(private val isLive: Boolean): WithFakeTimer {
 
   @Test
   fun `exiting stage disables live allocations and issues stop command`() {
+    assumeTrue(isLive)
     setupDeviceAndStage()
     val handler = transportService.getRegisteredCommand(Commands.Command.CommandType.STOP_ALLOC_TRACKING) as MemoryAllocTracking
     val prevCommand = handler.lastCommand

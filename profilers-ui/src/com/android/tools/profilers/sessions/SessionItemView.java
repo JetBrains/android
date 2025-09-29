@@ -188,8 +188,6 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
 
   @Override
   protected void exportArtifact() {
-    assert getArtifact().getCanExport();
-
     List<SessionArtifact<?>> childArtifacts = getArtifact().getChildArtifacts();
     assert childArtifacts.size() == 1;
     SessionArtifact<?> artifact = childArtifacts.get(0);

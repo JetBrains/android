@@ -38,8 +38,9 @@ public class AndroidProfilerCaptureEditorProvider implements FileEditorProvider,
     return (fileType instanceof CpuCaptureFileType ||
             fileType instanceof MemoryAllocationFileType ||
             fileType instanceof MemoryCaptureFileType ||
-            PerfettoCaptureFileType.EXTENSIONS.contains(extension) ||
-            fileType instanceof HeapProfdMemoryCaptureFileType);
+            fileType instanceof HeapProfdMemoryCaptureFileType ||
+            fileType instanceof ProfilerDatabaseFileType ||
+            PerfettoCaptureFileType.EXTENSIONS.contains(extension));
   }
 
   @Override

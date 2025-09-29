@@ -108,6 +108,8 @@
               fieldName="INSTANCE" extensions="heapprofd"/>
     <fileType name="PerfettoCapture" implementationClass="com.android.tools.idea.profilers.capture.PerfettoCaptureFileType"
               extensions="pftrace;perfetto-trace"/>
+    <fileType name="ProfilerDatabase" implementationClass="com.android.tools.idea.profilers.capture.ProfilerDatabaseFileType"
+              extensions="asdb"/>
   </extensions>
   <extensions defaultExtensionNs="com.android.tools.idea.transport">
     <transportConfigContributor implementation="com.android.tools.idea.profilers.ProfilerTransportConfigContributor" />

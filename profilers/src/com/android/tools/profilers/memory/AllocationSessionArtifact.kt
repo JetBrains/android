@@ -19,9 +19,11 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory
+import com.android.tools.profilers.ExportableArtifact
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.MemoryProfiler.Companion.getAllocationInfosForSession
 import com.android.tools.profilers.sessions.SessionArtifact
+import java.io.OutputStream
 import java.util.concurrent.TimeUnit
 
 class AllocationSessionArtifact(override val profilers: StudioProfilers,
@@ -30,7 +32,7 @@ class AllocationSessionArtifact(override val profilers: StudioProfilers,
                                 private val info: Memory.AllocationsInfo,
                                 val startUs: Double,
                                 val endUs: Double)
-  : SessionArtifact<Memory.AllocationsInfo> {
+  : SessionArtifact<Memory.AllocationsInfo>, ExportableArtifact {
 
   val subtitle: String get() = TimeFormatter.getFullClockString(timestampNs.nanosToMicros())
 
@@ -44,7 +46,17 @@ class AllocationSessionArtifact(override val profilers: StudioProfilers,
   override val isOngoing
     get() = info.endTime == Long.MAX_VALUE
 
-  override val canExport = false
+  override val canExport = !isOngoing
+
+  override val exportableName: String
+    get() = MemoryProfiler.generateCaptureFileName()
+
+  override val exportExtension = "asdb"
+
+  override fun export(outputStream: OutputStream) {
+    assert(canExport)
+    MemoryProfiler.saveAllocationToFile(profilers.client, session, outputStream, profilers.ideServices.featureTracker)
+  }
 
   override fun doSelect() {
     if (session !== profilers.session)
