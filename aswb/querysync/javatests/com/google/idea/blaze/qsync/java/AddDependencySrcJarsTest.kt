@@ -51,8 +51,7 @@ class AddDependencySrcJarsTest {
   private lateinit var workspaceRoot: Path
   private var pathResolver: ProjectPath.Resolver? = null
   private val syncer = TestDataSyncRunner(
-    NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PACKAGE_READER
-  )
+    NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PREFIX_READER)
   private val original: QuerySyncProjectSnapshot =
     syncer.sync(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY)
 

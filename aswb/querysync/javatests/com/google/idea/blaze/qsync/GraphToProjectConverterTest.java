@@ -47,87 +47,25 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class GraphToProjectConverterTest {
 
-  private final Context<?> context = new NoopContext() {
-    @Override
-    public void setHasError() {
-      throw new AssertionError();
-    }
+  private final Context<?> context =
+      new NoopContext() {
+        @Override
+        public void setHasError() {
+          throw new AssertionError();
+        }
 
-    @Override
-    public <T extends Output> void output(T output) {
-      if (output instanceof PrintOutput po && po.outputType() == PrintOutput.OutputType.ERROR) {
-        throw new AssertionError();
-      }
-    }
-  };
+        @Override
+        public <T extends Output> void output(T output) {
+          if (output instanceof PrintOutput po && po.outputType() == PrintOutput.OutputType.ERROR) {
+            throw new AssertionError();
+          }
+        }
+      };
 
-  @Test
-  public void testChooseFilePerPackage() throws Exception {
-    GraphToProjectConverter converter = GraphToProjectConvertersForTests.builder().build();
-    PackageSet buildFiles =
-        PackageSet.of(
-            Path.of("java/com/test"),
-            Path.of("java/com/test/nested"),
-            Path.of("java/com/double"),
-            Path.of("java/com/multiple"));
-    ImmutableSet<Path> files =
-        ImmutableSet.of(
-            Path.of("java/com/test/Class1.java"),
-            Path.of("java/com/test/nested/Nested.java"),
-            Path.of("java/com/double/nest1/BothThis.java"),
-            Path.of("java/com/double/nest2/AndThis.java"),
-            Path.of("java/com/multiple/AThis.java"),
-            Path.of("java/com/multiple/BNotThis.java"),
-            Path.of("java/com/multiple/nest/BNorThis.java"));
-
-    final var chosenFiles = converter.chooseTopLevelFiles(files, buildFiles);
-
-    assertThat(chosenFiles)
-        .containsExactly(
-            Path.of("java/com/test/Class1.java"),
-            Path.of("java/com/test/nested/Nested.java"),
-            Path.of("java/com/double/nest1/BothThis.java"),
-            Path.of("java/com/double/nest2/AndThis.java"),
-            Path.of("java/com/multiple/AThis.java"));
-  }
-
-  @Test
-  public void testChooseFilePerPackage_someFilesMissing() throws Exception {
-    PackageSet buildFiles =
-        PackageSet.of(
-            Path.of("java/com/test"),
-            Path.of("java/com/test/nested"),
-            Path.of("java/com/double"),
-            Path.of("java/com/multiple"));
-    ImmutableSet<Path> files =
-        ImmutableSet.of(
-            Path.of("java/com/test/Class1_missing.java"),
-            Path.of("java/com/test/nested/Nested.java"),
-            Path.of("java/com/double/TopLevel_missing.java"),
-            Path.of("java/com/double/nest1/BothThis.java"),
-            Path.of("java/com/double/nest2/AndThis.java"),
-            Path.of("java/com/multiple/ANotThis_missing.java"),
-            Path.of("java/com/multiple/BThis.java"),
-            Path.of("java/com/multiple/nest/BNorThis.java"));
-
-    ImmutableSet<Path> presentFiles =
-        ImmutableSet.of(
-            Path.of("java/com/test/nested/Nested.java"),
-            Path.of("java/com/double/nest1/BothThis.java"),
-            Path.of("java/com/double/nest2/AndThis.java"),
-            Path.of("java/com/multiple/BThis.java"),
-            Path.of("java/com/multiple/nest/BNorThis.java"));
-
-    GraphToProjectConverter converter =
-        GraphToProjectConvertersForTests.builder().setFileExistenceCheck(presentFiles::contains).build();
-    final var chosenFiles = converter.chooseTopLevelFiles(files, buildFiles);
-
-    assertThat(chosenFiles)
-        .containsExactly(
-            Path.of("java/com/test/nested/Nested.java"),
-            Path.of("java/com/double/nest1/BothThis.java"),
-            Path.of("java/com/double/nest2/AndThis.java"),
-            Path.of("java/com/multiple/BThis.java"));
+  private JavaPackagePrefixReader toPrefixReader(Function<Path, String> basicReader) {
+    PackageReader packageReader = (context, file) -> basicReader.apply(file);
+    return new JavaPackagePrefixReaderImpl(
+        Path.of("/"), packageReader, QuerySyncTestUtils.SIMPLE_PARALLEL_PACKAGE_READER, (p) -> true);
   }
 
   @Test
@@ -138,7 +76,7 @@ public class GraphToProjectConverterTest {
     ImmutableSet<Path> roots = ImmutableSet.of(Path.of("java"), Path.of("javatests"));
     GraphToProjectConverter converter =
         GraphToProjectConvertersForTests.builder()
-            .setPackageReader(toPackageReader(sourcePackages::get))
+            .setPrefixReader(toPrefixReader(sourcePackages::get))
             .setProjectIncludes(roots)
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
@@ -211,7 +149,7 @@ public class GraphToProjectConverterTest {
 
     GraphToProjectConverter converter =
         GraphToProjectConvertersForTests.builder()
-            .setPackageReader(toPackageReader(sourcePackages::get))
+            .setPrefixReader(toPrefixReader(sourcePackages::get))
             .setProjectIncludes(ImmutableSet.of(Path.of("java/com/test")))
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
@@ -230,7 +168,7 @@ public class GraphToProjectConverterTest {
 
     GraphToProjectConverter converter =
         GraphToProjectConvertersForTests.builder()
-            .setPackageReader(toPackageReader(sourcePackages::get))
+            .setPrefixReader(toPrefixReader(sourcePackages::get))
             .setProjectIncludes(ImmutableSet.of(Path.of("java/com/test")))
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
@@ -251,7 +189,7 @@ public class GraphToProjectConverterTest {
 
     GraphToProjectConverter converter =
         GraphToProjectConvertersForTests.builder()
-            .setPackageReader(toPackageReader(sourcePackages::get))
+            .setPrefixReader(toPrefixReader(sourcePackages::get))
             .setProjectIncludes(ImmutableSet.of(Path.of("java/com/test")))
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
@@ -272,7 +210,7 @@ public class GraphToProjectConverterTest {
 
     GraphToProjectConverter converter =
         GraphToProjectConvertersForTests.builder()
-            .setPackageReader(toPackageReader(sourcePackages::get))
+            .setPrefixReader(toPrefixReader(sourcePackages::get))
             .setProjectIncludes(ImmutableSet.of(Path.of("java/com/app"), Path.of("java/com/lib")))
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
@@ -296,7 +234,7 @@ public class GraphToProjectConverterTest {
 
     GraphToProjectConverter converter =
         GraphToProjectConvertersForTests.builder()
-            .setPackageReader(toPackageReader(sourcePackages::get))
+            .setPrefixReader(toPrefixReader(sourcePackages::get))
             .setProjectIncludes(ImmutableSet.of(Path.of("java/com/test")))
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
@@ -321,7 +259,7 @@ public class GraphToProjectConverterTest {
 
     GraphToProjectConverter converter =
         GraphToProjectConvertersForTests.builder()
-            .setPackageReader(toPackageReader(sourcePackages::get))
+            .setPrefixReader(toPrefixReader(sourcePackages::get))
             .setProjectIncludes(ImmutableSet.of(Path.of("java/com/test")))
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
@@ -342,7 +280,7 @@ public class GraphToProjectConverterTest {
 
     GraphToProjectConverter converter =
         GraphToProjectConvertersForTests.builder()
-            .setPackageReader(toPackageReader(sourcePackages::get))
+            .setPrefixReader(toPrefixReader(sourcePackages::get))
             .setProjectIncludes(ImmutableSet.of(Path.of("java/com/test")))
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
@@ -363,7 +301,7 @@ public class GraphToProjectConverterTest {
 
     GraphToProjectConverter converter =
         GraphToProjectConvertersForTests.builder()
-            .setPackageReader(toPackageReader(sourcePackages::get))
+            .setPrefixReader(toPrefixReader(sourcePackages::get))
             .setProjectIncludes(ImmutableSet.of(Path.of("java/com/test")))
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
@@ -389,7 +327,7 @@ public class GraphToProjectConverterTest {
 
     GraphToProjectConverter converter =
         GraphToProjectConvertersForTests.builder()
-            .setPackageReader(toPackageReader(sourcePackages::get))
+            .setPrefixReader(toPrefixReader(sourcePackages::get))
             .setProjectIncludes(ImmutableSet.of(Path.of("third_party")))
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
@@ -414,7 +352,7 @@ public class GraphToProjectConverterTest {
 
     GraphToProjectConverter converter =
         GraphToProjectConvertersForTests.builder()
-            .setPackageReader(toPackageReader(sourcePackages::get))
+            .setPrefixReader(toPrefixReader(sourcePackages::get))
             .setProjectIncludes(ImmutableSet.of(Path.of("java/com/test")))
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
@@ -432,8 +370,8 @@ public class GraphToProjectConverterTest {
   public void testCalculateAndroidResourceDirectories_single_directory() {
     final var sourceFiles =
         ImmutableSet.of(
-          Label.of("//java/com/test:AndroidManifest.xml"),
-          Label.of("//java/com/test:res/values/strings.xml"));
+            Label.of("//java/com/test:AndroidManifest.xml"),
+            Label.of("//java/com/test:res/values/strings.xml"));
 
     ImmutableSet<Path> androidResourceDirectories =
         GraphToProjectConverter.computeAndroidResourceDirectories(sourceFiles);
@@ -444,11 +382,11 @@ public class GraphToProjectConverterTest {
   public void testCalculateAndroidResourceDirectories_multiple_directories() {
     final var sourceFiles =
         ImmutableSet.of(
-          Label.of("//java/com/test:AndroidManifest.xml"),
-          Label.of("//java/com/test:res/values/strings.xml"),
-          Label.of("//java/com/test2:AndroidManifest.xml"),
-          Label.of("//java/com/test2:res/layout/some-activity.xml"),
-          Label.of("//java/com/test2:res/layout/another-activity.xml"));
+            Label.of("//java/com/test:AndroidManifest.xml"),
+            Label.of("//java/com/test:res/values/strings.xml"),
+            Label.of("//java/com/test2:AndroidManifest.xml"),
+            Label.of("//java/com/test2:res/layout/some-activity.xml"),
+            Label.of("//java/com/test2:res/layout/another-activity.xml"));
 
     ImmutableSet<Path> androidResourceDirectories =
         GraphToProjectConverter.computeAndroidResourceDirectories(sourceFiles);
@@ -460,7 +398,8 @@ public class GraphToProjectConverterTest {
   public void testCalculateAndroidResourceDirectories_manifest_without_res_directory() {
     final var sourceFiles =
         ImmutableSet.of(
-          Label.of("//java/com/nores:AndroidManifest.xml"), Label.of("//java/com/nores:Foo.java"));
+            Label.of("//java/com/nores:AndroidManifest.xml"),
+            Label.of("//java/com/nores:Foo.java"));
 
     ImmutableSet<Path> androidResourceDirectories =
         GraphToProjectConverter.computeAndroidResourceDirectories(sourceFiles);
@@ -557,18 +496,19 @@ public class GraphToProjectConverterTest {
   @Test
   public void testConvertProject_buildGraphWithSingleImportRoot() throws Exception {
     Path workspaceImportDirectory = TestData.ROOT.resolve("nodeps");
-    GraphToProjectConverter converter =
-        GraphToProjectConvertersForTests.builder()
-            .setProjectIncludes(ImmutableSet.of(workspaceImportDirectory))
-            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
-            .build();
-
     BuildGraphData buildGraphData =
         new BlazeQueryParser(
                 getQuerySummary(TestData.JAVA_LIBRARY_NO_DEPS_QUERY),
                 NOOP_CONTEXT,
                 ImmutableSet.of())
             .parse();
+    GraphToProjectConverter converter =
+        GraphToProjectConvertersForTests.builder()
+            .setPrefixReader(QuerySyncTestUtils.PATH_INFERRING_PREFIX_READER)
+            .setProjectIncludes(ImmutableSet.of(workspaceImportDirectory))
+            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
+            .build();
+
     ProjectProto.Project project = converter.createProject(buildGraphData);
 
     // Sanity check
@@ -577,8 +517,10 @@ public class GraphToProjectConverterTest {
 
     assertThat(workspaceModule.getContentEntries().size()).isEqualTo(1);
 
-    ProjectProto.ContentEntry javaContentEntry = workspaceModule.getContentEntries().values().iterator().next();
-    assertThat(javaContentEntry.getRoot()).isEqualTo(ProjectPath.workspaceRelative(workspaceImportDirectory));
+    ProjectProto.ContentEntry javaContentEntry =
+        workspaceModule.getContentEntries().values().iterator().next();
+    assertThat(javaContentEntry.getRoot())
+        .isEqualTo(ProjectPath.workspaceRelative(workspaceImportDirectory));
     assertThat(javaContentEntry.getSourceFolders().size()).isEqualTo(1);
 
     ProjectProto.SourceFolder javaSource = javaContentEntry.getSourceFolders().get(0);
@@ -597,24 +539,23 @@ public class GraphToProjectConverterTest {
 
     GraphToProjectConverter converter =
         GraphToProjectConvertersForTests.builder()
-            .setPackageReader(toPackageReader(sourcePackages::get))
+            .setPrefixReader(toPrefixReader(sourcePackages::get))
             .setProjectIncludes(ImmutableSet.of(TestData.ROOT.resolve("nodeps")))
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
-            .setTestSources(
-                ImmutableSet.of("tools/adt/idea/aswb/querysync/javatests/*"))
+            .setTestSources(ImmutableSet.of("tools/adt/idea/aswb/querysync/javatests/*"))
             .build();
     BuildGraphData buildGraphData = BuildGraphs.forTestProject(TestData.JAVA_LIBRARY_NO_DEPS_QUERY);
     ProjectProto.Project project = converter.createProject(buildGraphData);
 
     assertThat(project.getModules().size()).isEqualTo(1);
     assertThat(project.getModules().get(0).getContentEntries().size()).isEqualTo(1);
-    ProjectProto.ContentEntry contentEntry = project.getModules().get(0).getContentEntries().values().iterator().next();
+    ProjectProto.ContentEntry contentEntry =
+        project.getModules().get(0).getContentEntries().values().iterator().next();
     assertThat(contentEntry.getSourceFolders().size()).isEqualTo(1);
-    ProjectProto.SourceFolder sourceFolder =
-      contentEntry.getSourceFolders().get(0);
+    ProjectProto.SourceFolder sourceFolder = contentEntry.getSourceFolders().get(0);
 
     assertThat(sourceFolder.getProjectPath())
-      .isEqualTo(ProjectPath.workspaceRelative(TestData.ROOT.resolve("nodeps")));
+        .isEqualTo(ProjectPath.workspaceRelative(TestData.ROOT.resolve("nodeps")));
 
     assertThat(sourceFolder.isTest()).isTrue();
   }
@@ -626,7 +567,7 @@ public class GraphToProjectConverterTest {
 
     GraphToProjectConverter converter =
         GraphToProjectConvertersForTests.builder()
-            .setPackageReader(toPackageReader(sourcePackages::get))
+            .setPrefixReader(toPrefixReader(sourcePackages::get))
             .setProjectIncludes(ImmutableSet.of(TestData.ROOT.resolve("protoonly")))
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
@@ -645,7 +586,7 @@ public class GraphToProjectConverterTest {
     ProjectProto.SourceFolder sourceFolder = contentEntry.getSourceFolders().get(0);
 
     assertThat(sourceFolder.getProjectPath())
-      .isEqualTo(ProjectPath.workspaceRelative(TestData.ROOT.resolve("protoonly")));
+        .isEqualTo(ProjectPath.workspaceRelative(TestData.ROOT.resolve("protoonly")));
   }
 
   @Test
@@ -655,7 +596,7 @@ public class GraphToProjectConverterTest {
 
     GraphToProjectConverter converter =
         GraphToProjectConvertersForTests.builder()
-            .setPackageReader(toPackageReader(sourcePackages::get))
+            .setPrefixReader(toPrefixReader(sourcePackages::get))
             .setProjectIncludes(ImmutableSet.of(Path.of("myproject")))
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
@@ -673,7 +614,7 @@ public class GraphToProjectConverterTest {
 
     GraphToProjectConverter converter =
         GraphToProjectConvertersForTests.builder()
-            .setPackageReader(toPackageReader(sourcePackages::get))
+            .setPrefixReader(toPrefixReader(sourcePackages::get))
             .setProjectIncludes(ImmutableSet.of(Path.of("myproject")))
             .setProjectExcludes(ImmutableSet.of(Path.of("myproject/excluded")))
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
@@ -697,7 +638,7 @@ public class GraphToProjectConverterTest {
 
     GraphToProjectConverter converter =
         GraphToProjectConvertersForTests.builder()
-            .setPackageReader(toPackageReader(sourcePackages::get))
+            .setPrefixReader(toPrefixReader(sourcePackages::get))
             .setProjectIncludes(ImmutableSet.of(TestData.ROOT.resolve("nestedproto")))
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
@@ -707,14 +648,15 @@ public class GraphToProjectConverterTest {
     assertThat(projectProto.getModules().size()).isEqualTo(1);
     ProjectProto.Module workspaceModule = projectProto.getModules().get(0);
 
-    ProjectProto.ContentEntry contentEntry = workspaceModule.getContentEntries().values().iterator().next();
+    ProjectProto.ContentEntry contentEntry =
+        workspaceModule.getContentEntries().values().iterator().next();
     assertThat(contentEntry.getSourceFolders())
         .containsExactly(
             new ProjectProto.SourceFolder(
-              ProjectPath.workspaceRelative(TestData.ROOT.resolve("nestedproto/java")),
-              false,
-              false,
-              ""));
+                ProjectPath.workspaceRelative(TestData.ROOT.resolve("nestedproto/java")),
+                false,
+                false,
+                ""));
   }
 
   @Test
@@ -729,7 +671,7 @@ public class GraphToProjectConverterTest {
 
     GraphToProjectConverter converter =
         GraphToProjectConvertersForTests.builder()
-            .setPackageReader(toPackageReader(sourcePackages::get))
+            .setPrefixReader(toPrefixReader(sourcePackages::get))
             .setProjectIncludes(ImmutableSet.of(TestData.ROOT))
             .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
@@ -786,9 +728,5 @@ public class GraphToProjectConverterTest {
     ProjectProto.Project project = converter.createProject(buildGraphData);
 
     assertThat(project.getActiveLanguages()).contains(QuerySyncLanguage.CC);
-  }
-
-  private PackageReader toPackageReader(Function<Path, String> basicReader) {
-    return (context, file) -> basicReader.apply(file);
   }
 }
