@@ -39,17 +39,17 @@ public class AndroidManifestPurposeDomTest {
   private static final String DEFAULT_XML_CONTENT =
     "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
     "<permissions>" +
-    "    <permission name=\"android.permission.USE_FOO\" requiresSpecificPurposeMin=\"37\">" +
-    "        <valid-specific-purpose name=\"specificValidPurpose1\" min=\"37\"/>" +
-    "        <valid-specific-purpose name=\"specificValidPurpose2\" min=\"37\"/>" +
-    "        <valid-general-purpose name=\"generalValidPurpose1\" min=\"37\"/>" +
-    "        <valid-general-purpose name=\"generalValidPurpose2\" min=\"37\"/>" +
+    "    <permission name=\"android.permission.USE_FOO\" requiresGeneralPurposeMinTargetSdkVersion=\"37\" requiresSpecificPurposeMinTargetSdkVersion=\"37\">" +
+    "        <valid-specific-purpose name=\"specificValidPurpose1\" minSdkVersion=\"37\"/>" +
+    "        <valid-specific-purpose name=\"specificValidPurpose2\" minSdkVersion=\"37\"/>" +
+    "        <valid-general-purpose name=\"generalValidPurpose1\" minSdkVersion=\"37\"/>" +
+    "        <valid-general-purpose name=\"generalValidPurpose2\" minSdkVersion=\"37\"/>" +
     "    </permission>" +
-    "    <permission name=\"android.permission.USE_BAR\" requiresSpecificPurposeMin=\"37\">" +
-    "        <valid-specific-purpose name=\"specificValidPurpose3\" min=\"37\"/>" +
+    "    <permission name=\"android.permission.USE_BAR\" requiresSpecificPurposeMinTargetSdkVersion=\"37\">" +
+    "        <valid-specific-purpose name=\"specificValidPurpose3\" minSdkVersion=\"37\"/>" +
     "    </permission>" +
-    "    <permission name=\"android.permission.USE_XYZ\" requiresSpecificPurposeMin=\"37\">" +
-    "        <valid-general-purpose name=\"generalValidPurpose3\" min=\"37\"/>" +
+    "    <permission name=\"android.permission.USE_XYZ\" requiresGeneralPurposeMinTargetSdkVersion=\"37\">" +
+    "        <valid-general-purpose name=\"generalValidPurpose3\" minSdkVersion=\"37\"/>" +
     "    </permission>" +
     "</permissions>";
 
