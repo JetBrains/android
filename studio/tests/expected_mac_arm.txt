@@ -3079,8 +3079,8 @@ Android Studio Preview.app/Contents/plugins/gemini/lib/aida_proto.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/aida_protobuf.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/aiplugin.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/annotation-jvm-1.7.1.jar
-Android Studio Preview.app/Contents/plugins/gemini/lib/anthropic-java-client-okhttp-2.6.0.jar
-Android Studio Preview.app/Contents/plugins/gemini/lib/anthropic-java-core-2.6.0.jar
+Android Studio Preview.app/Contents/plugins/gemini/lib/anthropic-java-client-okhttp-2.8.1.jar
+Android Studio Preview.app/Contents/plugins/gemini/lib/anthropic-java-core-2.8.1.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/gemini.so.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/gemini_plugin_proto.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/google-api-services-cloudresourcemanager-v1beta1-rev20240128-2.0.0.jar
