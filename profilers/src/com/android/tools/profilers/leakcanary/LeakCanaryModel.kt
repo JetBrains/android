@@ -45,11 +45,17 @@ import kotlinx.coroutines.flow.asStateFlow
 import org.jetbrains.annotations.NotNull
 import java.util.concurrent.CompletableFuture
 
-class LeakCanaryModel(@NotNull private val profilers: StudioProfilers): ModelStage(profilers), Updatable {
+class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelStage(profilers), Updatable {
 
   private lateinit var statusListener: TransportEventListener
+  private lateinit var hostAnalysisTriggerListener: TransportEventListener
   private val logger: Logger = Logger.getInstance(LeakCanaryModel::class.java)
   private val myLeakCanaryParser = LeakCanaryParser()
+  private val heapDumper = LeakCanaryHeapDumper(profilers).apply {
+    onHostAnalysisFinished = { heapAnalysis ->
+      handleLeakAnalysis(heapAnalysis.toString())
+    }
+  }
 
   private val _leaks = MutableStateFlow(listOf<Leak>())
   val leaks = _leaks.asStateFlow()
@@ -104,10 +110,22 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers): ModelSta
                                               }
                                             })
     profilers.transportPoller.registerListener(statusListener)
+
+    hostAnalysisTriggerListener = TransportEventListener(eventKind = Common.Event.Kind.LEAKCANARY_HOST_ANALYSIS_TRIGGER,
+                                                         executor = profilers.ideServices.poolExecutor,
+                                                         streamId = { profilers.session.streamId },
+                                                         processId = { profilers.session.pid },
+                                                         startTime = { startTime },
+                                                         callback = { _ ->
+                                                           heapDumper.triggerAndAnalyze()
+                                                           false
+                                                         })
+    profilers.transportPoller.registerListener(hostAnalysisTriggerListener)
   }
 
   private fun deregisterLeakCanaryListeners() {
     profilers.transportPoller.unregisterListener(statusListener)
+    profilers.transportPoller.unregisterListener(hostAnalysisTriggerListener)
   }
 
   @VisibleForTesting
@@ -123,21 +141,25 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers): ModelSta
    * @param event: The LeakCanary logcat event.
    */
   private fun leakDetected(event: Common.Event) {
-    if (event.leakcanaryLogcat.logcatMessage.isEmpty()) return
-    val leakAnalysisEvent = getEventFromLogcatMessage(event.leakcanaryLogcat.logcatMessage)
-    if (leakAnalysisEvent != null) {
-      if (leakAnalysisEvent is AnalysisSuccess) {
-        addLeaks(leakAnalysisEvent.leaks)
-      }
-      else {
-        // There is failure in leak analysis.
-        logger.warn("Leak analysis failure {}", (leakAnalysisEvent as AnalysisFailure).exception)
-      }
+    handleLeakAnalysis(event.leakcanaryLogcat.logcatMessage)
+  }
 
-      // The first leak is selected, so its leakTrace is displayed by default in UI.
-      if (_selectedLeak.value == null && _leaks.value.isNotEmpty()) {
-        onLeakSelection(_leaks.value.first())
-      }
+  private fun handleLeakAnalysis(analysisReport: String) {
+    if (analysisReport.isEmpty()) return
+    val leakAnalysisEvent = getEventFromLogcatMessage(analysisReport)
+    if (leakAnalysisEvent == null) return
+
+    if (leakAnalysisEvent is AnalysisSuccess) {
+      addLeaks(leakAnalysisEvent.leaks)
+    }
+    else {
+      // There is failure in leak analysis.
+      logger.warn("Leak analysis failure", (leakAnalysisEvent as AnalysisFailure).exception)
+    }
+
+    // The first leak is selected, so its leakTrace is displayed by default in UI.
+    if (_selectedLeak.value == null && _leaks.value.isNotEmpty()) {
+      onLeakSelection(_leaks.value.first())
     }
   }
 
@@ -271,15 +293,15 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers): ModelSta
      * @return The extracted class name or an empty string if no leak or class name is found.
      */
     fun getLeakClassName(leak: Leak?): String {
-      if(leak?.displayedLeakTrace == null || leak.displayedLeakTrace.isEmpty()){
+      if (leak?.displayedLeakTrace == null || leak.displayedLeakTrace.isEmpty()) {
         return ""
       }
       val leakTrace = leak.displayedLeakTrace.first()
       val suspectNodeList = leakTrace.nodes.filterIndexed { index, node ->
-        when(node.leakingStatus) {
+        when (node.leakingStatus) {
           LeakingStatus.UNKNOWN -> true
           LeakingStatus.NO -> index == leakTrace.nodes.lastIndex || leakTrace.nodes[index + 1].leakingStatus != LeakingStatus.NO
-          else ->false
+          else -> false
         }
       }
       return suspectNodeList.firstOrNull()?.let { node ->
