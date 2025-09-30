@@ -56,7 +56,7 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspecto
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.SourceFormat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.NioFiles
 import com.intellij.util.io.copy
 import com.intellij.util.io.delete
 import com.intellij.util.io.move
@@ -215,7 +215,7 @@ class ExportToFileController(
       when (params) {
         is ExportDatabaseRequest -> {
           when (params.format) {
-            is CSV -> exportDatabaseToCsv(params.srcDatabase, params.format as CSV, params.dstPath)
+            is CSV -> exportDatabaseToCsv(params.srcDatabase, params.format, params.dstPath)
             is SQL -> exportDatabaseToSql(params.srcDatabase, params.dstPath)
             is DB -> {
               if (params.srcDatabase.isInMemoryDatabase()) throwNotSupportedParams(params)
@@ -226,12 +226,7 @@ class ExportToFileController(
         is ExportTableRequest -> {
           when (params.format) {
             is CSV ->
-              exportTableToCsv(
-                params.srcDatabase,
-                params.srcTable,
-                params.format as CSV,
-                params.dstPath,
-              )
+              exportTableToCsv(params.srcDatabase, params.srcTable, params.format, params.dstPath)
             is SQL -> exportTableToSql(params.srcDatabase, params.srcTable, params.dstPath)
             else -> throwNotSupportedParams(params)
           }
@@ -241,12 +236,7 @@ class ExportToFileController(
 
           when (params.format) {
             is CSV ->
-              exportQueryToCsv(
-                params.srcDatabase,
-                params.srcQuery,
-                params.format as CSV,
-                params.dstPath,
-              )
+              exportQueryToCsv(params.srcDatabase, params.srcQuery, params.format, params.dstPath)
             else -> throwNotSupportedParams(params)
           }
         }
@@ -265,7 +255,7 @@ class ExportToFileController(
         // TODO(161081452): skip temporary files (write directly to zip stream)
         val dstDir = findOrCreateDir(dstPath.parent)
         val tmpDir = Files.createTempDirectory(dstDir, ".tmp")
-        Closeable { FileUtil.delete(tmpDir) }
+        Closeable { NioFiles.deleteRecursively(tmpDir) }
           .use {
             val tmpFileToEntryName: List<TempExportedData> =
               tableNames.mapIndexed { ix, name ->
@@ -480,7 +470,7 @@ class ExportToFileController(
   private suspend fun createSqliteStatement(statementText: String): SqliteStatement =
     withContext(edtDispatcher) { createSqliteStatement(project, statementText) }
 
-  private suspend fun executeQuery(
+  private fun executeQuery(
     srcDatabase: SqliteDatabaseId,
     srcQuery: SqliteStatement,
   ): Flow<SqliteRow> = flow {
