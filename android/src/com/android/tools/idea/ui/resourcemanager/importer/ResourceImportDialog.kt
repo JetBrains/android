@@ -473,7 +473,7 @@ private class SummaryStep(private val viewModel: SummaryScreenViewModel) : StepA
         fileTree.setSelectionRow(previousSelectionRow)
       }
       else {
-        TreeUtil.selectPath(fileTree, TreeUtil.getFirstLeafNodePath(fileTree))
+        TreeUtil.promiseSelectFirstLeaf(fileTree)
       }
     }
     preview.data = viewModel.metadata
