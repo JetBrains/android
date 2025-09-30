@@ -34,7 +34,7 @@ class NestedGraphToolbarAction :
     surface.selectionModel.selection.any { it.isDestination && it != surface.currentNavigation }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val surface = e.getRequiredData(DESIGN_SURFACE) as NavDesignSurface
+    val surface = e.getData(DESIGN_SURFACE) as? NavDesignSurface ?: return
     if (moveIntoNestedGraph(surface) { surface.currentNavigation.createNestedGraph() }) {
       NavUsageTracker.getInstance(surface.model)
         .createEvent(NavEditorEvent.NavEditorEventType.CREATE_NESTED_GRAPH)
