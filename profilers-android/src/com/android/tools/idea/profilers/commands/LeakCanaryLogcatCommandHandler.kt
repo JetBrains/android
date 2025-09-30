@@ -186,6 +186,7 @@ class LeakCanaryLogcatCommandHandler(
           logcatMessages.forEach { logcatMessage ->
             detectAndHandlePartialLeakTraces(logcatMessage)
             detectAndHandleCompleteLeakTraces(logcatMessage)
+            detectAndHandleHostAnalysisTrigger(logcatMessage)
           }
         }
       }
@@ -313,6 +314,19 @@ Heap dump duration: Unknown
         capturedLogsForPartialTrace.clear()
         inLastFrameOfPartialTrace = false
       }
+    }
+  }
+
+  private fun detectAndHandleHostAnalysisTrigger(logcatMessage: LogcatMessage) {
+    val HOST_ANALYSIS_TRIGGER_STRING = "The heap dump will be collected and analyzed by the Android Studio"
+    if (LEAKCANARY_TAG == logcatMessage.header.tag && HOST_ANALYSIS_TRIGGER_STRING in logcatMessage.message) {
+      logger.info("Host analysis trigger detected.")
+      eventQueue.offer(Common.Event.newBuilder()
+                         .setGroupId(pid.toLong())
+                         .setPid(pid)
+                         .setKind(Common.Event.Kind.LEAKCANARY_HOST_ANALYSIS_TRIGGER)
+                         .setTimestamp(getCurrentTimestampInNs())
+                         .build())
     }
   }
 }

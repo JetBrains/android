@@ -71,7 +71,7 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager): Singl
     LeakCanaryTaskArgs(false, artifact as LeakCanarySessionArtifact)
 
   /**
-   * Always returns true since leak canary task is available regardless of devices feature level and process
+   * LeakCanary task supports debuggable processes only
    */
   override fun checkSupportForDeviceAndProcess(device: Common.Device, process: Common.Process): StartTaskSelectionError? {
     val isFeatureSupported = SupportLevel.of(process.exposureLevel).isFeatureSupported(SupportLevel.Feature.MEMORY_LEAK_WITH_LEAKCANARY)
