@@ -51,6 +51,19 @@ internal object LogcatUsageTracker {
     )
   }
 
+  fun logRetraceException(e: Throwable, mappingFileSize: Long, isCached: Boolean) {
+    log(
+      LogcatUsageEvent.newBuilder()
+        .setType(STACK_RETRACED)
+        .setStackRetrace(
+          StackRetraceEvent.newBuilder()
+            .setMappingFileSize(mappingFileSize)
+            .setIsMappingCached(isCached)
+            .setResultString(e.javaClass.simpleName)
+        )
+    )
+  }
+
   fun logRetrace(result: String, duration: Duration, mappingFileSize: Long, isCached: Boolean) {
     log(
       LogcatUsageEvent.newBuilder()
