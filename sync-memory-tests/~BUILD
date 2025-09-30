@@ -12,6 +12,7 @@ iml_module(
         "Benchmark2000Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000MemoryTest",
             "exec_properties": LARGE_MACHINE,
+            "additional_jvm_args": ["-Xmx6g"],
             "tags": [
                 "noci:studio-win",
                 "noci:studio-linux",
@@ -56,7 +57,7 @@ iml_module(
             "tags": [
                 "perfgate-release",
             ],
-            "additional_jvm_args": ["-Drunning.from.release.branch=true"],
+            "additional_jvm_args": ["-Drunning.from.release.branch=true", "-Xmx6g"],
         },
         # Comparison tests
         "Benchmark2000CpuLatestGradleTest": {
@@ -74,6 +75,7 @@ iml_module(
         "Benchmark2000MemoryLatestGradleTest": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000MemoryLatestGradleTest",
             "exec_properties": LARGE_MACHINE,
+            "additional_jvm_args": ["-Xmx6g"],
             "tags": [
                 "noci:studio-win",
                 "noci:studio-linux",
@@ -97,6 +99,7 @@ iml_module(
         "Benchmark2000MemoryLatestKotlinTest": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000MemoryLatestKotlinTest",
             "exec_properties": LARGE_MACHINE,
+            "additional_jvm_args": ["-Xmx6g"],
             "tags": [
                 "noci:studio-win",
                 "noci:studio-linux",
@@ -279,6 +282,7 @@ iml_module(
     split_test_targets = {
         "Benchmark2000Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000MemoryTest",
+            "additional_jvm_args": ["-Xmx6g"],
         },
         "Benchmark2000Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuTest",
