@@ -36,7 +36,6 @@ import com.intellij.xdebugger.impl.XDebugSessionImpl
 import com.sun.jdi.Location
 import com.sun.jdi.Method
 import com.sun.jdi.ReferenceType
-import java.util.LinkedList
 import kexter.Dex
 import kexter.DexBytecode
 import kexter.DexMethod
@@ -44,7 +43,6 @@ import kexter.DexMethodDebugInfo
 import kexter.InvokeInstruction
 import kexter.LineTableEntry
 import kexter.Opcode
-import org.jetbrains.kotlin.idea.debugger.base.util.safeLocation
 import org.jetbrains.kotlin.idea.debugger.base.util.safeMethod
 import org.jetbrains.kotlin.idea.debugger.core.DexBytecodeInspector
 import org.jetbrains.kotlin.idea.debugger.core.getInlineFunctionAndArgumentVariablesToBordersMap
@@ -54,6 +52,7 @@ import org.jetbrains.kotlin.idea.debugger.stepping.smartStepInto.KotlinSmartStep
 import org.jetbrains.kotlin.idea.debugger.stepping.smartStepInto.SmartStepIntoContext
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import java.util.LinkedList
 
 class DexBytecodeInspectorImpl : DexBytecodeInspector {
   /**
@@ -118,8 +117,7 @@ class DexBytecodeInspectorImpl : DexBytecodeInspector {
     context: SmartStepIntoContext,
   ): List<KotlinMethodSmartStepTarget> {
     val (expression, debugProcess, _, _) = context
-    val location =
-      debugProcess.suspendManager.pausedContext?.frameProxy?.safeLocation() ?: return targets
+    val location = context.location ?: return targets
     val method = location.safeMethod() ?: return targets
 
     val start = System.currentTimeMillis()
