@@ -37,7 +37,7 @@ sealed class AddActionDialogAction(
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val surface = e.getRequiredData(DESIGN_SURFACE)
+    val surface = e.getData(DESIGN_SURFACE) ?: return
     val addActionDialog =
       AddActionDialog(
         AddActionDialog.Defaults.NORMAL,

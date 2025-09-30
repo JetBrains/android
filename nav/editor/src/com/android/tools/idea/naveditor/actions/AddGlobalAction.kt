@@ -34,7 +34,7 @@ class AddGlobalAction(private val component: NlComponent) : AnAction("Global") {
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val surface = e.getRequiredData(DESIGN_SURFACE)
+    val surface = e.getData(DESIGN_SURFACE) ?: return
     WriteCommandAction.runWriteCommandAction(null) {
       assert(component.parent != null)
       val action = component.parent?.createAction(component.id)

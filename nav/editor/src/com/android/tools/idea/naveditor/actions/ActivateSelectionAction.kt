@@ -29,7 +29,7 @@ class ActivateSelectionAction : AnAction() {
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val surface = e.getRequiredData(DESIGN_SURFACE)
+    val surface = e.getData(DESIGN_SURFACE) ?: return
     surface.selectionModel.selection.let {
       if (it.size == 1) {
         surface.notifyComponentActivate(it[0])
