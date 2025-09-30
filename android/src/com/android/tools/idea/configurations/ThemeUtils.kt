@@ -72,10 +72,10 @@ fun Module.getAppThemeName(): String? {
     val facet = AndroidFacet.getInstance(this)
     if (facet != null) {
       return uiSafeRunReadActionInSmartMode(this.project, Computable {
-        SlowOperations.allowSlowOperations(ThrowableComputable {
+        SlowOperations.knownIssue("b/448322683").use {
           if (!facet.queryIsMainManifestIndexReady()) throw MainManifestIndexNotReadyException()
           facet.queryApplicationThemeFromManifestIndex()
-        })
+        }
       })
     }
   }
@@ -138,10 +138,10 @@ fun <T> Module.safeQueryManifestIndex(manifestIndexQueryAction: (AndroidFacet) -
     val facet = AndroidFacet.getInstance(this)
     if (facet != null) {
       return uiSafeRunReadActionInSmartMode(this.project, Computable {
-        SlowOperations.allowSlowOperations(ThrowableComputable {
+        SlowOperations.knownIssue("b/448322683").use {
           if (!facet.queryIsMainManifestIndexReady()) throw MainManifestIndexNotReadyException()
           manifestIndexQueryAction.invoke(facet)
-        })
+        }
       })
     }
   }

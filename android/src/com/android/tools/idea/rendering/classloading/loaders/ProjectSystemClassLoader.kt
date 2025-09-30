@@ -65,10 +65,13 @@ class ProjectSystemClassLoader(
 
     if (cachedContent?.isUpToDate() == true) return cachedContent
     val classContent =
-      SlowOperations.allowSlowOperations(ThrowableComputable { findClassContent(fqcn) })?.also {
-        val newRef = SofterReference(it)
-        classCache[fqcn] = newRef
+      SlowOperations.knownIssue("b/326953914").use {
+        findClassContent(fqcn)
       }
+        ?.also {
+          val newRef = SofterReference(it)
+          classCache[fqcn] = newRef
+        }
     return classContent
   }
 
