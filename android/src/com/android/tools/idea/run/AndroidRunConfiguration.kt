@@ -291,6 +291,13 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
     setLaunchActivity(activityName, false)
   }
 
+  fun getLaunchActivityName() : String{
+    val state = getLaunchOptionState(LAUNCH_SPECIFIC_ACTIVITY)
+    assert(state is SpecificActivityLaunch.State)
+    val specificActivityLaunchState = state as SpecificActivityLaunch.State
+    return specificActivityLaunchState.ACTIVITY_CLASS
+  }
+
   fun setLaunchUrl(url: String) {
     MODE = LAUNCH_DEEP_LINK
     val state = getLaunchOptionState(LAUNCH_DEEP_LINK)
@@ -303,6 +310,19 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
     val state = (getLaunchOptionState(LAUNCH_DEEP_LINK) as DeepLinkLaunch.State)
     state.DEEP_LINK = url
     state.ACTIVITY = activityName
+  }
+
+  fun getLaunchUrl(): String? {
+    if (MODE != LAUNCH_DEEP_LINK) {
+      return null
+    }
+    val state = getLaunchOptionState(LAUNCH_DEEP_LINK)
+    assert(state is DeepLinkLaunch.State)
+    return (state as DeepLinkLaunch.State).DEEP_LINK
+  }
+
+  fun isLaunchUrl(url: String) : Boolean {
+    return getLaunchUrl() == url
   }
 
   fun isLaunchingActivity(activityName: String?): Boolean {
