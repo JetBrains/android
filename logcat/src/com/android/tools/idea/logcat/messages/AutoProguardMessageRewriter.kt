@@ -28,6 +28,7 @@ import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result
 import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.Reason.MODULES_NOT_FOUND
 import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.Reason.MODULE_DIR_NOT_FOUND
 import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.Success
+import com.android.tools.idea.logcat.util.LOGGER
 import com.android.tools.idea.logcat.util.LogcatUsageTracker
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -89,13 +90,23 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
         val retracer =
           getAutoRetracer(id, applicationId) ?: return message // tracked by getAutoRetracer
 
-        val (retraced, duration) = measureTimedValue { retracer.builder.rewrite(message) }
+        val (retraced, duration) =
+          try {
+            measureTimedValue { retracer.builder.rewrite(message) }
+          } catch (e: Throwable) {
+            LogcatUsageTracker.logRetraceException(e, retracer.mappingSize, retracer.isCached)
+            LOGGER.warn(
+              "Error while retracing. mappingSize=${retracer.mappingSize} isCached=${retracer.isCached}"
+            )
+            return message
+          }
         val result = if (retraced != message) "SUCCESS" else "NOOP"
         LogcatUsageTracker.logRetrace(result, duration, retracer.mappingSize, retracer.isCached)
         return retraced
       } catch (e: Throwable) {
         LogcatUsageTracker.logRetraceException(e)
-        throw e
+        LOGGER.warn("Error while rewriting message.")
+        return message
       }
     }
     return message
