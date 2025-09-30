@@ -34,7 +34,7 @@ class ReturnToSourceAction(private val component: NlComponent) : AnAction("Retur
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val surface = e.getRequiredData(DESIGN_SURFACE)
+    val surface = e.getData(DESIGN_SURFACE) ?: return
     WriteCommandAction.runWriteCommandAction(component.model.project) {
       val action = component.createReturnToSourceAction()
       surface.selectionModel.setSelection(listOfNotNull(action))

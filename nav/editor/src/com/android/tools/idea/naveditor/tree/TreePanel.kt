@@ -30,9 +30,8 @@ import com.android.tools.idea.naveditor.model.isAction
 import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataSink
-import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.ApplicationManager
 import icons.StudioIcons
 import java.awt.event.MouseEvent
@@ -59,7 +58,11 @@ class TreePanel : ToolContent<DesignSurface<*>> {
         .withComponentName("navComponentTree")
 
     val result = builder.build()
-    componentTree = result.component
+    componentTree =
+      UiDataProvider.wrapComponent(result.component) { sink ->
+        DataSink.uiDataSnapshot(sink, designSurface)
+      }
+
     componentTreeModel = result.model
     componentTreeSelectionModel = result.selectionModel
     componentTreeSelectionModel.addSelectionListener { updateSelection() }
@@ -86,7 +89,6 @@ class TreePanel : ToolContent<DesignSurface<*>> {
     designSurface?.let {
       it.selectionModel.removeListener(contextSelectionListener)
       it.models.firstOrNull()?.removeListener(modelListener)
-      DataManager.removeDataProvider(componentTree)
     }
 
     designSurface = toolContext
@@ -97,10 +99,6 @@ class TreePanel : ToolContent<DesignSurface<*>> {
         model.addListener(modelListener)
         update(model)
       }
-      DataManager.registerDataProvider(
-        componentTree,
-        EdtNoGetDataProvider { sink -> DataSink.uiDataSnapshot(sink, it) },
-      )
     }
   }
 

@@ -34,7 +34,7 @@ class ToSelfAction(private val component: NlComponent) : AnAction("To Self") {
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val surface = e.getRequiredData(DESIGN_SURFACE)
+    val surface = e.getData(DESIGN_SURFACE) ?: return
     WriteCommandAction.runWriteCommandAction(component.model.project) {
       val action = component.createSelfAction()
       surface.selectionModel.setSelection(listOfNotNull(action))

@@ -30,6 +30,6 @@ class ScrollToDestinationAction(private val component: NlComponent) : AnAction("
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    e.getRequiredData(DESIGN_SURFACE).scrollToCenter(listOf(component))
+    e.getData(DESIGN_SURFACE)?.scrollToCenter(listOf(component))
   }
 }

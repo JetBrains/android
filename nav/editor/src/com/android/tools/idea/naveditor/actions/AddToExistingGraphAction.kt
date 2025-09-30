@@ -33,7 +33,7 @@ class AddToExistingGraphAction(name: String, private val graph: NlComponent) : A
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val surface = e.getRequiredData(DESIGN_SURFACE) as NavDesignSurface
+    val surface = e.getData(DESIGN_SURFACE) as? NavDesignSurface ?: return
     if (moveIntoNestedGraph(surface) { graph }) {
       NavUsageTracker.getInstance(surface.model)
         .createEvent(NavEditorEvent.NavEditorEventType.MOVE_TO_GRAPH)
