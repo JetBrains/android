@@ -36,14 +36,15 @@ class NewBaselineProfilesModuleModel(
   project: Project,
   moduleParent: String,
   projectSyncInvoker: ProjectSyncInvoker,
-) : ModuleModel(
-  name = "baselineProfile",
-  commandName = "New Baseline Profile Module",
-  isLibrary = true,
-  projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
-  moduleParent = moduleParent,
-  wizardContext = WizardUiContext.NEW_MODULE,
-) {
+) :
+  ModuleModel(
+    name = "baselineProfile",
+    commandName = "New Baseline Profile Module",
+    isLibrary = true,
+    projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
+    moduleParent = moduleParent,
+    wizardContext = WizardUiContext.NEW_MODULE,
+  ) {
   override val loggingEvent: AndroidStudioEvent.TemplateRenderer
     get() = AndroidStudioEvent.TemplateRenderer.BASELINE_PROFILES_MODULE
 
@@ -51,31 +52,35 @@ class NewBaselineProfilesModuleModel(
   val useGmd = BoolValueProperty(false)
 
   override fun getParamsToLog(): String {
-    return super.getParamsToLog() + """
+    return super.getParamsToLog() +
+      """
       |
       |[Baseline Profile Generator params]
       |Target application: ${targetModule.valueOrNull ?: "N/A"}
       |Use GMD: ${useGmd.get()}
-    """.trimMargin()
+    """
+        .trimMargin()
   }
 
   override val renderer: MultiTemplateRenderer.TemplateRenderer
-    get() = object : ModuleTemplateRenderer() {
-      override val recipe: Recipe
-        get() = {
-          generateBaselineProfilesModule(
-            newModule = it as ModuleTemplateData,
-            useGradleKts = useGradleKts.get(),
-            useGmd = useGmd.get(),
-            targetModule = targetModule.value,
-            useVersionCatalog = useVersionCatalog.get()
-          )
-        }
-    }
+    get() =
+      object : ModuleTemplateRenderer() {
+        override val recipe: Recipe
+          get() = {
+            generateBaselineProfilesModule(
+              newModule = it as ModuleTemplateData,
+              useGradleKts = useGradleKts.get(),
+              useGmd = useGmd.get(),
+              targetModule = targetModule.value,
+              useVersionCatalog = useVersionCatalog.get(),
+            )
+          }
+      }
 }
 
 /**
- * Checks [targetModule] for minSdk and applies maxOf(targetModule.minSdk, SdkVersionInfo.LOWEST_PROFILE_GUIDED_OPTIMIZATIONS_SDK_VERSION)
+ * Checks [targetModule] for minSdk and applies maxOf(targetModule.minSdk,
+ * SdkVersionInfo.LOWEST_PROFILE_GUIDED_OPTIMIZATIONS_SDK_VERSION)
  */
 fun getBaselineProfilesMinSdk(targetModule: Module?): Int {
   val targetModuleMinSdk = getModuleMinSdk(targetModule)
@@ -92,7 +97,8 @@ fun getBaselineProfilesMinSdk(targetModule: Module?): Int {
 fun getModuleMinSdk(targetModule: Module?): Int? {
   targetModule ?: return null
   val projectBuildModel = ProjectBuildModel.getOrLog(targetModule.project) ?: return null
-  val targetModuleAndroidModel = projectBuildModel.getModuleBuildModel(targetModule)?.android() ?: return null
+  val targetModuleAndroidModel =
+    projectBuildModel.getModuleBuildModel(targetModule)?.android() ?: return null
 
   return targetModuleAndroidModel.defaultConfig().minSdkVersion().toInt()
 }
