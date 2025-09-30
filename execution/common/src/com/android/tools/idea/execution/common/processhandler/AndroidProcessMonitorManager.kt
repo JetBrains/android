@@ -120,6 +120,9 @@ class AndroidProcessMonitorManager(
   @AnyThread
   fun isAssociated(device: IDevice) = myMonitors.contains(device)
 
+  @AnyThread
+  fun allMonitoringDevices() = myMonitors.keys
+
   /**
    * Returns true if there is no devices being monitored.
    */
