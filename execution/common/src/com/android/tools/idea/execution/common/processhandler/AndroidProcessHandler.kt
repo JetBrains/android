@@ -54,7 +54,7 @@ import java.io.OutputStream
  * @param androidProcessMonitorManagerFactory a factory method to construct [AndroidProcessMonitorManager]
  */
 class AndroidProcessHandler @JvmOverloads constructor(
-  @VisibleForTesting val targetApplicationId: String,
+  val targetApplicationId: String,
   finishAndroidProcessCallback: (IDevice) -> Unit = { device -> device.forceStop(targetApplicationId) },
   val autoTerminate: Boolean = true,
   private val ansiEscapeDecoder: AnsiEscapeDecoder = AnsiEscapeDecoder(),
@@ -130,6 +130,8 @@ class AndroidProcessHandler @JvmOverloads constructor(
       detachProcess()
     }
   }
+
+  fun allMonitoringDevices() = myMonitorManager.allMonitoringDevices()
 
   /**
    * Checks if a given device is monitored by this handler. Returns true if it is monitored otherwise false.
