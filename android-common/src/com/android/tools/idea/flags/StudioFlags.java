@@ -2206,6 +2206,16 @@ public final class StudioFlags {
                     "Enable query status banner in Agent Mode Timeline",
                     "When enabled, the agent mode timeline will show a banner showing thinking stream and tool usage of an ongoing response.");
 
+  public static final Flag<Boolean> STUDIOBOT_PLAN_TOOL_ENABLED =
+    new BooleanFlag(STUDIOBOT, "agent.plan.tool.enabled",
+                    "Enable planning tool for the agent and showing the plan in the thinker",
+                    "When enabled, the agent mode will be able to use the plan tool and we will display the current plan state in the thinker (query status banner).");
+
+  public static final Flag<Boolean> STUDIOBOT_TLDR_MODE_ENABLED =
+    new BooleanFlag(STUDIOBOT, "agent.tldr.mode.enabled",
+                    "Enable tl;dr mode for the agent",
+                    "When enabled, the agent timeline UI will show a summary of each plan step execution.");
+
   public static final Flag<Boolean> STUDIOBOT_STOP_BUTTON_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.stop.button.enabled",
                     "Enable Stop Button",
