@@ -74,8 +74,7 @@ internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
     if (element.children.isNotEmpty()) return // not leaf element
 
     val targetElement =
-      if (element is PsiLanguageInjectionHost) element
-      else element.parent as? PsiLanguageInjectionHost
+      element as? PsiLanguageInjectionHost ?: element.parent as? PsiLanguageInjectionHost
     if (targetElement == null) return
 
     val injectedPsiFile =
@@ -84,8 +83,7 @@ internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
         .orEmpty()
         .map { it.first }
         .filter { it.language == AndroidSqlLanguage.INSTANCE }
-        .firstOrNull { it.getUserData(InjectedLanguageManager.FRANKENSTEIN_INJECTION) == null }
-        ?: return
+        .firstOrNull { !injectedLanguageManager.isFrankensteinInjection(it) } ?: return
 
     val injectionHost =
       InjectedLanguageManager.getInstance(injectedPsiFile.project).getInjectionHost(injectedPsiFile)
@@ -99,6 +97,7 @@ internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
     if (targetElement != element && targetElement.firstChild != element) return
 
     // it is much easier to always show icon and fallback to warning balloon if no database
+    @Suppress("DialogTitleCapitalization")
     result.add(
       LineMarkerInfo(
         element,
