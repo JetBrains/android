@@ -32,7 +32,7 @@ public class StudioCrashDetails {
    * Represents a crash for which there is no additional details. Assumed to be not a JVM crash.
    */
   public final static StudioCrashDetails
-    UNKNOWN = new StudioCrashDetails("<unknown>", false, -1, "", "", "", "", "");
+    UNKNOWN = new StudioCrashDetails("<unknown>", false, -1, "", "", "", "", "", "");
   private final static String JVM_CRASH_FILE_STRING_FORMAT =
     System.getProperty("user.home") + File.separator + "java_error_in_studio_%d.log";
 
@@ -44,6 +44,7 @@ public class StudioCrashDetails {
   private final String myErrorFrame;
   private final String myErrorThread;
   private final String myNativeStack;
+  private final String mySanitizedCrashLog;
 
   private StudioCrashDetails(
     String description,
@@ -53,7 +54,8 @@ public class StudioCrashDetails {
     String errorSignal,
     String errorFrame,
     String errorThread,
-    String nativeStack
+    String nativeStack,
+    String sanitizedCrashLog
   ) {
     myDescription = description;
     myJvmCrash = isJvmCrash;
@@ -63,6 +65,7 @@ public class StudioCrashDetails {
     myErrorFrame = errorFrame;
     myErrorThread = errorThread;
     myNativeStack = nativeStack;
+    mySanitizedCrashLog = sanitizedCrashLog;
   }
 
   @NotNull
@@ -96,6 +99,7 @@ public class StudioCrashDetails {
     String errorFrame = "";
     String errorThread = "";
     String nativeStack = "";
+    String sanitizedCrashLog = "";
     // Assume it was not a JVM crash if there is no startup time or pid
     if (startupDateInMs != -1 && pid >= 0) {
       // Check time of creation of the crash report file. If it happened after the app startup time then
@@ -134,11 +138,12 @@ public class StudioCrashDetails {
               }
             }
           }
+          sanitizedCrashLog = JVMReportSanitizer.sanitize(record);
         }
       }
     }
     String description = buildNumber + "\n" + runtimeVersion;
-    return new StudioCrashDetails(description, isJvmCrash, uptimeInMs, sessionID, errorSignal, errorFrame, errorThread, nativeStack);
+    return new StudioCrashDetails(description, isJvmCrash, uptimeInMs, sessionID, errorSignal, errorFrame, errorThread, nativeStack, sanitizedCrashLog);
   }
 
   public boolean isJvmCrash() {
@@ -171,5 +176,9 @@ public class StudioCrashDetails {
 
   public String getNativeStack() {
     return myNativeStack;
+  }
+
+  public String getSanitizedCrashLog() {
+    return mySanitizedCrashLog;
   }
 }
