@@ -15,16 +15,39 @@
  */
 package com.android.tools.idea.connection.assistant;
 
+import static com.google.common.truth.Truth.assertThat;
+
+import com.android.tools.idea.adb.AdbOptionsService;
 import com.android.tools.idea.assistant.DefaultTutorialBundle;
+import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
+import com.intellij.testFramework.LightPlatform4TestCase;
 import java.io.IOException;
 import javax.xml.bind.JAXBException;
 import org.junit.Test;
 
-public class ConnectionAssistantTest {
+public class ConnectionAssistantTest extends LightPlatform4TestCase {
   @Test
   public void testCreation() throws IOException, JAXBException {
+    // Act
     var stream = new ConnectionAssistantBundleCreator().getConfig().openStream();
+    TutorialBundleData bundleData =
+      DefaultTutorialBundle.parse(stream, ConnectionAssistantBundleCreator.BUNDLE_ID);
 
-    DefaultTutorialBundle.parse(stream, ConnectionAssistantBundleCreator.BUNDLE_ID);
+    // Assert
+    assertThat(bundleData.getName()).isEqualTo("Connection Assistant");
+  }
+
+  @Test
+  public void testCreationForUnsupportedConnectionAssistant() throws IOException, JAXBException {
+    // Prepare
+    AdbOptionsService.getInstance().getOptionsUpdater().setUseUserManagedAdb(true).commit();
+
+    // Act
+    var stream = new ConnectionAssistantBundleCreator().getConfig().openStream();
+    TutorialBundleData bundleData =
+      DefaultTutorialBundle.parse(stream, ConnectionAssistantBundleCreator.BUNDLE_ID);
+
+    // Assert
+    assertThat(bundleData.getName()).isEqualTo("Connection Assistant");
   }
 }

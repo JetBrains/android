@@ -75,6 +75,8 @@ jvm_library(
     "//platform/platform-impl:ide-impl_test_lib",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
+    "//platform/core-ui",
+    "//libraries/guava",
   ],
   runtime_deps = [":connection-assistant-test"]
 )

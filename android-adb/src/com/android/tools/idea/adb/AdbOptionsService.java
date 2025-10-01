@@ -91,7 +91,7 @@ public final class AdbOptionsService {
     }
   }
 
-  boolean shouldUseUserManagedAdb() {
+  public boolean shouldUseUserManagedAdb() {
     return PropertiesComponent.getInstance().getBoolean(USE_USER_MANAGED_ADB, USE_USER_MANAGED_ADB_DEFAULT);
   }
 
