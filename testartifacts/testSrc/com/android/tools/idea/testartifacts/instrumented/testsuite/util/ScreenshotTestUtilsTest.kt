@@ -32,27 +32,17 @@ class ScreenshotTestUtilsTest {
   val tempFolder = TemporaryFolder()
 
   /**
-   * Verifies that a valid percentage difference is correctly parsed and converted to a match percentage.
+   * Verifies that a valid difference ratio is correctly converted to a match percentage.
    */
   @Test
   fun testCalculateMatchPercentage() {
-    val diffPercent = "1.23"
+    val diffPercent = 0.0123 // Represents 1.23% difference
     val result = calculateMatchPercentage(diffPercent)
     assertThat(result).isEqualTo("98.77%")
   }
 
   /**
-   * Ensures that an invalid or non-numeric difference string results in a null match percentage.
-   */
-  @Test
-  fun testCalculateMatchPercentage_invalid() {
-    val diffPercent = "Some other error"
-    val result = calculateMatchPercentage(diffPercent)
-    assertThat(result).isNull()
-  }
-
-  /**
-   * Checks that a null input to parseMatchPercentage is handled gracefully and returns null.
+   * Ensures that a null input to calculateMatchPercentage is handled gracefully and returns null.
    */
   @Test
   fun testCalculateMatchPercentage_null() {
@@ -61,52 +51,44 @@ class ScreenshotTestUtilsTest {
   }
 
   /**
-   * Tests the case where the difference is exactly 0%, expecting a 100% match.
+   * Tests the case where the difference is exactly 0.0, expecting a 100.00% match.
    */
   @Test
   fun testCalculateMatchPercentage_zeroDifference() {
-    val diffPercent = "0"
+    val diffPercent = 0.0
     val result = calculateMatchPercentage(diffPercent)
     assertThat(result).isEqualTo("100.00%")
   }
 
   /**
-   * Verifies that a 100% difference correctly results in a 0% match.
+   * Verifies that a 100% difference (ratio 1.0) correctly results in a 0.00% match.
    */
   @Test
   fun testCalculateMatchPercentage_hundredDifference() {
-    val diffPercent = "100"
+    val diffPercent = 1.0
     val result = calculateMatchPercentage(diffPercent)
     assertThat(result).isEqualTo("0.00%")
   }
 
   /**
-   * Ensures that integer percentage differences are correctly handled.
+   * Tests a typical difference ratio.
    */
   @Test
-  fun testCalculateMatchPercentage_integerDifference() {
-    val diffPercent = "10"
+  fun testCalculateMatchPercentage_typicalDifference() {
+    val diffPercent = 0.1 // Represents 10% difference
     val result = calculateMatchPercentage(diffPercent)
     assertThat(result).isEqualTo("90.00%")
   }
 
   /**
-   * Tests that percentage differences with more than two decimal places are correctly truncated and rounded.
+   * Tests that difference ratios with more than four decimal places are correctly handled
+   * in the match percentage calculation, resulting in a string rounded to two decimal places.
    */
   @Test
   fun testCalculateMatchPercentage_manyDecimalPlaces() {
-    val diffPercent = "12.3456"
+    val diffPercent = 0.123456 // Represents 12.3456% difference
     val result = calculateMatchPercentage(diffPercent)
     assertThat(result).isEqualTo("87.65%")
-  }
-
-  /**
-   * Checks that an empty input string is handled gracefully and results in a null match percentage.
-   */
-  @Test
-  fun testCalculateMatchPercentage_emptyString() {
-    val result = calculateMatchPercentage("")
-    assertThat(result).isNull()
   }
 
   /**

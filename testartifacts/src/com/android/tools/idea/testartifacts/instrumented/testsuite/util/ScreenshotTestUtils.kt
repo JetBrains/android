@@ -45,23 +45,20 @@ data class ImageMetadata(
 
 object ScreenshotTestUtils {
   /**
-   * Calculates the match percentage from a difference percentage string.
+   * Calculates the match percentage from a difference ratio.
    *
-   * This method takes a difference percentage as a string (e.g., "1.23"),
-   * calculates the match percentage (100 - difference), and returns it as a
+   * This method takes a difference ratio as a Double? (e.g., 0.0123 for 1.23% difference),
+   * calculates the match percentage (100.0 - (difference ratio * 100.0)), and returns it as a
    * formatted string (e.g., "98.77%").
    *
-   * @param diffPercent The difference percentage as a string.
-   * @return The match percentage as a formatted string, or null if the
-   *         input cannot be parsed.
+   * @param diffPercent The difference ratio as a Double?, typically between 0.0 and 1.0.
+   * @return The match percentage as a formatted string, or null if the input is null.
    */
-  fun calculateMatchPercentage(diffPercent: String?): String? {
-    val difference = diffPercent?.substringBefore("%")?.toFloatOrNull()
-    if (difference != null) {
-      val match = 100 - difference
-      return "%.2f%%".format(Locale.US, match)
+  fun calculateMatchPercentage(diffPercent: Double?): String? {
+    return diffPercent?.let {
+      val match = 100.0 - (it * 100.0)
+      "%.2f%%".format(Locale.US, match)
     }
-    return null
   }
 
   /**

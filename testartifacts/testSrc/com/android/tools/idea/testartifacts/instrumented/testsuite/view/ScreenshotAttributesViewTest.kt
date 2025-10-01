@@ -69,7 +69,7 @@ class ScreenshotAttributesViewTest {
         testMethodName = "myMethod",
         testClassName = "MyClass",
         result = AndroidTestCaseResult.FAILED,
-        diffPercent = "25.50"
+        diffPercent = 0.2550
     )
     assertThat(view.state.matchPercentage).isEqualTo("74.50%")
     assertThat(view.state.testResult).isEqualTo(AndroidTestCaseResult.FAILED)

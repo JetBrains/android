@@ -145,7 +145,7 @@ class ScreenshotAttributesView {
         testMethodName: String?,
         testClassName: String?,
         result: AndroidTestCaseResult?,
-        diffPercent: String?,
+        diffPercent: Double?,
     ) {
         val matchPercentage = calculateMatchPercentage(diffPercent)
 
