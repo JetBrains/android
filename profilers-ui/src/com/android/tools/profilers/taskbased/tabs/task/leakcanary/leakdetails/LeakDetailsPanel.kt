@@ -75,7 +75,9 @@ import java.util.concurrent.CompletableFuture
 fun LeakDetailsPanel(selectedLeak: Leak?,
                      gotoDeclaration: (Node) -> Unit,
                      isRecording: Boolean,
-                     isDeclarationAvailableAsync: (Node) -> CompletableFuture<Boolean>) {
+                     isDeclarationAvailableAsync: (Node) -> CompletableFuture<Boolean>,
+                     openStates: List<Boolean>,
+                     onOpenStatesChange: (List<Boolean>) -> Unit) {
   val emptyLeakMessage = if (isRecording) LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE else LEAKCANARY_NO_LEAK_FOUND_MESSAGE
   if (selectedLeak == null) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -88,7 +90,6 @@ fun LeakDetailsPanel(selectedLeak: Leak?,
       Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState).padding(10.dp)) {
         // If displayedLeakTrace is empty, use empty list for the leak nodes.
         val traceNodes = if (selectedLeak.displayedLeakTrace.isNotEmpty()) selectedLeak.displayedLeakTrace[0].nodes else listOf()
-        var openStates by remember(selectedLeak) { mutableStateOf(List(traceNodes.size) { false }) }
         traceNodes.forEachIndexed { index, currNode ->
           LeakTraceNodeView(
             node = currNode,
@@ -97,7 +98,8 @@ fun LeakDetailsPanel(selectedLeak: Leak?,
             nextNode = if (index + 1 < traceNodes.size) traceNodes[index + 1] else null,
             isOpen = openStates[index],
             onClickNode = {
-              openStates = openStates.toMutableList().apply { this[index] = !this[index] }
+              val newStates = openStates.toMutableList().apply { this[index] = !this[index] }
+              onOpenStatesChange(newStates)
             },
             isDeclarationAvailableAsync = isDeclarationAvailableAsync
           )

@@ -15,13 +15,20 @@
  */
 package com.android.tools.profilers.taskbased.tabs.task.leakcanary
 
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.isDisplayed
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.pressKey
+import androidx.compose.ui.test.withKeyDown
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
@@ -403,5 +410,72 @@ class LeakCanaryScreenTest : WithFakeTimer {
     """.trimIndent()
 
     return Analysis.fromString(analysis)
+  }
+
+  @Test
+  fun `test expand and collapse all via buttons`() {
+    val analysis = getMultipleLeaksAnalysis()
+    leakCanaryModel.addLeaks((analysis as AnalysisSuccess).leaks)
+    leakCanaryModel.onLeakSelection(leakCanaryModel.leaks.value[0])
+    composeTestRule.setContent { LeakCanaryScreen(leakCanaryModel = leakCanaryModel) }
+
+    // The first leak from getMultipleLeaksAnalysis() has 3 nodes in its trace.
+    val nodeCount = 3
+
+    // Initially, all nodes should be collapsed.
+    composeTestRule.onAllNodesWithContentDescription(TaskBasedUxStrings.LEAKCANARY_CLOSE).assertCountEquals(nodeCount)
+    composeTestRule.onAllNodesWithContentDescription(TaskBasedUxStrings.LEAKCANARY_OPEN).assertCountEquals(0)
+
+    // Find and click the "Expand All" button.
+    composeTestRule.onNodeWithContentDescription(TaskBasedUxStrings.LEAKCANARY_EXPAND_ALL).performClick()
+
+    // Now, no nodes are closed.
+    composeTestRule.onAllNodesWithContentDescription(TaskBasedUxStrings.LEAKCANARY_CLOSE).assertCountEquals(0)
+
+    // Find and click the "Collapse All" button.
+    composeTestRule.onNodeWithContentDescription(TaskBasedUxStrings.LEAKCANARY_COLLAPSE_ALL).performClick()
+
+    // Now, all nodes should be collapsed again.
+    composeTestRule.onAllNodesWithContentDescription(TaskBasedUxStrings.LEAKCANARY_CLOSE).assertCountEquals(nodeCount)
+    composeTestRule.onAllNodesWithContentDescription(TaskBasedUxStrings.LEAKCANARY_OPEN).assertCountEquals(0)
+  }
+
+  @OptIn(ExperimentalTestApi::class)
+  @Test
+  fun `test expand and collapse all via shortcuts`() {
+    val analysis = getMultipleLeaksAnalysis()
+    leakCanaryModel.addLeaks((analysis as AnalysisSuccess).leaks)
+    leakCanaryModel.onLeakSelection(leakCanaryModel.leaks.value[0])
+    composeTestRule.setContent { LeakCanaryScreen(leakCanaryModel = leakCanaryModel) }
+
+    // The first leak from getMultipleLeaksAnalysis() has 3 nodes in its trace.
+    val nodeCount = 3
+    // The root column is focusable, so we can send key events to any node within it.
+    val focusNode = composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_LEAK_HEADER_TEXT)
+
+    // Initially, all nodes should be collapsed.
+    composeTestRule.onAllNodesWithContentDescription(TaskBasedUxStrings.LEAKCANARY_CLOSE).assertCountEquals(nodeCount)
+    composeTestRule.onAllNodesWithContentDescription(TaskBasedUxStrings.LEAKCANARY_OPEN).assertCountEquals(0)
+
+    // Send Ctrl + Equals shortcut to expand all.
+    focusNode.performKeyInput {
+      withKeyDown(Key.CtrlLeft) {
+        pressKey(Key.NumPadAdd)
+      }
+    }
+
+    // Now, no nodes are closed.
+    composeTestRule.onAllNodesWithContentDescription(TaskBasedUxStrings.LEAKCANARY_CLOSE).assertCountEquals(0)
+
+    // Send Ctrl + Minus shortcut to collapse all.
+    focusNode.performKeyInput {
+      withKeyDown(Key.CtrlLeft) {
+        pressKey(Key.Minus)
+      }
+    }
+
+    // Now, all nodes should be collapsed again.
+    composeTestRule.onAllNodesWithContentDescription(TaskBasedUxStrings.LEAKCANARY_CLOSE).assertCountEquals(nodeCount)
+    composeTestRule.onAllNodesWithContentDescription(TaskBasedUxStrings.LEAKCANARY_OPEN).assertCountEquals(0)
   }
 }
