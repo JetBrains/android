@@ -120,6 +120,10 @@ object TaskBasedUxStrings {
   const val LEAKCANARY_NO_DECLARATION_FOUND_TOOLTIP = "No declaration found in Project Files"
   const val LEAKCANARY_OPEN = "open"
   const val LEAKCANARY_CLOSE = "close"
+  const val LEAKCANARY_EXPAND_ALL = "Expand all nodes"
+  const val LEAKCANARY_COLLAPSE_ALL = "Collapse all nodes"
+  const val LEAKCANARY_EXPAND_ALL_SHORTCUT= "Ctrl+NumPad+"
+  const val LEAKCANARY_COLLAPSE_ALL_SHORTCUT= "Ctrl+NumPad-"
 
   fun getTaskTooltip(taskType: ProfilerTaskType) = when (taskType) {
     ProfilerTaskType.SYSTEM_TRACE -> "Captures a trace that can help you understand how your app interacts with system resources"

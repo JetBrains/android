@@ -15,53 +15,180 @@
  */
 package com.android.tools.profilers.taskbased.tabs.task.leakcanary
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
 import com.android.tools.profilers.leakcanary.LeakCanaryModel
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.common.dividers.ToolWindowHorizontalDivider
 import com.android.tools.profilers.taskbased.tabs.task.leakcanary.actionbars.LeakCanaryActionBar
 import com.android.tools.profilers.taskbased.tabs.task.leakcanary.leakdetails.LeakDetailsPanel
 import com.android.tools.profilers.taskbased.tabs.task.leakcanary.leaklist.LeakListView
+import icons.StudioIconsCompose
+import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.Orientation
+import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.HorizontalSplitLayout
+import org.jetbrains.jewel.ui.component.Icon
+import org.jetbrains.jewel.ui.component.IconButton
+import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.Tooltip
 import org.jetbrains.jewel.ui.component.rememberSplitLayoutState
 
 @Composable
 fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel) {
-  Column(
-    modifier = Modifier.fillMaxSize(),
-    verticalArrangement = Arrangement.Center,
-    horizontalAlignment = Alignment.CenterHorizontally,
+  val selectedLeak by leakCanaryModel.selectedLeak.collectAsState()
+  val traceNodes = selectedLeak?.displayedLeakTrace?.firstOrNull()?.nodes ?: emptyList()
+  var openStates by remember(selectedLeak) { mutableStateOf(List(traceNodes.size) { false }) }
+
+  val onExpandAll = { openStates = List(traceNodes.size) { true } }
+  val onCollapseAll = { openStates = List(traceNodes.size) { false } }
+
+  val focusRequester = remember { FocusRequester() }
+
+  Column(modifier = Modifier.fillMaxSize()
+    .focusRequester(focusRequester)
+    .focusable()
+    .onKeyEvent { keyEvent ->
+      if (keyEvent.type == KeyEventType.KeyDown && keyEvent.isCtrlPressed) {
+        when (keyEvent.key) {
+          Key.Plus, Key.NumPadAdd, Key.Equals -> {
+            onExpandAll()
+            true
+          }
+          Key.NumPadSubtract, Key.Minus -> {
+            onCollapseAll()
+            true
+          }
+          else -> false
+        }
+      }
+      else {
+        false
+      }
+    }
   ) {
     LeakCanaryActionBar(leakCanaryModel)
     ToolWindowHorizontalDivider()
-    HorizontalSplitLayout(
-      firstPaneMinWidth = 150.dp,
-      secondPaneMinWidth = 250.dp,
-      first = { LeakListView(leakCanaryModel) },
-      second = { LeakDetailsColumn(leakCanaryModel) },
-      state = rememberSplitLayoutState(.3f),
-      modifier = Modifier.fillMaxSize(),
-    )
+
+    // Use a Row to place the main content and the sidebar next to each other.
+    Row(modifier = Modifier.fillMaxSize()) {
+      // The main content area lives inside a weight modifier, so it will take up
+      // all available space, pushing the fixed-width sidebar to the right.
+      HorizontalSplitLayout(
+        state = rememberSplitLayoutState(0.3f),
+        firstPaneMinWidth = 150.dp,
+        secondPaneMinWidth = 250.dp,
+        first = { LeakListView(leakCanaryModel) },
+        second = {
+          val selectedLeak by leakCanaryModel.selectedLeak.collectAsState()
+          val isRecording by leakCanaryModel.isRecording.collectAsState()
+          LeakDetailsPanel(
+            selectedLeak = selectedLeak,
+            gotoDeclaration = leakCanaryModel::goToDeclaration,
+            isRecording = isRecording,
+            isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
+            openStates = openStates,
+            onOpenStatesChange = { newStates -> openStates = newStates }
+          )
+        },
+        modifier = Modifier.weight(1f),
+      )
+      if (selectedLeak != null) {
+        ToolWindowVerticalDivider()
+        RightSidebar(
+          modifier = Modifier.width(48.dp),
+          onExpandAll = onExpandAll,
+          onCollapseAll = onCollapseAll
+        )
+      }
+    }
+    LaunchedEffect(Unit) {
+      focusRequester.requestFocus()
+    }
   }
 }
 
 @Composable
-private fun LeakDetailsColumn(leakCanaryModel: LeakCanaryModel) {
-  val selectedLeak by leakCanaryModel.selectedLeak.collectAsState()
-  val isRecording by leakCanaryModel.isRecording.collectAsState()
-  Column {
-    LeakDetailsPanel(
-      selectedLeak = selectedLeak,
-      gotoDeclaration = leakCanaryModel::goToDeclaration,
-      isRecording = isRecording,
-      isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync
-    )
+private fun ToolWindowVerticalDivider() {
+  Divider(
+    modifier = Modifier.fillMaxHeight(),
+    orientation = Orientation.Vertical,
+    color = JewelTheme.globalColors.borders.normal
+  )
+}
+
+/**
+ * A composable for the content of the right sidebar.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun RightSidebar(
+  modifier: Modifier = Modifier,
+  onExpandAll: () -> Unit,
+  onCollapseAll: () -> Unit
+) {
+  Column(
+    modifier = modifier.padding(vertical = 8.dp),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.spacedBy(8.dp)
+  ) {
+    Tooltip(
+      tooltip = {
+        Column(horizontalAlignment = Alignment.Start) {
+          Text(TaskBasedUxStrings.LEAKCANARY_EXPAND_ALL)
+          Text(TaskBasedUxStrings.LEAKCANARY_EXPAND_ALL_SHORTCUT, color = JewelTheme.globalColors.text.info)
+        }
+      }
+    ) {
+      IconButton(onClick = onExpandAll) {
+        Icon(
+          key = StudioIconsCompose.Profiler.Toolbar.ExpandSession,
+          contentDescription = TaskBasedUxStrings.LEAKCANARY_EXPAND_ALL,
+          modifier = Modifier.padding(TaskBasedUxDimensions.TASK_ACTION_BAR_CONTENT_PADDING_DP),
+        )
+      }
+    }
+    Tooltip(
+      tooltip = {
+        Column(horizontalAlignment = Alignment.Start) {
+          Text(TaskBasedUxStrings.LEAKCANARY_COLLAPSE_ALL)
+          Text(TaskBasedUxStrings.LEAKCANARY_COLLAPSE_ALL_SHORTCUT, color = JewelTheme.globalColors.text.info)
+        }
+      }
+    ) {
+      IconButton(onClick = onCollapseAll) {
+        Icon(
+          key = StudioIconsCompose.Profiler.Toolbar.CollapseSession,
+          contentDescription = TaskBasedUxStrings.LEAKCANARY_COLLAPSE_ALL,
+          modifier = Modifier.padding(TaskBasedUxDimensions.TASK_ACTION_BAR_CONTENT_PADDING_DP),
+        )
+      }
+    }
   }
 }
