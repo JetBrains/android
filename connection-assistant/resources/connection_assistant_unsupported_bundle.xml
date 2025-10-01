@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (C) 2018 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<tutorialBundle name="Connection Assistant">
+  <welcome>
+    <![CDATA[Connection Assistant is not supported when the Adb Server is manually managed.
+    To view or change the Adb Server configuration, go to
+    <i>Settings > Build, Execution, Deployment > Debugger > Adb Server Lifecycle Management</i>.
+    <br/>
+    <br/>
+    Note: If you run adb from the terminal on a non-default port, you must specify the server
+    port with the -P flag for all terminal commands (e.g., <i>adb -P 5038 devices</i>).
+]]>
+  </welcome>
+</tutorialBundle>
