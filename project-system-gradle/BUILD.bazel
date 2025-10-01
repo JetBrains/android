@@ -30,7 +30,7 @@ jvm_library(
     "@lib//:classgraph",
     "@lib//:commons-lang3",
     "@lib//:fastutil-min",
-    "@lib//:grpc-core",
+    "//libraries/grpc",
     "@lib//:gson",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-gradle-plugin-idea-provided",

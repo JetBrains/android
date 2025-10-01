@@ -16,7 +16,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:fastutil-min",
-    "@lib//:grpc-core",
+    "//libraries/grpc",
     "@lib//:gson",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
@@ -77,7 +77,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:fastutil-min",
-    "@lib//:grpc-core",
+    "//libraries/grpc",
     "@lib//:gson",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",

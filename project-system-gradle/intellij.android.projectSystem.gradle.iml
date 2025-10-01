@@ -30,7 +30,7 @@
     <orderEntry type="library" name="classgraph" level="project" />
     <orderEntry type="library" name="commons-lang3" level="project" />
     <orderEntry type="library" name="fastutil-min" level="project" />
-    <orderEntry type="library" name="grpc-core" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.grpc" />
     <orderEntry type="library" name="gson" level="project" />
     <orderEntry type="library" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlin-gradle-plugin-idea" level="project" />

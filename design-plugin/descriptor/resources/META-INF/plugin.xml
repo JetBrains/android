@@ -27,6 +27,10 @@
   <depends>org.jetbrains.kotlin</depends>
   <depends>com.intellij.java</depends>
 
+  <dependencies>
+    <module name="intellij.libraries.grpc"/>
+  </dependencies>
+
   <change-notes><![CDATA[
    This release contains updates from Android Studio Narwhal Feature Drop STABLE.
 

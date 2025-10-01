@@ -47,7 +47,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="Guava" level="project" />
-    <orderEntry type="library" name="grpc-core" level="project" />
     <orderEntry type="library" name="gson" level="project" />
     <orderEntry type="library" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" name="kotlin-reflect" level="project" />
@@ -123,6 +122,7 @@
     <orderEntry type="module" module-name="intellij.java.impl" />
     <orderEntry type="module" module-name="intellij.platform.diff.impl" />
     <orderEntry type="module" module-name="intellij.android.preview-fast-compile" />
+    <orderEntry type="module" module-name="intellij.libraries.grpc" />
     <orderEntry type="module" module-name="intellij.android.visual-lint" />
     <orderEntry type="module" module-name="kotlin.idea" />
   </component>
