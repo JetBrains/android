@@ -326,7 +326,7 @@ class LayoutInspectorTreePanelTest {
     val ui = FakeUi(focusComponent)
     ui.mouse.doubleClick(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2)
 
-    runDispatching { GotoDeclarationAction.lastAction?.join() }
+    runDispatching { GotoDeclaration.lastAction?.join() }
 
     fileOpenCaptureRule.checkEditor("demo.xml", 9, "<TextView")
 

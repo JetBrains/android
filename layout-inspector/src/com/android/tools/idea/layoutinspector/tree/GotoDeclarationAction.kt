@@ -42,14 +42,12 @@ const val NO_COMPOSE_SOURCE_INFO_NODE_INLINED_KEY = "no.compose.source.info.node
 
 /** Action for navigating to the currently selected node in the layout inspector. */
 object GotoDeclarationAction : AnAction("Go To Declaration") {
-  @get:VisibleForTesting var lastAction: Job? = null
-
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun actionPerformed(event: AnActionEvent) {
     val inspector = LayoutInspector.get(event) ?: return
     inspector.currentClient.stats.gotoSourceFromTreeActionMenu(event)
-    navigateToSelectedView(
+    GotoDeclaration.navigateToSelectedView(
       inspector.coroutineScope,
       inspector.inspectorModel,
       inspector.currentClient,
@@ -67,6 +65,10 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
       if (hasSourceCodeInfo) "Go To Declaration"
       else "Go To Declaration (No Source Information Found)"
   }
+}
+
+object GotoDeclaration {
+  @get:VisibleForTesting var lastAction: Job? = null
 
   fun navigateToSelectedView(
     coroutineScope: CoroutineScope,
