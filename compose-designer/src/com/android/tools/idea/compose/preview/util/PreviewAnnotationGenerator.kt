@@ -27,6 +27,7 @@ import com.android.tools.idea.configurations.ReferenceDevice
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.ConfigurablePreviewElement
 import com.android.tools.preview.NO_DEVICE_SPEC
+import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.UNDEFINED_API_LEVEL
 import com.android.tools.preview.UNSET_UI_MODE_VALUE
 import com.android.tools.preview.config.*
@@ -205,18 +206,22 @@ internal fun toPreviewAnnotationText(
       params.add("$PARAMETER_GROUP = \"${displaySettings.group}\"")
     }
 
-    if (displaySettings.showBackground) {
-      params.add("$PARAMETER_SHOW_BACKGROUND = true")
-    }
-    if (!displaySettings.backgroundColor.isNullOrBlank()) {
-      var colorValue = displaySettings.backgroundColor!!
-      if (colorValue.startsWith("#")) {
-        colorValue = colorValue.substring(1)
-      } else if (colorValue.startsWith("0x", ignoreCase = true)) {
-        colorValue = colorValue.substring(2)
+    when (val background = displaySettings.background) {
+      is PreviewDisplaySettings.Background.Color -> {
+        params.add("$PARAMETER_SHOW_BACKGROUND = true")
+        var colorValue = background.color
+        if (colorValue.startsWith("#")) {
+          colorValue = colorValue.substring(1)
+        } else if (colorValue.startsWith("0x", ignoreCase = true)) {
+          colorValue = colorValue.substring(2)
+        }
+        // Ensure the hex value is uppercase to match test expectations and improve consistency.
+        params.add("$PARAMETER_BACKGROUND_COLOR = 0x${colorValue.uppercase()}")
       }
-      // Ensure the hex value is uppercase to match test expectations and improve consistency.
-      params.add("$PARAMETER_BACKGROUND_COLOR = 0x${colorValue.uppercase()}")
+      is PreviewDisplaySettings.Background.Default -> {
+        params.add("$PARAMETER_SHOW_BACKGROUND = true")
+      }
+      is PreviewDisplaySettings.Background.None -> {}
     }
 
     if (previewConfig.apiLevel != UNDEFINED_API_LEVEL) {

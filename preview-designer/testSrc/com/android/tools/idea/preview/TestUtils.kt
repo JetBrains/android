@@ -17,6 +17,7 @@ package com.android.tools.idea.preview
 
 import com.android.tools.idea.preview.animation.AnimationTracker
 import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.preview.PreviewDisplaySettings.Background
 
 val NoopAnimationTracker =
   object : AnimationTracker {
@@ -79,8 +80,7 @@ internal fun someDisplaySettings(name: String = "") =
     parameterName = null,
     group = null,
     showDecoration = false,
-    showBackground = false,
-    backgroundColor = null,
+    background = PreviewDisplaySettings.Background.None,
     organizationGroup = "",
     organizationName = "",
   )

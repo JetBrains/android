@@ -88,8 +88,7 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asGlancePreviewNode(
       parameterName = nameHelper.buildParameterName(),
       group = null,
       showDecoration = false,
-      showBackground = false,
-      backgroundColor = null,
+      background = PreviewDisplaySettings.Background.None,
       organizationGroup = methodFqn,
       organizationName = uMethod.name,
     )

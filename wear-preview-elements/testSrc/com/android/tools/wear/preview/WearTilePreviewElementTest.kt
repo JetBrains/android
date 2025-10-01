@@ -32,8 +32,7 @@ class WearTilePreviewElementTest {
             parameterName =  "parameter name",
             group =  "some group",
             showDecoration =   false,
-            showBackground =  false,
-            backgroundColor =  "0xffabcd",
+            background = PreviewDisplaySettings.Background.None,
             organizationGroup =  "organization group",
             organizationName =  "organization name"
           ),
@@ -52,8 +51,7 @@ class WearTilePreviewElementTest {
             parameterName =  "parameter name",
             group =  "some group",
             showDecoration =   false,
-            showBackground =  false,
-            backgroundColor =  "0xffabcd",
+            background = PreviewDisplaySettings.Background.None,
             organizationGroup =  "organization group",
             organizationName =  "organization name"
           ),
@@ -77,8 +75,7 @@ class WearTilePreviewElementTest {
             parameterName =  "parameter name",
             group =  "some group",
             showDecoration =   false,
-            showBackground =  false,
-            backgroundColor =  "0xffabcd",
+            background = PreviewDisplaySettings.Background.Color("0xffabcd"),
             organizationGroup =  "organization group",
             organizationName =  "organization name"
           ),
@@ -95,8 +92,7 @@ class WearTilePreviewElementTest {
        parameterName =  "parameter name",
        group =  "derived group",
        showDecoration =  true,
-      showBackground =   true,
-        backgroundColor = "0xffffff",
+       background = PreviewDisplaySettings.Background.Color("0xffffff"),
        organizationGroup =  "organization group",
        organizationName =  "organization name"
       )
@@ -133,8 +129,7 @@ class WearTilePreviewElementTest {
             parameterName =  "parameter name",
             group =  "some group",
             showDecoration =   false,
-            showBackground =  false,
-            backgroundColor =  "0xffabcd",
+            background = PreviewDisplaySettings.Background.Color("0xffabcd"),
             organizationGroup =  "organization group",
             organizationName =  "organization name"
           ),
@@ -172,8 +167,7 @@ class WearTilePreviewElementTest {
             parameterName =  "parameter name",
             group =  "some group",
             showDecoration =   false,
-            showBackground =  false,
-            backgroundColor =  null,
+            background = PreviewDisplaySettings.Background.None,
             organizationGroup =  "organization group",
             organizationName =  "organization name"
           ),

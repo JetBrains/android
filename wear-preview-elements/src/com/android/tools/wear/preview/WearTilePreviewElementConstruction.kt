@@ -47,9 +47,8 @@ fun <T : Any> previewAnnotationToWearTilePreviewElement(
       parameterName = buildParameterName(name),
       group = group,
       showDecoration = false,
-      showBackground = true,
       // will default to black in the view adapter
-      backgroundColor = null,
+      background = PreviewDisplaySettings.Background.Default,
       organizationGroup = annotatedMethod.qualifiedName,
       organizationName = methodName
     )

@@ -24,6 +24,7 @@ import com.android.tools.idea.compose.renderer.renderPreviewElement
 import com.android.tools.idea.compose.renderer.renderPreviewElementForResult
 import com.android.tools.idea.testing.virtualFile
 import com.android.tools.preview.PreviewConfiguration
+import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.rendering.classloading.ModuleClassLoader
 import org.junit.Assert.assertEquals
@@ -97,8 +98,7 @@ class SingleComposePreviewElementRendererTest {
           mainActivityFile,
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.MainActivityKt.DefaultPreview",
-            showBackground = true,
-            backgroundColor = "#F00",
+            background = PreviewDisplaySettings.Background.Color("#F00"),
           ),
         )
         .get()!!
@@ -129,8 +129,7 @@ class SingleComposePreviewElementRendererTest {
         mainActivityFile,
         SingleComposePreviewElementInstance.forTesting(
           "google.simpleapplication.MainActivityKt.DefaultPreview",
-          showBackground = true,
-          backgroundColor = "#F00",
+          background = PreviewDisplaySettings.Background.Color("#F00"),
         ),
         false,
       )
@@ -250,7 +249,7 @@ class SingleComposePreviewElementRendererTest {
           mainActivityFile,
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.OtherPreviewsKt.PreviewWithUnsignedTypes",
-            showBackground = true,
+            background = PreviewDisplaySettings.Background.Default,
           ),
         )
         .get()!!

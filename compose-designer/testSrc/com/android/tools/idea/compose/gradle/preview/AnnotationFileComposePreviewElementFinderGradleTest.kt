@@ -24,6 +24,7 @@ import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.moveCaretLines
+import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
@@ -37,7 +38,6 @@ import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -116,20 +116,32 @@ class AnnotationFileComposePreviewElementFinderGradleTest {
 
     assertEquals("preview 1 - MyNewTestFun", previewElements[0].displaySettings.name)
     assertEquals("group 1-2", previewElements[0].displaySettings.group)
-    assertTrue(previewElements[0].displaySettings.showBackground)
-    assertEquals("#FF00FF01", previewElements[0].displaySettings.backgroundColor!!.uppercase())
+    assertEquals(
+      "#FF00FF01",
+      (previewElements[0].displaySettings.background as PreviewDisplaySettings.Background.Color)
+        .color
+        .uppercase(),
+    )
     assertEquals("id:pixel_5", previewElements[0].configuration.deviceSpec)
 
     assertEquals("preview 2 - MyNewTestFun", previewElements[1].displaySettings.name)
     assertEquals("group 1-2", previewElements[1].displaySettings.group)
-    assertTrue(previewElements[1].displaySettings.showBackground)
-    assertEquals("#FF00FF02", previewElements[1].displaySettings.backgroundColor!!.uppercase())
+    assertEquals(
+      "#FF00FF02",
+      (previewElements[1].displaySettings.background as PreviewDisplaySettings.Background.Color)
+        .color
+        .uppercase(),
+    )
     assertEquals("id:pixel_5", previewElements[1].configuration.deviceSpec)
 
     assertEquals("test name - MyNewTestFun", previewElements[2].displaySettings.name)
     assertEquals("test group", previewElements[2].displaySettings.group)
-    assertTrue(previewElements[2].displaySettings.showBackground)
-    assertEquals("#FF00FF00", previewElements[2].displaySettings.backgroundColor!!.uppercase())
+    assertEquals(
+      "#FF00FF00",
+      (previewElements[2].displaySettings.background as PreviewDisplaySettings.Background.Color)
+        .color
+        .uppercase(),
+    )
     assertEquals("id:pixel_5", previewElements[2].configuration.deviceSpec)
   }
 }

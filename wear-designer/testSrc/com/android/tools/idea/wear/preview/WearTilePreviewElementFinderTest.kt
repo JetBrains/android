@@ -1085,9 +1085,8 @@ private fun defaultDisplaySettings(
     baseName = baseName,
     parameterName = parameterName,
     group = group,
-    showBackground = true,
+    background = PreviewDisplaySettings.Background.Default,
     showDecoration = false,
-    backgroundColor = null,
     organizationGroup = organizationGroup,
     organizationName = organizationName,
   )
