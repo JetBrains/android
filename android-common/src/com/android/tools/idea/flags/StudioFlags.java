@@ -1873,6 +1873,24 @@ public final class StudioFlags {
       "Notifications in device manager for outages from Test Lab."
     );
 
+  public static final Flag<String> DIRECT_ACCESS_SHOW_OUTAGE_NOTIFICATIONS_SERVICE_KEY =
+    new StringFlag(
+      FIREBASE_TEST_LAB,
+      "direct.access.show.outage.notifications.service.key",
+      "Device Streaming outage notifications service key",
+      "Service key for Device Streaming outage notifications in device manager.",
+      "XAmF3juu1qZ8jNAVhv29" // service key for Test Lab
+    );
+
+  public static final Flag<String> DIRECT_ACCESS_SHOW_OUTAGE_NOTIFICATIONS_URL =
+    new StringFlag(
+      FIREBASE_TEST_LAB,
+      "direct.access.show.outage.notifications.url",
+      "Device Streaming outage notifications URL",
+      "URL for Device Streaming outage notifications in device manager.",
+      "status.firebase.google.com"
+    );
+
   // endregion Firebase Test Lab
 
   // region App Insights
