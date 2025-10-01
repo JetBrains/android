@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.runningdevices
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
-import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
+import com.android.tools.idea.layoutinspector.tree.GotoDeclaration
 import kotlinx.coroutines.CoroutineScope
 
 /** Navigate the editor to the selected node in the view model, issued from the renderer */
@@ -28,6 +28,6 @@ fun navigateToSelectedViewFromRendererDoubleClick(
   client: InspectorClient,
   notificationModel: NotificationModel,
 ) {
-  GotoDeclarationAction.navigateToSelectedView(scope, inspectorModel, client, notificationModel)
+  GotoDeclaration.navigateToSelectedView(scope, inspectorModel, client, notificationModel)
   client.stats.gotoSourceFromRenderDoubleClick()
 }
