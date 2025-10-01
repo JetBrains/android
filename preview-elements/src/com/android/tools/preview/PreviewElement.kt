@@ -15,6 +15,8 @@
  */
 package com.android.tools.preview
 
+import com.android.tools.preview.PreviewDisplaySettings.Background
+
 enum class DisplayPositioning {
   TOP, // Previews with this priority will be displayed at the top
   NORMAL,
@@ -30,11 +32,7 @@ enum class DisplayPositioning {
  * @param group name that allows multiple previews in separate groups
  * @param showDecoration when true, the system decorations (navigation and status bars) should be
  *   displayed as part of the render
- * @param showBackground when true, the preview will be rendered with the material background as
- *   background color by default
- * @param backgroundColor when [showBackground] is true, this is the background color to be used by
- *   the preview. If null, the default activity background specified in the system theme will be
- *   used.
+ * @param background the background to be used for the preview.
  * @param displayPositioning the positioning of this preview element in the list of previews.
  *   Elements with [DisplayPositioning.TOP] will be displayed at the top of the list of previews.
  * @param organizationGroup an Organization group this [PreviewElement] belongs to. If not
@@ -48,12 +46,33 @@ data class PreviewDisplaySettings(
   val parameterName: String?,
   val group: String?,
   val showDecoration: Boolean,
-  val showBackground: Boolean,
-  val backgroundColor: String?,
+  val background: Background,
   val displayPositioning: DisplayPositioning = DisplayPositioning.NORMAL,
   val organizationGroup: String,
   val organizationName: String? = null,
-)
+) {
+  /** Represents the background settings for the current preview. */
+  sealed interface Background {
+
+    /**
+     * The preview does not have a background. This will typically mean that the background will be
+     * transparent.
+     */
+    object None : Background
+
+    /**
+     * The preview will be rendered with the default background. The default might vary depending on
+     * the type of surface (e.g. Tiles vs Compose).
+     */
+    object Default : Background
+
+    /**
+     * The background is a solid color in any of the valid formats accepted by the annotation. One
+     * of either "#AARRGGBB" or "0xAARRGGBB" are accepted even with alpha omitted.
+     */
+    data class Color(val color: String) : Background
+  }
+}
 
 /**
  * Definition of a preview element. [T] represents a generic type specifying the location of the

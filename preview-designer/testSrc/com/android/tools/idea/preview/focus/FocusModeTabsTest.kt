@@ -59,8 +59,7 @@ class FocusModeTabsTest {
       parameterName = null,
       group = null,
       showDecoration = false,
-      showBackground = false,
-      backgroundColor = null,
+      background = PreviewDisplaySettings.Background.None,
       organizationGroup = "",
       organizationName = "",
     )

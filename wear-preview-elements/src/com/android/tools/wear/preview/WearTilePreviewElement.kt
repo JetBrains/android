@@ -64,7 +64,10 @@ data class WearTilePreviewElement<T>(
       .androidAttribute(ATTR_LAYOUT_HEIGHT, SdkConstants.VALUE_MATCH_PARENT)
       .androidAttribute(
         ATTR_BACKGROUND,
-        displaySettings.backgroundColor ?: DEFAULT_WEAR_TILE_BACKGROUND,
+        when (displaySettings.background) {
+          is PreviewDisplaySettings.Background.Color -> (displaySettings.background as PreviewDisplaySettings.Background.Color).color
+          else -> DEFAULT_WEAR_TILE_BACKGROUND
+        }
       )
       .androidAttribute(ATTR_MIN_WIDTH, "1px")
       .androidAttribute(ATTR_MIN_HEIGHT, "1px")

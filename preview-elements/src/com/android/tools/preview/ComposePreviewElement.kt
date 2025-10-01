@@ -121,11 +121,12 @@ abstract class ComposePreviewElementInstance<T> :
         // [COMPOSE_VIEW_ADAPTER] view attribute containing the FQN of the @Composable name to call
         .toolsAttribute("composableName", methodFqn)
 
-    if (displaySettings.showBackground) {
-      xmlBuilder.androidAttribute(
-        ATTR_BACKGROUND,
-        displaySettings.backgroundColor ?: DEFAULT_PREVIEW_BACKGROUND,
-      )
+    when (val background = displaySettings.background) {
+      is PreviewDisplaySettings.Background.Default ->
+        xmlBuilder.androidAttribute(ATTR_BACKGROUND, DEFAULT_PREVIEW_BACKGROUND)
+      is PreviewDisplaySettings.Background.Color ->
+        xmlBuilder.androidAttribute(ATTR_BACKGROUND, background.color)
+      is PreviewDisplaySettings.Background.None -> {}
     }
 
     return xmlBuilder
@@ -183,8 +184,7 @@ class SingleComposePreviewElementInstance<T>(
       parameterName: String? = null,
       groupName: String? = null,
       showDecorations: Boolean = false,
-      showBackground: Boolean = false,
-      backgroundColor: String? = null,
+      background: PreviewDisplaySettings.Background = PreviewDisplaySettings.Background.None,
       displayPositioning: DisplayPositioning = DisplayPositioning.NORMAL,
       configuration: PreviewConfiguration = PreviewConfiguration.cleanAndGet(),
     ) =
@@ -196,8 +196,7 @@ class SingleComposePreviewElementInstance<T>(
           parameterName = parameterName,
           group = groupName,
           showDecoration = showDecorations,
-          showBackground = showBackground,
-          backgroundColor = backgroundColor,
+          background = background,
           displayPositioning = displayPositioning,
           organizationGroup = "",
           organizationName = "",
@@ -271,8 +270,7 @@ class ParametrizedComposePreviewElementInstance<T>(
         ),
       group = basePreviewElement.displaySettings.group,
       showDecoration = basePreviewElement.displaySettings.showDecoration,
-      showBackground = basePreviewElement.displaySettings.showBackground,
-      backgroundColor = basePreviewElement.displaySettings.backgroundColor,
+      background = basePreviewElement.displaySettings.background,
       displayPositioning = basePreviewElement.displaySettings.displayPositioning,
       organizationGroup = basePreviewElement.displaySettings.organizationGroup,
       organizationName = basePreviewElement.displaySettings.organizationName,
@@ -472,8 +470,7 @@ open class ParametrizedComposePreviewElementTemplate<T>(
           parameterName = basePreviewElement.displaySettings.parameterName,
           group = null,
           showDecoration = false,
-          showBackground = false,
-          backgroundColor = null,
+          background = PreviewDisplaySettings.Background.None,
           organizationGroup =
             basePreviewElement.displaySettings.baseName +
               basePreviewElement.displaySettings.parameterName,
