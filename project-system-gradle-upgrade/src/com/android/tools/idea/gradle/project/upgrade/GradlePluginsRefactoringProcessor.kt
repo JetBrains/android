@@ -226,7 +226,8 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_6_7_1 -> Version.parse("2.32")
         VERSION_7_0_2, VERSION_7_2 -> Version.parse("2.38")
         VERSION_7_3_3, VERSION_7_4, VERSION_7_5, VERSION_8_0, VERSION_8_2, VERSION_8_4, VERSION_8_6,
-        VERSION_8_7, VERSION_8_9, VERSION_8_10_2, VERSION_8_11_1, VERSION_8_13, VERSION_FOR_DEV -> Version.parse("2.40.1")
+        VERSION_8_7, VERSION_8_9, VERSION_8_10_2, VERSION_8_11_1, VERSION_8_13 -> Version.parse("2.40.1")
+        VERSION_FOR_DEV -> Version.parse("2.57.2")
       }
 
     fun `com-google-protobuf-protobuf-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
