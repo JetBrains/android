@@ -2477,7 +2477,10 @@ private fun <T> openPreparedProject(
           ProjectSynchronizerUtil.backgroundPostStartupProjectLoading(project)
           project.service<AndroidGradleProjectStartupActivity.StartupService>().awaitInitialization()
         }
-        waitForFuture(awaitGradleStartupActivity.asCompletableFuture(), TimeUnit.MINUTES.toMillis(10))
+        val defaultTestTimeoutMinutes = 15L
+        val testTimeout = (System.getenv("TEST_TIMEOUT")?.toLongOrNull()?.let { TimeUnit.SECONDS.toMinutes(it) } ?: defaultTestTimeoutMinutes)
+        val timeoutMinutes = if (testTimeout > defaultTestTimeoutMinutes) 20L else 10L
+        waitForFuture(awaitGradleStartupActivity.asCompletableFuture(), TimeUnit.MINUTES.toMillis(timeoutMinutes))
         runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
         project.maybeOutputDiagnostics()
         project
