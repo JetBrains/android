@@ -271,7 +271,8 @@ class DetailsViewContentView(
     val newImage = additionalTestArtifacts["PreviewScreenshot.newImagePath"]
     val refImage = additionalTestArtifacts["PreviewScreenshot.refImagePath"]
     val diffImage = additionalTestArtifacts["PreviewScreenshot.diffImagePath"]
-    val diffPercent = additionalTestArtifacts["PreviewScreenshot.diffPercent"]?.takeIf { it.isNotBlank() }
+    val diffPercentString = additionalTestArtifacts["PreviewScreenshot.diffPercent"]?.takeIf { it.isNotBlank() }
+    val diffPercent: Double? = diffPercentString?.toDoubleOrNull()
 
     val shouldButtonBeVisible = (newImage != null || refImage != null || diffImage != null)
     val visibilityChanged = (updateReferenceButton.isVisible != shouldButtonBeVisible)
