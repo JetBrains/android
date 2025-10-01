@@ -27,8 +27,6 @@ jvm_library(
     "//android/artwork-compose",
     "//android/adt-ui-compose",
     "//android/adt-ui-model",
-    "//android/android:core",
-    "//android/testartifacts",
     "//android/project-system",
     "//android/android-common:common",
     "//android/project-system-gradle:projectSystem-gradle",
