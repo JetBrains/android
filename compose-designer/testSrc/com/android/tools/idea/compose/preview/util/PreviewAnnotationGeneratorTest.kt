@@ -30,6 +30,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.DisplayPositioning
 import com.android.tools.preview.PreviewConfiguration
+import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.preview.UNDEFINED_API_LEVEL
 import com.android.tools.preview.UNDEFINED_DIMENSION
@@ -103,8 +104,7 @@ class PreviewAnnotationGeneratorTest {
     name: String = "MyPreview",
     group: String? = null,
     showDecoration: Boolean = false,
-    showBackground: Boolean = false,
-    backgroundColor: String? = null,
+    background: PreviewDisplaySettings.Background = PreviewDisplaySettings.Background.None,
     apiLevel: Int = UNDEFINED_API_LEVEL,
     locale: String? = null,
     fontScale: Float = 1.0f,
@@ -134,8 +134,7 @@ class PreviewAnnotationGeneratorTest {
       parameterName = parameterName,
       groupName = group,
       showDecorations = showDecoration,
-      showBackground = showBackground,
-      backgroundColor = backgroundColor,
+      background = background,
       displayPositioning = DisplayPositioning.NORMAL,
       configuration = previewConfig,
     )
@@ -220,8 +219,7 @@ class PreviewAnnotationGeneratorTest {
       createPreviewElement(
         name = "FullPreview",
         group = "AllFeatures",
-        showBackground = true,
-        backgroundColor = "0xFF000000",
+        background = PreviewDisplaySettings.Background.Color("0xFF000000"),
         apiLevel = 30,
         locale = "fr",
         fontScale = 1.5f,
@@ -278,8 +276,7 @@ class PreviewAnnotationGeneratorTest {
       createPreviewElement(
         name = "DefaultParams",
         group = null,
-        showBackground = false,
-        backgroundColor = null,
+        background = PreviewDisplaySettings.Background.None,
         apiLevel = UNDEFINED_API_LEVEL,
         locale = "",
         fontScale = 1.0f,
@@ -568,8 +565,7 @@ class PreviewAnnotationGeneratorTest {
     val previewElement =
       createPreviewElement(
         name = "ColorTest",
-        showBackground = true,
-        backgroundColor = "#FF112233", // Color format with hash
+        background = PreviewDisplaySettings.Background.Color("#FF112233"), // Color format with hash
       )
     val configuration = createConfiguration(width = 100, height = 100)
 

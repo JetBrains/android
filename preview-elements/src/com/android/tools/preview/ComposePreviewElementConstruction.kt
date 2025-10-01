@@ -23,6 +23,24 @@ import com.android.tools.preview.config.PARAMETER_SHOW_DECORATION
 import com.android.tools.preview.config.PARAMETER_SHOW_SYSTEM_UI
 
 /**
+ * Parses the given [backgroundColor] and returns a [PreviewDisplaySettings.Background]. The
+ * [backgroundColor] can be an [Int], [Long], or [String]. If it's a [String], it will be parsed as
+ * a Long. If the parsing fails, [PreviewDisplaySettings.Background.None] is returned.
+ */
+private fun parseBackgroundColor(backgroundColor: Any): PreviewDisplaySettings.Background {
+  val backgroundColorString =
+    when (backgroundColor) {
+      is Int -> backgroundColor.toString(16)
+      is Long -> backgroundColor.toString(16)
+      is String ->
+        backgroundColor.toLongOrNull()?.toString(16)
+          ?: return PreviewDisplaySettings.Background.None
+      else -> return PreviewDisplaySettings.Background.None // Unable to parse
+    }
+  return PreviewDisplaySettings.Background.Color("#$backgroundColorString")
+}
+
+/**
  * Converts the given preview annotation represented by the [attributesProvider] to a
  * [ComposePreviewElement].
  */
@@ -53,17 +71,16 @@ fun <T : Any> previewAnnotationToPreviewElement(
   // here, see PreviewElement#toPreviewXml.
   val backgroundColor =
     attributesProvider.getDeclaredAttributeValue<Any>(PARAMETER_BACKGROUND_COLOR)
-  val backgroundColorString =
-    when (backgroundColor) {
-      is Int -> backgroundColor.toString(16)
-      is Long -> backgroundColor.toString(16)
-      is String -> backgroundColor.toLongOrNull()?.toString(16)
-      else -> null
-    }?.let { "#$it" }
 
   // If the same composable functions is found multiple times, only keep the first one. This usually
-  // will happen during
-  // copy & paste and both the compiler and Studio will flag it as an error.
+  // will happen during copy & paste and both the compiler and Studio will flag it as an error.
+  val background =
+    when {
+      !showBackground -> PreviewDisplaySettings.Background.None
+      backgroundColor == null -> PreviewDisplaySettings.Background.Default
+      else -> parseBackgroundColor(backgroundColor)
+    }
+
   val displaySettings =
     PreviewDisplaySettings(
       name = previewName,
@@ -71,8 +88,7 @@ fun <T : Any> previewAnnotationToPreviewElement(
       parameterName = parameterName,
       group = groupName,
       showDecoration = showDecorations,
-      showBackground = showBackground,
-      backgroundColor = backgroundColorString,
+      background = background,
       organizationGroup = composableMethod,
       organizationName = baseName,
     )

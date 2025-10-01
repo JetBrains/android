@@ -16,9 +16,8 @@
 package com.android.tools.preview
 
 import com.android.tools.preview.config.PARAMETER_BACKGROUND_COLOR
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Test
 
 class ComposePreviewElementConstructionTest {
@@ -32,7 +31,8 @@ class ComposePreviewElementConstructionTest {
 
     override fun getFloatAttribute(attributeName: String): Float? = null
 
-    override fun getBooleanAttribute(attributeName: String): Boolean? = null
+    override fun getBooleanAttribute(attributeName: String): Boolean? =
+      if (attributeName == "showBackground") true else null
 
     override fun <T> getDeclaredAttributeValue(attributeName: String): T? =
       when (attributeName) {
@@ -53,7 +53,14 @@ class ComposePreviewElementConstructionTest {
         override val parameterAnnotations = emptyList<Pair<String, AnnotationAttributesProvider>>()
       }
     val encodedBackgroundColors = listOf<Any?>(123456, 123456L, "123456", 123456.0f, null)
-    val expectedBackgroundColors = listOf("#1e240", "#1e240", "#1e240", null, null)
+    val expectedBackgroundColors =
+      listOf(
+        PreviewDisplaySettings.Background.Color("#1e240"),
+        PreviewDisplaySettings.Background.Color("#1e240"),
+        PreviewDisplaySettings.Background.Color("#1e240"),
+        PreviewDisplaySettings.Background.None,
+        PreviewDisplaySettings.Background.Default,
+      )
 
     encodedBackgroundColors.zip(expectedBackgroundColors).forEach { (encodedColor, expectedColor) ->
       val attributesProvider = BackgroundColorProvider(encodedColor)
@@ -75,7 +82,7 @@ class ComposePreviewElementConstructionTest {
         )
 
       assertNotNull(previewElement)
-      assertEquals(expectedColor, previewElement.displaySettings.backgroundColor)
+      assertEquals(expectedColor, previewElement.displaySettings.background)
     }
   }
 
@@ -147,7 +154,7 @@ class ComposePreviewElementConstructionTest {
       )
 
     assertNotNull(previewElement)
-    assertTrue(previewElement is ParametrizedComposePreviewElementTemplate)
+    require(previewElement is ParametrizedComposePreviewElementTemplate)
     assertEquals(1, previewElement.parameterProviders.size)
     assertEquals(42, previewElement.parameterProviders.first().limit)
     assertEquals("foo.bar.Provider", previewElement.parameterProviders.first().providerClassFqn)

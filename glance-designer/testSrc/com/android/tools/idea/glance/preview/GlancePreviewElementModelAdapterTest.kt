@@ -40,8 +40,7 @@ private fun simplestDisplaySettings(name: String = "") =
     parameterName = null,
     group = null,
     showDecoration = false,
-    showBackground = false,
-    backgroundColor = null,
+    background = PreviewDisplaySettings.Background.None,
     organizationName = "organizationName",
     organizationGroup = "organizationGroup",
   )

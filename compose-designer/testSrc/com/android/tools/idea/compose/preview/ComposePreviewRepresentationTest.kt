@@ -66,6 +66,8 @@ import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.util.TestToolWindowManager
+import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.preview.PreviewDisplaySettings.Background
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
@@ -115,6 +117,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
+import org.jetbrains.annotations.TestOnly
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -123,6 +126,22 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+
+/**
+ * Utility method for tests that shows the string by splitting [background] into two separate
+ * components as it is defined in the `Preview` annotation.
+ */
+@TestOnly
+private fun PreviewDisplaySettings.asTestDisplayString(): String {
+  val backgroundString =
+    when (background) {
+      is Background.Color ->
+        "showBackground=true, backgroundColor=${(background as PreviewDisplaySettings.Background.Color).color}"
+      is Background.Default -> "showBackground=true, backgroundColor=null"
+      is Background.None -> "showBackground=false, backgroundColor=null"
+    }
+  return "PreviewDisplaySettings(name=$name, baseName=$baseName, parameterName=$parameterName, group=$group, showDecoration=$showDecoration, $backgroundString, displayPositioning=$displayPositioning, organizationGroup=$organizationGroup, organizationName=$organizationName)"
+}
 
 class ComposePreviewRepresentationTest {
   private val logger = Logger.getInstance(ComposePreviewRepresentationTest::class.java)
@@ -294,7 +313,7 @@ class ComposePreviewRepresentationTest {
         configuration.deviceSpec
           .takeIf { str -> str.isNotBlank() && str != "Devices.DEFAULT" }
           ?.let { "$it\n" } ?: ""
-      return "${methodFqn}\n$configurationDeviceSpecText${displaySettings}\n"
+      return "${methodFqn}\n$configurationDeviceSpecText${displaySettings.asTestDisplayString()}\n"
     }
     assertEquals(
       """
@@ -1107,7 +1126,7 @@ class ComposePreviewRepresentationTest {
         ) {
           val configurationDeviceSpecText =
             "${it.configuration.deviceSpec}\n".takeIf { str -> str.isNotBlank() } ?: ""
-          "${it.methodFqn}\n$configurationDeviceSpecText${it.displaySettings}\n"
+          "${it.methodFqn}\n$configurationDeviceSpecText${it.displaySettings.asTestDisplayString()}\n"
         },
       )
 
@@ -1188,7 +1207,7 @@ class ComposePreviewRepresentationTest {
         preview.renderedPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
           "\n"
         ) {
-          "${it.methodFqn}\n${it.displaySettings}\n"
+          "${it.methodFqn}\n${it.displaySettings.asTestDisplayString()}\n"
         },
       )
     }

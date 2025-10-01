@@ -37,6 +37,8 @@ import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.util.TestToolWindowManager
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
+import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.preview.PreviewDisplaySettings.Background
 import com.android.tools.preview.PreviewElement
 import com.android.tools.wear.preview.WearTilePreviewElement
 import com.google.common.truth.Truth.assertThat
@@ -61,6 +63,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.AndroidEditorSettings
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -69,6 +72,22 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+
+/**
+ * Utility method for tests that shows the string by splitting [background] into two separate
+ * components as it is defined in the `Preview` annotation.
+ */
+@TestOnly
+private fun PreviewDisplaySettings.asTestDisplayString(): String {
+  val backgroundString =
+    when (background) {
+      is Background.Color ->
+        "showBackground=true, backgroundColor=${(background as PreviewDisplaySettings.Background.Color).color}"
+      is Background.Default -> "showBackground=true, backgroundColor=null"
+      is Background.None -> "showBackground=false, backgroundColor=null"
+    }
+  return "PreviewDisplaySettings(name=$name, baseName=$baseName, parameterName=$parameterName, group=$group, showDecoration=$showDecoration, $backgroundString, displayPositioning=$displayPositioning, organizationGroup=$organizationGroup, organizationName=$organizationName)"
+}
 
 class WearTilePreviewRepresentationTest {
   private val logger = Logger.getInstance(WearTilePreviewRepresentation::class.java)
@@ -408,7 +427,7 @@ class WearTilePreviewRepresentationTest {
         """
           .trimIndent(),
         preview.renderedPreviewElementsFlowForTest().value.asCollection().joinToString("\n") {
-          "${it.methodFqn}\n${it.displaySettings}\n"
+          "${it.methodFqn}\n${it.displaySettings.asTestDisplayString()}\n"
         },
       )
     }

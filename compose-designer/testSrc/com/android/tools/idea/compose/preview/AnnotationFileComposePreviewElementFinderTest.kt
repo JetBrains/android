@@ -101,7 +101,7 @@ class AnnotationFileComposePreviewElementFinderTest {
         }
 
         @Composable
-        @Preview(name = "preview5", uiMode = 3, backgroundColor = 0xFFBAAABA)
+        @Preview(name = "preview5", uiMode = 3, showBackground = true, backgroundColor = 0xFFBAAABA)
         fun Preview5() {
         }
 
@@ -192,7 +192,10 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
-      assertFalse(it.displaySettings.showBackground)
+      assertEquals(
+        PreviewDisplaySettings.Background.None, // showBackground is false
+        it.displaySettings.background,
+      )
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
@@ -213,7 +216,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
       assertEquals("en-rUS", it.configuration.locale)
       assertEquals(1f, it.configuration.fontScale)
-      assertTrue(it.displaySettings.showBackground)
+      assertEquals(PreviewDisplaySettings.Background.Default, it.displaySettings.background)
       assertFalse(it.displaySettings.showDecoration)
       assertEquals(0, it.configuration.uiMode)
 
@@ -240,7 +243,10 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals(2, it.configuration.height)
       assertEquals("", it.configuration.locale)
       assertEquals(0.2f, it.configuration.fontScale)
-      assertFalse(it.displaySettings.showBackground)
+      assertEquals(
+        PreviewDisplaySettings.Background.None, // showBackground is false
+        it.displaySettings.background,
+      )
       assertTrue(it.displaySettings.showDecoration)
       assertEquals(0, it.configuration.uiMode)
       assertEquals("id:Nexus 7", it.configuration.deviceSpec)
@@ -264,7 +270,10 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals("Preview4", it.displaySettings.organizationName)
       assertEquals("Preview4", it.displaySettings.baseName)
       assertEquals(3, it.configuration.uiMode)
-      assertEquals("#baaaba", it.displaySettings.backgroundColor)
+      assertEquals(
+        PreviewDisplaySettings.Background.None, // showBackground is false
+        it.displaySettings.background,
+      )
 
       ReadAction.run<Throwable> {
         assertMethodTextRange(
@@ -285,7 +294,10 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals("Preview5", it.displaySettings.organizationName)
       assertEquals("Preview5", it.displaySettings.baseName)
       assertEquals(3, it.configuration.uiMode)
-      assertEquals("#ffbaaaba", it.displaySettings.backgroundColor)
+      assertEquals(
+        PreviewDisplaySettings.Background.Color("#ffbaaaba"),
+        it.displaySettings.background,
+      )
 
       ReadAction.run<Throwable> {
         assertMethodTextRange(
@@ -294,7 +306,7 @@ class AnnotationFileComposePreviewElementFinderTest {
           TextRange.create(it.previewBody!!.psiRange!!),
         )
         assertEquals(
-          "@Preview(name = \"preview5\", uiMode = 3, backgroundColor = 0xFFBAAABA)",
+          "@Preview(name = \"preview5\", uiMode = 3, showBackground = true, backgroundColor = 0xFFBAAABA)",
           it.previewElementDefinition?.element?.text,
         )
       }
@@ -305,7 +317,10 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
-      assertFalse(it.displaySettings.showBackground)
+      assertEquals(
+        PreviewDisplaySettings.Background.None, // showBackground is false
+        it.displaySettings.background,
+      )
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
@@ -326,7 +341,10 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
-      assertFalse(it.displaySettings.showBackground)
+      assertEquals(
+        PreviewDisplaySettings.Background.None, // showBackground is false
+        it.displaySettings.background,
+      )
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
@@ -344,7 +362,10 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
-      assertFalse(it.displaySettings.showBackground)
+      assertEquals(
+        PreviewDisplaySettings.Background.None, // showBackground is false
+        it.displaySettings.background,
+      )
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
@@ -362,7 +383,10 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
-      assertFalse(it.displaySettings.showBackground)
+      assertEquals(
+        PreviewDisplaySettings.Background.None, // showBackground is false
+        it.displaySettings.background,
+      )
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
@@ -523,7 +547,10 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
-      assertFalse(it.displaySettings.showBackground)
+      assertEquals(
+        PreviewDisplaySettings.Background.None, // showBackground is false
+        it.displaySettings.background,
+      )
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
@@ -541,7 +568,10 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
-      assertFalse(it.displaySettings.showBackground)
+      assertEquals(
+        PreviewDisplaySettings.Background.None, // showBackground is false
+        it.displaySettings.background,
+      )
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
@@ -559,7 +589,10 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
-      assertFalse(it.displaySettings.showBackground)
+      assertEquals(
+        PreviewDisplaySettings.Background.None, // showBackground is false
+        it.displaySettings.background,
+      )
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
@@ -577,7 +610,10 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
-      assertFalse(it.displaySettings.showBackground)
+      assertEquals(
+        PreviewDisplaySettings.Background.None, // showBackground is false
+        it.displaySettings.background,
+      )
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
