@@ -36,6 +36,7 @@ public class StudioCrashReport extends BaseStudioReport {
   private final String errorFrame;
   private final String errorThread;
   private final String nativeStack;
+  private final String sanitizedCrashLog;
 
   private StudioCrashReport(@Nullable String version,
                             @NotNull List<String> descriptions,
@@ -45,7 +46,8 @@ public class StudioCrashReport extends BaseStudioReport {
                             @NotNull String errorSignal,
                             @NotNull String errorFrame,
                             @NotNull String errorThread,
-                            @NotNull String nativeStack) {
+                            @NotNull String nativeStack,
+                            @NotNull String sanitizedCrashLog) {
     super(version, productData, "Crash");
     this.descriptions = descriptions;
     this.isJvmCrash = isJvmCrash;
@@ -54,6 +56,7 @@ public class StudioCrashReport extends BaseStudioReport {
     this.errorFrame = errorFrame;
     this.errorThread = errorThread;
     this.nativeStack = nativeStack;
+    this.sanitizedCrashLog = sanitizedCrashLog;
   }
 
   @Override
@@ -75,6 +78,7 @@ public class StudioCrashReport extends BaseStudioReport {
       GoogleCrashReporter.addBodyToBuilder(builder, "errorFrame", errorFrame);
       GoogleCrashReporter.addBodyToBuilder(builder, "errorThread", errorThread);
       GoogleCrashReporter.addBodyToBuilder(builder, "nativeStack", nativeStack);
+      GoogleCrashReporter.addBodyToBuilder(builder, "sanitizedCrashLog", sanitizedCrashLog);
     }
   }
 
@@ -93,6 +97,7 @@ public class StudioCrashReport extends BaseStudioReport {
     private String errorFrame = "";
     private String errorThread = "";
     private String nativeStack = "";
+    private String sanitizedCrashLog = "";
 
     @Override
     protected Builder getThis() {
@@ -141,10 +146,16 @@ public class StudioCrashReport extends BaseStudioReport {
       return this;
     }
 
+    @NotNull
+    public Builder setSanitizedCrashLog(String sanitizedCrashLog) {
+      this.sanitizedCrashLog = sanitizedCrashLog;
+      return this;
+    }
+
     @Override
     public StudioCrashReport build() {
       return new StudioCrashReport(getVersion(), descriptions, getProductData(), isJvmCrash, uptimeInMs, errorSignal, errorFrame,
-                                   errorThread, nativeStack);
+                                   errorThread, nativeStack, sanitizedCrashLog);
     }
   }
 }

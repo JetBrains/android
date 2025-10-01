@@ -1,0 +1,297 @@
+---------------  S U M M A R Y ------------
+
+Command Line: abort vfprintf -XX:ErrorFile=<elided>
+
+Host: AMD EPYC 7B13, 64 cores, 117G, Debian GNU/Linux rodete
+Time: Tue Sep 23 17:03:37 2025 PDT elapsed time: 65.198594 seconds (0d 0h 1m 5s)
+
+---------------  T H R E A D  ---------------
+
+Current thread is native thread
+
+Stack: [0x00007ffd7b91a000,0x00007ffd7ba1a000],  sp=0x00007ffd7ba16fb8,  free space=1011k
+Native frames: (J=compiled Java code, j=interpreted, Vv=VM code, C=native code)
+C  [libc.so.6+0x9a9ec]
+
+siginfo: si_signo: 6 (SIGABRT), si_code: 0 (SI_USER), si_pid: 76961, si_uid: 1496294
+
+Registers:
+RAX=0x00000000000000ca, RBX=0x00007fe441859300, RCX=0x00007fe4418f49ee, RDX=0x00000000001ae3a0
+RSP=0x00007ffd7ba16fb8, RBP=0x0000000000000000, RSI=0x0000000000000109, RDI=0x00007fe441857990
+R8 =0x0000000000000000, R9 =0x00000000ffffffff, R10=0x0000000000000000, R11=0x0000000000000246
+R12=0x0000000000000000, R13=0x0000000000000000, R14=0x00007fe441857990, R15=0x00007ffd7ba17010
+RIP=0x00007fe4418f49ec, EFLAGS=0x0000000000000246, CSGSFS=0x002b000000000033, ERR=0x0000000000000000
+  TRAPNO=0x0000000000000000
+
+XMM[0]=0x0000556927a56ec0 0x0000000000000001
+XMM[1]=0x00007fe4418576c0 0x0000556927a57890
+XMM[2]=0x6166003233636f74 0x72626d006b636174
+XMM[3]=0x0000556927a56620 0x0000000000000022
+XMM[4]=0x0000000000000000 0x00007fe441a41b20
+XMM[5]=0x0000000000000022 0x0000556927a56620
+XMM[6]=0x0000556927a55c80 0x0000000000000064
+XMM[7]=0x0000556927a57890 0x0000000000000000
+XMM[8]=0x0000000000000001 0x0000000000000001
+XMM[9]=0x00000000ff000000 0xffff00000000ff00
+XMM[10]=0x0000000000000000 0x0000000000000000
+XMM[11]=0x0000000000000000 0x0000000000000000
+XMM[12]=0x0000000000000000 0x0000000000000000
+XMM[13]=0x0000000000000000 0x0000000000000000
+XMM[14]=0x0000000000000000 0x0000000000000000
+XMM[15]=0x0000000000000000 0x0000000000000000
+  MXCSR=0x00001f80
+
+
+Top of Stack: (sp=0x00007ffd7ba16fb8)
+0x00007ffd7ba16fb8:   00007fe4418e9668 00007fe441859608
+0x00007ffd7ba16fc8:   00000000ffffffff 00007fe4418576c0
+0x00007ffd7ba16fd8:   00007fe4418e9c9c 00000000000000ca
+0x00007ffd7ba16fe8:   0000556927a58880 0000556927a58980
+0x00007ffd7ba16ff8:   00007fe4418ee774 00007ffd7ba17910
+0x00007ffd7ba17008:   00005568f950d002 00007fe4418ee5f0
+0x00007ffd7ba17018:   00007fe441857ce0 0000000000000000
+0x00007ffd7ba17028:   0000000000000000 00007ffd7ba17910
+0x00007ffd7ba17038:   3329de5736cc5c00 0000000000000000
+0x00007ffd7ba17048:   0000000000000000 00007ffd7ba17910
+0x00007ffd7ba17058:   0000000000000001 0000556927a9f390
+0x00007ffd7ba17068:   0000000000000000 0000556927a9f390
+0x00007ffd7ba17078:   00005568f95209a1 00007ffd7ba17240
+0x00007ffd7ba17088:   00007ffd7ba170b0 0000000000000019
+0x00007ffd7ba17098:   00007fe4fbad8001 0000000000000001
+0x00007ffd7ba170a8:   0000556927a58880 0000556927a558c0
+0x00007ffd7ba170b8:   00005568f9550608 0000000000000000
+0x00007ffd7ba170c8:   0000556927a556e0 0000556927a58f40
+0x00007ffd7ba170d8:   0000000000000008 0000000000000000
+0x00007ffd7ba170e8:   0000000000000000 0000000000000056
+0x00007ffd7ba170f8:   0000556927a578d0 0000000000000056
+0x00007ffd7ba17108:   0000000000200000 0000000000000064
+0x00007ffd7ba17118:   0000556927a55c80 000000000000005f
+0x00007ffd7ba17128:   0000000000000022 0000556927a56620
+0x00007ffd7ba17138:   0000000000000022 0000000000000001
+0x00007ffd7ba17148:   0000556927a56ec0 0000556927a57890
+0x00007ffd7ba17158:   00007fe4418576c0 fffaf742e1e00000
+0x00007ffd7ba17168:   0000000000000056 0000556927a556e0
+0x00007ffd7ba17178:   0000000000000056 0000000000000000
+0x00007ffd7ba17188:   00005568f952c34e 0000000000000017
+0x00007ffd7ba17198:   00007fe441adb310 00007ffd7ba17110
+0x00007ffd7ba171a8:   ffc88354c70a0000 0000000000000001
+
+Instructions: (pc=0x00007fe4418f49ec)
+0x00007fe4418f48ec:   db 31 f6 4c 89 e7 e8 59 4e ff ff 48 8b 44 24 28
+0x00007fe4418f48fc:   64 48 2b 04 25 28 00 00 00 75 50 48 83 c4 30 89
+0x00007fe4418f490c:   d8 5b 5d 41 5c c3 66 0f 1f 44 00 00 48 89 df e8
+0x00007fe4418f491c:   60 ff ff ff 83 f8 6e 74 13 83 f8 04 74 0e 83 f8
+0x00007fe4418f492c:   4b 74 09 48 8b 2b eb 99 0f 1f 40 00 48 8b 15 99
+0x00007fe4418f493c:   c4 14 00 64 89 02 48 b8 00 00 00 00 ff ff ff ff
+0x00007fe4418f494c:   f0 48 01 03 bb ff ff ff ff eb 96 e8 44 22 08 00
+0x00007fe4418f495c:   0f 1f 40 00 53 48 89 fb e8 97 f2 ff ff 48 8b 03
+0x00007fe4418f496c:   85 c0 74 10 48 8d 50 ff f0 48 0f b1 13 75 05 31
+0x00007fe4418f497c:   c0 5b c3 90 48 89 df 5b e9 07 ff ff ff 0f 1f 80
+0x00007fe4418f498c:   00 00 00 00 48 8b 07 85 c0 74 11 48 8d 50 ff f0
+0x00007fe4418f499c:   48 0f b1 17 75 f1 31 c0 c3 0f 1f 00 48 8b 05 29
+0x00007fe4418f49ac:   c4 14 00 64 c7 00 0b 00 00 00 b8 ff ff ff ff c3
+0x00007fe4418f49bc:   0f 1f 40 00 8b 07 f6 07 08 0f 85 f5 4b ff ff 49
+0x00007fe4418f49cc:   89 fb 48 89 f0 48 89 d7 48 89 ce 4c 89 c2 4d 89
+0x00007fe4418f49dc:   ca 4c 8b 44 24 08 4c 8b 4c 24 10 4c 89 5c 24 08
+0x00007fe4418f49ec:   0f 05 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 80
+0x00007fe4418f49fc:   00 00 00 00 48 83 ec 08 bf 01 00 00 00 e8 92 dd
+0x00007fe4418f4a0c:   05 00 bf 01 00 00 00 89 05 bf c6 14 00 e8 b2 dd
+0x00007fe4418f4a1c:   05 00 89 05 b8 c6 14 00 48 83 c4 08 c3 0f 1f 80
+0x00007fe4418f4a2c:   00 00 00 00 41 57 41 56 41 55 41 54 41 89 fc 55
+0x00007fe4418f4a3c:   53 48 83 ec 18 64 48 8b 1c 25 28 00 00 00 48 89
+0x00007fe4418f4a4c:   5c 24 08 89 f3 64 4c 8b 34 25 10 00 00 00 64 48
+0x00007fe4418f4a5c:   8b 2c 25 b0 06 00 00 44 8b 2d 72 c6 14 00 44 8b
+0x00007fe4418f4a6c:   3d 67 c6 14 00 48 85 ed 0f 84 be 01 00 00 83 fb
+0x00007fe4418f4a7c:   ff 0f 84 8d 01 00 00 41 39 dd 0f 8f 35 03 00 00
+0x00007fe4418f4a8c:   41 39 df 0f 8c 2c 03 00 00 41 83 fc ff 74 12 45
+0x00007fe4418f4a9c:   39 e5 0f 8f f9 02 00 00 45 39 e7 0f 8c f0 02 00
+0x00007fe4418f4aac:   00 89 d8 44 8b 7d 00 44 29 e8 48 98 8b 54 85 04
+0x00007fe4418f4abc:   83 fa ff 0f 84 ab 02 00 00 83 c2 01 89 54 85 04
+0x00007fe4418f4acc:   44 39 fb 0f 8e a3 00 00 00 41 83 fc ff 74 14 44
+0x00007fe4418f4adc:   89 e2 44 29 ea 48 63 d2 83 6c 95 04 01 0f 84 fb
+
+---------------  P R O C E S S  ---------------
+
+VM state: not at safepoint (normal execution)
+
+VM Mutex/Monitor currently owned by a thread: None
+
+Heap address: 0x0000000700000000, size: 4096 MB, Compressed Oops mode: Zero based, Oop shift amount: 3
+
+CDS archive(s) not mapped
+Compressed class space mapped at: 0x0000000800000000-0x0000000840000000, reserved size: 1073741824
+Narrow klass base: 0x0000000800000000, Narrow klass shift: 0, Narrow klass range: 0x40000000
+
+GC Precious Log:
+<Skipped>
+
+Heap:
+ garbage-first heap   total 262144K, used 55361K [0x0000000700000000, 0x0000000800000000)
+  region size 2048K, 23 young (47104K), 1 survivors (2048K)
+ Metaspace       used 32950K, committed 33344K, reserved 1114112K
+  class space    used 3471K, committed 3648K, reserved 1048576K
+
+Heap Regions: E=young(eden), S=young(survivor), O=old, HS=humongous(starts), HC=humongous(continues), CS=collection set, F=free, TAMS=top-at-mark-start, PB=parsable bottom
+<Skipped 128 lines>
+
+Card table byte_map: [0x00007fe419000000,0x00007fe419800000] _byte_map_base: 0x00007fe415800000
+
+Marking Bits: (CMBitMap*) 0x0000556927ad8a30
+ Bits: [0x00007fe415000000, 0x00007fe419000000)
+
+Polling page: 0x00007fe441a8e000
+Active Locale:
+LC_ALL=en_US.UTF-8
+LC_COLLATE=en_US.UTF-8
+LC_CTYPE=en_US.UTF-8
+LC_MESSAGES=en_US.UTF-8
+LC_MONETARY=en_US.UTF-8
+LC_NUMERIC=en_US.UTF-8
+LC_TIME=en_US.UTF-8
+
+Signal Handlers:
+   SIGSEGV: crash_handler in libjvm.so, mask=11100100010111111101111111111110, flags=SA_RESTART|SA_SIGINFO, unblocked
+    SIGBUS: crash_handler in libjvm.so, mask=11100100010111111101111111111110, flags=SA_RESTART|SA_SIGINFO, unblocked
+    SIGFPE: crash_handler in libjvm.so, mask=11100100010111111101111111111110, flags=SA_RESTART|SA_SIGINFO, unblocked
+   SIGPIPE: SIG_IGN, mask=00000000000010000000000000000000, flags=SA_RESTART, blocked
+  *** Handler was modified!
+  *** Expected: javaSignalHandler in libjvm.so, mask=11100100110111111111111111111110, flags=SA_RESTART|SA_SIGINFO
+   SIGXFSZ: javaSignalHandler in libjvm.so, mask=11100100010111111101111111111110, flags=SA_RESTART|SA_SIGINFO, blocked
+    SIGILL: crash_handler in libjvm.so, mask=11100100010111111101111111111110, flags=SA_RESTART|SA_SIGINFO, unblocked
+   SIGUSR2: SR_handler in libjvm.so, mask=00000000000000000000000000000000, flags=SA_RESTART|SA_SIGINFO, blocked
+    SIGHUP: UserHandler in libjvm.so, mask=11100100010111111101111111111110, flags=SA_RESTART|SA_SIGINFO, blocked
+    SIGINT: UserHandler in libjvm.so, mask=11100100010111111101111111111110, flags=SA_RESTART|SA_SIGINFO, blocked
+   SIGTERM: UserHandler in libjvm.so, mask=11100100010111111101111111111110, flags=SA_RESTART|SA_SIGINFO, blocked
+   SIGQUIT: UserHandler in libjvm.so, mask=11100100010111111101111111111110, flags=SA_RESTART|SA_SIGINFO, blocked
+   SIGTRAP: crash_handler in libjvm.so, mask=11100100010111111101111111111110, flags=SA_RESTART|SA_SIGINFO, unblocked
+
+
+Periodic native trim disabled
+
+JNI global refs:
+JNI global refs: 94, weak refs: 1525
+
+JNI global refs memory usage: 1491, weak refs: 15585
+
+Process memory usage:
+Resident Set Size: 237648K (0% of 123633344K total physical memory with 102477556K free physical memory)
+
+OOME stack traces (most recent first):
+Classloader memory used:
+Not available (crashed in non-Java thread)
+---------------  S Y S T E M  ---------------
+
+OS:
+# $Id: <elided>
+DISTRIB_CODENAME=rodete
+DISTRIB_DESCRIPTION="Debian GNU/Linux rodete"
+DISTRIB_ID=Debian
+DISTRIB_RELEASE=rodete
+GOOGLE_CODENAME=rodete
+GOOGLE_ID=Goobuntu
+GOOGLE_RELEASE="rodete 20250921.06.00RD"
+GOOGLE_ROLE=desktop
+GOOGLE_TRACK=stable
+uname: Linux 6.12.32-1rodete1-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.12.32-1rodete1 (2025-06-26) x86_64
+OS uptime: 5 days 6:48 hours
+libc: glibc 2.41 NPTL 2.41
+rlimit (soft/hard): STACK 8192k/infinity , CORE infinity/infinity , NPROC 131072/infinity , NOFILE 131072/131072 , AS infinity/infinity , CPU infinity/infinity , DATA infinity/infinity , FSIZE infinity/infinity , MEMLOCK infinity/infinity
+load average: 151.80 50.52 19.84
+
+/proc/meminfo:
+MemTotal:       123633344 kB
+MemFree:         4256112 kB
+MemAvailable:   102477556 kB
+Buffers:         4495976 kB
+Cached:         91680516 kB
+SwapCached:            8 kB
+Active:         24554428 kB
+Inactive:       86840620 kB
+Active(anon):   16484264 kB
+Inactive(anon):      756 kB
+Active(file):    8070164 kB
+Inactive(file): 86839864 kB
+Unevictable:       42896 kB
+Mlocked:           42896 kB
+SwapTotal:      30883836 kB
+SwapFree:       30883580 kB
+Zswap:                 0 kB
+Zswapped:              0 kB
+Dirty:              1024 kB
+Writeback:             0 kB
+AnonPages:      14252460 kB
+Mapped:          6130088 kB
+Shmem:           1257072 kB
+KReclaimable:    4494688 kB
+Slab:            5885072 kB
+SReclaimable:    4494688 kB
+SUnreclaim:      1390384 kB
+KernelStack:      100320 kB
+PageTables:       165328 kB
+SecPageTables:         0 kB
+NFS_Unstable:          0 kB
+Bounce:                0 kB
+WritebackTmp:          0 kB
+CommitLimit:    92700508 kB
+Committed_AS:   91353940 kB
+VmallocTotal:   34359738367 kB
+VmallocUsed:      359244 kB
+VmallocChunk:          0 kB
+Percpu:           278272 kB
+HardwareCorrupted:     0 kB
+AnonHugePages:   7356416 kBHey Radomir, I just upload another version at ag/36105211, I think the regex now is working to recognize multiple paths well. Just I was looking into the different parse methods, and found they look pretty similar, so I was just thinking what if we just have a whitelist for those lines that definitely be clean, and
+ShmemHugePages:        0 kB
+ShmemPmdMapped:        0 kB
+FileHugePages:         0 kB
+FilePmdMapped:         0 kB
+Unaccepted:            0 kB
+HugePages_Total:       0
+HugePages_Free:        0
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:       2048 kB
+Hugetlb:               0 kB
+DirectMap4k:      367392 kB
+DirectMap2M:    21649408 kB
+DirectMap1G:    105906176 kB
+
+/sys/kernel/mm/transparent_hugepage/enabled: [always] madvise never
+/sys/kernel/mm/transparent_hugepage/hpage_pmd_size: 2097152
+/sys/kernel/mm/transparent_hugepage/defrag (defrag/compaction efforts parameter): always defer defer+madvise [madvise] never
+
+Process Memory:
+Virtual Size: 6951024K (peak: 6952708K)
+Resident Set Size: 237648K (peak: 237648K) (anon: 157960K, file: 79688K, shmem: 0K)
+Swapped out: 0K
+C-Heap outstanding allocations: 115691K, retained: 23824K
+glibc malloc tunables: (default)
+
+/proc/sys/kernel/threads-max (system-wide limit on the number of threads): 964657
+/proc/sys/vm/max_map_count (maximum number of memory map areas a process may have): 4194304
+/proc/sys/vm/swappiness (control to define how aggressively the kernel swaps out anonymous memory): 60
+/proc/sys/kernel/pid_max (system-wide limit on number of process identifiers): 4194304
+
+container information not found.
+KVM virtualization detected
+Steal ticks since vm start: 931
+Steal ticks percentage since vm start:  0.002
+
+CPU: total 64 (initial active 64) (64 cores per cpu, 2 threads per core) family 25 model 1 stepping 0 microcode 0xffffffff, cx8, cmov, fxsr, ht, mmx, 3dnowpref, sse, sse2, sse3, ssse3, sse4a, sse4.1, sse4.2, popcnt, lzcnt, tsc, tscinvbit, avx, avx2, aes, erms, clmul, bmi1, bmi2, adx, sha, fma, vzeroupper, clflush, clflushopt, hv, rdtscp, rdpid, fsrm, f16c
+CPU Model and flags from <elided>
+model name	: AMD EPYC 7B13
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl xtopology nonstop_tsc cpuid extd_apicid tsc_known_freq pni pclmulqdq ssse3 fma cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand hypervisor lahf_lm cmp_legacy cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw topoext ssbd ibrs ibpb stibp vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 clzero xsaveerptr arat npt nrip_save umip vaes vpclmulqdq rdpid fsrm
+
+Online cpus: 0-63
+Offline cpus:
+BIOS frequency limitation: <Not Available>
+Frequency switch latency (ns): <Not Available>
+Available cpu frequencies: <Not Available>
+Current governor: <Not Available>
+Core performance/turbo boost: <Not Available>
+
+Memory: 4k page, physical 123633344k(102477556k free), swap 30883836k(30883580k free)
+Page Sizes: 4k
+
+vm_info: OpenJDK 64-Bit Server VM (21.0.7+-13880790-b1038.58) for linux-amd64 JRE (21.0.7+-13880790-b1038.58), built on 2025-08-04T20:54:25Z by "builder" with clang Android (13290119, +pgo, +bolt, +lto, +mlgo, based on r547379) Clang 20.0.0 (http<elided>
+
+END.
