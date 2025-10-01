@@ -24,9 +24,9 @@ import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
+import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
-import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
@@ -94,12 +94,12 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         )
       }
 
-    DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector))
+    val rootPanel = LayoutInspectorRootPanel(workbench, layoutInspector)
 
     val contentPanel =
       JPanel(BorderLayout()).apply {
         add(InspectorBanner(disposable, layoutInspector.notificationModel), BorderLayout.NORTH)
-        add(workbench, BorderLayout.CENTER)
+        add(rootPanel, BorderLayout.CENTER)
       }
 
     val content = toolWindow.contentManager.factory.createContent(contentPanel, "", true)

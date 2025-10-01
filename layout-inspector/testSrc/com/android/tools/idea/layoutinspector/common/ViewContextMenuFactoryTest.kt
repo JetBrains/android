@@ -20,7 +20,6 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.mockito.kotlin.getTypedArgument
 import com.android.resources.ResourceType
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -30,6 +29,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
+import com.android.tools.idea.layoutinspector.ui.LAYOUT_INSPECTOR_DATA_KEY
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager

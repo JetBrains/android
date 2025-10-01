@@ -17,11 +17,11 @@ package com.android.tools.idea.layoutinspector.tree
 
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.snapshots.FileEditorInspectorClient
+import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
 import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -54,10 +54,10 @@ class FilterGroupAction(renderModelProvider: () -> RenderModel?) :
 class SystemNodeFilterAction(private val renderModelProvider: () -> RenderModel?) :
   ToggleAction("Filter System-Defined Layers") {
   override fun isSelected(event: AnActionEvent): Boolean =
-    LayoutInspector.get(event)?.treeSettings?.hideSystemNodes ?: DEFAULT_HIDE_SYSTEM_NODES
+    LayoutInspectorRootPanel.get(event)?.treeSettings?.hideSystemNodes ?: DEFAULT_HIDE_SYSTEM_NODES
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
-    val inspector = LayoutInspector.get(event) ?: return
+    val inspector = LayoutInspectorRootPanel.get(event) ?: return
     val treeSettings = inspector.treeSettings
     treeSettings.hideSystemNodes = state
     inspector.currentClient.stats.hideSystemNodes = state
@@ -92,10 +92,11 @@ class SystemNodeFilterAction(private val renderModelProvider: () -> RenderModel?
 
 object HighlightSemanticsAction : ToggleAction("Highlight Semantics Layers") {
   override fun isSelected(event: AnActionEvent): Boolean =
-    LayoutInspector.get(event)?.treeSettings?.highlightSemantics ?: DEFAULT_HIGHLIGHT_SEMANTICS
+    LayoutInspectorRootPanel.get(event)?.treeSettings?.highlightSemantics
+      ?: DEFAULT_HIGHLIGHT_SEMANTICS
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
-    LayoutInspector.get(event)?.treeSettings?.highlightSemantics = state
+    LayoutInspectorRootPanel.get(event)?.treeSettings?.highlightSemantics = state
 
     // Update the component tree:
     event.treePanel()?.updateSemanticsFiltering()
@@ -112,10 +113,11 @@ object HighlightSemanticsAction : ToggleAction("Highlight Semantics Layers") {
 object CallstackAction : ToggleAction("Show Compose as Callstack", null, null) {
 
   override fun isSelected(event: AnActionEvent): Boolean =
-    LayoutInspector.get(event)?.treeSettings?.composeAsCallstack ?: DEFAULT_COMPOSE_AS_CALLSTACK
+    LayoutInspectorRootPanel.get(event)?.treeSettings?.composeAsCallstack
+      ?: DEFAULT_COMPOSE_AS_CALLSTACK
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
-    LayoutInspector.get(event)?.treeSettings?.composeAsCallstack = state
+    LayoutInspectorRootPanel.get(event)?.treeSettings?.composeAsCallstack = state
     event.treePanel()?.refresh()
   }
 
@@ -132,10 +134,10 @@ object SupportLines : ToggleAction("Show Support Lines", null, null) {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun isSelected(event: AnActionEvent): Boolean =
-    LayoutInspector.get(event)?.treeSettings?.supportLines ?: DEFAULT_SUPPORT_LINES
+    LayoutInspectorRootPanel.get(event)?.treeSettings?.supportLines ?: DEFAULT_SUPPORT_LINES
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
-    LayoutInspector.get(event)?.treeSettings?.supportLines = state
+    LayoutInspectorRootPanel.get(event)?.treeSettings?.supportLines = state
     event.treePanel()?.component?.repaint()
   }
 }
@@ -143,10 +145,10 @@ object SupportLines : ToggleAction("Show Support Lines", null, null) {
 object RecompositionCounts : ToggleAction(SHOW_RECOMPOSITION_COUNTS, null, null) {
 
   override fun isSelected(event: AnActionEvent): Boolean =
-    LayoutInspector.get(event)?.treeSettings?.showRecompositions ?: DEFAULT_RECOMPOSITIONS
+    LayoutInspectorRootPanel.get(event)?.treeSettings?.showRecompositions ?: DEFAULT_RECOMPOSITIONS
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
-    val inspector = LayoutInspector.get(event) ?: return
+    val inspector = LayoutInspectorRootPanel.get(event) ?: return
     inspector.treeSettings.showRecompositions = state
     inspector.currentClient.stats.showRecompositions = state
     val panel = event.treePanel()
@@ -160,7 +162,7 @@ object RecompositionCounts : ToggleAction(SHOW_RECOMPOSITION_COUNTS, null, null)
     super.update(event)
     event.presentation.isVisible =
       isActionActive(event, Capability.SUPPORTS_COMPOSE) &&
-        LayoutInspector.get(event)?.currentClient !is FileEditorInspectorClient
+        LayoutInspectorRootPanel.get(event)?.currentClient !is FileEditorInspectorClient
 
     // The compose inspector is tracking the recompositions based on a compiler generated key
     // based on the source information. If the source information is missing we cannot track
@@ -181,10 +183,11 @@ object RecompositionCounts : ToggleAction(SHOW_RECOMPOSITION_COUNTS, null, null)
 
 object StateReadsForAll : ToggleAction(SHOW_STATE_READS_FOR_ALL, null, null) {
   override fun isSelected(event: AnActionEvent): Boolean =
-    LayoutInspector.get(event)?.treeSettings?.observeStateReadsForAll ?: DEFAULT_STATE_READS_FOR_ALL
+    LayoutInspectorRootPanel.get(event)?.treeSettings?.observeStateReadsForAll
+      ?: DEFAULT_STATE_READS_FOR_ALL
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
-    val inspector = LayoutInspector.get(event) ?: return
+    val inspector = LayoutInspectorRootPanel.get(event) ?: return
     inspector.treeSettings.observeStateReadsForAll = state
 
     // Reset the recomposition counts to indicate the previous state reads are
@@ -203,11 +206,11 @@ object StateReadsForAll : ToggleAction(SHOW_STATE_READS_FOR_ALL, null, null) {
     event.presentation.isVisible =
       StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_STATE_READS.get() &&
         isActionActive(event, Capability.SUPPORTS_COMPOSE) &&
-        LayoutInspector.get(event)?.currentClient !is FileEditorInspectorClient &&
+        LayoutInspectorRootPanel.get(event)?.currentClient !is FileEditorInspectorClient &&
         LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
 
     event.presentation.isEnabled =
-      LayoutInspector.get(event)?.treeSettings?.showRecompositions ?: false &&
+      LayoutInspectorRootPanel.get(event)?.treeSettings?.showRecompositions ?: false &&
         isActionActive(
           event,
           Capability.CAN_OBSERVE_RECOMPOSE_STATE_READS,
@@ -223,13 +226,13 @@ object StateReadsForAll : ToggleAction(SHOW_STATE_READS_FOR_ALL, null, null) {
 }
 
 fun isActionActive(event: AnActionEvent, vararg capabilities: Capability): Boolean =
-  LayoutInspector.get(event)?.currentClient?.let { client ->
+  LayoutInspectorRootPanel.get(event)?.currentClient?.let { client ->
     // If not running, default to visible so user can modify selection when next client is connected
     !client.isConnected || capabilities.all { client.capabilities.contains(it) }
   } ?: true
 
 fun inLiveMode(event: AnActionEvent): Boolean =
   // If not running, default to visible so user can modify selection when next client is connected
-  LayoutInspector.get(event)?.currentClient?.let { client ->
+  LayoutInspectorRootPanel.get(event)?.currentClient?.let { client ->
     client.inLiveMode || !client.isConnected
   } ?: true

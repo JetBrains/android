@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.common
 
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.IconProvider
@@ -26,6 +25,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
+import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -61,7 +61,7 @@ fun showViewContextMenu(
           result.add(viewMenu)
         }
 
-        val client = event?.let { LayoutInspector.get(it)?.currentClient }
+        val client = event?.let { LayoutInspectorRootPanel.get(it)?.currentClient }
         if (client?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) == true) {
           if (views.isNotEmpty()) {
             val topView = views.first()
@@ -212,6 +212,6 @@ class SelectViewAction(val view: ViewNode, val inspectorModel: InspectorModel) :
     inspectorModel.setSelection(view, SelectionOrigin.INTERNAL)
 
     // This action is only performed from mouse clicks on the image
-    LayoutInspector.get(event)?.currentClient?.stats?.selectionMadeFromImage(view)
+    LayoutInspectorRootPanel.get(event)?.currentClient?.stats?.selectionMadeFromImage(view)
   }
 }

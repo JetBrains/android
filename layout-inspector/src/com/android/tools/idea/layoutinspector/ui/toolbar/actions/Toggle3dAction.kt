@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector.ui.toolbar.actions
 
-import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
 import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -43,7 +43,7 @@ class Toggle3dAction(private val renderModelProvider: () -> RenderModel) :
 
   override fun actionPerformed(event: AnActionEvent) {
     val renderModel = renderModelProvider()
-    val inspector = LayoutInspector.get(event)
+    val inspector = LayoutInspectorRootPanel.get(event)
     val client = inspector?.currentClient
 
     if (renderModel.isRotated) {
@@ -88,7 +88,7 @@ class Toggle3dAction(private val renderModelProvider: () -> RenderModel) :
   override fun update(event: AnActionEvent) {
     super.update(event)
     val model = renderModelProvider()
-    val inspector = LayoutInspector.get(event)
+    val inspector = LayoutInspectorRootPanel.get(event)
     val client = inspector?.currentClient
     val inspectorModel = inspector?.inspectorModel
     event.presentation.icon =

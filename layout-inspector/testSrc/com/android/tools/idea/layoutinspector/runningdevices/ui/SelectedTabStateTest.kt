@@ -20,7 +20,6 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.FakeForegroundProcessDetection
-import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.NotificationModel
@@ -42,7 +41,6 @@ import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.DisplayOwner
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.DataManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
@@ -206,31 +204,6 @@ class SelectedTabStateTest {
       tabsComponents2.tabContentPanelContainer,
       tabsComponents2.displayList.value,
     )
-  }
-
-  @Test
-  @RunsInEdt
-  fun testLayoutInspectorIsInDataContext() {
-    val tabsComponents = createTabComponents()
-    val selectedTabState = createSelectedTabState(tabsComponents)
-
-    val renderers = selectedTabState.renderingComponents.map { it.renderer }
-
-    renderers.forEach { renderer ->
-      val inspector1 =
-        DataManager.getDataProvider(renderer)?.getData(LAYOUT_INSPECTOR_DATA_KEY.name)
-          as LayoutInspector
-      assertThat(inspector1).isNotNull()
-    }
-
-    Disposer.dispose(tabsComponents)
-
-    renderers.forEach { renderer ->
-      val inspector2 =
-        DataManager.getDataProvider(renderer)?.getData(LAYOUT_INSPECTOR_DATA_KEY.name)
-          as? LayoutInspector
-      assertThat(inspector2).isNull()
-    }
   }
 
   @Test

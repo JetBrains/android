@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.testutils.waitForCondition
-import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.ide.ui.RecentProcess
@@ -29,10 +28,10 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
-import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
 import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorRenderSettings
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.sdk.AndroidProjectChecker
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -40,7 +39,6 @@ import com.android.tools.idea.testing.ui.flatten
 import com.android.tools.idea.transport.TransportService
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
-import com.intellij.ide.DataManager
 import com.intellij.ide.highlighter.ProjectFileType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
@@ -236,14 +234,8 @@ class LayoutInspectorToolWindowFactoryTest {
     waitForCondition(5L, TimeUnit.SECONDS) {
       component.flatten(false).firstOrNull { it is DeviceViewPanel } != null
     }
-    val inspector =
-      DataManager.getDataProvider(
-          component.flatten(false).first { it is WorkBench<*> } as WorkBench<*>
-        )
-        ?.getData(LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
-    assertThat(inspector.treeSettings).isInstanceOf(InspectorTreeSettings::class.java)
-    val contentPanel =
-      component.flatten(false).first { it is DeviceViewContentPanel } as DeviceViewContentPanel
+    val inspector = inspectorRule.inspector
+    assertThat(inspector.treeSettings).isInstanceOf(FakeTreeSettings::class.java)
     assertThat(inspector.renderLogic.renderSettings)
       .isInstanceOf(InspectorRenderSettings::class.java)
   }

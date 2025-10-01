@@ -16,10 +16,10 @@
 package com.android.tools.idea.layoutinspector.ui.toolbar.actions
 
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.isActionActive
+import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
 import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.android.tools.idea.layoutinspector.ui.RenderSettings
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -117,7 +117,7 @@ class HighlightColorAction(renderSettingsProvider: () -> RenderSettings) :
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    val layoutInspector = LayoutInspector.get(event)
+    val layoutInspector = LayoutInspectorRootPanel.get(event)
     val isConnected = layoutInspector?.currentClient?.isConnected ?: false
     event.presentation.isVisible =
       layoutInspector?.treeSettings?.showRecompositions ?: false &&
@@ -145,7 +145,7 @@ private class ColorSettingAction(
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     renderSettingsProvider().recompositionColor = color
-    LayoutInspector.get(event)?.currentClient?.stats?.recompositionHighlightColor = color
+    LayoutInspectorRootPanel.get(event)?.currentClient?.stats?.recompositionHighlightColor = color
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
