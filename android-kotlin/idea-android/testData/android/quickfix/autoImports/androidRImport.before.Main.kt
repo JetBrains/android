@@ -1,7 +1,8 @@
 // "Import class 'R'" "true"
-// ERROR: Unresolved reference: R
+// K1-ERROR: Unresolved reference: R
+// K2-ERROR: Unresolved reference 'R'.
 // DO_NOT_IMPORT: android.support.v7.appcompat.R
-// SKIP-K2 (b/304360782)
+// SKIP-K1 (b/304360782)
 
 package com.myapp.activity
 
