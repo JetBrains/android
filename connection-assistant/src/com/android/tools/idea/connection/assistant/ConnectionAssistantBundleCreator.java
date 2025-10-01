@@ -17,6 +17,7 @@ package com.android.tools.idea.connection.assistant;
 
 import com.android.tools.idea.assistant.AssistantBundleCreator;
 import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
+import com.android.tools.idea.adb.AdbOptionsService;
 import com.intellij.openapi.project.Project;
 import java.net.URL;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +26,10 @@ import org.jetbrains.annotations.Nullable;
 public class ConnectionAssistantBundleCreator implements AssistantBundleCreator {
   public static final String BUNDLE_ID = "DeveloperServices.ConnectionAssistant";
 
-  private static final String TUTORIAL_CONFIG_FILENAME = "/connection_assistant_bundle.xml";
+  private static final String CONNECTION_ASSISTANT_BUNDLE_FILENAME =
+    "/connection_assistant_bundle.xml";
+  private static final String CONNECTION_ASSISTANT_UNSUPPORTED_FILENAME =
+    "/connection_assistant_unsupported_bundle.xml";
 
   @NotNull
   @Override
@@ -42,6 +46,10 @@ public class ConnectionAssistantBundleCreator implements AssistantBundleCreator 
   @Nullable
   @Override
   public URL getConfig() {
-    return getClass().getResource(TUTORIAL_CONFIG_FILENAME);
+    if (AdbOptionsService.getInstance().shouldUseUserManagedAdb()) {
+      return getClass().getResource(CONNECTION_ASSISTANT_UNSUPPORTED_FILENAME);
+    } else {
+      return getClass().getResource(CONNECTION_ASSISTANT_BUNDLE_FILENAME);
+    }
   }
 }
