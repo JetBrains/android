@@ -28,7 +28,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadResult
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
-import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
+import com.android.tools.idea.layoutinspector.tree.GotoDeclaration
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -75,7 +75,7 @@ class NavigationUtilsTest {
     )
 
     assertThat(inspectorModel.selection?.drawId).isEqualTo(2L)
-    runDispatching { GotoDeclarationAction.lastAction?.join() }
+    runDispatching { GotoDeclaration.lastAction?.join() }
     fileOpenCaptureRule.checkEditor("demo.xml", 2, "<RelativeLayout")
 
     assertThat(client.stats.goToSourcesFromRendererInvocations).isEqualTo(1)

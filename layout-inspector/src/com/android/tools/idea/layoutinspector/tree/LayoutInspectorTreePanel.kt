@@ -319,7 +319,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   private fun doubleClick(item: Any) {
     layoutInspector?.let {
       it.currentClient.stats.gotoSourceFromTreeDoubleClick()
-      GotoDeclarationAction.navigateToSelectedView(
+      GotoDeclaration.navigateToSelectedView(
         it.coroutineScope,
         it.inspectorModel,
         it.currentClient,

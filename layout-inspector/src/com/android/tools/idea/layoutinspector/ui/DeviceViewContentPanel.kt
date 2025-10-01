@@ -29,6 +29,7 @@ import com.android.tools.idea.layoutinspector.model.getLabelFontSize
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
+import com.android.tools.idea.layoutinspector.tree.GotoDeclaration
 import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.DropDownActionWithButton
@@ -278,7 +279,7 @@ class DeviceViewContentPanel(
           if (event.isConsumed) return
           if (event.clickCount > 1) {
             // The View was selected with the first click of the double click
-            GotoDeclarationAction.navigateToSelectedView(
+            GotoDeclaration.navigateToSelectedView(
               coroutineScope,
               renderModel.model,
               currentClient(),
