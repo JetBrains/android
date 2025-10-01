@@ -37,6 +37,7 @@ import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.Layout
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.RootPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
+import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.SingleDeviceSelectProcessAction
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.google.common.truth.Truth.assertThat
@@ -248,6 +249,9 @@ inline fun <reified T : LayoutInspectorRenderer> verifyUiInjected(
 
   val inspectorBanner = container.allChildren().filterIsInstance<InspectorBanner>().first()
   assertThat(inspectorBanner).isNotNull()
+
+  val rootPanel = container.allChildren().filterIsInstance<LayoutInspectorRootPanel>().first()
+  assertThat(rootPanel).isNotNull()
 
   assertThat(displays).isNotEmpty()
   displays.forEach { displayView ->

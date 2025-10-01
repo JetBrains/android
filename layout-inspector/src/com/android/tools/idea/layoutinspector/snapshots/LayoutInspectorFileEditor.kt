@@ -19,7 +19,6 @@ import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
@@ -35,11 +34,11 @@ import com.android.tools.idea.layoutinspector.tree.EditorTreeSettings
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
+import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.SNAPSHOT_CLIENT
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SNAPSHOT_LOADED
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SNAPSHOT_LOAD_ERROR
-import com.intellij.ide.DataManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
@@ -113,6 +112,8 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
     modificationCount = file?.modificationCount ?: -1
 
     val contentPanel = JPanel(BorderLayout())
+    val rootPanel: LayoutInspectorRootPanel
+
     val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_SNAPSHOT_ID, null, this)
     var snapshotLoader: SnapshotLoader? = null
     val startTime = System.currentTimeMillis()
@@ -145,7 +146,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
         )
       val deviceViewPanel =
         DeviceViewPanel(layoutInspector = layoutInspector, disposableParent = workbench)
-      DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector))
+      rootPanel = LayoutInspectorRootPanel(content = contentPanel, layoutInspector)
       workbench.init(
         deviceViewPanel,
         layoutInspector,
@@ -200,8 +201,8 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
         }
       }
     }
-    component = contentPanel
-    return contentPanel
+    component = rootPanel
+    return rootPanel
   }
 
   override fun getPreferredFocusedComponent(): JComponent? = null
