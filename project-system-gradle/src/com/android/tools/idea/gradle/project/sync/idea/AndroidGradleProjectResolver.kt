@@ -1090,7 +1090,6 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     }
 
     fun shouldDisableForceUpgrades(): Boolean {
-      if (ApplicationManager.getApplication().isUnitTestMode) return true
       if (SystemProperties.getBooleanProperty("studio.skip.agp.upgrade", false)) return true
       return StudioFlags.DISABLE_FORCED_UPGRADES.get()
     }

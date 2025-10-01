@@ -19,6 +19,7 @@ import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
+import com.android.tools.idea.gradle.project.upgrade.RefactoringProcessorInstantiator
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -34,12 +35,18 @@ import com.intellij.build.events.FinishBuildEvent
 import com.intellij.build.events.impl.FinishBuildEventImpl
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.replaceService
 import com.intellij.util.containers.ContainerUtil
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doCallRealMethod
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @RunsInEdt
 abstract class AbstractSyncFailureIntegrationTest {
@@ -71,6 +78,10 @@ abstract class AbstractSyncFailureIntegrationTest {
   ) {
     val buildEvents = ContainerUtil.createConcurrentList<BuildEvent>()
     val allBuildEventsProcessedLatch = CountDownLatch(1)
+    val instantiator = mock<RefactoringProcessorInstantiator>()
+    doCallRealMethod().whenever(instantiator).createProcessor(any(), any(), any())
+    doCallRealMethod().whenever(instantiator).showAndGetAgpUpgradeDialog(any())
+    doReturn(false).whenever(instantiator).showAndGetAgpUpgradeDialog(any(), any(), any())
     preparedProject.open(
       updateOptions = {
         it.copy(
@@ -87,6 +98,9 @@ abstract class AbstractSyncFailureIntegrationTest {
             if (buildEvent is FinishBuildEventImpl) {
               allBuildEventsProcessedLatch.countDown()
             }
+          },
+          onProjectCreated = {
+            this.replaceService(RefactoringProcessorInstantiator::class.java, instantiator, projectRule.testRootDisposable)
           }
         )
       }
