@@ -227,6 +227,11 @@ public final class StudioFlags {
     "Enable Architecture Sample template",
     "Allows the Architecture Sample template to be used.");
 
+  public static final Flag<Boolean> NPW_ENABLE_BASIC_WATCH_FACE_TEMPLATE = new BooleanFlag(
+    NPW, "watchface.template",
+    "Enable Basic Watch Face template",
+    "Allows the Basic Watch Face template to be used.");
+
   public static final Flag<Boolean> NPW_NEW_KOTLIN_MULTIPLATFORM_MODULE = new BooleanFlag(
     NPW, "new.kotlin.multiplatform.module", "New Kotlin Multiplatform Module",
     "Show template to create a new Kotlin Multiplatform module in the new module wizard.");
