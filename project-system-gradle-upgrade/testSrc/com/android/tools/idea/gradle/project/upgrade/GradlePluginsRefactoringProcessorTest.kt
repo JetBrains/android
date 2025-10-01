@@ -421,6 +421,15 @@ class GradlePluginsRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
+  fun testHiltVersionTo90() {
+    writeToBuildFile(TestFileName("GradlePlugins/HiltVersion"))
+    val processor = GradlePluginsRefactoringProcessor(project, AgpVersion.parse("3.4.0"), AgpVersion.parse("9.0.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("GradlePlugins/HiltVersion90Expected"))
+  }
+
+  @Test
   fun testProtobufVersionTo70() {
     writeToBuildFile(TestFileName("GradlePlugins/ProtobufVersion"))
     val processor = GradlePluginsRefactoringProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("7.0.0"))
