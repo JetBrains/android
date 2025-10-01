@@ -1,0 +1,172 @@
+#
+# A fatal error has been detected by the Java Runtime Environment:
+#
+#  SIGSEGV (0xb) at pc=0x00007fd5930a59ec (sent by kill), pid=3248300, tid=3248300
+#
+# JRE version: OpenJDK Runtime Environment (21.0.6) (build 21.0.6+-13391695-b895.109)
+# Java VM: OpenJDK 64-Bit Server VM (21.0.6+-13391695-b895.109, mixed mode, tiered, compressed oops, compressed class ptrs, g1 gc, linux-amd64)
+# Problematic frame:
+# C  [libc.so.6+0x9a9ec]
+#
+# Core dump will be written. Default location: Core dumps may be processed with "<elided>
+#
+# If you would like to submit a bug report, please visit:
+#   http<elided>
+#
+---------------  T H R E A D  ---------------
+
+Current thread is native thread
+
+Stack: [0x00007ffc91f55000,0x00007ffc92055000],  sp=0x00007ffc920530b8,  free space=1016k
+Native frames: (J=compiled Java code, j=interpreted, Vv=VM code, C=native code)
+C  [libc.so.6+0x9a9ec]
+
+siginfo: si_signo: 11 (SIGSEGV), si_code: 0 (SI_USER), si_pid: 3181007, si_uid: 1496294
+
+Registers:
+RAX=0x00000000000000ca, RBX=0x00007fd59300a300, RCX=0x00007fd5930a59ee, RDX=0x00000000003190af
+RSP=0x00007ffc920530b8, RBP=0x0000000000000000, RSI=0x0000000000000109, RDI=0x00007fd593008990
+R8 =0x0000000000000000, R9 =0x00000000ffffffff, R10=0x0000000000000000, R11=0x0000000000000246
+R12=0x0000000000000000, R13=0x0000000000000000, R14=0x00007fd593008990, R15=0x00007ffc92053110
+RIP=0x00007fd5930a59ec, EFLAGS=0x0000000000000246, CSGSFS=0x002b000000000033, ERR=0x0000000000000000
+  TRAPNO=0x0000000000000000
+
+XMM[0]=0x000055e392235ec0 0x0000000000000001
+XMM[1]=0x00007fd5930086c0 0x000055e392236850
+XMM[2]=0x6166003233636f74 0x72626d006b636174
+XMM[3]=0x000055e392235620 0x0000000000000022
+XMM[4]=0x0000000000000000 0x00007fd5931f2b20
+XMM[5]=0x0000000000000022 0x000055e392235620
+XMM[6]=0x000055e392234c80 0x0000000000000064
+XMM[7]=0x000055e392236850 0x0000000000000000
+XMM[8]=0x0000000000000001 0x0000000000000001
+XMM[9]=0x00000000ff000000 0xff00000000ffff00
+XMM[10]=0x00000000ff000000 0xff00000000000000
+XMM[11]=0x0000000000000000 0x0000000000000000
+XMM[12]=0x0000000000000000 0x0000000000000000
+XMM[13]=0x0000000000000000 0x0000000000000000
+XMM[14]=0x0000000000000000 0x0000000000000000
+XMM[15]=0x0000000000000000 0x0000000000000000
+  MXCSR=0x00001f80
+
+--------------- O T H E R S E C T I O N 1 ---------------
+Some unknown section 1:
+test text 1
+test text 2
+
+---------------  S Y S T E M  ---------------
+
+OS:
+# $Id: <elided>
+DISTRIB_CODENAME=rodete
+DISTRIB_DESCRIPTION="Debian GNU/Linux rodete"
+DISTRIB_ID=Debian
+DISTRIB_RELEASE=rodete
+GOOGLE_CODENAME=rodete
+GOOGLE_ID=Goobuntu
+GOOGLE_RELEASE="rodete 20250825.07.04RD"
+GOOGLE_ROLE=desktop
+GOOGLE_TRACK=stable
+uname: Linux 6.12.32-1rodete1-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.12.32-1rodete1 (2025-06-26) x86_64
+OS uptime: 20 days 3:15 hours
+libc: glibc 2.41 NPTL 2.41
+rlimit (soft/hard): STACK 8192k/infinity , CORE infinity/infinity , NPROC 131072/infinity , NOFILE 131072/131072 , AS infinity/infinity , CPU infinity/infinity , DATA infinity/infinity , FSIZE infinity/infinity , MEMLOCK infinity/infinity
+load average: 1.21 1.87 6.65
+
+/proc/meminfo:
+MemTotal:       123633356 kB
+MemFree:         2918136 kB
+MemAvailable:   91067080 kB
+Buffers:         8558992 kB
+Cached:         75704800 kB
+SwapCached:         4016 kB
+Active:         36930304 kB
+Inactive:       73631624 kB
+Active(anon):   24804708 kB
+Inactive(anon):  2263476 kB
+Active(file):   12125596 kB
+Inactive(file): 71368148 kB
+Unevictable:       43148 kB
+Mlocked:           43148 kB
+SwapTotal:      30883836 kB
+SwapFree:       30863100 kB
+Zswap:                 0 kB
+Zswapped:              0 kB
+Dirty:              1480 kB
+Writeback:             0 kB
+AnonPages:      24670004 kB
+Mapped:          6295440 kB
+Shmem:            775812 kB
+KReclaimable:    6759624 kB
+Slab:            8113468 kB
+SReclaimable:    6759624 kB
+SUnreclaim:      1353844 kB
+KernelStack:       99152 kB
+PageTables:       174632 kB
+SecPageTables:         0 kB
+NFS_Unstable:          0 kB
+Bounce:                0 kB
+WritebackTmp:          0 kB
+CommitLimit:    92700512 kB
+Committed_AS:   88802364 kB
+VmallocTotal:   34359738367 kB
+VmallocUsed:      358412 kB
+VmallocChunk:          0 kB
+Percpu:           193536 kB
+HardwareCorrupted:     0 kB
+AnonHugePages:  12177408 kB
+ShmemHugePages:        0 kB
+ShmemPmdMapped:        0 kB
+FileHugePages:         0 kB
+FilePmdMapped:         0 kB
+Unaccepted:            0 kB
+HugePages_Total:       0
+HugePages_Free:        0
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:       2048 kB
+Hugetlb:               0 kB
+DirectMap4k:      654112 kB
+DirectMap2M:    33945600 kB
+DirectMap1G:    93323264 kB
+
+/sys/kernel/mm/transparent_hugepage/enabled: [always] madvise never
+/sys/kernel/mm/transparent_hugepage/hpage_pmd_size: 2097152
+/sys/kernel/mm/transparent_hugepage/defrag (defrag/compaction efforts parameter): always defer defer+madvise [madvise] never
+
+Process Memory:
+Virtual Size: 7135488K (peak: 7196112K)
+Resident Set Size: 1263720K (peak: 1445440K) (anon: 896496K, file: 365176K, shmem: 2048K)
+Swapped out: 0K
+C-Heap outstanding allocations: 224538K, retained: 183485K
+glibc malloc tunables: (default)
+
+/proc/sys/kernel/threads-max (system-wide limit on the number of threads): 964657
+/proc/sys/vm/max_map_count (maximum number of memory map areas a process may have): 4194304
+/proc/sys/vm/swappiness (control to define how aggressively the kernel swaps out anonymous memory): 60
+/proc/sys/kernel/pid_max (system-wide limit on number of process identifiers): 4194304
+
+container information not found.
+KVM virtualization detected
+Steal ticks since vm start: 161
+Steal ticks percentage since vm start:  0.001
+
+CPU: total 64 (initial active 64) (64 cores per cpu, 2 threads per core) family 25 model 1 stepping 0 microcode 0xffffffff, cx8, cmov, fxsr, ht, mmx, 3dnowpref, sse, sse2, sse3, ssse3, sse4a, sse4.1, sse4.2, popcnt, lzcnt, tsc, tscinvbit, avx, avx2, aes, erms, clmul, bmi1, bmi2, adx, sha, fma, vzeroupper, clflush, clflushopt, hv, rdtscp, rdpid, fsrm, f16c
+CPU Model and flags from <elided>
+model name	: AMD EPYC 7B13
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl xtopology nonstop_tsc cpuid extd_apicid tsc_known_freq pni pclmulqdq ssse3 fma cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand hypervisor lahf_lm cmp_legacy cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw topoext ssbd ibrs ibpb stibp vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 clzero xsaveerptr arat npt nrip_save umip vaes vpclmulqdq rdpid fsrm
+
+Online cpus: 0-63
+Offline cpus:
+BIOS frequency limitation: <Not Available>
+Frequency switch latency (ns): <Not Available>
+Available cpu frequencies: <Not Available>
+Current governor: <Not Available>
+Core performance/turbo boost: <Not Available>
+
+Memory: 4k page, physical 123633356k(91067080k free), swap 30883836k(30863100k free)
+Page Sizes: 4k
+
+vm_info: OpenJDK 64-Bit Server VM (21.0.6+-13391695-b895.109) for linux-amd64 JRE (21.0.6+-13391695-b895.109), built on 2025-04-22T21:21:31Z by "builder" with clang Android (13174946, +pgo, +bolt, +lto, +mlgo, based on r547379) Clang 20.0.0 (http<elided>
+
+END.
