@@ -22,7 +22,6 @@ import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
 import com.android.tools.idea.layoutinspector.properties.DimensionUnitAction
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.runningdevices.SPLITTER_KEY
@@ -42,13 +41,13 @@ import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.create
 import com.android.tools.idea.layoutinspector.stateinspection.createStateInspectionPanel
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
+import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_ALPHA_VALUE
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.OverlayActionGroup
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
 import com.android.tools.idea.layoutinspector.ui.toolbar.createEmbeddedLayoutInspectorToolbar
 import com.android.tools.idea.streaming.core.DeviceId
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.ide.DataManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CustomShortcutSet
@@ -225,7 +224,7 @@ data class SelectedTabState(
       val inspectorBanner = InspectorBanner(disposable, layoutInspector.notificationModel)
       inspectorPanel.add(inspectorBanner, BorderLayout.NORTH)
       inspectorPanel.add(mainPanel, BorderLayout.CENTER)
-      inspectorPanel
+      LayoutInspectorRootPanel(inspectorPanel, layoutInspector)
     }
   }
 
@@ -253,16 +252,6 @@ data class SelectedTabState(
       createLayoutInspectorWorkbench(project, disposable, layoutInspector, uiConfig, centerPanel)
     workBench.isFocusCycleRoot = false
 
-    val layoutInspectorProvider = dataProviderForLayoutInspector(layoutInspector)
-    DataManager.registerDataProvider(toolsPanel, layoutInspectorProvider)
-    DataManager.registerDataProvider(toolbar, layoutInspectorProvider)
-    DataManager.registerDataProvider(workBench, layoutInspectorProvider)
-
-    Disposer.register(disposable) {
-      DataManager.removeDataProvider(toolsPanel)
-      DataManager.removeDataProvider(toolbar)
-      DataManager.removeDataProvider(workBench)
-    }
     // Split panel used for inspection of State Reads in Compose.
     val splitPanel =
       OnePixelSplitter(true, SPLITTER_KEY, 0.65f).apply {

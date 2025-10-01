@@ -16,7 +16,7 @@
 package com.android.tools.idea.layoutinspector.properties
 
 import com.android.tools.adtui.workbench.ToolContent
-import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -59,7 +59,7 @@ object DimensionUnitAction :
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(event: AnActionEvent) {
-    val model = LayoutInspector.get(event)?.inspectorModel
+    val model = LayoutInspectorRootPanel.get(event)?.inspectorModel
     event.presentation.isEnabled = model?.resourceLookup?.dpi != null
   }
 

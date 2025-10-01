@@ -16,7 +16,7 @@
 package com.android.tools.idea.layoutinspector.snapshots
 
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
+import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -59,13 +59,13 @@ object ExportSnapshotAction :
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    val layoutInspector = event.getData(LAYOUT_INSPECTOR_DATA_KEY)
+    val layoutInspector = LayoutInspectorRootPanel.get(event)
     event.presentation.isEnabled =
       layoutInspector?.currentClient?.isConnected == true && layoutInspector.renderModel.isActive
   }
 
   override fun actionPerformed(event: AnActionEvent) {
-    val inspector = event.getData(LAYOUT_INSPECTOR_DATA_KEY) ?: return
+    val inspector = LayoutInspectorRootPanel.get(event) ?: return
     val project = inspector.inspectorModel.project
     val outputDir = VfsUtil.getUserHomeDir()
 
@@ -106,7 +106,7 @@ object ImportSnapshotAction :
   ),
   TooltipDescriptionProvider {
   override fun actionPerformed(event: AnActionEvent) {
-    val inspector = event.getData(LAYOUT_INSPECTOR_DATA_KEY) ?: return
+    val inspector = LayoutInspectorRootPanel.get(event) ?: return
     val project = inspector.inspectorModel.project
 
     // Configure title, description and extension

@@ -20,7 +20,6 @@ import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.layoutinspector.FakeForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.FakeSessionStats
-import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.NotificationModel
@@ -33,7 +32,6 @@ import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import java.awt.Rectangle
@@ -134,24 +132,6 @@ class RenderingComponentsTest {
     // Rendering components should be disposed when the display view is disposed.
     Disposer.dispose(displayView2)
     assertThat(isRenderingComponentsDisposed2).isTrue()
-  }
-
-  @Test
-  fun testLayoutInspectorIsInDataContext() {
-    val displayView = displayViewRule.newEmulatorView()
-    val renderingComponents = createRenderingComponents(displayView)
-
-    val inspector1 =
-      DataManager.getDataProvider(renderingComponents.renderer)
-        ?.getData(LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
-    assertThat(inspector1).isNotNull()
-
-    Disposer.dispose(renderingComponents)
-
-    val inspector2 =
-      DataManager.getDataProvider(renderingComponents.renderer)
-        ?.getData(LAYOUT_INSPECTOR_DATA_KEY.name)
-    assertThat(inspector2).isNull()
   }
 
   @Test

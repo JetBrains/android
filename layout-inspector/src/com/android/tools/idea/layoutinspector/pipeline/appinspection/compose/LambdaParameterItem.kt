@@ -17,10 +17,10 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.PropertyType
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
+import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
 import com.android.tools.property.panel.api.LinkPropertyItem
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
@@ -95,7 +95,7 @@ class LambdaParameterItem(
           // Execute this via invokeLater to avoid painting errors by JBTable (hover line) when
           // focus is removed
           it.navigate(true)
-          LayoutInspector.get(event)
+          LayoutInspectorRootPanel.get(event)
             ?.currentClient
             ?.stats
             ?.gotoSourceFromPropertyValue(lookup.selection)

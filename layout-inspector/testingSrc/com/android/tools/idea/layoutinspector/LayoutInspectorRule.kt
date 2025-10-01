@@ -39,6 +39,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.Com
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
+import com.android.tools.idea.layoutinspector.ui.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.model.AndroidModel
@@ -50,6 +51,7 @@ import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.util.Disposer
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
@@ -307,8 +309,15 @@ class LayoutInspectorRule(
       )
     launcher.addClientChangedListener { inspectorClient = it }
 
+    val dataProvider = DataProvider { dataId ->
+      when {
+        LAYOUT_INSPECTOR_DATA_KEY.`is`(dataId) -> inspector
+        else -> null
+      }
+    }
+
     (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(
-      dataProviderForLayoutInspector(inspector),
+      dataProvider,
       projectRule.fixture.testRootDisposable,
     )
   }

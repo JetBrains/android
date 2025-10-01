@@ -23,7 +23,6 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.FakeForegroundProcessDetection
-import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
@@ -45,7 +44,6 @@ import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
@@ -57,7 +55,6 @@ import com.intellij.testFramework.replaceService
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Rectangle
 import java.util.concurrent.TimeUnit
-import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.time.Duration.Companion.seconds
 import org.junit.Before
@@ -285,38 +282,6 @@ class LayoutInspectorManagerTest {
     layoutInspectorManager.enableLayoutInspector(tab2.deviceId, false)
 
     verifyUiRemoved(tab2)
-  }
-
-  @Test
-  @RunsInEdt
-  fun testHasDataProvider() = withEmbeddedLayoutInspector {
-    val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
-
-    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
-
-    // Verify workbench has access to data provider
-    val workbench =
-      tab1.container.allChildren().filterIsInstance<WorkBench<LayoutInspector>>().first()
-    val dataProvider = DataManager.getDataProvider(workbench)
-    val layoutInspector1 = dataProvider!!.getData(LAYOUT_INSPECTOR_DATA_KEY.name)
-    assertThat(layoutInspector1).isEqualTo(layoutInspector)
-
-    // Verify toolbar has access to data provider
-    val toolbar =
-      tab1.container.allChildren().filterIsInstance<JComponent>().first {
-        it.name == "EmbeddedLayoutInspector.Toolbar"
-      }
-    val dataProvider2 = DataManager.getDataProvider(toolbar)
-    val layoutInspector2 = dataProvider2!!.getData(LAYOUT_INSPECTOR_DATA_KEY.name)
-    assertThat(layoutInspector2).isEqualTo(layoutInspector)
-
-    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, false)
-
-    val dataContext3 = DataManager.getDataProvider(workbench)
-    assertThat(dataContext3).isNull()
-
-    val dataContext4 = DataManager.getDataProvider(toolbar)
-    assertThat(dataContext4).isNull()
   }
 
   @Test

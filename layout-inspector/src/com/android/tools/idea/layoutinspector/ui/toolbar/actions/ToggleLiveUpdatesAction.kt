@@ -19,6 +19,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -83,5 +84,5 @@ class ToggleLiveUpdatesAction(private val layoutInspector: LayoutInspector) :
   }
 
   private fun client(event: AnActionEvent): InspectorClient =
-    LayoutInspector.get(event)?.currentClient ?: DisconnectedClient
+    LayoutInspectorRootPanel.get(event)?.currentClient ?: DisconnectedClient
 }

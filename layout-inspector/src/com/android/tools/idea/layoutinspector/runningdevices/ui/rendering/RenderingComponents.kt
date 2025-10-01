@@ -18,13 +18,11 @@ package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.resource.data.Display
 import com.android.tools.idea.layoutinspector.runningdevices.navigateToSelectedViewFromRendererDoubleClick
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 
@@ -40,9 +38,6 @@ class RenderingComponents(
 ) : Disposable {
   init {
     Disposer.register(disposable, this)
-    val layoutInspectorProvider = dataProviderForLayoutInspector(layoutInspector)
-    DataManager.registerDataProvider(renderer, layoutInspectorProvider)
-    Disposer.register(this) { DataManager.removeDataProvider(renderer) }
   }
 
   fun addRenderer() {
