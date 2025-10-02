@@ -65,6 +65,7 @@ import com.android.tools.idea.ui.validation.validators.StringPathValidator;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewProject;
+import com.android.tools.idea.wizard.template.Category;
 import com.android.tools.idea.wizard.template.FormFactor;
 import com.android.tools.idea.wizard.template.Language;
 import com.android.tools.idea.wizard.template.Template;
@@ -284,7 +285,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       FormFactor formFactor = getModel().formFactor.get();
 
       myFormFactorSdkControls.showStatsPanel(formFactor == FormFactor.Mobile);
-      myWearCheck.setVisible(formFactor == FormFactor.Wear);
       myTvCheck.setVisible(formFactor == FormFactor.Tv);
       boolean isCar = formFactor == FormFactor.Car;
       myCarPlatformCombo.setVisible(isCar);
@@ -306,11 +306,17 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myFormFactorSdkControls.startDataLoading(toWizardFormFactor(formFactor), minSdk);
     setTemplateThumbnail(newTemplate);
     boolean isKotlinOnly = newTemplate.getConstraints().contains(TemplateConstraint.Kotlin);
+    boolean isWatchFace = newTemplate.getCategory() == Category.WatchFace;
 
-    myProjectLanguage.setVisible(!isKotlinOnly);
-    myProjectLanguageLabel.setVisible(!isKotlinOnly);
+    myProjectLanguage.setVisible(!isKotlinOnly && !isWatchFace);
+    myProjectLanguageLabel.setVisible(!isKotlinOnly && !isWatchFace);
     if (isKotlinOnly) {
       myProjectModel.getLanguage().setValue(Language.Kotlin);
+    }
+    myWearCheck.setVisible(formFactor == FormFactor.Wear && !isWatchFace);
+
+    if (isWatchFace) {
+      myProjectModel.getApplicationName().set("My Watch Face");
     }
   }
 
