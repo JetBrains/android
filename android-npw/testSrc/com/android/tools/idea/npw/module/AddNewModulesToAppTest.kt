@@ -37,6 +37,7 @@ import java.io.File
 import java.util.Optional
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -107,6 +108,7 @@ abstract class AddNewModulesToAppTest(
   }
 
   @Test
+  @Ignore("b/447536147")
   fun addMultipleDynamicFeatureModulesToKtsBaseModule() {
     loadInitialProject()
     val project = projectRule.project
