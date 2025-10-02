@@ -412,13 +412,13 @@ internal class AndroidSourceRootSyncContributor : GradleSyncContributor {
         val sourceSetModuleEntitiesByArtifact = getAllSourceSetModuleEntities(updatedEntities)
 
         val knownArtifactsModuleEntitiesByArtifact = sourceSetModuleEntitiesByArtifact.knownArtifacts
-        val knownArtifactsModuleEntities = knownArtifactsModuleEntitiesByArtifact.values.toList()
+        val knownArtifactsModuleEntities = knownArtifactsModuleEntitiesByArtifact.values
         if (knownArtifactsModuleEntities.isEmpty()) {
           LOG.debug("No source sets found for ${projectModel.path}")
           return@flatMap emptyList()
         }
 
-        val testSuiteSourceSetModules = sourceSetModuleEntitiesByArtifact.testSuites.values.toList()
+        val testSuiteSourceSetModules = sourceSetModuleEntitiesByArtifact.testSuites.values
 
         updatedEntities.modifyModuleEntity(holderModuleEntity) {
           setJavaSettingsForHolderModule(this)
@@ -522,7 +522,7 @@ private fun SyncContributorAndroidProjectContext.getAllSourceSetModuleEntities(
     newModuleEntity.contentRoots += createContentRootEntities(moduleName, entitySource, typeToDirsMap)
     newModuleEntity.javaSettings = createJavaModuleSettingsEntity(entitySource, sourceSetArtifactName)
     sourceSetArtifactName to newModuleEntity
-  }.toMutableMap()
+  }
 
   val testSuitesEnabled = StudioFlags.AGP_TEST_SUITES_ENABLED.get() && versions[ModelFeature.HAS_TEST_SUITES]
   val testSuiteSources = if (testSuitesEnabled) {
@@ -581,7 +581,7 @@ private fun SyncContributorAndroidProjectContext.configureTestSuiteSourceSetModu
 private fun SyncContributorAndroidProjectContext.linkModuleGroup(
   holderModuleEntity: ModuleEntityBuilder,
   sourceSetModules: Map<IdeArtifactName, ModuleEntityBuilder>,
-  testSuiteModules: List<ModuleEntityBuilder>
+  testSuiteModules: Collection<ModuleEntityBuilder>
 ) {
   val androidModuleGroup = getModuleGroup(sourceSetModules, testSuiteModules)
   val linkedModules = sourceSetModules.values + testSuiteModules + holderModuleEntity
@@ -608,7 +608,7 @@ private fun SyncContributorAndroidProjectContext.linkModuleGroup(
 
 private fun SyncContributorAndroidProjectContext.getModuleGroup(
   sourceSetModules: Map<IdeArtifactName, ModuleEntityBuilder>,
-  testSuiteModules: List<ModuleEntityBuilder>
+  testSuiteModules: Collection<ModuleEntityBuilder>
 ): LinkedAndroidGradleModuleGroup {
   val modulePointerManager = ModulePointerManager.getInstance(project)
   return LinkedAndroidGradleModuleGroup(
