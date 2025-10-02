@@ -226,7 +226,7 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
     "Messaging Service" -> TemplateRenderer.AUTOMOTIVE_MESSAGING_SERVICE
     "Media Service" -> TemplateRenderer.AUTOMOTIVE_MEDIA_SERVICE
     "Google Pay Views Activity" -> TemplateRenderer.GOOGLE_PAY_ACTIVITY
-    "Watch Face" -> TemplateRenderer.WATCH_FACE
+    "Basic Watch Face" -> TemplateRenderer.WATCH_FACE
     "Empty Wear OS Compose Activity" -> TemplateRenderer.BLANK_WEAR_ACTIVITY
     "Google Wallet Activity" -> TemplateRenderer.GOOGLE_WALLET_ACTIVITY
     "Empty Wear App",

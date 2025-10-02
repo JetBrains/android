@@ -102,7 +102,12 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
 
   private fun initMainModule() {
     val moduleName: String =
-      if (hasCompanionApp.get()) getModuleName(formFactor.get()) else SdkConstants.APP_PREFIX
+      when {
+        hasCompanionApp.get() -> getModuleName(formFactor.get())
+        // we don't allow watch faces to have a companion app
+        newRenderTemplate.valueOrNull?.category == Category.WatchFace -> "watchface"
+        else -> SdkConstants.APP_PREFIX
+      }
 
     val moduleRoot = File(projectModel.projectLocation.get(), moduleName)
 

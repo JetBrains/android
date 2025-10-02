@@ -21,13 +21,22 @@ import com.android.tools.idea.npw.module.recipes.generateManifest
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 
+private const val WATCH_FEATURE_BLOCK =
+  // language=XML
+  """
+    <uses-feature android:name="android.hardware.type.watch" />
+  """
+
 fun RecipeExecutor.generateWearModule(
   data: ModuleTemplateData,
   appTitle: String?,
   useKts: Boolean,
   useVersionCatalog: Boolean = true,
 ) {
-  val usesFeatureBlock = """<uses-feature android:name="android.hardware.type.watch" />"""
+  if (data.isWatchFace) {
+    generateWearWatchFaceModule(data, appTitle, useKts, useVersionCatalog)
+    return
+  }
   generateCommonModule(
     data,
     appTitle,
@@ -35,7 +44,7 @@ fun RecipeExecutor.generateWearModule(
     generateManifest(
       hasApplicationBlock = !data.isLibrary,
       theme = "@android:style/Theme.DeviceDefault",
-      usesFeatureBlock = usesFeatureBlock,
+      usesFeatureBlock = WATCH_FEATURE_BLOCK,
       hasRoundIcon = false,
     ),
     iconsGenerationStyle = IconsGenerationStyle.ALL,
@@ -46,4 +55,25 @@ fun RecipeExecutor.generateWearModule(
   )
 
   addDependency("com.google.android.gms:play-services-wearable:+")
+}
+
+private fun RecipeExecutor.generateWearWatchFaceModule(
+  data: ModuleTemplateData,
+  appTitle: String?,
+  useKts: Boolean,
+  useVersionCatalog: Boolean = true,
+) {
+  generateCommonModule(
+    data = data,
+    appTitle = appTitle,
+    appTitleResName = "watch_face_name",
+    useKts = useKts,
+    manifestXml =
+      generateManifest(hasApplicationBlock = false, usesFeatureBlock = WATCH_FEATURE_BLOCK),
+    iconsGenerationStyle = IconsGenerationStyle.NONE,
+    themesXml = null,
+    colorsXml = null,
+    noKtx = true,
+    useVersionCatalog = useVersionCatalog,
+  )
 }
