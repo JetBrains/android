@@ -20,6 +20,23 @@ maven.install(
 use_repo(maven, "maven")
 
 maven.install(
+    name="rules_dagger",
+    artifacts = [
+        "com.google.dagger:hilt-android:2.40.1",
+        "com.google.dagger:hilt-android-compiler:2.40.1",
+        "androidx.appcompat:appcompat:1.3.0",
+        "androidx.annotation:annotation-jvm:1.7.1",
+    ],
+    repositories = [
+        # "file://m2", # <-- Replaced by the test framework.
+        "https://maven.google.com",
+        "https://mvnrepository.com/artifact",
+        "https://repo1.maven.org/maven2",
+    ],
+)
+use_repo(maven, "rules_dagger")
+
+maven.install(
     name = "rules_compose_maven",
     aar_import_bzl_label = "@rules_android//rules:rules.bzl",
     artifacts = [
