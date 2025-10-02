@@ -74,6 +74,7 @@ private fun createBenchmarkTestRule(projectName: String,
     })
     .around(CollectDaemonLogsRule())
     .around(DisablePhasedSyncDependencyRule())
+    .around(DisableTestSuitesRule())
     .maybeDisableBuiltInKotlin(project)
     .maybeDisableNewDsl(project)
     .around(DisablePhasedSyncDependencyRule())
