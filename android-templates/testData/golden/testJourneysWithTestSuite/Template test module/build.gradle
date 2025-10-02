@@ -42,7 +42,7 @@ android {
                     includeEngines 'journeys-test-engine'
                     enginesDependencies('org.junit.platform:junit-platform-launcher:1.13.4')
                     enginesDependencies('org.junit.platform:junit-platform-engine:1.13.4')
-                    enginesDependencies('com.android.tools.journeys:journeys-junit-engine:0.0.1-dev')
+                    enginesDependencies('com.android.tools.journeys:journeys-junit-engine:0.2.0-alpha01')
                 }
                 targetVariants 'INSERT_TARGET_VARIANT_HERE'
             }
