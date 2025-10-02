@@ -102,7 +102,7 @@ public class VersionsAreIncompatibleTest {
 
   private final boolean myForceUpgrade;
 
-  private static final AgpVersion unsupportedVersion = AgpVersion.parse("3.6.0");
+  private static final AgpVersion unsupportedVersion = AgpVersion.parse("4.0.0");
 
   public VersionsAreIncompatibleTest(@NotNull String current, @NotNull String recommended, boolean forceUpgrade) {
     myCurrent = AgpVersion.parse(current);
