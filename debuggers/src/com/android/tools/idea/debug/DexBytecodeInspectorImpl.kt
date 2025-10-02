@@ -116,8 +116,7 @@ class DexBytecodeInspectorImpl : DexBytecodeInspector {
     targets: List<KotlinMethodSmartStepTarget>,
     context: SmartStepIntoContext,
   ): List<KotlinMethodSmartStepTarget> {
-    val (expression, debugProcess, _, _) = context
-    val location = context.location ?: return targets
+    val (expression, debugProcess, _, _, location) = context
     val method = location.safeMethod() ?: return targets
 
     val start = System.currentTimeMillis()
