@@ -1,0 +1,61 @@
+/*
+ * Copyright (C) 2015 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.startup
+
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.Constraints
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.EmptyAction
+import com.intellij.openapi.actionSystem.EmptyActionGroup
+
+object Actions {
+  @JvmStatic
+  fun hideAction(actionManager: ActionManager, actionId: String) {
+    if (actionManager.getActionOrStub(actionId) == null) {
+      return  // Action not found.
+    }
+    val emptyReplacement =
+      if (actionManager.isGroup(actionId)) EmptyActionGroup() else EmptyAction()
+    actionManager.replaceAction(actionId, emptyReplacement)
+  }
+
+  @JvmStatic
+  fun replaceAction(actionManager: ActionManager, actionId: String, newAction: AnAction) {
+    if (actionManager.getActionOrStub(actionId) != null) {
+      actionManager.replaceAction(actionId, newAction)
+    } else {
+      actionManager.registerAction(actionId, newAction)
+    }
+  }
+
+  @JvmStatic
+  fun moveAction(
+    actionManager: ActionManager,
+    actionId: String,
+    oldGroupId: String,
+    groupId: String,
+    constraints: Constraints
+  ) {
+    val action = actionManager.getActionOrStub(actionId)
+    val group = actionManager.getAction(groupId)
+    val oldGroup = actionManager.getAction(oldGroupId)
+    if (action != null && oldGroup is DefaultActionGroup && group is DefaultActionGroup) {
+      oldGroup.remove(action, actionManager)
+      group.add(action, constraints, actionManager)
+    }
+  }
+}
