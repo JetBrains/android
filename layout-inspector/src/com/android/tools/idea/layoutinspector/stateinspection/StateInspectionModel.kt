@@ -26,7 +26,6 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.Par
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadData
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadResult
 import com.android.tools.idea.layoutinspector.properties.PropertyType
-import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -84,14 +83,13 @@ internal interface StateInspectionModel {
 internal class StateInspectionModelImpl(
   private val model: InspectorModel,
   parentScope: CoroutineScope,
-  private val treeSettings: TreeSettings,
   private val client: () -> InspectorClient,
   parentDisposable: Disposable,
 ) : StateInspectionModel {
   private val scope = parentScope.createChildScope(parentDisposable = parentDisposable)
   private var currentNode: ComposeViewNode? = null
   private var currentRecomposition = 0
-  private var firstRecomposition = 0
+  private var hasStateReadsForPreviousRecomposition = false
 
   private val _show = MutableStateFlow(false)
   override val show = _show.asStateFlow()
@@ -133,7 +131,7 @@ internal class StateInspectionModelImpl(
     val composable = view as? ComposeViewNode
     _show.value = (composable != null)
     if (composable != null) {
-      loadRecompositionStateReads(composable, composable.recompositions.count)
+      loadRecompositionStateReads(composable, composable.recompositions.count, searchUp = false)
     } else {
       stopStateObservations()
     }
@@ -157,7 +155,7 @@ internal class StateInspectionModelImpl(
   private fun showResult(result: RecomposeStateReadResult) {
     currentNode = result.node
     currentRecomposition = result.recomposition
-    firstRecomposition = result.firstObservedRecomposition
+    hasStateReadsForPreviousRecomposition = result.hasStateReadsForPreviousRecomposition
     _recompositionText.value = generateRecompositionText()
     _stateReadsText.value = generateStateReadsText(result.reads.size)
     _stackTraceText.value = generateStackTraces(result.reads)
@@ -166,8 +164,12 @@ internal class StateInspectionModelImpl(
     _updates.value += 1
   }
 
-  private fun loadRecompositionStateReads(composable: ComposeViewNode, recomposition: Int) {
-    if (composable.anchorHash != currentNode?.anchorHash && !treeSettings.observeStateReadsForAll) {
+  private fun loadRecompositionStateReads(
+    composable: ComposeViewNode,
+    recomposition: Int,
+    searchUp: Boolean,
+  ) {
+    if (composable.anchorHash != currentNode?.anchorHash) {
       currentNode = null
       _recompositionText.value =
         LayoutInspectorBundle.message("layout.inspector.recomposition.waiting")
@@ -175,14 +177,10 @@ internal class StateInspectionModelImpl(
       _stackTraceText.value = ""
       _updates.value += 1
     }
-    scope.launch { client().requestRecompositionStateReads(composable, recomposition) }
+    scope.launch { client().requestRecompositionStateReads(composable, recomposition, searchUp) }
   }
 
   private fun stopStateObservations() {
-    val node = currentNode ?: return
-    if (!treeSettings.observeStateReadsForAll) {
-      scope.launch { client().requestRecompositionStateReads(node, 0) }
-    }
     clear()
   }
 
@@ -197,17 +195,16 @@ internal class StateInspectionModelImpl(
 
   private fun gotoPrevRecomposition() {
     val node = currentNode ?: return
-    loadRecompositionStateReads(node, currentRecomposition - 1)
+    loadRecompositionStateReads(node, currentRecomposition - 1, searchUp = false)
   }
 
   private fun gotoNextRecomposition() {
     val node = currentNode ?: return
-    loadRecompositionStateReads(node, currentRecomposition + 1)
+    loadRecompositionStateReads(node, currentRecomposition + 1, searchUp = true)
   }
 
   private fun hasPrevComposition(): Boolean {
-    val node = currentNode ?: return false
-    return currentRecomposition > firstRecomposition && node.recompositions.count > 0
+    return currentNode != null && hasStateReadsForPreviousRecomposition
   }
 
   private fun hasNextComposition(): Boolean {

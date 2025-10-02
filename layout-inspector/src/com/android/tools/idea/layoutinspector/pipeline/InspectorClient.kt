@@ -216,7 +216,11 @@ interface InspectorClient : Disposable {
   val treeLoader: TreeLoader
 
   /** Load Recomposition State Reads for the current app. */
-  suspend fun requestRecompositionStateReads(view: ComposeViewNode, recomposition: Int)
+  suspend fun requestRecompositionStateReads(
+    view: ComposeViewNode,
+    recomposition: Int,
+    searchUp: Boolean,
+  )
 
   /** True, if the current connection is currently receiving live updates. */
   val inLiveMode: Boolean
@@ -293,7 +297,11 @@ object DisconnectedClient : InspectorClient {
       override fun getAllWindowIds(data: Any?): List<*> = emptyList<Any>()
     }
 
-  override suspend fun requestRecompositionStateReads(view: ComposeViewNode, recomposition: Int) {}
+  override suspend fun requestRecompositionStateReads(
+    view: ComposeViewNode,
+    recomposition: Int,
+    searchUp: Boolean,
+  ) {}
 
   override val inLiveMode = false
   override val provider = EmptyPropertiesProvider

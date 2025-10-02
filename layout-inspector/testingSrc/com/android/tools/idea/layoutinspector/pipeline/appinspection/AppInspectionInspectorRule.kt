@@ -31,6 +31,7 @@ import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_LAYOUT_INSPECTOR_ID
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeComposeLayoutInspector
 // TODO merge
 //import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeComposeLayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeInspector
@@ -84,24 +85,7 @@ class AppInspectionInspectorRule(
         }
       }
     )
-  // TODO merge
-  //val composeInspector =
-  //  FakeComposeLayoutInspector(
-  //    object : FakeInspector.Connection<LayoutInspectorComposeProtocol.Event>() {
-  //      override fun sendEvent(event: LayoutInspectorComposeProtocol.Event) {
-  //        if (withDefaultResponse) {
-  //          inspectionService.addAppInspectionEvent(
-  //            AppInspection.AppInspectionEvent.newBuilder()
-  //              .apply {
-  //                inspectorId = COMPOSE_LAYOUT_INSPECTOR_ID
-  //                rawEventBuilder.content = event.toByteString()
-  //              }
-  //              .build()
-  //          )
-  //        }
-  //      }
-  //    }
-  //  )
+  val composeInspector = FakeComposeLayoutInspector()
 
   init {
     val viewInspectorHandler =

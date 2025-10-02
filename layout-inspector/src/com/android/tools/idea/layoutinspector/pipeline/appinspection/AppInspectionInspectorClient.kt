@@ -139,8 +139,12 @@ class AppInspectionInspectorClient(
   override val provider: PropertiesProvider
     get() = propertiesProvider
 
-  override suspend fun requestRecompositionStateReads(view: ComposeViewNode, recomposition: Int) {
-    composeInspector?.requestRecompositionStateReads(view, recomposition)
+  override suspend fun requestRecompositionStateReads(
+    view: ComposeViewNode,
+    recomposition: Int,
+    searchUp: Boolean,
+  ) {
+    composeInspector?.requestRecompositionStateReads(view, recomposition, searchUp)
   }
 
   override val inLiveMode: Boolean

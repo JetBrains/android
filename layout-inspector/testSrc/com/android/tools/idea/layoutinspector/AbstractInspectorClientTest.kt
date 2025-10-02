@@ -120,5 +120,9 @@ private class MyClient(
   override val inLiveMode = false
   override val provider: PropertiesProvider = mock()
 
-  override suspend fun requestRecompositionStateReads(view: ComposeViewNode, recomposition: Int) {}
+  override suspend fun requestRecompositionStateReads(
+    view: ComposeViewNode,
+    recomposition: Int,
+    searchUp: Boolean,
+  ) {}
 }
