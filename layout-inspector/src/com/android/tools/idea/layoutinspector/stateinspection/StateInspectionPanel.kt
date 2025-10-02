@@ -66,7 +66,6 @@ internal fun createStateInspectionPanel(
     StateInspectionModelImpl(
       inspectorModel,
       layoutInspector.coroutineScope,
-      layoutInspector.treeSettings,
       { layoutInspector.currentClient },
       parentDisposable,
     )

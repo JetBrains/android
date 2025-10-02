@@ -156,5 +156,9 @@ private class FakeInspectorClient : InspectorClient {
   override val provider: PropertiesProvider
     get() = throw NotImplementedError()
 
-  override suspend fun requestRecompositionStateReads(view: ComposeViewNode, recomposition: Int) {}
+  override suspend fun requestRecompositionStateReads(
+    view: ComposeViewNode,
+    recomposition: Int,
+    searchUp: Boolean,
+  ) {}
 }

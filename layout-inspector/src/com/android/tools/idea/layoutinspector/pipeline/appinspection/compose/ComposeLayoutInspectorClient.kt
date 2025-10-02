@@ -50,7 +50,6 @@ import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.android.tools.idea.protobuf.CodedInputStream
-import com.android.tools.idea.protobuf.InvalidProtocolBufferException
 import com.android.tools.idea.transport.TransportException
 import com.android.tools.idea.util.StudioPathManager
 import com.google.common.annotations.VisibleForTesting
@@ -67,12 +66,8 @@ import kotlin.io.path.name
 import kotlin.io.path.pathString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Command
-// TODO merge
-//import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Event
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersCommand
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesCommand
@@ -528,7 +523,7 @@ class ComposeLayoutInspectorClient(
 
   val parametersCache = ComposeParametersCache(this, model)
 
-  val recompositionStateReadsCache = RecompositionStateReadCache(this, model, treeSettings)
+  val recompositionStateReadsCache = RecompositionStateReadCache(this, model, scope, treeSettings)
 
   /**
    * The caller will supply a running (increasing) number, that can be used to coordinate the
@@ -538,31 +533,6 @@ class ComposeLayoutInspectorClient(
 
   /** The value of [lastGeneration] when the last recomposition reset command was sent. */
   private var lastGenerationReset = 0
-
-  init {
-    scope.launch {
-      messenger.eventFlow
-        .mapNotNull { eventBytes ->
-          try {
-            // TODO merge
-            //Event.parseFrom(eventBytes)
-          } catch (_: InvalidProtocolBufferException) {
-            // Catch and swallow protocol exceptions thrown when debugging the application.
-            // The above bytes are stitched together from separate messages. However, messages
-            // sent during break point suspension can get duplicated in the transport layer,
-            // resulting in a larger than expected payload.
-            // See b/181908873 for context.
-            null
-          }
-        }
-        .collect { event ->
-          // TODO merge
-          //if (event.specializedCase == Event.SpecializedCase.STATE_READ_EVENT) {
-          //  recompositionStateReadsCache.handleEvent(event.stateReadEvent)
-          //}
-        }
-    }
-  }
 
   suspend fun getComposeables(
     rootViewId: Long,
@@ -676,22 +646,31 @@ class ComposeLayoutInspectorClient(
   }
 
   /**
-   * Get state reads observed for the composable with [anchorHash] while it was recomposing for the
-   * specified [recomposition] from the device agent.
+   * Get recomposition state reads for a composable and a range of recompositions.
+   *
+   * @param anchorHash The anchor hash of the composable to retrieve state reads for
+   * @param recompositionNumberStart the lower recomposition number of the range
+   * @param recompositionNumberEnd the upper recomposition number of the range
+   * @param includeExtra If false: return state reads for the specified recompositions only. If
+   *   true: include extra recompositions after recomposition_number_end if any of the
+   *   recompositions in the specified range doesn't have state reads.
    */
   suspend fun getRecompositionStateReads(
     anchorHash: Int,
-    recomposition: Int,
+    recompositionNumberStart: Int,
+    recompositionNumberEnd: Int,
+    includeExtra: Boolean,
   ): GetRecompositionStateReadResponse {
-    logDiagnostics(ComposeLayoutInspectorClient::class.java, "Sending: GetComposeStateReadResponse")
+    logDiagnostics(ComposeLayoutInspectorClient::class.java, "Sending: GetComposeStateReadCommand")
     val response =
       messenger.sendCommand {
         getRecompositionStateReadCommand =
           GetRecompositionStateReadCommand.newBuilder()
             .apply {
               this.anchorHash = anchorHash
-              // TODO merge
-              //this.recompositionNumber = recomposition
+              this.recompositionNumberStart = recompositionNumberStart
+              this.recompositionNumberEnd = recompositionNumberEnd
+              this.includeExtra = includeExtra
             }
             .build()
       }
@@ -702,8 +681,7 @@ class ComposeLayoutInspectorClient(
     lastGenerationReset = lastGeneration
     logDiagnostics(ComposeLayoutInspectorClient::class.java, "Sending: UpdateSettingsCommand")
     val nodeForStateReads = model.stateReadsNode as? ComposeViewNode
-    val maxRecompositions =
-      StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_MAX_RECOMPOSITIONS_WITH_STATE_READS.get()
+    val maxStateReads = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_MAX_STATE_READS.get()
     val response =
       messenger.sendCommand {
         updateSettingsCommand =
@@ -712,16 +690,14 @@ class ComposeLayoutInspectorClient(
               includeRecomposeCounts = treeSettings.showRecompositions
               keepRecomposeCounts = keepRecompositionCounts
               stateReadSettingsBuilder.apply {
-                // TODO merge
-                //when {
-                //  treeSettings.observeStateReadsForAll ->
-                //    allBuilder.maxRecompositions = maxRecompositions
-                //  nodeForStateReads != null -> {
-                //    byIdBuilder.addComposableToObserve(nodeForStateReads.anchorHash)
-                //    byIdBuilder.maxRecompositions = maxRecompositions
-                //  }
-                //  else -> noneBuilder
-                //}
+                when {
+                  treeSettings.observeStateReadsForAll -> allBuilder.maxStateReads = maxStateReads
+                  nodeForStateReads != null -> {
+                    byIdBuilder.addComposableToObserve(nodeForStateReads.anchorHash)
+                    byIdBuilder.maxStateReads = maxStateReads
+                  }
+                  else -> noneBuilder
+                }
               }
               delayParameterExtractions = true
               reduceChildNesting = true
@@ -752,8 +728,12 @@ class ComposeLayoutInspectorClient(
     messenger.scope.cancel()
   }
 
-  suspend fun requestRecompositionStateReads(view: ComposeViewNode, recomposition: Int) {
-    recompositionStateReadsCache.requestRecomposeStateReads(view, recomposition)
+  suspend fun requestRecompositionStateReads(
+    view: ComposeViewNode,
+    recomposition: Int,
+    searchUp: Boolean,
+  ) {
+    recompositionStateReadsCache.requestRecomposeStateReads(view, recomposition, searchUp)
   }
 }
 
