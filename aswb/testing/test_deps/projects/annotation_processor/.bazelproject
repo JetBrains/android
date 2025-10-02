@@ -1,0 +1,4 @@
+directories:
+  annotation_processor/main
+
+android_sdk_platform: android-34
