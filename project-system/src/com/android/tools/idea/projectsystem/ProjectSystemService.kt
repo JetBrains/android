@@ -17,6 +17,7 @@ package com.android.tools.idea.projectsystem
 
 import com.intellij.ide.impl.OpenProjectTask
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ex.ApplicationManagerEx
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.PersistentStateComponent
@@ -104,7 +105,7 @@ class ProjectSystemService(val project: Project): PersistentStateComponent<Proje
     get() = projectSystemForTests ?: try {
       cachedProjectSystem.also {
         if (rootsChangedState.compareAndSet(UPDATE_NEEDED, UPDATE_SENT)) {
-          ApplicationManager.getApplication().invokeLater {
+          ApplicationManager.getApplication().invokeLater({
             if (project.isDisposed) return@invokeLater
             // We get here if at a previous time in this session we returned a DefaultProjectSystem because of being unable to
             // acquire the read lock.  This happens rarely in tests, and almost never in production.
@@ -113,7 +114,7 @@ class ProjectSystemService(val project: Project): PersistentStateComponent<Proje
             // it is probably not the case that sending a roots changed event is enough to force recomputation of all dependents,
             // but this at least allows other IDE systems to listen for these events and respond appropriately.
             runWriteAction { sendRootsChangedEvents(project) }
-          }
+          }, ModalityState.nonModal())
         }
       }
     }
