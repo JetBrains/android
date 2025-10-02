@@ -109,7 +109,7 @@ class AgpVersionsTest {
       localAndSnapshotVersions = listOf(),
       includeHistoricalAgpVersions = true,
     ).map { it.toString() })
-      .containsExactly("8.3.0-alpha02", "8.2.0-beta02", "8.1.2", "8.1.1", "8.1.0", "7.4.2", "7.4.1", "7.4.0", "7.3.3", "4.1.0", "4.0.0")
+      .containsExactly("8.3.0-alpha02", "8.2.0-beta02", "8.1.2", "8.1.1", "8.1.0", "7.4.2", "7.4.1", "7.4.0", "7.3.3", "4.1.0")
       .inOrder()
 
     assertThat(
@@ -119,7 +119,7 @@ class AgpVersionsTest {
       localAndSnapshotVersions = listOf(),
       includeHistoricalAgpVersions = true,
       ).map { it.toString() })
-      .containsExactly("8.3.0-alpha01", "8.1.2", "8.1.1", "8.1.0", "7.4.2", "7.4.1", "7.4.0", "7.3.3", "4.1.0", "4.0.0")
+      .containsExactly("8.3.0-alpha01", "8.1.2", "8.1.1", "8.1.0", "7.4.2", "7.4.1", "7.4.0", "7.3.3", "4.1.0")
       .inOrder()
 
     assertThat(
