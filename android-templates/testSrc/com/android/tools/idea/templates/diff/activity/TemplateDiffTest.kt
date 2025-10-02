@@ -783,6 +783,15 @@ class TemplateDiffTest(private val testMode: TestMode) {
     StudioFlags.JOURNEYS_WITH_GEMINI_TEST_SUITE.override(true)
     checkCreateTemplate("Journey File")
   }
+
+  @Test
+  fun testBasicWatchFace() {
+    StudioFlags.NPW_ENABLE_BASIC_WATCH_FACE_TEMPLATE.override(true)
+    checkCreateTemplate("Basic Watch Face", {
+      moduleData,
+      _ -> moduleData.isWatchFace = true
+    })
+  }
 }
 
 typealias TemplateStateCustomizer = Map<String, Any>

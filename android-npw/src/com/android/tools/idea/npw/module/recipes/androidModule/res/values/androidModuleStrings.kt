@@ -17,8 +17,8 @@ package com.android.tools.idea.npw.module.recipes.androidModule.res.values
 
 import com.android.ide.common.resources.escape.string.StringResourceEscaper.escape
 
-fun androidModuleStrings(appTitle: String) =
-"""<resources>
-    <string name="app_name">${escape(appTitle, true)}</string>
+fun androidModuleStrings(appTitleResName: String, appTitle: String) =
+  """<resources>
+    <string name="$appTitleResName">${escape(appTitle, true)}</string>
 </resources>
 """

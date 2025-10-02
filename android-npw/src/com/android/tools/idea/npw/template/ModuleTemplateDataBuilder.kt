@@ -92,6 +92,7 @@ class ModuleTemplateDataBuilder(
   var useGenericLocalTests: Boolean = true
   var useGenericInstrumentedTests: Boolean = true
   var currentVariant: String? = null
+  var isWatchFace: Boolean = false
 
   /**
    * Adds common module roots template values like [rootDir], [srcDir], etc
@@ -282,8 +283,7 @@ class ModuleTemplateDataBuilder(
       commonSrcDir = commonSrcDir,
       iosSrcDir = iosSrcDir,
       currentVariant = currentVariant,
-      // TODO merge
-      isWatchFace = TODO(),
+      isWatchFace = isWatchFace,
     )
   }
 }

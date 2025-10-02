@@ -1,0 +1,8 @@
+[versions]
+agp = "9.0.0-dev"
+
+[libraries]
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+

@@ -178,6 +178,7 @@ private constructor(
         category = newTemplate.category
         isCompose = newTemplate.constraints.contains(TemplateConstraint.Compose)
         isMaterial3 = newTemplate.constraints.contains(TemplateConstraint.Material3)
+        isWatchFace = newTemplate.category == Category.WatchFace
         useGenericInstrumentedTests = newTemplate.useGenericInstrumentedTests
         useGenericLocalTests = newTemplate.useGenericLocalTests
         projectTemplateDataBuilder.language = language.value

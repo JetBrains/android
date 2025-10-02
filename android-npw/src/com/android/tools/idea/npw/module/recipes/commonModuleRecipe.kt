@@ -56,6 +56,7 @@ fun RecipeExecutor.generateCommonModule(
   cppStandard: CppStandardType = CppStandardType.`Toolchain Default`,
   noKtx: Boolean = false,
   useVersionCatalog: Boolean,
+  appTitleResName: String = "app_name",
 ) {
   val (projectData, srcOut, resOut, manifestOut, instrumentedTestOut, localTestOut, _, moduleOut) =
     data
@@ -123,7 +124,7 @@ fun RecipeExecutor.generateCommonModule(
       IconsGenerationStyle.NONE -> Unit
     }
     with(resOut.resolve(SdkConstants.FD_RES_VALUES)) {
-      save(androidModuleStrings(appTitle!!), resolve("strings.xml"))
+      save(androidModuleStrings(appTitleResName, appTitle!!), resolve("strings.xml"))
       // Common themes.xml isn't needed for Compose because theme is created in Composable.
       if (themesXml != null && !data.isCompose) {
         save(themesXml, resolve("themes.xml"))
