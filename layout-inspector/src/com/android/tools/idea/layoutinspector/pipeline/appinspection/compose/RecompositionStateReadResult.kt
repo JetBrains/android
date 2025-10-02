@@ -25,8 +25,8 @@ class RecomposeStateReadResult(
   val recomposition: Int,
   /** The state reads for this [node] and [recomposition]. */
   val reads: List<RecomposeStateReadData>,
-  /** The first recomposition with state reads. */
-  val firstObservedRecomposition: Int,
+  /** There are state reads available to go back. */
+  val hasStateReadsForPreviousRecomposition: Boolean = false,
 )
 
 /**

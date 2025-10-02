@@ -29,6 +29,7 @@ import com.android.tools.idea.layoutinspector.model.COMPOSE2
 import com.android.tools.idea.layoutinspector.model.COMPOSE3
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.FakeInspectorStateReads
 // TODO merge
 //import com.android.tools.idea.layoutinspector.pipeline.appinspection.FakeInspectorStateReads
 import com.android.tools.idea.layoutinspector.window
@@ -86,95 +87,59 @@ class StateInspectionPanelIntegrationTest {
   }
 
   @Test
-  fun testPanelWithStateReadsForAll() {
-    // TODO merge
-    //inspectorRule.inspector.treeSettings.observeStateReadsForAll = true
-    //val state = FakeInspectorStateReads(inspectionRule.composeInspector)
-    //state.createFakeStateReadsForAll()
+  fun testPanelWithStateReads() {
+    val state = FakeInspectorStateReads(inspectionRule.composeInspector)
+    state.createFakeStateReads()
 
-    val panel = createPanel(COMPOSE1)
+    val panel = createPanel()
     val ui = FakeUi(panel, createFakeWindow = true)
     val prev = panel.buttonWithIcon(StudioIcons.LayoutEditor.Motion.PREVIOUS_TICK)
     val next = panel.buttonWithIcon(StudioIcons.LayoutEditor.Motion.NEXT_TICK)
     val minimize = panel.buttonWithIcon(AllIcons.General.HideToolWindow)
     val recompositionText = panel.getDescendant<JLabel> { it.name == RECOMPOSITION_TEXT_LABEL_NAME }
 
-    waitForCondition(10.seconds) { recompositionText.text == "Recomposition 2" }
-    panel.checkContent("state_reads_1_2.txt")
+    waitForCondition(10.seconds) { recompositionText.text == "Recomposition 3" }
+    panel.checkContent("state_reads_1_3.txt")
     panel.checkComposableInspected()
     assertThat(prev.isEnabled).isTrue()
     assertThat(next.isEnabled).isFalse()
 
     ui.click(prev)
-    waitForCondition(10.seconds) { recompositionText.text == "Recomposition 1" }
-    panel.checkContent("state_reads_1_1.txt")
-    panel.checkComposableInspected()
-    assertThat(prev.isEnabled).isFalse()
-    assertThat(next.isEnabled).isTrue()
-
-    ui.click(next)
     waitForCondition(10.seconds) { recompositionText.text == "Recomposition 2" }
     panel.checkContent("state_reads_1_2.txt")
     panel.checkComposableInspected()
-    assertThat(prev.isEnabled).isTrue()
-    assertThat(next.isEnabled).isFalse()
-    assertThat(SwingUtilities.isDescendingFrom(recompositionText, panel)).isTrue()
-
-    assertThat(minimize.isEnabled).isTrue()
-    ui.click(minimize)
-    waitForCondition(10.seconds) { !panel.isVisible }
-    assertThat(SwingUtilities.isDescendingFrom(recompositionText, panel)).isFalse()
-  }
-
-  @Test
-  fun testPanelWithStateReadsOnDemand() {
-    inspectorRule.inspector.treeSettings.observeStateReadsForAll = false
-    // TODO merge
-    //val state = FakeInspectorStateReads(inspectionRule.composeInspector)
-    //state.createFakeStateReadsForOnDemand()
-
-    val panel = createPanel(COMPOSE1)
-    val compose1 = inspectorRule.inspectorModel[COMPOSE1]!!
-    val ui = FakeUi(panel, createFakeWindow = true)
-    val prev = panel.buttonWithIcon(StudioIcons.LayoutEditor.Motion.PREVIOUS_TICK)
-    val next = panel.buttonWithIcon(StudioIcons.LayoutEditor.Motion.NEXT_TICK)
-    val minimize = panel.buttonWithIcon(AllIcons.General.HideToolWindow)
-    val recompositionText = panel.getDescendant<JLabel> { it.name == RECOMPOSITION_TEXT_LABEL_NAME }
-    val stateReadText = panel.getDescendant<JLabel> { it.name == STATE_READ_TEXT_LABEL_NAME }
-
-    waitForCondition(10.seconds) { recompositionText.text == "Waiting for interactions" }
-    assertThat(stateReadText.text).isEqualTo("")
-    panel.checkContent("")
-    assertThat(prev.isEnabled).isFalse()
-    assertThat(next.isEnabled).isFalse()
-
-    compose1.recompositions.count = 4
-    // TODO merge
-    //state.sendEventForRecomposition3()
-    waitForCondition(10.seconds) { recompositionText.text == "Recomposition 3" }
-    assertThat(stateReadText.text).isEqualTo("State Reads: 1")
-    panel.checkContent("state_reads_1_1.txt")
-    panel.checkComposableInspected()
     assertThat(prev.isEnabled).isFalse()
     assertThat(next.isEnabled).isTrue()
 
     ui.click(next)
-    waitForCondition(10.seconds) { recompositionText.text == "Recomposition 4" }
-    assertThat(stateReadText.text).isEqualTo("State Reads: 2")
-    panel.checkContent("state_reads_1_2.txt")
+    waitForCondition(10.seconds) { recompositionText.text == "Recomposition 3" }
+    panel.checkContent("state_reads_1_3.txt")
     panel.checkComposableInspected()
     assertThat(prev.isEnabled).isTrue()
     assertThat(next.isEnabled).isFalse()
 
-    ui.click(prev)
-    waitForCondition(10.seconds) { recompositionText.text == "Recomposition 3" }
-    assertThat(stateReadText.text).isEqualTo("State Reads: 1")
-    panel.checkContent("state_reads_1_1.txt")
-    panel.checkComposableInspected()
-    assertThat(prev.isEnabled).isFalse()
-    assertThat(next.isEnabled).isTrue()
-    assertThat(SwingUtilities.isDescendingFrom(recompositionText, panel)).isTrue()
+    // Emulate an update that adds several recomposition for compose1.
+    // Expect the next action to become enabled.
+    val updatedRecompositionCounts =
+      window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
+        compose(COMPOSE1, "Column", composeCount = 104, composeFilename = "MainActivity.kt") {
+          compose(COMPOSE2, "Button", composeCount = 2) {
+            compose(COMPOSE3, "Text", composeCount = 0)
+          }
+        }
+      }
+    inspectorRule.inspectorModel.update(updatedRecompositionCounts, listOf(ROOT), 0)
+    waitForCondition(10.seconds) { next.isEnabled }
+    state.lateStateReadsKnown = true
 
+    ui.click(next)
+    waitForCondition(10.seconds) { recompositionText.text == "Recomposition 102" }
+    panel.checkContent("state_reads_1_102.txt")
+    panel.checkComposableInspected()
+    assertThat(prev.isEnabled).isFalse() // The cache will remove elements before the found gap
+    assertThat(next.isEnabled).isTrue()
+
+    assertThat(SwingUtilities.isDescendingFrom(recompositionText, panel)).isTrue()
     assertThat(minimize.isEnabled).isTrue()
     ui.click(minimize)
     waitForCondition(10.seconds) { !panel.isVisible }
@@ -206,11 +171,11 @@ class StateInspectionPanelIntegrationTest {
     mouse.click(point.x, point.y)
   }
 
-  private fun createPanel(node: Long): StateInspectionPanel {
+  private fun createPanel(): StateInspectionPanel {
     val model = inspectorRule.inspectorModel
     val window =
       window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
-        compose(COMPOSE1, "Column", composeCount = 2, composeFilename = "MainActivity.kt") {
+        compose(COMPOSE1, "Column", composeCount = 3, composeFilename = "MainActivity.kt") {
           compose(COMPOSE2, "Button", composeCount = 2) {
             compose(COMPOSE3, "Text", composeCount = 0)
           }
@@ -219,7 +184,7 @@ class StateInspectionPanelIntegrationTest {
     model.update(window, listOf(ROOT), 0)
     val panel = createStateInspectionPanel(inspectorRule.inspector, projectRule.testRootDisposable)
     panel.size = Dimension(800, 600)
-    model.stateReadsNode = model[node]
+    model.stateReadsNode = model[COMPOSE1]
     return panel
   }
 }

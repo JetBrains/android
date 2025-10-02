@@ -85,7 +85,11 @@ class LegacyClient(
 
   override val treeLoader = treeLoaderForTest ?: LegacyTreeLoader(this)
 
-  override suspend fun requestRecompositionStateReads(view: ComposeViewNode, recomposition: Int) {}
+  override suspend fun requestRecompositionStateReads(
+    view: ComposeViewNode,
+    recomposition: Int,
+    searchUp: Boolean,
+  ) {}
 
   val latestScreenshots = mutableMapOf<String, ByteArray>()
   var latestData = mutableMapOf<String, ByteArray>()

@@ -1155,10 +1155,10 @@ public final class StudioFlags {
     "Enable display of state read stacktrace for recompositions."
     );
 
-  public static final Flag<Integer> DYNAMIC_LAYOUT_INSPECTOR_MAX_RECOMPOSITIONS_WITH_STATE_READS = new IntFlag(
-    LAYOUT_INSPECTOR, "dynamic.layout.inspector.max.recompositions.with.state.reads",
-    "Max recompositions with state reads",
-    "When dynamic state reads are observed: limit the recompositions the agent caches state reads for.", 20
+  public static final Flag<Integer> DYNAMIC_LAYOUT_INSPECTOR_MAX_STATE_READS = new IntFlag(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.max.state.reads",
+    "Max number of state reads stored on the device",
+    "Limit the amount of state reads the agent caches to avoid OOM problems on the device.", 5000
   );
   //endregion
 
