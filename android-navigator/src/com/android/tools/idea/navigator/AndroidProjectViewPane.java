@@ -188,7 +188,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
 
   @NotNull
   @Override
-  protected ProjectAbstractTreeStructureBase createStructure() {
+  public ProjectAbstractTreeStructureBase createStructure() {
     return new AndroidProjectTreeStructure(myProject, ID);
   }
 
@@ -364,7 +364,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
   }
 
   @VisibleForTesting
-  boolean isDefaultPane(@NotNull Project project, @NotNull IdeInfo ideInfo, @Nullable AndroidProjectViewSettings settings) {
+  public boolean isDefaultPane(@NotNull Project project, @NotNull IdeInfo ideInfo, @Nullable AndroidProjectViewSettings settings) {
     if ((!ideInfo.isAndroidStudio()) && (!ideInfo.isGameTools())) {
       return super.isDefaultPane(project);
     }

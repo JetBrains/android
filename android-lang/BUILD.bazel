@@ -51,6 +51,7 @@ jvm_library(
     "//platform/util/base",
     "//platform/util-rt",
     "//platform/util:util-ui",
+    "//plugins/kotlin/base/util",
   ]
 )
 ### auto-generated section `build intellij.android.lang` end

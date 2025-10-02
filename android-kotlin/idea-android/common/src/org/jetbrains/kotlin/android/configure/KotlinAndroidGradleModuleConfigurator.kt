@@ -79,7 +79,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
 
     override val presentableText: String = "Android with Gradle"
 
-    public override fun isApplicable(module: Module): Boolean = module.buildSystemType == BuildSystemType.AndroidGradle
+    override fun isApplicable(module: Module): Boolean = module.buildSystemType == BuildSystemType.AndroidGradle
 
     override val kotlinPluginName: String = KOTLIN_ANDROID
 
@@ -239,7 +239,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
             (module.getModuleSystem() as? GradleModuleSystem)?.getResolvedDependency(id.getModule(), DependencyScopeType.MAIN)?.version
         }
         catch (e: DependencyManagementException) {
-            return null
+            null
         }
     }
 

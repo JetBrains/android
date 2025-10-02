@@ -19,11 +19,10 @@ import com.android.SdkConstants
 import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.gradle.RichVersion
-import com.android.ide.common.gradle.RichVersion.Declaration
-import com.android.ide.common.gradle.RichVersion.Kind.STRICTLY
+import com.android.ide.common.gradle.Module as ExternalModule
 import com.android.ide.common.gradle.Version
 import com.android.ide.common.gradle.VersionRange
-import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.repository.KnownVersionStability
 import com.android.ide.common.repository.MavenRepositories
 import com.android.ide.common.repository.stability
 import com.android.tools.idea.concurrency.transform
@@ -43,7 +42,6 @@ import com.android.tools.idea.gradle.repositories.search.RepositorySearchFactory
 import com.android.tools.idea.gradle.repositories.search.SearchRequest
 import com.android.tools.idea.gradle.repositories.search.SearchResult
 import com.android.tools.idea.gradle.repositories.search.SingleModuleSearchQuery
-import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
 import com.google.common.collect.Range
@@ -54,7 +52,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import org.jetbrains.annotations.TestOnly
 import java.util.ArrayDeque
-import com.android.ide.common.gradle.Module as ExternalModule
 
 private const val MAX_ARTIFACTS_TO_REQUEST = 50  // Note: we do not expect more than one result per repository.
 private val groupsWithVersionIdentifyRequirements = listOf(SdkConstants.SUPPORT_LIB_GROUP_ID)
@@ -70,43 +67,23 @@ class GradleDependencyCompatibilityAnalyzer(
   private val repositorySearchFactory: RepositorySearchFactory = CachingRepositorySearchFactory()
 
   /**
-   * Analyze the existing artifacts and [dependenciesToAdd] for version capability.
-   * The decision is designed to help choose versions for [dependenciesToAdd] such
-   * that Gradle can still build the project after the dependencies are added.
+   * Analyse existing module dependencies in combination with [components] for
+   * version compatibility.
+   *
+   * The [components] are treated as strict declarations referring to ranges of
+   * [KnownVersionStability], in order to determine whether there are incompatibilities between
+   * the requested components and any existing dependency declarations.
    *
    * There are (at least) 3 possible error conditions:
-   * <ul>
-   *   <li>The latest version of a new artifact has a dependency that is newer than
-   *       an existing dependency. This method should handle this case by attempting
-   *       to match an earlier version of that new artifact.</li>
-   *   <li>The latest version of a new artifact has a dependency that is older than
-   *       an existing dependency. The situation could be handled by choosing older
-   *       versions of the existing dependencies. However this method is not attempting
-   *       to handle this situation. Instead a warning message is returned, and the
-   *       user has to edit the resulting dependencies if addition is accepted with
-   *       those warnings.</li>
-   *   <li>There is theoretically a possibility that there is no possible matches.
-   *       Give a warning and choose the newest available version.</li>
-   * </ul>
-   *
-   * See the documentation on [GradleModuleSystem.analyzeCoordinateCompatibility]
-   * for information on the return value.
+   * - The latest version of a new artifact has a dependency that is newer than
+   *   an existing dependency. This method should handle this case by attempting
+   *   to match an earlier version of that new artifact.
+   * - The latest version of a new artifact has a dependency that is older than
+   *   an existing dependency.  (The situation could be handled by choosing older
+   *   versions of the existing dependencies, but that is out of scope for this
+   *   method.)
+   * - There are no possible matches.
    */
-  fun analyzeCoordinateCompatibility(
-    coordinatesToAdd: List<GradleCoordinate>
-  ): ListenableFuture<Triple<List<GradleCoordinate>, List<GradleCoordinate>, String>> =
-    coordinatesToAdd.associateBy { it.dependency() }.let { dependenciesToCoordinates ->
-      val dependenciesToAdd = dependenciesToCoordinates.keys.toList()
-      findVersions(dependenciesToAdd).transform(MoreExecutors.directExecutor()) { results ->
-        analyzeCompatibility(dependenciesToCoordinates.map { it.key to it.value.toString() }, results).run {
-          val found = first.values.map { component -> GradleCoordinate(component.group, component.name, component.version.toString()) }
-          val missing = second.mapNotNull { dependency -> dependenciesToCoordinates[dependency] }
-          val message = third
-          Triple(found, missing, message)
-        }
-      }
-    }
-
   fun analyzeComponentCompatibility(
     components: List<Component>
   ): ListenableFuture<Triple<Map<Component,Component>, List<Dependency>, String>> {
@@ -525,17 +502,6 @@ private fun RepositoryModel.toArtifactRepository(): ArtifactRepository? {
 }
 
 private fun Component.dependency() = Dependency(group, name, RichVersion.parse(version.toString()))
-// You might think that
-//   private fun GradleCoordinate.dependency() = Dependency(groupId, artifactId, RichVersion.parse(revision))
-// was a good definition for converting the GradleCoordinate to a (Gradle) Dependency.  However,
-// this analyzer in its implicit assumptions would like to make quite stringent restrictions on the treatment of
-// multiple versions: certainly, stricter than Gradle's dependency resolution, which imposes no semantics on the
-// structure of version numbers at all, and essentially assumes that infinite forward compatibility is acceptable.
-//
-// We preserve this behavior at the GradleCoordinate interface, but assume that callers passing in Dependency objects
-// are working with Gradle semantics.
-private fun GradleCoordinate.dependency() =
-  Dependency(groupId, artifactId, RichVersion(Declaration(STRICTLY, versionRange)))
 private fun Dependency.externalModule() = group?.let { ExternalModule(it, name) }
 private fun Dependency.versionRange() = version?.let {
   when {

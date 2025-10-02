@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes.android;
 
+import com.android.tools.idea.navigator.nodes.AndroidViewTypeSortWeight;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 import static java.util.Collections.emptyList;
 
@@ -117,6 +118,11 @@ public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> imp
   @Nullable
   public Comparable getTypeSortKey() {
     return AndroidSourceType.MANIFEST.INSTANCE;
+  }
+
+  @Override
+  public int getTypeSortWeight(final boolean sortByType) {
+    return AndroidViewTypeSortWeight.PACKAGE.getWeight();
   }
 
   @Override

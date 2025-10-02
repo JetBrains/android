@@ -268,8 +268,8 @@ private class GradleAndroidModelImpl(
 
   override val desugaring: Set<Desugaring>
     get() = getGradleDesugaring(
-      agpVersion, data.getJavaSourceLanguageLevel(), androidProject.javaCompileOptions?.isCoreLibraryDesugaringEnabled == true
-    )
+        agpVersion, data.getJavaSourceLanguageLevel(), androidProject.javaCompileOptions?.isCoreLibraryDesugaringEnabled == true
+      )
 
 
   override val resValues: Map<String, DynamicResourceValue>

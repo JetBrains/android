@@ -9,6 +9,7 @@
     </properties>
     <CLASSES>
       <root url="jar://$MAVEN_REPOSITORY$/nl/jqno/equalsverifier/equalsverifier/3.8.3/equalsverifier-3.8.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

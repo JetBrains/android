@@ -27,11 +27,11 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
-import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelDataImpl
+import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.gradle.project.model.GradleAndroidModelDataImpl
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.sync.ModelFeature
 import com.android.tools.idea.gradle.project.sync.ModelVersions
@@ -414,7 +414,7 @@ internal class AndroidSourceRootSyncContributor : GradleSyncContributor {
           // There seems to be a bug in workspace model implementation that requires doing this to update list of changed props
           this.facets = facets
         }
-        linkModuleGroup(sourceSetModuleEntitiesByArtifact)
+        linkModuleGroup(sourceSetModuleEntitiesByArtifact, featureToAppMapping)
         sourceSetModules
       }
     }
@@ -488,14 +488,27 @@ private fun SyncContributorAndroidProjectContext.getAllSourceSetModuleEntities(
   }
 }
 
-private fun SyncContributorAndroidProjectContext.linkModuleGroup(sourceSetModules: Map<IdeArtifactName, ModuleEntity.Builder>) {
+private fun SyncContributorAndroidProjectContext.linkModuleGroup(sourceSetModules: Map<IdeArtifactName, ModuleEntity.Builder>,
+  featureToAppMapping: Map<String, String?>
+) {
+  val projectDirectory = File (holderModuleEntity.exModuleOptions?.linkedProjectPath
+                               ?: error("Can't find external path for holder module"))
+
   val androidModuleGroup = getModuleGroup(sourceSetModules)
   val linkedModuleNames = sourceSetModules.values.map { it.name } + holderModuleEntity.name
   registerModuleActions(linkedModuleNames.associateWith {
     { moduleInstance ->
       moduleInstance.putUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP, androidModuleGroup)
-      val gradleAndroidModelData = gradleAndroidModelFactory(moduleInstance.name)
       AndroidFacet.getInstance(moduleInstance)?.let {
+        val gradleAndroidModelData = GradleAndroidModelDataImpl.create(
+          moduleInstance.name,
+          projectDirectory,
+          ideAndroidProject.copy(baseFeature = featureToAppMapping[ideAndroidProject.projectPath.projectPath]),
+          ideDeclaredDependencies,
+          ideAndroidProject.coreVariants.map { it as IdeVariantCoreImpl },
+          variantName ?: error("Unknown variant!")
+        )
+
         AndroidModel.set(it, GradleAndroidModel.create(project, gradleAndroidModelData))
       }
 

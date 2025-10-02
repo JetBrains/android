@@ -171,7 +171,6 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
         this.useDefaultProjectAsTemplate = useDefaultProjectAsTemplate
       }
     ) ?: throw NullPointerException("Failed to create a new project")
-    configureNewProject(newProject)
     return newProject
   }
 
@@ -191,9 +190,9 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
       ApplicationManager.getApplication().getUserData(AFTER_CREATE)?.invoke(project)
     }
 
-    @VisibleForTesting
     @JvmStatic
-    fun configureNewProject(newProject: Project) {
+    @JvmOverloads
+    fun configureNewProject(newProject: Project, configuration: GradleNewProjectConfiguration = GradleNewProjectConfiguration()) {
       val gradleSettings = GradleSettings.getInstance(newProject).also { it.setupGradleSettings() }
       val externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(File(newProject.basePath!!).canonicalPath)
       if (!gradleSettings.linkedProjectsSettings.isEmpty()) {
@@ -230,6 +229,7 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
           }
         }
       }
+      GradleJdkConfigurationInitializer.getInstance().initialize(newProject, externalProjectPath, projectSettings, configuration)
       beforeOpen(newProject)
     }
   }

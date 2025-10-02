@@ -29,7 +29,8 @@ import com.google.wireless.android.sdk.stats.SystemHealthEvent;
 import com.intellij.diagnostic.KotlinCompilerCrash;
 import com.intellij.diagnostic.LogMessage;
 import com.intellij.ide.DataManager;
-import com.intellij.ide.plugins.IdeaPluginDescriptor;
+import com.intellij.ide.plugins.PluginManagerCore;
+import com.intellij.ide.plugins.PluginUtil;
 import com.intellij.idea.IdeaLogger;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
@@ -89,10 +90,13 @@ public class AndroidStudioErrorReportSubmitter extends ErrorReportSubmitter {
     bean.setDescription(description);
     bean.setMessage(event.getMessage());
 
-    IdeaPluginDescriptor plugin = event.getPlugin();
-    if (plugin != null && (!plugin.isBundled() || plugin.allowBundledUpdate())) {
-      bean.setPluginName(plugin.getName());
-      bean.setPluginVersion(plugin.getVersion());
+    var eventThrowable = event.getThrowable();
+    if (eventThrowable != null) {
+      var plugin = PluginManagerCore.getPlugin(PluginUtil.getInstance().findPluginId(eventThrowable));
+      if (plugin != null && (!plugin.isBundled() || plugin.allowBundledUpdate())) {
+        bean.setPluginName(plugin.getName());
+        bean.setPluginVersion(plugin.getVersion());
+      }
     }
 
     // Early escape (and no UI impact) if these are analytics events being pushed from the platform
@@ -310,15 +314,19 @@ public class AndroidStudioErrorReportSubmitter extends ErrorReportSubmitter {
     return false;
   }
 
+  @SuppressWarnings("UnstableApiUsage")
   @Nullable
   private static KotlinCompilerCrash getKotlinCompilerCrashOrNull(@NotNull IdeaLoggingEvent loggingEvent) {
-    KotlinCompilerCrash kotlinCompilerCrash = null;
-    if (loggingEvent.getThrowable() instanceof KotlinCompilerCrash kcc) {
-      kotlinCompilerCrash = kcc;
+    if (loggingEvent.getThrowable() instanceof KotlinCompilerCrash) {
+      return (KotlinCompilerCrash)loggingEvent.getThrowable();
     }
-    else if (loggingEvent.getData() instanceof LogMessage lm && lm.getThrowable() instanceof KotlinCompilerCrash kcc) {
-      kotlinCompilerCrash = kcc;
+    if (loggingEvent.getThrowable() != null && loggingEvent.getThrowable().getCause() instanceof KotlinCompilerCrash) {
+      return (KotlinCompilerCrash)loggingEvent.getThrowable().getCause();
     }
-    return kotlinCompilerCrash;
+    if (loggingEvent.getData() instanceof LogMessage &&
+        ((LogMessage)loggingEvent.getData()).getThrowable() instanceof KotlinCompilerCrash) {
+      return (KotlinCompilerCrash)((LogMessage)loggingEvent.getData()).getThrowable();
+    }
+    return null;
   }
 }

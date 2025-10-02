@@ -24,11 +24,11 @@ import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.androidProjectType
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
-import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.util.childrenOfType
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.idea.base.util.module
 
 /**
  * Reports when bad directives (implying global optimizations) for R8 are embedded in Library consumer rules.
@@ -125,7 +125,7 @@ class ConsumerRulesInspection : LocalInspectionTool() {
 }
 
 private fun isLibraryModule(element: PsiElement): Boolean {
-  val projectType = ModuleUtilCore.findModuleForPsiElement(element)?.androidProjectType()
+  val projectType = element.module?.androidProjectType()
   return projectType != null && projectType == AndroidModuleSystem.Type.TYPE_LIBRARY
 }
 

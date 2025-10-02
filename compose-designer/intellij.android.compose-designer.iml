@@ -124,5 +124,6 @@
     <orderEntry type="module" module-name="intellij.platform.diff.impl" />
     <orderEntry type="module" module-name="intellij.android.preview-fast-compile" />
     <orderEntry type="module" module-name="intellij.android.visual-lint" />
+    <orderEntry type="module" module-name="kotlin.idea" />
   </component>
 </module>

@@ -109,6 +109,7 @@ jvm_library(
     "//platform/diff-impl",
     "//android/preview-fast-compile",
     "//android/visual-lint",
+    "//plugins/kotlin/idea",
   ],
   plugins = ["@lib//:compose-plugin"]
 )

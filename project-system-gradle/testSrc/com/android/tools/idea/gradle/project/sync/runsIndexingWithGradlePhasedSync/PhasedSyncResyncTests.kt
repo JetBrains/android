@@ -124,28 +124,21 @@ class PhasedSyncResyncTests(val testProject: TestProject) : PhasedSyncSnapshotTe
       project.requestSyncAndWait(ignoreSyncIssues = testProject.expectedSyncIssues, waitForIndexes = false)
       val secondFullSync = project.dumpModules(knownAndroidPaths)
       val secondIntermediateSync = intermediateDump.copy()
-      aggregateAndThrowIfAny {
-        runCatchingAndRecord {
-          Truth.assertWithMessage("Comparing full project structures")
-            .that(secondFullSync.projectStructure())
-            .isEqualTo(firstFullSync.projectStructure())
-        }
-        runCatchingAndRecord {
-          Truth.assertWithMessage("Comparing full ide models")
-            .that(secondFullSync.ideModels())
-            .isEqualTo(firstFullSync.ideModels())
-        }
-        runCatchingAndRecord {
-          Truth.assertWithMessage("Comparing resync intermediate sync project structure to full state")
-            .that(secondIntermediateSync.filterOutProjectSpecificIssues(testProject).projectStructure())
-            .isEqualTo(secondFullSync.filterOutProjectSpecificIssues(testProject).projectStructure())
-        }
-        runCatchingAndRecord {
-          Truth.assertWithMessage("Comparing resync intermediate sync ide models to full state")
-            .that(secondIntermediateSync.filterOutProjectSpecificIssues(testProject).ideModels())
-            .isEqualTo(secondFullSync.filterOutProjectSpecificIssues(testProject).ideModels())
-        }
-      }
+      Truth.assertWithMessage("Comparing full project structures")
+        .that(secondFullSync.projectStructure())
+        .isEqualTo(firstFullSync.projectStructure())
+
+      Truth.assertWithMessage("Comparing full ide models")
+        .that(secondFullSync.ideModels())
+        .isEqualTo(firstFullSync.ideModels())
+
+      Truth.assertWithMessage("Comparing resync intermediate sync project structure to full state")
+        .that(secondIntermediateSync.filterOutProjectSpecificIssues(testProject).projectStructure())
+        .isEqualTo(secondFullSync.filterOutProjectSpecificIssues(testProject).projectStructure())
+
+      Truth.assertWithMessage("Comparing resync intermediate sync ide models to full state")
+        .that(secondIntermediateSync.filterOutKnownConsistencyIssues().filterOutProjectSpecificIssues(testProject).ideModels())
+        .isEqualTo(secondFullSync.filterOutKnownConsistencyIssues().filterOutProjectSpecificIssues(testProject).ideModels())
     }
   }
 

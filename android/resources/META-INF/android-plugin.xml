@@ -248,6 +248,8 @@
                         serviceImplementation="com.android.tools.idea.diagnostics.crash.ExceptionDataConfigurationImpl"/>
     <applicationService serviceInterface="com.android.tools.idea.serverflags.ServerFlagService"
                         serviceImplementation="com.android.tools.idea.serverflags.ServerFlagServiceImpl"/>
+    <applicationService serviceInterface="com.android.tools.idea.serverflags.DynamicServerFlagService"
+                        serviceImplementation="com.android.tools.idea.serverflags.DynamicServerFlagServiceImpl" />
 <!--    <applicationService serviceImplementation="com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverseService"/>-->
 
     <applicationConfigurable groupId="build" id="instant.run"

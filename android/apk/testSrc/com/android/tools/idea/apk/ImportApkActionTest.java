@@ -26,9 +26,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.project.CustomProjectTypeImporter;
-import com.intellij.ide.ProjectGroup;
 import com.intellij.ide.RecentProjectsManager;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.externalSystem.ExternalSystemManager;
@@ -38,12 +36,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.io.File;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
-import kotlin.coroutines.Continuation;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.SystemIndependent;
 import org.mockito.Mock;
 
 /**
@@ -53,12 +46,12 @@ public class ImportApkActionTest extends HeavyPlatformTestCase {
   @Mock private ImportApkAction.FileChooserDialogFactory myFileChooserDialogFactory;
   @Mock private FileChooserDialog myFileChooserDialog;
   @Mock private ExternalSystemManager<?, ?, ?, ?, ?> myExternalSystemManager;
+  @Mock private RecentProjectsManager myRecentProjectsManager;
 
   private MainProjectTypeImporter myProjectTypeImporter;
   private PropertiesComponentMock myPropertiesComponent;
   private File myRecentProjectLocation;
   private File myLastImportedProjectLocation;
-  private RecentProjectsManagerStub myRecentProjectsManager;
   private VirtualFile myApkToImport;
 
   private ImportApkAction myAction;
@@ -76,7 +69,7 @@ public class ImportApkActionTest extends HeavyPlatformTestCase {
     myPropertiesComponent.setValue(LAST_IMPORTED_LOCATION, myLastImportedProjectLocation.getPath());
 
     myRecentProjectLocation = projectPath.getParentFile();
-    myRecentProjectsManager = new RecentProjectsManagerStub(myRecentProjectLocation.getPath());
+    when(myRecentProjectsManager.getLastProjectCreationLocation()).thenReturn(myRecentProjectLocation.getPath());
 
     when(myFileChooserDialogFactory.create(myExternalSystemManager)).thenReturn(myFileChooserDialog);
 
@@ -127,85 +120,6 @@ public class ImportApkActionTest extends HeavyPlatformTestCase {
       importedApkFile = file;
       myRecentProjectsManager.setLastProjectCreationLocation((Path)null);  // Change it to verify the original value is restored.
       return true;
-    }
-  }
-
-  private static class RecentProjectsManagerStub implements RecentProjectsManager {
-    @NotNull private String myLastProjectLocation;
-
-    RecentProjectsManagerStub(@NotNull String lastProjectLocation) {
-      myLastProjectLocation = lastProjectLocation;
-    }
-
-    @Override
-    @Nullable
-    public String getLastProjectCreationLocation() {
-      return myLastProjectLocation;
-    }
-
-    @Override
-    public void setLastProjectCreationLocation(@Nullable String lastProjectLocation) {
-      myLastProjectLocation = lastProjectLocation;
-    }
-
-    @Override
-    public void updateLastProjectPath() {
-    }
-
-    @Override
-    public void removePath(@Nullable String path) {
-    }
-
-    @NotNull
-    @Override
-    public AnAction[] getRecentProjectsActions(boolean addClearListItem) {
-      return AnAction.EMPTY_ARRAY;
-    }
-
-    @Override
-    public Object reopenLastProjectsOnStart(@NotNull Continuation<? super Boolean> $completion) {
-      return null;
-    }
-
-    @NotNull
-    @Override
-    public String suggestNewProjectLocation() {
-      return "";
-    }
-
-    @Override
-    public void setLastProjectCreationLocation(@Nullable Path value) {
-    }
-
-    @NotNull
-    @Override
-    public List<ProjectGroup> getGroups() {
-      return Collections.emptyList();
-    }
-
-    @Override
-    public void addGroup(@NotNull ProjectGroup group) {
-    }
-
-    @Override
-    public void removeGroup(@NotNull ProjectGroup group) {
-    }
-
-    @Override
-    public void moveProjectToGroup(@NotNull String projectPath, @NotNull ProjectGroup to) {
-    }
-
-    @Override
-    public void removeProjectFromGroup(@NotNull String projectPath, @NotNull ProjectGroup from) {
-    }
-
-    @Override
-    public boolean hasPath(@Nullable @SystemIndependent String path) {
-      return false;
-    }
-
-    @Override
-    public void setActivationTimestamp(@NotNull Project project, long timestamp) {
     }
   }
 }

@@ -77,7 +77,7 @@ internal class ApkEditor(
   private val project: Project,
   private val baseFile: VirtualFile,
   private val root: VirtualFile,
-  private val applicationInfoProvider: AndroidApplicationInfoProvider,
+  private val applicationInfoProvider: AndroidApplicationInfoProvider
 ) : UserDataHolderBase(), FileEditor, ApkViewPanel.Listener {
   private var baseFileHash: String = ""
   private var apkViewPanel: ApkViewPanel? = null

@@ -21,6 +21,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import com.android.tools.idea.apk.debugging.ApkClass;
 import com.android.tools.idea.apk.debugging.ApkPackage;
 import com.android.tools.idea.apk.debugging.DexSourceFiles;
+import com.android.tools.idea.navigator.nodes.AndroidViewTypeSortWeight;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -118,6 +119,11 @@ class PackageNode extends ProjectViewNode<ApkPackage> {
   @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     return getText();
+  }
+
+  @Override
+  public int getTypeSortWeight(final boolean sortByType) {
+    return AndroidViewTypeSortWeight.PACKAGE.getWeight();
   }
 
   @NotNull

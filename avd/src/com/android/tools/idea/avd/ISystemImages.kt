@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avd
 
+import com.android.repository.api.RepoManager.RepoLoadedListener
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.SystemImageSupplier
 import com.android.sdklib.SystemImageTags
@@ -36,11 +37,12 @@ import kotlinx.collections.immutable.plus
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.launch
 
 internal data class SystemImageState(
   val hasLocal: Boolean,
@@ -52,6 +54,14 @@ internal data class SystemImageState(
     val INITIAL = SystemImageState(false, false, persistentListOf(), null)
   }
 }
+
+private sealed class SystemImageLoadingEvent
+
+private object LocalImagesLoaded : SystemImageLoadingEvent()
+
+private object RemoteImagesLoaded : SystemImageLoadingEvent()
+
+private object Error : SystemImageLoadingEvent()
 
 internal object ISystemImages {
   fun systemImageFlow(sdkHandler: AndroidSdkHandler): Flow<SystemImageState> {
@@ -70,36 +80,48 @@ internal object ISystemImages {
         .toImmutableList()
     }
 
+    var state = SystemImageState.INITIAL
+
     // Load local and remote packages and emit the corresponding SystemImageState.
-    return flow<SystemImageState> {
-        coroutineScope {
-          val localPackages = async { repoManager.loadLocalPackages(indicator, 1.days) }
-          val remotePackages = async {
+    return callbackFlow<SystemImageLoadingEvent> {
+        launch {
+          try {
+            repoManager.loadLocalPackages(indicator, 1.days)
+            trySend(LocalImagesLoaded)
+          } catch (e: Exception) {
+            thisLogger().warn("Loading local images", e)
+            trySend(Error)
+          }
+        }
+
+        launch {
+          try {
             repoManager.loadRemotePackages(
               indicator,
               1.days,
               StudioDownloader(),
               StudioSettingsController.getInstance(),
             )
-          }
-
-          val state =
-            try {
-              localPackages.await()
-              SystemImageState.INITIAL.copy(hasLocal = true, images = systemImages())
-            } catch (e: Exception) {
-              thisLogger().warn("Loading local images", e)
-              SystemImageState.INITIAL.copy(error = "Error loading images.")
-            }
-          emit(state)
-          try {
-            remotePackages.await()
-            emit(state.copy(hasRemote = true, images = systemImages()))
+            trySend(RemoteImagesLoaded)
           } catch (e: Exception) {
             thisLogger().warn("Loading remote images", e)
-            emit(state.copy(error = "Error loading remote images."))
+            trySend(Error)
           }
         }
+
+        // If local packages change again, say, after downloading an image, send an update.
+        val listener = RepoLoadedListener { trySend(LocalImagesLoaded) }
+        repoManager.addLocalChangeListener(listener)
+        awaitClose { repoManager.removeLocalChangeListener(listener) }
+      }
+      .transform { event ->
+        state =
+          when (event) {
+            is LocalImagesLoaded -> state.copy(hasLocal = true, images = systemImages())
+            is RemoteImagesLoaded -> state.copy(hasRemote = true, images = systemImages())
+            is Error -> state.copy(error = "Error loading system images.")
+          }
+        emit(state)
       }
       .flowOn(Dispatchers.IO)
   }

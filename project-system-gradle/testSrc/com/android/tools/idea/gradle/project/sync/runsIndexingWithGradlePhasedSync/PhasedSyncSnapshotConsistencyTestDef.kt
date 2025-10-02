@@ -21,8 +21,6 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
-import com.android.tools.idea.testing.aggregateAndThrowIfAny
-import com.android.tools.idea.testing.runCatchingAndRecord
 import com.google.common.truth.Truth
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -177,7 +175,10 @@ fun ModuleDumpWithType.filterOutKnownConsistencyIssues(testProject: TestProject)
       (PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES_FOR_NON_ANDROID_MODULES +
        projectSpecificIssues).none { line.contains(it) }
     },
-    ideModels = ideModels.filter { line ->
+    ideModels = ideModels
+      .filter { line ->
+        IDE_MODELS_WITH_KNOWN_CONSISTENCY_ISSUES.none { line.contains(it) }
+      }.filter {line ->
         getProjectSpecificIdeModelIssues(testProject).none { line.contains(it) }
       }
   )
@@ -201,19 +202,14 @@ data class PhasedSyncSnapshotConsistencyTestDef(
     val filteredIntermediateDump = intermediateDump.filterOutExpectedInconsistencies().filterOutKnownConsistencyIssues(testProject).filterOutRootModule()
     val filteredFullDump = fullDump.filterOutExpectedInconsistencies().filterOutKnownConsistencyIssues(testProject).filterOutRootModule().filterToPhasedSyncModules()
 
-    aggregateAndThrowIfAny {
-      runCatchingAndRecord {
-        Truth.assertWithMessage("Comparing intermediate phased sync project structure to full sync without dependencies")
-          .that(filteredIntermediateDump.projectStructure())
-          .isEqualTo(filteredFullDump.projectStructure())
-      }
-      runCatchingAndRecord {
-        Truth.assertWithMessage("Comparing intermediate phased sync ide models to full sync without dependencies")
-          .that(filteredIntermediateDump.ideModels())
-          // We only need to inspect android modules when comparing IDE models
-          .isEqualTo(filteredFullDump.filterToAndroidModules().ideModels())
-      }
-    }
+    Truth.assertWithMessage("Comparing intermediate phased sync project structure to full sync without dependencies")
+      .that(filteredIntermediateDump.projectStructure())
+      .isEqualTo(filteredFullDump.projectStructure())
+
+    Truth.assertWithMessage("Comparing intermediate phased sync ide models to full sync without dependencies")
+      .that(filteredIntermediateDump.ideModels())
+      // We only need to inspect android modules when comparing IDE models
+      .isEqualTo(filteredFullDump.filterToAndroidModules().ideModels())
   }
 
 

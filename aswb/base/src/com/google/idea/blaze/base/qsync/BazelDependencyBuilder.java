@@ -464,6 +464,7 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
   private void copyInvocationFile(Path path, ByteSource content) throws IOException, BuildException {
     IOException lastException = null;
     for (var attempt = 0; attempt < 3; attempt++) {
+      lastException = null;
       Path absolutePath = workspaceRoot.path().resolve(path);
       try {
         Files.createDirectories(absolutePath.getParent());
@@ -489,6 +490,14 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
       try {
         // Wait a little after deleting if not the first attempt.
         Thread.sleep(100 * attempt);
+      }
+      catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+      if (Files.exists(absolutePath)) {
+        logger.warn("File %s still exists".formatted(absolutePath));
+      }
+      try {
         Files.copy(content.openStream(), absolutePath, StandardCopyOption.REPLACE_EXISTING);
       }
       catch (IOException ex) {
@@ -496,10 +505,7 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
         lastException = ex;
         continue;
       }
-      catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
-      break;
+      return; // success
     }
     if (lastException != null) {
       throw new BuildException(lastException);

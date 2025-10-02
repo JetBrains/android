@@ -779,7 +779,7 @@ public final class StudioFlags {
     "deobfuscate",
     "Enable stack trace deobfuscation using R8 Retrace",
     "Enable stack trace deobfuscation using R8 Retrace",
-    true
+    enabledUpTo(CANARY)
   );
   //endregion
 
@@ -2271,12 +2271,6 @@ public final class StudioFlags {
                     "When enabled, the query box will show a button to stop ongoing responses.",
                     enabledUpTo(STABLE));
 
-  public static final Flag<Boolean> STUDIOBOT_SHOW_MODEL_NAME_IN_QUERY_BOX =
-    new BooleanFlag(STUDIOBOT, "chat.show.model.name",
-                    "Show model name in query box",
-                    "Shows the model name in the query box, with an animation when a query is submitted.",
-                    false);
-
   public static final Flag<Boolean> COMMIT_MESSAGE_SUGGESTION =
     new BooleanFlag(STUDIOBOT, "commit.message.suggestion",
                     "Use ML model to suggest commit messages",
@@ -2392,7 +2386,7 @@ public final class StudioFlags {
                     "Enable providing a public Gemini API key to override the default model.",
                     "When enabled, a setting and various UI is made visible to provide a Gemini API key, and when provided and" +
                     "enabled it replaces the default model with the public Gemini model.",
-                    enabledUpTo(CANARY));
+                    true);
 
   public static final Flag<Boolean> STUDIOBOT_INCLUDE_GRADLE_PROJECT_STRUCTURE_TOOLS_BY_DEFAULT =
     new BooleanFlag(STUDIOBOT, "include.gradle.project.structure.tools.by.default",
@@ -2409,7 +2403,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> GEMINI_AGENT_MODE =
     new BooleanFlag(STUDIOBOT, "agent.mode",
                     "Enable agent mode.",
-                    "When enabled, the agent mode will be enabled in the Gemini toolwindow.", enabledUpTo(CANARY));
+                    "When enabled, the agent mode will be enabled in the Gemini toolwindow.", true);
 
   public static final Flag<Boolean> GEMINI_VERSION_UPGRADE_AGENT =
     new BooleanFlag(STUDIOBOT, "version.upgrade.agent",
@@ -2470,7 +2464,7 @@ public final class StudioFlags {
   // region STUDIO_LABS
   private static final FlagGroup STUDIO_LABS = new FlagGroup(FLAGS, "studiolabs", "Studio Labs");
   public static final Flag<Boolean> STUDIO_LABS_SETTINGS_ENABLED =
-    new BooleanFlag(STUDIO_LABS, "enabled", "Enable Studio Labs in settings", "Enables studio labs in settings.", enabledUpTo(DEV));
+    new BooleanFlag(STUDIO_LABS, "enabled", "Enable Studio Labs in settings", "Enables studio labs in settings.", true);
   public static final Flag<Boolean> STUDIO_LABS_SETTINGS_FAKE_FEATURE_ENABLED =
     new BooleanFlag(STUDIO_LABS, "fakefeature", "Enable fake feature in StudioLabs.", "Enable this for testing.", enabledUpTo(DEV));
   // endregion STUDIO_LABS
@@ -2512,7 +2506,7 @@ public final class StudioFlags {
       "enable",
       "Enable Backup/Restore feature",
       "Enable Backup/Restore feature",
-      true);
+      enabledUpTo(CANARY));
 
   public static final Flag<Integer> BACKUP_GMSCORE_MIN_VERSION =
     new IntFlag(
