@@ -47,6 +47,7 @@ jvm_library(
     "//android/android-lint:lint",
     "//android/wear-dwf",
     "//android/wear-pairing",
+    "//android/glasses-pairing",
     "//android/wear-whs",
     "//android/device-manager-v2",
     "//android/android-plugin/descriptor",
