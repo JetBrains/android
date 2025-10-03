@@ -16,21 +16,31 @@
 package com.android.tools.idea.startup
 
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.ActionWrapperUtil
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Constraints
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.EmptyAction
 import com.intellij.openapi.actionSystem.EmptyActionGroup
+import com.intellij.openapi.actionSystem.PerformWithDocumentsCommitted.isPerformWithDocumentsCommitted
+import com.intellij.openapi.diagnostic.thisLogger
 
 object Actions {
   @JvmStatic
   fun hideAction(actionManager: ActionManager, actionId: String) {
-    if (actionManager.getActionOrStub(actionId) == null) {
-      return  // Action not found.
-    }
-    val emptyReplacement =
-      if (actionManager.isGroup(actionId)) EmptyActionGroup() else EmptyAction()
-    actionManager.replaceAction(actionId, emptyReplacement)
+    actionManager.getActionOrStub(actionId) ?: return
+    val replacement = if (actionManager.isGroup(actionId)) EmptyActionGroup() else DumbAwareEmptyAction()
+    actionManager.replaceAction(actionId, replacement)
+  }
+
+  @JvmStatic
+  fun hideAction(actionManager: ActionManager, actionId: String, condition: (AnActionEvent) -> Boolean) {
+    val existingAction = (actionManager.getAction(actionId)) ?: return
+    val replacement =
+      if (actionManager.isGroup(actionId)) EmptyActionGroup()
+      else ConditionalActionWrapper(delegate = existingAction, replacement = DumbAwareEmptyAction(), condition)
+    actionManager.replaceAction(actionId, replacement)
   }
 
   @JvmStatic
@@ -43,12 +53,23 @@ object Actions {
   }
 
   @JvmStatic
+  fun replaceAction(actionManager: ActionManager, actionId: String, newAction: AnAction, condition: (AnActionEvent) -> Boolean) {
+    val existingAction = actionManager.getAction(actionId)
+    val replacement = ConditionalActionWrapper(delegate = existingAction ?: DumbAwareEmptyAction(), replacement = newAction, condition)
+    if (existingAction != null) {
+      actionManager.replaceAction(actionId, replacement)
+    } else {
+      actionManager.registerAction(actionId, replacement)
+    }
+  }
+
+  @JvmStatic
   fun moveAction(
     actionManager: ActionManager,
     actionId: String,
     oldGroupId: String,
     groupId: String,
-    constraints: Constraints
+    constraints: Constraints,
   ) {
     val action = actionManager.getActionOrStub(actionId)
     val group = actionManager.getAction(groupId)
@@ -57,5 +78,76 @@ object Actions {
       oldGroup.remove(action, actionManager)
       group.add(action, constraints, actionManager)
     }
+  }
+}
+
+
+/**
+ * [com.intellij.openapi.actionSystem.AnActionWrapper] inspired wrapper that delegates to either of two delegates based on a provided
+ * condition.
+ */
+class ConditionalActionWrapper(
+  val delegate: AnAction,
+  val replacement: AnAction,
+  private val replaceCondition: (e: AnActionEvent) -> Boolean,
+): AnAction() {
+  init {
+    // Something deprecated that we do not support.
+    if (isPerformWithDocumentsCommitted(delegate)) {
+      error("Action $delegate cannot be wrapped. isPerformWithDocumentsCommitted(delegate) returns true.")
+    }
+  }
+
+  fun getWrappedActionFor(e: AnActionEvent): AnAction {
+    return if (replaceCondition(e)) replacement else delegate
+  }
+
+  override fun update(e: AnActionEvent) {
+    ActionWrapperUtil.update(e, this, getWrappedActionFor(e))
+  }
+
+  override fun beforeActionPerformedUpdate(e: AnActionEvent) {
+    getWrappedActionFor(e).beforeActionPerformedUpdate(e)
+  }
+
+  override fun actionPerformed(e: AnActionEvent) {
+    ActionWrapperUtil.actionPerformed(e, this, getWrappedActionFor(e))
+  }
+
+  override fun isDumbAware(): Boolean {
+    return delegate.isDumbAware
+      .also { delegateIsDumbAware ->
+        if (delegateIsDumbAware && !replacement.isDumbAware) {
+          thisLogger().error("$replacement action replacing $delegate is supposed to be DumbAware", IllegalStateException())
+        }
+      }
+  }
+
+  override fun getActionUpdateThread(): ActionUpdateThread {
+    return delegate.actionUpdateThread
+      .also { delegateActionUpdateThread ->
+        if (delegateActionUpdateThread == ActionUpdateThread.BGT && replacement.actionUpdateThread != ActionUpdateThread.BGT) {
+          thisLogger().error(
+            "$replacement action replacing $delegate is supposed to have actionUpdateThread=BGT", IllegalStateException())
+        }
+      }
+  }
+
+  override fun isInInjectedContext(): Boolean {
+    return delegate.isInInjectedContext
+      .also {
+        if (replacement.isInInjectedContext != it) {
+          thisLogger().error("$replacement action replacing $delegate is supposed to have isInInjectedContext=$it", IllegalStateException())
+        }
+      }
+  }
+}
+
+class DumbAwareEmptyAction () : AnAction() {
+  override fun actionPerformed(e: AnActionEvent) = Unit
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+  override fun isDumbAware(): Boolean = true
+  override fun update(e: AnActionEvent) {
+    e.presentation.isEnabledAndVisible = false
   }
 }

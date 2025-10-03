@@ -46,22 +46,22 @@ public class GradleSpecificInitializerTest {
   @Test
   public void testRefreshProjectsActionIsHidden() {
     AnAction refreshProjectsAction = ActionManager.getInstance().getAction("ExternalSystem.RefreshAllProjects");
-    assertThat(refreshProjectsAction).isInstanceOf(EmptyAction.class);
+    assertThat(refreshProjectsAction).isInstanceOf(DumbAwareEmptyAction.class);
   }
 
   @Test
   public void testSelectProjectToImportActionIsHidden() {
     AnAction selectProjectToImportAction = ActionManager.getInstance().getAction("ExternalSystem.SelectProjectDataToImport");
-    assertThat(selectProjectToImportAction).isInstanceOf(EmptyAction.class);
+    assertThat(selectProjectToImportAction).isInstanceOf(DumbAwareEmptyAction.class);
   }
 
   @Test
   public void testGroovyResourceActionsAreHidden() {
     AnAction rebuildResourcesAction = ActionManager.getInstance().getAction("Groovy.CheckResources.Rebuild");
-    assertThat(rebuildResourcesAction).isInstanceOf(EmptyAction.class);
+    assertThat(rebuildResourcesAction).isInstanceOf(DumbAwareEmptyAction.class);
 
     AnAction buildResourcesAction = ActionManager.getInstance().getAction("Groovy.CheckResources.Make");
-    assertThat(buildResourcesAction).isInstanceOf(EmptyAction.class);
+    assertThat(buildResourcesAction).isInstanceOf(DumbAwareEmptyAction.class);
   }
 
   @Test
