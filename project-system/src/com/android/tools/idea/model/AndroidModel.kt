@@ -145,12 +145,6 @@ interface AndroidModel {
       return if (facet == null) null else get(facet)
     }
 
-    /* Sets the android model through the specific project system's implementation. */
-    @JvmStatic
-    fun set(facet: AndroidFacet, androidModel: AndroidModel) {
-      facet.getModuleSystem().setAndroidModel(facet, androidModel)
-    }
-
     /* Test helper for setting Android model. Consider using [AndroidProjectRule] instead. */
     @JvmStatic
     @TestOnly
