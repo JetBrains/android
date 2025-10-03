@@ -340,7 +340,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testNoObviouslyObsoleteProcessors() {
     val latestKnownVersion = AgpVersion.parse(ANDROID_GRADLE_PLUGIN_VERSION)
-    val earliestSupportedVersion = AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION)
+    val earliestSupportedVersion = AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_FORCED_UPGRADE_VERSION)
     val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("1.0.0"), latestKnownVersion)
     val processorsByEnd = processor.componentRefactoringProcessors.mapNotNull {
       when (val info = it.necessityInfo) {
