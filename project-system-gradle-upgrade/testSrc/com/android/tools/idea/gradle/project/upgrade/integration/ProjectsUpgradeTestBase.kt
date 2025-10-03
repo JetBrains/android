@@ -40,6 +40,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvokerImpl
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeRefactoringProcessor
+import com.android.tools.idea.gradle.project.upgrade.RefactoringProcessorInstantiator
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.GradleWrapper
@@ -61,11 +62,17 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.replaceService
 import junit.framework.TestCase
 import org.junit.Before
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import java.io.File
+import org.mockito.Mockito.mock
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doCallRealMethod
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.whenever
 
 abstract class ProjectsUpgradeTestBase {
 
@@ -88,6 +95,12 @@ abstract class ProjectsUpgradeTestBase {
     val ideComponents = IdeComponents(projectRule.fixture)
     // Allows to skip sync request after upgrade.
     ideComponents.replaceApplicationService(GradleSyncInvoker::class.java, fakeSyncInvoker)
+    // Disables the forced upgrade dialog
+    val instantiator = mock<RefactoringProcessorInstantiator>()
+    doCallRealMethod().whenever(instantiator).createProcessor(any(), any(), any())
+    doReturn(false).whenever(instantiator).showAndGetAgpUpgradeDialog(any())
+    doReturn(false).whenever(instantiator).showAndGetAgpUpgradeDialog(any(), any(), any())
+    projectRule.project.replaceService(RefactoringProcessorInstantiator::class.java, instantiator, projectRule.fixture.testRootDisposable)
   }
 
   fun doTestFullUpgrade(baseProject: AUATestProjectState, to: AUATestProjectState) {
