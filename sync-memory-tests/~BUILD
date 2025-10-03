@@ -57,7 +57,10 @@ iml_module(
             "tags": [
                 "perfgate-release",
             ],
-            "additional_jvm_args": ["-Drunning.from.release.branch=true", "-Xmx6g"],
+            "additional_jvm_args": [
+                "-Drunning.from.release.branch=true",
+                "-Xmx6g",
+            ],
         },
         # Comparison tests
         "Benchmark2000CpuLatestGradleTest": {
@@ -107,6 +110,81 @@ iml_module(
                 "ci:perfgate-win",
             ],
             "data": ["//tools/base/build-system/integration-test:latest_kotlin_gradle_plugin_prebuilts_for_sync_benchmarks"],
+        },
+        "Benchmark2000CpuStandardMachine": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuStandardMachineTest",
+            "additional_jvm_args": ["-Xmx6g"],
+            "tags": [
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+            ],
+        },
+        "Benchmark2000CpuPhasedSyncOff": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuPhasedSyncOffTest",
+            "additional_jvm_args": ["-Xmx6g"],
+            "tags": [
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+            ],
+        },
+        "Benchmark2000CpuWithDependencyResolutionPhase": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuWithDependencyResolutionPhaseTest",
+            "additional_jvm_args": ["-Xmx6g"],
+            "tags": [
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+            ],
+        },
+        "Benchmark2000CpuAgp813": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuAgp813Test",
+            "additional_jvm_args": ["-Xmx6g"],
+            "tags": [
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+            ],
+            "data": [
+                "//tools/base/build-system/previous-versions:8.13.0",
+                "//tools/base/build-system:gradle-distrib-8.13",
+                "//prebuilts/studio/sdk:build-tools/35.0.0",
+                "//prebuilts/studio/sdk:platforms/android-35",
+                "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+            ],
+        },
+        "Benchmark2000CpuAgp813PhasedSyncOff": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuAgp813PhasedSyncOffTest",
+            "additional_jvm_args": ["-Xmx6g"],
+            "tags": [
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+            ],
+            "data": [
+                "//tools/base/build-system/previous-versions:8.13.0",
+                "//tools/base/build-system:gradle-distrib-8.13",
+                "//prebuilts/studio/sdk:build-tools/35.0.0",
+                "//prebuilts/studio/sdk:platforms/android-35",
+                "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+            ],
+        },
+        "Benchmark2000CpuAgp813WithDependencyResolutionPhase": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuAgp813WithDependencyResolutionPhaseTest",
+            "additional_jvm_args": ["-Xmx6g"],
+            "tags": [
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+            ],
+            "data": [
+                "//tools/base/build-system/previous-versions:8.13.0",
+                "//tools/base/build-system:gradle-distrib-8.13",
+                "//prebuilts/studio/sdk:build-tools/35.0.0",
+                "//prebuilts/studio/sdk:platforms/android-35",
+                "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+            ],
         },
         # Presubmit tests
         "SyncBenchmarkVersionTest": {

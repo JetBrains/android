@@ -39,6 +39,15 @@ const val MULTI_APP_190_NAME = "190Apps_2200Modules"
 const val SUBSET_2000_GRADLE_LATEST_NAME = "2000Modules_GradleLatest"
 const val SUBSET_2000_KOTLIN_LATEST_NAME = "2000Modules_KotlinLatest"
 
+// These are all run in standard machines
+const val SUBSET_2000_STANDARD_MACHINE_NAME = "2000Modules_StandardMachine"
+const val SUBSET_2000_PHASED_SYNC_OFF_NAME = "2000Modules_PhasedSyncOff"
+const val SUBSET_2000_AGP_8_13_NAME = "2000Modules_AGP_8.13"
+const val SUBSET_2000_AGP_8_13_PHASED_SYNC_OFF_NAME = "2000Modules_AGP_8.13_PhasedSyncOff"
+const val SUBSET_2000_WITH_DEPENDENCY_RESOLUTION_PHASE_NAME = "2000Modules_WithDependencyResolutionPhase"
+const val SUBSET_2000_AGP_8_13_WITH_DEPENDENCY_RESOLUTION_PHASE_NAME = "2000Modules_AGP_8.13_WithDependencyResolutionPhase"
+
+
 // Feature benchmark names
 const val FEATURE_RUNTIME_CLASSPATH_1000 = "FRuntimeClasspath1000"
 
@@ -73,11 +82,11 @@ private fun createBenchmarkTestRule(projectName: String,
       projectSetupRule.addListener(it.listener)
     })
     .around(CollectDaemonLogsRule())
-    .around(DisablePhasedSyncDependencyRule())
+    .around(ConfigurePhasedSyncFlagsRule())
     .around(DisableTestSuitesRule())
     .maybeDisableBuiltInKotlin(project)
     .maybeDisableNewDsl(project)
-    .around(DisablePhasedSyncDependencyRule())
+    .around(ConfigurePhasedSyncFlagsRule())
     .maybeAddCaptureJfrRule(projectSetupRule)
   return object : BenchmarkTestRule,
                   ProjectSetupRule by projectSetupRule,

@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.gradle.project.sync.cpu
 
+import com.android.tools.idea.gradle.project.sync.BenchmarkProject
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.KMP_2000
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.MULTI_APP_100
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.MULTI_APP_190
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_1000
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_200
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_2000
+import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_2000_8_13
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_4200
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_500
 import com.android.tools.idea.gradle.project.sync.BenchmarkTestRule
+import com.android.tools.idea.gradle.project.sync.ConfigurePhasedSyncFlagsRule
 import com.android.tools.idea.gradle.project.sync.DaemonIdleTimeoutRule
 import com.android.tools.idea.gradle.project.sync.MULTI_APP_100_NAME
 import com.android.tools.idea.gradle.project.sync.MULTI_APP_190_NAME
@@ -31,6 +34,12 @@ import com.android.tools.idea.gradle.project.sync.SUBSET_1000_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_2000_GRADLE_LATEST_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_2000_KOTLIN_LATEST_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_2000_NAME
+import com.android.tools.idea.gradle.project.sync.SUBSET_2000_STANDARD_MACHINE_NAME
+import com.android.tools.idea.gradle.project.sync.SUBSET_2000_PHASED_SYNC_OFF_NAME
+import com.android.tools.idea.gradle.project.sync.SUBSET_2000_WITH_DEPENDENCY_RESOLUTION_PHASE_NAME
+import com.android.tools.idea.gradle.project.sync.SUBSET_2000_AGP_8_13_NAME
+import com.android.tools.idea.gradle.project.sync.SUBSET_2000_AGP_8_13_PHASED_SYNC_OFF_NAME
+import com.android.tools.idea.gradle.project.sync.SUBSET_2000_AGP_8_13_WITH_DEPENDENCY_RESOLUTION_PHASE_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_200_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_4200_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_500_NAME
@@ -69,10 +78,73 @@ class Benchmark2000KotlinMultiplatformCpuTest {
   @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
 }
 
-open class Benchmark2000CpuTest {
+class Benchmark2000CpuTest {
   @get:Rule val benchmarkProjectSetupRule = createCpuBenchmarkTestRule(SUBSET_2000_NAME, STANDARD_2000)
   @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5)
   @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(7.minutes)
+  @Test
+  fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
+}
+
+// Same as above test, just has a separate blaze target and metric name
+class Benchmark2000CpuStandardMachineTest {
+  @get:Rule val benchmarkProjectSetupRule = createCpuBenchmarkTestRule(SUBSET_2000_STANDARD_MACHINE_NAME, STANDARD_2000)
+  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5)
+  @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(7.minutes)
+  @Test
+  fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
+}
+
+class Benchmark2000CpuPhasedSyncOffTest {
+  @get:Rule val benchmarkProjectSetupRule = createCpuBenchmarkTestRule(SUBSET_2000_PHASED_SYNC_OFF_NAME, STANDARD_2000)
+  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5)
+  @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(7.minutes)
+  @get:Rule val disablePhasedSyncRule = ConfigurePhasedSyncFlagsRule(phasedSyncEnabled = false)
+
+  @Test
+  fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
+}
+
+class Benchmark2000CpuWithDependencyResolutionPhaseTest {
+  @get:Rule val benchmarkProjectSetupRule = createCpuBenchmarkTestRule(SUBSET_2000_WITH_DEPENDENCY_RESOLUTION_PHASE_NAME, STANDARD_2000)
+  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5)
+  @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(7.minutes)
+  @get:Rule val enableDependencyResolution = ConfigurePhasedSyncFlagsRule(dependencyResolutionEnabled = true)
+  @Test
+  fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
+}
+
+class Benchmark2000CpuAgp813Test {
+  @get:Rule val benchmarkProjectSetupRule = createCpuBenchmarkTestRule(
+    SUBSET_2000_AGP_8_13_NAME,
+    STANDARD_2000_8_13
+  )
+  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5)
+  @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(7.minutes)
+  @Test
+  fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
+}
+
+class Benchmark2000CpuAgp813PhasedSyncOffTest {
+  @get:Rule val benchmarkProjectSetupRule = createCpuBenchmarkTestRule(
+    SUBSET_2000_AGP_8_13_PHASED_SYNC_OFF_NAME,
+    STANDARD_2000_8_13
+  )
+  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5)
+  @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(7.minutes)
+  @get:Rule val disablePhasedSyncRule = ConfigurePhasedSyncFlagsRule(phasedSyncEnabled = false)
+  @Test
+  fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
+}
+
+class Benchmark2000CpuAgp813WithDependencyResolutionPhaseTest {
+  @get:Rule val benchmarkProjectSetupRule = createCpuBenchmarkTestRule(
+    SUBSET_2000_AGP_8_13_WITH_DEPENDENCY_RESOLUTION_PHASE_NAME,
+    STANDARD_2000_8_13
+  )
+  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5)
+  @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(7.minutes)
+  @get:Rule val enableDependencyResolution = ConfigurePhasedSyncFlagsRule(dependencyResolutionEnabled = true)
   @Test
   fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
 }
@@ -112,14 +184,14 @@ private fun runTest(benchmarkTestRule: BenchmarkTestRule,
 
 class Benchmark2000CpuLatestGradleTest {
   @get:Rule val benchmarkProjectSetupRule = createCpuBenchmarkTestRule(SUBSET_2000_GRADLE_LATEST_NAME, STANDARD_2000, useLatestGradle = true)
-  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5, projectToCompareAgainst = SUBSET_2000_NAME)
+  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5)
   @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(7.minutes)
   @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
 }
 
 class Benchmark2000CpuLatestKotlinTest {
   @get:Rule val benchmarkProjectSetupRule = createCpuBenchmarkTestRule(SUBSET_2000_KOTLIN_LATEST_NAME, STANDARD_2000, useLatestKotlin = true)
-  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5, projectToCompareAgainst = SUBSET_2000_NAME)
+  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5)
   @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(7.minutes)
   @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
 }
