@@ -20,6 +20,8 @@ import com.android.tools.idea.actions.AndroidOpenFileAction
 import com.android.tools.idea.actions.CreateLibraryFromFilesAction
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction
 import com.android.tools.idea.gradle.actions.AssembleIdeaModuleAction
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.startup.Actions.hideAction
 import com.android.tools.idea.startup.Actions.replaceAction
 import com.intellij.ide.projectView.actions.MarkRootGroup
@@ -27,6 +29,7 @@ import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Anchor
 import com.intellij.openapi.actionSystem.Constraints
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -53,24 +56,24 @@ class GradleSpecificActionCustomizer : ActionConfigurationCustomizer {
     // The original actions will be visible only on plain IDEA projects.
     private fun setUpMakeActions(actionManager: ActionManager) {
       // 'Build' > 'Make Project' action
-      hideAction(actionManager, "CompileDirty")
+      hideAction(actionManager, "CompileDirty") { it.isFromGradleProject() }
 
       // 'Build' > 'Make Modules' action
       // We cannot simply hide this action, because of a NPE.
-      replaceAction(actionManager, IdeActions.ACTION_MAKE_MODULE, AssembleIdeaModuleAction())
+      replaceAction(actionManager, IdeActions.ACTION_MAKE_MODULE, AssembleIdeaModuleAction()) { it.isFromGradleProject() }
 
       // 'Build' > 'Rebuild' action
-      hideAction(actionManager, IdeActions.ACTION_COMPILE_PROJECT)
+      hideAction(actionManager, IdeActions.ACTION_COMPILE_PROJECT) { it.isFromGradleProject() }
 
       // 'Build' > 'Compile Modules' action
-      hideAction(actionManager, IdeActions.ACTION_COMPILE)
+      hideAction(actionManager, IdeActions.ACTION_COMPILE) { it.isFromGradleProject() }
 
       // Additional 'Build' action from com.jetbrains.cidr.execution.build.CidrBuildTargetAction
-      hideAction(actionManager, "Build")
+      hideAction(actionManager, "Build") { it.isFromGradleProject() }
       hideAction(actionManager, "Groovy.CheckResources.Rebuild")
       hideAction(actionManager, "Groovy.CheckResources.Make")
       hideAction(actionManager, "Groovy.CheckResources")
-      hideAction(actionManager, "CompileFile")
+      hideAction(actionManager, "CompileFile") { it.isFromGradleProject() }
     }
 
     private fun setUpGradleViewToolbarActions(actionManager: ActionManager) {
@@ -133,3 +136,5 @@ class GradleSpecificActionCustomizer : ActionConfigurationCustomizer {
     }
   }
 }
+
+private fun AnActionEvent.isFromGradleProject(): Boolean = this.project?.getProjectSystem() is GradleProjectSystem
