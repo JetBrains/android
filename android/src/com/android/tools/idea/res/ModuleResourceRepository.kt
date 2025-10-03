@@ -158,9 +158,6 @@ private constructor(
   ) {
     super.invalidateCache(repository, *types)
 
-    // Todo (b/424551554): This is a workaround. We should replace this with a more targeted fix
-    // that
-    // does not invalidate the whole module.
     application.invokeLater {
       runWriteAction { facet.module.publishModuleOutOfBlockModificationEvent() }
     }
