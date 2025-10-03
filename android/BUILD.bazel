@@ -49,7 +49,7 @@ jvm_library(
     "@lib//:gradle",
     "//libraries/guava",
     "@lib//:hdr_histogram",
-    "@lib//:aalto-xml",
+    "//libraries/aalto-xml",
     "@lib//:aapt-proto",
     "@lib//:asm-tools",
     "@lib//:commons-compress",
