@@ -173,26 +173,21 @@ public class CpuProfilerTestUtils {
    */
   static void startCapturing(CpuProfilerStage stage, FakeTransportService transportService, boolean success)
     throws InterruptedException {
-    assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
-    ((StartTrace)transportService.getRegisteredCommand(Commands.Command.CommandType.START_TRACE))
-      .setStartStatus(Trace.TraceStartStatus.newBuilder()
-                        .setStatus(success ? Trace.TraceStartStatus.Status.SUCCESS : Trace.TraceStartStatus.Status.FAILURE)
-                        .build());
+    Trace.TraceStartStatus.Builder statusBuilder = Trace.TraceStartStatus.newBuilder();
+    statusBuilder.setStatus(success ? Trace.TraceStartStatus.Status.SUCCESS : Trace.TraceStartStatus.Status.FAILURE);
+    startCapturingWithStatus(stage, transportService, statusBuilder.build());
+  }
 
-    CountDownLatch latch;
-    AspectObserver observer = new AspectObserver();
-    if (success) {
-      latch = waitForProfilingStateChangeSequence(stage, observer, CpuProfilerStage.CaptureState.STARTING,
-                                                  CpuProfilerStage.CaptureState.CAPTURING);
-    }
-    else {
-      latch =
-        waitForProfilingStateChangeSequence(stage, observer, CpuProfilerStage.CaptureState.STARTING, CpuProfilerStage.CaptureState.IDLE);
-    }
-    stage.startCapturing();
-    // Trigger the TransportEventPoller to run and the CpuProfilerStage to pick up the in-progress trace.
-    stage.getStudioProfilers().getUpdater().getTimer().tick(FakeTimer.ONE_SECOND_IN_NS);
-    latch.await();
+  /**
+   * Identical to {@link #startCapturing(CpuProfilerStage, FakeTransportService, boolean)}
+   * but sets a specific error code for failure scenarios.
+   */
+  static void startCapturing(CpuProfilerStage stage, FakeTransportService transportService, Trace.TraceStartStatus.ErrorCode errorCode)
+    throws InterruptedException {
+    Trace.TraceStartStatus.Builder statusBuilder = Trace.TraceStartStatus.newBuilder();
+    statusBuilder.setStatus(Trace.TraceStartStatus.Status.FAILURE);
+    statusBuilder.setErrorCode(errorCode.getNumber());
+    startCapturingWithStatus(stage, transportService, statusBuilder.build());
   }
 
   /**
@@ -269,5 +264,25 @@ public class CpuProfilerTestUtils {
     assertThat(sessionsManager.importSessionFromFile(trace)).isTrue();
     // Advance clock to collect artifacts in updater.
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+  }
+
+  private static void startCapturingWithStatus(CpuProfilerStage stage, FakeTransportService transportService, Trace.TraceStartStatus status)
+    throws InterruptedException {
+    assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
+    ((StartTrace)transportService.getRegisteredCommand(Commands.Command.CommandType.START_TRACE)).setStartStatus(status);
+
+    CountDownLatch latch;
+    AspectObserver observer = new AspectObserver();
+    if (status.getStatus() == Trace.TraceStartStatus.Status.SUCCESS) {
+      latch = waitForProfilingStateChangeSequence(stage, observer, CpuProfilerStage.CaptureState.STARTING,
+                                                  CpuProfilerStage.CaptureState.CAPTURING);
+    } else {
+      latch =
+        waitForProfilingStateChangeSequence(stage, observer, CpuProfilerStage.CaptureState.STARTING, CpuProfilerStage.CaptureState.IDLE);
+    }
+    stage.startCapturing();
+    // Trigger the TransportEventPoller to run and the CpuProfilerStage to pick up the in-progress trace.
+    stage.getStudioProfilers().getUpdater().getTimer().tick(FakeTimer.ONE_SECOND_IN_NS);
+    latch.await();
   }
 }

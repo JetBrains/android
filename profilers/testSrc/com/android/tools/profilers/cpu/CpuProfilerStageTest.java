@@ -762,12 +762,24 @@ public final class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void startCapturingFailureShowsErrorBalloon() throws InterruptedException {
+  public void startCapturingFailureShowsDefaultErrorBalloon() throws InterruptedException {
     // Start a failing capture
     CpuProfilerTestUtils.startCapturing(myStage, myTransportService, false);
     // Sanity check to see if we reached the final capture state
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
     assertThat(myServices.getNotification()).isEqualTo(CpuProfilerNotifications.CAPTURE_START_FAILURE);
+  }
+
+  @Test
+  public void startCapturingFailureWhenTracerAlreadyRunningShowsCustomErrorBalloon() throws InterruptedException {
+    // Verifies that the specific "tracer already running" failure
+    // triggers our custom, more helpful error notification.
+    CpuProfilerTestUtils.startCapturing(myStage,
+                                        myTransportService,
+                                        Trace.TraceStartStatus.ErrorCode.TRACER_ALREADY_RUNNING_UNABLE_RUN_PERFETTO);
+    // Sanity check to see if we reached the final capture state
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
+    assertThat(myServices.getNotification()).isEqualTo(CpuProfilerNotifications.CAPTURE_START_FAILURE_TRACER_ALREADY_RUNNING);
   }
 
   @Test
