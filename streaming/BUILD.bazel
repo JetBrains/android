@@ -26,7 +26,7 @@ jvm_library(
     "@lib//:kotlinx-coroutines-guava",
     "@lib//:protobuf",
     "@lib//:android-streaming-ffmpeg",
-    "@lib//:caffeine",
+    "//libraries/caffeine",
     "//android/android-adb:adb",
     "//android/android-adb-ui:adb-ui",
     "//android/adt-ui",
