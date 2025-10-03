@@ -19,6 +19,7 @@ import com.google.gct.login2.CredentialedUser
 import com.google.gct.login2.GoogleLoginService
 import com.google.gct.login2.LoginFeature
 import com.google.gct.login2.PreferredUser
+import com.google.wireless.android.sdk.stats.GoogleLoginPluginEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.settingsSync.core.SettingsSyncLocalSettings
 import com.intellij.settingsSync.core.SettingsSyncSettings
@@ -79,9 +80,13 @@ class GoogleAuthService : SettingsSyncAuthService {
     parentComponent: Component?,
   ): SettingsSyncUserData? {
     val loggedInUser =
-      feature.logIn(
+      GoogleLoginService.instance.logIn(
+        features = setOf(feature),
+        // This is a hack so the setup wizard doesn't show--configuration will be done in the
+        // settings page itself, so the wizard is redundant.
+        loginType = GoogleLoginPluginEvent.LoginType.AUTH_ERROR_NOTIFICATION_LOGIN,
         preferredUser = preferredUser,
-        switchUserIfApplicable = false,
+        switchActiveUserIfApplicable = false,
         parentComponent = parentComponent as? JComponent,
       )
 

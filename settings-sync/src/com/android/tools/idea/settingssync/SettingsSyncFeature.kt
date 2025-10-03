@@ -21,7 +21,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.settingssync.onboarding.BackupAndSyncWizard
+import com.android.tools.idea.settingssync.onboarding.BackupAndSyncWizardProvider
 import com.android.tools.idea.settingssync.onboarding.ChooseCategoriesStepPage
 import com.android.tools.idea.settingssync.onboarding.EnableOrSkipStepPage
 import com.android.tools.idea.settingssync.onboarding.PushOrPullStepPage
@@ -84,16 +84,20 @@ class SettingsSyncFeature : LoginFeature {
           "experience is just the way you like it."
 
       override fun getPages(): List<WizardPage> {
-        return listOf(EnableOrSkipStepPage(), PushOrPullStepPage(), ChooseCategoriesStepPage())
+        // Don't show categories page during combined login
+        return listOf(EnableOrSkipStepPage(), PushOrPullStepPage())
       }
     }
+
+  fun allOnboardingPages() =
+    listOf(EnableOrSkipStepPage(), PushOrPullStepPage(), ChooseCategoriesStepPage())
 
   override val onLoginCompleted: LoginCompletedCallback
     get() = LoginCompletedCallback { user, loginType ->
       when (loginType) {
         GoogleLoginPluginEvent.LoginType.FEATURE_LOGIN -> {
           // Help user onboard when "allowing" feature in the Google Accounts settings page.
-          runInEdt { BackupAndSyncWizard().createDialog(user).showAndGet() }
+          runInEdt { BackupAndSyncWizardProvider.create().createDialog(user).showAndGet() }
         }
         else -> Unit
       }
