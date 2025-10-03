@@ -20,6 +20,7 @@ aswb_library(
         "*.kt",
     ]),
     deps = [
+        "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps:artifact_tracker_state_java_proto",
