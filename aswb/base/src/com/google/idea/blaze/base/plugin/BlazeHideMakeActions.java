@@ -43,5 +43,9 @@ public class BlazeHideMakeActions implements ActionConfigurationCustomizer {
     // 'Build' > 'Compile Modules' action
     ReplaceActionHelper.conditionallyHideAction(
         actionManager, IdeActions.ACTION_COMPILE, Blaze::isBlazeProject);
+
+    // 'Build' > 'Recompile' action
+    ReplaceActionHelper.conditionallyHideAction(
+        actionManager, "CompileFile", Blaze::isBlazeProject);
   }
 }
