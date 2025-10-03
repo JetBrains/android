@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
-import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.getBundledImage;
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.DEFAULT_ASSET_STUDIO;
 import static com.android.tools.idea.npw.assetstudio.ui.SliderUtils.bindTwoWay;
 import static com.android.tools.idea.npw.assetstudio.ui.SliderUtils.inRange;
 
@@ -28,6 +28,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
+import com.android.tools.idea.npw.assetstudio.AssetStudioUtils;
 import com.android.tools.idea.npw.assetstudio.TvBannerGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
@@ -65,6 +66,7 @@ import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColorPanel;
@@ -84,6 +86,7 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -112,7 +115,7 @@ public class ConfigureTvBannerPanel extends JPanel implements Disposable, Config
   private static final boolean HIDE_INAPPLICABLE_CONTROLS = false; // TODO Decide on hiding or disabling.
 
   private static final Color DEFAULT_FOREGROUND_COLOR = Color.BLACK;
-  private static final File DEFAULT_FOREGROUND_IMAGE = getBundledImage("asset_studio", "ic_banner_image.xml");
+  private static final String DEFAULT_FOREGROUND_IMAGE = "ic_banner_image.xml";
   private static final BackgroundAssetType DEFAULT_BACKGROUND_ASSET_TYPE = BackgroundAssetType.COLOR;
   private static final String DEFAULT_OUTPUT_NAME = AndroidIconType.TV_BANNER.toOutputName("");
 
@@ -268,7 +271,8 @@ public class ConfigureTvBannerPanel extends JPanel implements Disposable, Config
     AndroidVersion buildSdkVersion = androidModuleInfo.getBuildSdkVersion();
     myBuildSdkVersion = buildSdkVersion != null ? buildSdkVersion : new AndroidVersion(26);
 
-    myForegroundImageAssetBrowser.getAsset().setDefaultImagePath(DEFAULT_FOREGROUND_IMAGE);
+    File defaultForeGroundImage = AssetStudioUtils.getBundledImage(DEFAULT_ASSET_STUDIO, DEFAULT_FOREGROUND_IMAGE);
+    myForegroundImageAssetBrowser.getAsset().setDefaultImagePath(defaultForeGroundImage);
 
     myIconGenerator = new TvBannerGenerator(facet.getModule().getProject(), androidModuleInfo.getMinSdkVersion().getApiLevel(), renderer);
     myValidatorPanel = validatorPanel;
@@ -302,7 +306,7 @@ public class ConfigureTvBannerPanel extends JPanel implements Disposable, Config
       }
     });
 
-    myForegroundImageAssetBrowser.getAsset().imagePath().setValue(DEFAULT_FOREGROUND_IMAGE);
+    myForegroundImageAssetBrowser.getAsset().imagePath().setValue(defaultForeGroundImage);
 
     // Call "setLabelFor" in code instead of designer since designer is so inconsistent about
     // valid targets.
