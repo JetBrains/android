@@ -21,7 +21,7 @@
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.guava" />
-    <orderEntry type="library" name="icu4j" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.icu4j" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />

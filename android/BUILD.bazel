@@ -59,7 +59,7 @@ jvm_library(
     "@lib//:google-dexlib2",
     "//libraries/gson",
     "@lib//:http-client",
-    "@lib//:icu4j",
+    "//libraries/icu4j",
     "@lib//:jcip",
     "@lib//:jna",
     "@lib//:kotlin-stdlib",
