@@ -25,6 +25,7 @@ import com.android.manifmerger.ManifestSystemProperty;
 import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.projectmodel.ExternalLibraryImpl;
 import com.android.projectmodel.SelectiveResourceFolder;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ClassFileFinder;
 import com.android.tools.idea.projectsystem.DependencyManagementException;
@@ -56,6 +57,7 @@ import com.google.idea.blaze.android.sync.model.AarLibrary;
 import com.google.idea.blaze.android.sync.model.AndroidResourceModule;
 import com.google.idea.blaze.android.sync.model.AndroidResourceModuleRegistry;
 import com.google.idea.blaze.android.sync.model.BlazeAndroidSyncData;
+import com.google.idea.blaze.android.sync.model.idea.BlazeAndroidModel;
 import com.google.idea.blaze.base.command.buildresult.OutputArtifactResolver;
 import com.google.idea.blaze.base.ideinfo.ArtifactLocation;
 import com.google.idea.blaze.base.ideinfo.Dependency;
@@ -122,6 +124,7 @@ public final class BazelModuleSystem implements AndroidModuleSystem, Registering
   private final Module module;
   private final Project project;
   private final ProjectPath.Resolver pathResolver;
+  private volatile BlazeAndroidModel androidModel;
   SampleDataDirectoryProvider sampleDataDirectoryProvider;
   final boolean isWorkspaceModule;
 
@@ -142,6 +145,15 @@ public final class BazelModuleSystem implements AndroidModuleSystem, Registering
   @Override
   public Module getModule() {
     return module;
+  }
+
+  public void setAndroidModel(BlazeAndroidModel androidModel) {
+    this.androidModel = androidModel;
+  }
+
+  @Override
+  public @Nullable AndroidModel getAndroidModel() {
+    return androidModel;
   }
 
   @Override

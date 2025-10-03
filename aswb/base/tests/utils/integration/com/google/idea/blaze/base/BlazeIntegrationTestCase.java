@@ -16,6 +16,9 @@
 package com.google.idea.blaze.base;
 
 
+import com.android.tools.idea.projectsystem.ProjectSystemService;
+import com.google.idea.blaze.android.projectsystem.BazelProjectSystem;
+import com.google.idea.blaze.android.projectsystem.BlazeProjectSystemProvider;
 import com.google.idea.blaze.base.command.buildresult.LocalFileArtifact;
 import com.google.idea.blaze.base.io.FileOperationProvider;
 import com.google.idea.blaze.base.io.InputStreamProvider;
@@ -111,6 +114,7 @@ public abstract class BlazeIntegrationTestCase {
     // cases indexing finishes sooner and processing events runs all startup activities, but when it
     // does not they get deferred. This seems to be a bug in the platform's test utils, which should
     // soon become irrelevant as it only affects old style `StartupActivity`es.
+    ProjectSystemService.getInstance(getProject()).setProviderId(BlazeProjectSystemProvider.ID);
     EdtTestUtil.runInEdtAndWait(UIUtil::dispatchAllInvocationEvents);
     fileSystem =
         new TestFileSystem(getProject(), testFixture.getTempDirFixture(), isLightTestCase());
