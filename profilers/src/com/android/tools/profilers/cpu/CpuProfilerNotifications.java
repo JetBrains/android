@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu;
 import static com.android.tools.profilers.Notification.createError;
 import static com.android.tools.profilers.Notification.createWarning;
 
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.Notification;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,6 +31,22 @@ public final class CpuProfilerNotifications {
     "Recording failed to start",
     "Try recording again, or "
   );
+
+  @NotNull
+  public static final Notification CAPTURE_START_FAILURE_TRACER_ALREADY_RUNNING = createError(
+    "Recording failed to start",
+    "Another profiler or tracer instance may be running. Stop the other instance and try again, or "
+  );
+
+  @NotNull
+  static Notification getCaptureStartFailure(long errorCode) {
+    if (errorCode == Trace.TraceStartStatus.ErrorCode.TRACER_ALREADY_RUNNING_UNABLE_RUN_PERFETTO_VALUE) {
+      return CAPTURE_START_FAILURE_TRACER_ALREADY_RUNNING;
+    }
+
+    // Default error notification for capture start failures.
+    return CAPTURE_START_FAILURE;
+  }
 
   @NotNull
   static Notification getCaptureStopFailure(String errorMessage) {
@@ -62,12 +79,5 @@ public final class CpuProfilerNotifications {
     "Trace file was not parsed",
     "The profiler was unable to parse the trace file. Please make sure the file " +
     "selected is a valid trace. Alternatively, try importing another file, or "
-  );
-
-  @NotNull
-  static final Notification ATRACE_BUFFER_OVERFLOW = createWarning(
-    "System Trace Buffer Overflow Detected",
-    "Your capture exceeded the buffer limit, some data may be missing. " +
-    "Consider recording a shorter trace."
   );
 }

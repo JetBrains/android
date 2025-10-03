@@ -383,7 +383,8 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
     }
     else {
       getLogger().warn("Unable to start tracing: " + status.getStatus() + " due to error code " + status.getErrorCode());
-      getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.CAPTURE_START_FAILURE);
+      getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.getCaptureStartFailure(status.getErrorCode()));
+
       // Return to IDLE state and set the current capture to null
       setCaptureState(CaptureState.IDLE);
       if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
