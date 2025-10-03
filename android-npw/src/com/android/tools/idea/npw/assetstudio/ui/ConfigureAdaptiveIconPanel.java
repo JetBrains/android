@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.DEFAULT_ASSET_STUDIO;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.getBundledImage;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toUpperCamelCase;
 import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.DEFAULT_FOREGROUND_COLOR;
@@ -65,6 +66,7 @@ import com.android.tools.module.AndroidModuleInfo;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColorPanel;
@@ -83,6 +85,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -111,8 +114,8 @@ import org.jetbrains.annotations.Nullable;
 public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, ConfigureIconView, PersistentStateComponent<PersistentState> {
   private static final boolean HIDE_INAPPLICABLE_CONTROLS = false; // TODO Decide on hiding or disabling.
 
-  private static final File DEFAULT_FOREGROUND_IMAGE = getBundledImage("asset_studio", "ic_launcher_foreground.xml");
-  private static final File DEFAULT_BACKGROUND_IMAGE = getBundledImage("asset_studio", "ic_launcher_background.xml");
+  private static final String DEFAULT_FOREGROUND_IMAGE = "ic_launcher_foreground.xml";
+  private static final String DEFAULT_BACKGROUND_IMAGE = "ic_launcher_background.xml";
   private static final ForegroundAssetType DEFAULT_FOREGROUND_ASSET_TYPE = ForegroundAssetType.IMAGE;
   private static final BackgroundAssetType DEFAULT_BACKGROUND_ASSET_TYPE = BackgroundAssetType.IMAGE;
   private static final MonochromeAssetType DEFAULT_MONOCHROME_ASSET_TYPE = MonochromeAssetType.IMAGE;
@@ -394,9 +397,12 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
         new TvChannelIconGenerator(facet.getModule().getProject(), androidModuleInfo.getMinSdkVersion().getApiLevel(), renderer);
     myValidatorPanel = validatorPanel;
 
-    myForegroundImageAssetBrowser.getAsset().setDefaultImagePath(DEFAULT_FOREGROUND_IMAGE);
+    File defaultForegroundImage = getBundledImage(DEFAULT_ASSET_STUDIO, DEFAULT_FOREGROUND_IMAGE);
+    File defaultBackgroundImage = getBundledImage(DEFAULT_ASSET_STUDIO, DEFAULT_BACKGROUND_IMAGE);
+
+    myForegroundImageAssetBrowser.getAsset().setDefaultImagePath(defaultForegroundImage);
     myForegroundTextAssetEditor.getAsset().setDefaultText("Aa");
-    myBackgroundImageAssetBrowser.getAsset().setDefaultImagePath(DEFAULT_BACKGROUND_IMAGE);
+    myBackgroundImageAssetBrowser.getAsset().setDefaultImagePath(defaultBackgroundImage);
 
     DefaultComboBoxModel<Shape> legacyShapesModel = new DefaultComboBoxModel<>();
     for (Shape shape : myShapeNames.keySet()) {
@@ -442,8 +448,8 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
       ForegroundAssetType.TEXT, myForegroundTextAssetEditor);
 
     // Set default properties for the background, foreground and monochrome assets.
-    myForegroundImageAssetBrowser.getAsset().imagePath().setValue(DEFAULT_FOREGROUND_IMAGE);
-    myBackgroundImageAssetBrowser.getAsset().imagePath().setValue(DEFAULT_BACKGROUND_IMAGE);
+    myForegroundImageAssetBrowser.getAsset().imagePath().setValue(defaultForegroundImage);
+    myBackgroundImageAssetBrowser.getAsset().imagePath().setValue(defaultBackgroundImage);
 
     // Call "setLabelFor" in code instead of designer since designer is so inconsistent about
     // valid targets.
