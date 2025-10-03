@@ -315,7 +315,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
   }
 
   private PackageReader.ParallelReader createParallelPackageReader() {
-    return new ParallelPackageReader(executor);
+    return new ParallelPackageReader();
   }
 
   private ProjectQuerierImpl createProjectQuerier(

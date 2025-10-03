@@ -15,34 +15,47 @@
  */
 package com.google.idea.blaze.qsync.java
 
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListeningExecutorService
-import com.google.common.util.concurrent.Uninterruptibles
 import com.google.idea.blaze.common.Context
+import com.google.idea.common.experiments.IntExperiment
 import java.nio.file.Path
-import java.util.concurrent.ExecutionException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
-/** A [PackageReader] that parallelizes package reads of another [PackageReader].  */
-class ParallelPackageReader(
-  private val executor: ListeningExecutorService
-) : PackageReader.ParallelReader {
+/** A [PackageReader] that parallelizes package reads of another [PackageReader]. */
+class ParallelPackageReader : PackageReader.ParallelReader {
+
   override fun readPackages(
     context: Context<*>,
     reader: PackageReader,
     paths: List<Path>
-  ): Map<Path, String> {
-    val futures = paths.map { file ->
-      executor.submit<Pair<Path, String>?> {
-        reader.readPackage(context, file)?.let { file to it }
-      }
-    }
-    return try {
-      Uninterruptibles
-        .getUninterruptibly(Futures.allAsList(futures))
+  ): Map<Path, String> = runBlocking(dispatcher) {
+    readPackagesSuspending(context, reader, paths)
+  }
+
+  suspend fun readPackagesSuspending(
+    context: Context<*>,
+    reader: PackageReader,
+    paths: List<Path>
+  ): Map<Path, String> = coroutineScope {
+    withContext(dispatcher) {
+      paths
+        .map { file ->
+          async { reader.readPackage(context, file)?.let { file to it } }
+        }
+        .awaitAll()
         .filterNotNull()
         .toMap()
-    } catch (e: ExecutionException) {
-      throw IllegalStateException(e)
     }
+  }
+
+  companion object {
+    private val readerThreadsExperiment =
+      IntExperiment("parallel.package.reader.threads", 50)
+    private val dispatcher = Dispatchers.IO.limitedParallelism(
+      readerThreadsExperiment.value)
   }
 }
