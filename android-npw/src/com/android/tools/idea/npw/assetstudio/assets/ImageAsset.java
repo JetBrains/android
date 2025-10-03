@@ -176,7 +176,6 @@ public final class ImageAsset extends BaseAsset {
     return myValidityState;
   }
 
-  @UiThread
   @Override
   @Nullable
   public ListenableFuture<BufferedImage> toImage() {
