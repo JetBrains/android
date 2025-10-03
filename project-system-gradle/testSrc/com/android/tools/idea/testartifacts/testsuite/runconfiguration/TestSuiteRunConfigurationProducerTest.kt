@@ -36,11 +36,11 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.testFramework.RuleChain
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -90,6 +90,7 @@ class TestSuiteRunConfigurationProducerTest {
     )
 
   private lateinit var producer: TestSuiteRunConfigurationProducer
+  private lateinit var testFile: PsiFile
   private lateinit var mockContext: ConfigurationContext
   private lateinit var mockTestSuite: IdeTestSuite
   private lateinit var testSuiteModule: Module
@@ -98,21 +99,18 @@ class TestSuiteRunConfigurationProducerTest {
   fun setUp() {
     producer = TestSuiteRunConfigurationProducer()
 
-    val testFile = projectRule.fixture.addFileToProject("app/src/myTestSuite/assets/test.xml", "")
+    testFile = projectRule.fixture.addFileToProject("app/src/myTestSuite/test.xml", "")
+    val testSuiteDirectory = testFile.containingDirectory
     testSuiteModule =
       ModuleUtilCore.findModuleForFile(testFile.virtualFile, projectRule.project)!!
 
     // Mock the context and dependencies
-    val mockPsiElement = mock<PsiElement> {
-      on { project } doReturn projectRule.project
-      on { containingFile } doReturn testFile
-    }
     val mockLocation = mock<Location<PsiElement>> {
-      on { virtualFile } doReturn testFile.virtualFile
+      on { virtualFile } doReturn testSuiteDirectory.virtualFile
     }
     mockContext = mock {
       on { location } doReturn mockLocation
-      on { psiLocation } doReturn mockPsiElement
+      on { psiLocation } doReturn testSuiteDirectory
       on { module } doReturn testSuiteModule
     }
     mockTestSuite = mock {
@@ -122,7 +120,7 @@ class TestSuiteRunConfigurationProducerTest {
   }
 
   @Test
-  fun setupConfigurationFromContext_success() {
+  fun setupConfigurationFromContext_returnsTrue_whenTestSuiteRoot() {
     val configuration = TestSuiteRunConfiguration(projectRule.project, producer.configurationFactory, "")
 
     val result = producer.setupConfigurationFromContext(configuration, mockContext, Ref(mockContext.psiLocation))
@@ -134,7 +132,7 @@ class TestSuiteRunConfigurationProducerTest {
   }
 
   @Test
-  fun setupConfigurationFromContext_flagDisabled() {
+  fun setupConfigurationFromContext_returnsFalse_whenFlagDisabled() {
     StudioFlags.AGP_TEST_SUITES_ENABLED.override(false)
     val configuration = TestSuiteRunConfiguration(projectRule.project, producer.configurationFactory, "")
 
@@ -144,7 +142,24 @@ class TestSuiteRunConfigurationProducerTest {
   }
 
   @Test
-  fun isConfigurationFromContext_match() {
+  fun setupConfigurationFromContext_returnsFalse_whenTestSuiteFile() {
+    val configuration = TestSuiteRunConfiguration(projectRule.project, producer.configurationFactory, "")
+    val mockLocation = mock<Location<PsiElement>> {
+      on { virtualFile } doReturn testFile.virtualFile
+    }
+    val mockContext = mock<ConfigurationContext> {
+      on { location } doReturn mockLocation
+      on { psiLocation } doReturn testFile
+      on { module } doReturn testSuiteModule
+    }
+
+    val result = producer.setupConfigurationFromContext(configuration, mockContext, Ref(mockContext.psiLocation))
+
+    assertFalse(result)
+  }
+
+  @Test
+  fun isConfigurationFromContext_returnsTrue_whenConfigurationMatchesContext() {
     val configuration = TestSuiteRunConfiguration(projectRule.project, producer.configurationFactory, "All myTestSuite tests")
     configuration.addTaskName("myTestSuiteTaskName")
     configuration.setTestEngineIds(setOf("engine1"))
@@ -156,7 +171,7 @@ class TestSuiteRunConfigurationProducerTest {
   }
 
   @Test
-  fun isConfigurationFromContext_match_whenUserRenamesConfiguration() {
+  fun isConfigurationFromContext_returnsTrue_despiteUserRenamingConfiguration() {
     val configuration = TestSuiteRunConfiguration(projectRule.project, producer.configurationFactory, "User updated name")
     configuration.addTaskName("myTestSuiteTaskName")
     configuration.setTestEngineIds(setOf("engine1"))
@@ -168,7 +183,7 @@ class TestSuiteRunConfigurationProducerTest {
   }
 
   @Test
-  fun isConfigurationFromContext_noMatch_wrongTask() {
+  fun isConfigurationFromContext_returnsFalse_whenTaskNameDoesNotMatch() {
     val configuration = TestSuiteRunConfiguration(projectRule.project, producer.configurationFactory, "All myTestSuite tests")
     configuration.addTaskName("wrongTask")
     configuration.setTestEngineIds(setOf("engine1"))
@@ -180,7 +195,7 @@ class TestSuiteRunConfigurationProducerTest {
   }
 
   @Test
-  fun isConfigurationFromContext_noMatch_whenWrongModule() {
+  fun isConfigurationFromContext_returnsFalse_whenModuleDoesNotMatch() {
     val configuration = TestSuiteRunConfiguration(projectRule.project, producer.configurationFactory, "All myTestSuite tests")
     configuration.addTaskName("myTestSuiteTaskName")
     configuration.setTestEngineIds(setOf("engine1"))
@@ -191,5 +206,4 @@ class TestSuiteRunConfigurationProducerTest {
 
     assertFalse(result)
   }
-
 }

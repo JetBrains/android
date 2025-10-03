@@ -23,7 +23,9 @@ import com.intellij.execution.actions.LazyRunConfigurationProducer
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.runConfigurationType
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Ref
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 
 class TestSuiteRunConfigurationProducer : LazyRunConfigurationProducer<TestSuiteRunConfiguration>() {
@@ -40,7 +42,16 @@ class TestSuiteRunConfigurationProducer : LazyRunConfigurationProducer<TestSuite
       return false
     }
 
-    val testSuiteContext = getTestSuiteContext(context) ?: return false
+    val file = context.location?.virtualFile ?: return false
+    val module = context.module ?: return false
+    val androidModel = GradleAndroidModel.get(module) ?: return false
+
+    // Test suite root directories are only supported for now
+    if (!file.isDirectory || TestSuiteUtils.getTestSuiteAtRoot(androidModel.testSuites, file) == null) {
+      return false
+    }
+
+    val testSuiteContext = getTestSuiteContext(file, module, androidModel) ?: return false
     configuration.name = generateConfigurationName(testSuiteContext.testSuite)
     configuration.settings.externalProjectPath = testSuiteContext.externalProjectPath
     // TODO(b/446654477): Allow user to select the target
@@ -58,7 +69,16 @@ class TestSuiteRunConfigurationProducer : LazyRunConfigurationProducer<TestSuite
       return false
     }
 
-    val testSuiteContext = getTestSuiteContext(context) ?: return false
+    val file = context.location?.virtualFile ?: return false
+    val module = context.module ?: return false
+    val androidModel = GradleAndroidModel.get(module) ?: return false
+
+    // Test suite root directories are only supported for now
+    if (!file.isDirectory || TestSuiteUtils.getTestSuiteAtRoot(androidModel.testSuites, file) == null) {
+      return false
+    }
+
+    val testSuiteContext = getTestSuiteContext(file, module, androidModel) ?: return false
     val targetTaskNames = testSuiteContext.targets.map { it.testTaskName }.toSet()
     return configuration.settings.externalProjectPath == testSuiteContext.externalProjectPath &&
            configuration.getTaskNames().any { it in targetTaskNames } &&
@@ -71,11 +91,8 @@ class TestSuiteRunConfigurationProducer : LazyRunConfigurationProducer<TestSuite
     val targets: List<TestSuiteUtils.TestSuiteTarget>,
   )
 
-  private fun getTestSuiteContext(context: ConfigurationContext): TestSuiteContext? {
-    val file = context.location?.virtualFile ?: return null
-    val module = context.module ?: return null
+  private fun getTestSuiteContext(file: VirtualFile, module: Module, androidModel: GradleAndroidModel): TestSuiteContext? {
     val externalProjectPath = ExternalSystemApiUtil.getExternalProjectPath(module) ?: return null
-    val androidModel = GradleAndroidModel.get(module) ?: return null
     val testSuite =
       TestSuiteUtils.getTestSuiteAtRoot(androidModel.testSuites, file)
       ?: TestSuiteUtils.getTestSuiteContainingFile(androidModel.testSuites, file)
