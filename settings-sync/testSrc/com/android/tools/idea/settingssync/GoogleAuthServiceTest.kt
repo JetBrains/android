@@ -17,25 +17,35 @@ package com.android.tools.idea.settingssync
 
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.settingssync.onboarding.BackupAndSyncWizardProvider
 import com.android.tools.idea.settingssync.onboarding.feature
 import com.google.common.truth.Truth.assertThat
 import com.google.gct.login2.LoginFeature
 import com.google.gct.login2.LoginUsersRule
 import com.google.gct.login2.UserInfoEnforcedFeature
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.settingsSync.core.SettingsSyncLocalSettings
 import com.intellij.settingsSync.core.SettingsSyncSettings
 import com.intellij.settingsSync.core.communicator.SettingsSyncUserData
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ExtensionTestUtil
+import com.intellij.testFramework.executeSomeCoroutineTasksAndDispatchAllInvocationEvents
+import com.intellij.testFramework.replaceService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.Mockito.mock
+import org.mockito.kotlin.verifyNoInteractions
 
 private const val TEST_EMAIL = "test_user@gmail.com"
 private val USER_INFO = UserInfoEnforcedFeature()
 
+@Suppress("UnstableApiUsage")
 class GoogleAuthServiceTest {
   private val applicationRule = ApplicationRule()
   private val flagRule = FlagRule(StudioFlags.SETTINGS_SYNC_ENABLED, true)
@@ -52,7 +62,7 @@ class GoogleAuthServiceTest {
   @Before
   fun setUp() {
     ExtensionTestUtil.maskExtensions(
-      LoginFeature.Companion.EP_NAME,
+      LoginFeature.EP_NAME,
       listOf(feature, USER_INFO),
       disposableRule.disposable,
       false,
@@ -211,5 +221,19 @@ class GoogleAuthServiceTest {
 
     // Verify
     assertThat(users).isEmpty()
+  }
+
+  @Test
+  fun `wizard doesnt show on login`() = runTest {
+    val wizardProvider: BackupAndSyncWizardProvider = mock()
+    ApplicationManager.getApplication()
+      .replaceService(
+        BackupAndSyncWizardProvider::class.java,
+        wizardProvider,
+        disposableRule.disposable,
+      )
+    GoogleAuthService().login(null)
+    withContext(Dispatchers.Main) { executeSomeCoroutineTasksAndDispatchAllInvocationEvents() }
+    verifyNoInteractions(wizardProvider)
   }
 }
