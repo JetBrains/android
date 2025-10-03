@@ -529,7 +529,13 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     List<Common.Stream> streams = StreamQueryUtils.queryForDevices(client.getTransportClient());
     return streams.stream().map((Stream stream) -> {
       if (deviceToStreamIds != null) {
-        deviceToStreamIds.putIfAbsent(stream.getDevice(), stream.getStreamId());
+        // putIfAbsent returns null if the key was not already in the map.
+        if (deviceToStreamIds.putIfAbsent(stream.getDevice(), stream.getStreamId()) == null) {
+          getLogger().info(String.format("Device map updated: %s (Serial: %s), State: %s",
+                                         buildDeviceName(stream.getDevice()),
+                                         stream.getDevice().getSerial(),
+                                         stream.getDevice().getState()));
+        }
       }
       if (streamIdToStreams != null) {
         streamIdToStreams.putIfAbsent(stream.getStreamId(), stream);

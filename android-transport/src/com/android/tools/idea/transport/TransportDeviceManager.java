@@ -483,7 +483,7 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
         return context;
       });
 
-      // TODO using directexecutor for this channel freezes up grpc calls that are redirected to the device (e.g. GetTimes)
+      // TODO using direct executor for this channel freezes up grpc calls that are redirected to the device (e.g. GetTimes)
       // We should otherwise do it for performance reasons, so we should investigate why.
       ManagedChannel proxyChannel = InProcessChannelBuilder.forName(channelName).build();
       myDataStore.connect(Common.Stream.newBuilder()
