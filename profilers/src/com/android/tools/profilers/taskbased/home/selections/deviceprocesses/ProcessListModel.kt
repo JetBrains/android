@@ -20,9 +20,12 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.ProfilerAspect
 import com.android.tools.profilers.StudioProfilers
+import com.intellij.openapi.diagnostic.Logger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.swing.Icon
+
+private val logger = Logger.getInstance("ProcessListModel")
 
 class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
   private val _deviceToProcesses = MutableStateFlow(mapOf<Common.Device, List<Common.Process>>())
@@ -51,6 +54,9 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
     _selectedDevice.value?.device ?: Common.Device.getDefaultInstance(), listOf())
 
   private fun deviceToProcessesUpdated() {
+    profilers.deviceProcessMap.keys.forEach { device ->
+      logger.info("Processing device status: ${device.model} (Serial: ${device.serial}), State: ${device.state}")
+    }
     val newDeviceToProcesses = mutableMapOf<Common.Device, List<Common.Process>>()
     profilers.deviceProcessMap.forEach { (device, processes) ->
       if (device.state != Common.Device.State.ONLINE) {
@@ -77,6 +83,7 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
     // is made and read via the main toolbar's device dropdown. This allows for the selection of offline devices, unlike the standalone
     // profiler, making this reset logic unnecessary.
     if (!isSelectedDeviceRunning() && IdeInfo.isGameTool()) {
+      logger.info("IDE is GameTool and selected device is not running. Resetting device selection.")
       resetDeviceSelection()
     }
 
@@ -253,6 +260,11 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
                                 device: Common.Device,
                                 icon: Icon?) {
     _selectedDevice.value = ProfilerDeviceSelection(name, featureLevel, isRunning, isDebuggable, device, icon)
+    logger.info("Setting selected device. " +
+                "Name: '$name', IsRunning: $isRunning, " +
+                "DeviceSerial: '${device.serial}', " +
+                "IsDefaultDevice: ${device == Common.Device.getDefaultInstance()}")
+
     setSelectedDevicesCount(1)
     onDeviceChange()
   }
