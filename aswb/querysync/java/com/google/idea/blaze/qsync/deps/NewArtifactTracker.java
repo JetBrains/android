@@ -94,10 +94,12 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
   private static final Logger logger = Logger.getLogger(NewArtifactTracker.class.getName());
 
   public static final FeatureRolloutExperiment enableJdepsDependencyGraph =
-    new FeatureRolloutExperiment("qsync.enable.jdeps.dependency.graph.2");
+      new FeatureRolloutExperiment("qsync.enable.jdeps.dependency.graph.2");
 
   private final BuildArtifactCache artifactCache;
-  private final Function<TargetBuildInfo, Map<BuildArtifact, ? extends Collection<? extends ArtifactMetadata.Extractor<?>>>>
+  private final Function<
+          TargetBuildInfo,
+          Map<BuildArtifact, ? extends Collection<? extends ArtifactMetadata.Extractor<?>>>>
       targetToMetadataFn;
   private final ArtifactMetadata.Factory metadataFactory;
   private final Executor executor;
@@ -117,7 +119,9 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
   public NewArtifactTracker(
       Path projectDirectory,
       BuildArtifactCache artifactCache,
-      Function<TargetBuildInfo, Map<BuildArtifact, ? extends Collection<? extends ArtifactMetadata.Extractor<?>>>>
+      Function<
+              TargetBuildInfo,
+              Map<BuildArtifact, ? extends Collection<? extends ArtifactMetadata.Extractor<?>>>>
           targetToMetadataFn,
       ArtifactMetadata.Factory metadataFactory,
       Executor executor) {
@@ -157,7 +161,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
       Set<Label> targets, OutputInfo outputInfo, DigestMap digestMap) {
 
     ImmutableSet.Builder<TargetBuildInfo> targetBuildInfoSet = ImmutableSet.builder();
-    if (enableJdepsDependencyGraph.isEnabled())  {
+    if (enableJdepsDependencyGraph.isEnabled()) {
       targetBuildInfoSet.addAll(getJavaTargetBuildInfoViaJdeps(targets, outputInfo, digestMap));
     } else {
       targetBuildInfoSet.addAll(getJavaTargetBuildInfo(outputInfo, digestMap));
@@ -174,18 +178,20 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
     return targetBuildInfoSet.build();
   }
 
-  private ImmutableSet<TargetBuildInfo> getJavaTargetBuildInfo(OutputInfo outputInfo, DigestMap digestMap) {
+  private ImmutableSet<TargetBuildInfo> getJavaTargetBuildInfo(
+      OutputInfo outputInfo, DigestMap digestMap) {
     ImmutableSet.Builder<TargetBuildInfo> targetBuildInfoSet = ImmutableSet.builder();
     for (JavaArtifacts javaTarget : outputInfo.getJavaArtifactInfo().values()) {
       JavaArtifactInfo artifactInfo = JavaArtifactInfo.create(javaTarget, digestMap);
       TargetBuildInfo targetInfo =
-        TargetBuildInfo.forJavaTarget(artifactInfo, outputInfo.getBuildContext());
+          TargetBuildInfo.forJavaTarget(artifactInfo, outputInfo.getBuildContext());
       targetBuildInfoSet.add(targetInfo);
     }
     return targetBuildInfoSet.build();
   }
 
-  private ImmutableSet<TargetBuildInfo> getJavaTargetBuildInfoViaJdeps(Set<Label> targets, OutputInfo outputInfo, DigestMap digestMap) {
+  private ImmutableSet<TargetBuildInfo> getJavaTargetBuildInfoViaJdeps(
+      Set<Label> targets, OutputInfo outputInfo, DigestMap digestMap) {
     ImmutableSet.Builder<TargetBuildInfo> targetBuildInfoSet = ImmutableSet.builder();
     Queue<Label> toVisitTargets = new LinkedList<>(targets);
     Set<Label> visitedTargets = new HashSet<>();
@@ -196,7 +202,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
       if (javaArtifact != null) {
         JavaArtifactInfo artifactInfo = JavaArtifactInfo.create(javaArtifact, digestMap);
         TargetBuildInfo targetInfo =
-          TargetBuildInfo.forJavaTarget(artifactInfo, outputInfo.getBuildContext());
+            TargetBuildInfo.forJavaTarget(artifactInfo, outputInfo.getBuildContext());
         targetBuildInfoSet.add(targetInfo);
       }
       CompileJavaDeps deps = outputInfo.getCompileDeps(target);
@@ -207,7 +213,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
           }
         }
       } else {
-        for (Label label: outputInfo.getDependencies(target)) {
+        for (Label label : outputInfo.getDependencies(target)) {
           if (visitedTargets.add(label)) {
             toVisitTargets.add(label);
           }
@@ -215,10 +221,17 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
       }
     }
     for (JavaArtifacts javaTarget : outputInfo.getJavaArtifactInfo().values()) {
-      if (javaTarget.getGenSrcsCount() > 0 && !javaTarget.getIsExternalDependency()) {
+      if (javaTarget.getIsExternalDependency()) {
+        continue;
+      }
+      // for a in-project target javaTarget.getJarsList() returns all generated class jars collected
+      // via java_outputs and AIDL base jar needed for resolving base classes for aidl generated
+      // stubs.
+      // They are necessary for symbol resolving. More details can be found in b/448400351.
+      if (javaTarget.getGenSrcsCount() > 0 || javaTarget.getJarsCount() > 0) {
         JavaArtifactInfo artifactInfo = JavaArtifactInfo.create(javaTarget, digestMap);
         TargetBuildInfo targetInfo =
-          TargetBuildInfo.forJavaTarget(artifactInfo, outputInfo.getBuildContext());
+            TargetBuildInfo.forJavaTarget(artifactInfo, outputInfo.getBuildContext());
         targetBuildInfoSet.add(targetInfo);
       }
     }
@@ -244,8 +257,9 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
     Map<MetadataKey, ListenableFuture<ArtifactMetadata>> metadataFutures = Maps.newHashMap();
     for (TargetBuildInfo targetInfo : targetBuildInfo) {
       for (Map.Entry<BuildArtifact, ? extends ArtifactMetadata.Extractor<?>> entry :
-        targetToMetadataFn.apply(targetInfo).entrySet().stream()
-          .flatMap(o -> o.getValue().stream().map(i -> new SimpleEntry<>(o.getKey(), i))).toList()) {
+          targetToMetadataFn.apply(targetInfo).entrySet().stream()
+              .flatMap(o -> o.getValue().stream().map(i -> new SimpleEntry<>(o.getKey(), i)))
+              .toList()) {
         MetadataKey key = new MetadataKey(entry.getKey(), entry.getValue().metadataClass());
         if (metadataFutures.containsKey(key)) {
           // this metadata has already been requested.
