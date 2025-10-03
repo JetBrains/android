@@ -68,7 +68,7 @@ class InsightBottomPanel(
       name = "suggest_a_fix_button"
       isEnabled = false
       isVisible = StudioFlags.SUGGEST_A_FIX.get()
-      isOpaque = false
+      isContentAreaFilled = false
     }
 
   private var currentTransformation: CodeTransformation? = null

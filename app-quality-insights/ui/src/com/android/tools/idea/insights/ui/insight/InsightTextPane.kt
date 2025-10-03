@@ -25,8 +25,10 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.project.Project
+import com.intellij.ui.ColorUtil
 import com.intellij.ui.components.JBHtmlPane
 import com.intellij.ui.components.JBHtmlPaneConfiguration
 import com.intellij.util.ui.JBUI
@@ -35,6 +37,7 @@ import javax.swing.JTextPane
 import javax.swing.event.HyperlinkEvent.EventType
 import javax.swing.text.DefaultCaret
 import javax.swing.text.html.HTMLEditorKit
+import javax.swing.text.html.StyleSheet
 import org.jetbrains.annotations.Nls
 
 private const val EMPTY_PARAGRAPH = "<p></p>"
@@ -47,7 +50,8 @@ class InsightTextPane(private val project: Project) : JBHtmlPane(), CopyProvider
     isEditable = false
     isOpaque = false
     (editorKit as HTMLEditorKit).apply {
-      with(styleSheet) { addRule("body { white-space: pre-wrap; }") }
+      styleSheet.addRule("body { white-space: pre-wrap; }")
+      styleSheet.addCodeBackgroundRule()
     }
 
     font = StartupUiUtil.labelFont
@@ -91,6 +95,11 @@ class InsightTextPane(private val project: Project) : JBHtmlPane(), CopyProvider
     caretPosition = 0
   }
 
+  override fun updateUI() {
+    super.updateUI()
+    (editorKit as? HTMLEditorKit)?.apply { styleSheet.addCodeBackgroundRule() }
+  }
+
   override fun performCopy(dataContext: DataContext) =
     CopyPasteManager.copyTextToClipboard(selectedText ?: renderedText.trimIndent())
 
@@ -102,4 +111,11 @@ class InsightTextPane(private val project: Project) : JBHtmlPane(), CopyProvider
 
   private val renderedText: String
     get() = document.getText(0, document.length).replace("\u200B", "")
+
+  private fun StyleSheet.addCodeBackgroundRule() {
+    val color = ColorUtil.toHex(EditorColorsManager.getInstance().globalScheme.defaultBackground)
+    addRule("code { background-color: $color }")
+    // set background color for the <div> containing the code block
+    addRule(".code-block { background-color: $color }")
+  }
 }
