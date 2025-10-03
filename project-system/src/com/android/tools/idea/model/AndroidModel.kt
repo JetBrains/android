@@ -133,7 +133,7 @@ interface AndroidModel {
       return facet.getModuleSystem().androidModel ?: if (ApplicationManager.getApplication().isUnitTestMode) {
         // Also query the test model.
         // Ideally we shouldn't allow this but many tests do this already and the migration off it is not straightforward.
-        facet.getUserData<AndroidModel?>(ANDROID_MODEL_KEY)
+        facet.getUserData(ANDROID_MODEL_FOR_TESTS_ONLY_KEY)
       } else {
         null
       }
@@ -149,7 +149,7 @@ interface AndroidModel {
     @JvmStatic
     @TestOnly
     fun setForTests(facet: AndroidFacet, androidModel: AndroidModel) {
-       facet.putUserData<AndroidModel?>(ANDROID_MODEL_KEY, androidModel)
+       facet.putUserData(ANDROID_MODEL_FOR_TESTS_ONLY_KEY, androidModel)
     }
 
     /**
@@ -163,6 +163,6 @@ interface AndroidModel {
 
     const val UNINITIALIZED_APPLICATION_ID: String = "uninitialized.application.id"
 
-    val ANDROID_MODEL_KEY: Key<AndroidModel> = Key.create<AndroidModel>(AndroidModel::class.java.getName())
+    private val ANDROID_MODEL_FOR_TESTS_ONLY_KEY: Key<AndroidModel> = Key.create<AndroidModel>(AndroidModel::class.java.getName())
   }
 }
