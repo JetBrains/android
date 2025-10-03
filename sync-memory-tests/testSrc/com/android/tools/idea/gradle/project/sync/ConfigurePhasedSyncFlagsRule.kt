@@ -18,9 +18,17 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.tools.idea.flags.StudioFlags
 import org.junit.rules.ExternalResource
 
-/** Rule to disable phased sync dependency resolution until performance issues are sorted. */
-class DisablePhasedSyncDependencyRule : ExternalResource() {
+/**
+ * Rule to configure phased sync behaviour in tests.
+ *
+ * By default, phased sync is enabled without dependency resolution.
+ */
+class ConfigurePhasedSyncFlagsRule(
+  val phasedSyncEnabled: Boolean = true,
+  val dependencyResolutionEnabled: Boolean = false
+) : ExternalResource() {
   override fun before() {
-    StudioFlags.PHASED_SYNC_DEPENDENCY_RESOLUTION_ENABLED.override(false)
+    StudioFlags.PHASED_SYNC_ENABLED.override(phasedSyncEnabled)
+    StudioFlags.PHASED_SYNC_DEPENDENCY_RESOLUTION_ENABLED.override(dependencyResolutionEnabled)
   }
 }
