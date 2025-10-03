@@ -23,7 +23,7 @@ jvm_library(
   kotlinc_opts = ":custom_testartifacts",
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
@@ -76,7 +76,7 @@ jvm_library(
     "//android/adt-ui",
     "//android/adt-ui:adt-ui_test_lib",
     "//android/adt-testutils:adt-testutils_test_lib",
-    "@lib//:guava",
+    "//libraries/guava",
     "//libraries/mockito",
     "@lib//:mockito-kotlin",
     "@lib//:truth",

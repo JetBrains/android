@@ -8,7 +8,7 @@ jvm_library(
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "//android/adt-ui-model",
@@ -27,7 +27,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",

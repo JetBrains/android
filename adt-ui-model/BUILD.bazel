@@ -8,7 +8,7 @@ jvm_library(
   srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java", "src/main/java/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:fastutil-min",
     "@lib//:kotlin-stdlib",
     "//platform/platform-api:ide",
@@ -25,7 +25,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:fastutil-min",
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",

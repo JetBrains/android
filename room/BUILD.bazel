@@ -15,7 +15,7 @@ jvm_library(
   resources = [":room_resources"],
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:gson",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
@@ -56,7 +56,7 @@ jvm_library(
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:truth",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:junit4",
     "@lib//:jetbrains-annotations",
     "//libraries/mockito",

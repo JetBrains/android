@@ -27,7 +27,7 @@ jvm_library(
     "//plugins/kotlin/base/code-insight",
     "//plugins/kotlin/base/util",
     "//android/gradle-declarative-lang",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:commons-lang3",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
   ],

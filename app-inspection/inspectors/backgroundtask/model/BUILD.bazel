@@ -32,7 +32,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:kotlinx-coroutines-core",
     "@lib//:protobuf",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:junit4",
     "@lib//:truth",
     "//android/app-inspection/api",

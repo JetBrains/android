@@ -8,7 +8,7 @@ jvm_library(
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:hdr_histogram",
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
@@ -32,7 +32,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:hdr_histogram",
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",

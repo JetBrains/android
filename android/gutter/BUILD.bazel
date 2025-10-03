@@ -10,7 +10,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:jetbrains-annotations",
     "@lib//:truth",
     "//android/project-system-gradle-psd:projectSystem-gradle-psd",

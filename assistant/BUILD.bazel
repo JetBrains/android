@@ -15,7 +15,7 @@ jvm_library(
   resources = [":assistant_resources"],
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:http-client",
     "@lib//:jaxb-api",
     "@lib//:jetbrains-annotations",
@@ -61,7 +61,7 @@ jvm_library(
     "//libraries/mockito",
     "@lib//:mockito-kotlin",
     "@lib//:truth",
-    "@lib//:guava",
+    "//libraries/guava",
     "//android/artwork",
     "//android/android:core",
     "//android/adt-testutils:adt-testutils_test_lib",

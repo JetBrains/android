@@ -10,7 +10,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:junit4",
-    "@lib//:guava",
+    "//libraries/guava",
     "//android/android:core",
     "//libraries/mockito",
     "@lib//:truth",

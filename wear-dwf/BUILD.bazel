@@ -77,7 +77,7 @@ jvm_library(
     "//platform/testFramework:testFramework_test_lib",
     "//java/testFramework",
     "//xml/xml-psi-api:psi",
-    "@lib//:guava",
+    "//libraries/guava",
     "//xml/dom-openapi:dom",
     "@lib//:kotlinx-coroutines-test",
     "//platform/core-ui",

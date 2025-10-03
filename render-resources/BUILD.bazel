@@ -15,7 +15,7 @@ jvm_library(
   resources = [":render-resources_resources"],
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:asm-tools",
     "@lib//:fastutil-min",
     "@lib//:jetbrains-annotations",
@@ -50,7 +50,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:junit4",
     "@lib//:kxml2",
     "//libraries/mockito",

@@ -15,7 +15,7 @@ jvm_library(
   resources = [":layoutlib-loader_resources"],
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:kotlin-stdlib",
     "//platform/core-api:core",
     "//platform/util",

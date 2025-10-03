@@ -15,7 +15,7 @@ jvm_library(
   resources = [":utp_resources"],
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:kotlin-stdlib",
     "//plugins/gradle:gradle-common",
     "//platform/external-system-api:externalSystem",
@@ -32,7 +32,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "//libraries/mockito",

@@ -15,7 +15,7 @@ jvm_library(
   resources = [":whats-new-assistant_resources"],
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:http-client",
     "@lib//:jaxb-api",
     "@lib//:jetbrains-annotations",
@@ -52,7 +52,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:junit4",
     "@lib//:http-client",
     "@lib//:jetbrains-annotations",

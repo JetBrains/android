@@ -15,7 +15,7 @@ jvm_library(
   resources = [":layoutlib_resources"],
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:asm-tools",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
@@ -37,7 +37,7 @@ jvm_library(
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:asm",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:junit4",
     "@lib//:kotlin-test",
     "@lib//:layoutlib",

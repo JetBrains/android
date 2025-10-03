@@ -30,7 +30,7 @@ jvm_library(
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:asm",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:jsoup",
     "@lib//:junit4",
     "@lib//:asm-tools",

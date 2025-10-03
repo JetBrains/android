@@ -15,7 +15,7 @@ jvm_library(
   resources = [":newProjectWizard_resources"],
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:gradle",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
@@ -91,7 +91,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:junit4",
     "@lib//:assert_j",
     "@lib//:jetbrains-annotations",

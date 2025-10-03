@@ -38,7 +38,7 @@ jvm_library(
     "@lib//:protobuf",
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:junit4",
     "@lib//:truth",
     "//platform/core-api:core",

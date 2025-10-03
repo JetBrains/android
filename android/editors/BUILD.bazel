@@ -39,7 +39,7 @@ jvm_library(
     "//RegExpSupport:regexp",
     "//RegExpSupport:regexp_test_lib",
     "@lib//:kotlinx-coroutines-test",
-    "@lib//:guava",
+    "//libraries/guava",
     "//java/testFramework",
     "@lib//:assert_j",
   ]

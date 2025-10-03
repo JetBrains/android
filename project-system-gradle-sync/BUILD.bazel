@@ -16,7 +16,7 @@ jvm_library(
   kotlinc_opts = ":custom_projectSystem-gradle-sync",
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:gradle",

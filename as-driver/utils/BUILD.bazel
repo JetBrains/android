@@ -18,7 +18,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:ktor-client-cio",
     "//libraries/io",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:junit4",
     "@lib//:jetbrains-annotations",
     "//android/intellij.android.testutils:testutils_test_lib",

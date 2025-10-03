@@ -16,7 +16,7 @@ jvm_library(
     "@lib//:studio-platform",
     "@lib//:studio-test-platform",
     "@lib//:commons-compress",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:junit4",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",

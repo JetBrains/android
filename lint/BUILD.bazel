@@ -25,7 +25,7 @@ jvm_library(
   kotlinc_opts = ":custom_lint-common",
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlinc-analysis-api-provided",

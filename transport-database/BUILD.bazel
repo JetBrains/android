@@ -18,7 +18,7 @@ jvm_library(
     "@lib//:protobuf",
     "@lib//:kotlin-stdlib",
     "@lib//:sqlite",
-    "@lib//:guava",
+    "//libraries/guava",
     "//android/adt-ui-model",
     "//android/android-common:common",
   ]
@@ -37,7 +37,7 @@ jvm_library(
     "@lib//:protobuf",
     "@lib//:kotlin-stdlib",
     "@lib//:sqlite",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:truth",
     "//android/adt-ui-model",
     "//android/adt-ui-model:adt-ui-model_test_lib",

@@ -16,7 +16,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:protobuf",
     "//platform/analysis-api:analysis",
     "//platform/core-api:core",
@@ -48,7 +48,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:protobuf",
     "//platform/analysis-api:analysis",
     "//platform/core-api:core",

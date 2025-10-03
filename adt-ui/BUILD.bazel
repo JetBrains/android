@@ -35,7 +35,7 @@ jvm_library(
   javac_opts = ":custom-javac-options",
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:fastutil-min",
     "@lib//:java_compatibility",
     "@lib//:kotlinx-collections-immutable",
@@ -78,7 +78,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:fastutil-min",
     "@lib//:gson",
     "@lib//:kotlin-test",

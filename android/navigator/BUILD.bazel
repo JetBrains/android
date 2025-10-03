@@ -44,7 +44,7 @@ jvm_library(
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
     "//platform/util:util-ui",
-    "@lib//:guava",
+    "//libraries/guava",
     "//java/testFramework",
   ]
 )

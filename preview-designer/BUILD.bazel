@@ -15,7 +15,7 @@ jvm_library(
   resources = [":preview-designer_resources"],
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:commons-lang3",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
@@ -100,7 +100,7 @@ jvm_library(
     "//libraries/mockito",
     "//platform/analysis-api:analysis",
     "@lib//:truth",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:protobuf",
     "@lib//:kotlinc-kotlin-compiler-common",
     "//android/adt-testutils:adt-testutils_test_lib",

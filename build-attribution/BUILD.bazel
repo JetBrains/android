@@ -16,7 +16,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:gradle",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:gson",
     "@lib//:jetbrains-annotations",
     "@lib//:jna",
@@ -74,7 +74,7 @@ jvm_library(
     "@lib//:kotlin-reflect",
     "@lib//:kotlinc-kotlin-compiler-common",
     "@lib//:gradle",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:junit4",
     "@lib//:gson",
     "//libraries/mockito",

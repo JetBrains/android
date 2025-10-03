@@ -13,7 +13,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "//libraries/mockito",
     "@lib//:truth",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:junit4",
     "@lib//:jetbrains-annotations",
     "@lib//:protobuf",

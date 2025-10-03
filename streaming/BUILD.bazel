@@ -16,7 +16,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:android-streaming-ffmpeg-javacpp",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:hdr_histogram",
     "@lib//:fastutil-min",
     "@lib//:jetbrains-annotations",
@@ -107,7 +107,7 @@ jvm_library(
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
     "//android/android-adb:adb",
-    "@lib//:guava",
+    "//libraries/guava",
     "//java/testFramework",
   ]
 )
@@ -138,7 +138,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:junit4",
     "@lib//:fastutil-min",
     "@lib//:android-streaming-test_util-ffmpeg",
@@ -217,7 +217,7 @@ jvm_library(
     "@lib//:layoutlib",
     "@lib//:android-streaming-tests-ffmpeg",
     "@lib//:android-streaming-tests-ffmpeg-javacpp",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:junit4",
     "@lib//:fastutil-min",
     "@lib//:http-client",

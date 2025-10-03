@@ -12,7 +12,7 @@ jvm_library(
     "//android/android/lib:instantapps-api-1-8",
     "@lib//:kotlin-stdlib",
     "@lib//:asm",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:junit4",
     "@lib//:asm-tools",
     "@lib//:jetbrains-annotations",

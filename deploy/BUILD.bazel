@@ -15,7 +15,7 @@ jvm_library(
   resources = [":deploy_resources"],
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
     "//android/artwork",
@@ -52,7 +52,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
     "@lib//:junit4",

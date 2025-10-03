@@ -25,7 +25,7 @@ jvm_library(
   kotlinc_opts = ":custom_common",
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:fastutil-min",
     "@lib//:http-client",
     "@lib//:jetbrains-annotations",
@@ -80,7 +80,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:kotlin-test",
     "@lib//:kotlinx-coroutines-test",
     "@lib//:kotlinx-datetime-jvm",

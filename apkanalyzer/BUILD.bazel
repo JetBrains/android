@@ -15,7 +15,7 @@ jvm_library(
   resources = [":apkanalyzer_resources"],
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:gson",
     "@lib//:aapt-proto",
     "@lib//:google-dexlib2",
@@ -79,7 +79,7 @@ jvm_library(
     "@lib//:truth",
     "//android/adt-ui",
     "//android/adt-ui:adt-ui_test_lib",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:junit4",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlin-test",

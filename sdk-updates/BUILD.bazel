@@ -15,7 +15,7 @@ jvm_library(
   resources = [":sdk-updates_resources"],
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
@@ -64,7 +64,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:junit4",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:kotlin-test",
     "//android/sdk-updates",
     "//android/android:core",

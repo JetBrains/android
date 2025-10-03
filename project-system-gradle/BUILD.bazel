@@ -25,7 +25,7 @@ jvm_library(
   kotlinc_opts = ":custom_projectSystem-gradle",
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:stream_ex",
     "@lib//:classgraph",
     "@lib//:commons-lang3",
@@ -202,7 +202,7 @@ jvm_library(
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:gradle",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:junit4",
     "@lib//:assert_j",
     "@lib//:icu4j",

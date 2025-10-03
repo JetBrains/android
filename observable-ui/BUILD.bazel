@@ -29,7 +29,7 @@ jvm_library(
     "@lib//:studio-test-platform",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:junit4",
     "@lib//:truth",
     "//android/adt-ui",

@@ -15,7 +15,7 @@ jvm_library(
   resources = [":database_resources"],
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:jetbrains-annotations",
     "@lib//:jgoodies-common",
     "@lib//:kotlin-stdlib",
@@ -75,7 +75,7 @@ jvm_library(
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlinx-coroutines-guava",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:junit4",
     "@lib//:kotlinx-coroutines-core",
     "//libraries/mockito",

@@ -16,7 +16,7 @@ jvm_library(
   deps = [
     "@lib//:kotlin-stdlib",
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:fastutil-min",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlinx-coroutines-core",
@@ -60,7 +60,7 @@ jvm_library(
     "@lib//:junit4",
     "//libraries/mockito",
     "@lib//:truth",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:fastutil-min",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlinx-coroutines-core",

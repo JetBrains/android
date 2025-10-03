@@ -7,7 +7,7 @@ jvm_library(
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   deps = [
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:kotlin-stdlib",
     "@lib//:layoutlib",
     "@lib//:studio-platform-provided",

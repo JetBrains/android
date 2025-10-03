@@ -36,7 +36,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:assert_j",
     "@lib//:truth",
     "//android/gradle-declarative-lang",

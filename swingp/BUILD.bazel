@@ -21,7 +21,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:asm",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:gson",
     "@lib//:http-client",
     "@lib//:jetbrains-annotations",
@@ -41,7 +41,7 @@ jvm_library(
     "@lib//:truth",
     "//libraries/mockito",
     "@lib//:asm",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:gson",
     "@lib//:http-client",
     "@lib//:jetbrains-annotations",

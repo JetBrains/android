@@ -36,7 +36,7 @@ jvm_library(
     "//platform/util",
     "//xml/xml-parser:parser",
     "//xml/xml-psi-api:psi",
-    "@lib//:guava",
+    "//libraries/guava",
   ]
 )
 ### auto-generated section `build intellij.android.core.editors.manifest` end

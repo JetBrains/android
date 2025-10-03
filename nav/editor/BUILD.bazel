@@ -16,7 +16,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:android-nav-editor-eclipse-layout-kernel",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
@@ -75,7 +75,7 @@ jvm_library(
     "@lib//:studio-platform",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-test",
-    "@lib//:guava",
+    "//libraries/guava",
     "//libraries/mockito",
     "@lib//:protobuf",
     "//android/android-test-framework:testFramework_test_lib",

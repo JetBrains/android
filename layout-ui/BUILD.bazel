@@ -14,7 +14,7 @@ jvm_library(
   srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java", "src/main/java/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:swingx",
     "//android/adt-ui",
     "//android/adt-ui-model",
@@ -46,7 +46,7 @@ jvm_library(
   associates = [":layout-ui"],
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:swingx",
     "@lib//:studio-test-platform",
     "@lib//:junit4",

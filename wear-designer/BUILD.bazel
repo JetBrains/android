@@ -15,7 +15,7 @@ jvm_library(
   resources = [":wear-designer_resources"],
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlinc-analysis-api-provided",
@@ -78,7 +78,7 @@ jvm_library(
     "@lib//:truth",
     "@lib//:kotlinx-collections-immutable",
     "@lib//:kotlin-test",
-    "@lib//:guava",
+    "//libraries/guava",
     "//android/android-test-framework:testFramework_test_lib",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/android:core",

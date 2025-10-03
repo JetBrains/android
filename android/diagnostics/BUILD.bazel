@@ -37,7 +37,7 @@ jvm_library(
     "//platform/core-impl",
     "//android/intellij.android.testutils:testutils_test_lib",
     "//java/testFramework",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:http-client",
     "//plugins/kotlin/base/plugin",
     "//plugins/kotlin/base/plugin:plugin_test_lib",

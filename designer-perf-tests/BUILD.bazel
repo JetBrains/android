@@ -60,7 +60,7 @@ jvm_library(
     "//xml/xml-psi-api:psi",
     "//android/preview-fast-compile",
     "//android/visual-lint",
-    "@lib//:guava",
+    "//libraries/guava",
     "//platform/projectModel-impl",
   ]
 )

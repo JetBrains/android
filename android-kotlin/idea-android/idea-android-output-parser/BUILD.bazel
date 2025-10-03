@@ -20,7 +20,7 @@ jvm_library(
   resources = [":android-kotlin-output-parser_resources"],
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "//android/android:core",

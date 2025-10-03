@@ -22,7 +22,7 @@ jvm_library(
   resources = [":avd_resources"],
   kotlinc_opts = ":custom_avd",
   deps = [
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlinx-collections-immutable",
     "@lib//:protobuf",
@@ -55,7 +55,7 @@ jvm_library(
   kotlinc_opts = ":custom_avd",
   associates = [":avd"],
   deps = [
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlinx-collections-immutable",
     "@lib//:protobuf",

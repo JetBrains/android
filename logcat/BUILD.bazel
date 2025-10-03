@@ -21,7 +21,7 @@ jvm_library(
   resources = [":logcat_resources"],
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:gson",
     "@lib//:jetbrains-annotations",
     "//platform/core-api:core",
@@ -77,7 +77,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:junit4",
     "@lib//:gson",
     "@lib//:kotlin-test",

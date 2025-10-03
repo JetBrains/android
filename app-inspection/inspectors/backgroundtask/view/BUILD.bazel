@@ -15,7 +15,7 @@ jvm_library(
   resources = [":view_resources"],
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlinx-coroutines-core",
@@ -57,7 +57,7 @@ jvm_library(
     "@lib//:studio-test-platform",
     "@lib//:android-app-inspection-inspectors-backgroundtask-view-tests-workmanager-inspector-proto",
     "@lib//:kotlin-stdlib",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:junit4",
     "@lib//:kotlinx-coroutines-core",
     "//libraries/mockito",

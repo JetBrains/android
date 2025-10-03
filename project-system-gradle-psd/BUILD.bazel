@@ -16,7 +16,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:gradle",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:fastutil-min",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
@@ -94,7 +94,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:kotlin-reflect",
     "@lib//:gradle",
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:junit4",
     "@lib//:jetbrains-annotations",
     "//libraries/mockito",

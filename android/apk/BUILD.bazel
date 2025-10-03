@@ -40,7 +40,7 @@ jvm_library(
     "//platform/util-rt:util-rt_test_lib",
     "@lib//:google-dexlib2",
     "@lib//:equalsverifier",
-    "@lib//:guava",
+    "//libraries/guava",
   ]
 )
 ### auto-generated section `build intellij.android.core.apk` end

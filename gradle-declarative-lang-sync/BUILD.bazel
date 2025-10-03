@@ -14,7 +14,7 @@ jvm_library(
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   resources = [":gradle-declarative-lang-sync_resources"],
   deps = [
-    "@lib//:guava",
+    "//libraries/guava",
     "@lib//:kotlin-stdlib",
     "//platform/external-system-rt:externalSystem-rt",
     "//plugins/gradle/tooling-extension-api:toolingExtension",

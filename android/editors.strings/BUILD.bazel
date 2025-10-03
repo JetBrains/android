@@ -35,7 +35,7 @@ jvm_library(
     "@lib//:kotlin-test",
     "@lib//:kotlin-stdlib",
     "//platform/core-ui",
-    "@lib//:guava",
+    "//libraries/guava",
     "//java/testFramework",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
