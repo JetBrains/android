@@ -19,6 +19,9 @@ import com.google.gct.login2.PreferredUser
 import com.google.gct.login2.ui.onboarding.compose.GoogleSignInWizard.SignInState
 import com.google.gct.wizard.StructuredFlowWizard
 import com.google.gct.wizard.WizardState
+import com.google.wireless.android.sdk.stats.GoogleLoginPluginEvent
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 
 /**
  * Standalone Backup and Sync feature's setup wizard.
@@ -28,8 +31,21 @@ import com.google.gct.wizard.WizardState
  * account from the Google accounts settings page, providing a streamlined experience where the user
  * is already known.
  */
-class BackupAndSyncWizard {
-  fun createDialog(user: PreferredUser): StructuredFlowWizard {
+interface BackupAndSyncWizard {
+  fun createDialog(user: PreferredUser): StructuredFlowWizard
+}
+
+@Service
+class BackupAndSyncWizardProvider {
+  fun create(): BackupAndSyncWizard = BackupAndSyncWizardImpl()
+
+  companion object {
+    fun create(): BackupAndSyncWizard = service<BackupAndSyncWizardProvider>().create()
+  }
+}
+
+private class BackupAndSyncWizardImpl : BackupAndSyncWizard {
+  override fun createDialog(user: PreferredUser): StructuredFlowWizard {
     val state =
       WizardState().apply {
         getOrCreateState { SignInState() }
@@ -37,13 +53,14 @@ class BackupAndSyncWizard {
             requiredIntegrations.clear()
             requiredIntegrations.add(feature)
             signedInUser = user
+            loginType = GoogleLoginPluginEvent.LoginType.FEATURE_LOGIN
           }
       }
     return StructuredFlowWizard(
       project = null,
       title = "Backup and Sync Wizard",
       wizardState = state,
-      wizardPages = feature.onboardingWizardEntry.getPages(),
+      wizardPages = feature.allOnboardingPages(),
     )
   }
 }
