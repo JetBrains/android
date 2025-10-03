@@ -43,17 +43,6 @@ import java.nio.file.Path
 interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvider {
   val androidModel: AndroidModel? get() = module.androidFacet?.getUserData(ANDROID_MODEL_KEY)
 
-  /**
-   * Sets the [AndroidModel] for the module.
-   *
-   * Facet is a parameter to be able to provide backwards compatible default implementation.
-   *
-   * The facet needs to be provided because in this case it's expected to be still under
-   * initialization (i.e. not yet committed), and can't be retrieved via facet manager.
-   */
-  fun setAndroidModel(mutableFacet: AndroidFacet, androidModel: AndroidModel) =
-    mutableFacet.putUserData(ANDROID_MODEL_KEY, androidModel)
-
   enum class Type {
     TYPE_NON_ANDROID,
     TYPE_APP,

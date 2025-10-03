@@ -126,10 +126,6 @@ class GradleModuleSystem(
 
   override val androidModel: GradleAndroidModel? = module.findSnapshotModuleEntity()?.gradleAndroidModel?.gradleAndroidModel
 
-  override fun setAndroidModel(mutableFacet: AndroidFacet, androidModel: AndroidModel) {
-    error("Not allowed, must be set through Workspace Model!")
-  }
-
   override val type: Type
     get() = when (GradleAndroidModel.get(module)?.androidProject?.projectType) {
       IdeAndroidProjectType.PROJECT_TYPE_APP -> Type.TYPE_APP

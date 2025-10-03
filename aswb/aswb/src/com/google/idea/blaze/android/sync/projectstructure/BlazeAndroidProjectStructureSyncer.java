@@ -18,8 +18,6 @@ package com.google.idea.blaze.android.sync.projectstructure;
 import static com.google.idea.blaze.android.sync.importer.BlazeAndroidWorkspaceImporter.WORKSPACE_RESOURCES_TARGET_KEY;
 import static java.util.stream.Collectors.toSet;
 
-import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder;
 import com.android.tools.idea.projectsystem.ScopeType;
@@ -33,6 +31,7 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.idea.blaze.android.manifest.ManifestParser;
 import com.google.idea.blaze.android.manifest.ParsedManifestService;
+import com.google.idea.blaze.android.projectsystem.BazelModuleSystem;
 import com.google.idea.blaze.android.projectview.GeneratedAndroidResourcesSection;
 import com.google.idea.blaze.android.resources.BlazeLightResourceClassService;
 import com.google.idea.blaze.android.sync.importer.BlazeAndroidWorkspaceImporter;
@@ -51,7 +50,6 @@ import com.google.idea.blaze.base.ideinfo.TargetKey;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
-import com.google.idea.blaze.base.projectview.section.sections.BuildFlagsSection;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.BlazeSyncPlugin;
 import com.google.idea.blaze.base.sync.projectstructure.ModuleFinder;
@@ -80,7 +78,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import org.jetbrains.android.facet.AndroidFacet;
 
 /** Updates the IDE's project structure. */
 public class BlazeAndroidProjectStructureSyncer {
@@ -477,14 +474,6 @@ public class BlazeAndroidProjectStructureSyncer {
             sourceProvider,
             applicationId,
             androidSdkPlatform.androidMinSdkLevel);
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null) {
-      updateAndroidFacetWithSourceAndModel(facet, sourceProvider, androidModel);
-    }
-  }
-
-  private static void updateAndroidFacetWithSourceAndModel(
-      AndroidFacet facet, NamedIdeaSourceProvider sourceProvider, BlazeAndroidModel androidModel) {
-    AndroidModel.set(facet, androidModel);
+    module.getService(BazelModuleSystem.class).setAndroidModel(androidModel);
   }
 }

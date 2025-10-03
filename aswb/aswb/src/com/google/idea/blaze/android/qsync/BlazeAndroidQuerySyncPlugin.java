@@ -24,6 +24,7 @@ import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder;
 import com.android.tools.idea.projectsystem.ScopeType;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.Futures;
+import com.google.idea.blaze.android.projectsystem.BazelModuleSystem;
 import com.google.idea.blaze.android.qsync.projectstructure.AndroidFacetModuleCustomizer;
 import com.google.idea.blaze.android.resources.BlazeLightResourceClassService;
 import com.google.idea.blaze.android.sdk.BlazeSdkProvider;
@@ -131,7 +132,7 @@ public class BlazeAndroidQuerySyncPlugin implements BlazeQuerySyncPlugin {
             sourceProvider,
             Futures.immediateFuture(":workspace"),
             androidSdkPlatform != null ? androidSdkPlatform.androidMinSdkLevel : 1);
-    AndroidModel.set(workspaceFacet, androidModel);
+    workspaceModule.getService(BazelModuleSystem.class).setAndroidModel(androidModel);
 
     // Register all source java packages as workspace packages
     BlazeLightResourceClassService.Builder rClassBuilder =
