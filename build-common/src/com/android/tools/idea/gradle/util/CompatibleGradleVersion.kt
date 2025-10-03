@@ -87,7 +87,7 @@ enum class CompatibleGradleVersion(val version: GradleVersion) {
         else -> VERSION_FOR_DEV
       }
     }
-    private val VERSION_MIN = getAssociatedGradleVersion(AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION))
+    private val VERSION_MIN = getAssociatedGradleVersion(AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_FORCED_UPGRADE_VERSION))
     fun getCompatibleGradleVersion(agpVersion: AgpVersion): CompatibleGradleVersion {
       val compatibleGradleVersion = getAssociatedGradleVersion(agpVersion)
       return when {
