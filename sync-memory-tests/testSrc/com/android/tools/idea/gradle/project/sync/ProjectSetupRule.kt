@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.SdkConstants
+import com.android.builder.model.SyncIssue.Companion.TYPE_UNRESOLVED_DEPENDENCY
 import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.testProjectTemplateFromPath
@@ -54,6 +55,7 @@ enum class BenchmarkProject(
   val diffs: List<String> = listOf("diff-properties", "diff-compose-plugin", "diff-built-in-kotlin", "diff-kapt"),
   val extraDiffs: List<String> = emptyList(),
   val automigrateNamespace: Boolean = true,
+  val useAgp813: Boolean = false
 ) {
   STANDARD_50(STANDARD_PATH, maxHeapMB = 400, extraDiffs = listOf("diff-50")),
   STANDARD_100(STANDARD_PATH, maxHeapMB = 600, extraDiffs = listOf("diff-100")),
@@ -81,7 +83,11 @@ enum class BenchmarkProject(
   STANDARD_4200(STANDARD_PATH, maxHeapMB = 30000),
   KMP_2000(KMP_PATH, maxHeapMB = 20000, diffs = emptyList(), extraDiffs = listOf("diff-2200"), automigrateNamespace = false),
   MULTI_APP_100(STANDARD_PATH, maxHeapMB = 6000, extraDiffs = listOf("diff-100-apps-1300-modules")),
-  MULTI_APP_190(STANDARD_PATH, maxHeapMB = 15300, extraDiffs = listOf("diff-190-apps-2200-modules"));
+  MULTI_APP_190(STANDARD_PATH, maxHeapMB = 15300, extraDiffs = listOf("diff-190-apps-2200-modules")),
+  STANDARD_2000_8_13(STANDARD_PATH, maxHeapMB = 15300, useAgp813 = true,
+                     diffs = listOf("diff-properties", "diff-compose-plugin"),
+                     extraDiffs = listOf("diff-2200")
+  );
 }
 
 /**
@@ -125,13 +131,12 @@ class ProjectSetupRuleImpl(
         testDataPath = rootDirectory.toString(),
         autoMigratePackageAttribute = project.automigrateNamespace
       ),
-        agpVersion =
-        if (useLatestGradle)
-          AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_GRADLE_SNAPSHOT
-        else if (useLatestKotlin)
-          AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_KOTLIN_SNAPSHOT
-        else
-          AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST
+        agpVersion = when {
+          useLatestGradle -> AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_GRADLE_SNAPSHOT
+          useLatestKotlin -> AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_KOTLIN_SNAPSHOT
+          project.useAgp813 -> AgpVersionSoftwareEnvironmentDescriptor.AGP_8_13
+          else -> AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST
+        }
     ).open(
       updateOptions = {
         it.copy(
@@ -139,7 +144,9 @@ class ProjectSetupRuleImpl(
             listeners.forEach {
               connection.subscribe(GRADLE_SYNC_TOPIC, it)
             }
-          }
+          },
+          // TODO(b/449111235): Properly set up databinding dependencies for AGP 8.13 benchmarks
+          expectedSyncIssues = if(project.useAgp813) setOf(TYPE_UNRESOLVED_DEPENDENCY) else emptySet()
         )
       }) {
       body(it)
@@ -161,12 +168,13 @@ class ProjectSetupRuleImpl(
         unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip")
         unzipIntoOfflineMavenRepo("tools/data-binding/data_binding_runtime.zip")
         linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest")
-        "tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest".unzipIfExists()
-        "tools/base/build-system/integration-test/latest_kotlin_gradle_plugin_prebuilts_for_sync_benchmarks.manifest".unzipIfExists()
+        "tools/base/build-system/previous-versions/8.13.0.manifest".linkIfExists()
+        "tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest".linkIfExists()
+        "tools/base/build-system/integration-test/latest_kotlin_gradle_plugin_prebuilts_for_sync_benchmarks.manifest".linkIfExists()
       }
     }
 
-    private fun String.unzipIfExists() {
+    private fun String.linkIfExists() {
       if (File(this).exists()) {
         linkIntoOfflineMavenRepo(this)
       }
