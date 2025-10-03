@@ -33,10 +33,13 @@ import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedU
 import com.android.tools.profilers.taskbased.common.icons.DeviceIconUtils
 import com.android.tools.profilers.taskbased.common.text.EllipsisText
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection
+import com.intellij.openapi.diagnostic.Logger
 import icons.StudioIcons
 import icons.StudioIconsCompose
 import org.jetbrains.jewel.ui.component.Icon
 import javax.swing.Icon
+
+private val logger = Logger.getInstance("DeviceSelectionContent")
 
 @Composable
 fun DeviceSelectionContent(selectedDevice: ProfilerDeviceSelection?, selectedDevicesCount: Int) {
@@ -106,6 +109,7 @@ fun SingleDeviceSelectionContent(selectedDevice: ProfilerDeviceSelection) {
         // device is actually running, but the profiler-side device data has not found the running device yet. This brief state of waiting
         // for the device information to arrive to the profiler will be communicated via a "Loading" subtext next to the selected device name.
         if (selectedDevice.device == Common.Device.getDefaultInstance()) {
+          logger.info("Device '${selectedDevice.name}' is running, but profiler-side device data has not been found yet.")
           TaskBasedUxStrings.LOADING_SELECTED_DEVICE_INFO
         }
         else {
