@@ -22,7 +22,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:asm",
     "//libraries/guava",
-    "@lib//:gson",
+    "//libraries/gson",
     "@lib//:http-client",
     "@lib//:jetbrains-annotations",
   ]
@@ -42,7 +42,7 @@ jvm_library(
     "//libraries/mockito",
     "@lib//:asm",
     "//libraries/guava",
-    "@lib//:gson",
+    "//libraries/gson",
     "@lib//:http-client",
     "@lib//:jetbrains-annotations",
   ]

@@ -57,7 +57,7 @@ jvm_library(
     "@lib//:fastutil-min",
     "@lib//:google-baksmali",
     "@lib//:google-dexlib2",
-    "@lib//:gson",
+    "//libraries/gson",
     "@lib//:http-client",
     "@lib//:icu4j",
     "@lib//:jcip",

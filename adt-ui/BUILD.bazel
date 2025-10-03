@@ -80,7 +80,7 @@ jvm_library(
     "@lib//:studio-test-platform",
     "//libraries/guava",
     "@lib//:fastutil-min",
-    "@lib//:gson",
+    "//libraries/gson",
     "@lib//:kotlin-test",
     "@lib//:kotlinx-coroutines-test",
     "//libraries/mockito",

@@ -9,7 +9,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "//libraries/guava",
-    "@lib//:gson",
+    "//libraries/gson",
     "@lib//:kotlin-stdlib",
     "//android/android-common:common",
     "//android/android:core",
@@ -60,7 +60,7 @@ jvm_library(
     "//platform/util-ex",
     "//platform/util-rt",
     "//platform/util-rt:util-rt_test_lib",
-    "@lib//:gson",
+    "//libraries/gson",
     "//android/android-common:common",
   ]
 )

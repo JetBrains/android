@@ -97,7 +97,7 @@ jvm_library(
     "@lib//:junit4",
     "@lib//:asm-tools",
     "@lib//:commons-io",
-    "@lib//:gson",
+    "//libraries/gson",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-test",
     "@lib//:mockito-kotlin",

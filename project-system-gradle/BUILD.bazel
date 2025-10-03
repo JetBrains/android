@@ -31,7 +31,7 @@ jvm_library(
     "@lib//:commons-lang3",
     "@lib//:fastutil-min",
     "//libraries/grpc",
-    "@lib//:gson",
+    "//libraries/gson",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-gradle-plugin-idea-provided",
     "@lib//:kotlin-stdlib",

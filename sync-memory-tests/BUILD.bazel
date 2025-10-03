@@ -8,7 +8,7 @@ jvm_library(
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:gson",
+    "//libraries/gson",
     "@lib//:kotlin-stdlib",
   ]
 )
@@ -21,7 +21,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "@lib//:gson",
+    "//libraries/gson",
     "@lib//:kotlin-stdlib",
     "@lib//:gradle",
     "@lib//:junit4",

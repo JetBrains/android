@@ -35,7 +35,7 @@ jvm_library(
     "//xml/xml-psi-api:psi",
     "//xml/dom-openapi:dom",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
-    "@lib//:gson",
+    "//libraries/gson",
   ]
 )
 
@@ -78,7 +78,7 @@ jvm_library(
     "//java/testFramework",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "@lib//:jsoup",
-    "@lib//:gson",
+    "//libraries/gson",
   ]
 )
 ### auto-generated section `build intellij.android.core.editing.documentation` end

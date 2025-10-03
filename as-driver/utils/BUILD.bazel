@@ -28,7 +28,7 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util-rt:util-rt_test_lib",
     "//platform/core-api:core",
-    "@lib//:gson",
+    "//libraries/gson",
     "@lib//:protobuf",
     "//platform/lang-impl",
   ]

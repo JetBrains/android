@@ -34,7 +34,7 @@ jvm_library(
     "//android/artwork",
     "//android/compose-designer/lib:ui-animation-tooling-internal",
     "//libraries/guava",
-    "@lib//:gson",
+    "//libraries/gson",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-reflect",
     "@lib//:kotlin-stdlib",

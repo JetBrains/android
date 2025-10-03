@@ -39,7 +39,7 @@ jvm_library(
     "@lib//:aapt-proto",
     "//android/apkanalyzer",
     "@lib//:protobuf",
-    "@lib//:gson",
+    "//libraries/gson",
   ]
 )
 ### auto-generated section `build intellij.android.wear-dwf` end

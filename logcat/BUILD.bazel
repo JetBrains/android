@@ -22,7 +22,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "//libraries/guava",
-    "@lib//:gson",
+    "//libraries/gson",
     "@lib//:jetbrains-annotations",
     "//platform/core-api:core",
     "//platform/editor-ui-api:editor-ui",
@@ -79,7 +79,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "//libraries/guava",
     "@lib//:junit4",
-    "@lib//:gson",
+    "//libraries/gson",
     "@lib//:kotlin-test",
     "@lib//:kotlinx-coroutines-core",
     "@lib//:kotlinx-coroutines-test",

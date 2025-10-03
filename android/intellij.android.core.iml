@@ -47,7 +47,7 @@
     <orderEntry type="library" name="fastutil-min" level="project" />
     <orderEntry type="library" name="google-baksmali" level="project" />
     <orderEntry type="library" name="google-dexlib2" level="project" />
-    <orderEntry type="library" name="gson" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.gson" />
     <orderEntry type="library" name="http-client" level="project" />
     <orderEntry type="library" name="icu4j" level="project" />
     <orderEntry type="library" name="jcip" level="project" />
