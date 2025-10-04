@@ -21,7 +21,7 @@ jvm_library(
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:kxml2",
-    "@lib//:asm",
+    "//libraries/asm",
     "//android/layoutlib-loader",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//java/java-psi-api:psi",

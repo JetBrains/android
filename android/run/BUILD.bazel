@@ -11,7 +11,7 @@ jvm_library(
     "@lib//:studio-test-platform",
     "//android/android/lib:instantapps-api-1-8",
     "@lib//:kotlin-stdlib",
-    "@lib//:asm",
+    "//libraries/asm",
     "//libraries/guava",
     "@lib//:junit4",
     "@lib//:asm-tools",

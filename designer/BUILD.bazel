@@ -268,7 +268,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "@lib//:asm",
+    "//libraries/asm",
     "//libraries/guava",
     "@lib//:jaxb-api",
     "@lib//:jsoup",

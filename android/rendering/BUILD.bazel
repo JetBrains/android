@@ -61,7 +61,7 @@ jvm_library(
     "//platform/util/trove",
     "//platform/util:util-ui",
     "//xml/xml-psi-api:psi",
-    "@lib//:asm",
+    "//libraries/asm",
     "@lib//:http-client",
     "//xml/dom-openapi:dom",
   ]

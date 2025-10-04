@@ -34,7 +34,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="ASM" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.asm" />
     <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.guava" />
     <orderEntry type="library" name="HdrHistogram" level="project" />

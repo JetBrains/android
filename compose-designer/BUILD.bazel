@@ -203,7 +203,7 @@ jvm_library(
     "//android/layout-ui:layout-ui_test_lib",
     "//android/compose-designer/lib:ui-animation-tooling-internal",
     "@lib//:kotlin-stdlib",
-    "@lib//:asm",
+    "//libraries/asm",
     "//libraries/guava",
     "@lib//:junit4",
     "@lib//:asm-tools",

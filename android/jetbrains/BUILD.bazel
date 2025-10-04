@@ -29,7 +29,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
-    "@lib//:asm",
+    "//libraries/asm",
     "//libraries/guava",
     "@lib//:jsoup",
     "@lib//:junit4",

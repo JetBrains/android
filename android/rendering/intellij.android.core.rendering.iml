@@ -49,7 +49,7 @@
     <orderEntry type="module" module-name="intellij.platform.util.trove" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.psi" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="ASM" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.asm" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="http-client" level="project" />
     <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
   </component>

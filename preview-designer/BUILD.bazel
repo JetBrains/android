@@ -144,7 +144,7 @@ jvm_library(
     "@lib//:kotlinc-analysis-api-provided",
     "//android/designer:designer-tests_test_lib",
     "@lib//:mockito-kotlin",
-    "@lib//:asm",
+    "//libraries/asm",
     "@lib//:kotlinx-coroutines-test",
   ]
 )
