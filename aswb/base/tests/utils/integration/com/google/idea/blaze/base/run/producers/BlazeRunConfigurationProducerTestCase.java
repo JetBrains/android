@@ -34,11 +34,11 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.testFramework.MapDataContext;
 import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.ui.IconManager;
 import com.intellij.ui.icons.CoreIconManager;
@@ -102,33 +102,37 @@ public class BlazeRunConfigurationProducerTestCase extends BlazeIntegrationTestC
   }
 
   protected ConfigurationContext createContextFromPsi(PsiElement element) {
-    final MapDataContext dataContext = new MapDataContext();
-    dataContext.put(CommonDataKeys.PROJECT, getProject());
-    dataContext.put(LangDataKeys.MODULE, ModuleUtil.findModuleForPsiElement(element));
-    dataContext.put(Location.DATA_KEY, PsiLocation.fromPsiElement(element));
-    return ConfigurationContext.getFromContext(dataContext);
+    return ConfigurationContext.getFromContext(
+        SimpleDataContext.builder()
+            .add(CommonDataKeys.PROJECT, getProject())
+            .add(LangDataKeys.MODULE, ModuleUtil.findModuleForPsiElement(element))
+            .add(Location.DATA_KEY, PsiLocation.fromPsiElement(element))
+            .build());
   }
 
   protected ConfigurationContext createContextFromMultipleElements(PsiElement[] elements) {
-    final MapDataContext dataContext = new MapDataContext();
-    dataContext.put(CommonDataKeys.PROJECT, getProject());
-    dataContext.put(LangDataKeys.MODULE, ModuleUtil.findModuleForPsiElement(elements[0]));
-    dataContext.put(Location.DATA_KEY, PsiLocation.fromPsiElement(elements[0]));
-    dataContext.put(
-        Location.DATA_KEYS,
-        Arrays.stream(elements).map(PsiLocation::fromPsiElement).toArray(Location[]::new));
-    dataContext.put(LangDataKeys.PSI_ELEMENT_ARRAY, elements);
-    return ConfigurationContext.getFromContext(dataContext);
+    return ConfigurationContext.getFromContext(
+        SimpleDataContext.builder()
+            .add(CommonDataKeys.PROJECT, getProject())
+            .add(LangDataKeys.MODULE, ModuleUtil.findModuleForPsiElement(elements[0]))
+            .add(Location.DATA_KEY, PsiLocation.fromPsiElement(elements[0]))
+            .add(
+                Location.DATA_KEYS,
+                Arrays.stream(elements).map(PsiLocation::fromPsiElement).toArray(Location<?>[]::new))
+            .add(LangDataKeys.PSI_ELEMENT_ARRAY, elements)
+            .build());
   }
 
   @Nullable
   protected RunConfiguration createConfigurationFromLocation(PsiFile psiFile) {
-    MapDataContext dataContext = new MapDataContext();
-    dataContext.put(CommonDataKeys.PROJECT, getProject());
-    dataContext.put(LangDataKeys.MODULE, ModuleUtil.findModuleForPsiElement(psiFile));
-    dataContext.put(Location.DATA_KEY, PsiLocation.fromPsiElement(psiFile));
     RunnerAndConfigurationSettings settings =
-        ConfigurationContext.getFromContext(dataContext).getConfiguration();
+        ConfigurationContext.getFromContext(
+                SimpleDataContext.builder()
+                    .add(CommonDataKeys.PROJECT, getProject())
+                    .add(LangDataKeys.MODULE, ModuleUtil.findModuleForPsiElement(psiFile))
+                    .add(Location.DATA_KEY, PsiLocation.fromPsiElement(psiFile))
+                    .build())
+            .getConfiguration();
     return settings != null ? settings.getConfiguration() : null;
   }
 
