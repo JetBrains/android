@@ -6,6 +6,7 @@ load(
 )
 load(
     "//tools/adt/idea/aswb/build_defs:build_defs.bzl",
+    "aswb_library",
     "combine_visibilities",
     "intellij_plugin",
     "intellij_plugin_library",
@@ -22,9 +23,12 @@ load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 licenses(["notice"])
 
-java_library(
+aswb_library(
     name = "kotlin",
-    srcs = glob(["src/**/*.java"]),
+    srcs = glob([
+        "src/**/*.java",
+        "src/**/*.kt",
+    ]),
     visibility = combine_visibilities(ASWB_SUBPACKAGES_VISIBILITY, KOTLIN_PACKAGE_VISIBILITY),
     deps = [
         "//tools/adt/idea/aswb/base",
