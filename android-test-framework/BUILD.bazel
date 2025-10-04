@@ -27,7 +27,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "//libraries/guava",
     "@lib//:junit4",
-    "@lib//:kotlin-reflect",
+    "//libraries/kotlin-reflect",
     "//android/android:core",
     "//android/android-lang-databinding:lang-databinding",
     "//android/android-common:common",

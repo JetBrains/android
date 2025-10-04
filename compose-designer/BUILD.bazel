@@ -36,7 +36,7 @@ jvm_library(
     "//libraries/guava",
     "//libraries/gson",
     "@lib//:jetbrains-annotations",
-    "@lib//:kotlin-reflect",
+    "//libraries/kotlin-reflect",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlinx-coroutines-core",
     "@lib//:protobuf",

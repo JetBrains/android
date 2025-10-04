@@ -134,7 +134,7 @@ jvm_library(
     "//libraries/guava",
     "@lib//:gradle",
     "@lib//:junit4",
-    "@lib//:kotlin-reflect",
+    "//libraries/kotlin-reflect",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlinc-kotlin-compiler-common",
     "@lib//:kotlinc-kotlin-compiler-fe10",
