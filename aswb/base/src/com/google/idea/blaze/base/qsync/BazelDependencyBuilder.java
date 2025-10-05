@@ -235,11 +235,11 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
     Collection<OutputGroup> outputGroups
   ) {
     ImmutableList<String> includes =
-        projectDefinition.projectIncludes().stream()
+        projectDefinition.getProjectIncludes().stream()
             .map(path -> "//" + path)
             .collect(toImmutableList());
     ImmutableList<String> excludes =
-        projectDefinition.projectExcludes().stream()
+        projectDefinition.getProjectExcludes().stream()
             .map(path -> "//" + path)
             .collect(toImmutableList());
     ImmutableList<String> alwaysBuildRules =

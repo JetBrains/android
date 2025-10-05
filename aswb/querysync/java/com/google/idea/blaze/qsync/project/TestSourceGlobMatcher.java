@@ -31,7 +31,7 @@ public class TestSourceGlobMatcher {
   private final ImmutableSet<String> testSourceGlobs;
 
   public static TestSourceGlobMatcher create(ProjectDefinition projectDefinition) {
-    return new TestSourceGlobMatcher(projectDefinition.testSources());
+    return new TestSourceGlobMatcher(ImmutableSet.copyOf(projectDefinition.getTestSources()));
   }
 
   @VisibleForTesting

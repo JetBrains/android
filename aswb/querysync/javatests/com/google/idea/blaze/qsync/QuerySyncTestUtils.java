@@ -65,6 +65,7 @@ public class QuerySyncTestUtils {
 
   private static final ImmutableSet<String> JAVA_ROOT_DIRS = ImmutableSet.of("java", "javatests");
 
+  @SuppressWarnings("PathAsIterable")
   public static String inferJavaPackageFromPath(Context<?> context, Path p) {
     Path dir = p.getParent();
     for (int i = 0; i < dir.getNameCount(); ++i) {

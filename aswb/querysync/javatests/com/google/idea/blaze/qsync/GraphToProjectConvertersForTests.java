@@ -88,14 +88,15 @@ abstract class GraphToProjectConvertersForTests {
           new PackageReader.ParallelReader.SingleThreadedForTests(),
           v -> info.fileExistenceCheck().test(v),
           NOOP_CONTEXT,
-          ProjectDefinition.builder()
-              .setProjectIncludes(info.projectIncludes())
-              .setProjectExcludes(info.projectExcludes())
-              .setTargetPatterns(ImmutableList.of())
-              .setLanguageClasses(info.languageClasses())
-              .setTestSources(info.testSources())
-              .setSystemExcludes(info.systemExcludes())
-              .build(),
+          new ProjectDefinition(
+            info.projectIncludes(),
+            info.projectExcludes(),
+            false,
+            ImmutableList.of(),
+            info.languageClasses(),
+            info.testSources(),
+            info.systemExcludes()
+      ),
           newDirectExecutorService());
     }
   }
