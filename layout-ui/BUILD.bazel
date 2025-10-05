@@ -34,7 +34,7 @@ jvm_library(
     "//platform/util/text-matching",
     "//platform/util:util-ui",
     "//platform/platform-impl/ui",
-    "@lib//:fastutil-min",
+    "//libraries/fastutil",
   ]
 )
 
@@ -85,7 +85,7 @@ jvm_library(
     "//platform/testFramework/common",
     "//platform/util/jdom",
     "//platform/platform-impl/ui",
-    "@lib//:fastutil-min",
+    "//libraries/fastutil",
   ]
 )
 ### auto-generated section `build intellij.android.layout-ui` end

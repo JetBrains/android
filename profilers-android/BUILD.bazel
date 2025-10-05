@@ -15,7 +15,7 @@ jvm_library(
   resources = [":profilers-android_resources"],
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:fastutil-min",
+    "//libraries/fastutil",
     "//libraries/grpc",
     "//libraries/gson",
     "@lib//:jetbrains-annotations",
@@ -76,7 +76,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "@lib//:fastutil-min",
+    "//libraries/fastutil",
     "//libraries/grpc",
     "//libraries/gson",
     "@lib//:jetbrains-annotations",

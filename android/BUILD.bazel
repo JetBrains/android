@@ -54,7 +54,7 @@ jvm_library(
     "@lib//:asm-tools",
     "@lib//:commons-compress",
     "@lib//:commons-io",
-    "@lib//:fastutil-min",
+    "//libraries/fastutil",
     "@lib//:google-baksmali",
     "@lib//:google-dexlib2",
     "//libraries/gson",

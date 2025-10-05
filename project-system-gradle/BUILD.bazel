@@ -29,7 +29,7 @@ jvm_library(
     "@lib//:stream_ex",
     "@lib//:classgraph",
     "@lib//:commons-lang3",
-    "@lib//:fastutil-min",
+    "//libraries/fastutil",
     "//libraries/grpc",
     "//libraries/gson",
     "@lib//:jetbrains-annotations",

@@ -10,7 +10,7 @@
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.guava" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
-    <orderEntry type="library" scope="TEST" name="fastutil-min" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.fastutil" scope="TEST" />
     <orderEntry type="module-library" scope="TEST">
       <library name="ffmpeg" type="repository">
         <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:ffmpeg:6.0-1.5.9-189">

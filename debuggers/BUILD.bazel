@@ -25,7 +25,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "//libraries/guava",
-    "@lib//:fastutil-min",
+    "//libraries/fastutil",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
@@ -86,7 +86,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "@lib//:fastutil-min",
+    "//libraries/fastutil",
     "@lib//:kotlin-stdlib",
     "//libraries/guava",
     "@lib//:junit4",

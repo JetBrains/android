@@ -15,7 +15,7 @@ jvm_library(
   resources = [":bleak_resources"],
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:fastutil-min",
+    "//libraries/fastutil",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",

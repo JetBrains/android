@@ -26,7 +26,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "//libraries/guava",
-    "@lib//:fastutil-min",
+    "//libraries/fastutil",
     "@lib//:http-client",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
