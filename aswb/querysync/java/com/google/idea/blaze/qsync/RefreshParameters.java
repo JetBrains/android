@@ -134,8 +134,8 @@ public class RefreshParameters {
 
     return AffectedPackagesCalculator.builder()
         .context(context)
-        .projectIncludes(currentProject.projectDefinition().projectIncludes())
-        .projectExcludes(currentProject.projectDefinition().projectExcludes())
+        .projectIncludes(ImmutableSet.copyOf(currentProject.projectDefinition().getProjectIncludes()))
+        .projectExcludes(ImmutableSet.copyOf(currentProject.projectDefinition().getProjectExcludes()))
         .changedFiles(changed)
         .lastQuery(currentProject.querySummary())
         .build()

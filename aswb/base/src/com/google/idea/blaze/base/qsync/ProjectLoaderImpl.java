@@ -378,17 +378,17 @@ public class ProjectLoaderImpl implements ProjectLoader {
         .stream()
         .map(it -> TargetPattern.parse(it.toString()))
         .collect(toImmutableList());
-    return ProjectDefinition.builder()
-      .setProjectIncludes(importRoots.rootPaths())
-      .setProjectExcludes(importRoots.excludePaths())
-      .setDeriveTargetsFromDirectories(deriveTargetsFromDirectories)
-      .setTargetPatterns(targetPatterns)
-      .setLanguageClasses(LanguageClasses.toQuerySync(workspaceLanguageSettings.getActiveLanguages()))
-      .setTestSources(testSourceGlobs)
-      .setSystemExcludes(ImmutableSet.<Path>builder()
+    return new ProjectDefinition(
+      importRoots.rootPaths(),
+      importRoots.excludePaths(),
+      deriveTargetsFromDirectories,
+      targetPatterns,
+      LanguageClasses.toQuerySync(workspaceLanguageSettings.getActiveLanguages()),
+      testSourceGlobs,
+      ImmutableSet.<Path>builder()
                            .addAll(importRoots.systemExcludes())
                            .add(Path.of(BazelDependencyBuilder.INVOCATION_FILES_DIR))
-                           .build())
-      .build();
+                           .build()
+      );
   }
 }

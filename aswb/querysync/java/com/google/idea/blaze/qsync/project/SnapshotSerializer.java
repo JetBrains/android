@@ -63,21 +63,21 @@ public class SnapshotSerializer {
 
   private void visitProjectDefinition(ProjectDefinition projectDefinition) {
     SnapshotProto.ProjectDefinition.Builder proto = this.proto.getProjectDefinitionBuilder();
-    projectDefinition.projectIncludes().stream()
+    projectDefinition.getProjectIncludes().stream()
         .map(Path::toString)
         .forEach(proto::addIncludePaths);
-    projectDefinition.projectExcludes().stream()
+    projectDefinition.getProjectExcludes().stream()
         .map(Path::toString)
         .forEach(proto::addExcludePaths);
-    proto.setDeriveTargetsFromDirectories(projectDefinition.deriveTargetsFromDirectories());
-    projectDefinition.targetPatterns().stream().map(TargetPattern::toString).forEach(proto::addTargetPatterns);
-    projectDefinition.systemExcludes().stream()
+    proto.setDeriveTargetsFromDirectories(projectDefinition.getDeriveTargetsFromDirectories());
+    projectDefinition.getTargetPatterns().stream().map(TargetPattern::toString).forEach(proto::addTargetPatterns);
+    projectDefinition.getSystemExcludes().stream()
         .map(Path::toString)
         .forEach(proto::addSystemExcludes);
-    projectDefinition.languageClasses().stream()
+    projectDefinition.getLanguageClasses().stream()
         .map(l -> l.protoValue)
         .forEach(proto::addLanguageClasses);
-    projectDefinition.testSources().forEach(proto::addTestSources);
+    projectDefinition.getTestSources().forEach(proto::addTestSources);
   }
 
   private void visitVcsState(VcsState vcsState) {

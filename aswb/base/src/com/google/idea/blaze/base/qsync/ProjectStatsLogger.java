@@ -17,6 +17,7 @@ package com.google.idea.blaze.base.qsync;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.projectview.section.sections.ImportSection;
@@ -43,7 +44,7 @@ public class ProjectStatsLogger {
             scope -> {
               scope
                   .getProjectInfoStatsBuilder()
-                  .setLanguagesActive(instance.queryData().projectDefinition().languageClasses())
+                  .setLanguagesActive(ImmutableSet.copyOf(instance.queryData().projectDefinition().getLanguageClasses()))
                   .setBlazeProjectFiles(
                       projectViewSet.listScalarItems(ImportSection.KEY).stream()
                           .map(WorkspacePath::asPath)

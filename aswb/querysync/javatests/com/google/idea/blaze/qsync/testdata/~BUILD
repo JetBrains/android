@@ -1,3 +1,4 @@
+load("//tools/adt/idea/aswb/build_defs:build_defs.bzl", "aswb_library")
 load(
     ":scope_util.bzl",
     "scopeForAndroidPackage",
@@ -219,10 +220,10 @@ java_library(
     ],
 )
 
-java_library(
+aswb_library(
     name = "project_protos",
     testonly = 1,
-    srcs = ["ProjectProtos.java"],
+    srcs = ["ProjectProtos.kt"],
     deps = [
         ":build_graphs",
         ":testdata",
@@ -231,6 +232,8 @@ java_library(
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync:TestUtils",
         "//tools/adt/idea/aswb/shared:exception",
+        "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",
+        "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "@maven//:com.google.guava.guava",
     ],
 )

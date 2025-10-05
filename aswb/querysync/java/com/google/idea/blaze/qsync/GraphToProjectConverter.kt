@@ -43,7 +43,6 @@ import java.util.Comparator.comparingInt
 import java.util.PriorityQueue
 import java.util.TreeSet
 import java.util.concurrent.ExecutionException
-import kotlin.jvm.optionals.getOrNull
 
 /** Converts a {@link BuildGraphDataImpl} instance into a project proto. */
 class GraphToProjectConverter(
@@ -130,7 +129,7 @@ class GraphToProjectConverter(
       .mapNotNull { it.parent }
       .distinct()
       .mapNotNull {
-        SourceFolder(root = it, contentRoot = projectDefinition.getIncludingContentRoot(it).getOrNull() ?: return@mapNotNull null)
+        SourceFolder(root = it, contentRoot = projectDefinition.getIncludingContentRoot(it) ?: return@mapNotNull null)
       }
       .groupBy({ it.contentRoot }, { it.contentRoot.relativize(it.root) })
   }
@@ -138,7 +137,7 @@ class GraphToProjectConverter(
   @VisibleForTesting
   fun splitByRoot(prefixes: Map<Path, String>): ImmutableMap<Path, ImmutableMap<Path, String>> {
     val split: ImmutableMap.Builder<Path, ImmutableMap<Path, String>> = ImmutableMap.builder()
-    for (root in projectDefinition.projectIncludes()) {
+    for (root in projectDefinition.projectIncludes) {
       val inRoot: ImmutableMap.Builder<Path, String> = ImmutableMap.builder()
       for (pkg in prefixes.entries) {
         val rel = pkg.key
@@ -397,7 +396,7 @@ class GraphToProjectConverter(
           pref = parentPackageOf(pref)
         }
         if (dir != null && pref != null) {
-          dirWants.computeIfAbsent(dir) { it -> hashSetOf() }.add(pref)
+          dirWants.computeIfAbsent(dir) { hashSetOf() }.add(pref)
         }
       }
       return dirWants
@@ -458,9 +457,9 @@ class GraphToProjectConverter(
         it.androidCustomPackages.addAll(graph.getAllCustomPackages())
       }
 
-    val excludesByRootDirectory = projectDefinition.getExcludesByRootDirectory()
+    val excludesByRootDirectory = projectDefinition.excludesByRootDirectory
     val testSourceGlobMatcher = TestSourceGlobMatcher.create(projectDefinition)
-    for (dir in projectDefinition.projectIncludes()) {
+    for (dir in projectDefinition.projectIncludes) {
       val sourceRootsWithPrefixes = javaSourceRoots.get(dir).orEmpty()
       val sourceFolders =
         sourceRootsWithPrefixes.entries.map { entry ->
@@ -487,7 +486,7 @@ class GraphToProjectConverter(
           }
           else null
         }
-      val excludes = excludesByRootDirectory.get(dir).map { exclude -> ProjectPath.workspaceRelative(exclude) }
+      val excludes = excludesByRootDirectory[dir].orEmpty().map { exclude -> ProjectPath.workspaceRelative(exclude) }
       val contentEntry =
         ProjectProto.ContentEntry(root = ProjectPath.workspaceRelative(dir), sourceFolders = sourceFolders, excludes = excludes)
       workspaceModule.contentEntries[contentEntry.root] = contentEntry

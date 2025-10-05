@@ -564,10 +564,9 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     if (!f.exists()) {
       return null
     }
-    GZIPInputStream(FileInputStream(f)).use { `in` ->
+    GZIPInputStream(FileInputStream(f)).use { input ->
       return SnapshotDeserializer()
-        .readFrom(`in`, context)
-        .getOrNull()
+        .readFrom(input, context)
         ?.syncData
     }
   }
