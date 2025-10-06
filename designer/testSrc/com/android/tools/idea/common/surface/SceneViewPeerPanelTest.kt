@@ -18,9 +18,6 @@ package com.android.tools.idea.common.surface
 import com.android.tools.idea.common.model.DisplaySettings
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.glasses.GlassesBlendDropdownAction
-import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.uibuilder.surface.TestSceneView
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -52,7 +49,11 @@ class SceneViewPeerPanelTest {
   @Test
   fun `top panel is visible when label is hidden and actions are present`() {
     val sceneViewPeerPanel =
-      createSceneViewPeerPanel(disposableRule.disposable, "", toolbarActions = listOf(anAction()))
+      createSceneViewPeerPanel(
+        disposableRule.disposable,
+        "",
+        toolbarOverflowActions = listOf(anAction()),
+      )
     assertTrue(sceneViewPeerPanel.sceneViewTopPanel.isVisible)
   }
 
@@ -66,7 +67,7 @@ class SceneViewPeerPanelTest {
   @Test
   fun `toolbar is not created when no actions`() {
     val sceneViewPeerPanel =
-      createSceneViewPeerPanel(disposableRule.disposable, "", toolbarActions = emptyList())
+      createSceneViewPeerPanel(disposableRule.disposable, "", toolbarOverflowActions = emptyList())
     println(sceneViewPeerPanel.sceneViewTopPanel.components)
     assertFalse(sceneViewPeerPanel.sceneViewTopPanel.components.any { it is ActionToolbar })
   }
@@ -74,28 +75,28 @@ class SceneViewPeerPanelTest {
   @Test
   fun `toolbar is created when actions are present`() {
     val sceneViewPeerPanel =
-      createSceneViewPeerPanel(disposableRule.disposable, "", toolbarActions = listOf(anAction()))
+      createSceneViewPeerPanel(
+        disposableRule.disposable,
+        "",
+        toolbarOverflowActions = listOf(anAction()),
+      )
     assertTrue(sceneViewPeerPanel.sceneViewTopPanel.components.any { it is ActionToolbar })
   }
 
   @Test
-  fun `toolbar contains glasses dropdown action if flag is enabled`() {
-    StudioFlags.COMPOSE_PREVIEW_XR_GLASSES_PREVIEW.overrideForTest(true, disposableRule.disposable)
+  fun `toolbar contains is visible if no name and regular actions are available`() {
+    val anAction = anAction()
     val sceneViewPeerPanel =
-      createSceneViewPeerPanel(disposableRule.disposable, "", toolbarActions = listOf(anAction()))
+      createSceneViewPeerPanel(
+        disposableRule.disposable,
+        "",
+        toolbarActions = listOf(anAction),
+        toolbarOverflowActions = listOf(),
+      )
+    assertTrue(sceneViewPeerPanel.isVisible)
     assertTrue(sceneViewPeerPanel.sceneViewTopPanel.components.any { it is ActionToolbar })
     val toolbarActions = sceneViewPeerPanel.getTopToolbarActions()
-    assertTrue(toolbarActions.filterIsInstance<GlassesBlendDropdownAction>().isNotEmpty())
-  }
-
-  @Test
-  fun `toolbar doesn't contain glasses dropdown action if flag is disabled`() {
-    StudioFlags.COMPOSE_PREVIEW_XR_GLASSES_PREVIEW.overrideForTest(false, disposableRule.disposable)
-    val sceneViewPeerPanel =
-      createSceneViewPeerPanel(disposableRule.disposable, "", toolbarActions = listOf(anAction()))
-    assertTrue(sceneViewPeerPanel.sceneViewTopPanel.components.any { it is ActionToolbar })
-    val toolbarActions = sceneViewPeerPanel.getTopToolbarActions()
-    assertTrue(toolbarActions.filterIsInstance<GlassesBlendDropdownAction>().isEmpty())
+    assertTrue(toolbarActions.contains(anAction))
   }
 }
 
@@ -132,6 +133,7 @@ private fun createSceneViewPeerPanel(
   name: String,
   isLabelPanelVisible: Boolean = false,
   toolbarActions: List<AnAction> = emptyList(),
+  toolbarOverflowActions: List<AnAction> = emptyList(),
 ): SceneViewPeerPanel {
   val testScope = CoroutineScope(EmptyCoroutineContext)
   val sceneView = createSceneView(parentDisposable, name)
@@ -146,6 +148,7 @@ private fun createSceneViewPeerPanel(
       },
     statusIconAction = null,
     toolbarActions = toolbarActions,
+    toolbarOverflowActions = toolbarOverflowActions,
     leftPanel = null,
     rightPanel = null,
     errorsPanel = null,

@@ -280,6 +280,7 @@ class SceneViewPanel(
           actionManagerProvider().createSceneViewLabel(sceneView, sceneScope, partOfTheGroup),
         statusIconAction = actionManagerProvider().sceneViewStatusIconAction,
         toolbarActions = actionManagerProvider().sceneViewContextToolbarActions,
+        toolbarOverflowActions = actionManagerProvider().sceneViewContextToolbarOverflowActions,
         // The left bar is only added for the first panel
         leftPanel =
           if (index == 0) actionManagerProvider().getSceneViewLeftBar(sceneView) else null,

@@ -115,10 +115,22 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
   public abstract @NotNull DefaultActionGroup getToolbarActions(@NotNull List<NlComponent> selection);
 
   /**
-   * Returns the actions for the context toolbar of a {@link SceneView}. The actions should be
-   * specific to a {@link SceneView}. The method returns an empty list if no toolbar is needed.
+   * Returns the actions for the context toolbar of a {@link SceneView}. These actions will typically
+   * be shown to the left of the button that opens the overflow button
+   * {@link #getSceneViewContextToolbarOverflowActions()}.
+   * The method returns an empty list if no toolbar is needed.
    */
-  public @NotNull List<AnAction> getSceneViewContextToolbarActions() {
+  public List<AnAction> getSceneViewContextToolbarActions() {
+    return Collections.emptyList();
+  }
+
+  /**
+   * Returns the actions for the context toolbar of a {@link SceneView}. The actions should be
+   * specific to a {@link SceneView} and they will be displayed as part of the overflow (or
+   * "hamburger" menu at the top.
+   * The method returns an empty list if no toolbar is needed.
+   */
+  public @NotNull List<AnAction> getSceneViewContextToolbarOverflowActions() {
     return Collections.emptyList();
   }
 

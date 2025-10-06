@@ -78,7 +78,7 @@ open class CommonPreviewActionManager(
     )
   }
 
-  override fun getSceneViewContextToolbarActions(): List<AnAction> =
+  override fun getSceneViewContextToolbarOverflowActions(): List<AnAction> =
     listOfNotNull(animationPreviewAction, interactivePreviewAction)
       .takeIf { it.isNotEmpty() }
       ?.let {

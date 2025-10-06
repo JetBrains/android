@@ -23,6 +23,7 @@ import com.android.tools.idea.compose.preview.ComposeStudioBotActionFactory
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.zoomTargetProvider
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.glasses.GlassesBlendDropdownAction
 import com.android.tools.idea.preview.actions.AnimationInspectorAction
 import com.android.tools.idea.preview.actions.BackNavigationAction
 import com.android.tools.idea.preview.actions.CommonPreviewActionManager
@@ -68,7 +69,9 @@ internal class PreviewSurfaceActionManager(
     // Toggle Resize Panel (only in focus mode)
     actionGroup.add(ToggleResizePanelVisibilityAction().visibleOnlyInFocus())
     // Add toolbar actions in the context-menu as a redundant entry point
-    getSceneViewContextToolbarActions().takeIf { it.isNotEmpty() }?.forEach { actionGroup.add(it) }
+    getSceneViewContextToolbarOverflowActions()
+      .takeIf { it.isNotEmpty() }
+      ?.forEach { actionGroup.add(it) }
     StudioFlags.COMPOSE_PREVIEW_AI_AGENTS_DROPDOWN.ifEnabled {
       ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull()?.let {
         it.previewAgentsDropDownAction()?.visibleOnlyInStaticPreview()?.let { action ->
@@ -92,7 +95,12 @@ internal class PreviewSurfaceActionManager(
     return actionGroup
   }
 
-  override fun getSceneViewContextToolbarActions(): List<AnAction> =
+  override fun getSceneViewContextToolbarActions(): List<AnAction?> =
+    listOfNotNull(
+      StudioFlags.COMPOSE_PREVIEW_XR_GLASSES_PREVIEW.ifEnabled { GlassesBlendDropdownAction() }
+    )
+
+  override fun getSceneViewContextToolbarOverflowActions(): List<AnAction> =
     listOf(Separator()) +
       listOfNotNull(
           SavePreviewInNewSizeAction().visibleOnlyInFocus(),
