@@ -47,6 +47,7 @@ class TestDataSyncRunner(
         targetPatterns = emptyList(),
         systemExcludes = emptySet(),
         testSources = emptySet(),
+        isAndroidWorkspace = true,
         languageClasses = emptySet(),
       )
     val querySummary = QuerySyncTestUtils.getQuerySummary(testProject)

@@ -74,6 +74,7 @@ public class SnapshotSerializer {
     projectDefinition.getSystemExcludes().stream()
         .map(Path::toString)
         .forEach(proto::addSystemExcludes);
+    proto.setIsAndroidWorkspace(projectDefinition.isAndroidWorkspace());
     projectDefinition.getLanguageClasses().stream()
         .map(l -> l.protoValue)
         .forEach(proto::addLanguageClasses);

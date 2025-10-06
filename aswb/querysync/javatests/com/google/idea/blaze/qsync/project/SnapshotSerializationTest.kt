@@ -44,13 +44,14 @@ class SnapshotSerializationTest {
             projectExcludes = setOf(Path.of("project/path/excluded")),
             deriveTargetsFromDirectories = false,
             targetPatterns = emptyList(),
-            systemExcludes = setOf(Path.of(".aswb")),
+            isAndroidWorkspace = false,
             languageClasses = setOf(QuerySyncLanguage.JVM),
             testSources = setOf("javatests/*"),
+            systemExcludes = setOf(Path.of(".aswb")),
           )
         )
         .setVcsState(
-          Optional.of<VcsState?>(
+          Optional.of(
             VcsState(
               "workspaceId",
               "123",
@@ -68,7 +69,7 @@ class SnapshotSerializationTest {
                   Path.of("project/path/Modified.java")
                 )
               ),
-              Optional.empty<Path?>()
+              Optional.empty()
             )
           )
         )
@@ -90,12 +91,12 @@ class SnapshotSerializationTest {
       PostQuerySyncData.builder()
         .setProjectDefinition(ProjectDefinition.EMPTY)
         .setVcsState(
-          Optional.of<VcsState?>(
+          Optional.of(
             VcsState(
               "workspaceId",
               "123",
               ImmutableSet.of(),
-              Optional.of<Path?>(Path.of("/snapshot/user/snapshot/1"))
+              Optional.of(Path.of("/snapshot/user/snapshot/1"))
             )
           )
         )
@@ -124,12 +125,13 @@ class SnapshotSerializationTest {
               parse("//some/pattern:all"),
               parse("-//some/negative/pattern")
             ),
-            systemExcludes = emptySet(),
+            isAndroidWorkspace = false,
             languageClasses = setOf(QuerySyncLanguage.JVM),
             testSources = setOf("javatests/*"),
+            systemExcludes = emptySet(),
           )
         )
-        .setVcsState(Optional.empty<VcsState?>())
+        .setVcsState(Optional.empty())
         .setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//project/path:path"))
         .build()
     val serialized = SnapshotSerializer().visit(original).toProto().toByteArray()
@@ -152,12 +154,13 @@ class SnapshotSerializationTest {
             projectExcludes = setOf(Path.of("project/path/excluded")),
             deriveTargetsFromDirectories = false,
             targetPatterns = emptyList(),
-            systemExcludes = emptySet(),
+            isAndroidWorkspace = false,
             languageClasses = setOf(QuerySyncLanguage.JVM),
             testSources = setOf("javatests/*"),
+            systemExcludes = emptySet(),
           )
         )
-        .setVcsState(Optional.empty<VcsState?>())
+        .setVcsState(Optional.empty())
         .setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//project/path:path"))
         .build()
     val serialized = SnapshotSerializer(-1).visit(original).toProto().toByteArray()
@@ -168,5 +171,36 @@ class SnapshotSerializationTest {
       )
     )
       .isNull()
+  }
+
+  @Test
+  @Throws(IOException::class)
+  fun testSerialization_projectDefinition() {
+    val projectDefinition =
+      ProjectDefinition(
+        projectIncludes = setOf(Path.of("project/path")),
+        projectExcludes = setOf(Path.of("project/path/excluded")),
+        deriveTargetsFromDirectories = true,
+        targetPatterns = listOf(
+          parse("//some/pattern:all"),
+          parse("-//some/negative/pattern")
+        ),
+        isAndroidWorkspace = true,
+        languageClasses = setOf(QuerySyncLanguage.JVM),
+        testSources = setOf("javatests/*"),
+        systemExcludes = setOf(Path.of(".aswb")),
+      )
+    val original =
+      PostQuerySyncData.builder()
+        .setProjectDefinition(projectDefinition)
+        .setVcsState(Optional.empty())
+        .setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//project/path:path"))
+        .build()
+    val serialized = SnapshotSerializer().visit(original).toProto().toByteArray()
+    val deserialized: PostQuerySyncData =
+      SnapshotDeserializer()
+        .readFrom(ByteArrayInputStream(serialized), QuerySyncTestUtils.NOOP_CONTEXT)
+        ?.syncData!!
+    Truth.assertThat(deserialized.projectDefinition()).isEqualTo(projectDefinition)
   }
 }
