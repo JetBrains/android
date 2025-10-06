@@ -45,13 +45,13 @@ class PreviewEditorActionManagerProviderTest {
     val surface = Mockito.mock(NlDesignSurface::class.java)
     for (type in ANIMATION_TYPES) {
       val actionProvider = PreviewEditorActionManagerProvider(surface, type)
-      assertTrue(actionProvider.sceneViewContextToolbarActions.isEmpty())
+      assertTrue(actionProvider.sceneViewContextToolbarOverflowActions.isEmpty())
     }
 
     val nonAnimationTypes = DESIGNER_PREVIEW_FILE_TYPES - ANIMATION_TYPES
     for (type in nonAnimationTypes) {
       val actionProvider = PreviewEditorActionManagerProvider(surface, type)
-      assertTrue(actionProvider.sceneViewContextToolbarActions.isNotEmpty())
+      assertTrue(actionProvider.sceneViewContextToolbarOverflowActions.isNotEmpty())
     }
   }
 }

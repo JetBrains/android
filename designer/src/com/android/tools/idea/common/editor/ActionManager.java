@@ -22,7 +22,6 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.sceneview.LabelPanel;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.SceneViewErrorsPanel;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManagerUtilsKt;
 import com.android.tools.rendering.ProblemSeverity;
 import com.android.tools.rendering.RenderResult;
@@ -122,11 +121,23 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
   public abstract DefaultActionGroup getToolbarActions(@NotNull List<NlComponent> selection);
 
   /**
+   * Returns the actions for the context toolbar of a {@link SceneView}. These actions will typically
+   * be shown to the left of the button that opens the overflow button
+   * {@link #getSceneViewContextToolbarOverflowActions()}.
+   * The method returns an empty list if no toolbar is needed.
+   */
+  public List<AnAction> getSceneViewContextToolbarActions() {
+    return Collections.emptyList();
+  }
+
+  /**
    * Returns the actions for the context toolbar of a {@link SceneView}. The actions should be
-   * specific to a {@link SceneView}. The method returns an empty list if no toolbar is needed.
+   * specific to a {@link SceneView} and they will be displayed as part of the overflow (or
+   * "hamburger" menu at the top.
+   * The method returns an empty list if no toolbar is needed.
    */
   @NotNull
-  public List<AnAction> getSceneViewContextToolbarActions() {
+  public List<AnAction> getSceneViewContextToolbarOverflowActions() {
     return Collections.emptyList();
   }
 

@@ -62,6 +62,7 @@ class SceneViewPeerPanel(
   labelPanel: JComponent,
   statusIconAction: AnAction?,
   toolbarActions: List<AnAction>,
+  toolbarOverflowActions: List<AnAction>,
   leftPanel: JComponent?,
   rightPanel: JComponent?,
   private val errorsPanel: JComponent?,
@@ -188,7 +189,8 @@ class SceneViewPeerPanel(
    * aligned (the toolbar).
    */
   @VisibleForTesting
-  val sceneViewTopPanel = SceneViewTopPanel(this, statusIconAction, toolbarActions, labelPanel)
+  val sceneViewTopPanel =
+    SceneViewTopPanel(this, statusIconAction, toolbarActions, toolbarOverflowActions, labelPanel)
 
   val sceneViewLeftPanel = wrapPanel(leftPanel)
   val sceneViewRightPanel = wrapPanel(rightPanel)

@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.common.surface.sceneview
 
-import com.android.flags.ifEnabled
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.glasses.GlassesBlendDropdownAction
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -51,6 +48,7 @@ class SceneViewTopPanel(
   private val toolbarTargetComponent: JComponent,
   private val statusIconAction: AnAction?,
   private val toolbarActions: List<AnAction>,
+  private val toolbarOverflowActions: List<AnAction>,
   private val labelPanel: JComponent,
 ) : JPanel(BorderLayout()) {
 
@@ -73,19 +71,16 @@ class SceneViewTopPanel(
       statusIcon.isVisible = true
     }
     add(labelPanel, BorderLayout.CENTER)
-    toolbar =
-      toolbarActions
-        .takeIf { it.isNotEmpty() }
-        ?.let {
-          val actions =
-            listOfNotNull(
-              StudioFlags.COMPOSE_PREVIEW_XR_GLASSES_PREVIEW.ifEnabled {
-                GlassesBlendDropdownAction()
-              },
-              ShowActionGroupInPopupAction(DefaultActionGroup(it)),
-            )
-          createToolbar(actions)?.also { toolbar -> add(toolbar, BorderLayout.LINE_END) }
+    val actions =
+      toolbarActions +
+        toolbarOverflowActions.let {
+          if (it.isNotEmpty()) listOf(ShowActionGroupInPopupAction(DefaultActionGroup(it)))
+          else emptyList()
         }
+    toolbar =
+      if (actions.isNotEmpty())
+        createToolbar(actions)?.also { toolbar -> add(toolbar, BorderLayout.LINE_END) }
+      else null
     // The space of name label is sacrificed when there is no enough width to display the toolbar.
     // When it happens, the label will be trimmed and show the ellipsis at its tail.
     // User can still hover it to see the full label in the tooltips.
@@ -141,7 +136,9 @@ class SceneViewTopPanel(
    * actions available or if the [labelPanel] is visible.
    */
   override fun isVisible(): Boolean {
-    return labelPanel.isVisible || toolbarActions.isNotEmpty()
+    return labelPanel.isVisible ||
+      toolbarActions.isNotEmpty() ||
+      toolbarOverflowActions.isNotEmpty()
   }
 
   /** [AnAction] that displays the actions of the given [ActionGroup] in a popup. */
