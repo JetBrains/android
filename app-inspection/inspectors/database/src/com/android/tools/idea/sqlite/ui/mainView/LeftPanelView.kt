@@ -23,6 +23,7 @@ import com.android.tools.idea.sqlite.model.ExportDialogParams
 import com.android.tools.idea.sqlite.model.ExportDialogParams.ExportDatabaseDialogParams
 import com.android.tools.idea.sqlite.model.ExportDialogParams.ExportTableDialogParams
 import com.android.tools.idea.sqlite.model.SqliteColumn
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId.LiveSqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
@@ -65,11 +66,14 @@ import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreePath
+import org.jetbrains.annotations.VisibleForTesting
 
 private val LIVE_DB_ICON = StudioIcons.DatabaseInspector.DATABASE
 private val LIVE_DB_CLOSED_ICON = StudioIcons.DatabaseInspector.DATABASE_UNAVAILABLE
 private val LIVE_DB_FORCED_ICON = StudioIcons.DatabaseInspector.DATABASE_FORCED_CONNECTION
 private val FILE_DB_ICON = StudioIcons.DatabaseInspector.DATABASE_OFFLINE
+
+private const val ROOT_TREE_NODE = "Databases"
 
 class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   private var isForceOpen = false
@@ -116,7 +120,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
 
     val root =
       if (treeModel.root == null) {
-        val root = DefaultMutableTreeNode("Databases")
+        val root = DefaultMutableTreeNode(ROOT_TREE_NODE)
         treeModel.setRoot(root)
         root
       } else {
@@ -230,7 +234,9 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     northPanel.add(runSqlButton)
 
     runSqlButton.addActionListener {
-      mainView.listeners.forEach { it.openSqliteEvaluatorTabActionInvoked() }
+      mainView.listeners.forEach {
+        it.openSqliteEvaluatorTabActionInvoked(tree.getFirstSelectedDatabaseId())
+      }
     }
 
     keepConnectionsOpenButton.disabledIcon =
@@ -540,4 +546,17 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
       }
     }
   }
+}
+
+@VisibleForTesting
+internal fun Tree.getFirstSelectedDatabaseId(): SqliteDatabaseId? {
+  var path = selectionPaths?.firstOrNull()
+  while (path != null) {
+    when (val node = (path.lastPathComponent as? DefaultMutableTreeNode)?.userObject) {
+      is ViewDatabase -> return node.databaseId
+      ROOT_TREE_NODE -> return null
+    }
+    path = path.parentPath
+  }
+  return null
 }

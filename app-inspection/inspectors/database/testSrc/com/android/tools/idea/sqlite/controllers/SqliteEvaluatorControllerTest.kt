@@ -59,7 +59,6 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.concurrency.EdtExecutorService
-import org.jetbrains.concurrency.any
 import org.jetbrains.ide.PooledThreadExecutor
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -119,6 +118,7 @@ class SqliteEvaluatorControllerTest {
       project,
       databaseInspectorModel,
       databaseRepository,
+      initialDatabaseId = null,
       sqliteEvaluatorView,
       { successfulInvocationNotificationInvocations.add(it) },
       {},
@@ -1141,6 +1141,118 @@ class SqliteEvaluatorControllerTest {
         "The inspector is not connected to an app process.\nYou can inspect and query data, but data is read-only."
       )
   }
+
+  @Test
+  fun selectedDatabase_withoutInitialDatabase_isFirstInOrder() {
+    val databaseInspectorModel = OpenDatabaseInspectorModel()
+    val databaseRepository = OpenDatabaseRepository(project, edtExecutor)
+    val database1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
+    val database2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
+    runDispatching {
+      databaseRepository.addDatabaseConnection(database1, mockDatabaseConnection)
+      databaseRepository.addDatabaseConnection(database2, mockDatabaseConnection)
+    }
+    databaseInspectorModel.addDatabaseSchema(database1, SqliteSchema(emptyList()))
+    databaseInspectorModel.addDatabaseSchema(database2, SqliteSchema(emptyList()))
+
+    val controller =
+      sqliteEvaluatorController(
+        databaseInspectorModel,
+        databaseRepository,
+        initialDatabaseId = null,
+      )
+    controller.setUp()
+
+    verify(viewFactory.sqliteEvaluatorView)
+      .setDatabases(eq(listOf(database1, database2)), eq(database1))
+  }
+
+  @Test
+  fun selectedDatabase_withInitialDatabase_isInitialDatabase() {
+    val databaseInspectorModel = OpenDatabaseInspectorModel()
+    val databaseRepository = OpenDatabaseRepository(project, edtExecutor)
+    val database1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
+    val database2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
+    runDispatching {
+      databaseRepository.addDatabaseConnection(database1, mockDatabaseConnection)
+      databaseRepository.addDatabaseConnection(database2, mockDatabaseConnection)
+    }
+    databaseInspectorModel.addDatabaseSchema(database1, SqliteSchema(emptyList()))
+    databaseInspectorModel.addDatabaseSchema(database2, SqliteSchema(emptyList()))
+    val controller =
+      sqliteEvaluatorController(
+        databaseInspectorModel,
+        databaseRepository,
+        initialDatabaseId = database2,
+      )
+
+    controller.setUp()
+
+    verify(viewFactory.sqliteEvaluatorView)
+      .setDatabases(eq(listOf(database1, database2)), eq(database2))
+  }
+
+  @Test
+  fun selectedDatabase_ignoresStandardDatabase() {
+    val databaseInspectorModel = OpenDatabaseInspectorModel()
+    val databaseRepository = OpenDatabaseRepository(project, edtExecutor)
+    val workDb = SqliteDatabaseId.fromLiveDatabase("androidx.work.workdb", 1)
+    val database2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
+    runDispatching {
+      databaseRepository.addDatabaseConnection(workDb, mockDatabaseConnection)
+      databaseRepository.addDatabaseConnection(database2, mockDatabaseConnection)
+    }
+    databaseInspectorModel.addDatabaseSchema(workDb, SqliteSchema(emptyList()))
+    databaseInspectorModel.addDatabaseSchema(database2, SqliteSchema(emptyList()))
+
+    val controller =
+      sqliteEvaluatorController(
+        databaseInspectorModel,
+        databaseRepository,
+        initialDatabaseId = null,
+      )
+    controller.setUp()
+
+    verify(viewFactory.sqliteEvaluatorView)
+      .setDatabases(eq(listOf(workDb, database2)), eq(database2))
+  }
+
+  @Test
+  fun selectedDatabase_noOtherOption_selectsStandardDatabase() {
+    val databaseInspectorModel = OpenDatabaseInspectorModel()
+    val databaseRepository = OpenDatabaseRepository(project, edtExecutor)
+    val workDb = SqliteDatabaseId.fromLiveDatabase("androidx.work.workdb", 1)
+    runDispatching { databaseRepository.addDatabaseConnection(workDb, mockDatabaseConnection) }
+    databaseInspectorModel.addDatabaseSchema(workDb, SqliteSchema(emptyList()))
+
+    val controller =
+      sqliteEvaluatorController(
+        databaseInspectorModel,
+        databaseRepository,
+        initialDatabaseId = null,
+      )
+    controller.setUp()
+
+    verify(viewFactory.sqliteEvaluatorView).setDatabases(eq(listOf(workDb)), eq(workDb))
+  }
+
+  private fun sqliteEvaluatorController(
+    databaseInspectorModel: OpenDatabaseInspectorModel = this.databaseInspectorModel,
+    databaseRepository: OpenDatabaseRepository = this.databaseRepository,
+    initialDatabaseId: SqliteDatabaseId? = null,
+  ) =
+    SqliteEvaluatorController(
+      project,
+      databaseInspectorModel,
+      databaseRepository,
+      initialDatabaseId,
+      sqliteEvaluatorView,
+      { successfulInvocationNotificationInvocations.add(it) },
+      {},
+      {},
+      edtExecutor,
+      edtExecutor,
+    )
 
   private fun evaluateSqlExecuteFailure(
     sqliteStatementType: SqliteStatementType,

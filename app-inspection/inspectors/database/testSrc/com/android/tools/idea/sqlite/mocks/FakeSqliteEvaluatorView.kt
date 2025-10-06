@@ -19,7 +19,6 @@ import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.intellij.openapi.project.Project
-import java.util.ArrayList
 import javax.swing.JComponent
 import org.mockito.Mockito.mock
 
