@@ -389,28 +389,42 @@ class LayoutInspectorManagerTest {
 
     layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
-    // Displays are added asynchronously. Wait for them to be added.
-    tab1.displays.forEach { display ->
-      waitForCondition(2.seconds) {
-        display.allChildren().filterIsInstance<LayoutInspectorRenderer>().isNotEmpty()
+    val toolbar =
+      tab1.container.allChildren().filterIsInstance<ActionToolbar>().first {
+        it.component.name == "LayoutInspector.MainToolbar"
       }
+    FakeUi(
+      toolbar.component,
+      createFakeWindow = true,
+      parentDisposable = displayViewRule.disposable,
+    )
+
+    waitForCondition(2.seconds) {
+      toolbar.actions.filterIsInstance<ToggleDeepInspectAction>().any()
     }
+    val toggleDeepInspectAction =
+      toolbar.actions.filterIsInstance<ToggleDeepInspectAction>().first()
+    assertThat(toggleDeepInspectAction.isSelected(createTestActionEvent(toggleDeepInspectAction)))
+      .isFalse()
+
+    toggleDeepInspectAction.actionPerformed(createTestActionEvent(toggleDeepInspectAction))
+    assertThat(toggleDeepInspectAction.isSelected(createTestActionEvent(toggleDeepInspectAction)))
+      .isTrue()
 
     tab1.displays.forEach { display ->
       val renderer = display.allChildren().filterIsInstance<StudioRendererPanel>().first()
-      assertThat(renderer.interceptClicks).isFalse()
+      waitForCondition(2.seconds) { renderer.interceptClicks }
     }
 
-    tab1.displays.forEach { display ->
-      val renderer = display.allChildren().filterIsInstance<StudioRendererPanel>().first()
-      renderer.interceptClicks = true
-    }
     layoutInspector.processModel?.selectedProcess = MODERN_DEVICE.createProcess()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
+    assertThat(toggleDeepInspectAction.isSelected(createTestActionEvent(toggleDeepInspectAction)))
+      .isFalse()
+
     tab1.displays.forEach { display ->
       val renderer = display.allChildren().filterIsInstance<StudioRendererPanel>().first()
-      assertThat(renderer.interceptClicks).isFalse()
+      waitForCondition(2.seconds) { !renderer.interceptClicks }
     }
   }
 
@@ -467,7 +481,7 @@ class LayoutInspectorManagerTest {
       .isTrue()
     tab1.displays.forEach { display ->
       val renderer = display.allChildren().filterIsInstance<StudioRendererPanel>().first()
-      assertThat(renderer.interceptClicks).isTrue()
+      waitForCondition(2.seconds) { renderer.interceptClicks }
     }
 
     layoutInspectorManager.enableLayoutInspector(tab1.deviceId, false)
