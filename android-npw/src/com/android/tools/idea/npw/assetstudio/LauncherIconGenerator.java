@@ -77,8 +77,8 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
    * @param project the Android project
    * @param minSdkVersion the minimal supported Android SDK version
    */
-  public LauncherIconGenerator(@NotNull Project project, int minSdkVersion, @Nullable DrawableRenderer renderer) {
-    super(project, minSdkVersion, new GraphicGeneratorContext(40, renderer));
+  public LauncherIconGenerator(@NotNull Project project, int minSdkVersion, @Nullable DrawableRenderer renderer, AssetStudioWizardTracker assetStudioWizardTracker) {
+    super(project, minSdkVersion, new GraphicGeneratorContext(40, renderer), assetStudioWizardTracker);
   }
 
   /**
@@ -155,6 +155,11 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
         options.monochromeColor = color.getRGB();
       }
       options.monochromeImage = createAndTransformAsset(monochromeAsset, color);
+      if(!forPreview && myAssetStudioWizardTracker != null) {
+        // Track monochrome icon generation only when it's intended for actual use,
+        // not just for preview purposes.
+        myAssetStudioWizardTracker.logMonochromeIconGenerated();
+      }
     }
 
     options.backgroundColor = backgroundColor().get().getRGB();

@@ -72,8 +72,8 @@ public abstract class AdaptiveIconGenerator extends IconGenerator {
    * @param minSdkVersion the minimal supported Android SDK version
    * @param context the content used to render vector drawables
    */
-  public AdaptiveIconGenerator(@NotNull Project project, int minSdkVersion, @NotNull GraphicGeneratorContext context) {
-    super(project, minSdkVersion, context);
+  public AdaptiveIconGenerator(@NotNull Project project, int minSdkVersion, @NotNull GraphicGeneratorContext context, AssetStudioWizardTracker assetStudioWizardTracker) {
+    super(project, minSdkVersion, context, assetStudioWizardTracker);
   }
 
   /**

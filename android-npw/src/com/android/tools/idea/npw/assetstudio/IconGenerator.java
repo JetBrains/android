@@ -100,6 +100,7 @@ public abstract class IconGenerator implements Disposable {
   private final StringProperty myOutputName = new StringValueProperty();
 
   protected final int myMinSdkVersion;
+  protected final AssetStudioWizardTracker myAssetStudioWizardTracker;
 
   @NotNull private final GraphicGeneratorContext myContext;
 
@@ -113,12 +114,18 @@ public abstract class IconGenerator implements Disposable {
    * @param project the Android project
    * @param minSdkVersion the minimal supported Android SDK version
    * @param context the content used to render vector drawables
+   * @param assetStudioWizardTracker the tracking service to use, or null if not tracking for the given Icon generator
    */
-  public IconGenerator(@NotNull Project project, int minSdkVersion, @NotNull GraphicGeneratorContext context) {
+  public IconGenerator(@NotNull Project project, int minSdkVersion, @NotNull GraphicGeneratorContext context, AssetStudioWizardTracker assetStudioWizardTracker) {
     myMinSdkVersion = minSdkVersion;
     myContext = context;
     myApiLookup = NullableLazyValue.atomicLazyNullable(() -> LintIdeClient.getApiLookup(project));
     myLineSeparator = CodeStyle.getSettings(project).getLineSeparator();
+    myAssetStudioWizardTracker = assetStudioWizardTracker;
+  }
+
+  public IconGenerator(@NotNull Project project, int minSdkVersion, @NotNull GraphicGeneratorContext context) {
+    this(project, minSdkVersion, context, null);
   }
 
   @Override

@@ -61,7 +61,7 @@ public class TvChannelIconGenerator extends AdaptiveIconGenerator {
    * @param minSdkVersion the minimal supported Android SDK version
    */
   public TvChannelIconGenerator(@NotNull Project project, int minSdkVersion, @Nullable DrawableRenderer renderer) {
-    super(project, minSdkVersion, new GraphicGeneratorContext(40, renderer));
+    super(project, minSdkVersion, new GraphicGeneratorContext(40, renderer), null);
   }
 
   @Override
