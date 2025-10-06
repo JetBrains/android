@@ -121,7 +121,7 @@ class ComputeGradlePluginUpgradeStateTest(val case: Case, val flags: Flags) {
       WITH_NEWER_ALPHA_RC_TO_STABLE("7.0.0-rc01", "7.1.0-alpha01", agpVersions("7.0.0"), RECOMMEND.upgradeTo("7.0.0")),
       WITH_NEWER_BETA_STABLE_TO_STABLE_LATEST_PATCH("7.0.0", "7.1.0-beta01", agpVersions("7.0.1", "7.0.2"), RECOMMEND.upgradeTo("7.0.2")),
       WITH_NEWER_BETA_RC_TO_STABLE_LATEST_PATCH("7.0.0-rc01", "7.1.0-beta01", agpVersions("7.0.0", "7.0.1", "7.0.2"), RECOMMEND.upgradeTo("7.0.2")),
-      WITH_NEWER_ALPHA_STABLE_TO_NEXT_STABLE_LATEST_PATCH("7.0.0", "7.2.0-alpha01", agpVersions("7.1.0", "7.1.1", "7.0.0", "7.0.1", "7.0.2"), RECOMMEND.upgradeTo("7.1.1")),
+      WITH_NEWER_ALPHA_STABLE_TO_NEXT_STABLE_LATEST_PATCH("7.0.0", "7.2.0-alpha01", agpVersions("7.0.0", "7.0.1", "7.0.2", "7.1.0", "7.1.1"), RECOMMEND.upgradeTo("7.1.1")),
       // If there are published versions to upgrade to, don't suggest the latest version unless it is published
       STABLE_TO_STABLE_CURRENT_NOT_PUBLISHED_WITH_ALTERNATIVE("7.3.1", "7.4.1", agpVersions("7.3.0", "7.3.1", "7.4.0"), RECOMMEND.upgradeTo("7.4.0")),
       STABLE_TO_STABLE_CURRENT_PUBLISHED("7.3.1", "7.4.1", agpVersions("7.3.0", "7.3.1", "7.4.0", "7.4.1"), RECOMMEND.upgradeTo("7.4.1")),
@@ -340,7 +340,8 @@ class ComputeGradlePluginUpgradeStateTest(val case: Case, val flags: Flags) {
 
 
     private fun agpVersions(vararg versions: String): Set<AgpVersion> {
-      return versions.mapTo(mutableSetOf()) { agpVersion(it) }
+      assertEquals(versions.map { agpVersion(it) }, versions.map { agpVersion(it) }.sorted())
+      return versions.mapTo(mutableSetOf()) { agpVersion(it) }.also { assertEquals(versions.size, it.size) }
     }
 
     private val publishedVersions: Set<AgpVersion> = agpVersions(
