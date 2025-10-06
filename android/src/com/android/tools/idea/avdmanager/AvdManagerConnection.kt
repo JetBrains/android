@@ -191,7 +191,8 @@ constructor(
       IJ_LOG.warn(String.format("Launching %s: %s: %s", avd.name, code, code.problem))
     }
     when (code) {
-      AccelerationErrorCode.ALREADY_INSTALLED -> return continueToStartAvd(project, avd, forceLaunchInToolWindow, bootMode)
+      AccelerationErrorCode.ALREADY_INSTALLED,
+      AccelerationErrorCode.WHPX_RECOMMENDED -> return continueToStartAvd(project, avd, forceLaunchInToolWindow, bootMode)
       AccelerationErrorCode.PLATFORM_TOOLS_UPDATE_ADVISED,
       AccelerationErrorCode.SYSTEM_IMAGE_UPDATE_ADVISED ->
         // Launch the virtual device with possibly degraded performance even if there are updates

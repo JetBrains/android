@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.android.tools.idea.avdmanager.EmulatorWhpxUtils.showWhpxUpdateDialog;
+
 import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.sdklib.internal.avd.EmulatorPackage;
@@ -95,7 +97,9 @@ public class AccelerationErrorSolution {
     INSTALL_KVM("Install KVM"),
     TURNOFF_HYPER_V("Turn off Hyper-V"),
     INSTALL_AEHD("Install AEHD"),
-    REINSTALL_AEHD("Reinstall AEHD");
+    REINSTALL_AEHD("Reinstall AEHD"),
+    ENABLE_WHPX("Enable"),
+    UPDATE_WHPX("Update");
 
     private final String myDescription;
 
@@ -235,6 +239,16 @@ public class AccelerationErrorSolution {
               LOG.error(ex);
               Messages.showWarningDialog(myProject, SOLUTION_TURN_OFF_HYPER_V, "Operation Failed");
             }
+          }
+          finally {
+            reportBack();
+          }
+        };
+      case ENABLE_WHPX:
+      case UPDATE_WHPX:
+        return () -> {
+          try {
+            myChangesMade = showWhpxUpdateDialog(myProject, myError.getSolution() == SolutionCode.UPDATE_WHPX);
           }
           finally {
             reportBack();

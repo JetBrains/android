@@ -1855,6 +1855,13 @@ public final class StudioFlags {
     "Enable AI glasses emulator and phone emulator pairing wizard",
     "Enables the pairing assistant for glasses and phone emulators."
   );
+
+  public static final Flag<Boolean> EMULATOR_AEHD_TO_WHPX_CONVERSION = new BooleanFlag(
+    DEVICE_MANAGER,
+    "emulator.aehd.to.whpx.conversion",
+    "Emulator AEHD to WHPX Conversion",
+    "Migreate emulator AEHD users to use WHPX instead."
+  );
   // endregion
 
   // region Play Policy Insights
