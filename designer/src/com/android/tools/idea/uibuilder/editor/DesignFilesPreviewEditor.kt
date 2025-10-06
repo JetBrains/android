@@ -261,14 +261,14 @@ class PreviewEditorActionManagerProvider(
   surface: NlDesignSurface,
   private val fileType: DesignerEditorFileType?,
 ) : NlActionManager(surface) {
-  override fun getSceneViewContextToolbarActions(): List<AnAction> {
+  override fun getSceneViewContextToolbarOverflowActions(): List<AnAction> {
     return when (fileType) {
       is AnimatedImageFileType,
       is AnimatedStateListFileType,
       is AnimatedStateListTempFileType,
       is AnimatedVectorFileType,
       is AnimationListFileType -> emptyList()
-      else -> super.getSceneViewContextToolbarActions()
+      else -> super.getSceneViewContextToolbarOverflowActions()
     }
   }
 }

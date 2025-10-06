@@ -92,7 +92,10 @@ class CommonPreviewActionManagerTest {
       val testEvent = createTestEvent(dataContext)
 
       val actions =
-        (actionManager.getSceneViewContextToolbarActions().filterIsInstance<ActionGroup>().single())
+        (actionManager
+            .getSceneViewContextToolbarOverflowActions()
+            .filterIsInstance<ActionGroup>()
+            .single())
           .getChildren(testEvent)
 
       assertEquals(EXPECTED_NUMBER_OF_ACTIONS, actions.size)
@@ -129,7 +132,10 @@ class CommonPreviewActionManagerTest {
         .build()
     val testEvent = createTestEvent(dataContext)
     val actions =
-      (actionManager.getSceneViewContextToolbarActions().filterIsInstance<ActionGroup>().single())
+      (actionManager
+          .getSceneViewContextToolbarOverflowActions()
+          .filterIsInstance<ActionGroup>()
+          .single())
         .getChildren(createTestEvent(dataContext))
     assertEquals(EXPECTED_NUMBER_OF_ACTIONS, actions.size)
 
@@ -232,7 +238,7 @@ class CommonPreviewActionManagerTest {
         supportAnimationPreview = false,
         supportInteractivePreview = false,
       )
-    assertEquals(emptyList(), actionManager.sceneViewContextToolbarActions)
+    assertEquals(emptyList(), actionManager.sceneViewContextToolbarOverflowActions)
   }
 }
 

@@ -8,6 +8,7 @@ import com.android.tools.idea.common.util.ShowGroupUnderConditionWrapper
 import com.android.tools.idea.common.util.ShowUnderConditionWrapper
 import com.android.tools.idea.compose.preview.ComposeStudioBotActionFactory
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.glasses.GlassesBlendDropdownAction
 import com.android.tools.idea.preview.actions.AnimationInspectorAction
 import com.android.tools.idea.preview.actions.BackNavigationAction
 import com.android.tools.idea.preview.actions.EnableInteractiveAction
@@ -20,6 +21,7 @@ import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -37,6 +39,7 @@ import javax.swing.JPanel
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import org.junit.After
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -182,7 +185,10 @@ class PreviewSurfaceActionManagerTest {
       val testEvent = createTestEvent(dataContext)
 
       val actions =
-        (actionManager.getSceneViewContextToolbarActions().filterIsInstance<ActionGroup>().single())
+        (actionManager
+            .getSceneViewContextToolbarOverflowActions()
+            .filterIsInstance<ActionGroup>()
+            .single())
           .getChildren(testEvent)
 
       assertEquals(EXPECTED_SCENE_VIEW_TOOLBAR_NUMBER_OF_ACTIONS, actions.size)
@@ -227,7 +233,10 @@ class PreviewSurfaceActionManagerTest {
         .build()
     val testEvent = createTestEvent(dataContext)
     val actions =
-      (actionManager.getSceneViewContextToolbarActions().filterIsInstance<ActionGroup>().single())
+      (actionManager
+          .getSceneViewContextToolbarOverflowActions()
+          .filterIsInstance<ActionGroup>()
+          .single())
         .getChildren(createTestEvent(dataContext))
     assertEquals(EXPECTED_SCENE_VIEW_TOOLBAR_NUMBER_OF_ACTIONS, actions.size)
 
@@ -274,6 +283,32 @@ class PreviewSurfaceActionManagerTest {
         assertNotEquals("Project needs build", testEvent.presentation.description)
       }
     }
+  }
+
+  @Test
+  fun `verify actions contain glasses dropdown action if flag is enabled`() {
+    StudioFlags.COMPOSE_PREVIEW_XR_GLASSES_PREVIEW.overrideForTest(
+      true,
+      projectRule.testRootDisposable,
+    )
+    assertTrue(
+      actionManager.sceneViewContextToolbarActions
+        .filterIsInstance<GlassesBlendDropdownAction>()
+        .isNotEmpty()
+    )
+  }
+
+  @Test
+  fun `verify actions doesn't contain glasses dropdown action if flag is disabled`() {
+    StudioFlags.COMPOSE_PREVIEW_XR_GLASSES_PREVIEW.overrideForTest(
+      false,
+      projectRule.testRootDisposable,
+    )
+    assertTrue(
+      actionManager.sceneViewContextToolbarActions
+        .filterIsInstance<GlassesBlendDropdownAction>()
+        .isEmpty()
+    )
   }
 
   private val fakeMouseEvent = MouseEvent(JPanel(), 0, 0L, 0, 0, 0, 1, true)

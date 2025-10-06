@@ -353,7 +353,7 @@ public class NlActionManager extends ActionManager<DesignSurface<LayoutlibSceneM
 
   @NotNull
   @Override
-  public List<AnAction> getSceneViewContextToolbarActions() {
+  public List<AnAction> getSceneViewContextToolbarOverflowActions() {
     return List.of(DisableToolsVisibilityAndPositionInPreviewAction.INSTANCE);
   }
 
