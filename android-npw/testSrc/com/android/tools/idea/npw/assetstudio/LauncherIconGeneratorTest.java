@@ -37,7 +37,7 @@ public class LauncherIconGeneratorTest extends AdaptiveIconGeneratorTest {
     super.setUp();
 
     DrawableRenderer renderer = new DrawableRenderer(myFacet, myFixture.findFileInTempDir("res"));
-    myIconGenerator = new LauncherIconGenerator(getProject(), 15, renderer);
+    myIconGenerator = new LauncherIconGenerator(getProject(), 15, renderer, null);
     disposeOnTearDown(myIconGenerator);
     disposeOnTearDown(renderer);
     myIconGenerator.outputName().set("ic_launcher");
