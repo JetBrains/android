@@ -49,7 +49,8 @@ private data class Durations(
   val gradleAfterAndroidExecution: Duration,
   val ide: Duration,
   val finishTimestamp: Instant,
-  val gradle: Duration = gradleConfiguration + gradleBeforeAndroidExecution + gradleAndroidExecution + gradleAfterAndroidExecution,
+  val gradleModelBuilding: Duration = gradleBeforeAndroidExecution + gradleAndroidExecution + gradleAfterAndroidExecution,
+  val gradle: Duration = gradleModelBuilding + gradleConfiguration,
   val total: Duration = gradle + ide
 ) {
   override fun toString() = """
@@ -57,9 +58,10 @@ total: ${total.inWholeSeconds}s
   -   ide: ${ide.inWholeSeconds}s
   -gradle: ${gradle.inWholeSeconds}s
     -configuration: ${gradleConfiguration.inWholeSeconds}s
-    -beforeAndroid: ${gradleBeforeAndroidExecution.inWholeSeconds}s
-    -      android: ${gradleAndroidExecution.inWholeSeconds}s
-    - afterAndroid: ${gradleAfterAndroidExecution.inWholeSeconds}s
+    -modelBuilding: ${gradleModelBuilding.inWholeSeconds}s
+      -beforeAndroid: ${gradleBeforeAndroidExecution.inWholeSeconds}s
+      -      android: ${gradleAndroidExecution.inWholeSeconds}s
+      - afterAndroid: ${gradleAfterAndroidExecution.inWholeSeconds}s
   """.trimIndent()
 }
 
@@ -109,6 +111,7 @@ class MeasureSyncExecutionTimeRule(val syncCount: Int, val projectToCompareAgain
       }
       listOf(
         "${prefix}Gradle_Configuration_Ms" to TimestampedMeasurement(value.finishTimestamp, value.gradleConfiguration, analyzed = true),
+        "${prefix}Gradle_Model_Building_Ms" to TimestampedMeasurement(value.finishTimestamp, value.gradleModelBuilding, analyzed = true),
         "${prefix}Gradle_Before_Android_Execution_Ms" to TimestampedMeasurement(value.finishTimestamp, value.gradleBeforeAndroidExecution, analyzed = false),
         "${prefix}Gradle_Android_Execution_Ms" to TimestampedMeasurement(value.finishTimestamp, value.gradleAndroidExecution, analyzed = true),
         "${prefix}Gradle_After_Android_Execution_Ms" to TimestampedMeasurement(value.finishTimestamp, value.gradleAfterAndroidExecution, analyzed = false),
