@@ -33,30 +33,29 @@ import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
 
 /** Deserializes a [PostQuerySyncData] instance from an input stream.  */
-class SnapshotDeserializer {
+class SnapshotDeserializer private constructor() {
   private val snapshot: PostQuerySyncData.Builder = PostQuerySyncData.builder()
 
-  @CanIgnoreReturnValue
-  @Throws(IOException::class)
-  fun readFrom(input: InputStream, context: Context<*>): SnapshotDeserializer? {
-    val proto = SnapshotProto.Snapshot.parseFrom(input, ExtensionRegistry.getEmptyRegistry())
-    if (proto.version != SnapshotSerializer.PROTO_VERSION) {
-      context.output(PrintOutput.output("IDE has updated since last sync; performing full sync"))
-      return null
+  companion object {
+    @Throws(IOException::class)
+    fun readFrom(input: InputStream, context: Context<*>): PostQuerySyncData? {
+      val deserializer = SnapshotDeserializer()
+      val proto = SnapshotProto.Snapshot.parseFrom(input, ExtensionRegistry.getEmptyRegistry())
+      if (proto.version != SnapshotSerializer.PROTO_VERSION) {
+        context.output(PrintOutput.output("IDE has updated since last sync; performing full sync"))
+        return null
+      }
+      deserializer.visitProjectDefinition(proto.projectDefinition)
+      if (proto.hasVcsState()) {
+        deserializer.visitVcsState(proto.vcsState)
+      }
+      if (!proto.getBazelVersion().isEmpty()) {
+        deserializer.snapshot.setBazelVersion(Optional.of(proto.getBazelVersion()))
+      }
+      deserializer.visitQuerySummay(proto.querySummary)
+      return deserializer.snapshot.build()
     }
-    visitProjectDefinition(proto.projectDefinition)
-    if (proto.hasVcsState()) {
-      visitVcsState(proto.vcsState)
-    }
-    if (!proto.getBazelVersion().isEmpty()) {
-      snapshot.setBazelVersion(Optional.of(proto.getBazelVersion()))
-    }
-    visitQuerySummay(proto.querySummary)
-    return this
   }
-
-  val syncData: PostQuerySyncData?
-    get() = snapshot.build()
 
   private fun visitProjectDefinition(proto: SnapshotProto.ProjectDefinition) {
     snapshot.setProjectDefinition(
@@ -80,27 +79,25 @@ class SnapshotDeserializer {
   private fun visitQuerySummay(proto: Query.Summary?) {
     snapshot.setQuerySummary(proto)
   }
+}
 
-  companion object {
-    private val OP_MAP: ImmutableBiMap<SnapshotProto.WorkspaceFileChange.VcsOperation, WorkspaceFileChange.Operation> =
-      SnapshotSerializer.OP_MAP.inverse()
+private val OP_MAP: ImmutableBiMap<SnapshotProto.WorkspaceFileChange.VcsOperation, WorkspaceFileChange.Operation> =
+  SnapshotSerializer.OP_MAP.inverse()
 
-    fun convertVcsState(proto: SnapshotProto.VcsState): VcsState {
-      return VcsState(
-        proto.getWorkspaceId(),
-        proto.getUpstreamRevision(),
-        ImmutableSet.copyOf(
-        proto.workingSetList
-          .map {
-            WorkspaceFileChange(
-              OP_MAP.get(it.getOperation()), Path.of(it.getWorkspaceRelativePath())
-            )
-          }
-        ),
-        if (proto.hasWorkspaceSnapshot())
-          Optional.of(Path.of(proto.workspaceSnapshot.getPath()))
-        else
-          Optional.empty())
-    }
-  }
+private fun convertVcsState(proto: SnapshotProto.VcsState): VcsState {
+  return VcsState(
+    proto.getWorkspaceId(),
+    proto.getUpstreamRevision(),
+    ImmutableSet.copyOf(
+      proto.workingSetList
+        .map {
+          WorkspaceFileChange(
+            OP_MAP.get(it.getOperation()), Path.of(it.getWorkspaceRelativePath())
+          )
+        }
+    ),
+    if (proto.hasWorkspaceSnapshot())
+      Optional.of(Path.of(proto.workspaceSnapshot.getPath()))
+    else
+      Optional.empty())
 }

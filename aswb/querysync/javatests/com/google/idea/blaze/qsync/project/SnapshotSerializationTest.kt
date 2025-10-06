@@ -76,11 +76,9 @@ class SnapshotSerializationTest {
         .setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//project/path:path"))
         .build()
     val serialized = SnapshotSerializer().visit(original).toProto().toByteArray()
-    val deserialized: PostQuerySyncData =
-      SnapshotDeserializer()
-        .readFrom(ByteArrayInputStream(serialized), QuerySyncTestUtils.NOOP_CONTEXT)
-        ?.syncData!!
-    Truth8.assertThat(deserialized.vcsState()).isEqualTo(original.vcsState())
+    val deserialized: PostQuerySyncData? =
+      SnapshotDeserializer.readFrom(ByteArrayInputStream(serialized), QuerySyncTestUtils.NOOP_CONTEXT)
+    Truth8.assertThat(deserialized?.vcsState()).isEqualTo(original.vcsState())
     Truth.assertThat(deserialized).isEqualTo(original)
   }
 
@@ -103,11 +101,9 @@ class SnapshotSerializationTest {
         .setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//project/path:path"))
         .build()
     val serialized = SnapshotSerializer().visit(original).toProto().toByteArray()
-    val deserialized: PostQuerySyncData =
-      SnapshotDeserializer()
-        .readFrom(ByteArrayInputStream(serialized), QuerySyncTestUtils.NOOP_CONTEXT)
-        ?.syncData!!
-    Truth8.assertThat(deserialized.vcsState()).isEqualTo(original.vcsState())
+    val deserialized: PostQuerySyncData? =
+      SnapshotDeserializer.readFrom(ByteArrayInputStream(serialized), QuerySyncTestUtils.NOOP_CONTEXT)
+    Truth8.assertThat(deserialized?.vcsState()).isEqualTo(original.vcsState())
     Truth.assertThat(deserialized).isEqualTo(original)
   }
 
@@ -135,11 +131,9 @@ class SnapshotSerializationTest {
         .setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//project/path:path"))
         .build()
     val serialized = SnapshotSerializer().visit(original).toProto().toByteArray()
-    val deserialized: PostQuerySyncData =
-      SnapshotDeserializer()
-        .readFrom(ByteArrayInputStream(serialized), QuerySyncTestUtils.NOOP_CONTEXT)
-        ?.syncData!!
-    Truth8.assertThat(deserialized.vcsState()).isEqualTo(original.vcsState())
+    val deserialized: PostQuerySyncData? =
+      SnapshotDeserializer.readFrom(ByteArrayInputStream(serialized), QuerySyncTestUtils.NOOP_CONTEXT)
+    Truth8.assertThat(deserialized?.vcsState()).isEqualTo(original.vcsState())
     Truth.assertThat(deserialized).isEqualTo(original)
   }
 
@@ -165,10 +159,7 @@ class SnapshotSerializationTest {
         .build()
     val serialized = SnapshotSerializer(-1).visit(original).toProto().toByteArray()
     Truth.assertThat(
-      SnapshotDeserializer().readFrom(
-        ByteArrayInputStream(serialized),
-        QuerySyncTestUtils.NOOP_CONTEXT
-      )
+      SnapshotDeserializer.readFrom(ByteArrayInputStream(serialized), QuerySyncTestUtils.NOOP_CONTEXT)
     )
       .isNull()
   }
@@ -197,10 +188,8 @@ class SnapshotSerializationTest {
         .setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//project/path:path"))
         .build()
     val serialized = SnapshotSerializer().visit(original).toProto().toByteArray()
-    val deserialized: PostQuerySyncData =
-      SnapshotDeserializer()
-        .readFrom(ByteArrayInputStream(serialized), QuerySyncTestUtils.NOOP_CONTEXT)
-        ?.syncData!!
-    Truth.assertThat(deserialized.projectDefinition()).isEqualTo(projectDefinition)
+    val deserialized: PostQuerySyncData? =
+      SnapshotDeserializer.readFrom(ByteArrayInputStream(serialized), QuerySyncTestUtils.NOOP_CONTEXT)
+    Truth.assertThat(deserialized?.projectDefinition()).isEqualTo(projectDefinition)
   }
 }
