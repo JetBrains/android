@@ -54,6 +54,7 @@ const val EMBEDDED_LAYOUT_INSPECTOR_TOOLBAR = "EmbeddedLayoutInspector.Toolbar"
  * by the Standalone Layout Inspector, but the toolbar also contains a label with the name of the
  * tool.
  *
+ * @param targetComponent Used for data-context retrieval.
  * @param firstGroupExtraActions Actions to be added to before the first separator.
  * @param lastGroupExtraActions Actions to be added as a new group at the end.
  */
@@ -100,6 +101,7 @@ fun createEmbeddedLayoutInspectorToolbar(
 /**
  * Creates the toolbar used by Standalone Layout Inspector.
  *
+ * @param targetComponent Used for data-context retrieval.
  * @param firstGroupExtraActions Actions to be added to before the first separator.
  * @param lastGroupExtraActions Actions to be added as a new group at the end.
  */
