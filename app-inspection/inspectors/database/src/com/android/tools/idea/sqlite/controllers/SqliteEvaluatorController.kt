@@ -42,6 +42,8 @@ import com.intellij.openapi.util.Disposer
 import java.util.LinkedList
 import java.util.concurrent.Executor
 
+private val standardDatabases = setOf("androidx.work.workdb")
+
 /**
  * Implementation of the application logic related to running queries and updates on a sqlite
  * database.
@@ -53,6 +55,7 @@ class SqliteEvaluatorController(
   private val project: Project,
   private val model: DatabaseInspectorModel,
   private val databaseRepository: DatabaseRepository,
+  private val initialDatabaseId: SqliteDatabaseId?,
   private val view: SqliteEvaluatorView,
   private val showSuccessfulExecutionNotification: (String) -> Unit,
   override val closeTabInvoked: () -> Unit,
@@ -72,6 +75,7 @@ class SqliteEvaluatorController(
     SqliteEvaluatorViewListenerImpl()
   private val listeners = mutableListOf<Listener>()
   private val openDatabases = mutableListOf<SqliteDatabaseId>()
+
   // database currently active in combobox + current text in textfield
   private var currentEvaluationParams: EvaluationParams = EvaluationParams(null, "")
 
@@ -91,8 +95,8 @@ class SqliteEvaluatorController(
         openDatabases.addAll(openDatabaseIds.sortedBy { it.name })
 
         if (currentEvaluationParams.databaseId !in openDatabaseIds) {
-          currentEvaluationParams =
-            currentEvaluationParams.copy(databaseId = openDatabases.firstOrNull())
+          val db = initialDatabaseId ?: openDatabases.getDefault()
+          currentEvaluationParams = currentEvaluationParams.copy(databaseId = db)
         }
         if (lastUsedEvaluationParams?.databaseId !in openDatabaseIds) {
           resetTable()
@@ -365,3 +369,12 @@ class SqliteEvaluatorController(
 
   data class EvaluationParams(val databaseId: SqliteDatabaseId?, val statementText: String)
 }
+
+/**
+ * Get default database
+ *
+ * Get the first non-standard database (for example `androidx.work.workdb`). If only standard
+ * databases exist, return the first one.
+ */
+private fun List<SqliteDatabaseId>.getDefault() =
+  firstOrNull { it.name !in standardDatabases } ?: firstOrNull()

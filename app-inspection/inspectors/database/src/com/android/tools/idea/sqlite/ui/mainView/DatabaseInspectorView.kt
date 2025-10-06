@@ -89,7 +89,7 @@ interface DatabaseInspectorView {
     fun closeTabActionInvoked(tabId: TabId)
 
     /** Called when the user wants to open the evaluator tab */
-    fun openSqliteEvaluatorTabActionInvoked()
+    fun openSqliteEvaluatorTabActionInvoked(databaseId: SqliteDatabaseId? = null)
 
     /** Called when the user wants to refresh the schema of all open databases */
     fun refreshAllOpenDatabasesSchemaActionInvoked()

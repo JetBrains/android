@@ -249,7 +249,9 @@ class DatabaseInspectorControllerImpl(
     sqliteStatement: SqliteStatement,
   ) =
     withContext(uiDispatcher) {
-      openNewEvaluatorTab().showAndExecuteSqlStatement(databaseId, sqliteStatement).await()
+      openNewEvaluatorTab(databaseId)
+        .showAndExecuteSqlStatement(databaseId, sqliteStatement)
+        .await()
     }
 
   @AnyThread
@@ -503,6 +505,7 @@ class DatabaseInspectorControllerImpl(
               }
           is TabDescription.AdHocQuery -> {
             openNewEvaluatorTab(
+              databaseId,
               EvaluationParams(databaseId, tabDescription.query),
               tabDescription.liveUpdatesEnabled,
               tabDescription.rowBatchSize,
@@ -518,6 +521,7 @@ class DatabaseInspectorControllerImpl(
       .forEach { tabDescription ->
         val adHocTabDescription = tabDescription as TabDescription.AdHocQuery
         openNewEvaluatorTab(
+          databaseId,
           EvaluationParams(null, adHocTabDescription.query),
           tabDescription.liveUpdatesEnabled,
           tabDescription.rowBatchSize,
@@ -607,6 +611,7 @@ class DatabaseInspectorControllerImpl(
   }
 
   private fun openNewEvaluatorTab(
+    databaseId: SqliteDatabaseId?,
     evaluationParams: EvaluationParams? = null,
     liveUpdatesEnabled: Boolean = false,
     rowBatchSize: Int = DEFAULT_ROW_BATCH_SIZE,
@@ -636,6 +641,7 @@ class DatabaseInspectorControllerImpl(
         project,
         model,
         databaseRepository,
+        databaseId,
         sqliteEvaluatorView,
         { appInspectionIdeServices?.showNotification(it) },
         { closeTab(tabId) },
@@ -809,8 +815,8 @@ class DatabaseInspectorControllerImpl(
       openTableTab(databaseId, table, false, DEFAULT_ROW_BATCH_SIZE)
     }
 
-    override fun openSqliteEvaluatorTabActionInvoked() {
-      openNewEvaluatorTab()
+    override fun openSqliteEvaluatorTabActionInvoked(databaseId: SqliteDatabaseId?) {
+      openNewEvaluatorTab(databaseId)
     }
 
     override fun closeTabActionInvoked(tabId: TabId) {

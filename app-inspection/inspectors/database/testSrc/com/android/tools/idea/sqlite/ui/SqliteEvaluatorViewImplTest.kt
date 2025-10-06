@@ -399,6 +399,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
         project,
         model,
         repository,
+        initialDatabaseId = null,
         view,
         {},
         {},
