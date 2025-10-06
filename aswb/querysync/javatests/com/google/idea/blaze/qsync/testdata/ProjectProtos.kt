@@ -49,6 +49,7 @@ object ProjectProtos {
           targetPatterns = emptyList(),
           systemExcludes = emptySet(),
           testSources = emptySet(),
+          isAndroidWorkspace = true,
           languageClasses = setOf(QuerySyncLanguage.JVM),
           deriveTargetsFromDirectories = false,
         ),

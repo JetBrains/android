@@ -23,6 +23,7 @@ message ProjectDefinition {
   bool derive_targets_from_directories = 6;
   repeated string target_patterns = 7;
   repeated LanguageClass language_classes = 3;
+  bool is_android_workspace = 8;
   repeated string test_sources = 4;
   // TODO(b/382333575): improve excluding system folders
   repeated string system_excludes = 5;
