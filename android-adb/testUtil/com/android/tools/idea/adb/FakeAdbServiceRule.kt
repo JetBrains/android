@@ -17,7 +17,6 @@ package com.android.tools.idea.adb
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.fakeadbserver.devicecommandhandlers.SyncCommandHandler
 import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.Disposable
@@ -38,12 +37,6 @@ class FakeAdbServiceRule(
 ) : ExternalResource() {
   private var serverKilled = false
   private var serviceDisposable: Disposable? = null
-
-  init {
-    // Ensure we use the protocol compliant `sync` handler. We can remove this when it is the
-    // default.
-    adbRule.withDeviceCommandHandler(SyncCommandHandler())
-  }
 
   override fun before() {
     val adbFile: File = mock()
