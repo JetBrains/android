@@ -17,10 +17,8 @@ package com.google.idea.blaze.android.qsync
 
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder.Companion.create
 import com.android.tools.idea.projectsystem.ScopeType
-import com.google.common.collect.ImmutableSet
 import com.google.common.util.concurrent.Futures
 import com.google.idea.blaze.android.projectsystem.BazelModuleSystem
-import com.google.idea.blaze.android.qsync.projectstructure.AndroidFacetModuleCustomizer
 import com.google.idea.blaze.android.resources.BlazeLightResourceClassService
 import com.google.idea.blaze.android.sdk.BlazeSdkProvider
 import com.google.idea.blaze.android.sync.model.idea.BlazeAndroidModel
@@ -33,18 +31,14 @@ import com.google.idea.blaze.base.qsync.BlazeQuerySyncPlugin
 import com.google.idea.blaze.base.sync.projectview.LanguageSupport
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings
 import com.google.idea.blaze.common.Context
-import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.java.projectview.JavaLanguageLevelSection
 import com.intellij.openapi.components.service
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.LanguageLevelProjectExtension
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.pom.java.LanguageLevel
-import com.intellij.util.Function
-import com.intellij.util.containers.ContainerUtil
 import java.io.File
 
 /** ASwB sync plugin.  */
@@ -69,7 +63,6 @@ class BlazeAndroidQuerySyncPlugin : BlazeQuerySyncPlugin {
   override fun updateProjectStructureForQuerySync(
     project: Project,
     context: Context<*>,
-    models: IdeModifiableModelsProvider,
     workspaceRoot: WorkspaceRoot,
     workspaceModule: Module,
     androidResourceDirectories: Set<String>,
@@ -80,17 +73,6 @@ class BlazeAndroidQuerySyncPlugin : BlazeQuerySyncPlugin {
       return
     }
 
-    val androidFacetModuleCustomizer = AndroidFacetModuleCustomizer(models)
-
-    // Attach AndroidFacet to workspace modules
-    val workspaceFacet = androidFacetModuleCustomizer.createAndroidFacet(workspaceModule, false)
-
-    // Add all source resource directories to this AndroidFacet
-    if (workspaceFacet == null) {
-      context.output(PrintOutput.error("workspace_type is android, but no android facet present; not configuring android resources"))
-      context.output(PrintOutput.output("""Consider adding "workspace_type: java" or similar to your .blazeproject file."""))
-      return
-    }
     val androidResourceDirectoryFiles =
       androidResourceDirectories
         .map { File(workspaceRoot.directory(), it).getAbsoluteFile() }
