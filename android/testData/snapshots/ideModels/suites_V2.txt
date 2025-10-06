@@ -882,6 +882,51 @@ MODULE                        : project.app
     DependenciesInfo
         IncludeInApk                  : true
         IncludeInBundle               : true
+    TestSuites
+        TestSuite
+            Name                          : first
+            Sources
+                TestSuiteSource
+                    Name                          : first
+                    Type                          : ASSETS
+                    SourceProvider
+                        Name                          : first
+                        CustomSourceDirectories
+                            SourceTypeName                : assets (test suite)
+                            Directory                     : <ROOT>/app/src/first
+            JUnitEngineInfo
+                IncludedEngines
+            TargetedVariants
+            - targetedVariant:            : debug
+        TestSuite
+            Name                          : second
+            Sources
+                TestSuiteSource
+                    Name                          : second
+                    Type                          : HOST_JAR
+                    SourceProvider
+                        Name                          : second
+                        JavaDirectories               : <ROOT>/app/src/second/java [-]
+                        KotlinDirectories             : <ROOT>/app/src/second/kotlin
+            JUnitEngineInfo
+                IncludedEngines
+            TargetedVariants
+            - targetedVariant:            : debug
+        TestSuite
+            Name                          : third
+            Sources
+                TestSuiteSource
+                    Name                          : third
+                    Type                          : ASSETS
+                    SourceProvider
+                        Name                          : third
+                        CustomSourceDirectories
+                            SourceTypeName                : assets (test suite)
+                            Directory                     : <ROOT>/app/src/third [-]
+            JUnitEngineInfo
+                IncludedEngines
+            TargetedVariants
+            - targetedVariant:            : release
     DefaultConfig
         ProductFlavor
             Name                          : main
@@ -1806,6 +1851,18 @@ MODULE                        : project.app
                             javaLibrary                   : com.google.guava:guava:19.0@jar
                             androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                 MockablePlatformJar           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+            firstTestSuiteArtifact
+                TargetedVariantName           : debug
+                Targets
+                    TestSuiteTarget
+                        TargetName                    : t1
+                        TestTaskName                  : testFirstT1DebugTestSuite
+            secondTestSuiteArtifact
+                TargetedVariantName           : debug
+                Targets
+                    TestSuiteTarget
+                        TargetName                    : t1
+                        TestTaskName                  : testSecondT1DebugTestSuite
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : project.app.androidTest
 MODULE                        : project.app.first

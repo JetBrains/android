@@ -47,6 +47,10 @@ import com.android.tools.idea.gradle.model.IdeSigningConfig
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
 import com.android.tools.idea.gradle.model.IdeTestOptions
+import com.android.tools.idea.gradle.model.IdeTestSuite
+import com.android.tools.idea.gradle.model.IdeTestSuiteSource
+import com.android.tools.idea.gradle.model.IdeTestSuiteTarget
+import com.android.tools.idea.gradle.model.IdeTestSuiteVariantTarget
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant
 import com.android.tools.idea.gradle.model.IdeUnknownLibrary
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
@@ -294,6 +298,13 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       ideAndroidModel.dependenciesInfo?.let { dump(it) }
       ideAndroidModel.lintChecksJars?.forEach { prop("lintChecksJars") { it.path.toPrintablePath() } }
 
+      if (ideAndroidModel.testSuites.isNotEmpty()) {
+        head("TestSuites")
+        nest {
+          ideAndroidModel.testSuites.forEach { dump(it) }
+        }
+      }
+
       ideAndroidModel.multiVariantData?.defaultConfig?.let { defaultConfig ->
         head("DefaultConfig")
         nest {
@@ -342,6 +353,46 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         prop("applicationId") { ideBasicVariant.applicationId }
         prop("testApplicationId") { ideBasicVariant.testApplicationId }
         prop("buildType") { ideBasicVariant.buildType }
+      }
+    }
+
+    fun dump(ideTestSuite: IdeTestSuite) {
+      head("TestSuite")
+      nest {
+        prop("Name") { ideTestSuite.name }
+        if (ideTestSuite.sources.isNotEmpty()) {
+          head("Sources")
+          nest {
+            ideTestSuite.sources.forEach {
+              dump(it)
+            }
+          }
+        }
+        head("JUnitEngineInfo")
+        nest {
+          head("IncludedEngines")
+          ideTestSuite.junitEngineInfo.includedEngines.forEach {
+            prop("- includedEngine:") { it }
+          }
+        }
+        if (ideTestSuite.targetedVariants.isNotEmpty()) {
+          head("TargetedVariants")
+          ideTestSuite.targetedVariants.forEach {
+            prop("- targetedVariant:") { it }
+          }
+        }
+      }
+    }
+
+    fun dump(ideTestSuiteSource: IdeTestSuiteSource) {
+      head("TestSuiteSource")
+      nest {
+        prop("Name") { ideTestSuiteSource.name }
+        prop("Type") { ideTestSuiteSource.type.name }
+        head("SourceProvider")
+        nest {
+          dump(ideTestSuiteSource.sourceProvider)
+        }
       }
     }
 
@@ -410,6 +461,12 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         }
         ideVariant.testedTargetVariants.forEach {
           head("TestedTargetVariants")
+          nest {
+            dump(it)
+          }
+        }
+        ideVariant.testSuiteArtifacts.forEach {
+          head("${it.suiteName}TestSuiteArtifact")
           nest {
             dump(it)
           }
@@ -483,8 +540,35 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       ideAndroidArtifact.abiFilters.forEach { prop("AbiFilters") { it } }
     }
 
-    private fun dump(property: String, ideDependencies: IdeDependencies) {
+    private fun dump(ideTestSuiteVariantTarget: IdeTestSuiteVariantTarget) {
+      prop("TargetedVariantName") { ideTestSuiteVariantTarget.targetedVariantName }
+      if (ideTestSuiteVariantTarget.targets.isNotEmpty()) {
+        head("Targets")
+        nest {
+          ideTestSuiteVariantTarget.targets.forEach {
+            dump(it)
+          }
+        }
+      }
+    }
 
+    private fun dump(ideTestSuiteTarget: IdeTestSuiteTarget) {
+      head("TestSuiteTarget")
+      nest {
+        prop("TargetName") { ideTestSuiteTarget.targetName }
+        prop("TestTaskName") { ideTestSuiteTarget.testTaskName }
+        if (ideTestSuiteTarget.targetedDevices.isNotEmpty()) {
+          head("TargetedDevices")
+          nest {
+            ideTestSuiteTarget.targetedDevices.forEach {
+              prop("- device") { it }
+            }
+          }
+        }
+      }
+    }
+
+    private fun dump(property: String, ideDependencies: IdeDependencies) {
       head(property)
       nest {
         ideDependencies.unresolvedDependencies.forEach { dependency ->
