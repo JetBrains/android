@@ -29,6 +29,7 @@ import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.AdaptiveIconGenerator;
+import com.android.tools.idea.npw.assetstudio.AssetStudioWizardTrackerImpl;
 import com.android.tools.idea.npw.assetstudio.IconGenerator.Shape;
 import com.android.tools.idea.npw.assetstudio.LauncherIconGenerator;
 import com.android.tools.idea.npw.assetstudio.TvChannelIconGenerator;
@@ -66,7 +67,6 @@ import com.android.tools.module.AndroidModuleInfo;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColorPanel;
@@ -85,7 +85,6 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -393,7 +392,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myShowSafeZone = showSafeZone;
     myPreviewDensity = previewDensity;
     myIconGenerator = myIconType == AndroidIconType.LAUNCHER ?
-        new LauncherIconGenerator(facet.getModule().getProject(), androidModuleInfo.getMinSdkVersion().getApiLevel(), renderer) :
+        new LauncherIconGenerator(facet.getModule().getProject(), androidModuleInfo.getMinSdkVersion().getApiLevel(), renderer, new AssetStudioWizardTrackerImpl(facet.getModule().getProject())) :
         new TvChannelIconGenerator(facet.getModule().getProject(), androidModuleInfo.getMinSdkVersion().getApiLevel(), renderer);
     myValidatorPanel = validatorPanel;
 
