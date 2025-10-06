@@ -42,7 +42,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.fail
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.any
@@ -52,6 +51,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.random.Random
+import org.junit.Ignore
 
 @Ignore("FakeAdbTestRule hangs")
 class StartReattachingDebuggerTest {
@@ -148,6 +148,7 @@ class StartReattachingDebuggerTest {
   }
 
   @Test
+  @Ignore("b/448561855")
   fun testStartReattachingDebuggerForFewClients() = runTest {
 
     val ADDITIONAL_CLIENTS = 2
