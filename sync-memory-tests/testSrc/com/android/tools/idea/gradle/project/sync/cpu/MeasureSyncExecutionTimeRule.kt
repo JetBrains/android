@@ -79,10 +79,10 @@ class MeasureSyncExecutionTimeRule(val syncCount: Int, val projectToCompareAgain
     }
 
     override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {
-      val configurationFinishedTimestamp = getTimestampForCheckpoint(MeasurementCheckpoint.CONFIGURATION_FINISHED.name)
-      val androidStartedTimestamp = configurationFinishedTimestamp
-      val gradleSyncFinishedTimestamp = getTimestampForCheckpoint(MeasurementCheckpoint.SYNC_FINISHED.name)
-      val androidFinishedTimestamp = gradleSyncFinishedTimestamp
+      val configurationFinishedTimestamp = getTimestampForCheckpoint(MeasurementCheckpoint.CONFIGURATION_FINISHED.name)!!
+      val androidStartedTimestamp = getTimestampForCheckpoint(AndroidMeasurementCheckpoint.ANDROID_STARTED.name) ?: configurationFinishedTimestamp
+      val gradleSyncFinishedTimestamp = getTimestampForCheckpoint(MeasurementCheckpoint.SYNC_FINISHED.name)!!
+      val androidFinishedTimestamp = getTimestampForCheckpoint(AndroidMeasurementCheckpoint.ANDROID_FINISHED.name) ?: gradleSyncFinishedTimestamp
       val ideFinishedTimestamp = Clock.System.now()
 
       val result = Durations(
@@ -127,8 +127,10 @@ class MeasureSyncExecutionTimeRule(val syncCount: Int, val projectToCompareAgain
       recordCpuMeasurement("${projectName}_$type", values, isMetricAnalyzed, metricToCompareAgainst)
     }
   }
-  private fun getTimestampForCheckpoint(checkpointName: String): Instant {
-    val file = File(OUTPUT_DIRECTORY).walk().first { it.nameWithoutExtension.endsWith(checkpointName) && !processedFiles.contains(it.name)}
+  private fun getTimestampForCheckpoint(checkpointName: String): Instant? {
+    val file = File(OUTPUT_DIRECTORY).walk().firstOrNull {
+      it.nameWithoutExtension.endsWith(checkpointName) && !processedFiles.contains(it.name)
+    } ?: return null
     return Instant.fromEpochMilliseconds(file.name.substringBefore('_').toLong()).also {
       processedFiles.add(file.name)
     }
