@@ -238,7 +238,7 @@ class ComputeGradlePluginUpgradeStateTest(val case: Case, val flags: Flags) {
       // Versions earlier than our minimum supported version should force an upgrade.
       VERSION_BELOW_MIN("3.1.0", "7.0.0", agpVersions(), FORCE.upgradeTo("7.0.0")),
       // If we know of published versions earlier than our latestKnownVersion, prefer to upgrade to those.
-      UPGRADE_BELOW_MIN_UPGRADES_TO_MIN("3.1.0", "4.0.0", agpVersions("3.2.0", "3.3.0", "3.4.0", "3.5.0", "3.6.0", "4.0.0", "4.1.0", "4.2.0", "7.0.0"), FORCE.upgradeTo("4.0.0")),
+      UPGRADE_BELOW_MIN_UPGRADES_TO_MIN("3.1.0", "7.0.0", agpVersions("3.2.0", "3.3.0", "3.4.0", "3.5.0", "3.6.0", "4.0.0", "4.1.0", "4.2.0", "7.0.0"), FORCE.upgradeTo("4.0.0")),
       // If we do not know of any published versions earlier than our latestKnown, upgrade to latestKnown
       UPGRADE_FALLS_BACK_TO_LATEST("3.1.0", "4.1.0", agpVersions("4.2.0", "7.0.0"), FORCE.upgradeTo("4.1.0")),
       // If we know of multiple published versions in the stable series, upgrade to the latest if it is compatible.
