@@ -93,6 +93,7 @@ abstract class GraphToProjectConvertersForTests {
             info.projectExcludes(),
             false,
             ImmutableList.of(),
+            true,
             info.languageClasses(),
             info.testSources(),
             info.systemExcludes()

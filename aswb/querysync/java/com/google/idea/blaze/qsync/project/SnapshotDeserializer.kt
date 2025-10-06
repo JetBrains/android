@@ -65,6 +65,7 @@ class SnapshotDeserializer {
         projectExcludes = ImmutableSet.copyOf(proto.excludePathsList.map { Path.of(it) }),
         deriveTargetsFromDirectories = proto.deriveTargetsFromDirectories,
         targetPatterns = ImmutableList.copyOf (proto.targetPatternsList.map {TargetPattern.parse(it)}),
+        isAndroidWorkspace = proto.isAndroidWorkspace,
         languageClasses = ImmutableSet.copyOf(proto.languageClassesList.mapNotNull {QuerySyncLanguage.fromProto(it).getOrNull()}),
         testSources = ImmutableSet.copyOf(proto.testSourcesList),
         systemExcludes = ImmutableSet.copyOf(proto.systemExcludesList.map { Path.of(it) })

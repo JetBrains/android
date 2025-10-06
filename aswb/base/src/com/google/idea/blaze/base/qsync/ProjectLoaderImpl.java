@@ -27,11 +27,13 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.bazel.BuildSystemProvider;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
+import com.google.idea.blaze.base.model.primitives.WorkspaceType;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.projectview.section.Glob;
 import com.google.idea.blaze.base.projectview.section.sections.AutomaticallyDeriveTargetsSection;
 import com.google.idea.blaze.base.projectview.section.sections.TargetSection;
 import com.google.idea.blaze.base.projectview.section.sections.TestSourceSection;
+import com.google.idea.blaze.base.projectview.section.sections.WorkspaceTypeSection;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
@@ -372,6 +374,8 @@ public class ProjectLoaderImpl implements ProjectLoader {
         .collect(ImmutableSet.toImmutableSet());
     // derive_targets_from_directories: true in query sync basically means
     final var deriveTargetsFromDirectories = projectViewSet.getScalarValue(AutomaticallyDeriveTargetsSection.KEY).orElse(false);
+    final var isAndroidWorkspace =
+      projectViewSet.getScalarValue(WorkspaceTypeSection.KEY).orElse(WorkspaceType.ANDROID).equals(WorkspaceType.ANDROID);
     final var targetPatterns =
       projectViewSet
         .listItems(TargetSection.KEY)
@@ -383,6 +387,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
       importRoots.excludePaths(),
       deriveTargetsFromDirectories,
       targetPatterns,
+      isAndroidWorkspace,
       LanguageClasses.toQuerySync(workspaceLanguageSettings.getActiveLanguages()),
       testSourceGlobs,
       ImmutableSet.<Path>builder()

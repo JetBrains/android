@@ -29,11 +29,12 @@ class ProjectDefinitionTest {
       ProjectDefinition(
         projectIncludes = setOf(Path.of("contentroot1"), Path.of("contentroot2")),
         projectExcludes = emptySet(),
-        targetPatterns = emptyList(),
-        systemExcludes = emptySet(),
-        testSources = emptySet(),
-        languageClasses = emptySet(),
         deriveTargetsFromDirectories = false,
+        targetPatterns = emptyList(),
+        isAndroidWorkspace = false,
+        languageClasses = emptySet(),
+        testSources = emptySet(),
+        systemExcludes = emptySet(),
       )
     Truth.assertThat(projectDefinition.getIncludingContentRoot(Path.of("contentroot1/some/path")))
       .isEqualTo(Path.of("contentroot1"))
@@ -47,11 +48,12 @@ class ProjectDefinitionTest {
       ProjectDefinition(
         projectIncludes = setOf(Path.of("contentroot1"), Path.of("contentroot2")),
         projectExcludes = emptySet(),
-        targetPatterns = emptyList(),
-        systemExcludes = emptySet(),
-        testSources = emptySet(),
-        languageClasses = emptySet(),
         deriveTargetsFromDirectories = false,
+        targetPatterns = emptyList(),
+        isAndroidWorkspace = false,
+        languageClasses = emptySet(),
+        testSources = emptySet(),
+        systemExcludes = emptySet(),
       )
     Truth.assertThat(projectDefinition.getIncludingContentRoot(Path.of("anotherRoot/some/path")))
       .isNull()
@@ -63,11 +65,12 @@ class ProjectDefinitionTest {
       ProjectDefinition(
         projectIncludes = setOf(Path.of("contentroot1"), Path.of("contentroot2")),
         projectExcludes = setOf(Path.of("contentroot1/excluded")),
-        targetPatterns = emptyList(),
-        systemExcludes = emptySet(),
-        testSources = emptySet(),
-        languageClasses = emptySet(),
         deriveTargetsFromDirectories = false,
+        targetPatterns = emptyList(),
+        isAndroidWorkspace = false,
+        languageClasses = emptySet(),
+        testSources = emptySet(),
+        systemExcludes = emptySet(),
       )
     Truth.assertThat(projectDefinition.getIncludingContentRoot(Path.of("contentroot1/excluded/path")))
       .isNull()

@@ -65,6 +65,11 @@ data class ProjectDefinition(
   val targetPatterns: List<TargetPattern>,
 
   /**
+   * Indicates whether Android support should be activated in the IDE.
+   */
+  val isAndroidWorkspace: Boolean,
+
+  /**
    * The languages this workspace supports.
     */
   val languageClasses: Set<QuerySyncLanguage>,
@@ -162,6 +167,7 @@ data class ProjectDefinition(
       projectExcludes = emptySet(),
       deriveTargetsFromDirectories = false,
       targetPatterns = emptyList(),
+      isAndroidWorkspace = false,
       languageClasses = emptySet(),
       testSources = emptySet(),
       systemExcludes = emptySet()

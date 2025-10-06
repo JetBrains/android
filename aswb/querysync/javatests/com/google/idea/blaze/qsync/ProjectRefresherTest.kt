@@ -246,9 +246,10 @@ class ProjectRefresherTest {
             projectExcludes = emptySet(),
             deriveTargetsFromDirectories = false,
             targetPatterns = emptyList(),
-            systemExcludes = emptySet(),
-            testSources = emptySet(),
+            isAndroidWorkspace = false,
             languageClasses = setOf(QuerySyncLanguage.JVM),
+            testSources = emptySet(),
+            systemExcludes = emptySet(),
           )
         )
         .setBazelVersion(Optional.of("1.0.0"))
@@ -294,9 +295,10 @@ class ProjectRefresherTest {
             projectExcludes = emptySet(),
             deriveTargetsFromDirectories = false,
             targetPatterns = emptyList(),
-            systemExcludes = emptySet(),
-            testSources = emptySet(),
+            isAndroidWorkspace = false,
             languageClasses = setOf(QuerySyncLanguage.JVM),
+            testSources = emptySet(),
+            systemExcludes = emptySet(),
           )
         )
         .build()
@@ -349,6 +351,7 @@ class ProjectRefresherTest {
             projectExcludes = emptySet(),
             deriveTargetsFromDirectories = false,
             targetPatterns = emptyList(),
+            isAndroidWorkspace = false,
             systemExcludes = emptySet(),
             testSources = emptySet(),
             languageClasses = setOf(QuerySyncLanguage.JVM),
@@ -401,9 +404,10 @@ class ProjectRefresherTest {
             projectExcludes = emptySet(),
             deriveTargetsFromDirectories = false,
             targetPatterns = emptyList(),
-            systemExcludes = emptySet(),
-            testSources = emptySet(),
+            isAndroidWorkspace = false,
             languageClasses = setOf(QuerySyncLanguage.JVM),
+            testSources = emptySet(),
+            systemExcludes = emptySet(),
           )
         )
         .build()
@@ -447,9 +451,10 @@ class ProjectRefresherTest {
             projectExcludes = emptySet(),
             deriveTargetsFromDirectories = false,
             targetPatterns = emptyList(),
-            systemExcludes = emptySet(),
-            testSources = emptySet(),
+            isAndroidWorkspace = false,
             languageClasses = setOf(QuerySyncLanguage.JVM),
+            testSources = emptySet(),
+            systemExcludes = emptySet(),
           )
         )
         .build()
@@ -493,9 +498,10 @@ class ProjectRefresherTest {
             projectExcludes = emptySet(),
             deriveTargetsFromDirectories = false,
             targetPatterns = emptyList(),
-            systemExcludes = emptySet(),
-            testSources = emptySet(),
+            isAndroidWorkspace = false,
             languageClasses = setOf(QuerySyncLanguage.JVM),
+            testSources = emptySet(),
+            systemExcludes = emptySet(),
           )
         )
         .build()
