@@ -58,6 +58,7 @@ class ProjectProto {
 
   data class Module(
     val name: String,
+    val isAndroidModule: Boolean,
     val contentEntries: Map<ProjectPath, ContentEntry>,
     val androidResourceDirectories: List<ProjectPath.WorkspaceRelativeProjectPath>,
     val androidSourcePackages: List<String>,
@@ -66,6 +67,7 @@ class ProjectProto {
   ): ProjectProtoModel {
     class Builder(
       var name: String,
+      var isAndroidModule: Boolean = false,
       val contentEntries: MutableMap<ProjectPath, ContentEntry> = mutableMapOf(),
       val androidResourceDirectories: MutableList<ProjectPath.WorkspaceRelativeProjectPath> = mutableListOf(),
       val androidSourcePackages: MutableList<String> = mutableListOf(),
@@ -74,6 +76,7 @@ class ProjectProto {
     ) {
       fun build(): Module = Module(
         name = name,
+        isAndroidModule = isAndroidModule,
         contentEntries = contentEntries.toMap(),
         androidResourceDirectories = androidResourceDirectories.toList(),
         androidSourcePackages = androidSourcePackages.toList(),
@@ -84,6 +87,7 @@ class ProjectProto {
 
     fun toBuilder(): Builder = Builder(
       name = name,
+      isAndroidModule = isAndroidModule,
       contentEntries = contentEntries.toMutableMap(),
       androidResourceDirectories = androidResourceDirectories.toMutableList(),
       androidSourcePackages = androidSourcePackages.toMutableList(),

@@ -30,7 +30,7 @@ import java.nio.file.Path;
 /** Serializes a {@link PostQuerySyncData} instance to a proto message. */
 public class SnapshotSerializer {
 
-  public static final int PROTO_VERSION = 2;
+  public static final int PROTO_VERSION = 3;
 
   static final ImmutableBiMap<Operation, SnapshotProto.WorkspaceFileChange.VcsOperation> OP_MAP =
       ImmutableBiMap.of(
