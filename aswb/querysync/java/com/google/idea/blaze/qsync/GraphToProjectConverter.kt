@@ -452,6 +452,7 @@ class GraphToProjectConverter(
     val workspaceModule: ProjectProto.Module.Builder =
       ProjectProto.Module.Builder(name = BlazeProjectDataStorage.WORKSPACE_MODULE_NAME).also {
         //          .setType(ProjectProto.ModuleType.MODULE_TYPE_DEFAULT)
+        it.isAndroidModule = projectDefinition.isAndroidWorkspace
         it.androidResourceDirectories.addAll(androidResDirs.map { ProjectPath.workspaceRelative(it) })
         it.androidSourcePackages.addAll(androidResPackages)
         it.androidCustomPackages.addAll(graph.getAllCustomPackages())

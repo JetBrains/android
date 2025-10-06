@@ -20,7 +20,6 @@ import com.google.idea.blaze.base.projectview.ProjectViewSet
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings
 import com.google.idea.blaze.common.Context
 import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 
@@ -33,7 +32,6 @@ interface BlazeQuerySyncPlugin {
   fun updateProjectStructureForQuerySync(
     project: Project,
     context: Context<*>,
-    models: IdeModifiableModelsProvider,
     workspaceRoot: WorkspaceRoot,
     workspaceModule: Module,
     androidResourceDirectories: Set<String>,
