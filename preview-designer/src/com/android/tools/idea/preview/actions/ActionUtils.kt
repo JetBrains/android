@@ -98,9 +98,9 @@ fun List<AnAction>.visibleOnlyInStaticPreview(): ActionGroup =
 
 /**
  * Makes the given action only visible when the preview is not in interactive or animation modes.
- * Returns an [ActionGroup] that handles the visibility.
+ * Returns an [AnAction] that handles the visibility.
  */
-fun AnAction.visibleOnlyInStaticPreview(): ActionGroup = listOf(this).visibleOnlyInStaticPreview()
+fun AnAction.visibleOnlyInStaticPreview(): AnAction = listOf(this).visibleOnlyInStaticPreview()
 
 /** Hide the given actions if the [SceneView] contains render errors. */
 fun List<AnAction>.hideIfRenderErrors(): List<AnAction> = map {
@@ -186,9 +186,9 @@ private class PreviewDefaultWrapper(actions: List<AnAction>) : DefaultActionGrou
 
 /**
  * Makes the given action only visible when the preview is in the [PreviewMode.Default] mode.
- * Returns an [ActionGroup] that handles the visibility.
+ * Returns an [AnAction] that handles the visibility.
  */
-fun AnAction.visibleOnlyInDefaultPreview(): ActionGroup = PreviewDefaultWrapper(listOf(this))
+fun AnAction.visibleOnlyInDefaultPreview(): AnAction = PreviewDefaultWrapper(listOf(this))
 
 /** Makes the given action only visible when the preview is in the [PreviewMode.Focus] mode. */
 fun AnAction.visibleOnlyInFocus(): AnAction =
