@@ -1,13 +1,8 @@
 package org.jetbrains.android;
 
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.tests.AdtTestProjectDescriptors;
-import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
-import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -24,14 +19,5 @@ public abstract class LightJavaCodeInsightFixtureAdtTestCase extends LightJavaCo
   @NotNull
   protected LightProjectDescriptor getProjectDescriptor() {
     return AdtTestProjectDescriptors.defaultDescriptor();
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    List<Sdk> sdks = AndroidSdks.getInstance().getAllAndroidSdks();
-    for (Sdk sdk : sdks) {
-      WriteAction.runAndWait(() -> ProjectJdkTable.getInstance().removeJdk(sdk));
-    }
-    super.tearDown();
   }
 }

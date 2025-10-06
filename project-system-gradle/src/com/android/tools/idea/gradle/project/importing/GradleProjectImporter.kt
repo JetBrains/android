@@ -92,10 +92,12 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
         this.projectToClose = projectToClose
         isNewProject = false
         useDefaultProjectAsTemplate = false
+        beforeInit = {
+          setUpLocalProperties(projectFolderPath)
+        }
         beforeOpen = {
           // The scope of this is rather large to mimic old behaviour, it could likely be improved
           withContext(Dispatchers.EDT) {
-            setUpLocalProperties(projectFolderPath)
             configureNewProject(it)
             importProjectNoSync(Request(it))
           }
