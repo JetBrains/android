@@ -15,17 +15,19 @@
  */
 package com.android.tools.idea.apk.debugging.editor;
 
+import static com.android.testutils.AssumeUtil.assumeNotWindows;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddApkFacet;
 import static com.android.tools.idea.testing.TestProjectPaths.APK_SAN_ANGELES;
 import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.module.JavaModuleType.JAVA_MODULE_ENTITY_TYPE_ID_NAME;
 import static com.intellij.openapi.util.io.FileUtil.copyDir;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.jetbrains.android.AndroidTestBase.getTestDataPath;
-import static org.mockito.MockitoAnnotations.initMocks;
+import static org.mockito.Mockito.mock;
 
 import com.android.tools.idea.apk.debugging.DexSourceFiles;
 import com.android.tools.idea.io.FilePaths;
@@ -39,81 +41,66 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.HeavyPlatformTestCase;
+import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.ProjectRule;
+import com.intellij.testFramework.RuleChain;
+import com.intellij.testFramework.RunsInEdt;
 import com.intellij.ui.EditorNotificationPanel;
 import java.io.File;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.Mock;
-
-import java.io.File;
-
-import static com.android.testutils.AssumeUtil.assumeNotWindows;
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.testing.Facets.createAndAddApkFacet;
-import static com.android.tools.idea.testing.TestProjectPaths.APK_SAN_ANGELES;
-import static com.google.common.truth.Truth.assertAbout;
-import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static org.jetbrains.android.AndroidTestBase.getTestDataPath;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link SmaliFileNotificationProvider}.
  */
 @RunWith(JUnit4.class)
-public class SmaliFileNotificationProviderTest extends HeavyPlatformTestCase {
-  @Mock private FileEditor myFileEditor;
-  private SmaliFileNotificationProvider myNotificationProvider;
+@RunsInEdt
+public class SmaliFileNotificationProviderTest {
+  private final ProjectRule projectRule = new ProjectRule();
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    initMocks(this);
-    myNotificationProvider = new SmaliFileNotificationProvider();
-  }
+  @Rule
+  public RuleChain rule = new RuleChain(projectRule, new EdtRule());
 
-  @Override
-  protected void tearDown() throws Exception {
-    myNotificationProvider = null;
-    super.tearDown();
-  }
+  private final FileEditor fileEditor = mock(FileEditor.class);
+  private final SmaliFileNotificationProvider notificationProvider = new SmaliFileNotificationProvider();
 
   @Test
   public void testCreateNotificationPanelWithSmaliFile() throws Exception {
     // b/440156195 Flaky by 0.2% on windows. Disabling for now.
     assumeNotWindows();
 
-    loadProject(APK_SAN_ANGELES);
+    loadProject();
 
     File outputFolderPath = DexSourceFiles.getInstance(getProject()).getDefaultSmaliOutputFolderPath();
     File rSmaliFilePath = new File(outputFolderPath, join("com", "example", "SanAngeles", "R.smali"));
     assertAbout(FileSubject.file()).that(rSmaliFilePath).isFile();
 
     VirtualFile rSmaliFile = findFileByIoFile(rSmaliFilePath, true);
-    assertNotNull(rSmaliFile);
+    assertThat(rSmaliFile).isNotNull();
 
-    var panelProvider = myNotificationProvider.collectNotificationData(myProject, rSmaliFile);
-    assertNotNull(panelProvider);
-    EditorNotificationPanel notificationPanel = panelProvider.apply(myFileEditor);
-    assertNotNull(notificationPanel);
+    var panelProvider = notificationProvider.collectNotificationData(getProject(), rSmaliFile);
+    assertThat(panelProvider).isNotNull();
+    EditorNotificationPanel notificationPanel = panelProvider.apply(fileEditor);
+    assertThat(notificationPanel).isNotNull();
   }
 
   @Test
   public void testCreateNotificationPanelWithNonSmaliFile() throws Exception {
-    loadProject(APK_SAN_ANGELES);
-    var panelProvider = myNotificationProvider.collectNotificationData(myProject, PlatformTestUtil.getOrCreateProjectBaseDir(myProject));
-    assertNull(panelProvider);
+    loadProject();
+    var panelProvider =
+      notificationProvider.collectNotificationData(getProject(), PlatformTestUtil.getOrCreateProjectBaseDir(getProject()));
+    assertThat(panelProvider).isNull();
   }
 
-  private void loadProject(@NotNull String relativePath) throws Exception {
+  private void loadProject() throws Exception {
     Project project = getProject();
 
-    File root = new File(getTestDataPath(), toSystemDependentName(relativePath));
-    assertTrue(root.getPath(), root.exists());
+    File root = new File(getTestDataPath(), toSystemDependentName(APK_SAN_ANGELES));
+    assertThat(root.exists()).named(root.getPath()).isTrue();
     File projectRootPath = getBaseDirPath(project);
     copyDir(root, projectRootPath);
 
@@ -134,5 +121,9 @@ public class SmaliFileNotificationProviderTest extends HeavyPlatformTestCase {
     ModifiableRootModel modifiableModel = ModuleRootManager.getInstance(rootModule).getModifiableModel();
     modifiableModel.addContentEntry(FilePaths.pathToIdeaUrl(projectRootPath));
     ApplicationManager.getApplication().runWriteAction(modifiableModel::commit);
+  }
+
+  private Project getProject() {
+    return projectRule.getProject();
   }
 }
