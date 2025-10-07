@@ -42,6 +42,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
+import com.android.tools.leakcanarylib.data.Leak
 import com.android.tools.profilers.leakcanary.LeakCanaryModel
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
@@ -50,6 +51,8 @@ import com.android.tools.profilers.taskbased.tabs.task.leakcanary.actionbars.Lea
 import com.android.tools.profilers.taskbased.tabs.task.leakcanary.leakdetails.LeakDetailsPanel
 import com.android.tools.profilers.taskbased.tabs.task.leakcanary.leaklist.LeakListView
 import icons.StudioIconsCompose
+import java.awt.Toolkit
+import java.awt.datatransfer.StringSelection
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
@@ -59,6 +62,7 @@ import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.Tooltip
 import org.jetbrains.jewel.ui.component.rememberSplitLayoutState
+import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 @Composable
 fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel) {
@@ -122,6 +126,7 @@ fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel) {
       if (selectedLeak != null) {
         ToolWindowVerticalDivider()
         RightSidebar(
+          selectedLeak = selectedLeak!!,
           modifier = Modifier.width(48.dp),
           onExpandAll = onExpandAll,
           onCollapseAll = onCollapseAll
@@ -149,6 +154,7 @@ private fun ToolWindowVerticalDivider() {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun RightSidebar(
+  selectedLeak: Leak,
   modifier: Modifier = Modifier,
   onExpandAll: () -> Unit,
   onCollapseAll: () -> Unit
@@ -190,5 +196,24 @@ private fun RightSidebar(
         )
       }
     }
+    Tooltip(
+      tooltip = { Text(TaskBasedUxStrings.LEAKCANARY_COPY_TO_CLIPBOARD) }
+    ) {
+      IconButton(onClick = { copyLeakToClipboard(selectedLeak.toString()) }) {
+        Icon(
+          key = AllIconsKeys.Actions.Copy,
+          contentDescription = TaskBasedUxStrings.LEAKCANARY_COPY_TO_CLIPBOARD,
+          modifier = Modifier.padding(TaskBasedUxDimensions.TASK_ACTION_BAR_CONTENT_PADDING_DP),
+        )
+      }
+    }
   }
+}
+
+/**
+ * Copies a simplified text representation of the selected leak to the system clipboard.
+ */
+internal var copyLeakToClipboard: (String) -> Unit = { content ->
+  val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+  clipboard.setContents(StringSelection(content), null)
 }

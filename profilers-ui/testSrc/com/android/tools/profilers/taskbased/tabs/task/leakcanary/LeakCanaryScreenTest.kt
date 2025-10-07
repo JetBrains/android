@@ -41,6 +41,8 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.WithFakeTimer
 import com.android.tools.profilers.leakcanary.LeakCanaryModel
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
+import com.google.common.truth.Truth
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -55,6 +57,7 @@ class LeakCanaryScreenTest : WithFakeTimer {
   private lateinit var profilers: StudioProfilers
   private lateinit var leakCanaryModel: LeakCanaryModel
   private lateinit var ideProfilerServices: FakeIdeProfilerServices
+  private val originalCopyLeakToClipboard = copyLeakToClipboard
 
   @get:Rule
   val composeTestRule = StudioComposeTestRule.createStudioComposeTestRule()
@@ -64,6 +67,11 @@ class LeakCanaryScreenTest : WithFakeTimer {
     ideProfilerServices = FakeIdeProfilerServices()
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer)
     leakCanaryModel = LeakCanaryModel(profilers)
+  }
+
+  @After
+  fun tearDown() {
+    copyLeakToClipboard = originalCopyLeakToClipboard
   }
 
   @Test
@@ -477,5 +485,24 @@ class LeakCanaryScreenTest : WithFakeTimer {
     // Now, all nodes should be collapsed again.
     composeTestRule.onAllNodesWithContentDescription(TaskBasedUxStrings.LEAKCANARY_CLOSE).assertCountEquals(nodeCount)
     composeTestRule.onAllNodesWithContentDescription(TaskBasedUxStrings.LEAKCANARY_OPEN).assertCountEquals(0)
+  }
+
+  @Test
+  fun `clicking copy to clipboard button should capture the correct leak string`() {
+    val analysis = getMultipleLeaksAnalysis()
+    val selectedLeak = (analysis as AnalysisSuccess).leaks[0]
+    leakCanaryModel.addLeaks(analysis.leaks)
+    leakCanaryModel.onLeakSelection(selectedLeak)
+
+    var capturedClipboardText: String? = null
+
+    copyLeakToClipboard = { capturedClipboardText = it }
+    composeTestRule.setContent { LeakCanaryScreen(leakCanaryModel = leakCanaryModel) }
+
+    val copyButton = composeTestRule.onNodeWithContentDescription(TaskBasedUxStrings.LEAKCANARY_COPY_TO_CLIPBOARD)
+    copyButton.performClick()
+
+    // Verify that our fake clipboard function was called with the correct text
+    Truth.assertThat(capturedClipboardText).isEqualTo(selectedLeak.toString())
   }
 }
