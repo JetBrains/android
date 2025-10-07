@@ -129,9 +129,9 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
     unzip(zip, pluginsDir);
   }
 
-  /** Removes the plugin under the provided folder name, under `android-studio/plugins/` */
+  /** Removes the plugin under the provided folder name, under `plugins` folder under studio directory */
   public void removePlugin(String folderName) {
-    deleteDirectoryRecursively(workDir.resolve("android-studio/plugins/" + folderName));
+    deleteDirectoryRecursively(studioDir.resolve("plugins/" + folderName));
   }
 
   /** Deletes the target directory and all of of its items */
