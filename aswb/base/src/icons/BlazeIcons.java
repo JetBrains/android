@@ -27,6 +27,7 @@ public class BlazeIcons {
 
   private static final String BASE = "resources/icons/";
 
+  public static final Icon GoogleLogo = load("google-logo.svg");
   public static final Icon Logo = loadForBuildSystem("logo.png");
   public static final Icon BazelLogo = load("bazel/logo.png");
   public static final Icon BlazeSlow = load("blaze_slow.png"); // 16x16
