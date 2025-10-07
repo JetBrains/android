@@ -14,6 +14,7 @@ import org.junit.After
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
+import kotlin.io.path.createTempDirectory
 
 class JavadocGenerationManagerTest {
   @get:Rule val projectRule = AndroidProjectRule.withSdk()
@@ -28,7 +29,7 @@ class JavadocGenerationManagerTest {
   @Test
   @RunsInEdt
   fun invokeGenerateJavaDocAction() {
-    val outputDirectory = createTempDir().also { it.deleteOnExit() }
+    val outputDirectory = createTempDirectory().toFile().also { it.deleteOnExit() }
     projectRule.fixture.addFileToProject(
       "src/main/java/com/test/Test.java",
       """

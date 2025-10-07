@@ -317,7 +317,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     whenever(mockAdbService.getDebugBridge(any<File>()))
       .thenReturn(Futures.immediateFuture(mockAndroidDebugBridge))
 
-    val tmpFile = createTempFile()
+    val tmpFile = kotlin.io.path.createTempFile().toFile()
     val adbFileProvider = AdbFileProvider { tmpFile }
     project.replaceService(AdbFileProvider::class.java, adbFileProvider, testRootDisposable)
   }
