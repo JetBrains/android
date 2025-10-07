@@ -17,14 +17,16 @@ package com.google.idea.blaze.qsync
 
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.PrintOutput
+import com.google.idea.common.experiments.IntExperiment
 import com.google.idea.blaze.qsync.java.PackageReader
 import com.google.idea.blaze.qsync.query.PackageSet
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.time.measureTimedValue
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 
 class JavaPackagePrefixReaderImpl @JvmOverloads constructor(
   private val workspaceRoot: Path,
@@ -38,7 +40,7 @@ class JavaPackagePrefixReaderImpl @JvmOverloads constructor(
 
   override suspend fun readPrefixes(
     context: Context<*>, packages: PackageSet, sourceFiles: Collection<Path>,
-  ): Map<Path, String> = coroutineScope {
+  ): Map<Path, String> = withContext(dispatcher) {
 
     val filesByPath = sourceFiles.groupBy { it.parent }
     // A map from directory to the candidate chosen to represent that directory.
@@ -123,6 +125,19 @@ class JavaPackagePrefixReaderImpl @JvmOverloads constructor(
   }
 
   companion object {
+    private const val DEFAULT_READER_THREADS = 50
+    private val readerThreadsExperiment =
+      IntExperiment("java.package.prefix.reader.threads", DEFAULT_READER_THREADS)
+
+    private val parallelism = try {
+      readerThreadsExperiment.value
+    } catch (e: Exception) {
+      // ExperimentService is not available in all test environments
+      // TODO(b/450054988): Mock experiment service in test environment
+      DEFAULT_READER_THREADS
+    }
+    private val dispatcher = Dispatchers.IO.limitedParallelism(parallelism)
+
     private fun defaultFileExistenceCheck(workspaceRoot: Path, path: Path): Boolean {
       return Files.isRegularFile(workspaceRoot.resolve(path))
     }
