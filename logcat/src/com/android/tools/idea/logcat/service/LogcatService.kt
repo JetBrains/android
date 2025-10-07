@@ -19,20 +19,30 @@ import com.android.adblib.INFINITE_DURATION
 import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.message.LogcatMessage
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.flow.Flow
 import java.time.Duration
 
 /** Reads and clears a logcat from a device */
 interface LogcatService {
-  suspend fun readLogcat(
+  /**
+   * Streams messages from logcat.
+   *
+   * @param sdk the API level of the device being read; this enables more efficient log reading on
+   *   newer devices.
+   * @param duration how long to continue following the logs
+   * @param newMessagesOnly if true, the stream begins with new messages only; otherwise, all
+   *   available history is replayed.
+   */
+  fun readLogcat(
     serialNumber: String,
     sdk: AndroidApiLevel,
     duration: Duration = INFINITE_DURATION,
     newMessagesOnly: Boolean = false,
   ): Flow<List<LogcatMessage>>
 
-  suspend fun readLogcat(
+  fun readLogcat(
     device: Device,
     duration: Duration = INFINITE_DURATION,
     newMessagesOnly: Boolean = false,
@@ -42,7 +52,6 @@ interface LogcatService {
   suspend fun clearLogcat(serialNumber: String)
 
   companion object {
-    @JvmStatic
-    fun getInstance(project: Project): LogcatService = project.getService(LogcatService::class.java)
+    @JvmStatic fun getInstance(project: Project): LogcatService = project.service()
   }
 }

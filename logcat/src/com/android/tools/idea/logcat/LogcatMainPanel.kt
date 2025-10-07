@@ -180,8 +180,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -959,16 +959,14 @@ constructor(
     messageBacklog.get().clear()
 
     return coroutineScope.launch(Dispatchers.IO) {
-      val logcatFlow = logcatService.readLogcat(device).transform { emit(LogcatMessagesEvent(it)) }
+      val logcatFlow = logcatService.readLogcat(device).map { LogcatMessagesEvent(it) }
       val processMonitorFlow =
-        projectAppMonitor.monitorDevice(device.serialNumber).transform {
-          emit(LogcatMessagesEvent(listOf(it)))
-        }
+        projectAppMonitor.monitorDevice(device.serialNumber).map { LogcatMessagesEvent(listOf(it)) }
 
       connectedDevice.set(device)
 
       if (StudioFlags.LOGCAT_PANEL_MEMORY_SAVER.get()) {
-        val panelVisibilityFlow = trackVisibility().transform { emit(LogcatPanelVisibility(it)) }
+        val panelVisibilityFlow = trackVisibility().map { LogcatPanelVisibility(it) }
         val flow = merge(logcatFlow, processMonitorFlow, panelVisibilityFlow)
         flow.consume(this@LogcatMainPanel, device.serialNumber, logcatSettings.bufferSize)
       } else {

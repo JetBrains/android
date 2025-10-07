@@ -22,6 +22,7 @@ import java.time.Duration
 import java.util.concurrent.TimeoutException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flow
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
@@ -42,7 +43,7 @@ constructor(project: Project, private val lastMessageDelayMs: Long = LOGCAT_IDLE
   private val processNameMonitor: ProcessNameMonitor =
     project.getService(ProcessNameMonitor::class.java)
 
-  override suspend fun readLogcat(
+  override fun readLogcat(
     serialNumber: String,
     sdk: AndroidApiLevel,
     duration: Duration,
@@ -54,7 +55,7 @@ constructor(project: Project, private val lastMessageDelayMs: Long = LOGCAT_IDLE
     }
   }
 
-  private suspend fun readLogcatText(
+  private fun readLogcatText(
     serialNumber: String,
     sdk: AndroidApiLevel,
     duration: Duration,
@@ -133,12 +134,12 @@ constructor(project: Project, private val lastMessageDelayMs: Long = LOGCAT_IDLE
     }
   }
 
-  private suspend fun readLogcatProtobuf(
+  private fun readLogcatProtobuf(
     serialNumber: String,
     duration: Duration,
     newMessagesOnly: Boolean,
   ): Flow<List<LogcatMessage>> {
-    return channelFlow {
+    return flow {
       val command = buildString {
         append("logcat --proto")
         if (newMessagesOnly) {
@@ -152,15 +153,11 @@ constructor(project: Project, private val lastMessageDelayMs: Long = LOGCAT_IDLE
           .shellCommand(deviceSelector, command)
           .withCollector(LogcatProtoShellCollector(serialNumber, processNameMonitor))
           .execute()
-          .collect { send(it) }
+          .collect { emit(it) }
       } catch (e: EOFException) {
         LOGGER.debug { "Done collecting Logcat from device $serialNumber" }
-        channel.close()
-        return@channelFlow
       } catch (e: TimeoutException) {
         LOGGER.debug { "Done collecting Logcat from device $serialNumber after $duration" }
-        channel.close()
-        return@channelFlow
       }
     }
   }
