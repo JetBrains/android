@@ -16,6 +16,7 @@
 package com.google.idea.blaze.android.projectsystem;
 
 import static com.android.tools.idea.projectsystem.SourceProvidersKt.emptySourceProvider;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.idea.blaze.base.sync.data.BlazeDataStorage.WORKSPACE_MODULE_NAME;
 import static org.jetbrains.android.facet.SourceProviderUtil.createSourceProvidersForLegacyModule;
 
@@ -23,6 +24,7 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.CommonTestType;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder;
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ScopeType;
@@ -37,15 +39,19 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.android.resources.BlazeLightResourceClassService;
 import com.google.idea.blaze.android.sync.model.idea.BlazeAndroidModel;
+import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
+import com.google.idea.blaze.qsync.project.BlazeProjectDataStorage;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElementFinder;
 import com.intellij.psi.search.GlobalSearchScope;
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -117,47 +123,66 @@ public class BazelProjectSystem implements AndroidProjectSystem {
     return new SourceProvidersFactory() {
       @Override
       public SourceProviders createSourceProvidersFor(AndroidFacet facet) {
-        BlazeAndroidModel model = ((BlazeAndroidModel) AndroidModel.get(facet));
-        if (model != null) {
-          return createForModel(model);
+        if (Blaze.getProjectType(project).equals(ProjectType.QUERY_SYNC)) {
+          QuerySyncManager querySyncManager = QuerySyncManager.getInstance(facet.getModule().getProject());
+          final var querySyncProject = querySyncManager.getLoadedProject();
+          if (querySyncProject.isEmpty()) return createSourceProvidersForLegacyModule(facet);
+          final var data = querySyncManager.getCurrentSnapshot();
+          if (data.isEmpty()) return createSourceProvidersForLegacyModule(facet);
+          final var androidResourceDirectories = data.get().project().getModules().stream().flatMap(it -> it.getAndroidResourceDirectories().stream())
+            .map(it -> it.relativePath().toString())
+            .toList();
+          var androidResourceDirectoryFiles =
+            androidResourceDirectories
+              .stream()
+              .flatMap (it -> querySyncProject.map(p -> new File(p.getWorkspaceRoot().directory(), it).getAbsoluteFile()).stream())
+              .collect(toImmutableSet());
+          var mainSourceProvider =
+            NamedIdeaSourceProviderBuilder.create(BlazeProjectDataStorage.WORKSPACE_MODULE_NAME, VfsUtilCore.fileToUrl(new File("MissingManifest.xml")))
+              .withScopeType(ScopeType.MAIN)
+              .withResDirectoryUrls(androidResourceDirectoryFiles.stream().map (VfsUtilCore::fileToUrl).toList())
+        .build();
+          return new SourceProvidersImpl(
+            mainSourceProvider,
+            ImmutableList.of(mainSourceProvider),
+            ImmutableMap.of(CommonTestType.UNIT_TEST, ImmutableList.of()),
+            ImmutableMap.of(CommonTestType.ANDROID_TEST, ImmutableList.of()),
+            ImmutableList.of(),
+            ImmutableList.of(mainSourceProvider),
+            ImmutableList.of(mainSourceProvider),
+            ImmutableList.of(mainSourceProvider),
+            emptySourceProvider(ScopeType.MAIN),
+            ImmutableMap.of(CommonTestType.UNIT_TEST, emptySourceProvider(ScopeType.UNIT_TEST)),
+            ImmutableMap.of(
+              CommonTestType.ANDROID_TEST, emptySourceProvider(ScopeType.ANDROID_TEST)),
+            emptySourceProvider(ScopeType.TEST_FIXTURES));
         } else {
-          return createSourceProvidersForLegacyModule(facet);
+          BlazeAndroidModel model = ((BlazeAndroidModel)AndroidModel.get(facet));
+          if (model != null) {
+            return createForModel(model);
+          }
+          else {
+            return createSourceProvidersForLegacyModule(facet);
+          }
         }
       }
 
       private SourceProviders createForModel(BlazeAndroidModel model) {
-        NamedIdeaSourceProvider mainSourceProvider = model.getDefaultSourceProvider();
-        if (Blaze.getProjectType(project).equals(ProjectType.QUERY_SYNC)) {
-          return new SourceProvidersImpl(
-              mainSourceProvider,
-              ImmutableList.of(mainSourceProvider),
-              ImmutableMap.of(CommonTestType.UNIT_TEST, ImmutableList.of()),
-              ImmutableMap.of(CommonTestType.ANDROID_TEST, ImmutableList.of()),
-              ImmutableList.of(),
-              ImmutableList.of(mainSourceProvider),
-              ImmutableList.of(mainSourceProvider),
-              ImmutableList.of(mainSourceProvider),
-              emptySourceProvider(ScopeType.MAIN),
-              ImmutableMap.of(CommonTestType.UNIT_TEST, emptySourceProvider(ScopeType.UNIT_TEST)),
-              ImmutableMap.of(
-                  CommonTestType.ANDROID_TEST, emptySourceProvider(ScopeType.ANDROID_TEST)),
-              emptySourceProvider(ScopeType.TEST_FIXTURES));
-        } else {
-          return new SourceProvidersImpl(
-              mainSourceProvider,
-              ImmutableList.of(mainSourceProvider),
-              ImmutableMap.of(CommonTestType.UNIT_TEST, ImmutableList.of(mainSourceProvider)),
-              ImmutableMap.of(CommonTestType.ANDROID_TEST, ImmutableList.of(mainSourceProvider)),
-              ImmutableList.of(mainSourceProvider),
-              ImmutableList.of(mainSourceProvider),
-              ImmutableList.of(mainSourceProvider),
-              ImmutableList.of(mainSourceProvider),
-              emptySourceProvider(ScopeType.MAIN),
-              ImmutableMap.of(CommonTestType.UNIT_TEST, emptySourceProvider(ScopeType.UNIT_TEST)),
-              ImmutableMap.of(
-                  CommonTestType.ANDROID_TEST, emptySourceProvider(ScopeType.ANDROID_TEST)),
-              emptySourceProvider(ScopeType.TEST_FIXTURES));
-        }
+        NamedIdeaSourceProvider mainSourceProvider = model.getDefaultSourceProviderLegacySyncOnly();
+        return new SourceProvidersImpl(
+            mainSourceProvider,
+            ImmutableList.of(mainSourceProvider),
+            ImmutableMap.of(CommonTestType.UNIT_TEST, ImmutableList.of(mainSourceProvider)),
+            ImmutableMap.of(CommonTestType.ANDROID_TEST, ImmutableList.of(mainSourceProvider)),
+            ImmutableList.of(mainSourceProvider),
+            ImmutableList.of(mainSourceProvider),
+            ImmutableList.of(mainSourceProvider),
+            ImmutableList.of(mainSourceProvider),
+            emptySourceProvider(ScopeType.MAIN),
+            ImmutableMap.of(CommonTestType.UNIT_TEST, emptySourceProvider(ScopeType.UNIT_TEST)),
+            ImmutableMap.of(
+                CommonTestType.ANDROID_TEST, emptySourceProvider(ScopeType.ANDROID_TEST)),
+            emptySourceProvider(ScopeType.TEST_FIXTURES));
       }
     };
   }

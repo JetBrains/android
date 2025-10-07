@@ -26,7 +26,10 @@ import java.io.File
 class BlazeAndroidModel(
   project: Project,
   rootDirPath: File,
-  val defaultSourceProvider: NamedIdeaSourceProvider,
+  /**
+   * Note: this is unused and supposed to be `null` in query sync.
+   */
+  val defaultSourceProviderLegacySyncOnly: NamedIdeaSourceProvider?,
   applicationId: ListenableFuture<String>,
   minSdkVersion: Int
 ) : BlazeAndroidModelBase(project, rootDirPath, applicationId, minSdkVersion) {
