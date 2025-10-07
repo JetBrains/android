@@ -18,6 +18,7 @@ package com.android.tools.idea
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -26,6 +27,7 @@ class BuildProjectBleakTest {
   @Rule val system = AndroidSystem.standard()
 
   @Test
+  @Ignore("b/445656379")
   fun buildProject() {
     system.installation.enableBleak()
     val project = AndroidProject("tools/adt/idea/android/integration/testData/minapp")

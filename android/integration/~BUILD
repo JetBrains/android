@@ -618,8 +618,6 @@ iml_test(
     module = ":intellij.android.core.integration",
     tags = [
         "block-network",
-        "ci:studio-linux_very_flaky",  # b/283129200
-        "noci:studio-linux",
         "noci:studio-win",
         "studio-e2e-test",
     ],
@@ -670,7 +668,6 @@ iml_test(
     tags_linux = [
         "block-network",
         "noci:studio-linux",
-        "ci:studio-linux_very_flaky",  # b/260867011
     ],
     tags_windows = [
         # TODO(b/287284693): Add Windows support for this test.
