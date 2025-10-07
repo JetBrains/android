@@ -92,8 +92,10 @@ fun ProjectDumper.dumpProject(project: Project) {
     if (libraries.isNotEmpty()) {
       head("LIBRARY_TABLE")
       nest {
+        val nonKtsModuleLibraries = getNonKtsModuleLibraries(project)
         libraries.filterIsInstance<LibraryBridgeImpl>()
-          //.filter { it.externalSource != null }
+          // Ignore KTS modules since those are out of our control
+          .filter { nonKtsModuleLibraries.contains(it) }
           .sortedBy { it.name }.forEach { dump(it) }
       }
     }
@@ -550,6 +552,15 @@ class DumpProjectAction : InternalDumpAction("Structure") {
     Logger.getInstance(DumpProjectAction::class.java)
       .info("Project structure dumped to file: " + outputFile.toURI().toURL())
   }
+}
+
+private fun getNonKtsModuleLibraries(project: Project): List<Library> {
+  return ModuleManager.getInstance(project).modules
+    .filter { !it.isKotlinBuildScript }
+    .flatMap { module ->
+      val rootManager = ModuleRootManager.getInstance(module)
+      rootManager.orderEntries.filterIsInstance<LibraryOrderEntry>().mapNotNull { it.library }
+    }
 }
 
 val Module.isKotlinBuildScript
