@@ -36,7 +36,7 @@ internal class FakeLogcatService : LogcatService {
       ?: throw IllegalStateException("Channel not setup. Did you call readLogcat()?")
   }
 
-  override suspend fun readLogcat(
+  override fun readLogcat(
     serialNumber: String,
     sdk: AndroidApiLevel,
     duration: Duration,
