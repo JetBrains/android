@@ -2644,6 +2644,9 @@ Android Studio Preview.app/Contents/plugins/android/resources/device-art-resourc
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/wearos_square/device_bezel.png
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/wearos_square/hardware.ini
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/wearos_square/layout
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/wearos_xl_round/device_bezel.png
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/wearos_xl_round/device_mask.png
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/wearos_xl_round/layout
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/xoom/land_back.webp
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/xoom/land_fore.webp
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/xoom/port_back.webp

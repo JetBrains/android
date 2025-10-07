@@ -265,6 +265,8 @@ class SkinDefinitionTest {
       "wearos_large_round", // TODO: Remove exclusion when the skin is fixed.
       "wearos_small_round", // TODO: Remove exclusion when the skin is fixed.
       "wearos_square",
+      // TODO(b/450843829): remove this once the recommended corner_radius doesn't protrude
+      "wearos_xl_round",
     )
     val skinProblems = mutableListOf<String>()
     val dir = getRootSkinFolder()
