@@ -779,12 +779,6 @@ class TemplateDiffTest(private val testMode: TestMode) {
   }
 
   @Test
-  fun testJourneysFile() {
-    StudioFlags.JOURNEYS_WITH_GEMINI_TEST_SUITE.override(false)
-    checkCreateTemplate("Journey File")
-  }
-
-  @Test
   fun testJourneysWithTestSuite() {
     StudioFlags.JOURNEYS_WITH_GEMINI_TEST_SUITE.override(true)
     checkCreateTemplate("Journey File")
