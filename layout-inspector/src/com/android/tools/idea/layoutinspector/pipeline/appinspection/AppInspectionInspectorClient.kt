@@ -31,7 +31,6 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
-import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.InspectorModel.ModificationListener
 import com.android.tools.idea.layoutinspector.model.NotificationModel
@@ -64,7 +63,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.annotations.VisibleForTesting
 import java.nio.file.Path
 import java.util.EnumSet
 import java.util.concurrent.TimeUnit
@@ -108,7 +106,6 @@ class AppInspectionInspectorClient(
   private lateinit var propertiesProvider: AppInspectionPropertiesProvider
 
   /** Compose inspector, may be null if user's app isn't using the compose library. */
-  @VisibleForTesting
   var composeInspector: ComposeLayoutInspectorClient? = null
     private set
 
@@ -138,14 +135,6 @@ class AppInspectionInspectorClient(
     )
   override val provider: PropertiesProvider
     get() = propertiesProvider
-
-  override suspend fun requestRecompositionStateReads(
-    view: ComposeViewNode,
-    recomposition: Int,
-    searchUp: Boolean,
-  ) {
-    composeInspector?.requestRecompositionStateReads(view, recomposition, searchUp)
-  }
 
   override val inLiveMode: Boolean
     get() = inspectorClientSettings.inLiveMode

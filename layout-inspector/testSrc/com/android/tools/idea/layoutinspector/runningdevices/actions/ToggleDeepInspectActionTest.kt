@@ -20,7 +20,6 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
-import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
@@ -176,10 +175,4 @@ private open class FakeInspectorClient(
 
   override val provider: PropertiesProvider
     get() = throw NotImplementedError()
-
-  override suspend fun requestRecompositionStateReads(
-    view: ComposeViewNode,
-    recomposition: Int,
-    searchUp: Boolean,
-  ) {}
 }

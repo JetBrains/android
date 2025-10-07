@@ -727,14 +727,6 @@ class ComposeLayoutInspectorClient(
     recompositionStateReadsCache.disconnect()
     messenger.scope.cancel()
   }
-
-  suspend fun requestRecompositionStateReads(
-    view: ComposeViewNode,
-    recomposition: Int,
-    searchUp: Boolean,
-  ) {
-    recompositionStateReadsCache.requestRecomposeStateReads(view, recomposition, searchUp)
-  }
 }
 
 /**
