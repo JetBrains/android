@@ -56,7 +56,7 @@ class AndroidIconProviderProjectGradleToken : AndroidIconProviderProjectToken<Gr
     fun getModuleIcon(module: Module): Icon = when {
       module.isHolderModule() || module.isMainModule() -> getAndroidModuleIcon(module.getModuleSystem())
       module.isAndroidTestModule() -> StudioIcons.Shell.Filetree.ANDROID_MODULE
-      module.isTestSuiteModule() -> AllIcons.Nodes.Module // TODO(b/445374798): Get a test suite icon
+      module.isTestSuiteModule() -> AllIcons.Nodes.TestSourceFolder // TODO(b/445374798): Get a test suite icon
       else -> AllIcons.Nodes.Module
     }
 

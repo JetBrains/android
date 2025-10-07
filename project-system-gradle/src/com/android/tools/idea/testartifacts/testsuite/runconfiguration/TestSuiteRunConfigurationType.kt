@@ -17,10 +17,10 @@ package com.android.tools.idea.testartifacts.testsuite.runconfiguration
 
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationTypeBase
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NotNullLazyValue
-import icons.StudioIcons
 import org.jetbrains.android.util.AndroidBundle
 
 class TestSuiteRunConfigurationType :
@@ -29,7 +29,7 @@ class TestSuiteRunConfigurationType :
     AndroidBundle.message("test.suite.run.configuration.type.name"),
     AndroidBundle.message("test.suite.run.configuration.type.description"),
     // TODO(b/445374798): Add custom test suite icon
-    NotNullLazyValue.createValue { StudioIcons.Shell.Filetree.ANDROID_TEST_ROOT },
+    NotNullLazyValue.createValue { AllIcons.Nodes.TestSourceFolder },
   ),
   DumbAware {
 
