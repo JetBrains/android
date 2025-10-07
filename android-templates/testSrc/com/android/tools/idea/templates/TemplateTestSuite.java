@@ -41,7 +41,6 @@ public class TemplateTestSuite extends IdeaTestSuiteBase {
       throw new RuntimeException("No AGP defined for the test.");
     }
 
-    unzipIntoOfflineMavenRepo("tools/base/journeys/journeys-gradle-plugin/journeys-gradle-plugin.zip");
     linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
 
     if (TestUtils.workspaceFileExists(DATA_BINDING_RUNTIME_ZIP)) {
