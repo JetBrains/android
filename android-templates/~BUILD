@@ -70,7 +70,6 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/android-35",
         "//tools/adt/idea/android/testData:projects",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
-        "//tools/base/journeys/journeys-gradle-plugin:journeys-gradle-plugin.zip",
     ] + glob(["testData/**"]),
     # do not sort: must match IML order
     test_deps = [
