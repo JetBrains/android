@@ -68,7 +68,7 @@ internal object RenderTaskPatcher {
       val result: List<Any> =
         recomposerCompanionClass.methods
           .singleOrNull { it.name.contains("getCurrentErrors") }
-          ?.invoke(recomposerCompanion) as List<Any>
+          ?.invoke(recomposerCompanion) as? List<Any> ?: listOf()
       if (result.isNotEmpty()) {
         // Clear the existing errors
         recomposerCompanionClass.methods
