@@ -357,7 +357,7 @@ public class AndroidTestConfigurationProducerTest {
   public void testCreateAndroidInstrumentedTestAndroidKotlinMultiplatformFromDirectory() {
     projectRule.loadProject(ANDROID_KOTLIN_MULTIPLATFORM);
     AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromDirectory(
-      projectRule.getProject(), "kmpFirstLib/src/androidInstrumentedTest");
+      projectRule.getProject(), "kmpFirstLib/src/androidDeviceTest");
     assertThat(runConfig).isNotNull();
     assertThat(runConfig.checkConfiguration(projectRule.androidTestAndroidFacet(":kmpFirstLib"))).isEmpty();
     assertThat(runConfig.TESTING_TYPE).isEqualTo(AndroidTestRunConfiguration.TEST_ALL_IN_MODULE);

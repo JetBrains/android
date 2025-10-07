@@ -6,17 +6,12 @@ plugins {
 kotlin {
   androidLibrary {
     withJava()
-    withHostTestBuilder {
-      compilationName = "unitTest"
-      defaultSourceSetName = "androidUnitTest"
-    }.configure {
+    withHostTestBuilder { }.configure {
       isIncludeAndroidResources = true
     }
 
     withDeviceTestBuilder {
       sourceSetTreeName = "test"
-      compilationName = "instrumentedTest"
-      defaultSourceSetName = "androidInstrumentedTest"
     }
 
     compilations.withType(com.android.build.api.dsl.KotlinMultiplatformAndroidDeviceTestCompilation::class.java) {
@@ -48,7 +43,7 @@ kotlin {
     }
   }
 
-  sourceSets.getByName("androidInstrumentedTest") {
+  sourceSets.getByName("androidDeviceTest") {
     dependencies {
       implementation("androidx.appcompat:appcompat:1.4.1")
       implementation("androidx.test:runner:1.4.0-alpha06")
