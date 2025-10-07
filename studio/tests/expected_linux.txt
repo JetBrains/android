@@ -2633,6 +2633,9 @@ android-studio/plugins/android/resources/device-art-resources/wearos_small_round
 android-studio/plugins/android/resources/device-art-resources/wearos_square/device_bezel.png
 android-studio/plugins/android/resources/device-art-resources/wearos_square/hardware.ini
 android-studio/plugins/android/resources/device-art-resources/wearos_square/layout
+android-studio/plugins/android/resources/device-art-resources/wearos_xl_round/device_bezel.png
+android-studio/plugins/android/resources/device-art-resources/wearos_xl_round/device_mask.png
+android-studio/plugins/android/resources/device-art-resources/wearos_xl_round/layout
 android-studio/plugins/android/resources/device-art-resources/xoom/land_back.webp
 android-studio/plugins/android/resources/device-art-resources/xoom/land_fore.webp
 android-studio/plugins/android/resources/device-art-resources/xoom/port_back.webp
