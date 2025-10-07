@@ -27,7 +27,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "//libraries/guava",
     "//libraries/fastutil",
-    "@lib//:http-client",
+    "//libraries/http-client",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlinx-coroutines-core",

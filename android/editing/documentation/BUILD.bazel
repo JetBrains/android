@@ -77,7 +77,7 @@ jvm_library(
     "@lib//:mockito-kotlin",
     "//java/testFramework",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
-    "@lib//:jsoup",
+    "//libraries/jsoup",
     "//libraries/gson",
   ]
 )

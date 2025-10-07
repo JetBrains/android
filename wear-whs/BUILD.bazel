@@ -29,7 +29,7 @@ jvm_library(
     "//platform/core-ui",
     "//platform/editor-ui-api:editor-ui",
     "//platform/platform-impl:ide-impl",
-    "//libraries/kotlin-reflect",
+    "//libraries/kotlin/reflect",
   ]
 )
 
@@ -67,7 +67,7 @@ jvm_library(
     "//platform/platform-impl:ide-impl",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
-    "//libraries/kotlin-reflect",
+    "//libraries/kotlin/reflect",
     "//libraries/mockito",
     "@lib//:mockito-kotlin",
   ]

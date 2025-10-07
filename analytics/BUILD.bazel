@@ -9,7 +9,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "//libraries/guava",
-    "@lib//:hdr_histogram",
+    "//libraries/hdr-histogram",
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
     "//android/android-common:common",
@@ -33,7 +33,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "//libraries/guava",
-    "@lib//:hdr_histogram",
+    "//libraries/hdr-histogram",
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
     "@lib//:junit4",

@@ -174,7 +174,7 @@
     <orderEntry type="module" module-name="intellij.libraries.guava" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.fastutil" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="http-client" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.http.client" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-core" level="project" />

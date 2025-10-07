@@ -62,7 +62,7 @@ jvm_library(
     "//platform/util:util-ui",
     "//xml/xml-psi-api:psi",
     "//libraries/asm",
-    "@lib//:http-client",
+    "//libraries/http-client",
     "//xml/dom-openapi:dom",
   ]
 )

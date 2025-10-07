@@ -18,7 +18,7 @@ jvm_library(
     "//android/android-common:common",
     "//android/android:core-tests_test_lib",
     "@lib//:kotlin-test",
-    "//libraries/kotlin-reflect",
+    "//libraries/kotlin/reflect",
     "@lib//:kotlinx-coroutines-core",
     "@lib//:kotlinx-coroutines-test",
     "@lib//:protobuf",
@@ -38,7 +38,7 @@ jvm_library(
     "//android/intellij.android.testutils:testutils_test_lib",
     "//java/testFramework",
     "//libraries/guava",
-    "@lib//:http-client",
+    "//libraries/http-client",
     "//plugins/kotlin/base/plugin",
     "//plugins/kotlin/base/plugin:plugin_test_lib",
   ]

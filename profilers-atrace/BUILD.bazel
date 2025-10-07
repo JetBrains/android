@@ -8,7 +8,7 @@ jvm_library(
   srcs = glob(["src/core/common/src/main/kotlin/**/*.kt", "src/core/common/src/main/kotlin/**/*.java", "src/core/common/src/main/kotlin/**/*.form", "src/core/model/src/main/kotlin/**/*.kt", "src/core/model/src/main/kotlin/**/*.java", "src/core/model/src/main/kotlin/**/*.form"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
-    "//libraries/kotlin-reflect",
+    "//libraries/kotlin/reflect",
     "@lib//:kotlin-stdlib",
   ]
 )
@@ -21,7 +21,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "//libraries/kotlin-reflect",
+    "//libraries/kotlin/reflect",
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "@lib//:truth",

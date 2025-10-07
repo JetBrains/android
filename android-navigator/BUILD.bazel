@@ -16,7 +16,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "//libraries/guava",
-    "@lib//:commons-io",
+    "//libraries/commons/io",
     "@lib//:google-dexlib2",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",

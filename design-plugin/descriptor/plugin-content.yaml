@@ -1,10 +1,3 @@
-- name: lib/asm-tools.jar
-  library: asm-tools
-  files:
-  - name: $MAVEN_REPOSITORY$/org/ow2/asm/asm-analysis/9/asm-analysis-9.jar
-  - name: $MAVEN_REPOSITORY$/org/ow2/asm/asm-tree/9/asm-tree-9.jar
-  - name: $MAVEN_REPOSITORY$/org/ow2/asm/asm/9/asm-9.jar
-  reason: <- intellij.android.layoutlib
 - name: lib/design-tools.jar
   modules:
   - name: intellij.android.compose-designer

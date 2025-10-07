@@ -93,7 +93,7 @@ jvm_library(
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//platform/diff-impl",
-    "@lib//:commons-compress",
+    "//libraries/commons/compress",
   ]
 )
 ### auto-generated section `build intellij.android.apkanalyzer.tests` end

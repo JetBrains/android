@@ -13,7 +13,7 @@
     <orderEntry type="library" scope="TEST" name="Gradle" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.guava" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
-    <orderEntry type="library" scope="TEST" name="commons-lang3" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.commons.lang3" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.mockito" scope="TEST" />
@@ -75,7 +75,7 @@
     <orderEntry type="module" module-name="kotlin.base.facet" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.ml-api" scope="TEST" />
     <orderEntry type="module" module-name="intellij.junit" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="classgraph" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.classgraph" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.base.util" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gmaven" scope="TEST" />
   </component>

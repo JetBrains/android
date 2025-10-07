@@ -92,7 +92,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
-    "//libraries/kotlin-reflect",
+    "//libraries/kotlin/reflect",
     "@lib//:gradle",
     "//libraries/guava",
     "@lib//:junit4",

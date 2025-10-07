@@ -37,18 +37,18 @@
     <orderEntry type="module" module-name="intellij.libraries.asm" />
     <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.guava" />
-    <orderEntry type="library" name="HdrHistogram" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.hdr.histogram" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.aalto.xml" />
     <orderEntry type="library" name="aapt-proto" level="project" />
-    <orderEntry type="library" name="asm-tools" level="project" />
-    <orderEntry type="library" name="commons-compress" level="project" />
-    <orderEntry type="library" name="commons-io" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.asm.tools" />
+    <orderEntry type="module" module-name="intellij.libraries.commons.compress" />
+    <orderEntry type="module" module-name="intellij.libraries.commons.io" />
     <orderEntry type="module" module-name="intellij.libraries.fastutil" />
     <orderEntry type="library" name="google-baksmali" level="project" />
     <orderEntry type="library" name="google-dexlib2" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.gson" />
-    <orderEntry type="library" name="http-client" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.http.client" />
     <orderEntry type="module" module-name="intellij.libraries.icu4j" />
     <orderEntry type="library" name="jcip" level="project" />
     <orderEntry type="library" name="jna" level="project" />

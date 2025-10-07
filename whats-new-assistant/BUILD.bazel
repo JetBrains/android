@@ -16,7 +16,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "//libraries/guava",
-    "@lib//:http-client",
+    "//libraries/http-client",
     "@lib//:jaxb-api",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
@@ -54,7 +54,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "//libraries/guava",
     "@lib//:junit4",
-    "@lib//:http-client",
+    "//libraries/http-client",
     "@lib//:jetbrains-annotations",
     "//libraries/mockito",
     "@lib//:truth",

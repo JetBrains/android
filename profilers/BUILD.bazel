@@ -14,7 +14,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "//libraries/asm",
-    "@lib//:asm-tools",
+    "//libraries/asm-tools",
     "//libraries/fastutil",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
@@ -52,7 +52,7 @@ jvm_library(
     "@lib//:studio-test-platform",
     "//libraries/asm",
     "@lib//:junit4",
-    "@lib//:asm-tools",
+    "//libraries/asm-tools",
     "//libraries/fastutil",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",

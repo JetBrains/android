@@ -23,7 +23,7 @@ jvm_library(
     "//libraries/asm",
     "//libraries/guava",
     "//libraries/gson",
-    "@lib//:http-client",
+    "//libraries/http-client",
     "@lib//:jetbrains-annotations",
   ]
 )
@@ -43,7 +43,7 @@ jvm_library(
     "//libraries/asm",
     "//libraries/guava",
     "//libraries/gson",
-    "@lib//:http-client",
+    "//libraries/http-client",
     "@lib//:jetbrains-annotations",
   ]
 )

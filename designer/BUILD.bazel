@@ -15,7 +15,7 @@ jvm_library(
   resources = [":designer_resources"],
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:commons-lang3",
+    "//libraries/commons/lang3",
     "@lib//:jaxb-api",
     "@lib//:jcip",
     "@lib//:jetbrains-annotations",
@@ -105,7 +105,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "@lib//:commons-lang3",
+    "//libraries/commons/lang3",
     "@lib//:jaxb-api",
     "@lib//:jcip",
     "@lib//:jetbrains-annotations",
@@ -271,7 +271,7 @@ jvm_library(
     "//libraries/asm",
     "//libraries/guava",
     "@lib//:jaxb-api",
-    "@lib//:jsoup",
+    "//libraries/jsoup",
     "@lib//:junit4",
     "@lib//:kotlin-test",
     "@lib//:kotlinx-coroutines-test",

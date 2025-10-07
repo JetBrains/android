@@ -11,7 +11,7 @@
     <orderEntry type="module" module-name="intellij.libraries.asm" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.guava" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
-    <orderEntry type="library" scope="TEST" name="asm-tools" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.asm.tools" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.kotlin.reflect" scope="TEST" />
@@ -31,7 +31,7 @@
     <orderEntry type="module" module-name="intellij.platform.util.rt" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="layoutlib" level="project" />
-    <orderEntry type="library" scope="TEST" name="bouncy-castle-provider" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.bouncy.castle.provider" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.rendering" />
 </module>

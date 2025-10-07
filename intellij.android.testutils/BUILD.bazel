@@ -15,7 +15,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform",
     "@lib//:studio-test-platform",
-    "@lib//:commons-compress",
+    "//libraries/commons/compress",
     "//libraries/guava",
     "@lib//:junit4",
     "@lib//:jetbrains-annotations",
