@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
-import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
@@ -84,12 +83,6 @@ class LegacyClient(
     }
 
   override val treeLoader = treeLoaderForTest ?: LegacyTreeLoader(this)
-
-  override suspend fun requestRecompositionStateReads(
-    view: ComposeViewNode,
-    recomposition: Int,
-    searchUp: Boolean,
-  ) {}
 
   val latestScreenshots = mutableMapOf<String, ByteArray>()
   var latestData = mutableMapOf<String, ByteArray>()

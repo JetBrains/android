@@ -20,7 +20,6 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.InspectorModel.StateReadsNodeListener
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterGroupItem
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterItem
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadData
@@ -83,7 +82,7 @@ internal interface StateInspectionModel {
 internal class StateInspectionModelImpl(
   private val model: InspectorModel,
   parentScope: CoroutineScope,
-  private val client: () -> InspectorClient,
+  private val stateReadProvider: () -> StateReadProvider?,
   parentDisposable: Disposable,
 ) : StateInspectionModel {
   private val scope = parentScope.createChildScope(parentDisposable = parentDisposable)
@@ -131,7 +130,7 @@ internal class StateInspectionModelImpl(
     val composable = view as? ComposeViewNode
     _show.value = (composable != null)
     if (composable != null) {
-      loadRecompositionStateReads(composable, composable.recompositions.count, searchUp = false)
+      loadRecompositionStateReads(composable, composable.recompositions.count)
     } else {
       stopStateObservations()
     }
@@ -164,11 +163,7 @@ internal class StateInspectionModelImpl(
     _updates.value += 1
   }
 
-  private fun loadRecompositionStateReads(
-    composable: ComposeViewNode,
-    recomposition: Int,
-    searchUp: Boolean,
-  ) {
+  private fun loadRecompositionStateReads(composable: ComposeViewNode, recomposition: Int) {
     if (composable.anchorHash != currentNode?.anchorHash) {
       currentNode = null
       _recompositionText.value =
@@ -177,7 +172,7 @@ internal class StateInspectionModelImpl(
       _stackTraceText.value = ""
       _updates.value += 1
     }
-    scope.launch { client().requestRecompositionStateReads(composable, recomposition, searchUp) }
+    scope.launch { stateReadProvider()?.requestRecompositionStateReads(composable, recomposition) }
   }
 
   private fun stopStateObservations() {
@@ -195,12 +190,12 @@ internal class StateInspectionModelImpl(
 
   private fun gotoPrevRecomposition() {
     val node = currentNode ?: return
-    loadRecompositionStateReads(node, currentRecomposition - 1, searchUp = false)
+    loadRecompositionStateReads(node, currentRecomposition - 1)
   }
 
   private fun gotoNextRecomposition() {
     val node = currentNode ?: return
-    loadRecompositionStateReads(node, currentRecomposition + 1, searchUp = true)
+    loadRecompositionStateReads(node, currentRecomposition + 1)
   }
 
   private fun hasPrevComposition(): Boolean {

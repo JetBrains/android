@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces.UNKNOWN
 import com.intellij.openapi.actionSystem.ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
@@ -66,7 +67,11 @@ internal fun createStateInspectionPanel(
     StateInspectionModelImpl(
       inspectorModel,
       layoutInspector.coroutineScope,
-      { layoutInspector.currentClient },
+      {
+        (layoutInspector.currentClient as? AppInspectionInspectorClient)
+          ?.composeInspector
+          ?.recompositionStateReadsCache
+      },
       parentDisposable,
     )
   val uiScope = parentDisposable.createCoroutineScope(extraContext = Dispatchers.EDT)
