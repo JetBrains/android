@@ -37,36 +37,36 @@ import com.android.tools.idea.vitals.datamodel.toIssueDetails
 import com.android.tools.idea.vitals.datamodel.toProto
 import com.android.tools.idea.vitals.datamodel.toSampleEvent
 import com.google.play.developer.reporting.AggregationPeriod
-import com.google.play.developer.reporting.FetchReleaseFilterOptionsRequest
-import com.google.play.developer.reporting.GetErrorCountMetricSetRequest
-import com.google.play.developer.reporting.QueryErrorCountMetricSetRequest
-import com.google.play.developer.reporting.ReportingServiceGrpc
-import com.google.play.developer.reporting.SearchAccessibleAppsRequest
-import com.google.play.developer.reporting.SearchErrorIssuesRequest
-import com.google.play.developer.reporting.SearchErrorReportsRequest
-import com.google.play.developer.reporting.TimelineSpec
-import com.google.play.developer.reporting.VitalsErrorsServiceGrpc
+import com.google.play.developer.reporting.ReportingServiceGrpcKt
+import com.google.play.developer.reporting.VitalsErrorsServiceGrpcKt
+import com.google.play.developer.reporting.fetchReleaseFilterOptionsRequest
+import com.google.play.developer.reporting.getErrorCountMetricSetRequest
+import com.google.play.developer.reporting.queryErrorCountMetricSetRequest
+import com.google.play.developer.reporting.searchAccessibleAppsRequest
+import com.google.play.developer.reporting.searchErrorIssuesRequest
+import com.google.play.developer.reporting.searchErrorReportsRequest
+import com.google.play.developer.reporting.timelineSpec
 import com.google.type.TimeZone
 import com.intellij.openapi.diagnostic.Logger
 import io.grpc.Channel
 import io.grpc.ClientInterceptor
 import java.time.ZoneId
-import kotlinx.coroutines.guava.await
 
 class VitalsGrpcClientImpl(channel: Channel, authTokenInterceptor: ClientInterceptor) :
   VitalsGrpcClient {
 
   private val vitalsReportingServiceGrpcClient =
-    ReportingServiceGrpc.newFutureStub(channel).withInterceptors(authTokenInterceptor)
+    ReportingServiceGrpcKt.ReportingServiceCoroutineStub(channel)
+      .withInterceptors(authTokenInterceptor)
   private val vitalsErrorGrpcClient =
-    VitalsErrorsServiceGrpc.newFutureStub(channel).withInterceptors(authTokenInterceptor)
+    VitalsErrorsServiceGrpcKt.VitalsErrorsServiceCoroutineStub(channel)
+      .withInterceptors(authTokenInterceptor)
 
   override suspend fun listAccessibleApps(maxNumResults: Int): List<AppConnection> {
-    val searchAccessibleAppsRequest =
-      SearchAccessibleAppsRequest.newBuilder().apply { pageSize = maxNumResults }.build()
+    val searchAccessibleAppsRequest = searchAccessibleAppsRequest { pageSize = maxNumResults }
 
     return retryRpc {
-        vitalsReportingServiceGrpcClient.searchAccessibleApps(searchAccessibleAppsRequest).await()
+        vitalsReportingServiceGrpcClient.searchAccessibleApps(searchAccessibleAppsRequest)
       }
       .appsList
       .map { AppConnection(it.name.substringAfter('/'), it.displayName) }
@@ -83,43 +83,36 @@ class VitalsGrpcClientImpl(channel: Channel, authTokenInterceptor: ClientInterce
   ): List<DimensionsAndMetrics> {
     val timezone: TimeZone = freshness.latestEndTime.timeZone
     val zoneId = ZoneId.of(timezone.id)
+    val queryErrorCountMetricsSetRequest = queryErrorCountMetricSetRequest {
+      name = "${connection.clientId}/errorCountMetricSet" // Format: apps/{app}/errorCountMetricSet
 
-    val timelineSpecBuilder =
-      TimelineSpec.newBuilder().apply {
+      timelineSpec = timelineSpec {
         aggregationPeriod = freshness.timeGranularity.toProto()
         startTime =
           filters.interval.startTime.toProtoDateTime(zoneId).truncate(freshness.timeGranularity)
         endTime = freshness.latestEndTime.truncate(freshness.timeGranularity)
       }
 
-    val queryErrorCountMetricsSetRequest =
-      QueryErrorCountMetricSetRequest.newBuilder()
-        .apply {
-          name =
-            "${connection.clientId}/errorCountMetricSet" // Format: apps/{app}/errorCountMetricSet
-          timelineSpec = timelineSpecBuilder.build()
+      this.dimensions.addAll(dimensions.map { it.value })
+      this.metrics.addAll(metrics.map { it.value })
 
-          addAllDimensions(dimensions.map { it.value })
-          addAllMetrics(metrics.map { it.value })
+      filter =
+        FilterBuilder()
+          .apply {
+            addVersions(filters.versions)
+            addReportTypes(filters.eventTypes)
+            addDevices(filters.devices)
+            addOperatingSystems(filters.operatingSystems)
+            addVisibilityType(filters.visibilityType)
+            issueId?.let { addIssue(issueId) }
+          }
+          .build()
 
-          filter =
-            FilterBuilder()
-              .apply {
-                addVersions(filters.versions)
-                addReportTypes(filters.eventTypes)
-                addDevices(filters.devices)
-                addOperatingSystems(filters.operatingSystems)
-                addVisibilityType(filters.visibilityType)
-                issueId?.let { addIssue(issueId) }
-              }
-              .build()
-
-          pageSize = maxNumResults
-        }
-        .build()
+      pageSize = maxNumResults
+    }
 
     return retryRpc {
-        vitalsErrorGrpcClient.queryErrorCountMetricSet(queryErrorCountMetricsSetRequest).await()
+        vitalsErrorGrpcClient.queryErrorCountMetricSet(queryErrorCountMetricsSetRequest)
       }
       .rowsList
       .map { row ->
@@ -131,16 +124,12 @@ class VitalsGrpcClientImpl(channel: Channel, authTokenInterceptor: ClientInterce
   }
 
   override suspend fun getErrorCountMetricsFreshnessInfo(connection: Connection): List<Freshness> {
-    val queryErrorCountMetricsSetRequest =
-      GetErrorCountMetricSetRequest.newBuilder()
-        .apply {
-          name =
-            "${connection.clientId}/errorCountMetricSet" // Format: apps/{app}/errorCountMetricSet
-        }
-        .build()
+    val queryErrorCountMetricsSetRequest = getErrorCountMetricSetRequest {
+      name = "${connection.clientId}/errorCountMetricSet" // Format: apps/{app}/errorCountMetricSet
+    }
 
     return retryRpc {
-        vitalsErrorGrpcClient.getErrorCountMetricSet(queryErrorCountMetricsSetRequest).await()
+        vitalsErrorGrpcClient.getErrorCountMetricSet(queryErrorCountMetricsSetRequest)
       }
       .freshnessInfo
       .freshnessesList
@@ -162,13 +151,12 @@ class VitalsGrpcClientImpl(channel: Channel, authTokenInterceptor: ClientInterce
   }
 
   override suspend fun getReleases(connection: Connection): List<Version> {
-    val fetchReleaseFilterOptionsRequest =
-      FetchReleaseFilterOptionsRequest.newBuilder().apply { name = connection.clientId }.build()
+    val fetchReleaseFilterOptionsRequest = fetchReleaseFilterOptionsRequest {
+      name = connection.clientId
+    }
 
     return retryRpc {
-        vitalsReportingServiceGrpcClient
-          .fetchReleaseFilterOptions(fetchReleaseFilterOptionsRequest)
-          .await()
+        vitalsReportingServiceGrpcClient.fetchReleaseFilterOptions(fetchReleaseFilterOptionsRequest)
       }
       .tracksList
       .extract()
@@ -180,27 +168,24 @@ class VitalsGrpcClientImpl(channel: Channel, authTokenInterceptor: ClientInterce
     maxNumResults: Int,
     pageTokenFromPreviousCall: String?,
   ): List<IssueDetails> {
-    val searchErrorIssuesRequest =
-      SearchErrorIssuesRequest.newBuilder()
-        .apply {
-          parent = connection.clientId
-          interval = filters.interval.toProtoDateTime(TimeGranularity.HOURLY)
-          pageSize = maxNumResults
-          sampleErrorReportLimit = 1
-          filter =
-            FilterBuilder()
-              .apply {
-                addVersions(filters.versions)
-                addFailureTypes(filters.eventTypes)
-                addVisibilityType(filters.visibilityType)
-                addDevices(filters.devices)
-                addOperatingSystems(filters.operatingSystems)
-              }
-              .build()
-        }
-        .build()
+    val searchErrorIssuesRequest = searchErrorIssuesRequest {
+      parent = connection.clientId
+      interval = filters.interval.toProtoDateTime(TimeGranularity.HOURLY)
+      pageSize = maxNumResults
+      sampleErrorReportLimit = 1
+      filter =
+        FilterBuilder()
+          .apply {
+            addVersions(filters.versions)
+            addFailureTypes(filters.eventTypes)
+            addVisibilityType(filters.visibilityType)
+            addDevices(filters.devices)
+            addOperatingSystems(filters.operatingSystems)
+          }
+          .build()
+    }
 
-    return retryRpc { vitalsErrorGrpcClient.searchErrorIssues(searchErrorIssuesRequest).await() }
+    return retryRpc { vitalsErrorGrpcClient.searchErrorIssues(searchErrorIssuesRequest) }
       .errorIssuesList // It's sorted by error report count.
       .map { it.toIssueDetails() }
   }
@@ -212,26 +197,25 @@ class VitalsGrpcClientImpl(channel: Channel, authTokenInterceptor: ClientInterce
     stackTraceGroupParser: StackTraceGroupParser,
   ): List<Event> {
     val errorReports = mutableListOf<Event>()
-    val requestBase =
-      SearchErrorReportsRequest.newBuilder().apply {
-        parent = connection.clientId
-        interval = filters.interval.toProtoDateTime(TimeGranularity.HOURLY)
-        filter =
-          FilterBuilder()
-            .apply {
-              addVersions(filters.versions)
-              addVisibilityType(filters.visibilityType)
-              addDevices(filters.devices)
-              addOperatingSystems(filters.operatingSystems)
-              addReportIds(reportIds)
-            }
-            .build()
-      }
+    val requestBase = searchErrorReportsRequest {
+      parent = connection.clientId
+      interval = filters.interval.toProtoDateTime(TimeGranularity.HOURLY)
+      filter =
+        FilterBuilder()
+          .apply {
+            addVersions(filters.versions)
+            addVisibilityType(filters.visibilityType)
+            addDevices(filters.devices)
+            addOperatingSystems(filters.operatingSystems)
+            addReportIds(reportIds)
+          }
+          .build()
+    }
 
     var nextPageToken = ""
     do {
-      val request = requestBase.apply { pageToken = nextPageToken }.build()
-      val response = retryRpc { vitalsErrorGrpcClient.searchErrorReports(request).await() }
+      val request = requestBase.toBuilder().apply { pageToken = nextPageToken }.build()
+      val response = retryRpc { vitalsErrorGrpcClient.searchErrorReports(request) }
       errorReports.addAll(response.errorReportsList.map { it.toSampleEvent(stackTraceGroupParser) })
       nextPageToken = response.nextPageToken
     } while (nextPageToken.isNotEmpty())
@@ -244,26 +228,23 @@ class VitalsGrpcClientImpl(channel: Channel, authTokenInterceptor: ClientInterce
     issueId: IssueId,
     stackTraceGroupParser: StackTraceGroupParser,
   ): Event {
-    val searchErrorReportsRequest =
-      SearchErrorReportsRequest.newBuilder()
-        .apply {
-          parent = connection.clientId
-          interval = filters.interval.toProtoDateTime(TimeGranularity.HOURLY)
-          filter =
-            FilterBuilder()
-              .apply {
-                addErrorIssue(issueId)
-                addVersions(filters.versions)
-                addVisibilityType(filters.visibilityType)
-                addDevices(filters.devices)
-                addOperatingSystems(filters.operatingSystems)
-              }
-              .build()
-          pageSize = 1
-        }
-        .build()
+    val searchErrorReportsRequest = searchErrorReportsRequest {
+      parent = connection.clientId
+      interval = filters.interval.toProtoDateTime(TimeGranularity.HOURLY)
+      filter =
+        FilterBuilder()
+          .apply {
+            addErrorIssue(issueId)
+            addVersions(filters.versions)
+            addVisibilityType(filters.visibilityType)
+            addDevices(filters.devices)
+            addOperatingSystems(filters.operatingSystems)
+          }
+          .build()
+      pageSize = 1
+    }
 
-    return retryRpc { vitalsErrorGrpcClient.searchErrorReports(searchErrorReportsRequest).await() }
+    return retryRpc { vitalsErrorGrpcClient.searchErrorReports(searchErrorReportsRequest) }
       .errorReportsList
       .map { it.toSampleEvent(stackTraceGroupParser) }
       .firstOrNull() ?: Event.EMPTY
