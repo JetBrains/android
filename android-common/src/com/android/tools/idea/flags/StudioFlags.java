@@ -2489,6 +2489,11 @@ public final class StudioFlags {
                     "Enable Gemini State Inspection Agent for the Layout Inspector.",
                     "Enables the agent that helps with explaining state read exception traces.");
 
+  public static final Flag<Boolean> STUDIOBOT_WRITE_CRITIC =
+    new BooleanFlag(STUDIOBOT, "write.critic",
+                    "Enable agent critic",
+                    "Enables the agent to look for and report new warnings added after file changes");
+
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI
