@@ -123,7 +123,7 @@ object TestSuiteUtils {
    * This will be made available within the IdeTestSuite model in the future.
    * TODO(b/445649353): Access the root directory via the IdeTestSuite model
    */
-  private fun getTestSuiteRoot(testSuite: IdeTestSuite): File? {
+  fun getTestSuiteRoot(testSuite: IdeTestSuite): File? {
     for (source in testSuite.sources) {
       source.sourceProvider.customSourceDirectories.find { it.sourceTypeName == TEST_SUITE_ASSETS_CUSTOM_SOURCE_DIRECTORY && it.directory.isDirectory && it.directory.name == testSuite.name }?.let { return it.directory }
       source.sourceProvider.javaDirectories.find { it.parentFile.isDirectory && it.parentFile.name == testSuite.name }?.let { return it.parentFile }
