@@ -73,16 +73,6 @@ class BlazeAndroidQuerySyncPlugin : BlazeQuerySyncPlugin {
       return
     }
 
-    val androidResourceDirectoryFiles =
-      androidResourceDirectories
-        .map { File(workspaceRoot.directory(), it).getAbsoluteFile() }
-        .toSet()
-    val sourceProvider =
-      create(workspaceModule.name, VfsUtilCore.fileToUrl(File("MissingManifest.xml")))
-        .withScopeType(ScopeType.MAIN)
-        .withResDirectoryUrls(androidResourceDirectoryFiles.map { VfsUtilCore.fileToUrl(it) })
-        .build()
-
     // Set AndroidModel for this AndroidFacet
     val projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet()
     val androidSdkPlatform = AndroidSdkFromProjectView.getAndroidSdkPlatform(context, projectViewSet)
@@ -91,7 +81,7 @@ class BlazeAndroidQuerySyncPlugin : BlazeQuerySyncPlugin {
       BlazeAndroidModel(
         project,
         workspaceRoot.directory(),
-        sourceProvider,
+        null,
         Futures.immediateFuture<String>(":workspace"),
         androidSdkPlatform?.androidMinSdkLevel ?: 1
       )
