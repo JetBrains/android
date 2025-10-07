@@ -25,18 +25,19 @@ iml_module(
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/app-quality-insights/api:intellij.android.app-quality-insights.api",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
-        "//tools/adt/idea/app-quality-insights/play-vitals/model:libplay_vitals_java_proto",
+        "//tools/adt/idea/app-quality-insights/play-vitals/model:play_vitals_kt_proto",
         "//tools/vendor/google/login:google-login",
         "//tools/base/annotations:studio.android.sdktools.android-annotations",
         "//tools/base/flags:studio.android.sdktools.flags",
         "@intellij//:intellij.libraries.grpc",
         "@intellij//:intellij.libraries.grpc.netty.shaded",
+        "//tools/adt/idea/.idea/libraries:protobuf-kotlin",
     ],
 )
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "libplay_vitals_java_proto",
-    jars = ["//tools/adt/idea/app-quality-insights/play-vitals/model/proto:libplay_vitals_java_proto.jar"],
+    name = "play_vitals_kt_proto",
+    jars = ["//tools/adt/idea/app-quality-insights/play-vitals/model/proto:play_vitals_kt_proto.jar"],
     visibility = ["//visibility:public"],
 )

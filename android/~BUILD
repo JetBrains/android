@@ -404,7 +404,7 @@ filegroup(
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:background-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:workmanager-inspector-proto",
         "//tools/adt/idea/app-quality-insights/api:libandroid-core-proto",
-        "//tools/adt/idea/app-quality-insights/play-vitals/model:libplay_vitals_java_proto",
+        "//tools/adt/idea/app-quality-insights/play-vitals/model:play_vitals_kt_proto",
         "//tools/adt/idea/as-driver:asdriver_proto",
         "//tools/adt/idea/as-driver:librunfiles",
         "//tools/adt/idea/build-attribution:build-analysis-results-proto",

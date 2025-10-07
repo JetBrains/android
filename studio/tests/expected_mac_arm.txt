@@ -2345,7 +2345,6 @@ Android Studio Preview.app/Contents/plugins/android/lib/libjava_sites.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libjava_version.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libjourneys-java-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/liblint-checks-proto.lib.jar
-Android Studio Preview.app/Contents/plugins/android/lib/libplay_vitals_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libstudio.android-test-plugin-host-device-info-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libstudio.android-test-plugin-result-listener-gradle-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libstudio.proto.jar
@@ -2363,6 +2362,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/org.eclipse.emf.common-2
 Android Studio Preview.app/Contents/plugins/android/lib/org.eclipse.emf.ecore-2.12.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/perfetto-protos.jar
 Android Studio Preview.app/Contents/plugins/android/lib/pixelprobe.jar
+Android Studio Preview.app/Contents/plugins/android/lib/play_vitals_kt_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/protobuf-kotlin-3.24.4.jar
 Android Studio Preview.app/Contents/plugins/android/lib/r8.jar
