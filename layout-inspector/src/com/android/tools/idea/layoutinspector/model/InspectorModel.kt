@@ -138,8 +138,10 @@ class InspectorModel(
 
   /** The node currently selected for viewing recomposition state reads. */
   var stateReadsNode: ViewNode? by
-    Delegates.observable(null as ViewNode?) { _, _, new ->
-      stateReadsNodeListeners.forEach { it.onSelection(new) }
+    Delegates.observable(null as ViewNode?) { _, old, new ->
+      if (new != null || old != null) {
+        stateReadsNodeListeners.forEach { it.onSelection(new) }
+      }
     }
 
   val windows = ConcurrentHashMap<Any, AndroidWindow>()

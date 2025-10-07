@@ -19,7 +19,6 @@ import com.android.adblib.DeviceSelector
 import com.android.adblib.testing.FakeAdbSession
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
@@ -119,10 +118,4 @@ private class MyClient(
   override val treeLoader: TreeLoader = mock()
   override val inLiveMode = false
   override val provider: PropertiesProvider = mock()
-
-  override suspend fun requestRecompositionStateReads(
-    view: ComposeViewNode,
-    recomposition: Int,
-    searchUp: Boolean,
-  ) {}
 }

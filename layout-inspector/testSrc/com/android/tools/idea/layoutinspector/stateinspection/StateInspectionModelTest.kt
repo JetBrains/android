@@ -15,29 +15,20 @@
  */
 package com.android.tools.idea.layoutinspector.stateinspection
 
-import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.android.tools.idea.layoutinspector.MODERN_DEVICE
-import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.COMPOSE2
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
-import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
-import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
-import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadResult
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.convertStateRead
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.RecompositionStateReadResponse
 import com.android.tools.idea.layoutinspector.properties.DimensionUnits
-import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
 import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUiKind
@@ -45,14 +36,11 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ex.ActionUtil
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import fleet.util.async.firstNotNull
-import java.nio.file.Path
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -139,7 +127,7 @@ class StateInspectionModelTest {
 
   @Test
   fun testDefaults() = runTestWithDisposable { disposable ->
-    val client = FakeClient(projectRule.project, inspectorModel, this, disposable)
+    val client = FakeStateReadProvider(inspectorModel)
     val model = StateInspectionModelImpl(inspectorModel, this, { client }, disposable)
     assertThat(model.show.value).isFalse()
     assertThat(model.recompositionText.value).isEqualTo("")
@@ -150,7 +138,7 @@ class StateInspectionModelTest {
 
   @Test
   fun testNodeSelection() = runTestWithDisposable { disposable ->
-    val client = FakeClient(projectRule.project, inspectorModel, this, disposable)
+    val client = FakeStateReadProvider(inspectorModel)
     val model = StateInspectionModelImpl(inspectorModel, this, { client }, disposable)
     inspectorModel.stateReadsNode = compose1
     testScheduler.advanceUntilIdle()
@@ -195,7 +183,7 @@ class StateInspectionModelTest {
 
   @Test
   fun testPrevAndNext() = runTestWithDisposable { disposable ->
-    val client = FakeClient(projectRule.project, inspectorModel, this, disposable)
+    val client = FakeStateReadProvider(inspectorModel)
     val model = StateInspectionModelImpl(inspectorModel, this, { client }, disposable)
     assertThat(model.updates.value).isEqualTo(1)
 
@@ -267,7 +255,7 @@ class StateInspectionModelTest {
 
   @Test
   fun testMinimize() = runTestWithDisposable { disposable ->
-    val client = FakeClient(projectRule.project, inspectorModel, this, disposable)
+    val client = FakeStateReadProvider(inspectorModel)
     val model = StateInspectionModelImpl(inspectorModel, this, { client }, disposable)
     assertThat(model.show.value).isFalse()
 
@@ -334,12 +322,8 @@ class StateInspectionModelTest {
     }
   }
 
-  private class FakeClient(
-    project: Project,
-    private val inspectorModel: InspectorModel,
-    scope: CoroutineScope,
-    disposable: Disposable,
-  ) : FakeInspectorClient(project, MODERN_DEVICE.createProcess(), scope, disposable) {
+  private class FakeStateReadProvider(private val inspectorModel: InspectorModel) :
+    StateReadProvider {
     private val holder = MutableStateFlow<ResultHolder?>(null)
     var requestedNode: ComposeViewNode? = null
       private set
@@ -352,63 +336,15 @@ class StateInspectionModelTest {
     }
 
     override suspend fun requestRecompositionStateReads(
-      view: ComposeViewNode,
+      composable: ComposeViewNode,
       recomposition: Int,
-      searchUp: Boolean,
     ) {
-      requestedNode = view
+      requestedNode = composable
       requestedRecomposition = recomposition
       inspectorModel.stateReadsModel.stateReads.emit(holder.firstNotNull<ResultHolder>().result)
       holder.value = null
     }
 
     private class ResultHolder(val result: RecomposeStateReadResult?)
-  }
-
-  // TODO(b/441724255) Move this class and other similar fake clients to testingSrc
-  private open class FakeInspectorClient(
-    project: Project,
-    process: ProcessDescriptor,
-    scope: CoroutineScope,
-    parentDisposable: Disposable,
-  ) :
-    AbstractInspectorClient(
-      DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT,
-      project,
-      NotificationModel(project),
-      process,
-      DisconnectedClient.stats,
-      scope,
-      parentDisposable,
-    ) {
-    override suspend fun startFetching() = throw NotImplementedError()
-
-    override suspend fun stopFetching() = throw NotImplementedError()
-
-    override fun refresh() = throw NotImplementedError()
-
-    override suspend fun saveSnapshot(path: Path) = throw NotImplementedError()
-
-    override suspend fun doConnect() {}
-
-    override suspend fun doDisconnect() {}
-
-    override val capabilities
-      get() = throw NotImplementedError()
-
-    override val treeLoader: TreeLoader
-      get() = throw NotImplementedError()
-
-    override val inLiveMode: Boolean
-      get() = false
-
-    override val provider: PropertiesProvider
-      get() = throw NotImplementedError()
-
-    override suspend fun requestRecompositionStateReads(
-      view: ComposeViewNode,
-      recomposition: Int,
-      searchUp: Boolean,
-    ) {}
   }
 }

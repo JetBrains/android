@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.stateinspection.StateReadProvider
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -36,7 +37,7 @@ class RecompositionStateReadCache(
   private val model: InspectorModel,
   private val scope: CoroutineScope,
   private val treeSettings: TreeSettings,
-) {
+) : StateReadProvider {
   private val cache = LruCache()
   private var pendingRequest: Key? = null
   private val modificationListener =
@@ -58,11 +59,7 @@ class RecompositionStateReadCache(
           scope.launch {
             // No state reads were found for the last requested composable.
             // Try again now that there have been more recompositions.
-            requestRecomposeStateReads(
-              composable,
-              composable.recompositions.count,
-              searchUp = false,
-            )
+            requestRecompositionStateReads(composable, composable.recompositions.count)
           }
         }
       }
@@ -84,13 +81,12 @@ class RecompositionStateReadCache(
     model.removeStateReadsNodeListener(stateReadNodeListener)
   }
 
-  suspend fun requestRecomposeStateReads(
+  override suspend fun requestRecompositionStateReads(
     composable: ComposeViewNode,
     recomposition: Int,
-    searchUp: Boolean,
   ) {
     val key = Key(composable.anchorHash, recomposition)
-    val node = lookup(key) ?: fetchDataFor(key, searchUp) ?: cache.closest(key, searchUp)
+    val node = lookup(key) ?: fetchDataFor(key) ?: cache.closest(key)
     val result =
       node?.let {
         RecomposeStateReadResult(composable, node.recomposition, node.reads, node.prev != null)
@@ -105,20 +101,14 @@ class RecompositionStateReadCache(
   // Side effect: Make sure the state reads for the previous recomposition is loaded if it exists.
   private suspend fun lookup(key: Key): StateReadNode? {
     val node = cache[key] ?: return null
-    val prevRecomposition = key.recomposition - 1
-    if (node.recomposition == 1 || node.prev?.recomposition == prevRecomposition) {
+    if (node.recomposition == 1 || node.prev?.recomposition == key.recomposition - 1) {
       return node
     }
 
     // We do not have the state reads for the previous recomposition: try to load it such that the
     // UI can display an enabled previous control.
-    // TODO: Add data such that we don't repeat loading the same previous state reads.
-    val prev = fetchDataFor(Key(key.anchorHash, prevRecomposition), searchUp = false)
-    if (prev == null && node.prev != null) {
-      // The state reads for prevRecomposition must have been discarded on the device.
-      // Drop all nodes prior to avoid "holes" in the series.
-      cache.dropAllPriorTo(key.anchorHash, node)
-    }
+    // TODO: Add data such that we don't repeat loading the same (empty) previous state reads.
+    fetchDataFor(key.prev)
     return node
   }
 
@@ -126,13 +116,12 @@ class RecompositionStateReadCache(
    * Fetch state reads data from the agent.
    *
    * @param key the composable and recomposition we want to load state reads for.
-   * @param searchUp hint for which way the user moved. If we moved down: load extra state reads for
-   *   lower recomposition numbers. If we moved up, we know we already have state read data for the
-   *   previous recomposition: load extra state reads for higher recomposition numbers.
    */
-  private suspend fun fetchDataFor(key: Key, searchUp: Boolean): StateReadNode? {
-    val start = if (searchUp) key.recomposition else maxOf(1, key.recomposition - 3)
-    val end = if (searchUp) key.recomposition + 3 else key.recomposition
+  private suspend fun fetchDataFor(key: Key): StateReadNode? {
+    val hasPrev = cache.contains(key.prev)
+    val hasNext = cache.contains(key.next)
+    val start = maxOf(1, key.recomposition - (if (!hasPrev) 4 else 0))
+    val end = key.recomposition + (if (!hasNext) 4 else 0)
     val response =
       client.getRecompositionStateReads(
         anchorHash = key.anchorHash,
@@ -141,28 +130,30 @@ class RecompositionStateReadCache(
         includeExtra = true,
       )
     var first: StateReadNode? = null
-    var last: StateReadNode? = null
     convertStateRead(response, model).forEach { (recomposition, reads) ->
       val node = StateReadNode(recomposition, reads)
       cache[Key(key.anchorHash, recomposition)] = node
       first = first ?: node
-      last = node
     }
-    if (searchUp && first != null && first.recomposition > key.recomposition) {
-      // When searching upwards and the wanted recomposition doesn't exist: remove all prior
-      // recomposition in order to avoid "holes" in the series.
-      cache.dropAllPriorTo(key.anchorHash, first)
+    if (first == null) {
+      return null
     }
-    if (!searchUp && last != null && first != null) {
-      val prev = last.prev
-      if (prev != null && prev.recomposition < last.recomposition - 1) {
-        // When searching downwards and the prev state reads is not the immediate prior
-        // recomposition, we can remove all prior state reads in order to avoid "holes" in the
-        // series.
+    if (first.recomposition > start) {
+      val prev = first.prev
+      if (prev != null && prev.recomposition + 1 < first.recomposition) {
+        // Avoid creating "holes" in the series:
         cache.dropAllPriorTo(key.anchorHash, first)
       }
     }
-    return if (searchUp) first else last
+
+    // Return the state reads closest to the recomposition requested:
+    var prev = first
+    var actual = first
+    while (actual != null && actual.recomposition < key.recomposition) {
+      prev = actual
+      actual = actual.next
+    }
+    return actual ?: prev
   }
 
   fun clear() {
@@ -170,7 +161,13 @@ class RecompositionStateReadCache(
   }
 
   /** A composable and recomposition pair that may have State Read data */
-  private data class Key(val anchorHash: Int, val recomposition: Int)
+  private data class Key(val anchorHash: Int, val recomposition: Int) {
+    val prev: Key
+      get() = Key(anchorHash, recomposition - 1)
+
+    val next: Key
+      get() = Key(anchorHash, recomposition + 1)
+  }
 
   /** State reads for a [Key] */
   private class StateReadNode(
@@ -273,14 +270,14 @@ class RecompositionStateReadCache(
       node.prev = null
     }
 
-    fun closest(key: RecompositionStateReadCache.Key, searchUp: Boolean): RecompositionStateReadCache.StateReadNode? {
+    fun closest(key: RecompositionStateReadCache.Key): RecompositionStateReadCache.StateReadNode? {
       var node = top[key.anchorHash] ?: return null
       var prev = node.prev
       while (prev != null && prev.recomposition > key.recomposition) {
         node = prev
         prev = prev.prev
       }
-      return if (prev != null && !searchUp) prev else node
+      return node
     }
   }
 }
