@@ -27,7 +27,6 @@ class BuildProjectBleakTest {
   @Rule val system = AndroidSystem.standard()
 
   @Test
-  @Ignore("b/445656379")
   fun buildProject() {
     system.installation.enableBleak()
     val project = AndroidProject("tools/adt/idea/android/integration/testData/minapp")
