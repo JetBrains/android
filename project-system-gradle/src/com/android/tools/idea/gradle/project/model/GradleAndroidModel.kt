@@ -21,7 +21,6 @@ import com.android.resources.ResourceType
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.gradle.model.IdeAaptOptions
-import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
@@ -30,26 +29,18 @@ import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
 import com.android.tools.idea.gradle.model.IdeClassField
 import com.android.tools.idea.gradle.model.IdeDeclaredDependencies
-import com.android.tools.idea.gradle.model.IdeDependencies
-import com.android.tools.idea.gradle.model.IdeJavaArtifact
-import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.IdeTestSuite
-import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.model.filteredVariantNames
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
-import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeBasicVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeDeclaredDependenciesImpl
-import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactImpl
-import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
-import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.util.BaselineProfileUtil.getGenerateBaselineProfileTaskName
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.Namespacing
@@ -327,37 +318,7 @@ open class GradleAndroidModelImpl(
     get() = androidProject.testSuites
 }
 
-@VisibleForTesting
-class GradleAndroidDependencyModelImpl(
-  val gradleAndroidModel: GradleAndroidModelImpl,
-  private val ideLibraryModelResolver: IdeLibraryModelResolverImpl
-): GradleAndroidDependencyModel, GradleAndroidModelImpl(gradleAndroidModel) {
-  private val myCachedResolvedVariantsByName: Map<String, IdeVariantImpl> =
-    variants.associate { it.name to IdeVariantImpl(it, ideLibraryModelResolver) }
-  override val selectedVariantWithDependencies: IdeVariantImpl get () = myCachedResolvedVariantsByName[selectedVariantName] ?: unknownSelectedVariant()
-  override val variantsWithDependencies: List<IdeVariantImpl>
-    get() = myCachedResolvedVariantsByName.values.toList()
-  /** Returns the artifact used for instrumented testing. For test-only modules this is the main artifact. */
-  override fun getArtifactForAndroidTest(): IdeAndroidArtifactImpl? {
-    return when (androidProject.projectType) {
-      IdeAndroidProjectType.PROJECT_TYPE_TEST -> selectedVariantWithDependencies.mainArtifact
-      else -> selectedVariantWithDependencies.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }
-    }
-  }
-  /** Returns the artifact used for screenshot testing. For screenshot test-only modules this is the main artifact. */
-  override fun getArtifactForScreenshotTest(): IdeJavaArtifactImpl? {
-    return selectedVariantWithDependencies.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }
-  }
-
-  override val selectedAndroidTestCompileDependencies: IdeDependencies? get() = getArtifactForAndroidTest()?.compileClasspath
-
-  override val mainArtifactWithDependencies: IdeAndroidArtifactImpl get() = selectedVariantWithDependencies.mainArtifact
-
-  @VisibleForTesting
-  override fun containsTheSameDataAs(that: GradleAndroidDependencyModel) = gradleAndroidModel.containsTheSameDataAs((that as GradleAndroidDependencyModelImpl).gradleAndroidModel)
-}
-
-private fun GradleAndroidModel.unknownSelectedVariant(): Nothing = error("Unknown selected variant: $selectedVariantName")
+internal fun GradleAndroidModel.unknownSelectedVariant(): Nothing = error("Unknown selected variant: $selectedVariantName")
 
 sealed interface GradleAndroidModel: AndroidModel {
   companion object {
@@ -421,35 +382,4 @@ fun classFieldsToDynamicResourceValues(classFields: Map<String, IdeClassField>):
     }
   }
   return result
-}
-
-
-sealed interface GradleAndroidDependencyModel: GradleAndroidModel {
-  companion object {
-    @JvmStatic
-    fun get(module: Module): GradleAndroidDependencyModel? = AndroidModel.get(
-      module) as? GradleAndroidDependencyModel
-
-    @JvmStatic
-    fun get(androidFacet: AndroidFacet): GradleAndroidDependencyModel? = AndroidModel.get(
-      androidFacet) as? GradleAndroidDependencyModel
-
-    @JvmStatic
-    fun createFactory(project: Project, libraryResolver: IdeLibraryModelResolver): (GradleAndroidModelData) -> GradleAndroidDependencyModel {
-      val models = mutableMapOf<GradleAndroidModelData, GradleAndroidDependencyModel>()
-      return fun(data: GradleAndroidModelData): GradleAndroidDependencyModel {
-        return models.computeIfAbsent(data) { GradleAndroidDependencyModelImpl(GradleAndroidModel.create(project, data) as GradleAndroidModelImpl,
-                                                                           libraryResolver as IdeLibraryModelResolverImpl) }
-      }
-    }
-  }
-  fun getArtifactForScreenshotTest(): IdeJavaArtifact?
-  val selectedAndroidTestCompileDependencies: IdeDependencies?
-  val mainArtifactWithDependencies: IdeAndroidArtifact
-  val selectedVariantWithDependencies: IdeVariant
-  val variantsWithDependencies: List<IdeVariant>
-  fun getArtifactForAndroidTest(): IdeAndroidArtifact?
-
-  @VisibleForTesting
-  fun containsTheSameDataAs(gradleAndroidModel: GradleAndroidDependencyModel): Boolean
 }
