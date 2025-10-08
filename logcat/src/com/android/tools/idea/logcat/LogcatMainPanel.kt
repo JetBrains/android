@@ -90,6 +90,7 @@ import com.android.tools.idea.logcat.util.consume
 import com.android.tools.idea.logcat.util.createLogcatEditor
 import com.android.tools.idea.logcat.util.getDefaultFilter
 import com.android.tools.idea.logcat.util.getFilterHint
+import com.android.tools.idea.logcat.util.incrementVersion
 import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.logcat.util.isScrollAtBottom
 import com.android.tools.idea.logcat.util.toggleFilterTerm
@@ -362,9 +363,7 @@ constructor(
       installPopupHandler(
         object : ContextMenuPopupHandler() {
           override fun getActionGroup(event: EditorMouseEvent): ActionGroup =
-            getPopupActionGroup(
-              splitterPopupActionGroup.getChildren(ActionManager.getInstance())
-            )
+            getPopupActionGroup(splitterPopupActionGroup.getChildren(ActionManager.getInstance()))
         }
       )
       if (StudioFlags.LOGCAT_CLICK_TO_ADD_FILTER.get()) {
@@ -607,7 +606,7 @@ constructor(
   }
 
   override fun foldImmediately() {
-    foldingDetector.detectFoldings(0, editor.document.lineCount - 1)
+    coroutineScope.launch { foldingDetector.detectFoldings(0, editor.document.lineCount - 1) }
   }
 
   /**
@@ -705,11 +704,10 @@ constructor(
         endLine,
         deviceComboBox.getSelectedDevice()?.apiLevel,
       )
-      foldingDetector.detectFoldings(startLine, endLine)
-
       if (shouldStickToEnd) {
         scrollToEnd()
       }
+      foldingDetector.detectFoldings(startLine, endLine)
     }
   }
 
@@ -999,6 +997,7 @@ constructor(
   private fun clearDocument() {
     WriteAction.run<Throwable> {
       document.setText("") // write data
+      document.incrementVersion()
     }
     messageFormatter.reset()
   }

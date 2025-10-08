@@ -27,7 +27,10 @@ import com.intellij.ide.ui.UISettingsListener
 import com.intellij.ide.ui.UISettingsUtils
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.undo.UndoUtil
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.EditorKind
 import com.intellij.openapi.editor.colors.EditorColorsListener
@@ -36,7 +39,16 @@ import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.editor.impl.EditorFactoryImpl
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Key
 import com.intellij.util.ui.JBUI
+
+/**
+ * The Logcat panel `Document` version is updated whenever it's cleared.
+ *
+ * This can be used by components that run in the background to abandon scheduled work if the
+ * document is obsolete.
+ */
+private val DOC_VERSION_KEY = Key<Int>("DOC_VERSION_KEY")
 
 /**
  * Creates an Editor and initializes it.
@@ -119,4 +131,16 @@ internal fun EditorEx.getFilterHint(
     false
   }
   return result
+}
+
+internal fun Document.getVersion(): Int {
+  return runReadAction { getUserData(DOC_VERSION_KEY) ?: 0 }
+}
+
+@UiThread
+internal fun Document.incrementVersion() {
+  runWriteAction {
+    val version = getVersion()
+    putUserData(DOC_VERSION_KEY, version + 1)
+  }
 }
