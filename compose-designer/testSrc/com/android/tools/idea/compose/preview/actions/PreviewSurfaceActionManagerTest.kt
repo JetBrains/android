@@ -1,12 +1,12 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.common.actions.CopyResultImageAction
-import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.util.EnableUnderConditionWrapper
 import com.android.tools.idea.common.util.ShowGroupUnderConditionWrapper
 import com.android.tools.idea.common.util.ShowUnderConditionWrapper
 import com.android.tools.idea.compose.preview.ComposeStudioBotActionFactory
+import com.android.tools.idea.compose.preview.util.FakeStudioBotActionFactory
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.glasses.GlassesBlendDropdownAction
 import com.android.tools.idea.preview.actions.AnimationInspectorAction
@@ -25,8 +25,6 @@ import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.AnActionWrapper
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.Separator
@@ -322,30 +320,3 @@ private data class Status(
   override val isRefreshing: Boolean,
   override val previewedFile: PsiFile? = null,
 ) : PreviewViewModelStatus
-
-class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
-
-  var isNullPreviewGeneratorAction = false
-
-  private fun fakeAction(text: String): AnAction {
-    return object : AnAction(text) {
-      override fun actionPerformed(e: AnActionEvent) {}
-    }
-  }
-
-  override fun createPreviewGenerator() =
-    if (isNullPreviewGeneratorAction) null else fakeAction("previewGenerator")
-
-  override fun transformPreviewAction() = fakeAction("transformPreview")
-
-  override fun fixVisualLintIssuesAction() = fakeAction("fixVisualLintIssues")
-
-  override fun fixComposeRenderIssueAction(renderIssues: List<Issue>): AnAction? =
-    fakeAction("fixComposeRender")
-
-  override fun previewAgentsDropDownAction(): AnAction = fakeAction("previewAgents")
-
-  override fun screenshotToCodeAction(): AnAction {
-    return fakeAction("Generate Code From Screenshot")
-  }
-}
