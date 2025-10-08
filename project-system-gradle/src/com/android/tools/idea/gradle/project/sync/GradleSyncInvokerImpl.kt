@@ -28,9 +28,9 @@ import com.android.tools.idea.project.AndroidNotification
 import com.intellij.ide.trustedProjects.TrustedProjects
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
-import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.ui.AppUIUtil
 import com.intellij.util.ui.UIUtil
@@ -66,7 +66,7 @@ class GradleSyncInvokerImpl : GradleSyncInvoker {
     }
     val application = ApplicationManager.getApplication()
     if (application.isUnitTestMode) {
-      application.invokeAndWait(syncTask)
+      application.invokeAndWait(syncTask, ModalityState.nonModal())
     } else {
       ApplicationManager.getApplication().invokeLater(syncTask)
     }
@@ -89,7 +89,6 @@ class GradleSyncInvokerImpl : GradleSyncInvoker {
     private val LOG = Logger.getInstance(GradleSyncInvoker::class.java)
     private fun prepareProject(project: Project, listener: GradleSyncListener?): Boolean {
       if (Info.getInstance(project).isBuildWithGradle) {
-        FileDocumentManager.getInstance().saveAllDocuments()
         return true // continue with sync.
       }
       AppUIUtil.invokeLaterIfProjectAlive(project) {
