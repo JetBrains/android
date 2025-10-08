@@ -48,7 +48,7 @@ internal fun hasComposeMinAgpVersion(project: Project): Boolean {
 }
 
 // TODO(b/448352524): Update to 9.0.0 when released
-internal const val TEST_SUITE_MIN_AGP_VERSION = "9.0.0-alpha08"
+internal const val TEST_SUITE_MIN_AGP_VERSION = "9.0.0-alpha09"
 
 /**
  * Checks if the project's AGP version is new enough to support Test Suite. If we can't determine
