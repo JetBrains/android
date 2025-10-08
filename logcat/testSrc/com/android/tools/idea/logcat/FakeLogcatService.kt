@@ -40,7 +40,7 @@ internal class FakeLogcatService : LogcatService {
     serialNumber: String,
     sdk: AndroidApiLevel,
     duration: Duration,
-    newMessagesOnly: Boolean,
+    maxHistoryEntries: Int,
   ): Flow<List<LogcatMessage>> {
     return Channel<List<LogcatMessage>>(1)
       .also {
