@@ -31,23 +31,23 @@ interface LogcatService {
    *
    * @param sdk the API level of the device being read; this enables more efficient log reading on
    *   newer devices.
-   * @param duration how long to continue following the logs
-   * @param newMessagesOnly if true, the stream begins with new messages only; otherwise, all
-   *   available history is replayed.
+   * @param duration how long to continue following the logs. If Duration.ZERO is passed, only
+   *   provide historical logs and terminate.
+   * @param maxHistoryEntries maximum number of historical log messages to include
    */
   fun readLogcat(
     serialNumber: String,
     sdk: AndroidApiLevel,
     duration: Duration = INFINITE_DURATION,
-    newMessagesOnly: Boolean = false,
+    maxHistoryEntries: Int = Int.MAX_VALUE,
   ): Flow<List<LogcatMessage>>
 
   fun readLogcat(
     device: Device,
     duration: Duration = INFINITE_DURATION,
-    newMessagesOnly: Boolean = false,
+    maxHistoryEntries: Int = Int.MAX_VALUE,
   ): Flow<List<LogcatMessage>> =
-    readLogcat(device.serialNumber, device.apiLevel, duration, newMessagesOnly)
+    readLogcat(device.serialNumber, device.apiLevel, duration, maxHistoryEntries)
 
   suspend fun clearLogcat(serialNumber: String)
 
