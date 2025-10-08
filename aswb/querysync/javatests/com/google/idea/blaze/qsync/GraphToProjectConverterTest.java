@@ -36,16 +36,30 @@ import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import com.google.idea.blaze.qsync.query.PackageSet;
 import com.google.idea.blaze.qsync.testdata.BuildGraphs;
 import com.google.idea.blaze.qsync.testdata.TestData;
-import java.nio.file.Path;
-import java.util.function.Function;
+import com.google.idea.common.experiments.ExperimentService;
+import com.google.idea.common.experiments.MockExperimentService;
+import com.google.idea.testing.IntellijRule;
+
+import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-@SuppressWarnings("DuplicateExpressions")
+import java.nio.file.Path;
+import java.util.function.Function;
+
+@SuppressWarnings({"DuplicateExpressions"})
 @RunWith(JUnit4.class)
 public class GraphToProjectConverterTest {
+
+    @Rule public final IntellijRule intellij = new IntellijRule();
+
+    @Before
+    public void setUp() {
+    intellij.registerApplicationService(ExperimentService.class, new MockExperimentService());
+  }
 
   private final Context<?> context =
       new NoopContext() {
@@ -64,8 +78,11 @@ public class GraphToProjectConverterTest {
 
   private JavaPackagePrefixReader toPrefixReader(Function<Path, String> basicReader) {
     PackageReader packageReader = (context, file) -> basicReader.apply(file);
-    return new JavaPackagePrefixReaderImpl(
-        Path.of("/"), packageReader, QuerySyncTestUtils.SIMPLE_PARALLEL_PACKAGE_READER, (p) -> true);
+        return new JavaPackagePrefixReaderImpl(
+                Path.of("/"),
+                packageReader,
+                QuerySyncTestUtils.SIMPLE_PARALLEL_PACKAGE_READER,
+                (p) -> true);
   }
 
   @Test

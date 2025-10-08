@@ -20,8 +20,12 @@ import com.google.common.truth.Truth.assertThat
 import com.google.idea.blaze.common.NoopContext
 import com.google.idea.blaze.qsync.java.PackageReader
 import com.google.idea.blaze.qsync.query.PackageSet
+import com.google.idea.common.experiments.ExperimentService
+import com.google.idea.common.experiments.MockExperimentService
+import com.google.idea.testing.IntellijRule
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -36,6 +40,12 @@ class JavaPackagePrefixReaderTest {
     @Rule
     val tempDir = TemporaryFolder()
 
+    companion object {
+        @JvmField
+        @ClassRule
+        val intellij = IntellijRule()
+    }
+
     private lateinit var workspaceRoot: Path
     private val packageReader = PackageReader { _, path -> readPackage(path) }
     private val packages = mutableMapOf<Path, String>()
@@ -43,6 +53,7 @@ class JavaPackagePrefixReaderTest {
 
     @Before
     fun setUp() {
+        intellij.registerApplicationService(ExperimentService::class.java, MockExperimentService())
         workspaceRoot = tempDir.root.toPath()
     }
 

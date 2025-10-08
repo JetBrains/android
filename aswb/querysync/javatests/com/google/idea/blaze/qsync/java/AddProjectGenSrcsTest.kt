@@ -33,8 +33,13 @@ import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectoryContents
 import com.google.idea.blaze.qsync.testdata.TestData
+import com.google.idea.common.experiments.ExperimentService
+import com.google.idea.common.experiments.MockExperimentService
+import com.google.idea.testing.IntellijRule
 import java.nio.file.Path
 import java.time.Instant
+import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -51,6 +56,12 @@ class AddProjectGenSrcsTest {
   @get:Rule
   val mockito: MockitoRule = MockitoJUnit.rule()
 
+  companion object {
+    @JvmField
+    @ClassRule
+    val intellij = IntellijRule()
+  }
+
   @Mock
   lateinit var context: Context<*>
 
@@ -58,6 +69,11 @@ class AddProjectGenSrcsTest {
     TestDataSyncRunner(NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PREFIX_READER)
 
   private val javaSourcePackageExtractor = JavaSourcePackageExtractor(null)
+
+  @Before
+  fun setUp() {
+    intellij.registerApplicationService(ExperimentService::class.java, MockExperimentService())
+  }
 
   @Test
   @Throws(Exception::class)
