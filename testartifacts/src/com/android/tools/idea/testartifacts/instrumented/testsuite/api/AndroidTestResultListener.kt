@@ -66,11 +66,12 @@ interface AndroidTestResultListener {
    * Called when a test step execution is started.
    *
    * @param device a device which a test suite to be executed on
+   * @param testSuite a test suite metadata
    * @param testCase a test case metadata
    * @param testStep a test step metadata
    */
   @AnyThread
-  fun onTestStepStarted(device: AndroidDevice, testCase: AndroidTestCase, testStep: AndroidTestStep) {
+  fun onTestStepStarted(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase, testStep: AndroidTestStep) {
     // no-op
   }
 
@@ -78,11 +79,12 @@ interface AndroidTestResultListener {
    * Called when a test step execution is finished.
    *
    * @param device a device which a test suite to be executed on
+   * @param testSuite a test suite metadata
    * @param testCase a test case metadata
    * @param testStep a test step metadata
    */
   @AnyThread
-  fun onTestStepFinished(device: AndroidDevice, testCase: AndroidTestCase, testStep: AndroidTestStep) {
+  fun onTestStepFinished(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase, testStep: AndroidTestStep) {
     // no-op
   }
 
@@ -90,11 +92,12 @@ interface AndroidTestResultListener {
    * Called when a test step execution is updated, e.g. test artifacts are added.
 
    * @param device a device which a test suite to be executed on
+   * @param testSuite a test suite metadata
    * @param testCase a test case metadata
    * @param testStep a test step metadata
    */
   @AnyThread
-  fun onTestStepUpdated(device: AndroidDevice, testCase: AndroidTestCase, testStep: AndroidTestStep) {
+  fun onTestStepUpdated(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase, testStep: AndroidTestStep) {
     // no-op
   }
 

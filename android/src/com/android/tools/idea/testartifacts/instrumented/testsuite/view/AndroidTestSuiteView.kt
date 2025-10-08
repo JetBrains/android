@@ -457,24 +457,27 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   }
 
   @AnyThread
-  override fun onTestStepStarted(device: AndroidDevice, testCase: AndroidTestCase, testStep: AndroidTestStep) {
-    eventPublisher?.onTestStepStarted(device, testCase, testStep)
+  override fun onTestStepStarted(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase, testStep: AndroidTestStep) {
+    eventPublisher?.onTestStepStarted(device, testSuite, testCase, testStep)
     AppUIUtil.invokeOnEdt {
       myResultsTableView.addTestStep(device, testCase, testStep)
     }
   }
 
   @AnyThread
-  override fun onTestStepUpdated(device: AndroidDevice, testCase: AndroidTestCase, testStep: AndroidTestStep) {
-    eventPublisher?.onTestStepStarted(device, testCase, testStep)
+  override fun onTestStepUpdated(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase, testStep: AndroidTestStep) {
+    eventPublisher?.onTestStepStarted(device, testSuite, testCase, testStep)
     AppUIUtil.invokeOnEdt {
       myDetailsView.reloadAndroidTestResults()
     }
   }
 
   @AnyThread
-  override fun onTestStepFinished(device: AndroidDevice, testCase: AndroidTestCase, testStep: AndroidTestStep) {
-    eventPublisher?.onTestStepFinished(device, testCase, testStep)
+  override fun onTestStepFinished(device: AndroidDevice,
+                                  testSuite: AndroidTestSuite,
+                                  testCase: AndroidTestCase,
+                                  testStep: AndroidTestStep) {
+    eventPublisher?.onTestStepFinished(device, testSuite, testCase, testStep)
     AppUIUtil.invokeOnEdt {
       myResultsTableView.refreshTable()
     }
