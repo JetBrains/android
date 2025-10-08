@@ -1,6 +1,7 @@
 package com.android.tools.idea.logcat.service
 
 import com.android.adblib.DeviceSelector
+import com.android.adblib.INFINITE_DURATION
 import com.android.adblib.LineBatchShellCollector
 import com.android.adblib.shellAsText
 import com.android.adblib.shellCommand
@@ -47,11 +48,11 @@ constructor(project: Project, private val lastMessageDelayMs: Long = LOGCAT_IDLE
     serialNumber: String,
     sdk: AndroidApiLevel,
     duration: Duration,
-    newMessagesOnly: Boolean,
+    maxHistoryEntries: Int,
   ): Flow<List<LogcatMessage>> {
     return when (sdk.majorVersion >= 36 && StudioFlags.LOGCAT_PROTOBUF_ENABLED.get()) {
-      true -> readLogcatProtobuf(serialNumber, duration, newMessagesOnly)
-      false -> readLogcatText(serialNumber, sdk, duration, newMessagesOnly)
+      true -> readLogcatProtobuf(serialNumber, duration, maxHistoryEntries)
+      false -> readLogcatText(serialNumber, sdk, duration, maxHistoryEntries)
     }
   }
 
@@ -59,7 +60,7 @@ constructor(project: Project, private val lastMessageDelayMs: Long = LOGCAT_IDLE
     serialNumber: String,
     sdk: AndroidApiLevel,
     duration: Duration,
-    newMessagesOnly: Boolean,
+    maxHistoryEntries: Int,
   ): Flow<List<LogcatMessage>> {
     val deviceSelector = DeviceSelector.fromSerialNumber(serialNumber)
     return channelFlow {
@@ -72,14 +73,17 @@ constructor(project: Project, private val lastMessageDelayMs: Long = LOGCAT_IDLE
         if (logcatFormat == EPOCH_FORMAT) {
           append(" -v epoch")
         }
-        if (cutoffTimeSupported && newMessagesOnly) {
-          append(" -T 1")
+        if (cutoffTimeSupported && maxHistoryEntries < Int.MAX_VALUE) {
+          append(if (duration == Duration.ZERO) " -t" else " -T")
+          append(" ${maxHistoryEntries.coerceAtLeast(1)}")
+        } else if (duration == Duration.ZERO) {
+          append(" -d")
         }
       }
 
       val cutoffTime =
         when {
-          newMessagesOnly && !cutoffTimeSupported ->
+          maxHistoryEntries < Int.MAX_VALUE && !cutoffTimeSupported ->
             deviceServices
               .shellAsText(deviceSelector, "date +%s", commandTimeout = Duration.ofMillis(500))
               .stdout
@@ -101,7 +105,12 @@ constructor(project: Project, private val lastMessageDelayMs: Long = LOGCAT_IDLE
       try {
         try {
           deviceServices
-            .shell(deviceSelector, command, LineBatchShellCollector(), commandTimeout = duration)
+            .shell(
+              deviceSelector,
+              command,
+              LineBatchShellCollector(),
+              commandTimeout = if (duration == Duration.ZERO) INFINITE_DURATION else duration,
+            )
             .collect { messageAssembler.processNewLines(it) }
         } catch (e: TimeoutException) {
           LOGGER.debug { "Done collecting Logcat from device $serialNumber after $duration" }
@@ -137,13 +146,16 @@ constructor(project: Project, private val lastMessageDelayMs: Long = LOGCAT_IDLE
   private fun readLogcatProtobuf(
     serialNumber: String,
     duration: Duration,
-    newMessagesOnly: Boolean,
+    maxHistoryEntries: Int,
   ): Flow<List<LogcatMessage>> {
     return flow {
       val command = buildString {
         append("logcat --proto")
-        if (newMessagesOnly) {
-          append(" -T 1")
+        if (maxHistoryEntries < Int.MAX_VALUE) {
+          append(if (duration == Duration.ZERO) " -t" else " -T")
+          append(" ${maxHistoryEntries.coerceAtLeast(1)}")
+        } else if (duration == Duration.ZERO) {
+          append(" -d")
         }
       }
 

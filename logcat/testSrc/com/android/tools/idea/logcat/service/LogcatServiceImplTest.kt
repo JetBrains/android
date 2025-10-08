@@ -46,6 +46,7 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.registerOrReplaceServiceInstance
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -178,7 +179,7 @@ class LogcatServiceImplTest {
     )
 
     val job = launch {
-      service.readLogcat("device", AndroidApiLevel(21), newMessagesOnly = true).collect {}
+      service.readLogcat("device", AndroidApiLevel(21), maxHistoryEntries = 0).collect {}
     }
     yieldUntil { logcatHandler.lastDeviceId == "device" }
     job.cancel()
@@ -199,13 +200,38 @@ class LogcatServiceImplTest {
       hostConnectionType = DeviceState.HostConnectionType.LOCAL,
     )
 
-    val job = launch {
-      service.readLogcat("device", AndroidApiLevel(36), newMessagesOnly = false).collect {}
-    }
+    val job = launch { service.readLogcat("device", AndroidApiLevel(36)).collect {} }
     yieldUntil { logcatHandler_v2.lastDeviceId == "device" }
     job.cancel()
 
     assertThat(logcatHandler_v2.lastArgs).isEqualTo("--proto")
+  }
+
+  @Test
+  fun readLogcat_last100Messages_launchesLogcat_sdk36(): Unit = runBlocking {
+    val service = logcatServiceImpl()
+
+    fakeAdb.connectDevice(
+      "device",
+      manufacturer = "mfg",
+      deviceModel = "model",
+      release = "10.0.0",
+      sdk = AndroidApiLevel(36),
+      hostConnectionType = DeviceState.HostConnectionType.LOCAL,
+    )
+
+    runBlocking {
+      service
+        .readLogcat(
+          "device",
+          AndroidApiLevel(36),
+          maxHistoryEntries = 100,
+          duration = Duration.ZERO,
+        )
+        .collect()
+    }
+
+    assertThat(logcatHandler_v2.lastArgs).isEqualTo("--proto -t 100")
   }
 
   @Test
@@ -221,7 +247,7 @@ class LogcatServiceImplTest {
     )
 
     val job = launch {
-      service.readLogcat("device", AndroidApiLevel(36), newMessagesOnly = true).collect {}
+      service.readLogcat("device", AndroidApiLevel(36), maxHistoryEntries = 0).collect {}
     }
     yieldUntil { logcatHandler_v2.lastDeviceId == "device" }
     job.cancel()
