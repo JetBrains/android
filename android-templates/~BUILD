@@ -30,6 +30,13 @@ iml_module(
     ],
 )
 
+agp_latest = [
+    "//prebuilts/studio/sdk:build-tools/latest",
+    "//tools/base/build-system:android_gradle_plugin.zip",
+    "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+    "//tools/base/build-system:gradle-distrib",
+]
+
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.templates.tests",
@@ -41,8 +48,7 @@ iml_module(
                 "//prebuilts/studio/sdk:cmake",  # Needed for the C++ templates in TemplateDiffTest
                 "//prebuilts/studio/sdk:ndk",  # Needed for the C++ templates in TemplateDiffTest
                 "//tools/data-binding:data_binding_runtime.zip",  # Needed for some templates that use view binding in TemplateDiffTest
-                ":agp_latest",
-            ],
+            ] + agp_latest,
             "test_filter": "com.android.tools.idea.templates.diff.activity.TemplateDiffTest",
         },
         "KotlinBomPlatformDependencyTest": {
@@ -59,8 +65,7 @@ iml_module(
         "other": {
             "data": [
                 "//tools/adt/idea/android/testData",
-                ":agp_latest",
-            ],
+            ] + agp_latest,
         },
     },
     test_class = "com.android.tools.idea.templates.TemplateTestSuite",
@@ -113,16 +118,6 @@ iml_module(
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.gradle",
         "@intellij//:org.jetbrains.kotlin",
-    ],
-)
-
-filegroup(
-    name = "agp_latest",
-    srcs = [
-        "//prebuilts/studio/sdk:build-tools/latest",
-        "//tools/base/build-system:android_gradle_plugin.zip",
-        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
-        "//tools/base/build-system:gradle-distrib",
     ],
 )
 
