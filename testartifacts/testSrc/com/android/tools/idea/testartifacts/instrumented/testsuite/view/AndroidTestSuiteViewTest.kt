@@ -704,12 +704,13 @@ class AndroidTestSuiteViewTest {
 
   private fun runTestStep(view: AndroidTestSuiteView,
                           device: AndroidDevice,
+                          testSuite: AndroidTestSuite,
                           testCase: AndroidTestCase,
                           testStep: AndroidTestStep,
                           result: AndroidTestCaseResult) {
-    view.onTestStepStarted(device, testCase, testStep)
+    view.onTestStepStarted(device, testSuite, testCase, testStep)
     testStep.result = result
-    view.onTestStepFinished(device, testCase, testStep)
+    view.onTestStepFinished(device, testSuite, testCase, testStep)
   }
 
   @Test
@@ -891,14 +892,18 @@ class AndroidTestSuiteViewTest {
     runTestCase(view, device1, testsuiteOnDevice1,
                 testcaseOnDevice1, AndroidTestCaseResult.PASSED)
 
-    runTestStep(view, device1, testcaseOnDevice1, AndroidTestStep("testId1.stepId1", 0, "step1"), AndroidTestCaseResult.PASSED)
-    runTestStep(view, device1, testcaseOnDevice1, AndroidTestStep("testId1.stepId2", 1, "step2"), AndroidTestCaseResult.PASSED)
+    runTestStep(view, device1, testsuiteOnDevice1, testcaseOnDevice1, AndroidTestStep("testId1.stepId1", 0, "step1"),
+                AndroidTestCaseResult.PASSED)
+    runTestStep(view, device1, testsuiteOnDevice1, testcaseOnDevice1, AndroidTestStep("testId1.stepId2", 1, "step2"),
+                AndroidTestCaseResult.PASSED)
 
     val testCase2OnDevice1 = AndroidTestCase("testId2", "method2", "class1", "package1")
     runTestCase(view, device1, testsuiteOnDevice1,
                 testCase2OnDevice1, AndroidTestCaseResult.FAILED)
-    runTestStep(view, device1, testCase2OnDevice1, AndroidTestStep("testId2.stepId3", 0, "step1"), AndroidTestCaseResult.PASSED)
-    runTestStep(view, device1, testCase2OnDevice1, AndroidTestStep("testId2.stepId4", 1, "step2"), AndroidTestCaseResult.FAILED)
+    runTestStep(view, device1, testsuiteOnDevice1, testCase2OnDevice1, AndroidTestStep("testId2.stepId3", 0, "step1"),
+                AndroidTestCaseResult.PASSED)
+    runTestStep(view, device1, testsuiteOnDevice1, testCase2OnDevice1, AndroidTestStep("testId2.stepId4", 1, "step2"),
+                AndroidTestCaseResult.FAILED)
 
     testsuiteOnDevice1.result = AndroidTestSuiteResult.FAILED
     view.onTestSuiteFinished(device1, testsuiteOnDevice1)

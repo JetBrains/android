@@ -251,10 +251,11 @@ private class ImportAndroidTestMatrixRunProfileState(
                   attributes.getValue("endTimestampMillis").toLong(),
                 )
                 val device = requireNotNull(myCurrentTargetDevice)
+                val testSuite = requireNotNull(myCurrentTestSuite)
                 val testCase = requireNotNull(myCurrentTestCase)
                 myCurrentTestStep = testStep
-                console.onTestStepStarted(device, testCase, testStep)
-                console.onTestStepFinished(device, testCase, testStep)
+                console.onTestStepStarted(device, testSuite, testCase, testStep)
+                console.onTestStepFinished(device, testSuite, testCase, testStep)
               }
 
               "additionalTestStepArtifact" -> {
