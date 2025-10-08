@@ -346,6 +346,6 @@ class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
   override fun previewAgentsDropDownAction(): AnAction = fakeAction("previewAgents")
 
   override fun screenshotToCodeAction(): AnAction {
-    return fakeAction("screenshotToCode")
+    return fakeAction("Generate Code From Screenshot")
   }
 }
