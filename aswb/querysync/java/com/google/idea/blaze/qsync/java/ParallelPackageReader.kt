@@ -16,9 +16,8 @@
 package com.google.idea.blaze.qsync.java
 
 import com.google.idea.blaze.common.Context
-import com.google.idea.common.experiments.IntExperiment
+import com.google.idea.blaze.qsync.dispatchers.QuerySyncDispatchers
 import java.nio.file.Path
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -31,17 +30,17 @@ class ParallelPackageReader : PackageReader.ParallelReader {
   override fun readPackages(
     context: Context<*>,
     reader: PackageReader,
-    paths: List<Path>
-  ): Map<Path, String> = runBlocking(dispatcher) {
+    paths: List<Path>,
+  ): Map<Path, String> = runBlocking(QuerySyncDispatchers.IO) {
     readPackagesSuspending(context, reader, paths)
   }
 
   suspend fun readPackagesSuspending(
     context: Context<*>,
     reader: PackageReader,
-    paths: List<Path>
+    paths: List<Path>,
   ): Map<Path, String> = coroutineScope {
-    withContext(dispatcher) {
+    withContext(QuerySyncDispatchers.IO) {
       paths
         .map { file ->
           async { reader.readPackage(context, file)?.let { file to it } }
@@ -50,12 +49,5 @@ class ParallelPackageReader : PackageReader.ParallelReader {
         .filterNotNull()
         .toMap()
     }
-  }
-
-  companion object {
-    private val readerThreadsExperiment =
-      IntExperiment("parallel.package.reader.threads", 50)
-    private val dispatcher = Dispatchers.IO.limitedParallelism(
-      readerThreadsExperiment.value)
   }
 }

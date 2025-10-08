@@ -52,15 +52,27 @@ import com.google.idea.blaze.qsync.project.ProjectProto.CcWorkspace;
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.testdata.TestData;
+import com.google.idea.common.experiments.ExperimentService;
+import com.google.idea.common.experiments.MockExperimentService;
+import com.google.idea.testing.IntellijRule;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
+import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public class ConfigureCcCompilationTest {
+
+  @ClassRule public static final IntellijRule intellij = new IntellijRule();
+
+  @Before
+  public void setUp() {
+    intellij.registerApplicationService(ExperimentService.class, new MockExperimentService());
+  }
 
   private final Context<?> context = new NoopContext();
   private final TestDataSyncRunner syncRunner =

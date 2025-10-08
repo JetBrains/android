@@ -32,8 +32,13 @@ import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.AarResPackage
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.testdata.TestData
+import com.google.idea.common.experiments.ExperimentService
+import com.google.idea.common.experiments.MockExperimentService
+import com.google.idea.testing.IntellijRule
 import java.nio.file.Path
 import java.time.Instant
+import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -47,6 +52,17 @@ class AddDependencyAarsTest {
 
   @get:Rule
   val mockito: MockitoRule = MockitoJUnit.rule()
+
+  companion object {
+    @JvmField
+    @ClassRule
+    val intellij = IntellijRule()
+  }
+
+  @Before
+  fun setUp() {
+    intellij.registerApplicationService(ExperimentService::class.java, MockExperimentService())
+  }
 
   private val syncer =
     TestDataSyncRunner(NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PREFIX_READER)
