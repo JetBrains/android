@@ -26,6 +26,7 @@ import kotlin.time.measureTimedValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 
 class JavaPackagePrefixReaderImpl @JvmOverloads constructor(
@@ -45,35 +46,37 @@ class JavaPackagePrefixReaderImpl @JvmOverloads constructor(
     val filesByPath = sourceFiles.groupBy { it.parent }
     // A map from directory to the candidate chosen to represent that directory.
     // For each directory, we select the lexicographically first file that actually exists.
-    val candidates: Map<Path, Path> = filesByPath.entries.map { (dir, filesInDir) ->
-      async {
-        try {
-          // Find the lexicographically smallest file that exists in the directory.
-          sequence {
-              val queue = java.util.PriorityQueue<Path>(Comparator.comparing { it.fileName.toString() })
-              queue.addAll(filesInDir)
-              while (queue.isNotEmpty()) {
-                yield(queue.poll())
+    val candidates: Map<Path, Path> = coroutineScope {
+      filesByPath.entries.map { (dir, filesInDir) ->
+        async {
+          try {
+            // Find the lexicographically smallest file that exists in the directory.
+            sequence {
+                val queue = java.util.PriorityQueue<Path>(Comparator.comparing { it.fileName.toString() })
+                queue.addAll(filesInDir)
+                while (queue.isNotEmpty()) {
+                  yield(queue.poll())
+                }
               }
-            }
-            .filter {
-              try {
-                fileExistenceCheck(it)
-              } catch (e: Exception) {
-                context.output(
-                  PrintOutput.log("Warning: File existence check failed for $it: ${e.message}")
-                )
-                false // Treat as non-existent on error
+              .filter {
+                try {
+                  fileExistenceCheck(it)
+                } catch (e: Exception) {
+                  context.output(
+                    PrintOutput.log("Warning: File existence check failed for $it: ${e.message}")
+                  )
+                  false // Treat as non-existent on error
+                }
               }
-            }
-            .firstOrNull()
-            ?.let { chosenCandidate -> dir to chosenCandidate }
-        } catch (e: Exception) {
-          context.output(PrintOutput.log("Warning: Error processing directory $dir: ${e.message}"))
-          null // Skip this directory on error
+              .firstOrNull()
+              ?.let { chosenCandidate -> dir to chosenCandidate }
+          } catch (e: Exception) {
+            context.output(PrintOutput.log("Warning: Error processing directory $dir: ${e.message}"))
+            null // Skip this directory on error
+          }
         }
-      }
-    }.awaitAll().filterNotNull().toMap()
+      }.awaitAll().filterNotNull().toMap()
+    }
 
     // Filter the files that are top level files only.
     val chosenFiles = candidates.values.filter { file -> isTopLevel(packages, candidates, file) }
