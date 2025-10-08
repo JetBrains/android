@@ -1161,6 +1161,7 @@ iml_module(
     name = "studio",
     srcs = ["src"],
     iml_files = ["studio.iml"],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
