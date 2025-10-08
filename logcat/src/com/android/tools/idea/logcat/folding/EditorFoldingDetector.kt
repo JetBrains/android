@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.logcat.folding
 
-import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.logcat.util.getVersion
 import com.intellij.execution.ConsoleFolding
 import com.intellij.execution.impl.EditorHyperlinkSupport
-import com.intellij.openapi.application.WriteAction
+import com.intellij.openapi.application.readAndEdtWriteAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.FoldRegion
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 private val consoleView = ConsoleViewForFolding()
 
@@ -79,12 +81,17 @@ internal class EditorFoldingDetector(
   private val foldingModel = editor.foldingModel
   private val activeConsoleFoldings = consoleFoldings.filter { it.isEnabledForConsole(consoleView) }
 
-  @UiThread
-  override fun detectFoldings(startLine: Int, endLine: Int) {
+  override suspend fun detectFoldings(startLine: Int, endLine: Int) {
     if (activeConsoleFoldings.isEmpty()) return
 
-    WriteAction.run<Throwable> {
-      foldingModel.runBatchFoldingOperation {
+    val addList = mutableListOf<Folding>()
+    val removeList = mutableListOf<FoldRegion>()
+    val version = document.getVersion()
+    withContext(Dispatchers.Default) {
+      readAndEdtWriteAction {
+        if (document.getVersion() != version) {
+          return@readAndEdtWriteAction value(Unit)
+        }
         for (folding in activeConsoleFoldings) {
           var line = startLine
           while (line <= endLine) {
@@ -96,7 +103,7 @@ internal class EditorFoldingDetector(
             val previousRegion = findPreviousRegion(folding, line, startLine)
             val foldStartLine =
               if (previousRegion != null) {
-                foldingModel.removeFoldRegion(previousRegion)
+                removeList.add(previousRegion)
                 val startOffset =
                   when (folding.shouldBeAttachedToThePreviousLine()) {
                     true -> previousRegion.startOffset + 1
@@ -111,7 +118,17 @@ internal class EditorFoldingDetector(
               // Inner loop finds last folding line
               line++
             }
-            addFoldRegion(folding, foldStartLine, line - 1)
+            addList.add(Folding(folding, foldStartLine, line - 1))
+          }
+        }
+        if (addList.isEmpty() && removeList.isEmpty()) {
+          value(Unit)
+        } else {
+          writeAction {
+            foldingModel.runBatchFoldingOperation {
+              removeList.forEach { foldingModel.removeFoldRegion(it) }
+              addList.forEach { addFoldRegion(it.folding, it.startLine, it.endLine) }
+            }
           }
         }
       }
@@ -146,4 +163,6 @@ internal class EditorFoldingDetector(
 
   private fun getLineText(line: Int) =
     EditorHyperlinkSupport.getLineText(document, line, /* includeEol */ false)
+
+  private data class Folding(val folding: ConsoleFolding, val startLine: Int, val endLine: Int)
 }

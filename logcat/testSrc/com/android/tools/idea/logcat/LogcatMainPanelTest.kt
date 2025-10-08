@@ -53,6 +53,7 @@ import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.messages.TagFormat
+import com.android.tools.idea.logcat.messages.TextAccumulator
 import com.android.tools.idea.logcat.service.LogcatService
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
@@ -118,6 +119,7 @@ import javax.swing.JPanel
 import javax.swing.JPopupMenu
 import kotlin.io.path.pathString
 import kotlin.io.path.writeText
+import kotlin.test.fail
 import kotlinx.coroutines.runBlocking
 import org.junit.Ignore
 import org.junit.Rule
@@ -318,6 +320,21 @@ class LogcatMainPanelTest {
     )
   }
 
+  @Test
+  fun appendMessagesAndDelete_shouldNotCrash() = runBlocking {
+    val logcatMainPanel = runInEdtAndGet(this@LogcatMainPanelTest::logcatMainPanel)
+    val textAccumulator = TextAccumulator()
+    textAccumulator.accumulate("line1\nline2\nline3\nline4\n")
+    try {
+      repeat(50) {
+        logcatMainPanel.appendMessages(textAccumulator, null)
+        logcatMainPanel.clearMessageView()
+      }
+    } catch (e: Exception) {
+      fail("Should not throw", e)
+    }
+  }
+
   @Ignore("b/347915674")
   @Test
   fun applyFilter_resetsFormatter() = runBlocking {
@@ -370,7 +387,6 @@ class LogcatMainPanelTest {
     logcatMainPanel.messageProcessor.appendMessages(listOf(logcatMessage(), logcatMessage()))
 
     logcatMainPanel.messageProcessor.onIdle {
-      @Suppress("ConvertLambdaToReference")
       assertThat(logcatMainPanel.editor.isCaretAtBottom()).isTrue()
     }
   }
@@ -560,8 +576,10 @@ class LogcatMainPanelTest {
     logcatMainPanel.messageProcessor.appendMessages(listOf(logcatMessage()))
 
     logcatMainPanel.messageProcessor.onIdle {
-      verify(mockFoldingDetector).detectFoldings(eq(0), eq(1))
-      verify(mockFoldingDetector).detectFoldings(eq(1), eq(2))
+      runBlocking {
+        verify(mockFoldingDetector).detectFoldings(eq(0), eq(1))
+        verify(mockFoldingDetector).detectFoldings(eq(1), eq(2))
+      }
     }
   }
 
@@ -584,7 +602,7 @@ class LogcatMainPanelTest {
     logcatMainPanel.messageProcessor.appendMessages(listOf(logcatMessage(message = longMessage)))
 
     logcatMainPanel.messageProcessor.onIdle {
-      verify(mockFoldingDetector, times(2)).detectFoldings(eq(0), eq(1))
+      runBlocking { verify(mockFoldingDetector, times(2)).detectFoldings(eq(0), eq(1)) }
     }
   }
 
