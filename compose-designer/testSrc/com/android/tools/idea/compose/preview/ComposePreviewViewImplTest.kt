@@ -26,13 +26,13 @@ import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
-import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.surface.NopInteractionHandler
 import com.android.tools.idea.common.surface.SceneViewPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.actions.FakeStudioBotActionFactory
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
@@ -58,8 +58,6 @@ import com.android.tools.idea.util.androidFacet
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.intellij.codeInsight.daemon.impl.MockWolfTheProblemSolver
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.ApplicationManager
@@ -669,34 +667,6 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
       assertEquals(modelToReuse, modelToCreate)
       assertNotEquals(configuration, modelToReuse.configuration)
       assertNotNull(modelToReuse.configuration.imageTransformation)
-    }
-  }
-}
-
-class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
-
-  var isNullPreviewGeneratorAction = false
-
-  private val fakeAction =
-    object : AnAction() {
-      override fun actionPerformed(e: AnActionEvent) {}
-    }
-
-  override fun createPreviewGenerator() = if (isNullPreviewGeneratorAction) null else fakeAction
-
-  override fun transformPreviewAction() = fakeAction
-
-  override fun fixVisualLintIssuesAction() = fakeAction
-
-  override fun fixComposeRenderIssueAction(renderIssues: List<Issue>) = fakeAction
-
-  override fun previewAgentsDropDownAction(): AnAction? = fakeAction
-
-  override fun screenshotToCodeAction(): AnAction {
-    return object : AnAction("Generate Code From Screenshot") {
-      override fun actionPerformed(e: AnActionEvent) {
-        return
-      }
     }
   }
 }
