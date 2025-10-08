@@ -16,7 +16,7 @@
 package com.google.idea.blaze.base
 
 import com.google.common.collect.ImmutableList
-import com.google.idea.blaze.base.logging.AiEvent
+import com.google.idea.blaze.base.logging.AiEventStats
 import com.google.idea.blaze.base.logging.Command
 import com.google.idea.blaze.base.logging.EventLoggingService
 import com.google.idea.blaze.base.logging.GenericEvent
@@ -36,7 +36,7 @@ class MockEventLoggingService(parentDisposable: Disposable) : EventLoggingServic
   private val querySyncStats: MutableList<QuerySyncActionStats> = mutableListOf()
   private val querySyncAutoConversionStats: MutableList<QuerySyncAutoConversionStats> =
       mutableListOf()
-  private val aiEvents: MutableList<AiEvent> = mutableListOf()
+  private val aiEventStats: MutableList<AiEventStats> = mutableListOf()
 
   init {
     ServiceHelper.registerApplicationService(EventLoggingService::class.java, this, parentDisposable)
@@ -49,14 +49,14 @@ class MockEventLoggingService(parentDisposable: Disposable) : EventLoggingServic
   fun getQuerySyncAutoConversionStats(): ImmutableList<QuerySyncAutoConversionStats> =
       ImmutableList.copyOf(querySyncAutoConversionStats)
 
-  fun aiEvents(): ImmutableList<AiEvent> = ImmutableList.copyOf(aiEvents)
+  fun aiEvents(): ImmutableList<AiEventStats> = ImmutableList.copyOf(aiEventStats)
 
   override fun log(loggedEvent: LoggedEvent) {
     when(loggedEvent) {
       is SyncStats -> syncStats.add(loggedEvent)
       is QuerySyncActionStats -> querySyncStats.add(loggedEvent)
       is QuerySyncAutoConversionStats -> querySyncAutoConversionStats.add(loggedEvent)
-      is AiEvent -> aiEvents.add(loggedEvent)
+      is AiEventStats -> aiEventStats.add(loggedEvent)
       is HighlightStats -> Unit
       is Command -> Unit
       is GenericEvent -> Unit
