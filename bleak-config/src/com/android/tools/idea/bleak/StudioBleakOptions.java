@@ -74,7 +74,8 @@ public class StudioBleakOptions {
     new IgnoredRef(-2, "com.intellij.util.indexing.IndexingStamp", "ourFinishedFiles"),
     new IgnoredRef(-2, "com.intellij.openapi.fileEditor.impl.EditorWindow", "removedTabs"),
     new IgnoredRef(-2, "com.intellij.notification.EventLog$ProjectTracker", "myInitial"),
-    new IgnoredRef(-2, "com.intellij.notification.impl.ProjectNotificationModel", "myNotifications"),
+    new IgnoredRef(-2, "com.intellij.notification.impl.ProjectNotificationsModel", "myNotifications"),
+    new IgnoredRef(-2, "com.intellij.notification.impl.ProjectNotificationsModel", "unreadNotifications"),
     new IgnoredRef(1, "sun.java2d.Disposer", "records"),
     new IgnoredRef(1, "sun.java2d.marlin.OffHeapArray", "REF_LIST"),
     new IgnoredRef(1, "sun.awt.X11.XInputMethod", "lastXICFocussedComponent"), // b/150879705
