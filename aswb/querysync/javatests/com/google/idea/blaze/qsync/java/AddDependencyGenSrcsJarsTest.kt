@@ -35,7 +35,12 @@ import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.SrcJarJavaPackageRo
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.testdata.TestData
+import com.google.idea.common.experiments.ExperimentService
+import com.google.idea.common.experiments.MockExperimentService
+import com.google.idea.testing.IntellijRule
 import java.nio.file.Path
+import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -51,19 +56,29 @@ class AddDependencyGenSrcsJarsTest {
   @get:Rule
   val mockito: MockitoRule = MockitoJUnit.rule()
 
+  companion object {
+    @JvmField
+    @ClassRule
+    val intellij = IntellijRule()
+  }
+
   @Mock
   var cache: BuildArtifactCache? = null
 
   private val syncer =
     TestDataSyncRunner(NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PREFIX_READER)
 
-  private val original: QuerySyncProjectSnapshot =
-    syncer.sync(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY)
+  private lateinit var original: QuerySyncProjectSnapshot
 
   private val innerRootsMetadata = SrcJarPackageRootsExtractor(null)
 
+  @Before
+  fun setUp() {
+    intellij.registerApplicationService(ExperimentService::class.java, MockExperimentService())
+    original = syncer.sync(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY)
+  }
+
   @Test
-  @Throws(Exception::class)
   fun no_deps_built() {
     val addGenSrcJars =
       AddDependencyGenSrcsJars(original.queryData.projectDefinition(), innerRootsMetadata)

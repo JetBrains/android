@@ -16,6 +16,7 @@ aswb_library(
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/cc",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/dispatchers",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:language_class_java_proto",
