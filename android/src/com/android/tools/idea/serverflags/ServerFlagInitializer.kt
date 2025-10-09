@@ -53,8 +53,6 @@ class ServerFlagInitializer {
      *   paths from the first two parameters.
      * @param overriddenFlags A map of flags and the index of value. For flags that have a single
      *   value, the value of the entry is ignored.
-     * @param useMultiValueFlag if set to true, ServerFlagInitializer will start supporting multi
-     *   value flags.
      * @param hashOverride mainly used for testing - overrides the default hashing function.
      */
     fun initializeService(
@@ -63,7 +61,6 @@ class ServerFlagInitializer {
       osName: String,
       ideBrand: AndroidStudioEvent.IdeBrand,
       overriddenFlags: Map<String, Int>,
-      useMultiValueFlag: Boolean,
       hashOverride: (String) -> Int = ::hash,
     ): ServerFlagInitializationData {
       val localFilePath = buildLocalFilePath(localCacheDirectory, version)
@@ -79,12 +76,12 @@ class ServerFlagInitializer {
           list
             .filter { it.isEnabled(osType, brand) }
             .associateNotNull { serverFlagData ->
-              serverFlagData.getEnabledValue(useMultiValueFlag, hashOverride)?.let { flagValue ->
+              serverFlagData.getEnabledValue(hashOverride)?.let { flagValue ->
                 serverFlagData.name to flagValue
               }
             }
         } else {
-          list.getOverriddenFlags(overriddenFlags, useMultiValueFlag)
+          list.getOverriddenFlags(overriddenFlags)
         }
 
       val logger = Logger.getInstance(ServerFlagInitializer::class.java)
@@ -96,37 +93,24 @@ class ServerFlagInitializer {
   }
 }
 
-private fun List<ServerFlagData>.getOverriddenFlags(
-  overriddenFlags: Map<String, Int>,
-  useMultiValueFlag: Boolean,
-) =
+private fun List<ServerFlagData>.getOverriddenFlags(overriddenFlags: Map<String, Int>) =
   filter { overriddenFlags.containsKey(it.name) }
     .associateNotNull {
-      if (useMultiValueFlag) {
-        val flagValueIndex = overriddenFlags[it.name]!!
-        if (it.hasMultiValueServerFlag()) {
-          val flagValue =
-            try {
-              it.multiValueServerFlag.flagValuesList[flagValueIndex]
-            } catch (_: IndexOutOfBoundsException) {
-              Logger.getInstance("ServerFlagInitializer")
-                .warn("Index $flagValueIndex is out of bounds for flag ${it.name}")
-              return@associateNotNull null
-            }
-          it.name to ServerFlagValueData(flagValueIndex, flagValue)
-        } else {
-          Logger.getInstance("ServerFlagInitializer")
-            .warn("Expected MultiValueServerFlag to be set for overridden flag ${it.name}")
-          null
-        }
+      val flagValueIndex = overriddenFlags[it.name]!!
+      if (it.hasMultiValueServerFlag()) {
+        val flagValue =
+          try {
+            it.multiValueServerFlag.flagValuesList[flagValueIndex]
+          } catch (_: IndexOutOfBoundsException) {
+            Logger.getInstance("ServerFlagInitializer")
+              .warn("Index $flagValueIndex is out of bounds for flag ${it.name}")
+            return@associateNotNull null
+          }
+        it.name to ServerFlagValueData(flagValueIndex, flagValue)
       } else {
-        if (it.hasServerFlag()) {
-          it.name to ServerFlagValueData(0, it.serverFlag.toSingleFlagValue())
-        } else {
-          Logger.getInstance("ServerFlagInitializer")
-            .warn("Expected ServerFlag to be set for overridden flag ${it.name}")
-          null
-        }
+        Logger.getInstance("ServerFlagInitializer")
+          .warn("Expected MultiValueServerFlag to be set for overridden flag ${it.name}")
+        null
       }
     }
 
@@ -140,43 +124,28 @@ private fun ServerFlagData.isEnabled(osType: OSType, brand: Brand): Boolean {
  * This is compatible with the old way of declaring server flag value directly in the ServerFlag
  * proto message (as opposed to FlagValue).
  */
-private fun ServerFlagData.getEnabledValue(
-  useMultiValueFlag: Boolean,
-  hashFunction: (String) -> Int,
-): ServerFlagValueData? {
+private fun ServerFlagData.getEnabledValue(hashFunction: (String) -> Int): ServerFlagValueData? {
   val key = AnalyticsSettings.userId + name
   val hash = hashFunction(key)
 
-  if (useMultiValueFlag) {
-    if (!hasMultiValueServerFlag()) {
-      Logger.getInstance("ServerFlagInitializer")
-        .warn("Server flag $name does not have MultiValueServerFlag field set.")
-      return null
-    }
-    if (!areAllValuesTheSameType(multiValueServerFlag.flagValuesList)) {
-      Logger.getInstance("ServerFlagInitializer")
-        .warn("Server flag $name have flag values of different types.")
-      return null
-    }
-    var acc = 0
-    for (indexedValue in multiValueServerFlag.flagValuesList.withIndex()) {
-      if (acc <= hash && hash < acc + indexedValue.value.percentEnabled) {
-        return ServerFlagValueData(indexedValue.index, indexedValue.value)
-      }
-      acc += indexedValue.value.percentEnabled
-    }
-    return null
-  } else {
-    if (!hasServerFlag()) {
-      Logger.getInstance("ServerFlagInitializer")
-        .warn("Server flag $name does not have ServerFlag field set.")
-      return null
-    }
-    if (hash < serverFlag.percentEnabled) {
-      return ServerFlagValueData(0, serverFlag.toSingleFlagValue())
-    }
+  if (!hasMultiValueServerFlag()) {
+    Logger.getInstance("ServerFlagInitializer")
+      .warn("Server flag $name does not have MultiValueServerFlag field set.")
     return null
   }
+  if (!areAllValuesTheSameType(multiValueServerFlag.flagValuesList)) {
+    Logger.getInstance("ServerFlagInitializer")
+      .warn("Server flag $name have flag values of different types.")
+    return null
+  }
+  var acc = 0
+  for (indexedValue in multiValueServerFlag.flagValuesList.withIndex()) {
+    if (acc <= hash && hash < acc + indexedValue.value.percentEnabled) {
+      return ServerFlagValueData(indexedValue.index, indexedValue.value)
+    }
+    acc += indexedValue.value.percentEnabled
+  }
+  return null
 }
 
 private fun areAllValuesTheSameType(flags: List<FlagValue>): Boolean {
@@ -185,11 +154,13 @@ private fun areAllValuesTheSameType(flags: List<FlagValue>): Boolean {
 }
 
 private fun ServerFlagData.isOSEnabled(osType: OSType): Boolean {
-  return (this.serverFlag.osTypeCount == 0 || this.serverFlag.osTypeList.contains(osType))
+  return (this.multiValueServerFlag.osTypeCount == 0 ||
+    this.multiValueServerFlag.osTypeList.contains(osType))
 }
 
 private fun ServerFlagData.isBrandEnabled(brand: Brand): Boolean {
-  return (this.serverFlag.brandCount == 0 || this.serverFlag.brandList.contains(brand))
+  return (this.multiValueServerFlag.brandCount == 0 ||
+    this.multiValueServerFlag.brandList.contains(brand))
 }
 
 private fun getOsType(osName: String): OSType {

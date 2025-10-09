@@ -16,9 +16,9 @@
 package com.android.tools.idea.serverflags
 
 import com.android.tools.idea.serverflags.protos.Brand
+import com.android.tools.idea.serverflags.protos.FlagValue
 import com.android.tools.idea.serverflags.protos.MultiValueServerFlag
 import com.android.tools.idea.serverflags.protos.OSType
-import com.android.tools.idea.serverflags.protos.ServerFlag
 import com.android.tools.idea.serverflags.protos.ServerFlagData
 import com.android.tools.idea.serverflags.protos.ServerFlagList
 import com.android.tools.idea.serverflags.protos.ServerFlagTest
@@ -31,47 +31,94 @@ private const val FILE_NAME = "serverflaglist.protobuf"
 
 val serverFlagTestData: ServerFlagList
   get() {
-    val flags =
-      listOf(
-        ServerFlag.newBuilder()
-          .apply {
-            percentEnabled = 0
-            booleanValue = true
-          }
-          .build(),
-        ServerFlag.newBuilder()
-          .apply {
-            percentEnabled = 0
-            intValue = 1
-          }
-          .build(),
-        ServerFlag.newBuilder()
-          .apply {
-            percentEnabled = 100
-            floatValue = 1f
-          }
-          .build(),
-        ServerFlag.newBuilder()
-          .apply {
-            percentEnabled = 100
-            stringValue = "foo"
-          }
-          .build(),
-        ServerFlag.newBuilder()
-          .apply {
-            percentEnabled = 100
-            protoValue = Any.pack(ServerFlagTest.newBuilder().apply { content = "content" }.build())
-          }
-          .build(),
-      )
-
     val flagData =
       listOf(
-        makeServerFlagData("boolean", flags[0]),
-        makeServerFlagData("int", flags[1]),
-        makeServerFlagData("float", flags[2]),
-        makeServerFlagData("string", flags[3]),
-        makeServerFlagData("proto", flags[4]),
+        makeServerFlagData(
+          "boolean",
+          MultiValueServerFlag.newBuilder()
+            .apply {
+              addAllFlagValues(
+                listOf(
+                  FlagValue.newBuilder()
+                    .apply {
+                      percentEnabled = 0
+                      booleanValue = true
+                    }
+                    .build()
+                )
+              )
+            }
+            .build(),
+        ),
+        makeServerFlagData(
+          "int",
+          MultiValueServerFlag.newBuilder()
+            .apply {
+              addAllFlagValues(
+                listOf(
+                  FlagValue.newBuilder()
+                    .apply {
+                      percentEnabled = 0
+                      intValue = 1
+                    }
+                    .build()
+                )
+              )
+            }
+            .build(),
+        ),
+        makeServerFlagData(
+          "float",
+          MultiValueServerFlag.newBuilder()
+            .apply {
+              addAllFlagValues(
+                listOf(
+                  FlagValue.newBuilder()
+                    .apply {
+                      percentEnabled = 100
+                      floatValue = 1f
+                    }
+                    .build()
+                )
+              )
+            }
+            .build(),
+        ),
+        makeServerFlagData(
+          "string",
+          MultiValueServerFlag.newBuilder()
+            .apply {
+              addAllFlagValues(
+                listOf(
+                  FlagValue.newBuilder()
+                    .apply {
+                      percentEnabled = 100
+                      stringValue = "foo"
+                    }
+                    .build()
+                )
+              )
+            }
+            .build(),
+        ),
+        makeServerFlagData(
+          "proto",
+          MultiValueServerFlag.newBuilder()
+            .apply {
+              addAllFlagValues(
+                listOf(
+                  FlagValue.newBuilder()
+                    .apply {
+                      percentEnabled = 100
+                      protoValue =
+                        Any.pack(ServerFlagTest.newBuilder().apply { content = "content" }.build())
+                    }
+                    .build()
+                )
+              )
+            }
+            .build(),
+        ),
       )
 
     val builder = ServerFlagList.newBuilder().apply { configurationVersion = 1 }
@@ -85,10 +132,18 @@ val serverFlagTestDataByOs: ServerFlagList
       enumValues<OSType>().map {
         makeServerFlagData(
           it.toString(),
-          ServerFlag.newBuilder()
+          MultiValueServerFlag.newBuilder()
             .apply {
-              percentEnabled = 100
-              booleanValue = true
+              addAllFlagValues(
+                listOf(
+                  FlagValue.newBuilder()
+                    .apply {
+                      percentEnabled = 100
+                      booleanValue = true
+                    }
+                    .build()
+                )
+              )
               addOsType(it)
             }
             .build(),
@@ -106,10 +161,18 @@ val serverFlagTestDataByBrand: ServerFlagList
       enumValues<Brand>().map {
         makeServerFlagData(
           it.toString(),
-          ServerFlag.newBuilder()
+          MultiValueServerFlag.newBuilder()
             .apply {
-              percentEnabled = 100
-              booleanValue = true
+              addAllFlagValues(
+                listOf(
+                  FlagValue.newBuilder()
+                    .apply {
+                      percentEnabled = 100
+                      booleanValue = true
+                    }
+                    .build()
+                )
+              )
               addBrand(it)
             }
             .build(),
@@ -120,15 +183,6 @@ val serverFlagTestDataByBrand: ServerFlagList
     builder.addAllServerFlags(flagData)
     return builder.build()
   }
-
-private fun makeServerFlagData(flagName: String, flag: ServerFlag): ServerFlagData {
-  return ServerFlagData.newBuilder()
-    .apply {
-      name = flagName
-      serverFlag = flag
-    }
-    .build()
-}
 
 fun makeServerFlagData(flagName: String, flag: MultiValueServerFlag): ServerFlagData =
   ServerFlagData.newBuilder()

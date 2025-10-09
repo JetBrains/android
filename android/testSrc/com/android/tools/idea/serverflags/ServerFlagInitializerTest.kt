@@ -70,7 +70,6 @@ class ServerFlagInitializerTest : TestCase() {
         OS_NAME_MAC,
         AndroidStudioEvent.IdeBrand.ANDROID_STUDIO,
         EXPERIMENTS,
-        false,
       )
     }
     val service = ServerFlagServiceImpl()
@@ -94,7 +93,6 @@ class ServerFlagInitializerTest : TestCase() {
         OS_NAME_MAC,
         AndroidStudioEvent.IdeBrand.ANDROID_STUDIO,
         emptyMap(),
-        false,
       )
     }
     saveServerFlagList(expected, localPath, VERSION)
@@ -118,7 +116,6 @@ class ServerFlagInitializerTest : TestCase() {
         OS_NAME_MAC,
         AndroidStudioEvent.IdeBrand.ANDROID_STUDIO,
         mapOf("boolean" to 0, "string" to 0),
-        false,
       ) {
         0
       }
@@ -170,7 +167,6 @@ class ServerFlagInitializerTest : TestCase() {
         osName,
         AndroidStudioEvent.IdeBrand.ANDROID_STUDIO,
         emptyMap(),
-        false,
       )
     }
     val service = ServerFlagServiceImpl()
@@ -181,14 +177,7 @@ class ServerFlagInitializerTest : TestCase() {
     saveServerFlagList(serverFlagTestDataByBrand, localPath, VERSION)
 
     ServerFlagServiceImpl.initializer = {
-      ServerFlagInitializer.initializeService(
-        localPath,
-        VERSION,
-        OS_NAME_MAC,
-        brand,
-        emptyMap(),
-        false,
-      )
+      ServerFlagInitializer.initializeService(localPath, VERSION, OS_NAME_MAC, brand, emptyMap())
     }
     val service = ServerFlagServiceImpl()
     assertThat(service.flagAssignments.keys).containsExactlyElementsIn(listOf(filterBy.toString()))
@@ -202,7 +191,6 @@ class ServerFlagInitializerTest : TestCase() {
         OS_NAME_MAC,
         AndroidStudioEvent.IdeBrand.ANDROID_STUDIO,
         EXPERIMENTS,
-        false,
       )
     }
     val service = ServerFlagServiceImpl()
@@ -334,7 +322,6 @@ class MultiValueServerFlagInitializerTest {
         OS_NAME_MAC,
         AndroidStudioEvent.IdeBrand.ANDROID_STUDIO,
         emptyMap(),
-        true,
       ) {
         0
       }
@@ -357,7 +344,6 @@ class MultiValueServerFlagInitializerTest {
         OS_NAME_MAC,
         AndroidStudioEvent.IdeBrand.ANDROID_STUDIO,
         emptyMap(),
-        true,
         hashFunction,
       )
     }
@@ -405,7 +391,6 @@ class MultiValueServerFlagInitializerTest {
         OS_NAME_MAC,
         AndroidStudioEvent.IdeBrand.ANDROID_STUDIO,
         mapOf("multiValue" to 1, "singleValue" to 0),
-        true,
       )
     ) {
       assertThat(flags).hasSize(2)
