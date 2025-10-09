@@ -40,10 +40,10 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.BorderLayout
 import java.awt.Dimension
+import java.awt.FlowLayout
 import java.awt.Font
 import java.util.concurrent.atomic.AtomicInteger
 import javax.swing.BorderFactory
-import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -366,21 +366,17 @@ class UpdateReferenceImagesDialog(
               alignmentX = JComponent.LEFT_ALIGNMENT
             }
           previewsContainer.add(functionNameLabel)
+          // Use FlowLayout to ensure components are left-aligned and not stretched.
           val horizontalPreviewsPanel =
-            JPanel().apply {
-              layout = BoxLayout(this, BoxLayout.X_AXIS)
+            JPanel(FlowLayout(FlowLayout.LEFT, 10, 0)).apply {
               border = BorderFactory.createEmptyBorder(10, 20, 10, 20)
             }
-          previews.forEachIndexed { index, previewData ->
+          previews.forEach { previewData ->
             val testId = previewData.testId ?: getIdentifier(previewData)
             imagePanelMap[testId]?.let { panel ->
               horizontalPreviewsPanel.add(panel)
-              if (index < previews.size - 1) {
-                horizontalPreviewsPanel.add(Box.createHorizontalStrut(10))
-              }
             }
           }
-          horizontalPreviewsPanel.add(Box.createHorizontalGlue())
           val horizontalScrollPane =
             JBScrollPane(horizontalPreviewsPanel).apply {
               horizontalScrollBarPolicy = JBScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED

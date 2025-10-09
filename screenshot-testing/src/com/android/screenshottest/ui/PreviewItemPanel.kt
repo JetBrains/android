@@ -31,6 +31,8 @@ import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.JBImageIcon
 import java.awt.Dimension
 import java.awt.Font
+import java.awt.Graphics
+import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.io.File
 import java.io.IOException
@@ -38,6 +40,9 @@ import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
+
+// Define constraints for the image panel size.
+private const val MAX_IMAGE_SIZE = 200
 
 /**
  * A UI panel that displays a single screenshot test preview, including its image and details.
@@ -47,35 +52,31 @@ class PreviewItemPanel(
   private val onImageLoaded: () -> Unit,
   private val logger: Logger = Logger.getInstance(PreviewItemPanel::class.java)
 ) : JPanel() {
-  private val imageContainer: JPanel
-  private val loadingIcon: AsyncProcessIcon
+  private val imagePanel: ImagePanel
+  private val detailsPanel: JPanel
   var isLoadedSuccessfully: Boolean = false
     private set
   val loadedImagePaths = mutableMapOf<String, String>() // imagePath to simpleClassName
 
   init {
-    layout = BoxLayout(this, BoxLayout.Y_AXIS)
+    // Use GridBagLayout to stack components vertically without forcing them to the same width.
+    layout = GridBagLayout()
     isOpaque = false
-    loadingIcon = AsyncProcessIcon("Waiting for image...")
-    imageContainer =
-      JPanel().apply {
-        layout = BoxLayout(this, BoxLayout.X_AXIS)
-        alignmentX = JComponent.LEFT_ALIGNMENT
-        add(
-          JPanel(GridBagLayout()).apply {
-            val fixedSize = Dimension(200, 150)
-            preferredSize = fixedSize
-            maximumSize = fixedSize
-            border = BorderFactory.createLineBorder(JBColor.border())
-            add(loadingIcon)
-          }
-        )
-      }
-    val detailsPanel =
+
+    val c = GridBagConstraints()
+    c.gridx = 0
+    c.anchor = GridBagConstraints.WEST // Pin components to the left.
+    c.fill = GridBagConstraints.NONE   // Do not allow components to stretch.
+    c.weightx = 0.0
+
+    imagePanel = ImagePanel()
+    c.gridy = 0
+    add(imagePanel, c)
+
+    detailsPanel =
       JPanel().apply {
         layout = BoxLayout(this, BoxLayout.Y_AXIS)
         border = BorderFactory.createEmptyBorder(8, 0, 0, 0)
-        alignmentX = JComponent.LEFT_ALIGNMENT
       }
     val matchLabel =
       JBLabel("New").apply {
@@ -98,21 +99,19 @@ class PreviewItemPanel(
       composableLink.alignmentX = JComponent.LEFT_ALIGNMENT
       detailsPanel.add(composableLink)
     }
-    add(imageContainer)
-    add(detailsPanel)
+
+    c.gridy = 1
+    add(detailsPanel, c)
   }
 
   fun setMultipreview() {
-    loadingIcon.toolTipText = "Waiting for multipreview..."
+    imagePanel.setMultipreview()
   }
 
   fun showError(message: String) {
     ApplicationManager.getApplication().invokeLater {
       isLoadedSuccessfully = false
-      imageContainer.removeAll()
-      imageContainer.add(JBLabel(message).apply { foreground = JBColor.RED })
-      imageContainer.revalidate()
-      imageContainer.repaint()
+      imagePanel.showError(message)
     }
   }
 
@@ -124,10 +123,12 @@ class PreviewItemPanel(
       val image = createImageIcon(newPath)
       ApplicationManager.getApplication().invokeLater {
         if (image != null) {
-          imageContainer.removeAll()
-          imageContainer.add(JBLabel(image))
-          imageContainer.revalidate()
-          imageContainer.repaint()
+          imagePanel.setImage(image)
+
+          // The layout is now independent, so we just need to trigger a re-layout.
+          revalidate()
+          repaint()
+
           isLoadedSuccessfully = true
           onImageLoaded()
         } else {
@@ -146,11 +147,86 @@ class PreviewItemPanel(
     }
     return try {
       val image = ImageLoader.loadFromBytes(virtualFile.contentsToByteArray()) ?: return null
-      val scaledImage = ImageUtil.scaleImage(image, 200, 150)
+
+      val w = image.getWidth(null)
+      val h = image.getHeight(null)
+
+      // If the image is already within bounds, no scaling is needed.
+      if (w <= 0 || h <= 0 || (w <= MAX_IMAGE_SIZE && h <= MAX_IMAGE_SIZE)) {
+        return JBImageIcon(image)
+      }
+
+      // Calculate new dimensions while preserving aspect ratio to fit within MAX_IMAGE_SIZE
+      val newW: Int
+      val newH: Int
+      if (w > h) {
+        newW = MAX_IMAGE_SIZE
+        newH = (h.toDouble() * newW / w.toDouble()).toInt()
+      } else {
+        newH = MAX_IMAGE_SIZE
+        newW = (w.toDouble() * newH / h.toDouble()).toInt()
+      }
+
+      // Ensure we don't get zero dimensions for very thin/short images
+      val finalW = newW.coerceAtLeast(1)
+      val finalH = newH.coerceAtLeast(1)
+
+      val scaledImage = ImageUtil.scaleImage(image, finalW, finalH)
       JBImageIcon(scaledImage)
     } catch (e: IOException) {
       logger.error("IOException while loading image: $path", e)
       null
+    }
+  }
+
+  /**
+   * A self-contained panel that handles its own sizing and rendering to prevent distortion.
+   */
+  private class ImagePanel : JPanel(GridBagLayout()) {
+    private var image: JBImageIcon? = null
+    private val loadingIcon = AsyncProcessIcon("Waiting for image...")
+
+    init {
+      // Set an initial fixed size for the loading state.
+      val initialSize = Dimension(200, 200)
+      preferredSize = initialSize
+      maximumSize = initialSize
+      border = BorderFactory.createLineBorder(JBColor.border())
+      add(loadingIcon)
+    }
+
+    fun setImage(newImage: JBImageIcon) {
+      this.image = newImage
+      removeAll() // Remove loading icon
+
+      // Lock the panel's size to the image's size. This is the key to preventing distortion.
+      val newSize = Dimension(newImage.iconWidth, newImage.iconHeight)
+      preferredSize = newSize
+      maximumSize = newSize
+
+      revalidate()
+      repaint()
+    }
+
+    fun showError(message: String) {
+      removeAll()
+      add(JBLabel(message).apply { foreground = JBColor.RED })
+      revalidate()
+      repaint()
+    }
+
+    fun setMultipreview() {
+      loadingIcon.toolTipText = "Waiting for multipreview..."
+    }
+
+    override fun paintComponent(g: Graphics) {
+      super.paintComponent(g)
+      // Manually paint the image to ensure it's centered and not scaled by the layout manager.
+      image?.let {
+        val x = (width - it.iconWidth) / 2
+        val y = (height - it.iconHeight) / 2
+        it.paintIcon(this, g, x, y)
+      }
     }
   }
 }
