@@ -15,13 +15,20 @@
  */
 package com.android.tools.idea.layoutinspector.common
 
+import com.android.flags.junit.FlagRule
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.mockito.kotlin.getTypedArgument
 import com.android.resources.ResourceType
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.model.COMPOSE1
+import com.android.tools.idea.layoutinspector.model.COMPOSE2
+import com.android.tools.idea.layoutinspector.model.COMPOSE3
+import com.android.tools.idea.layoutinspector.model.COMPOSE4
+import com.android.tools.idea.layoutinspector.model.COMPOSE5
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
@@ -47,6 +54,7 @@ import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.replaceService
 import javax.swing.JComponent
 import javax.swing.JPopupMenu
@@ -60,9 +68,10 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
 
 class ViewContextMenuFactoryTest {
-  @get:Rule val applicationRule = ApplicationRule()
+  private val disposableRule = DisposableRule()
+  private val flagRule = FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_STATE_READS, true)
 
-  @get:Rule val disposableRule = DisposableRule()
+  @get:Rule val rule = RuleChain(ApplicationRule(), disposableRule, flagRule)
 
   private var source: JComponent? = mock()
   private var popupMenuComponent: JPopupMenu? = mock()
@@ -91,7 +100,12 @@ class ViewContextMenuFactoryTest {
           ROOT,
           viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "rootId"),
         ) {
-          view(VIEW1)
+          view(VIEW1) {
+            compose(COMPOSE1, "Row") {
+              compose(COMPOSE2, "Item") { compose(COMPOSE3, "Text") }
+              compose(COMPOSE4, "Item") { compose(COMPOSE5, "Text") }
+            }
+          }
           view(VIEW2, qualifiedName = "viewName") {
             view(VIEW3, textValue = "myText") { image() }
             image()
@@ -157,13 +171,24 @@ class ViewContextMenuFactoryTest {
     ActionUtil.performAction(hideSubtree, event)
 
     assertThat(model.root.flattenedList().filter { model.isVisible(it) }.map { it.drawId }.toList())
-      .containsExactly(ROOT, VIEW1, -1L)
+      .containsExactly(ROOT, VIEW1, COMPOSE1, COMPOSE2, COMPOSE3, COMPOSE4, COMPOSE5, -1L)
 
     val showSubTree = createdGroup?.children(event)?.get(1)!!
     ActionUtil.performAction(showSubTree, event)
 
     assertThat(model.root.flattenedList().filter { model.isVisible(it) }.map { it.drawId }.toList())
-      .containsExactly(ROOT, VIEW1, VIEW2, VIEW3, -1L)
+      .containsExactly(
+        ROOT,
+        VIEW1,
+        VIEW2,
+        VIEW3,
+        COMPOSE1,
+        COMPOSE2,
+        COMPOSE3,
+        COMPOSE4,
+        COMPOSE5,
+        -1L,
+      )
 
     model.hideSubtree(model[VIEW1]!!)
     model.hideSubtree(model[VIEW3]!!)
@@ -179,6 +204,23 @@ class ViewContextMenuFactoryTest {
 
     assertThat(model.root.flattenedList().filter { model.isVisible(it) }.map { it.drawId }.toList())
       .containsExactly(ROOT, VIEW2, -1L)
+  }
+
+  @Test
+  fun testOneComposeView() {
+    model.setSelection(model[COMPOSE2], origin = SelectionOrigin.INTERNAL)
+    showViewContextMenu(model.selection!!, listOf(model[COMPOSE2]!!), model, source!!, 0, 0)
+    assertThat(createdGroup?.children(event)?.map { it.templateText })
+      .containsExactly(
+        "Hide Subtree",
+        "Show Subtree",
+        "Show Only Subtree",
+        "Show Only Parents",
+        "Show All",
+        "State Reads",
+        "Go To Declaration",
+      )
+      .inOrder()
   }
 
   @Test

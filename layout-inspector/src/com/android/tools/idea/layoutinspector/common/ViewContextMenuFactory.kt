@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.common
 
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.IconProvider
@@ -23,7 +24,9 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
+import com.android.tools.idea.layoutinspector.stateinspection.createStateReadMenuGroup
 import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -69,14 +72,21 @@ fun showViewContextMenu(
         }
 
         val client = event?.let { LayoutInspectorRootPanel.get(it)?.currentClient }
-        if (client?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) == true) {
+        if (client?.capabilities?.contains(Capability.SUPPORTS_SKP) == true) {
           if (selectedView != null) {
             result.add(HideSubtreeAction(inspectorModel, client, viewNode = selectedView))
             result.add(ShowSubtreeAction(inspectorModel, client, viewNode = selectedView))
             result.add(ShowOnlySubtreeAction(inspectorModel, client, viewNode = selectedView))
             result.add(ShowOnlyParentsAction(inspectorModel, client, viewNode = selectedView))
           }
-          result.add(ShowAllAction(inspectorModel, client))
+          result.add(ShowAllAction(inspectorModel))
+        }
+        if (
+          selectedView is ComposeViewNode &&
+            StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_STATE_READS.get()
+        ) {
+          val stateReadGroup = createStateReadMenuGroup(selectedView, inspectorModel)
+          result.add(stateReadGroup)
         }
         result.add(GotoDeclarationAction)
         return result.toTypedArray()
@@ -117,10 +127,7 @@ fun showViewContextMenu(
   popupComponent.show(source, x, y)
 }
 
-private class ShowAllAction(
-  private val inspectorModel: InspectorModel,
-  val client: InspectorClient,
-) : AnAction("Show All") {
+private class ShowAllAction(private val inspectorModel: InspectorModel) : AnAction("Show All") {
   override fun actionPerformed(event: AnActionEvent) {
     inspectorModel.showAll()
   }
