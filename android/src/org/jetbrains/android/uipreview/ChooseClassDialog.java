@@ -8,6 +8,7 @@ import static com.android.SdkConstants.GOOGLE_SUPPORT_ARTIFACT_PREFIX;
 import static com.android.tools.lint.checks.AnnotationDetectorKt.RESTRICT_TO_ANNOTATION;
 
 import com.intellij.ide.util.PsiClassListCellRenderer;
+import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbModeBlockedFunctionality;
 import com.intellij.openapi.project.DumbService;
@@ -29,6 +30,7 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.SlowOperations;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -214,7 +216,10 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
       return null;
     }
 
-    Collection<PsiClass> publicAndUnrestrictedClasses = findPublicAndUnrestrictedClasses(module, classes);
+    Collection<PsiClass> publicAndUnrestrictedClasses;
+    try (AccessToken ignore = SlowOperations.knownIssue("b/450553368")) {
+      publicAndUnrestrictedClasses = findPublicAndUnrestrictedClasses(module, classes);
+    }
     if (publicAndUnrestrictedClasses.isEmpty()) {
       String emptyErrorTitle = "No " + title + " Found";
       String emptyErrorMessage = "You must first create one or more " + title + " in code";
