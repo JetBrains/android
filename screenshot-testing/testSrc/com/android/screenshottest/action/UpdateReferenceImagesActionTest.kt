@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -57,6 +58,7 @@ class UpdateReferenceImagesActionTest {
     stubPreviewAnnotation()
   }
 
+  @Ignore("TODO: These tests verify the functionality of finding PreviewTest annotated methods, which is no longer needed. Cleanup will be performed once code is fully refactored to Callback")
   @Test
   @RunsInEdt
   fun findPreviewFunctions_findsCorrectFunctions() {
@@ -95,6 +97,8 @@ class UpdateReferenceImagesActionTest {
     assertTrue(functions.any { it.name == "MyPreview2" })
   }
 
+
+  @Ignore("TODO: These tests verify the functionality of finding PreviewTest annotated methods, which is no longer needed. Cleanup will be performed once code is fully refactored to Callback")
   @Test
   @RunsInEdt
   fun determineTestClassFqns_handlesClassAndTopLevel() {
@@ -123,6 +127,8 @@ class UpdateReferenceImagesActionTest {
     assertTrue("Should contain FQN for the top-level function's file", fqns.contains("com.example.MyFileKt"))
   }
 
+
+  @Ignore("TODO: These tests verify the functionality of finding PreviewTest annotated methods, which is no longer needed. Cleanup will be performed once code is fully refactored to Callback")
   @Test
   @RunsInEdt
   fun determineTestClassFqns_deduplicatesClasses() {
