@@ -543,6 +543,9 @@ class StudioRendererPanelTest {
       deviceDisplayRectangle.y + 15,
       FakeMouse.Button.RIGHT,
     )
+
+    assertThat(model.inspectorModel.selection).isEqualTo(model.inspectorModel[VIEW1])
+
     latestPopup!!.assertSelectViewActionAndGotoDeclaration(ROOT, VIEW1)
 
     assertThat(model.inspectorModel.selection?.drawId).isEqualTo(VIEW1)

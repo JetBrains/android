@@ -333,6 +333,7 @@ class StudioRendererPanel(
         toModelCoordinates(Point2D.Double(x.toDouble(), y.toDouble())) ?: return
       val views = renderModel.rightClickNode(modelCoordinates.x, modelCoordinates.y)
       showViewContextMenu(
+        selectedView = renderModel.inspectorModel.selection,
         views = views.toList(),
         inspectorModel = renderModel.inspectorModel,
         source = this@StudioRendererPanel,

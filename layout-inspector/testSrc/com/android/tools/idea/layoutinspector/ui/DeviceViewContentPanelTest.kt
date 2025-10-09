@@ -830,14 +830,18 @@ class DeviceViewContentPanelTest {
       .whenever(ActionManager.getInstance())
       .createActionPopupMenu(anyString(), any(ActionGroup::class.java))
 
+    assertThat(model.selection).isNull()
+
     // Right click on VIEW4 when system views are showing:
     fakeUi.mouse.click(40, 50, FakeMouse.Button.RIGHT)
+    assertThat(model.selection).isEqualTo(model[VIEW4])
     latestPopup!!.assertSelectViewActionAndGotoDeclaration(5, 4, 3, 2, 1)
 
     // Right click on VIEW4 when system views are hidden:
     treeSettings.hideSystemNodes = true
     fakeUi.mouse.click(40, 50, FakeMouse.Button.RIGHT)
     latestPopup!!.assertSelectViewActionAndGotoDeclaration(5, 2)
+    assertThat(model.selection).isEqualTo(model[VIEW4])
   }
 
   @Test

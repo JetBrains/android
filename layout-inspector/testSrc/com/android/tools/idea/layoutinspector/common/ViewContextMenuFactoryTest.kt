@@ -24,6 +24,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
@@ -62,7 +63,7 @@ class ViewContextMenuFactoryTest {
   private var popupMenuComponent: JPopupMenu? = mock()
   private var createdGroup: ActionGroup? = null
 
-  private var inspectorModel: InspectorModel? = null
+  private lateinit var inspectorModel: InspectorModel
   private val event: AnActionEvent = mock()
   private lateinit var mockLayoutInspector: LayoutInspector
 
@@ -104,21 +105,21 @@ class ViewContextMenuFactoryTest {
     source = null
     popupMenuComponent = null
     createdGroup = null
-    inspectorModel = null
   }
 
   @Test
   fun testEmptyModel() {
-    showViewContextMenu(listOf(), model(disposableRule.disposable) {}, source!!, 0, 0)
+    val selectedView = inspectorModel[VIEW1]!!
+    showViewContextMenu(selectedView, listOf(), model(disposableRule.disposable) {}, source!!, 0, 0)
     assertThat(createdGroup).isNull()
   }
 
   @Test
   fun testNoViews() {
-    val model = inspectorModel!!
+    val model = inspectorModel
     model.hideSubtree(model[VIEW1]!!)
     model.hideSubtree(model[VIEW3]!!)
-    showViewContextMenu(listOf(), model, source!!, 123, 456)
+    showViewContextMenu(null, listOf(), model, source!!, 123, 456)
     val actions = createdGroup?.getChildren(event)
     assertThat(actions?.size).isEqualTo(2)
     val createdAction = actions?.get(0)
@@ -131,8 +132,9 @@ class ViewContextMenuFactoryTest {
 
   @Test
   fun testOneView() {
-    val model = inspectorModel!!
-    showViewContextMenu(listOf(model[VIEW2]!!), model, source!!, 0, 0)
+    val model = inspectorModel
+    model.setSelection(model[VIEW2], origin = SelectionOrigin.INTERNAL)
+    showViewContextMenu(model.selection!!, listOf(model[VIEW2]!!), model, source!!, 0, 0)
     assertThat(createdGroup?.getChildren(event)?.map { it.templateText })
       .containsExactly(
         "Hide Subtree",
@@ -174,8 +176,9 @@ class ViewContextMenuFactoryTest {
 
   @Test
   fun testActionsVisibility() = withEmbeddedLayoutInspector {
-    val model = inspectorModel!!
-    showViewContextMenu(listOf(model[VIEW2]!!), model, source!!, 0, 0)
+    val model = inspectorModel
+    model.setSelection(model[VIEW2], origin = SelectionOrigin.INTERNAL)
+    showViewContextMenu(model.selection!!, listOf(model[VIEW2]!!), model, source!!, 0, 0)
     val actions = createdGroup?.getChildren(event)?.toList()
 
     actions?.forEach {
@@ -195,8 +198,10 @@ class ViewContextMenuFactoryTest {
 
   @Test
   fun testMultipleViews() {
-    val model = inspectorModel!!
+    val model = inspectorModel
+    model.setSelection(model[ROOT], origin = SelectionOrigin.INTERNAL)
     showViewContextMenu(
+      model.selection!!,
       model.root.flattenedList().filter { it.drawId in listOf(ROOT, VIEW2, VIEW3) }.toList(),
       model,
       source!!,
@@ -231,8 +236,9 @@ class ViewContextMenuFactoryTest {
 
   @Test
   fun testShowSubtreeActionEnablement() {
-    val model = inspectorModel!!
-    showViewContextMenu(listOf(model[VIEW2]!!), model, source!!, 0, 0)
+    val model = inspectorModel
+    model.setSelection(model[VIEW2], origin = SelectionOrigin.INTERNAL)
+    showViewContextMenu(model.selection!!, listOf(model[VIEW2]!!), model, source!!, 0, 0)
     assertThat(createdGroup?.getChildren(event)?.map { it.templateText })
       .containsExactly(
         "Hide Subtree",
@@ -260,8 +266,9 @@ class ViewContextMenuFactoryTest {
 
   @Test
   fun testHideSubtreeVisibility() {
-    val model = inspectorModel!!
-    showViewContextMenu(listOf(model[VIEW2]!!), model, source!!, 0, 0)
+    val model = inspectorModel
+    model.setSelection(model[VIEW2], origin = SelectionOrigin.INTERNAL)
+    showViewContextMenu(model.selection!!, listOf(model[VIEW2]!!), model, source!!, 0, 0)
     assertThat(createdGroup?.getChildren(event)?.map { it.templateText })
       .containsExactly(
         "Hide Subtree",
@@ -335,7 +342,8 @@ class ViewContextMenuFactoryLegacyTest {
     val model = inspectorModel!!
     model.hideSubtree(model[VIEW1]!!)
     model.hideSubtree(model[VIEW3]!!)
-    showViewContextMenu(listOf(), model, source!!, 123, 456)
+    model.setSelection(model[VIEW2], origin = SelectionOrigin.INTERNAL)
+    showViewContextMenu(model.selection!!, listOf(), model, source!!, 123, 456)
     assertThat(createdGroup?.getChildren(event)?.map { it.templateText })
       .containsExactly("Go To Declaration")
 
@@ -345,7 +353,9 @@ class ViewContextMenuFactoryLegacyTest {
   @Test
   fun testMultipleViews() {
     val model = inspectorModel!!
+    model.setSelection(model[ROOT], origin = SelectionOrigin.INTERNAL)
     showViewContextMenu(
+      model.selection!!,
       model.root.flattenedList().filter { it.drawId in listOf(ROOT, VIEW2, VIEW3) }.toList(),
       model,
       source!!,

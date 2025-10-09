@@ -311,7 +311,16 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   private fun showPopup(item: Any, component: JComponent, x: Int, y: Int) {
     val node = componentTreeSelectionModel.currentSelection.singleOrNull() as TreeViewNode?
     if (node != null) {
-      inspectorModel?.let { showViewContextMenu(listOf(node.view), it, component, x, y) }
+      inspectorModel?.let {
+        showViewContextMenu(
+          selectedView = node.view,
+          views = listOf(node.view),
+          inspectorModel = it,
+          source = component,
+          x = x,
+          y = y,
+        )
+      }
     }
   }
 
