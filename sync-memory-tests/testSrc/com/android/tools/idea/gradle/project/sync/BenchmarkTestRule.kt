@@ -83,7 +83,6 @@ private fun createBenchmarkTestRule(projectName: String,
     })
     .around(CollectDaemonLogsRule())
     .around(ConfigurePhasedSyncFlagsRule())
-    .around(DisableTestSuitesRule())
     .maybeDisableLibraryConstraints(project)
     .maybeDisableBuiltInKotlin(project)
     .maybeDisableNewDsl(project)
