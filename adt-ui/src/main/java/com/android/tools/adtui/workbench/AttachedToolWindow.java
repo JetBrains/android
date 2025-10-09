@@ -13,6 +13,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionPopupMenu;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -25,9 +26,7 @@ import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.DumbAwareToggleAction;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.openapi.ui.popup.JBPopupFactory.ActionSelectionAid;
-import com.intellij.openapi.ui.popup.ListPopup;
+import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
@@ -38,10 +37,10 @@ import com.intellij.toolWindow.StripeButtonUi;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.ExperimentalUI;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.PopupMenuListenerAdapter;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.UIBundle;
-import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.ImageUtil;
@@ -74,6 +73,7 @@ import javax.swing.JToggleButton;
 import javax.swing.LayoutFocusTraversalPolicy;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.MouseInputAdapter;
+import javax.swing.event.PopupMenuEvent;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -105,6 +105,7 @@ public class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   private ActionToolbar myActionToolbar;
   private ActionButton mySearchActionButton;
   private boolean myShowSearchField;
+  @Nullable private ActionPopupMenu gearPopUpMenu = null;
 
   @Nullable
   private ToolContent<T> myContent;
@@ -482,9 +483,24 @@ public class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     addGearPopupActions(group);
 
     DataContext context = DataManager.getInstance().getDataContext(component);
-    ListPopup popup = JBPopupFactory.getInstance().createActionGroupPopup(
-      null, group, context, ActionSelectionAid.SPEEDSEARCH, true, null, -1, null, ActionPlaces.POPUP);
-    popup.show(new RelativePoint(component, new Point(x, y)));
+    gearPopUpMenu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.POPUP, group);
+    gearPopUpMenu.setTargetComponent(myActionToolbar.getComponent());
+    gearPopUpMenu.setDataContext(() -> context);
+    JBPopupMenu.showBelow(component, gearPopUpMenu.getComponent());
+    gearPopUpMenu.getComponent().addPopupMenuListener(new PopupMenuListenerAdapter() {
+      @Override
+      public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+        gearPopUpMenu = null;
+      }
+    });
+  }
+
+  private void maybeCloseGearPopup() {
+    if (gearPopUpMenu == null) {
+      return;
+    }
+    gearPopUpMenu.getComponent().setVisible(false);
+    gearPopUpMenu = null;
   }
 
   private void addGearPopupActions(@NotNull DefaultActionGroup group) {
@@ -831,6 +847,12 @@ public class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     public void setSelected(@NotNull AnActionEvent event, boolean state) {
       setPropertyAndUpdate(myProperty, state);
     }
+
+    @Override
+    public void actionPerformed(@NotNull AnActionEvent event) {
+      super.actionPerformed(event);
+      maybeCloseGearPopup();
+    }
   }
 
   private class AttachedLocationAction extends AnAction {
@@ -858,6 +880,7 @@ public class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     public void actionPerformed(@NotNull AnActionEvent event) {
       setProperty(PropertyType.LEFT, myLocation.isLeft());
       setPropertyAndUpdate(PropertyType.SPLIT, myLocation.isBottom());
+      maybeCloseGearPopup();
     }
   }
 
@@ -879,6 +902,12 @@ public class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     public void setSelected(@NotNull AnActionEvent event, boolean state) {
       super.setSelected(event, !state);
     }
+
+    @Override
+    public void actionPerformed(@NotNull AnActionEvent event) {
+      super.actionPerformed(event);
+      maybeCloseGearPopup();
+    }
   }
 
   private class SwapAction extends DumbAwareAction {
@@ -889,6 +918,7 @@ public class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     @Override
     public void actionPerformed(@NotNull AnActionEvent event) {
       myModel.swap();
+      maybeCloseGearPopup();
     }
   }
 
