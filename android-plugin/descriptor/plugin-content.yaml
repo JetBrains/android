@@ -277,7 +277,7 @@
 - name: lib/kotlinx-coroutines-guava.jar
   library: kotlinx-coroutines-guava
   files:
-  - name: $MAVEN_REPOSITORY$/com/intellij/platform/kotlinx-coroutines-guava/1/kotlinx-coroutines-guava-1.jar
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/kotlinx/kotlinx-coroutines-guava/1/kotlinx-coroutines-guava-1.jar
   reason: withProjectLibrary
 - name: lib/kxml2.jar
   library: kxml2
