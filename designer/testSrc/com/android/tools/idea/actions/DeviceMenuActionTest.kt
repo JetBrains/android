@@ -49,6 +49,7 @@ import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -75,7 +76,12 @@ private fun AnAction.flattenActions(): List<AnAction> {
 class DeviceMenuActionTest {
 
   @JvmField @Rule val projectRule = AndroidProjectRule.withAndroidModel().onEdt()
-  @get:Rule val flagRule = FlagRule(StudioFlags.AI_GLASSES_DEVICE_SUPPORT_ENABLED, true)
+  @get:Rule
+  val flagRules =
+    RuleChain(
+      FlagRule(StudioFlags.AI_GLASSES_DEVICE_SUPPORT_ENABLED, true),
+      FlagRule(StudioFlags.XR_GLASSES_DEVICE_SUPPORT_ENABLED, true),
+    )
 
   private fun getReferenceDevicesExpected(): String {
     return """
@@ -175,6 +181,7 @@ class DeviceMenuActionTest {
               ------------------------------------------------------
               XR
               XR Headset (1280 × 1279 dp, xhdpi)
+              XR Glasses (960 × 600 dp, xhdpi)
               AI Glasses (200 × 200 dp, mdpi)
               ------------------------------------------------------
               Generic Devices
