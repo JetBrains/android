@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
+import static com.android.tools.idea.gradle.dsl.utils.DependencyUtilsKt.isInVersionCatalogFile;
+import static com.android.tools.idea.gradle.dsl.utils.DependencyUtilsKt.resolveElement;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
@@ -33,7 +35,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
 import java.util.Arrays;
@@ -92,10 +93,6 @@ public class ScriptDependenciesModelImpl extends AbstractDependenciesModel {
         }
       }
     };
-  }
-
-  private static boolean isInVersionCatalogFile(GradleDslElement element){
-    return element.getDslFile() instanceof GradleVersionCatalogFile;
   }
 
   @Override

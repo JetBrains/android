@@ -311,16 +311,6 @@ public abstract class AbstractDependenciesModel extends GradleDslBlockModel impl
                                                        @NotNull Fetcher<T> byFetcher,
                                                        @NotNull List<T> dest);
 
-  @NotNull
-  protected static GradleDslElement resolveElement(@NotNull GradleDslElement element) {
-    GradleDslElement resolved = element;
-    GradleDslElement foundElement = followElement(element);
-    if (foundElement instanceof GradleDslExpression) {
-      resolved = foundElement;
-    }
-    return resolved;
-  }
-
   /**
    * Returns {@code true} if {@code child} is a descendant of the {@code parent}, {@code false} otherwise.
    */
