@@ -116,6 +116,8 @@ sealed class DeviceProvisionerAndroidDevice(parentScope: CoroutineScope) : Andro
     when (feature) {
       IDevice.HardwareFeature.WATCH -> properties.deviceType == DeviceType.WEAR
       IDevice.HardwareFeature.TV -> properties.deviceType == DeviceType.TV
+      // TODO merge
+      //IDevice.HardwareFeature.XR_GLASSES -> properties.deviceType == DeviceType.XR_GLASSES
       else -> false
     }
 

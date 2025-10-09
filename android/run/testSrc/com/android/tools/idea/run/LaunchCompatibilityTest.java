@@ -76,20 +76,20 @@ public class LaunchCompatibilityTest extends TestCase {
     // cannot run if the device doesn't have a required feature
     LaunchCompatibility compatibility =
       LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, REQUIRES_WATCH, ImmutableSet.of(),
-                                         createMockDevice(8, null, false));
+                                         createMockDevice(8, null, EnumSet.noneOf(IDevice.HardwareFeature.class)));
     assertEquals(new LaunchCompatibility(State.WARNING, "missing feature: WATCH"), compatibility);
 
     // can run if the device has the required features
     compatibility =
       LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, REQUIRES_WATCH, ImmutableSet.of(),
-                                         createMockDevice(8, null, true));
+                                         createMockDevice(8, null, EnumSet.of(IDevice.HardwareFeature.WATCH)));
     assertEquals(new LaunchCompatibility(State.OK, null), compatibility);
 
     // cannot run apk's that don't specify uses-feature watch on a wear device
     compatibility =
       LaunchCompatibility
         .canRunOnDevice(minSdkVersion, projectTarget, NO_FEATURES, ImmutableSet.of(),
-                        createMockDevice(8, null, true));
+                        createMockDevice(8, null, EnumSet.of(IDevice.HardwareFeature.WATCH)));
     assertEquals(new LaunchCompatibility(State.WARNING,
                                          "missing uses-feature watch, non-watch apks cannot be launched on a watch"),
                  compatibility);
@@ -104,7 +104,7 @@ public class LaunchCompatibilityTest extends TestCase {
     LaunchCompatibility compatibility =
       LaunchCompatibility
         .canRunOnDevice(minSdkVersion, projectTarget, NO_FEATURES, ImmutableSet.of(),
-                        createMockDevice(8, null, false));
+                        createMockDevice(8, null));
     assertEquals(new LaunchCompatibility(State.OK, null), compatibility);
 
     OptionalLibrary optionalLibrary = mock(OptionalLibrary.class);
@@ -114,7 +114,7 @@ public class LaunchCompatibilityTest extends TestCase {
     compatibility =
       LaunchCompatibility
         .canRunOnDevice(minSdkVersion, projectTarget, NO_FEATURES, ImmutableSet.of(),
-                        createMockDevice(8, null, false));
+                        createMockDevice(8, null));
     assertEquals(
       new LaunchCompatibility(State.ERROR, "unsure if device supports addon: google"),
       compatibility);
@@ -125,7 +125,7 @@ public class LaunchCompatibilityTest extends TestCase {
     compatibility =
       LaunchCompatibility
         .canRunOnDevice(minSdkVersion, googleApiTarget, NO_FEATURES, ImmutableSet.of(),
-                        createMockDevice(8, null, false));
+                        createMockDevice(8, null));
     assertEquals(new LaunchCompatibility(State.OK, null), compatibility);
   }
 
@@ -137,7 +137,7 @@ public class LaunchCompatibilityTest extends TestCase {
     List<Abi> deviceAbis = ImmutableList.of(Abi.ARMEABI, Abi.ARMEABI_V7A, Abi.ARM64_V8A);
     LaunchCompatibility compatibility =
       LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, NO_FEATURES,
-                                         supportedAbis, createMockDevice(8, null, false, deviceAbis));
+                                         supportedAbis, createMockDevice(8, null, EnumSet.noneOf(IDevice.HardwareFeature.class), deviceAbis));
     assertEquals(new LaunchCompatibility(State.OK, null), compatibility);
   }
 
@@ -149,7 +149,7 @@ public class LaunchCompatibilityTest extends TestCase {
     List<Abi> deviceAbis = ImmutableList.of(Abi.ARMEABI, Abi.ARMEABI_V7A, Abi.ARM64_V8A);
     LaunchCompatibility compatibility =
       LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, NO_FEATURES,
-                                         supportedAbis, createMockDevice(8, null, false, deviceAbis));
+                                         supportedAbis, createMockDevice(8, null, EnumSet.noneOf(IDevice.HardwareFeature.class), deviceAbis));
     assertEquals(new LaunchCompatibility(State.WARNING,
                                          "Device supports armeabi, armeabi-v7a, arm64-v8a, but APK only supports x86_64"),
                  compatibility);
@@ -163,23 +163,37 @@ public class LaunchCompatibilityTest extends TestCase {
     List<Abi> deviceAbis = ImmutableList.of(Abi.ARMEABI, Abi.ARMEABI_V7A, Abi.ARM64_V8A);
     LaunchCompatibility compatibility =
       LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, NO_FEATURES,
-                                         supportedAbis, createMockDevice(8, null, false, deviceAbis));
+                                         supportedAbis, createMockDevice(8, null, EnumSet.noneOf(IDevice.HardwareFeature.class), deviceAbis));
     assertEquals(new LaunchCompatibility(State.OK, null), compatibility);
   }
 
+  public void testXrGlassesCompatibility() {
+    AndroidVersion minSdkVersion = new AndroidVersion(34, null);
+    MockPlatformTarget projectTarget = new MockPlatformTarget(34, 0);
+    AndroidDevice device = createMockDevice(34, null);
+    // TODO merge
+    //when(device.supportsFeature(IDevice.HardwareFeature.XR_GLASSES)).thenAnswer((answer) -> answer.getArgument(0) == IDevice.HardwareFeature.XR_GLASSES);
+
+    LaunchCompatibility compatibility =
+      LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, NO_FEATURES,
+                                         ImmutableSet.of(), device);
+    assertEquals(new LaunchCompatibility(State.WARNING, "XR Glasses can not run application"), compatibility);
+  }
+
   private static AndroidDevice createMockDevice(int api, @Nullable String codeName) {
-    return createMockDevice(api, codeName, false);
+    return createMockDevice(api, codeName, EnumSet.noneOf(IDevice.HardwareFeature.class));
   }
 
-  private static AndroidDevice createMockDevice(int api, @Nullable String codeName, boolean supportsFeature) {
-    return createMockDevice(api, codeName, supportsFeature, ImmutableList.of());
+  private static AndroidDevice createMockDevice(int api, @Nullable String codeName, EnumSet<IDevice.HardwareFeature> supportsFeatures) {
+    return createMockDevice(api, codeName, supportsFeatures, ImmutableList.of());
   }
 
-  private static AndroidDevice createMockDevice(int api, @Nullable String codeName, boolean supportsFeature, List<Abi> abis) {
+  private static AndroidDevice createMockDevice(int api, @Nullable String codeName, EnumSet<IDevice.HardwareFeature> supportsFeature, List<Abi> abis) {
     AndroidDevice device = mock(AndroidDevice.class);
     try {
       when(device.getVersion()).thenReturn(new AndroidVersion(api, codeName));
-      when(device.supportsFeature(any(IDevice.HardwareFeature.class))).thenReturn(supportsFeature);
+      //noinspection SuspiciousMethodCalls
+      when(device.supportsFeature(any(IDevice.HardwareFeature.class))).thenAnswer((answer) -> supportsFeature.contains(answer.getArgument(0)));
       when(device.getAbis()).thenReturn(abis);
     }
     catch (Exception ignored) {
