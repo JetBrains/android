@@ -309,8 +309,16 @@ class DeviceViewContentPanel(
         override fun invokePopup(comp: Component, x: Int, y: Int) {
           if (!pannable.isPanning) {
             val modelCoordinates = toModelCoordinates(x, y)
+            renderModel.selectView(modelCoordinates.x, modelCoordinates.y)
             val views = renderModel.findViewsAt(modelCoordinates.x, modelCoordinates.y)
-            showViewContextMenu(views.toList(), inspectorModel, this@DeviceViewContentPanel, x, y)
+            showViewContextMenu(
+              selectedView = inspectorModel.selection,
+              views = views.toList(),
+              inspectorModel = inspectorModel,
+              source = this@DeviceViewContentPanel,
+              x = x,
+              y = y,
+            )
           }
         }
       }

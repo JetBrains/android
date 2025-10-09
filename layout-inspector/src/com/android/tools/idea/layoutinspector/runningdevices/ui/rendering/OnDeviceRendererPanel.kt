@@ -217,6 +217,7 @@ class OnDeviceRendererPanelImpl(
         val rightClickCoordinates = lastMousePosition ?: Point(width / 2, height / 2)
         withContext(Dispatchers.EDT) {
           showViewContextMenu(
+            selectedView = renderModel.inspectorModel.selection,
             views = views.toList(),
             inspectorModel = renderModel.inspectorModel,
             source = this@OnDeviceRendererPanelImpl,
