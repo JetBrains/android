@@ -17,7 +17,9 @@
 
 package com.android.tools.idea.gradle.project.entities
 
+import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl
 import com.intellij.platform.workspace.jps.entities.ModuleEntityBuilder
 import com.intellij.platform.workspace.storage.EntitySource
 import com.intellij.platform.workspace.storage.EntityType
@@ -30,13 +32,14 @@ import com.intellij.platform.workspace.storage.WorkspaceEntityBuilder
 interface GradleAndroidModelEntityBuilder : WorkspaceEntityBuilder<GradleAndroidModelEntity> {
   override var entitySource: EntitySource
   var module: ModuleEntityBuilder
-  var gradleAndroidModel: GradleAndroidModel
+  var gradleAndroidModel: GradleAndroidModelImpl
+  var resolvedVariant: IdeVariantImpl?
 }
 
 internal object GradleAndroidModelEntityType : EntityType<GradleAndroidModelEntity, GradleAndroidModelEntityBuilder>() {
   override val entityClass: Class<GradleAndroidModelEntity> get() = GradleAndroidModelEntity::class.java
   operator fun invoke(
-    gradleAndroidModel: GradleAndroidModel,
+    gradleAndroidModel: GradleAndroidModelImpl,
     entitySource: EntitySource,
     init: (GradleAndroidModelEntityBuilder.() -> Unit)? = null,
   ): GradleAndroidModelEntityBuilder {
@@ -60,7 +63,7 @@ var ModuleEntityBuilder.gradleAndroidModel: GradleAndroidModelEntityBuilder?
 @JvmOverloads
 @JvmName("createGradleAndroidModelEntity")
 fun GradleAndroidModelEntity(
-  gradleAndroidModel: GradleAndroidModel,
+  gradleAndroidModel: GradleAndroidModelImpl,
   entitySource: EntitySource,
   init: (GradleAndroidModelEntityBuilder.() -> Unit)? = null,
 ): GradleAndroidModelEntityBuilder = GradleAndroidModelEntityType(gradleAndroidModel, entitySource, init)

@@ -286,33 +286,37 @@ sealed class AndroidModule constructor(
 
 fun IdeAndroidProjectImpl.patchForKapt(kaptModel: KaptGradleModel?) = copy(isKaptEnabled = kaptModel?.isEnabled ?: false)
 
-fun List<IdeVariantCoreImpl>.patchForKapt(kaptModel: KaptGradleModel?): List<IdeVariantCoreImpl> {
-  if (kaptModel == null) return this
-  val sourceSets = kaptModel.sourceSets.associateBy { it.sourceSetName }
-  return map { variant ->
-
-    fun <T> T.maybePatch(suffix: String, code: T.(KaptSourceSetModel) -> T): T {
-      val kaptSourceSet = sourceSets[variant.name + suffix] ?: return this
-      return code(kaptSourceSet)
-    }
-
-    fun IdeBaseArtifactCore.generatedSourceFoldersPatchedForKapt(kaptSourceSet: KaptSourceSetModel): List<FileImpl> {
-      return (generatedSourceFolders.toSet() + listOfNotNull(kaptSourceSet.generatedKotlinSourcesDirFile)).toList().toImpl()
-    }
-
-    variant.copy(
-      mainArtifact = variant.mainArtifact
-        .maybePatch("") { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) },
-      deviceTestArtifacts = variant.deviceTestArtifacts.map {
-        v -> v.maybePatch(v.name.toPrintableName()) { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) }
-                                                            },
-      hostTestArtifacts = variant.hostTestArtifacts.map {
-        v -> v.maybePatch(v.name.toPrintableName()) { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) }
-                                                        },
-      testFixturesArtifact = variant.testFixturesArtifact
-        ?.maybePatch("TestFixtures") { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) }
-    )
+fun List<IdeVariantCoreImpl>.patchForKapt(kaptModel: KaptGradleModel?): List<IdeVariantCoreImpl> =
+  if (kaptModel == null) {
+    this
+  } else {
+    map { it.patchForKapt(kaptModel) }
   }
+
+fun IdeVariantCoreImpl.patchForKapt(kaptModel: KaptGradleModel): IdeVariantCoreImpl {
+  val sourceSets = kaptModel.sourceSets.associateBy { it.sourceSetName }
+
+  fun <T> T.maybePatch(suffix: String, code: T.(KaptSourceSetModel) -> T): T {
+    val kaptSourceSet = sourceSets[name + suffix] ?: return this
+    return code(kaptSourceSet)
+  }
+
+  fun IdeBaseArtifactCore.generatedSourceFoldersPatchedForKapt(kaptSourceSet: KaptSourceSetModel): List<FileImpl> {
+    return (generatedSourceFolders.toSet() + listOfNotNull(kaptSourceSet.generatedKotlinSourcesDirFile)).toList().toImpl()
+  }
+
+  return copy(
+    mainArtifact = mainArtifact
+      .maybePatch("") { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) },
+    deviceTestArtifacts = deviceTestArtifacts.map {
+      v -> v.maybePatch(v.name.toPrintableName()) { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) }
+                                                          },
+    hostTestArtifacts = hostTestArtifacts.map {
+      v -> v.maybePatch(v.name.toPrintableName()) { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) }
+                                                      },
+    testFixturesArtifact = testFixturesArtifact
+      ?.maybePatch("TestFixtures") { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) }
+  )
 }
 
 data class ModuleConfiguration(

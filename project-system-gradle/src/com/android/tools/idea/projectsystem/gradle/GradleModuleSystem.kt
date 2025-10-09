@@ -97,7 +97,9 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 import java.nio.file.Path
 import com.android.ide.common.gradle.Module as ExternalModule
+import com.android.tools.idea.gradle.project.entities.getGradleAndroidModel
 import com.android.tools.idea.model.AndroidModel
+import com.intellij.platform.backend.workspace.workspaceModel
 import com.intellij.util.text.nullize
 import com.intellij.workspaceModel.ide.legacyBridge.findSnapshotModuleEntity
 
@@ -124,7 +126,7 @@ class GradleModuleSystem(
     RegisteringModuleSystem<GradleRegisteredDependencyQueryId, GradleRegisteredDependencyId>,
     SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module.getHolderModule()) {
 
-  override val androidModel: GradleAndroidModel? = module.findSnapshotModuleEntity()?.gradleAndroidModel?.gradleAndroidModel
+  override val androidModel: GradleAndroidModel? = module.project.workspaceModel.currentSnapshot.getGradleAndroidModel(module)
 
   override val type: Type
     get() = when (GradleAndroidModel.get(module)?.androidProject?.projectType) {

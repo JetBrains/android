@@ -18,7 +18,7 @@ package com.android.tools.idea.projectsystem.gradle.sync.runsGradleProjectsystem
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -108,7 +108,7 @@ public class AndroidModuleDataServiceGradleTest {
     myService.importData(Collections.singletonList(androidModelNode), mock(ProjectData.class), project, myModelsProvider);
 
     assertThat(FacetManager.getInstance(appModule).findFacet(AndroidFacet.ID, AndroidFacet.NAME)).isNotNull();
-    verify(myValidator).validate(same(appModule), argThat(it -> ((GradleAndroidDependencyModel) it).containsTheSameDataAs(androidModel)));
+    verify(myValidator).validate(same(appModule), eq(androidModel));
     verify(myValidator).fixAndReportFoundIssues();
   }
 

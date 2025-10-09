@@ -48,8 +48,11 @@ class GradleResolver {
             (gradleProjectModels.libraries ?: return@let emptyList()),
             gradleProjectModels.kmpLibraries
           )
-          val modelFactory = GradleAndroidDependencyModel.createFactory(project, libraryResolver)
-          gradleProjectModels.modules.mapNotNull { findModel(it, modelFactory) }
+          gradleProjectModels.modules.mapNotNull {
+            findModel(it) {
+              GradleAndroidDependencyModel.createWithAllVariants(it, libraryResolver)
+            }
+          }
         }
     }
     object : Task.Backgroundable(project, "Fetching build models", true) {

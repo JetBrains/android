@@ -60,7 +60,6 @@ import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable
 import com.android.tools.idea.gradle.model.lookup
 import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.gradleModuleModel
@@ -130,7 +129,7 @@ fun ProjectDumper.dumpAndroidIdeModel(
           GradleAndroidModel.get(module)?.let { it ->
             // Skip all but holders to prevent needless spam in the snapshots. All modules
             // point to the same facet.
-            val shouldDump = forSnapshotComparison || module.isHolderModule() || module.hasDifferentGradleAndroidModelThanHolder()
+            val shouldDump = forSnapshotComparison || module.isHolderModule()
             if (!shouldDump) return@let
             head("CurrentVariantReportedVersions")
             nest {
@@ -1055,10 +1054,3 @@ fun  Module.hasDifferentGradleModuleModelThanHolder() =
   takeIf { it.isLinkedAndroidModule() }?.getHolderModule()?.let { holderModule ->
     gradleModuleModel?.copy(moduleNameField = holderModule.name) != holderModule.gradleModuleModel
   } == true
-
-fun  Module.hasDifferentGradleAndroidModelThanHolder() =
-  takeIf { it.isLinkedAndroidModule() }?.getHolderModule()?.let { holderModule ->
-    (GradleAndroidModel.get(this) as GradleAndroidModelImpl).data.copy(moduleNameField =  holderModule.name) !=
-      (GradleAndroidModel.get(holderModule) as GradleAndroidModelImpl).data
-  } == true
-

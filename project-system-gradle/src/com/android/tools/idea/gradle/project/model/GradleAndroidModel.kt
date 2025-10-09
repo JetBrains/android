@@ -40,6 +40,7 @@ import com.android.tools.idea.gradle.model.impl.IdeBasicVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeDeclaredDependenciesImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
+import com.android.tools.idea.gradle.model.impl.IdeTestSuiteImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.util.BaselineProfileUtil.getGenerateBaselineProfileTaskName
 import com.android.tools.idea.model.AndroidModel
@@ -62,7 +63,7 @@ import org.jetbrains.annotations.VisibleForTesting
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
-open class GradleAndroidModelImpl(
+data class GradleAndroidModelImpl(
   val data: GradleAndroidModelData,
 ) : GradleAndroidModel {
   constructor(other: GradleAndroidModelImpl) : this(other.data)
@@ -310,11 +311,7 @@ open class GradleAndroidModelImpl(
     get() = androidProject.isBaseSplit
   override val isInstantAppCompatible: Boolean
     get() = selectedVariant.instantAppCompatible
-
-  @VisibleForTesting
-  fun containsTheSameDataAs(that: GradleAndroidModel) = data == (that as? GradleAndroidModelImpl)?.data
-
-  override val testSuites: List<IdeTestSuite>
+  override val testSuites: List<IdeTestSuiteImpl>
     get() = androidProject.testSuites
 }
 
@@ -329,8 +326,7 @@ sealed interface GradleAndroidModel: AndroidModel {
     fun get(androidFacet: AndroidFacet): GradleAndroidModel? = AndroidModel.get(androidFacet) as? GradleAndroidModel
 
     @JvmStatic
-    fun create(project: Project, data: GradleAndroidModelData): GradleAndroidModel =
-      GradleAndroidModelImpl(data)
+    fun create(data: GradleAndroidModelData): GradleAndroidModel = GradleAndroidModelImpl(data)
   }
 
   val androidProject: IdeAndroidProject

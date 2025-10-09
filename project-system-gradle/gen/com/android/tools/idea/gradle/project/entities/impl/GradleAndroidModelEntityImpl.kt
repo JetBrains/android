@@ -15,19 +15,29 @@
  */
 package com.android.tools.idea.gradle.project.entities.impl
 
+import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
+import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity
 import com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntityBuilder
+import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl
+import com.intellij.openapi.module.Module
 import com.intellij.platform.workspace.jps.entities.ModuleEntity
 import com.intellij.platform.workspace.jps.entities.ModuleEntityBuilder
+import com.intellij.platform.workspace.jps.entities.modifyModuleEntity
 import com.intellij.platform.workspace.storage.ConnectionId
 import com.intellij.platform.workspace.storage.EntitySource
+import com.intellij.platform.workspace.storage.EntityStorage
+import com.intellij.platform.workspace.storage.EntityType
+import com.intellij.platform.workspace.storage.ExternalMappingKey
 import com.intellij.platform.workspace.storage.GeneratedCodeApiVersion
 import com.intellij.platform.workspace.storage.GeneratedCodeImplVersion
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.platform.workspace.storage.WorkspaceEntity
 import com.intellij.platform.workspace.storage.WorkspaceEntityBuilder
 import com.intellij.platform.workspace.storage.WorkspaceEntityInternalApi
+import com.intellij.platform.workspace.storage.annotations.Parent
 import com.intellij.platform.workspace.storage.impl.EntityLink
 import com.intellij.platform.workspace.storage.impl.ModifiableWorkspaceEntityBase
 import com.intellij.platform.workspace.storage.impl.WorkspaceEntityBase
@@ -38,6 +48,7 @@ import com.intellij.platform.workspace.storage.instrumentation.EntityStorageInst
 import com.intellij.platform.workspace.storage.instrumentation.EntityStorageInstrumentationApi
 import com.intellij.platform.workspace.storage.instrumentation.MutableEntityStorageInstrumentation
 import com.intellij.platform.workspace.storage.metadata.model.EntityMetadata
+import com.intellij.workspaceModel.ide.legacyBridge.findModuleEntity
 
 @GeneratedCodeApiVersion(3)
 @GeneratedCodeImplVersion(7)
@@ -54,10 +65,16 @@ internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroi
 
   override val module: ModuleEntity
     get() = snapshot.extractOneToOneParent(MODULE_CONNECTION_ID, this)!!
-  override val gradleAndroidModel: GradleAndroidModel
+  override val gradleAndroidModel: GradleAndroidModelImpl
     get() {
       readField("gradleAndroidModel")
       return dataSource.gradleAndroidModel
+    }
+
+  override val resolvedVariant: IdeVariantImpl?
+    get() {
+      readField("resolvedVariant")
+      return dataSource.resolvedVariant
     }
 
   override val entitySource: EntitySource
@@ -125,6 +142,7 @@ internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroi
       dataSource as GradleAndroidModelEntity
       if (this.entitySource != dataSource.entitySource) this.entitySource = dataSource.entitySource
       if (this.gradleAndroidModel != dataSource.gradleAndroidModel) this.gradleAndroidModel = dataSource.gradleAndroidModel
+      if (this.resolvedVariant != dataSource?.resolvedVariant) this.resolvedVariant = dataSource.resolvedVariant
       updateChildToParentReferences(parents)
     }
 
@@ -172,12 +190,21 @@ internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroi
         changedProperty.add("module")
       }
 
-    override var gradleAndroidModel: GradleAndroidModel
+    override var gradleAndroidModel: GradleAndroidModelImpl
       get() = getEntityData().gradleAndroidModel
       set(value) {
         checkModificationAllowed()
         getEntityData(true).gradleAndroidModel = value
         changedProperty.add("gradleAndroidModel")
+
+      }
+
+    override var resolvedVariant: IdeVariantImpl?
+      get() = getEntityData().resolvedVariant
+      set(value) {
+        checkModificationAllowed()
+        getEntityData(true).resolvedVariant = value
+        changedProperty.add("resolvedVariant")
 
       }
 
@@ -188,7 +215,8 @@ internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroi
 
 @OptIn(WorkspaceEntityInternalApi::class)
 internal class GradleAndroidModelEntityData : WorkspaceEntityData<GradleAndroidModelEntity>() {
-  lateinit var gradleAndroidModel: GradleAndroidModel
+  lateinit var gradleAndroidModel: GradleAndroidModelImpl
+  var resolvedVariant: IdeVariantImpl? = null
 
   internal fun isGradleAndroidModelInitialized(): Boolean = ::gradleAndroidModel.isInitialized
 
@@ -221,6 +249,7 @@ internal class GradleAndroidModelEntityData : WorkspaceEntityData<GradleAndroidM
 
   override fun createDetachedEntity(parents: List<WorkspaceEntityBuilder<*>>): WorkspaceEntityBuilder<*> {
     return GradleAndroidModelEntity(gradleAndroidModel, entitySource) {
+      this.resolvedVariant = this@GradleAndroidModelEntityData.resolvedVariant
       parents.filterIsInstance<ModuleEntityBuilder>().singleOrNull()?.let { this.module = it }
     }
   }
@@ -237,6 +266,7 @@ internal class GradleAndroidModelEntityData : WorkspaceEntityData<GradleAndroidM
     other as GradleAndroidModelEntityData
     if (this.entitySource != other.entitySource) return false
     if (this.gradleAndroidModel != other.gradleAndroidModel) return false
+    if (this.resolvedVariant != other.resolvedVariant) return false
     return true
   }
 
@@ -245,18 +275,21 @@ internal class GradleAndroidModelEntityData : WorkspaceEntityData<GradleAndroidM
     if (this.javaClass != other.javaClass) return false
     other as GradleAndroidModelEntityData
     if (this.gradleAndroidModel != other.gradleAndroidModel) return false
+    if (this.resolvedVariant != other.resolvedVariant) return false
     return true
   }
 
   override fun hashCode(): Int {
     var result = entitySource.hashCode()
     result = 31 * result + gradleAndroidModel.hashCode()
+    result = 31 * result + resolvedVariant.hashCode()
     return result
   }
 
   override fun hashCodeIgnoringEntitySource(): Int {
     var result = javaClass.hashCode()
     result = 31 * result + gradleAndroidModel.hashCode()
+    result = 31 * result + resolvedVariant.hashCode()
     return result
   }
 }
