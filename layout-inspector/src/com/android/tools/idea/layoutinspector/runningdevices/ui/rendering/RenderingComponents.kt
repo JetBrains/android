@@ -91,11 +91,18 @@ fun createRenderingComponents(
         },
       )
 
+    val onDeviceRendererModel =
+      OnDeviceRendererModel(
+        disposable = combinedDisposable,
+        scope = layoutInspector.coroutineScope,
+        renderModel = renderModel,
+      )
+
     val renderer =
       OnDeviceRendererPanel(
         disposable = combinedDisposable,
         scope = layoutInspector.coroutineScope,
-        renderModel = renderModel,
+        model = onDeviceRendererModel,
         enableSendRightClicksToDevice = { enable ->
           mainDisplayView.rightClicksAreSentToDevice = enable
         },
