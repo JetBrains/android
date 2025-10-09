@@ -7,6 +7,7 @@ android {
           includeEngines += listOf("test-engine-id")
           enginesDependencies("org.junit.platform:junit-platform-launcher")
           enginesDependencies("org.junit.platform:junit-platform-engine:1.12.0")
+          enginesDependencies(libs.junit)
         }
         assets {}
         targetVariants += listOf("debug", "release")

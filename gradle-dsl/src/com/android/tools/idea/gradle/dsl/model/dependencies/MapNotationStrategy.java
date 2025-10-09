@@ -27,10 +27,10 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-class MapNotationStrategy implements NotationStrategy {
+public class MapNotationStrategy implements NotationStrategy {
   @NotNull private GradleDslExpressionMap myDslElement;
 
-  MapNotationStrategy(@NotNull GradleDslExpressionMap dslElement) {
+  public MapNotationStrategy(@NotNull GradleDslExpressionMap dslElement) {
     myDslElement = dslElement;
   }
 

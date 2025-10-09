@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android.testOptions.testSuites
 
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyCollectorDependencyModel
 
 interface UseJunitEngineModel : GradleBlockModel {
   fun inputs(): ResolvedPropertyModel
   fun addInput(input: String): ResolvedPropertyModel
   fun includeEngines(): ResolvedPropertyModel
   fun addIncludeEngine(engine: String): ResolvedPropertyModel
-  fun enginesDependencies(): List<String>
+  fun enginesDependencies(): List<DependencyCollectorDependencyModel>
   fun addEngineDependency(compactNotation: String)
+  fun addEngineDependency(reference: ReferenceTo)
 }
