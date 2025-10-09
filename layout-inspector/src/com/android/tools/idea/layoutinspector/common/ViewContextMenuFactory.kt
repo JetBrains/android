@@ -40,7 +40,14 @@ import javax.swing.JComponent
 import javax.swing.JPopupMenu
 import javax.swing.event.PopupMenuEvent
 
+/**
+ * Show contextual menu.
+ *
+ * @param selectedView the view selected by the right click.
+ * @param views the list of views that overlap with the position of the right click.
+ */
 fun showViewContextMenu(
+  selectedView: ViewNode?,
   views: List<ViewNode>,
   inspectorModel: InspectorModel,
   source: JComponent,
@@ -63,12 +70,11 @@ fun showViewContextMenu(
 
         val client = event?.let { LayoutInspectorRootPanel.get(it)?.currentClient }
         if (client?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) == true) {
-          if (views.isNotEmpty()) {
-            val topView = views.first()
-            result.add(HideSubtreeAction(inspectorModel, client, topView))
-            result.add(ShowSubtreeAction(inspectorModel, client, topView))
-            result.add(ShowOnlySubtreeAction(inspectorModel, client, topView))
-            result.add(ShowOnlyParentsAction(inspectorModel, client, topView))
+          if (selectedView != null) {
+            result.add(HideSubtreeAction(inspectorModel, client, viewNode = selectedView))
+            result.add(ShowSubtreeAction(inspectorModel, client, viewNode = selectedView))
+            result.add(ShowOnlySubtreeAction(inspectorModel, client, viewNode = selectedView))
+            result.add(ShowOnlyParentsAction(inspectorModel, client, viewNode = selectedView))
           }
           result.add(ShowAllAction(inspectorModel, client))
         }
@@ -128,33 +134,33 @@ private class ShowAllAction(
 private class HideSubtreeAction(
   val inspectorModel: InspectorModel,
   val client: InspectorClient,
-  val topView: ViewNode,
+  val viewNode: ViewNode,
 ) : AnAction("Hide Subtree") {
   override fun actionPerformed(event: AnActionEvent) {
     if (!LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
       client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
     }
-    inspectorModel.hideSubtree(topView)
+    inspectorModel.hideSubtree(viewNode)
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    e.presentation.isEnabled = inspectorModel.isVisible(topView)
+    e.presentation.isEnabled = inspectorModel.isVisible(viewNode)
   }
 }
 
 private class ShowOnlySubtreeAction(
   val inspectorModel: InspectorModel,
   val client: InspectorClient,
-  val topView: ViewNode,
+  val viewNode: ViewNode,
 ) : AnAction("Show Only Subtree") {
   override fun actionPerformed(event: AnActionEvent) {
     if (!LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
       client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
     }
-    inspectorModel.showOnlySubtree(topView)
+    inspectorModel.showOnlySubtree(viewNode)
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
@@ -163,13 +169,13 @@ private class ShowOnlySubtreeAction(
 private class ShowOnlyParentsAction(
   val inspectorModel: InspectorModel,
   val client: InspectorClient,
-  val topView: ViewNode,
+  val viewNode: ViewNode,
 ) : AnAction("Show Only Parents") {
   override fun actionPerformed(event: AnActionEvent) {
     if (!LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
       client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
     }
-    inspectorModel.showOnlyParents(topView)
+    inspectorModel.showOnlyParents(viewNode)
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
@@ -178,20 +184,20 @@ private class ShowOnlyParentsAction(
 private class ShowSubtreeAction(
   val inspectorModel: InspectorModel,
   val client: InspectorClient,
-  val topView: ViewNode,
+  val viewNode: ViewNode,
 ) : AnAction("Show Subtree") {
   override fun actionPerformed(event: AnActionEvent) {
     if (!LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
       client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
     }
-    inspectorModel.showSubtree(topView)
+    inspectorModel.showSubtree(viewNode)
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    e.presentation.isEnabled = inspectorModel.hasHiddenSubtreeNodes(topView)
+    e.presentation.isEnabled = inspectorModel.hasHiddenSubtreeNodes(viewNode)
   }
 }
 
