@@ -25,6 +25,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/base/common:studio.android.sdktools.common",
         "//tools/adt/idea/analytics",
+        "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
     ],
 )
 
