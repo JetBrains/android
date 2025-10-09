@@ -49,6 +49,8 @@ jvm_library(
     "//platform/external-system-impl:externalSystem-impl",
     "//libraries/guava",
     "//android/android:core",
+    "//android/analytics",
+    "//libraries/protobuf",
   ],
   plugins = ["@lib//:compose-plugin"]
 )
