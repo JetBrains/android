@@ -117,6 +117,13 @@ class FakeViewLayoutInspector(connection: Connection<Event>) :
           )
           .build()
       }
+      Command.SpecializedCase.ENABLE_ON_DEVICE_RENDERING_COMMAND -> {
+        Response.newBuilder()
+          .setEnableOnDeviceRenderingResponse(
+            LayoutInspectorViewProtocol.EnableOnDeviceRenderingResponse.getDefaultInstance()
+          )
+          .build()
+      }
       else -> fail("Unhandled view inspector command: ${command.specializedCase}")
     }
   }
