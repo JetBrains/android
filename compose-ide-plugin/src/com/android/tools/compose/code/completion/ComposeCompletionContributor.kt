@@ -39,6 +39,7 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.util.asSafely
 import icons.StudioIcons
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.types.KaFunctionType
@@ -470,21 +471,22 @@ private data class FunctionInfo(
   val hasRequiredParametersBeforeLambda: Boolean,
 )
 
+@OptIn(KaExperimentalApi::class)
 private fun KtNamedFunction.getFunctionInfoForCompletion(): FunctionInfo =
   analyze(this) {
     val allParameters = symbol.valueParameters
 
     val lastParameter = allParameters.lastOrNull()
     val endsInRequiredLambda =
-      lastParameter?.let { !it.isVararg && it.returnType is KaFunctionType && !it.hasDefaultValue }
+      lastParameter?.let { !it.isVararg && it.returnType is KaFunctionType && !it.hasDeclaredDefaultValue }
         ?: false
 
     val endsInVarargLambda =
-      lastParameter?.let { it.isVararg && it.returnType is KaFunctionType && !it.hasDefaultValue }
+      lastParameter?.let { it.isVararg && it.returnType is KaFunctionType && !it.hasDeclaredDefaultValue }
         ?: false
 
     val hasRequiredParametersBeforeLambda =
-      endsInRequiredLambda && allParameters.dropLast(1).any { !it.hasDefaultValue && !it.isVararg }
+      endsInRequiredLambda && allParameters.dropLast(1).any { !it.hasDeclaredDefaultValue && !it.isVararg }
 
     return FunctionInfo(endsInRequiredLambda, endsInVarargLambda, hasRequiredParametersBeforeLambda)
   }
