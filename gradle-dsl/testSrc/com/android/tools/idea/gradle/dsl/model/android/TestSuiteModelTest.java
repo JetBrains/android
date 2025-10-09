@@ -16,18 +16,25 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_SUITE_MODEL_ADD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_SUITE_MODEL_ADD_ELEMENTS_VERSION_CATALOG;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_SUITE_MODEL_ADD_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_SUITE_MODEL_EDIT_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_SUITE_MODEL_PARSE_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_SUITE_MODEL_PARSE_ELEMENTS_VERSION_CATALOG;
 import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelUtilsKt.android;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel;
+import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel;
 import com.android.tools.idea.gradle.dsl.android.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.testOptions.testSuites.TestSuiteModel;
 import com.android.tools.idea.gradle.dsl.api.android.testOptions.testSuites.TargetModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.util.DeletablePsiElementHolder;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyCollectorDependencyModel;
 import java.util.List;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -37,6 +44,7 @@ public class TestSuiteModelTest extends GradleFileModelTestCase {
   @Test
   public void testParseElements() throws Exception {
     writeToBuildFile(TEST_SUITE_MODEL_PARSE_ELEMENTS);
+    writeToVersionCatalogFile(TEST_SUITE_MODEL_PARSE_ELEMENTS_VERSION_CATALOG);
 
     AndroidModel android = android(getGradleBuildModel());
     assertNotNull(android);
@@ -50,14 +58,21 @@ public class TestSuiteModelTest extends GradleFileModelTestCase {
     assertEquals("useJunitEngine.inputs", List.of("com.android.build.api.dsl.AgpTestSuiteInputParameters.TESTED_APKS"),
                  testSuiteModel.useJunitEngine().inputs());
     assertEquals("useJunitEngine.includeEngines", List.of("test-engine-id"), testSuiteModel.useJunitEngine().includeEngines());
-    assertEquals("useJunitEngine.enginesDependencies",
-                 List.of("org.junit.platform:junit-platform-launcher",
-                         "org.junit.platform:junit-platform-engine:1.12.0"), testSuiteModel.useJunitEngine().enginesDependencies());
+
+    List<DependencyCollectorDependencyModel> engineDependencies = testSuiteModel.useJunitEngine().enginesDependencies();
+    assertSize(3, engineDependencies);
+    assertEquals("org.junit.platform:junit-platform-launcher", engineDependencies.get(0).getSpec().compactNotation());
+    assertFalse(engineDependencies.get(0).isVersionCatalogDependency());
+    assertEquals("org.junit.platform:junit-platform-engine:1.12.0", engineDependencies.get(1).getSpec().compactNotation());
+    assertFalse(engineDependencies.get(1).isVersionCatalogDependency());
+    assertEquals("junit:junit:4.12", engineDependencies.get(2).getSpec().compactNotation());
+    assertTrue(engineDependencies.get(2).isVersionCatalogDependency());
   }
 
   @Test
   public void testAddElements() throws Exception {
     writeToBuildFile(TEST_SUITE_MODEL_ADD_ELEMENTS);
+    writeToVersionCatalogFile(TEST_SUITE_MODEL_ADD_ELEMENTS_VERSION_CATALOG);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = android(buildModel);
@@ -72,6 +87,13 @@ public class TestSuiteModelTest extends GradleFileModelTestCase {
     testSuite.useJunitEngine().addEngineDependency("org.junit.platform:junit-platform-launcher");
     testSuite.useJunitEngine().addEngineDependency("org.junit.platform:junit-platform-engine:1.12.0");
 
+    // Add version catalog dependency with reference
+    GradleVersionCatalogsModel catalogModels = getProjectBuildModel().getVersionCatalogsModel();
+    GradleVersionCatalogModel catalog = catalogModels.getVersionCatalogModel("libs");
+    Assert.assertNotNull(catalog);
+    ReferenceTo reference = new ReferenceTo(catalog.libraries().findProperty("junit"), testSuite.useJunitEngine());
+    testSuite.useJunitEngine().addEngineDependency(reference);
+
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TEST_SUITE_MODEL_ADD_ELEMENTS_EXPECTED);
 
@@ -85,14 +107,21 @@ public class TestSuiteModelTest extends GradleFileModelTestCase {
     assertEquals("useJunitEngine.inputs", List.of("com.android.build.api.dsl.AgpTestSuiteInputParameters.TESTED_APKS"),
                  testSuiteModel.useJunitEngine().inputs());
     assertEquals("useJunitEngine.includeEngines", List.of("test-engine-id"), testSuiteModel.useJunitEngine().includeEngines());
-    assertEquals("useJunitEngine.enginesDependencies",
-                 List.of("org.junit.platform:junit-platform-launcher",
-                         "org.junit.platform:junit-platform-engine:1.12.0"), testSuiteModel.useJunitEngine().enginesDependencies());
+
+    List<DependencyCollectorDependencyModel> engineDependencies = testSuiteModel.useJunitEngine().enginesDependencies();
+    assertSize(3, engineDependencies);
+    assertEquals("org.junit.platform:junit-platform-launcher", engineDependencies.get(0).getSpec().compactNotation());
+    assertFalse(engineDependencies.get(0).isVersionCatalogDependency());
+    assertEquals("org.junit.platform:junit-platform-engine:1.12.0", engineDependencies.get(1).getSpec().compactNotation());
+    assertFalse(engineDependencies.get(1).isVersionCatalogDependency());
+    assertEquals("junit:junit:4.12", engineDependencies.get(2).getSpec().compactNotation());
+    assertTrue(engineDependencies.get(2).isVersionCatalogDependency());
   }
 
   @Test
   public void testDuplicatesAreNotAdded() throws Exception {
     writeToBuildFile(TEST_SUITE_MODEL_PARSE_ELEMENTS);
+    writeToVersionCatalogFile(TEST_SUITE_MODEL_PARSE_ELEMENTS_VERSION_CATALOG);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = android(buildModel);
@@ -121,14 +150,21 @@ public class TestSuiteModelTest extends GradleFileModelTestCase {
     assertEquals("useJunitEngine.inputs", List.of("com.android.build.api.dsl.AgpTestSuiteInputParameters.TESTED_APKS"),
                  testSuiteModel.useJunitEngine().inputs());
     assertEquals("useJunitEngine.includeEngines", List.of("test-engine-id"), testSuiteModel.useJunitEngine().includeEngines());
-    assertEquals("useJunitEngine.enginesDependencies",
-                 List.of("org.junit.platform:junit-platform-launcher",
-                         "org.junit.platform:junit-platform-engine:1.12.0"), testSuiteModel.useJunitEngine().enginesDependencies());
+
+    List<DependencyCollectorDependencyModel> engineDependencies = testSuiteModel.useJunitEngine().enginesDependencies();
+    assertSize(3, engineDependencies);
+    assertEquals("org.junit.platform:junit-platform-launcher", engineDependencies.get(0).getSpec().compactNotation());
+    assertFalse(engineDependencies.get(0).isVersionCatalogDependency());
+    assertEquals("org.junit.platform:junit-platform-engine:1.12.0", engineDependencies.get(1).getSpec().compactNotation());
+    assertFalse(engineDependencies.get(1).isVersionCatalogDependency());
+    assertEquals("junit:junit:4.12", engineDependencies.get(2).getSpec().compactNotation());
+    assertTrue(engineDependencies.get(2).isVersionCatalogDependency());
   }
 
   @Test
   public void testRemoveElements() throws Exception {
     writeToBuildFile(TEST_SUITE_MODEL_PARSE_ELEMENTS);
+    writeToVersionCatalogFile(TEST_SUITE_MODEL_PARSE_ELEMENTS_VERSION_CATALOG);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = android(buildModel);
@@ -155,6 +191,7 @@ public class TestSuiteModelTest extends GradleFileModelTestCase {
   @Test
   public void testEditElements() throws Exception {
     writeToBuildFile(TEST_SUITE_MODEL_PARSE_ELEMENTS);
+    writeToVersionCatalogFile(TEST_SUITE_MODEL_PARSE_ELEMENTS_VERSION_CATALOG);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = android(buildModel);

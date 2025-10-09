@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 
-interface NotationStrategy {
+public interface NotationStrategy {
 
   boolean isValidDSL();
 

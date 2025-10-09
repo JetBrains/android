@@ -17,22 +17,41 @@ package com.android.tools.idea.gradle.dsl.model.android.testOptions.testSuites
 
 import com.android.tools.idea.gradle.dsl.api.android.testOptions.testSuites.UseJunitEngineModel
 import com.android.tools.idea.gradle.dsl.api.ext.RawText
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
+import com.android.tools.idea.gradle.dsl.model.dependencies.NotationStrategy
+import com.android.tools.idea.gradle.dsl.model.dependencies.CompactNotationStrategy
+import com.android.tools.idea.gradle.dsl.model.dependencies.MapNotationStrategy
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyCollectorDependencyModel
 import com.android.tools.idea.gradle.dsl.parser.android.testOptions.testSuites.UseJunitEngineDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType
+import com.android.tools.idea.gradle.dsl.utils.isInVersionCatalogFile
+import com.android.tools.idea.gradle.dsl.utils.resolveElement
 
 class UseJunitEngineModelImpl(dslElement: UseJunitEngineDslElement) : GradleDslBlockModel(dslElement), UseJunitEngineModel {
 
+  /**
+   * Returns the [ResolvedPropertyModel] for the "inputs" property.
+   */
   override fun inputs(): ResolvedPropertyModel {
     return getModelForProperty(INPUTS)
   }
 
+  /**
+   * Adds a new input to the "inputs" property if it doesn't already exist.
+   *
+   * @param input The input string to add.
+   * @return The updated [ResolvedPropertyModel] for the "inputs" property.
+   */
   override fun addInput(input: String): ResolvedPropertyModel {
     val model = inputs()
 
@@ -45,10 +64,19 @@ class UseJunitEngineModelImpl(dslElement: UseJunitEngineDslElement) : GradleDslB
     return model
   }
 
+  /**
+   * Returns the [ResolvedPropertyModel] for the "includeEngines" property.
+   */
   override fun includeEngines(): ResolvedPropertyModel {
     return getModelForProperty(INCLUDED_ENGINES)
   }
 
+  /**
+   * Adds a new engine to the "includeEngines" property if it doesn't already exist.
+   *
+   * @param engine The engine string to add.
+   * @return The updated [ResolvedPropertyModel] for the "includeEngines" property.
+   */
   override fun addIncludeEngine(engine: String): ResolvedPropertyModel {
     val model = includeEngines()
 
@@ -63,58 +91,66 @@ class UseJunitEngineModelImpl(dslElement: UseJunitEngineDslElement) : GradleDslB
 
   /**
    * Returns the list of engine dependencies declared for this JUnit engine configuration.
-   *
-   * Only engine dependencies configured with the compact string notation
-   * (e.g., "group:name:version") are returned.
-   *
-   * TODO(b/446141700): Add support for other dependency notations
-   * (e.g., map notation, version catalog alias).
    */
-  override fun enginesDependencies(): List<String> {
-    return myDslElement.children
-      .filter { isEngineDependency(it) }
-      .mapNotNull { parseEngineDependency(it) }
+  override fun enginesDependencies(): List<DependencyCollectorDependencyModel> {
+    return myDslElement.allPropertyElements
+      .flatMap { parseEngineDependency(it) }
   }
 
-  private fun parseEngineDependency(dslElement: GradleDslElement): String? {
-    return when (dslElement) {
+  private fun parseEngineDependency(dslElement: GradleDslElement): List<DependencyCollectorDependencyModel> {
+    return when (val resolved = resolveElement(dslElement)) {
       is GradleDslMethodCall -> {
-        dslElement.arguments.firstNotNullOf { (it as GradleDslLiteral).getValue(String::class.java) }
+        if (resolved.methodName != ENGINES_DEPENDENCIES) return emptyList()
+
+        val argument = resolved.arguments.first()
+        val resolvedArgument = resolveElement(argument)
+
+        listOfNotNull(toDependencyCollectorDependencyModel(argument, resolvedArgument))
       }
 
-      is GradleDslLiteral -> {
-        dslElement.getValue(String::class.java)
-      }
+      else -> {
+        if (dslElement.name != ENGINES_DEPENDENCIES) return emptyList()
 
-      else -> throw NoSuchElementException("Unexpected '$ENGINES_DEPENDENCIES' GradleDslElement in useJunitEngineModel: $myDslElement")
+        listOfNotNull(toDependencyCollectorDependencyModel(dslElement, resolved))
+      }
     }
   }
 
-  private fun isEngineDependency(element: GradleDslElement): Boolean {
-    return when (element) {
-      is GradleDslMethodCall -> {
-        return ENGINES_DEPENDENCIES == element.methodName
-      }
-
-      is GradleDslLiteral -> {
-        return ENGINES_DEPENDENCIES == element.name
-      }
-
-      else -> false
+  private fun toDependencyCollectorDependencyModel(
+    element: GradleDslElement,
+    resolved: GradleDslElement,
+  ): DependencyCollectorDependencyModel? {
+    if (element !is GradleDslExpression || resolved !is GradleDslExpressionMap && resolved !is GradleDslSimpleExpression) {
+      return null
     }
+
+    val notationStrategy = getNotationStrategy(element) ?: return null
+    return DependencyCollectorDependencyModel(
+      element,
+      notationStrategy,
+      isInVersionCatalogFile(resolved)
+    )
+  }
+
+  private fun getNotationStrategy(dslExpression: GradleDslExpression): NotationStrategy? {
+    val resolvedExpression: GradleDslExpression = resolveElement(dslExpression) as? GradleDslExpression ?: dslExpression
+    if (resolvedExpression is GradleDslExpressionMap) {
+      return MapNotationStrategy(resolvedExpression)
+    }
+    else if (dslExpression is GradleDslSimpleExpression) {
+      return CompactNotationStrategy(dslExpression, false)
+    }
+    return null
   }
 
   /**
-   * Adds an engine dependency to this JUnit engine configuration.
+   * Adds an engine dependency to this JUnit engine configuration using a compact notation.
+   * If the dependency already exists, this method does nothing.
    *
-   * Only engine dependencies configured with the compact string notation
-   * (e.g., "group:name:version") are supported.
-   *
-   * TODO(b/446141700): Add support for other dependency notations
-   * (e.g., map notation, version catalog alias).
+   * @param compactNotation The dependency in compact notation (e.g., "group:name:version").
    */
   override fun addEngineDependency(compactNotation: String) {
-    val enginesDependencies = enginesDependencies()
+    val enginesDependencies = enginesDependencies().map { it.compactNotation() }
     if (enginesDependencies.contains(compactNotation)) {
       return
     }
@@ -122,6 +158,25 @@ class UseJunitEngineModelImpl(dslElement: UseJunitEngineDslElement) : GradleDslB
     val methodCall = GradleDslMethodCall(myDslElement, GradleNameElement.empty(), ENGINES_DEPENDENCIES)
     val nameArgument = GradleDslLiteral(methodCall, GradleNameElement.empty())
     nameArgument.setValue(compactNotation)
+    methodCall.addNewArgument(nameArgument)
+    myDslElement.setNewElement(methodCall)
+  }
+
+  /**
+   * Adds an engine dependency to this JUnit engine configuration using a [ReferenceTo].
+   * If the dependency already exists, this method does nothing.
+   *
+   * @param reference A [ReferenceTo] object pointing to a dependency.
+   */
+  override fun addEngineDependency(reference: ReferenceTo) {
+    val existingDependencies = enginesDependencies().map { it.dslElement }
+    if (existingDependencies.any { resolveElement(it) == reference.referredElement }) {
+      return
+    }
+
+    val methodCall = GradleDslMethodCall(myDslElement, GradleNameElement.empty(), ENGINES_DEPENDENCIES)
+    val nameArgument = GradleDslLiteral(methodCall, GradleNameElement.empty())
+    nameArgument.setValue(reference)
     methodCall.addNewArgument(nameArgument)
     myDslElement.setNewElement(methodCall)
   }

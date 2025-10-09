@@ -32,11 +32,11 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
-class CompactNotationStrategy implements NotationStrategy {
+public class CompactNotationStrategy implements NotationStrategy {
   @NotNull private GradleDslSimpleExpression myDslExpression;
   private boolean mySetThrough;
 
-  CompactNotationStrategy(@NotNull GradleDslSimpleExpression dslExpression,
+  public CompactNotationStrategy(@NotNull GradleDslSimpleExpression dslExpression,
                           boolean setThrough) {
     myDslExpression = dslExpression;
     mySetThrough = setThrough;
