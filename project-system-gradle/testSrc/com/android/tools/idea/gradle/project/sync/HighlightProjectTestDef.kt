@@ -123,8 +123,8 @@ data class HighlightProjectTestDef(
           GradleSourceSetProjectPath(
             "/",
             ":kmpFirstLib",
-            wellKnownOrCreate("androidInstrumentedTest")
-          ) to listOf("src/androidInstrumentedTest/kotlin/com/example/kmpfirstlib/test/KmpAndroidFirstLibActivityTest.kt")
+            wellKnownOrCreate("androidDeviceTest")
+          ) to listOf("src/androidDeviceTest/kotlin/com/example/kmpfirstlib/test/KmpAndroidFirstLibActivityTest.kt")
         )
       ),
       HighlightProjectTestDef(
@@ -134,8 +134,8 @@ data class HighlightProjectTestDef(
           GradleSourceSetProjectPath(
             "/",
             ":kmpFirstLib",
-            wellKnownOrCreate("androidInstrumentedTest")
-          ) to listOf("src/androidInstrumentedTest/kotlin/com/example/kmpfirstlib/test/KmpAndroidFirstLibActivityTest.kt")
+            wellKnownOrCreate("androidDeviceTest")
+          ) to listOf("src/androidDeviceTest/kotlin/com/example/kmpfirstlib/test/KmpAndroidFirstLibActivityTest.kt")
         )
       ),
     )
