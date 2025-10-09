@@ -16,6 +16,7 @@
 package com.google.idea.blaze.base.bazel;
 
 import com.android.tools.idea.sdk.IdeSdks;
+import com.google.common.base.Strings;
 import com.google.common.io.Closer;
 import com.google.idea.blaze.base.async.process.ExternalTask;
 import com.google.idea.blaze.base.async.process.LineProcessingOutputStream;
@@ -219,7 +220,25 @@ public abstract class AbstractLocalInvoker extends AbstractBuildInvoker {
 
   private void maybeAddAndroidHome(ExternalTask.Builder builder) {
     if (getType().needsAndroidHome) {
-      builder.environmentVar("ANDROID_HOME", IdeSdks.getInstance().getAndroidSdkPath().toString());
+      // Bazel native toolchains by default relies on the local OS and environment. Configure the Android environment with the current
+      // Android Studio settings unless already configured in the outer environment.
+      final var env = com.intellij.util.EnvironmentUtil.getEnvironmentMap();
+      String androidHome = env.get("ANDROID_HOME");
+      String androidNdkHome = env.get("ANDROID_NDK_HOME");
+      if ( Strings.isNullOrEmpty(androidHome)) {
+        File androidSdkPath = IdeSdks.getInstance().getAndroidSdkPath();
+        androidHome = androidSdkPath != null ? androidSdkPath.toString(): null;
+      }
+      if (Strings.isNullOrEmpty(androidNdkHome)) {
+        File androidNdkPath = IdeSdks.getInstance().getAndroidNdkPath();
+        androidNdkHome = androidNdkPath != null ? androidNdkPath.toString() : null;
+      }
+      if (!Strings.isNullOrEmpty(androidHome)) {
+        builder.environmentVar("ANDROID_HOME", androidHome);
+      }
+      if (!Strings.isNullOrEmpty(androidNdkHome)) {
+        builder.environmentVar("ANDROID_NDK_HOME", androidNdkHome);
+      }
     }
   }
 
