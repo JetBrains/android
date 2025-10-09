@@ -40,7 +40,7 @@ import com.intellij.ui.icons.CachedImageIcon;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.LayeredIcon;
-import com.intellij.ui.components.labels.ActionLink;
+import com.intellij.ui.components.AnActionLink;
 import com.intellij.ui.components.labels.LinkLabel;
 import java.awt.Component;
 import java.awt.Container;
@@ -131,10 +131,7 @@ public class StudioInteractionService {
   }
 
   private void invokeComponent(Component component) {
-    if (component instanceof ActionLink componentAsLink) {
-      log("Invoking ActionLink: " + componentAsLink);
-      performAction(componentAsLink.getAction(), componentAsLink);
-    } else if (component instanceof LinkLabel<?> componentAsLink) {
+    if (component instanceof LinkLabel<?> componentAsLink) {
       log("Invoking LinkLabel: " + componentAsLink);
       componentAsLink.doClick();
     } else if (component instanceof NotificationComponent componentAsNotification) {
@@ -341,8 +338,8 @@ public class StudioInteractionService {
     Set<Component> matchingLinks = new HashSet<>();
     for (Component c : components) {
       Icon icon;
-      if (c instanceof ActionLink) {
-        icon = ((ActionLink)c).getIcon();
+      if (c instanceof AnActionLink) {
+        icon = ((AnActionLink)c).getIcon();
       } else if (c instanceof ActionButton) {
         icon = ((ActionButton)c).getIcon();
       } else if (c instanceof JButton) {
