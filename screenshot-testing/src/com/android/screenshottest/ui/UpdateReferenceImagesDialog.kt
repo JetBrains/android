@@ -24,6 +24,10 @@ import com.android.screenshottest.util.findPreviewAnnotations
 import com.android.screenshottest.util.getIdentifier
 import com.android.screenshottest.util.getProviderClassName
 import com.intellij.openapi.application.ApplicationManager
+import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.withProjectId
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.ScreenshotTestComposePreviewEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -446,6 +450,15 @@ class UpdateReferenceImagesDialog(
 
       ApplicationManager.getApplication().invokeLater {
         if (failures.isEmpty()) {
+          // Log the UPDATE_CLICKED event for analytics on successful copy of reference images.
+          UsageTracker.log(
+            AndroidStudioEvent.newBuilder().apply {
+              kind = AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW
+              screenshotTestComposePreviewEvent = ScreenshotTestComposePreviewEvent.newBuilder().apply {
+                type = ScreenshotTestComposePreviewEvent.Type.UPDATE_CLICKED
+              }.build()
+            }.withProjectId(project)
+          )
           close(OK_EXIT_CODE)
           Messages.showInfoMessage(project, "Reference images were updated successfully.", "Update Successful")
         } else {

@@ -21,6 +21,10 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/adt/idea/android:intellij.android.core",
+        "//tools/analytics-library/tracker:analytics-tracker",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/base/common:studio.android.sdktools.common",
+        "//tools/adt/idea/analytics",
     ],
 )
 
@@ -50,6 +54,8 @@ iml_module(
         "@intellij//:JUnit",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/analytics-library/testing:android.sdktools.analytics-testing",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
     ],
     test_srcs = ["testSrc"],
     test_timeout = "long",
