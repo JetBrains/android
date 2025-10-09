@@ -20,7 +20,6 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.facet.AndroidArtifactFacet
 import com.android.tools.idea.flags.StudioFlags.ANDROID_SDK_AND_IDE_COMPATIBILITY_RULES
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
@@ -29,11 +28,11 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.SupportedModuleChecker
-import com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity
-import com.android.tools.idea.gradle.project.entities.gradleAndroidModel
-import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
+import com.android.tools.idea.gradle.project.entities.getGradleAndroidModel
+import com.android.tools.idea.gradle.project.entities.setGradleAndroidModelFromDataNode
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl
 import com.android.tools.idea.gradle.project.sync.getProjectSyncRequest
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.linkAndroidModuleGroup
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.unlinkAndroidModuleGroup
@@ -76,7 +75,6 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.io.FileUtil.getRelativePath
 import com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName
 import com.intellij.platform.workspace.jps.entities.ModuleId
-import com.intellij.platform.workspace.jps.entities.modifyModuleEntity
 import com.intellij.pom.java.LanguageLevel
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -110,7 +108,8 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     fun importAndroidModel(
       nodeToImport: DataNode<GradleAndroidModelData>,
       mainModuleDataNode: DataNode<ModuleData>,
-      modelFactory: (GradleAndroidModelData) -> GradleAndroidModel,
+      resolver: IdeLibraryModelResolverImpl,
+      modelFactory: (GradleAndroidModelData) -> GradleAndroidModelImpl,
     ) {
       val mainModuleData = mainModuleDataNode.data
       val mainIdeModule = modelsProvider.findIdeModule(mainModuleData) ?: return
@@ -126,18 +125,19 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
         val androidFacet = modelsProvider.getModifiableFacetModel(module).getFacetByType(AndroidFacet.ID)
                            ?: createAndroidFacet(module, facetModel)
         // Configure that Android facet from the information in the GradleAndroidModel.
-        val gradleAndroidModel = modelFactory(gradleAndroidModelData)
-        configureFacet(androidFacet, module, gradleAndroidModel)
+        val coreModel = modelFactory(gradleAndroidModelData)
+        configureFacet(androidFacet, module, coreModel)
         val storage = (modelsProvider as IdeModifiableModelsProviderImpl).actualStorageBuilder
 
-        storage.modifyModuleEntity(storage.resolve(ModuleId(module.name))!!) {
-          this.gradleAndroidModel = GradleAndroidModelEntity(
-            entitySource = this@modifyModuleEntity.entitySource,
-            gradleAndroidModel = gradleAndroidModel
-          )
-        }
-
-        moduleValidator.validate(module, gradleAndroidModel)
+        setGradleAndroidModelFromDataNode(
+          storage,
+          storage.resolve(ModuleId(module.name))!!,
+          coreModel,
+          resolver
+        )
+        // We need to get back the mapped dependency model instead of recreate it from the core
+        val dependencyModel = storage.getGradleAndroidModel(module)!!
+        moduleValidator.validate(module, dependencyModel)
       }
     }
 
@@ -159,9 +159,10 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
       .groupBy { it.first }
       .forEach { (projectNode, nodes) ->
         val libraryResolver = createLibraryResolverFor(projectNode)
-        val modelFactory = GradleAndroidDependencyModel.createFactory(project, libraryResolver)
         nodes.forEach { (_, moduleNode, modelNode) ->
-          importAndroidModel(modelNode, moduleNode, modelFactory)
+          importAndroidModel(modelNode, moduleNode, libraryResolver) {
+            GradleAndroidModelImpl(it)
+          }
         }
       }
     if (modelsByModuleName.isNotEmpty()) {
@@ -364,7 +365,7 @@ fun syncSelectedVariant(facet: AndroidFacet, variant: IdeVariantCore) {
   state.SELECTED_BUILD_VARIANT = variant.name
 }
 
-internal fun createLibraryResolverFor(projectNode: DataNode<ProjectData>): IdeLibraryModelResolver {
+internal fun createLibraryResolverFor(projectNode: DataNode<ProjectData>): IdeLibraryModelResolverImpl {
   val libraryTable = ExternalSystemApiUtil.find(projectNode, AndroidProjectKeys.IDE_LIBRARY_TABLE)?.data
   val kmpLibraries = ExternalSystemApiUtil.find(projectNode, AndroidProjectKeys.KMP_ANDROID_LIBRARY_TABLE)?.data
   if (libraryTable == null && kmpLibraries == null) {

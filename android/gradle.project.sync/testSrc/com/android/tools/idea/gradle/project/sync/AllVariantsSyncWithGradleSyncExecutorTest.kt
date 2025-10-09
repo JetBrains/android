@@ -102,12 +102,12 @@ class AllVariantsSyncWithGradleSyncExecutorTest : SnapshotComparisonTest {
       additionalRoots = mapOf("ROOT" to File(project.basePath!!)),
       projectJdk = ProjectRootManager.getInstance(project).projectSdk,
     )
-    val modelFactory = GradleAndroidDependencyModel.createFactory(
-      project, fromLibraryTables(gradleModules.libraries!!, null)
-    )
     dumper.dumpAllVariantsSyncAndroidModuleModel(
       project,
-      modelFactory(allVariantsSyncAndroidModel),
+      GradleAndroidDependencyModel.createWithAllVariants(
+        allVariantsSyncAndroidModel,
+        fromLibraryTables(gradleModules.libraries!!, null)
+      ),
       project.basePath!!
     )
     // Verify dump content matches expected snapshot files.

@@ -34,8 +34,9 @@ import com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity
 import com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity
 import com.android.tools.idea.gradle.project.entities.gradleAndroidModel
 import com.android.tools.idea.gradle.project.entities.gradleModuleModel
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.entities.updateGradleAndroidModelMapping
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.sync.ModelFeature
 import com.android.tools.idea.gradle.project.sync.ModelVersions
@@ -115,7 +116,6 @@ import org.jetbrains.plugins.gradle.service.syncAction.virtualFileUrl
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 import java.nio.file.Path
-import kotlin.collections.plus
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 
 private val LOG = logger<AndroidSourceRootSyncContributor>()
@@ -236,15 +236,15 @@ internal class SyncContributorAndroidProjectContext(
      "Holder module is not populated via Android Gradle source sets for ${projectModel.path}"
    }
 
-  internal val gradleAndroidModelDataFactory: (String, List<IdeVariantCoreImpl>?) -> GradleAndroidModelData
-    get() = { moduleName, resolvedVariants ->
+  internal val gradleAndroidModelDataFactory: (String) -> GradleAndroidModelData
+    get() = { moduleName ->
       val ideAndroidProject = ideAndroidProject.copy(baseFeature = baseFeature)
       GradleAndroidModelData.create(
         moduleName = moduleName,
         rootDirPath = File(externalProject.projectDir.path),
         ideAndroidProject.patchForKapt(kaptGradleModel),
         ideDeclaredDependencies,
-        (resolvedVariants ?: ideAndroidProject.coreVariants.map { it as IdeVariantCoreImpl }).patchForKapt(kaptGradleModel),
+        ideAndroidProject.coreVariants.map { it as IdeVariantCoreImpl }.patchForKapt(kaptGradleModel),
         variantName
       )
     }
@@ -450,8 +450,12 @@ internal class AndroidSourceRootSyncContributor : GradleSyncContributor {
           this.contentRoots = newModuleEntity.contentRoots
           this.exModuleOptions = newModuleEntity.exModuleOptions
           this.javaSettings = newModuleEntity.javaSettings
+          this.gradleAndroidModel = newModuleEntity.gradleAndroidModel
+          this.gradleModuleModel = newModuleEntity.gradleModuleModel
           // Not modifying existing dependencies here because we don't have that info here yet.
         }
+      }.also { finalEntity ->
+        updateGradleAndroidModelMapping(updatedEntities, finalEntity)
       }
     }
 
@@ -591,11 +595,10 @@ private fun SyncContributorAndroidProjectContext.linkModuleGroup(
   })
 
   linkedModules.forEach { entity ->
-    val resolvedVariants = null // no resolved variants yet
-    val gradleAndroidModelData = gradleAndroidModelDataFactory(entity.name, resolvedVariants)
+    val gradleAndroidModelData = gradleAndroidModelDataFactory(entity.name)
     entity.gradleAndroidModel = GradleAndroidModelEntity(
       entitySource = entity.entitySource,
-      gradleAndroidModel = GradleAndroidModel.create(project, gradleAndroidModelData)
+      gradleAndroidModel = GradleAndroidModelImpl(gradleAndroidModelData)
     )
     entity.gradleModuleModel = GradleModuleModelEntity(
       entitySource = entity.entitySource,

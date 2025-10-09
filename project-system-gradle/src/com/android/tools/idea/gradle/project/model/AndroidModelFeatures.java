@@ -19,7 +19,7 @@ import com.android.ide.common.repository.AgpVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidModelFeatures {
+public final class AndroidModelFeatures {
   @Nullable private final AgpVersion myModelVersion;
   private final boolean myBuildOutputFileSupported;
   private final boolean myPostBuildSyncSupported;

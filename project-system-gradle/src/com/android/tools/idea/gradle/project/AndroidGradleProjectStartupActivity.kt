@@ -21,17 +21,15 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity
 import com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity
-import com.android.tools.idea.gradle.project.entities.gradleAndroidModel
 import com.android.tools.idea.gradle.project.entities.gradleModuleModel
+import com.android.tools.idea.gradle.project.entities.setGradleAndroidModelFromDataNode
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NativeHeaderRootType
 import com.android.tools.idea.gradle.project.facet.ndk.NativeSourceRootType
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
-import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl
 import com.android.tools.idea.gradle.project.sync.AutoSyncBehavior
 import com.android.tools.idea.gradle.project.sync.AutoSyncSettingStore
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
@@ -369,7 +367,8 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
   class ModuleSetupData(
     val module: Module,
     val dataNode: DataNode<out ModuleData>,
-    val gradleAndroidModelFactory: (GradleAndroidModelData) -> GradleAndroidModel
+    val libraryResolver: IdeLibraryModelResolverImpl,
+    val gradleAndroidModelFactory: (GradleAndroidModelData) -> GradleAndroidModelImpl
   )
 
   val moduleSetupData: Collection<ModuleSetupData> =
@@ -380,7 +379,9 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
         libraries,
         kmpLibraries
       )
-      val modelFactory = GradleAndroidDependencyModel.createFactory(project, libraryResolver)
+      val modelFactory: (GradleAndroidModelData) -> GradleAndroidModelImpl = { data ->
+        GradleAndroidModelImpl(data)
+      }
       projectData
         .modules()
         .flatMap inner@{ node ->
@@ -390,13 +391,13 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
           val module = modulesById[externalId] ?: requestSync("Module $externalId not found")
 
           if (sourceSets.isEmpty()) {
-            listOf(ModuleSetupData(module, node, modelFactory))
+            listOf(ModuleSetupData(module, node, libraryResolver, modelFactory))
           } else {
             sourceSets
               .mapNotNull { sourceSet ->
                 val moduleId = modulesById[sourceSet.data.id] ?: requestSync("Module ${sourceSet.data.id} not found")
-                if (moduleId.isAndroidModule()) ModuleSetupData(moduleId, sourceSet, modelFactory) else null
-              } + ModuleSetupData(module, node, modelFactory)
+                if (moduleId.isAndroidModule()) ModuleSetupData(moduleId, sourceSet, libraryResolver,modelFactory) else null
+              } + ModuleSetupData(module, node, libraryResolver,modelFactory)
           }
         }
     }
@@ -441,12 +442,8 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
         AndroidFacet::getInstance,
         { model, storage ->
           module.findModuleEntity(storage)?.let { entity ->
-            storage.modifyModuleEntity(entity) {
-              this.gradleAndroidModel = GradleAndroidModelEntity(
-                entitySource = this@modifyModuleEntity.entitySource,
-                gradleAndroidModel = data.gradleAndroidModelFactory(model)
-              )
-            }
+            val coreModel = data.gradleAndroidModelFactory(model)
+            setGradleAndroidModelFromDataNode(storage, entity, coreModel, data.libraryResolver)
           }
         },
         validate = GradleAndroidModelData::validate
