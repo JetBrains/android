@@ -170,13 +170,7 @@ class RenderModel(
 
   fun findTopViewAt(x: Double, y: Double): ViewNode? {
     val views = findViewsAt(x, y)
-    val view =
-      if (treeSettings.hideSystemNodes) {
-        views.firstOrNull { it.hasChildComposeDrawModifier }
-      } else {
-        views.firstOrNull { it.hasComposeDrawModifier }
-      }
-    return view ?: views.firstOrNull()
+    return views.firstOrNull()
   }
 
   fun rotate(xRotation: Double, yRotation: Double) {
