@@ -113,19 +113,6 @@ open class ViewNode(
     get() = false
 
   /**
-   * Returns true if this node (or a non-reported child) has LayoutInfo with draw modifier.
-   *
-   * The presence of a draw modifier indicates that this composable node may draw, and that this
-   * node may be more desirable for selection than nodes above it that are without a draw modifier.
-   */
-  open val hasComposeDrawModifier: Boolean
-    get() = false
-
-  /** Returns true if this node has a system child node with a draw modifier */
-  open val hasChildComposeDrawModifier: Boolean
-    get() = false
-
-  /**
    * Returns true if this [ViewNode] represents an entity that we have source code information for.
    *
    * In the case of a view, this should return true since we assume the code is present. A resource
