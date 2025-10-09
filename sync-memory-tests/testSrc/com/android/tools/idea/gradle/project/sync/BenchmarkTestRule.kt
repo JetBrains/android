@@ -84,6 +84,7 @@ private fun createBenchmarkTestRule(projectName: String,
     .around(CollectDaemonLogsRule())
     .around(ConfigurePhasedSyncFlagsRule())
     .around(DisableTestSuitesRule())
+    .maybeDisableLibraryConstraints(project)
     .maybeDisableBuiltInKotlin(project)
     .maybeDisableNewDsl(project)
     .around(ConfigurePhasedSyncFlagsRule())
@@ -91,6 +92,13 @@ private fun createBenchmarkTestRule(projectName: String,
   return object : BenchmarkTestRule,
                   ProjectSetupRule by projectSetupRule,
                   TestRule by wrappedRules {}
+}
+
+fun RuleChain.maybeDisableLibraryConstraints(project: BenchmarkProject): RuleChain = if (project.useAgp813) {
+  // This is done by default in 9.0 but not in 8.13. Disabling makes the metrics more comparable.
+  this.around(DisableLibraryConstraintsRule())
+} else {
+  this
 }
 
 fun RuleChain.maybeDisableBuiltInKotlin(project: BenchmarkProject): RuleChain = if (project == BenchmarkProject.KMP_2000) {
