@@ -19,8 +19,6 @@ layouts {
     portrait {
         width     432
         height    432
-        color     0x1f1f1f
-        event     EV_SW:0:1
 
         part1 {
             name    portrait
@@ -34,13 +32,4 @@ layouts {
             y       36
         }
     }
-}
-
-keyboard {
-    charmap qwerty2
-}
-
-network {
-    speed  full
-    delay  none
 }
