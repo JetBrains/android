@@ -145,10 +145,17 @@ class ComposeViewNode(
   override val isInlined: Boolean
     get() = composeFlags.hasFlag(FLAG_IS_INLINED)
 
-  override val hasComposeDrawModifier: Boolean
+  /**
+   * Returns true if this node (or a non-reported child) has LayoutInfo with draw modifier.
+   *
+   * The presence of a draw modifier indicates that this composable node may draw, and that this
+   * node may be more desirable for selection than nodes above it that are without a draw modifier.
+   */
+  val hasComposeDrawModifier: Boolean
     get() = composeFlags.hasFlag(FLAG_HAS_DRAW_MODIFIER)
 
-  override val hasChildComposeDrawModifier: Boolean
+  /** Returns true if this node has a system child node with a draw modifier */
+  val hasChildComposeDrawModifier: Boolean
     get() = composeFlags.hasFlag(FLAG_HAS_CHILD_DRAW_MODIFIER)
 
   override val hasSourceCodeInformation: Boolean
