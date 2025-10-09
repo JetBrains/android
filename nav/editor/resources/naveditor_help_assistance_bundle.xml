@@ -54,7 +54,7 @@
             <p>
               <h1>Design Surface</h1>
               The design surface provides a visual representation of a navigation resource file of an app.
-              <a href="https://developer.android.com/guide/navigation/navigation-create-destinations">Destinations</a> are represented by rectangular preview images of the underlying layout files, while <a href="https://developer.android.com/guide/navigation/navigation-getting-started#connect">actions</a> are represented as lines connecting the destinations.
+              Destinations are represented by rectangular preview images of the underlying layout files, while <a href="https://developer.android.com/guide/navigation/navigation-getting-started#connect">actions</a> are represented as lines connecting the destinations.
             </p>
             <p><div align="center"><img src="/image1.png" /></div></p>
             ]]>
