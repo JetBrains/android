@@ -78,7 +78,7 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     assertEquals(3, runConfiguration.settings.taskNames.size)
     assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])
     assertEquals("--tests", runConfiguration.settings.taskNames[1])
-    assertEquals("\"com.example.application.MyScreenshotTest*\"", runConfiguration.settings.taskNames[2])
+    assertEquals("\"com.example.application.MyScreenshotTest\"", runConfiguration.settings.taskNames[2])
   }
 
   @Test
@@ -97,7 +97,7 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     assertEquals(3, runConfiguration.settings.taskNames.size)
     assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])
     assertEquals("--tests", runConfiguration.settings.taskNames[1])
-    assertEquals("\"com.example.application.OnlyPreviewTest*\"", runConfiguration.settings.taskNames[2])
+    assertEquals("\"com.example.application.OnlyPreviewTest\"", runConfiguration.settings.taskNames[2])
   }
 
   @Test

@@ -59,7 +59,7 @@ class ScreenshotTestClassGradleConfigurationProducer: TestClassGradleConfigurati
                                     element: PsiClass,
                                     chosenElements: List<PsiClass>): List<TestTasksToRun> {
     val tasksToRun = mutableListOf<TestTasksToRun>()
-    val testFilter = "--tests \"${element.qualifiedName}*\""
+    val testFilter = "--tests \"${element.qualifiedName}\""
     val tasks = getScreenshotTestTaskNames(context) ?: return tasksToRun
     tasksToRun.add(TestTasksToRun(TasksToRun.Impl("screenshotTest", tasks), testFilter))
     return tasksToRun
@@ -109,6 +109,6 @@ class ScreenshotTestClassGradleConfigurationProducer: TestClassGradleConfigurati
   }
 
   private fun taskNamesWithFilter(context: ConfigurationContext, psiClass: PsiClass): List<String> {
-    return getScreenshotTestTaskNames(context)!! + "--tests" + "\"${psiClass.qualifiedName}*\""
+    return getScreenshotTestTaskNames(context)!! + "--tests" + "\"${psiClass.qualifiedName}\""
   }
 }
