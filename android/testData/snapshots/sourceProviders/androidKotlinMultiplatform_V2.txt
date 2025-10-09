@@ -746,6 +746,7 @@ MODULE: Kotlin_Multiplatform.androidLib
                     file://./androidLib/src/androidTestTypeoneModetwo/resources
                     file://./androidLib/src/androidTestDebug/resources
                     file://./androidLib/src/androidTestTypeoneModetwoDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -1786,6 +1787,7 @@ MODULE: Kotlin_Multiplatform.androidLib
                     file://./androidLib/src/androidTestTypeoneModetwoDebug/res
                 ResourcesDirectoryUrls:
                     file://./androidLib/src/androidTestTypeoneModetwoDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 MODULE: Kotlin_Multiplatform.app
     by Facet:
@@ -2108,6 +2110,7 @@ MODULE: Kotlin_Multiplatform.app
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTest/resources
                     file://./app/src/androidTestDebug/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -2474,6 +2477,7 @@ MODULE: Kotlin_Multiplatform.app
                     file://./app/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/androidTestDebug/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 MODULE: Kotlin_Multiplatform.kmpFirstLib
     by Facet:
@@ -2547,34 +2551,34 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     ./kmpFirstLib/src/androidMain/resources
         HostTest:
             UnitTest
-                androidUnitTest
+                androidHostTest
                     Manifest:
-                        ./kmpFirstLib/src/androidUnitTest/AndroidManifest.xml
+                        ./kmpFirstLib/src/androidHostTest/AndroidManifest.xml
                     AssetsDirectories:
-                        ./kmpFirstLib/src/androidUnitTest/assets
+                        ./kmpFirstLib/src/androidHostTest/assets
                     JavaDirectories:
-                        ./kmpFirstLib/src/androidUnitTest/java
+                        ./kmpFirstLib/src/androidHostTest/java
                     KotlinDirectories:
-                        ./kmpFirstLib/src/androidUnitTest/kotlin
+                        ./kmpFirstLib/src/androidHostTest/kotlin
                     ResDirectories:
-                        ./kmpFirstLib/src/androidUnitTest/res
+                        ./kmpFirstLib/src/androidHostTest/res
                     ResourcesDirectories:
-                        ./kmpFirstLib/src/androidUnitTest/resources
+                        ./kmpFirstLib/src/androidHostTest/resources
         DeviceTest:
             AndroidTest
-                androidInstrumentedTest
+                androidDeviceTest
                     Manifest:
-                        ./kmpFirstLib/src/androidInstrumentedTest/AndroidManifest.xml
+                        ./kmpFirstLib/src/androidDeviceTest/AndroidManifest.xml
                     AssetsDirectories:
-                        ./kmpFirstLib/src/androidInstrumentedTest/assets
+                        ./kmpFirstLib/src/androidDeviceTest/assets
                     JavaDirectories:
-                        ./kmpFirstLib/src/androidInstrumentedTest/java
+                        ./kmpFirstLib/src/androidDeviceTest/java
                     KotlinDirectories:
-                        ./kmpFirstLib/src/androidInstrumentedTest/kotlin
+                        ./kmpFirstLib/src/androidDeviceTest/kotlin
                     ResDirectories:
-                        ./kmpFirstLib/src/androidInstrumentedTest/res
+                        ./kmpFirstLib/src/androidDeviceTest/res
                     ResourcesDirectories:
-                        ./kmpFirstLib/src/androidInstrumentedTest/resources
+                        ./kmpFirstLib/src/androidDeviceTest/resources
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -2610,46 +2614,47 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
-                    file://./kmpFirstLib/src/androidUnitTest/AndroidManifest.xml
+                    file://./kmpFirstLib/src/androidHostTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
-                    file://./kmpFirstLib/src/androidUnitTest
+                    file://./kmpFirstLib/src/androidHostTest
                 ManifestDirectories:
-                    file://./kmpFirstLib/src/androidUnitTest
+                    file://./kmpFirstLib/src/androidHostTest
                 AssetsDirectoryUrls:
-                    file://./kmpFirstLib/src/androidUnitTest/assets
+                    file://./kmpFirstLib/src/androidHostTest/assets
                 JavaDirectoryUrls:
-                    file://./kmpFirstLib/src/androidUnitTest/java
+                    file://./kmpFirstLib/src/androidHostTest/java
                 KotlinDirectoryUrls:
-                    file://./kmpFirstLib/src/androidUnitTest/kotlin
+                    file://./kmpFirstLib/src/androidHostTest/kotlin
                 KotlinDirectories:
-                    file://./kmpFirstLib/src/androidUnitTest/kotlin
+                    file://./kmpFirstLib/src/androidHostTest/kotlin
                 ResDirectoryUrls:
-                    file://./kmpFirstLib/src/androidUnitTest/res
+                    file://./kmpFirstLib/src/androidHostTest/res
                 ResourcesDirectoryUrls:
-                    file://./kmpFirstLib/src/androidUnitTest/resources
+                    file://./kmpFirstLib/src/androidHostTest/resources
         DeviceTestSources:
             AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
-                    file://./kmpFirstLib/src/androidInstrumentedTest/AndroidManifest.xml
+                    file://./kmpFirstLib/src/androidDeviceTest/AndroidManifest.xml
                 ManifestFiles:
-                    file://./kmpFirstLib/src/androidInstrumentedTest/AndroidManifest.xml
+                    file://./kmpFirstLib/src/androidDeviceTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
-                    file://./kmpFirstLib/src/androidInstrumentedTest
+                    file://./kmpFirstLib/src/androidDeviceTest
                 ManifestDirectories:
-                    file://./kmpFirstLib/src/androidInstrumentedTest
+                    file://./kmpFirstLib/src/androidDeviceTest
                 AssetsDirectoryUrls:
-                    file://./kmpFirstLib/src/androidInstrumentedTest/assets
+                    file://./kmpFirstLib/src/androidDeviceTest/assets
                 JavaDirectoryUrls:
-                    file://./kmpFirstLib/src/androidInstrumentedTest/java
+                    file://./kmpFirstLib/src/androidDeviceTest/java
                 KotlinDirectoryUrls:
-                    file://./kmpFirstLib/src/androidInstrumentedTest/kotlin
+                    file://./kmpFirstLib/src/androidDeviceTest/kotlin
                 KotlinDirectories:
-                    file://./kmpFirstLib/src/androidInstrumentedTest/kotlin
+                    file://./kmpFirstLib/src/androidDeviceTest/kotlin
                 ResDirectoryUrls:
-                    file://./kmpFirstLib/src/androidInstrumentedTest/res
+                    file://./kmpFirstLib/src/androidDeviceTest/res
                 ResourcesDirectoryUrls:
-                    file://./kmpFirstLib/src/androidInstrumentedTest/resources
+                    file://./kmpFirstLib/src/androidDeviceTest/resources
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -2666,28 +2671,48 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
         AllVariantAllArtifactsSources:
-            androidInstrumentedTest (IDEA)
+            androidDeviceTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
-                    file://./kmpFirstLib/src/androidInstrumentedTest/AndroidManifest.xml
+                    file://./kmpFirstLib/src/androidDeviceTest/AndroidManifest.xml
                 ManifestFiles:
-                    file://./kmpFirstLib/src/androidInstrumentedTest/AndroidManifest.xml
+                    file://./kmpFirstLib/src/androidDeviceTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
-                    file://./kmpFirstLib/src/androidInstrumentedTest
+                    file://./kmpFirstLib/src/androidDeviceTest
                 ManifestDirectories:
-                    file://./kmpFirstLib/src/androidInstrumentedTest
+                    file://./kmpFirstLib/src/androidDeviceTest
                 AssetsDirectoryUrls:
-                    file://./kmpFirstLib/src/androidInstrumentedTest/assets
+                    file://./kmpFirstLib/src/androidDeviceTest/assets
                 JavaDirectoryUrls:
-                    file://./kmpFirstLib/src/androidInstrumentedTest/java
+                    file://./kmpFirstLib/src/androidDeviceTest/java
                 KotlinDirectoryUrls:
-                    file://./kmpFirstLib/src/androidInstrumentedTest/kotlin
+                    file://./kmpFirstLib/src/androidDeviceTest/kotlin
                 KotlinDirectories:
-                    file://./kmpFirstLib/src/androidInstrumentedTest/kotlin
+                    file://./kmpFirstLib/src/androidDeviceTest/kotlin
                 ResDirectoryUrls:
-                    file://./kmpFirstLib/src/androidInstrumentedTest/res
+                    file://./kmpFirstLib/src/androidDeviceTest/res
                 ResourcesDirectoryUrls:
-                    file://./kmpFirstLib/src/androidInstrumentedTest/resources
+                    file://./kmpFirstLib/src/androidDeviceTest/resources
+            androidHostTest (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./kmpFirstLib/src/androidHostTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./kmpFirstLib/src/androidHostTest
+                ManifestDirectories:
+                    file://./kmpFirstLib/src/androidHostTest
+                AssetsDirectoryUrls:
+                    file://./kmpFirstLib/src/androidHostTest/assets
+                JavaDirectoryUrls:
+                    file://./kmpFirstLib/src/androidHostTest/java
+                KotlinDirectoryUrls:
+                    file://./kmpFirstLib/src/androidHostTest/kotlin
+                KotlinDirectories:
+                    file://./kmpFirstLib/src/androidHostTest/kotlin
+                ResDirectoryUrls:
+                    file://./kmpFirstLib/src/androidHostTest/res
+                ResourcesDirectoryUrls:
+                    file://./kmpFirstLib/src/androidHostTest/resources
             androidMain (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2714,26 +2739,6 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidMain/resources
                 ResourcesDirectories:
                     file://./kmpFirstLib/src/androidMain/resources
-            androidUnitTest (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./kmpFirstLib/src/androidUnitTest/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./kmpFirstLib/src/androidUnitTest
-                ManifestDirectories:
-                    file://./kmpFirstLib/src/androidUnitTest
-                AssetsDirectoryUrls:
-                    file://./kmpFirstLib/src/androidUnitTest/assets
-                JavaDirectoryUrls:
-                    file://./kmpFirstLib/src/androidUnitTest/java
-                KotlinDirectoryUrls:
-                    file://./kmpFirstLib/src/androidUnitTest/kotlin
-                KotlinDirectories:
-                    file://./kmpFirstLib/src/androidUnitTest/kotlin
-                ResDirectoryUrls:
-                    file://./kmpFirstLib/src/androidUnitTest/res
-                ResourcesDirectoryUrls:
-                    file://./kmpFirstLib/src/androidUnitTest/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             androidMain (IDEA)
                 ScopeType: MAIN
@@ -2789,49 +2794,50 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                 ResourcesDirectories:
                     file://./kmpFirstLib/src/androidMain/resources
         CurrentHostTestSourceProviders:
-            androidUnitTest (IDEA)
+            androidHostTest (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
-                    file://./kmpFirstLib/src/androidUnitTest/AndroidManifest.xml
+                    file://./kmpFirstLib/src/androidHostTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
-                    file://./kmpFirstLib/src/androidUnitTest
+                    file://./kmpFirstLib/src/androidHostTest
                 ManifestDirectories:
-                    file://./kmpFirstLib/src/androidUnitTest
+                    file://./kmpFirstLib/src/androidHostTest
                 AssetsDirectoryUrls:
-                    file://./kmpFirstLib/src/androidUnitTest/assets
+                    file://./kmpFirstLib/src/androidHostTest/assets
                 JavaDirectoryUrls:
-                    file://./kmpFirstLib/src/androidUnitTest/java
+                    file://./kmpFirstLib/src/androidHostTest/java
                 KotlinDirectoryUrls:
-                    file://./kmpFirstLib/src/androidUnitTest/kotlin
+                    file://./kmpFirstLib/src/androidHostTest/kotlin
                 KotlinDirectories:
-                    file://./kmpFirstLib/src/androidUnitTest/kotlin
+                    file://./kmpFirstLib/src/androidHostTest/kotlin
                 ResDirectoryUrls:
-                    file://./kmpFirstLib/src/androidUnitTest/res
+                    file://./kmpFirstLib/src/androidHostTest/res
                 ResourcesDirectoryUrls:
-                    file://./kmpFirstLib/src/androidUnitTest/resources
+                    file://./kmpFirstLib/src/androidHostTest/resources
         CurrentDeviceTestSourceProviders:
-            androidInstrumentedTest (IDEA)
+            androidDeviceTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
-                    file://./kmpFirstLib/src/androidInstrumentedTest/AndroidManifest.xml
+                    file://./kmpFirstLib/src/androidDeviceTest/AndroidManifest.xml
                 ManifestFiles:
-                    file://./kmpFirstLib/src/androidInstrumentedTest/AndroidManifest.xml
+                    file://./kmpFirstLib/src/androidDeviceTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
-                    file://./kmpFirstLib/src/androidInstrumentedTest
+                    file://./kmpFirstLib/src/androidDeviceTest
                 ManifestDirectories:
-                    file://./kmpFirstLib/src/androidInstrumentedTest
+                    file://./kmpFirstLib/src/androidDeviceTest
                 AssetsDirectoryUrls:
-                    file://./kmpFirstLib/src/androidInstrumentedTest/assets
+                    file://./kmpFirstLib/src/androidDeviceTest/assets
                 JavaDirectoryUrls:
-                    file://./kmpFirstLib/src/androidInstrumentedTest/java
+                    file://./kmpFirstLib/src/androidDeviceTest/java
                 KotlinDirectoryUrls:
-                    file://./kmpFirstLib/src/androidInstrumentedTest/kotlin
+                    file://./kmpFirstLib/src/androidDeviceTest/kotlin
                 KotlinDirectories:
-                    file://./kmpFirstLib/src/androidInstrumentedTest/kotlin
+                    file://./kmpFirstLib/src/androidDeviceTest/kotlin
                 ResDirectoryUrls:
-                    file://./kmpFirstLib/src/androidInstrumentedTest/res
+                    file://./kmpFirstLib/src/androidDeviceTest/res
                 ResourcesDirectoryUrls:
-                    file://./kmpFirstLib/src/androidInstrumentedTest/resources
+                    file://./kmpFirstLib/src/androidDeviceTest/resources
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 MODULE: Kotlin_Multiplatform.kmpSecondLib
     by Facet:
@@ -2920,6 +2926,7 @@ MODULE: Kotlin_Multiplatform.kmpSecondLib
         DeviceTestSources:
             AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
+        TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -2990,6 +2997,7 @@ MODULE: Kotlin_Multiplatform.kmpSecondLib
                     file://./kmpSecondLib/src/androidMain/resources
         CurrentHostTestSourceProviders:
         CurrentDeviceTestSourceProviders:
+        CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 Build configuration files:
     file://./build.gradle : Project: Kotlin_Multiplatform [0]

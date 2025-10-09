@@ -1265,21 +1265,36 @@ MODULE                        : Kotlin_Multiplatform
                         androidCompilationImplementation        : <empty>
                         androidCompilationRuntimeOnly : <empty>
                         androidCompileClasspath       : <empty>
-                        androidInstrumentedTestApi    : <empty>
-                        androidInstrumentedTestApiDependenciesMetadata    : <empty>
-                        androidInstrumentedTestCompilationApi   : <empty>
-                        androidInstrumentedTestCompilationCompileOnly     : <empty>
-                        androidInstrumentedTestCompilationImplementation  : <empty>
-                        androidInstrumentedTestCompilationRuntimeOnly     : <empty>
-                        androidInstrumentedTestCompileClasspath : <empty>
-                        androidInstrumentedTestCompileOnly      : <empty>
-                        androidInstrumentedTestCompileOnlyDependenciesMetadata      : <empty>
-                        androidInstrumentedTestImplementation   : <empty>
-                        androidInstrumentedTestImplementationDependenciesMetadata   : <empty>
-                        androidInstrumentedTestIntransitiveDependenciesMetadata     : <empty>
-                        androidInstrumentedTestResolvableDependenciesMetadata       : <empty>
-                        androidInstrumentedTestRuntimeClasspath : <empty>
-                        androidInstrumentedTestRuntimeOnly      : <empty>
+                        androidDeviceTestApi          : <empty>
+                        androidDeviceTestApiDependenciesMetadata          : <empty>
+                        androidDeviceTestCompilationApi         : <empty>
+                        androidDeviceTestCompilationCompileOnly : <empty>
+                        androidDeviceTestCompilationImplementation        : <empty>
+                        androidDeviceTestCompilationRuntimeOnly : <empty>
+                        androidDeviceTestCompileClasspath       : <empty>
+                        androidDeviceTestCompileOnly  : <empty>
+                        androidDeviceTestCompileOnlyDependenciesMetadata  : <empty>
+                        androidDeviceTestImplementation         : <empty>
+                        androidDeviceTestImplementationDependenciesMetadata         : <empty>
+                        androidDeviceTestIntransitiveDependenciesMetadata : <empty>
+                        androidDeviceTestResolvableDependenciesMetadata   : <empty>
+                        androidDeviceTestRuntimeClasspath       : <empty>
+                        androidDeviceTestRuntimeOnly  : <empty>
+                        androidHostTestApi            : <empty>
+                        androidHostTestApiDependenciesMetadata  : <empty>
+                        androidHostTestCompilationApi : <empty>
+                        androidHostTestCompilationCompileOnly   : <empty>
+                        androidHostTestCompilationImplementation          : <empty>
+                        androidHostTestCompilationRuntimeOnly   : <empty>
+                        androidHostTestCompileClasspath         : <empty>
+                        androidHostTestCompileOnly    : <empty>
+                        androidHostTestCompileOnlyDependenciesMetadata    : <empty>
+                        androidHostTestImplementation : <empty>
+                        androidHostTestImplementationDependenciesMetadata : <empty>
+                        androidHostTestIntransitiveDependenciesMetadata   : <empty>
+                        androidHostTestResolvableDependenciesMetadata     : <empty>
+                        androidHostTestRuntimeClasspath         : <empty>
+                        androidHostTestRuntimeOnly    : <empty>
                         androidJdkImage               : <empty>
                         androidMainApi                : <empty>
                         androidMainApiDependenciesMetadata      : <empty>
@@ -1297,21 +1312,6 @@ MODULE                        : Kotlin_Multiplatform
                         androidSourcesElements        : <empty>
                         - androidSourcesElements-published      : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-android-sources.jar [-]
                         androidTestUtil               : <empty>
-                        androidUnitTestApi            : <empty>
-                        androidUnitTestApiDependenciesMetadata  : <empty>
-                        androidUnitTestCompilationApi : <empty>
-                        androidUnitTestCompilationCompileOnly   : <empty>
-                        androidUnitTestCompilationImplementation          : <empty>
-                        androidUnitTestCompilationRuntimeOnly   : <empty>
-                        androidUnitTestCompileClasspath         : <empty>
-                        androidUnitTestCompileOnly    : <empty>
-                        androidUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                        androidUnitTestImplementation : <empty>
-                        androidUnitTestImplementationDependenciesMetadata : <empty>
-                        androidUnitTestIntransitiveDependenciesMetadata   : <empty>
-                        androidUnitTestResolvableDependenciesMetadata     : <empty>
-                        androidUnitTestRuntimeClasspath         : <empty>
-                        androidUnitTestRuntimeOnly    : <empty>
                         annotationProcessorClasspath  : <empty>
                         - archives                    : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-metadata.jar [-]
                         commonMainApi                 : <empty>
@@ -1334,15 +1334,17 @@ MODULE                        : Kotlin_Multiplatform
                         commonTestRuntimeOnly         : <empty>
                         coreLibraryDesugaring         : <empty>
                         default                       : <empty>
-                        instrumentedTestKotlinScriptDef         : <empty>
-                        instrumentedTestKotlinScriptDefExtensions         : <empty>
+                        deviceTestKotlinScriptDef     : <empty>
+                        deviceTestKotlinScriptDefExtensions     : <empty>
+                        hostTestKotlinScriptDef       : <empty>
+                        hostTestKotlinScriptDefExtensions       : <empty>
                         kotlinBouncyCastleConfiguration         : <empty>
                         kotlinBuildToolsApiClasspath  : <empty>
                         kotlinCompilerClasspath       : <empty>
                         kotlinCompilerPluginClasspath : <empty>
-                        kotlinCompilerPluginClasspathAndroidInstrumentedTest        : <empty>
+                        kotlinCompilerPluginClasspathAndroidDeviceTest    : <empty>
+                        kotlinCompilerPluginClasspathAndroidHostTest      : <empty>
                         kotlinCompilerPluginClasspathAndroidMain          : <empty>
-                        kotlinCompilerPluginClasspathAndroidUnitTest      : <empty>
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinInternalAbiValidation   : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
@@ -1360,13 +1362,11 @@ MODULE                        : Kotlin_Multiplatform
                         - metadataSourcesElements     : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-kotlin-sources.jar [-]
                         swiftExportClasspath          : <empty>
                         swiftExportClasspathResolvable          : <empty>
-                        unitTestKotlinScriptDef       : <empty>
-                        unitTestKotlinScriptDefExtensions       : <empty>
                     - additionalArtifacts         : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-metadata.jar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
-                        testAndroidUnitTest           : testAndroidUnitTest (DefaultExternalTask)
-                            qName                         : :kmpFirstLib:testAndroidUnitTest
+                        testAndroidHostTest           : testAndroidHostTest (DefaultExternalTask)
+                            qName                         : :kmpFirstLib:testAndroidHostTest
             kmpJvmOnly                    : :kmpJvmOnly (DefaultExternalProject)
                 path                          : :kmpJvmOnly [-]
                 identityPath                  : :kmpJvmOnly [-]
@@ -1722,8 +1722,8 @@ MODULE                        : Kotlin_Multiplatform
             tasks
                 jvmTest                       : jvmTest (DefaultExternalTask)
                     qName                         : :kmpJvmOnly:jvmTest
-                testAndroidUnitTest           : testAndroidUnitTest (DefaultExternalTask)
-                    qName                         : :kmpFirstLib:testAndroidUnitTest
+                testAndroidHostTest           : testAndroidHostTest (DefaultExternalTask)
+                    qName                         : :kmpFirstLib:testAndroidHostTest
                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testDebugUnitTest
                 testTypeoneModeoneDebugUnitTest         : testTypeoneModeoneDebugUnitTest (DefaultExternalTask)
@@ -2788,6 +2788,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
         GenerateManifestClass         : false
     - basicVariant:               : androidMain
         testApplicationId             : com.example.kmpfirstlib.test
+        buildType                     :
     BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     DefaultConfig
         ProductFlavor
@@ -2804,23 +2805,23 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
-                    Name                          : androidUnitTest
-                    Manifest                      : <ROOT>/kmpFirstLib/src/androidUnitTest/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/kmpFirstLib/src/androidUnitTest/java [-]
-                    KotlinDirectories             : <ROOT>/kmpFirstLib/src/androidUnitTest/kotlin
-                    ResourcesDirectories          : <ROOT>/kmpFirstLib/src/androidUnitTest/resources [-]
-                    ResDirectories                : <ROOT>/kmpFirstLib/src/androidUnitTest/res [-]
-                    AssetsDirectories             : <ROOT>/kmpFirstLib/src/androidUnitTest/assets [-]
+                    Name                          : androidHostTest
+                    Manifest                      : <ROOT>/kmpFirstLib/src/androidHostTest/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/kmpFirstLib/src/androidHostTest/java [-]
+                    KotlinDirectories             : <ROOT>/kmpFirstLib/src/androidHostTest/kotlin
+                    ResourcesDirectories          : <ROOT>/kmpFirstLib/src/androidHostTest/resources [-]
+                    ResDirectories                : <ROOT>/kmpFirstLib/src/androidHostTest/res [-]
+                    AssetsDirectories             : <ROOT>/kmpFirstLib/src/androidHostTest/assets [-]
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
                 SourceProvider
-                    Name                          : androidInstrumentedTest
-                    Manifest                      : <ROOT>/kmpFirstLib/src/androidInstrumentedTest/AndroidManifest.xml
-                    JavaDirectories               : <ROOT>/kmpFirstLib/src/androidInstrumentedTest/java [-]
-                    KotlinDirectories             : <ROOT>/kmpFirstLib/src/androidInstrumentedTest/kotlin
-                    ResourcesDirectories          : <ROOT>/kmpFirstLib/src/androidInstrumentedTest/resources [-]
-                    ResDirectories                : <ROOT>/kmpFirstLib/src/androidInstrumentedTest/res [-]
-                    AssetsDirectories             : <ROOT>/kmpFirstLib/src/androidInstrumentedTest/assets [-]
+                    Name                          : androidDeviceTest
+                    Manifest                      : <ROOT>/kmpFirstLib/src/androidDeviceTest/AndroidManifest.xml
+                    JavaDirectories               : <ROOT>/kmpFirstLib/src/androidDeviceTest/java [-]
+                    KotlinDirectories             : <ROOT>/kmpFirstLib/src/androidDeviceTest/kotlin
+                    ResourcesDirectories          : <ROOT>/kmpFirstLib/src/androidDeviceTest/resources [-]
+                    ResDirectories                : <ROOT>/kmpFirstLib/src/androidDeviceTest/res [-]
+                    AssetsDirectories             : <ROOT>/kmpFirstLib/src/androidDeviceTest/assets [-]
     BuildTypes
         BuildType
             Name                          :
@@ -2888,10 +2889,10 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
-                CompileTaskName               : compileAndroidInstrumentedTest
-                AssembleTaskName              : assembleAndroidInstrumentedTest
+                CompileTaskName               : compileAndroidDeviceTest
+                AssembleTaskName              : assembleAndroidDeviceTest
                 IsTestArtifact                : true
-                ClassesFolder                 : <ROOT>/kmpFirstLib/build/classes/kotlin/android/instrumentedTest [-]
+                ClassesFolder                 : <ROOT>/kmpFirstLib/build/classes/kotlin/android/deviceTest [-]
                 Dependencies
                     compileClasspath
                         module                        : :-:kmpFirstLib-androidMain
@@ -2986,19 +2987,19 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 IsSigned                      : true
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
-                    AssembleTaskName              : assembleAndroidInstrumentedTest
-                    AssembleTaskOutputListingFile : <ROOT>/kmpFirstLib/build/intermediates/apk_ide_redirect_file/androidInstrumentedTest/createAndroidInstrumentedTestApkListingFileRedirect/redirect.txt [-]
+                    AssembleTaskName              : assembleAndroidDeviceTest
+                    AssembleTaskOutputListingFile : <ROOT>/kmpFirstLib/build/intermediates/apk_ide_redirect_file/androidDeviceTest/createAndroidDeviceTestApkListingFileRedirect/redirect.txt [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
-                    InstrumentedTestTaskName      : connectedAndroidInstrumentedTest
+                    InstrumentedTestTaskName      : connectedAndroidDeviceTest
             UnitTestArtifact
                 Name                          : UNIT_TEST
-                CompileTaskName               : compileAndroidUnitTest
-                AssembleTaskName              : assembleAndroidUnitTest
+                CompileTaskName               : compileAndroidHostTest
+                AssembleTaskName              : assembleAndroidHostTest
                 IsTestArtifact                : true
-                ClassesFolder                 : <ROOT>/kmpFirstLib/build/classes/kotlin/android/unitTest [-]
+                ClassesFolder                 : <ROOT>/kmpFirstLib/build/classes/kotlin/android/hostTest [-]
                 Dependencies
                     compileClasspath
                         module                        : :-:kmpFirstLib-commonTest
@@ -3031,9 +3032,9 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                         module                        : :-:kmpJvmOnly-commonMain
                         module                        : :-:kmpJvmOnly-jvmMain
                 MockablePlatformJar           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-    kotlinMppGradleModel          : {androidInstrumentedTest=androidInstrumentedTest, androidMain=androidMain, androidUnitTest=androidUnitTest, commonMain=commonMain, commonTest=commonTest} (KotlinMPPGradleModelImpl)
+    kotlinMppGradleModel          : {androidDeviceTest=androidDeviceTest, androidHostTest=androidHostTest, androidMain=androidMain, commonMain=commonMain, commonTest=commonTest} (KotlinMPPGradleModelImpl)
         dependencies
-            androidInstrumentedTest
+            androidDeviceTest
                 - dependency                  : :androidLib::androidLib
                 - dependency                  : :kmpFirstLib::kmpFirstLib/androidMain
                 - dependency                  : :kmpFirstLib::kmpFirstLib/commonMain
@@ -3075,14 +3076,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 - dependency                  : org.hamcrest:hamcrest-core:1.3
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
-            androidMain
-                - dependency                  : :androidLib::androidLib
-                - dependency                  : :kmpFirstLib::kmpFirstLib/commonMain
-                - dependency                  : :kmpJvmOnly::kmpJvmOnly
-                - dependency                  : :kmpSecondLib::kmpSecondLib
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                - dependency                  : org.jetbrains:annotations:13.0
-            androidUnitTest
+            androidHostTest
                 - dependency                  : :androidLib::androidLib
                 - dependency                  : :kmpFirstLib::kmpFirstLib/androidMain
                 - dependency                  : :kmpFirstLib::kmpFirstLib/commonMain
@@ -3094,6 +3088,13 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin:kotlin-test-junit:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin:kotlin-test:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains:annotations:13.0
+            androidMain
+                - dependency                  : :androidLib::androidLib
+                - dependency                  : :kmpFirstLib::kmpFirstLib/commonMain
+                - dependency                  : :kmpJvmOnly::kmpJvmOnly
+                - dependency                  : :kmpSecondLib::kmpSecondLib
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
             commonMain
                 - dependency                  : :androidLib::androidLib
@@ -3118,8 +3119,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
         kotlinGradlePluginVersion
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         - targets                     : android (KotlinTargetImpl)
-            - compilations                : instrumentedTest (KotlinCompilationImpl)
-                - allSourceSets               : androidInstrumentedTest (KotlinSourceSetImpl)
+            - compilations                : deviceTest (KotlinCompilationImpl)
+                - allSourceSets               : androidDeviceTest (KotlinSourceSetImpl)
                     actualPlatforms               : KotlinPlatformContainerImpl
                         arePlatformsInitialized       : true
                         - platforms                   : JVM
@@ -3134,8 +3135,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - resourceDirs                : <ROOT>/kmpFirstLib/src/androidInstrumentedTest/resources [-]
-                    - sourceDirs                  : <ROOT>/kmpFirstLib/src/androidInstrumentedTest/kotlin
+                    - resourceDirs                : <ROOT>/kmpFirstLib/src/androidDeviceTest/resources [-]
+                    - sourceDirs                  : <ROOT>/kmpFirstLib/src/androidDeviceTest/kotlin
                     platform                      : JVM
                 - associateCompilations       : KotlinCompilationCoordinatesImpl
                     compilationName               : main
@@ -3144,9 +3145,9 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    destination                   : <ROOT>/kmpFirstLib/build/classes/kotlin/android/instrumentedTest
+                    destination                   : <ROOT>/kmpFirstLib/build/classes/kotlin/android/deviceTest
                     jvmTarget                     : 11
-                    moduleName                    : kmpFirstLib_instrumentedTest
+                    moduleName                    : kmpFirstLib_deviceTest
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
@@ -3154,7 +3155,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
-                    - fragments                   : androidInstrumentedTest
+                    - fragments                   : androidDeviceTest
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3165,16 +3166,96 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     returnValueChecker            : disable
                     useFirLT                      : true
-                - declaredSourceSets          : androidInstrumentedTest (KotlinSourceSetImpl) (*seen*)
+                - declaredSourceSets          : androidDeviceTest (KotlinSourceSetImpl) (*seen*)
                 disambiguationClassifier      : android
                 isTestComponent               : true
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>
                 output                        : KotlinCompilationOutputImpl
-                    - classesDirs                 : <ROOT>/kmpFirstLib/build/classes/kotlin/android/instrumentedTest [-]
-                    effectiveClassesDir           : <ROOT>/kmpFirstLib/build/classes/kotlin/android/instrumentedTest [-]
-                    resourcesDir                  : <ROOT>/kmpFirstLib/build/processedResources/android/instrumentedTest [-]
+                    - classesDirs                 : <ROOT>/kmpFirstLib/build/classes/kotlin/android/deviceTest [-]
+                    effectiveClassesDir           : <ROOT>/kmpFirstLib/build/classes/kotlin/android/deviceTest [-]
+                    resourcesDir                  : <ROOT>/kmpFirstLib/build/processedResources/android/deviceTest [-]
+                platform                      : JVM
+            - compilations                : hostTest (KotlinCompilationImpl)
+                - allSourceSets               : commonTest (KotlinSourceSetImpl)
+                    actualPlatforms               : KotlinPlatformContainerImpl
+                        arePlatformsInitialized       : true
+                        - platforms                   : JVM
+                    - additionalVisibleSourceSets : androidMain
+                    - additionalVisibleSourceSets : commonMain
+                    isTestComponent               : true
+                    languageSettings              : KotlinLanguageSettingsImpl
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - resourceDirs                : <ROOT>/kmpFirstLib/src/commonTest/resources [-]
+                    - sourceDirs                  : <ROOT>/kmpFirstLib/src/commonTest/kotlin
+                    platform                      : JVM
+                - allSourceSets               : androidHostTest (KotlinSourceSetImpl)
+                    actualPlatforms               : KotlinPlatformContainerImpl
+                        arePlatformsInitialized       : true
+                        - platforms                   : JVM
+                    - additionalVisibleSourceSets : androidMain
+                    - additionalVisibleSourceSets : commonMain
+                    - allDependsOnSourceSets      : commonTest
+                    - declaredDependsOnSourceSets : commonTest
+                    isTestComponent               : true
+                    languageSettings              : KotlinLanguageSettingsImpl
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - resourceDirs                : <ROOT>/kmpFirstLib/src/androidHostTest/resources [-]
+                    - sourceDirs                  : <ROOT>/kmpFirstLib/src/androidHostTest/kotlin
+                    platform                      : JVM
+                - associateCompilations       : KotlinCompilationCoordinatesImpl
+                    compilationName               : main
+                    targetName                    : android
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    backendThreads                : 1
+                    destination                   : <ROOT>/kmpFirstLib/build/classes/kotlin/android/hostTest
+                    jvmTarget                     : 11
+                    moduleName                    : kmpFirstLib_hostTest
+                    noReflect                     : true
+                    noStdlib                      : true
+                    serializeIr                   : none
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    explicitApi                   : disable
+                    explicitReturnTypes           : disable
+                    - fragmentRefines             : androidHostTest:commonTest
+                    - fragments                   : androidHostTest
+                    - fragments                   : commonTest
+                    multiPlatform                 : true
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    returnValueChecker            : disable
+                    useFirLT                      : true
+                - declaredSourceSets          : androidHostTest (KotlinSourceSetImpl) (*seen*)
+                disambiguationClassifier      : android
+                isTestComponent               : true
+                kotlinTaskProperties          : KotlinTaskPropertiesImpl
+                    incremental                   : true
+                    pluginVersion                 : <CUT>
+                output                        : KotlinCompilationOutputImpl
+                    - classesDirs                 : <ROOT>/kmpFirstLib/build/classes/kotlin/android/hostTest [-]
+                    effectiveClassesDir           : <ROOT>/kmpFirstLib/build/classes/kotlin/android/hostTest [-]
+                    resourcesDir                  : <ROOT>/kmpFirstLib/build/processedResources/android/hostTest [-]
                 platform                      : JVM
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
@@ -3247,100 +3328,20 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     effectiveClassesDir           : <ROOT>/kmpFirstLib/build/classes/kotlin/android/main [-]
                     resourcesDir                  : <ROOT>/kmpFirstLib/build/processedResources/android/main [-]
                 platform                      : JVM
-            - compilations                : unitTest (KotlinCompilationImpl)
-                - allSourceSets               : commonTest (KotlinSourceSetImpl)
-                    actualPlatforms               : KotlinPlatformContainerImpl
-                        arePlatformsInitialized       : true
-                        - platforms                   : JVM
-                    - additionalVisibleSourceSets : androidMain
-                    - additionalVisibleSourceSets : commonMain
-                    isTestComponent               : true
-                    languageSettings              : KotlinLanguageSettingsImpl
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - resourceDirs                : <ROOT>/kmpFirstLib/src/commonTest/resources [-]
-                    - sourceDirs                  : <ROOT>/kmpFirstLib/src/commonTest/kotlin
-                    platform                      : JVM
-                - allSourceSets               : androidUnitTest (KotlinSourceSetImpl)
-                    actualPlatforms               : KotlinPlatformContainerImpl
-                        arePlatformsInitialized       : true
-                        - platforms                   : JVM
-                    - additionalVisibleSourceSets : androidMain
-                    - additionalVisibleSourceSets : commonMain
-                    - allDependsOnSourceSets      : commonTest
-                    - declaredDependsOnSourceSets : commonTest
-                    isTestComponent               : true
-                    languageSettings              : KotlinLanguageSettingsImpl
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - resourceDirs                : <ROOT>/kmpFirstLib/src/androidUnitTest/resources [-]
-                    - sourceDirs                  : <ROOT>/kmpFirstLib/src/androidUnitTest/kotlin
-                    platform                      : JVM
-                - associateCompilations       : KotlinCompilationCoordinatesImpl
-                    compilationName               : main
-                    targetName                    : android
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/kmpFirstLib/build/classes/kotlin/android/unitTest
-                    jvmTarget                     : 11
-                    moduleName                    : kmpFirstLib_unitTest
-                    noReflect                     : true
-                    noStdlib                      : true
-                    serializeIr                   : none
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    - fragmentRefines             : androidUnitTest:commonTest
-                    - fragments                   : androidUnitTest
-                    - fragments                   : commonTest
-                    multiPlatform                 : true
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-                - declaredSourceSets          : androidUnitTest (KotlinSourceSetImpl) (*seen*)
-                disambiguationClassifier      : android
-                isTestComponent               : true
-                kotlinTaskProperties          : KotlinTaskPropertiesImpl
-                    incremental                   : true
-                    pluginVersion                 : <CUT>
-                output                        : KotlinCompilationOutputImpl
-                    - classesDirs                 : <ROOT>/kmpFirstLib/build/classes/kotlin/android/unitTest [-]
-                    effectiveClassesDir           : <ROOT>/kmpFirstLib/build/classes/kotlin/android/unitTest [-]
-                    resourcesDir                  : <ROOT>/kmpFirstLib/build/processedResources/android/unitTest [-]
-                platform                      : JVM
             disambiguationClassifier      : android
             jar                           : KotlinTargetJarImpl
                 archiveFile                   : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib.jar [-]
             platform                      : JVM
         sourceSets
-            androidInstrumentedTest       : androidInstrumentedTest (KotlinSourceSetImpl) (*seen*)
+            androidDeviceTest             : androidDeviceTest (KotlinSourceSetImpl) (*seen*)
+            androidHostTest               : androidHostTest (KotlinSourceSetImpl) (*seen*)
             androidMain                   : androidMain (KotlinSourceSetImpl) (*seen*)
-            androidUnitTest               : androidUnitTest (KotlinSourceSetImpl) (*seen*)
             commonMain                    : commonMain (KotlinSourceSetImpl) (*seen*)
             commonTest                    : commonTest (KotlinSourceSetImpl) (*seen*)
     externalProject               : :kmpFirstLib (DefaultExternalProject) (*seen*)
-MODULE                        : Kotlin_Multiplatform.kmpFirstLib.androidInstrumentedTest
+MODULE                        : Kotlin_Multiplatform.kmpFirstLib.androidDeviceTest
+MODULE                        : Kotlin_Multiplatform.kmpFirstLib.androidHostTest
 MODULE                        : Kotlin_Multiplatform.kmpFirstLib.androidMain
-MODULE                        : Kotlin_Multiplatform.kmpFirstLib.androidUnitTest
 MODULE                        : Kotlin_Multiplatform.kmpFirstLib.commonMain
 MODULE                        : Kotlin_Multiplatform.kmpFirstLib.commonTest
 MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
@@ -3618,6 +3619,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
         DataBindingEnabled            : false
         GenerateManifestClass         : false
     - basicVariant:               : androidMain
+        buildType                     :
     BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     DefaultConfig
         ProductFlavor
