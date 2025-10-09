@@ -645,6 +645,7 @@ class NlComponentMixin(component: NlComponent) : NlComponent.XmlModelComponentMi
           component.parent?.removeChild(component)
           realTag.delete()
         }
+        return false
       }
     }
     component.parent?.let { it.getViewGroupHandler {}?.onChildInserted(it, component, insertType) }
