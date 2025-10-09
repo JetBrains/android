@@ -21,28 +21,11 @@ import org.junit.Test
 class OverridePropertyParserTest {
 
   @Test
-  fun `verify legacy format`() {
-    val parser = OverridePropertyParserImpl(supportMultiValueFlags = false)
-    assertThat(parser.parseProperty("")).isEmpty()
-    assertThat(parser.parseProperty("analytics/myFlag")).isEqualTo(mapOf("analytics/myFlag" to 0))
-    assertThat(parser.parseProperty("analytics/myFlag,experiments/flag2"))
-      .isEqualTo(mapOf("analytics/myFlag" to 0, "experiments/flag2" to 0))
-  }
-
-  @Test
   fun `verify multi value format`() {
-    val parser = OverridePropertyParserImpl(supportMultiValueFlags = true)
+    val parser = OverridePropertyParserImpl()
     assertThat(parser.parseProperty("")).isEmpty()
     assertThat(parser.parseProperty("analytics/myFlag/0")).isEqualTo(mapOf("analytics/myFlag" to 0))
     assertThat(parser.parseProperty("analytics/myFlag/0,analytics/myFlag2/1"))
       .isEqualTo(mapOf("analytics/myFlag" to 0, "analytics/myFlag2" to 1))
-  }
-
-  @Test
-  fun `parser falls back to single value format when it cannot parse param`() {
-    val parser = OverridePropertyParserImpl(supportMultiValueFlags = true)
-    assertThat(parser.parseProperty("analytics/myFlag")).isEqualTo(mapOf("analytics/myFlag" to 0))
-    assertThat(parser.parseProperty("analytics/myFlag/1,analytics/myFlag2"))
-      .isEqualTo(mapOf("analytics/myFlag" to 1, "analytics/myFlag2" to 0))
   }
 }

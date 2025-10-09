@@ -123,7 +123,7 @@ class ServerFlagServiceImpl : ServerFlagService {
     private const val ENABLED_OVERRIDE_KEY = "studio.server.flags.enabled.override"
 
     var initializer: () -> ServerFlagInitializationData = {
-      val overrideParser = OverridePropertyParserImpl(SUPPORTS_MULTI_VALUE_FLAGS)
+      val overrideParser = OverridePropertyParserImpl()
       val overriddenFlags =
         System.getProperty(ENABLED_OVERRIDE_KEY)?.let { overrideParser.parseProperty(it) }
           ?: emptyMap()
@@ -133,7 +133,6 @@ class ServerFlagServiceImpl : ServerFlagService {
         CommonMetricsData.osName,
         currentIdeBrand(),
         overriddenFlags,
-        SUPPORTS_MULTI_VALUE_FLAGS,
       )
     }
   }

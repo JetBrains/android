@@ -23,16 +23,9 @@ interface OverridePropertyParser {
   fun parseProperty(property: String): Map<String, Int>
 }
 
-class OverridePropertyParserImpl(private val supportMultiValueFlags: Boolean) :
-  OverridePropertyParser {
+class OverridePropertyParserImpl() : OverridePropertyParser {
   override fun parseProperty(property: String) =
-    property.split(',').associateNotNull { param ->
-      if (supportMultiValueFlags) {
-        parseMultiValueOverrideParam(param) ?: parseSingleValueOverrideParam(param)
-      } else {
-        parseSingleValueOverrideParam(param)
-      }
-    }
+    property.split(',').associateNotNull { param -> parseMultiValueOverrideParam(param) }
 
   private fun parseMultiValueOverrideParam(param: String): Pair<String, Int>? {
     if (param.isEmpty()) return null
@@ -44,10 +37,5 @@ class OverridePropertyParserImpl(private val supportMultiValueFlags: Boolean) :
     }
     val index = indexString.toIntOrNull() ?: return null
     return name to index
-  }
-
-  private fun parseSingleValueOverrideParam(param: String): Pair<String, Int>? {
-    if (param.isEmpty()) return null
-    return param to 0
   }
 }
