@@ -40,9 +40,9 @@ android {
                 useJunitEngine {
                     inputs com.android.build.api.dsl.AgpTestSuiteInputParameters.TESTED_APKS
                     includeEngines 'journeys-test-engine'
-                    enginesDependencies('org.junit.platform:junit-platform-launcher:1.13.4')
-                    enginesDependencies('org.junit.platform:junit-platform-engine:1.13.4')
-                    enginesDependencies('com.android.tools.journeys:journeys-junit-engine:0.2.0-alpha01')
+                    enginesDependencies(libs.junit.platform.launcher)
+                    enginesDependencies(libs.junit.platform.engine)
+                    enginesDependencies(libs.journeys.junit.engine)
                 }
                 targetVariants 'INSERT_TARGET_VARIANT_HERE'
             }

@@ -150,10 +150,7 @@ class UseJunitEngineModelImpl(dslElement: UseJunitEngineDslElement) : GradleDslB
    * @param compactNotation The dependency in compact notation (e.g., "group:name:version").
    */
   override fun addEngineDependency(compactNotation: String) {
-    val enginesDependencies = enginesDependencies().map { it.compactNotation() }
-    if (enginesDependencies.contains(compactNotation)) {
-      return
-    }
+    if (hasEngineDependency(compactNotation)) return
 
     val methodCall = GradleDslMethodCall(myDslElement, GradleNameElement.empty(), ENGINES_DEPENDENCIES)
     val nameArgument = GradleDslLiteral(methodCall, GradleNameElement.empty())
@@ -163,14 +160,21 @@ class UseJunitEngineModelImpl(dslElement: UseJunitEngineDslElement) : GradleDslB
   }
 
   /**
+   * Returns true if an engine dependency with the given [compactNotation] already exists.
+   */
+  override fun hasEngineDependency(compactNotation: String): Boolean {
+    val enginesDependencies = enginesDependencies().map { it.compactNotation() }
+    return enginesDependencies.contains(compactNotation)
+  }
+
+  /**
    * Adds an engine dependency to this JUnit engine configuration using a [ReferenceTo].
    * If the dependency already exists, this method does nothing.
    *
    * @param reference A [ReferenceTo] object pointing to a dependency.
    */
   override fun addEngineDependency(reference: ReferenceTo) {
-    val existingDependencies = enginesDependencies().map { it.dslElement }
-    if (existingDependencies.any { resolveElement(it) == reference.referredElement }) {
+    if (hasEngineDependency(reference)) {
       return
     }
 
@@ -179,6 +183,14 @@ class UseJunitEngineModelImpl(dslElement: UseJunitEngineDslElement) : GradleDslB
     nameArgument.setValue(reference)
     methodCall.addNewArgument(nameArgument)
     myDslElement.setNewElement(methodCall)
+  }
+
+  /**
+   * Returns true if an engine dependency referring to the given [reference] already exists.
+   */
+  override fun hasEngineDependency(reference: ReferenceTo): Boolean {
+    val existingDependencies = enginesDependencies().map { it.dslElement }
+    return existingDependencies.any { resolveElement(it) == reference.referredElement }
   }
 
   companion object {

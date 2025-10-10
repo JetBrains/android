@@ -27,5 +27,7 @@ interface UseJunitEngineModel : GradleBlockModel {
   fun addIncludeEngine(engine: String): ResolvedPropertyModel
   fun enginesDependencies(): List<DependencyCollectorDependencyModel>
   fun addEngineDependency(compactNotation: String)
+  fun hasEngineDependency(compactNotation: String): Boolean
   fun addEngineDependency(reference: ReferenceTo)
+  fun hasEngineDependency(reference: ReferenceTo): Boolean
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dependencies
 
 import com.android.ide.common.gradle.Dependency
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
+import com.android.tools.idea.gradle.dsl.api.android.testOptions.testSuites.TestSuiteModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
@@ -58,6 +59,15 @@ open class DependenciesInserter {
       }
     }
     return updateFiles
+  }
+
+  open fun addTestSuiteEngineDependency(testSuiteModel: TestSuiteModel, dependency: String): Set<PsiFile> {
+    if (testSuiteModel.useJunitEngine().hasEngineDependency(dependency)) {
+      return emptySet()
+    }
+
+    testSuiteModel.useJunitEngine().addEngineDependency(dependency)
+    return setOfNotNull(testSuiteModel.useJunitEngine().psiElement?.containingFile)
   }
 
   internal fun findDependency(dependency: Dependency,
