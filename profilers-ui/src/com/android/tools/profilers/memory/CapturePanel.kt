@@ -148,6 +148,7 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
 
   // Add the right side toolbar so that it is on top of the truncated |myCaptureInfoMessage|.
   private fun buildTabPanel() = JBTabbedPane().apply {
+    border = AdtUiUtils.DEFAULT_TOP_BORDER
     addTab(this, "Table", classifierView, toolbarDefaults())
     addTab(this, "Visualization", visualizationView, mutableListOf(visualizationView.toolbarComponents, toolbarCore()).flatten())
     fun updateTabs() {
