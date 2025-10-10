@@ -464,6 +464,51 @@ class ExportToFileDialogTest {
   }
 
   @Test
+  fun exportDatabase_db_missingExtension() {
+    val dialog = exportToFileDialogViewImpl(exportDatabaseDialogParams(inFileDatabaseId))
+    val requestListener = RequestListener()
+    dialog.addListener(requestListener)
+    createModalDialogAndInteractWithIt({ dialog.show() }) { dialog ->
+      dialog.selectFormat("DB")
+      dialog.destinationPathTextField().text = "/foo"
+      dialog.clickExport()
+    }
+
+    assertThat(requestListener.requests)
+      .containsExactly(ExportDatabaseRequest(inFileDatabaseId, DB, Path.of("/foo.db")))
+  }
+
+  @Test
+  fun exportDatabase_sql_missingExtension() {
+    val dialog = exportToFileDialogViewImpl(exportDatabaseDialogParams(inFileDatabaseId))
+    val requestListener = RequestListener()
+    dialog.addListener(requestListener)
+    createModalDialogAndInteractWithIt({ dialog.show() }) { dialog ->
+      dialog.selectFormat("SQL")
+      dialog.destinationPathTextField().text = "/foo"
+      dialog.clickExport()
+    }
+
+    assertThat(requestListener.requests)
+      .containsExactly(ExportDatabaseRequest(inFileDatabaseId, SQL, Path.of("/foo.sql")))
+  }
+
+  @Test
+  fun exportDatabase_csv__missingExtension() {
+    val dialog = exportToFileDialogViewImpl(exportDatabaseDialogParams(inFileDatabaseId))
+    val requestListener = RequestListener()
+    dialog.addListener(requestListener)
+    createModalDialogAndInteractWithIt({ dialog.show() }) { dialog ->
+      dialog.selectFormat("CSV")
+      dialog.destinationPathTextField().text = "/foo"
+      dialog.clickExport()
+    }
+
+    assertThat(requestListener.requests)
+      .containsExactly(ExportDatabaseRequest(inFileDatabaseId, CSV(SEMICOLON), Path.of("/foo.zip")))
+  }
+
+  @Test
   fun exportTable_sql() {
     val dialog = exportToFileDialogViewImpl(exportTableDialogParams(inFileDatabaseId, table1.name))
     val requestListener = RequestListener()
@@ -496,13 +541,62 @@ class ExportToFileDialogTest {
   }
 
   @Test
-  fun exportQuery_sql() {
+  fun exportTable_sql_missingExtension() {
+    val dialog = exportToFileDialogViewImpl(exportTableDialogParams(inFileDatabaseId, table1.name))
+    val requestListener = RequestListener()
+    dialog.addListener(requestListener)
+    createModalDialogAndInteractWithIt({ dialog.show() }) { dialog ->
+      dialog.selectFormat("SQL")
+      dialog.destinationPathTextField().text = "/foo"
+      dialog.clickExport()
+    }
+
+    assertThat(requestListener.requests)
+      .containsExactly(ExportTableRequest(inFileDatabaseId, "t1", SQL, Path.of("/foo.sql")))
+  }
+
+  @Test
+  fun exportTable_csv_missingExtension() {
+    val dialog = exportToFileDialogViewImpl(exportTableDialogParams(inFileDatabaseId, table1.name))
+    val requestListener = RequestListener()
+    dialog.addListener(requestListener)
+    createModalDialogAndInteractWithIt({ dialog.show() }) { dialog ->
+      dialog.selectFormat("CSV")
+      dialog.destinationPathTextField().text = "/foo"
+      dialog.clickExport()
+    }
+
+    assertThat(requestListener.requests)
+      .containsExactly(
+        ExportTableRequest(inFileDatabaseId, "t1", CSV(SEMICOLON), Path.of("/foo.csv"))
+      )
+  }
+
+  @Test
+  fun exportQuery_csv() {
     val dialog = exportToFileDialogViewImpl(exportQueryDialogParams(inFileDatabaseId, query))
     val requestListener = RequestListener()
     dialog.addListener(requestListener)
     createModalDialogAndInteractWithIt({ dialog.show() }) { dialog ->
       dialog.selectFormat("CSV")
       dialog.destinationPathTextField().text = "/foo.csv"
+      dialog.clickExport()
+    }
+
+    assertThat(requestListener.requests)
+      .containsExactly(
+        ExportQueryResultsRequest(inFileDatabaseId, query, CSV(SEMICOLON), Path.of("/foo.csv"))
+      )
+  }
+
+  @Test
+  fun exportQuery_csv_missingExtension() {
+    val dialog = exportToFileDialogViewImpl(exportQueryDialogParams(inFileDatabaseId, query))
+    val requestListener = RequestListener()
+    dialog.addListener(requestListener)
+    createModalDialogAndInteractWithIt({ dialog.show() }) { dialog ->
+      dialog.selectFormat("CSV")
+      dialog.destinationPathTextField().text = "/foo"
       dialog.clickExport()
     }
 
