@@ -110,11 +110,11 @@
     <orderEntry type="module" module-name="intellij.xml.analysis.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.psi" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.base.util" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.gradle.code-insight-common" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.gradle.gradle-tooling.impl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.util" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.gradle.codeInsight.common" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.gradle.tooling.impl" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.idea" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.code-insight.inspections.k2" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.codeInsight.inspections" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.groovy" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.toml" scope="RUNTIME" />
@@ -122,12 +122,12 @@
     <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.kotlin.idea.common" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.testutils" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.project-configuration" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.projectConfiguration" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.declarative" scope="TEST" />
     <orderEntry type="module" module-name="intellij.properties.psi" scope="TEST" />
     <orderEntry type="module" module-name="intellij.properties.backend.psi" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.ml-api" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.base.plugin" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.plugin" scope="TEST" />
     <orderEntry type="module" module-name="intellij.spellchecker" scope="TEST" />
     <orderEntry type="module" module-name="intellij.grazie.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang" scope="TEST" />
@@ -139,6 +139,6 @@
     <orderEntry type="module" module-name="intellij.android.testartifacts" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.eel" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.eel.provider" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.code-insight.api" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.codeInsight.api" scope="TEST" />
   </component>
 </module>

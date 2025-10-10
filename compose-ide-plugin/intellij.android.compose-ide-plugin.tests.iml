@@ -21,7 +21,7 @@
     <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-test" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.mockito" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.jps.model" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.refactorings.k2" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.refactorings" scope="TEST" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.testFramework" />
@@ -71,22 +71,22 @@
     <orderEntry type="module" module-name="intellij.platform.util.rt" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.base.compiler-configuration" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.base.plugin" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.base.util" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.code-insight.api" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.compilerConfiguration" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.plugin" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.util" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.codeInsight.api" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.code-insight.inspections.k1" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.code-insight.inspections.k2" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.codeInsight.inspections" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.code-insight.inspections.shared" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.core" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.formatter" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.formatter.minimal" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.formatter" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.formatter.minimal" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.highlighting.shared" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.idea" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.refactorings.common" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.base.psi" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.psi" scope="TEST" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.compose-compiler-plugin" level="project" />
-    <orderEntry type="module" module-name="kotlin.jvm-debugger.base.util" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.jvm.debugger.base.util" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="module" module-name="kotlin.code-insight.live-templates.shared" scope="TEST" />

@@ -32,7 +32,7 @@
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.sync" />
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.flags" />
     <orderEntry type="module" module-name="intellij.platform.codeStyle.impl" />
-    <orderEntry type="module" module-name="kotlin.base.util" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.util" />
     <orderEntry type="module" module-name="intellij.gradle" />
     <orderEntry type="module" module-name="intellij.gradle.java" />
   </component>
