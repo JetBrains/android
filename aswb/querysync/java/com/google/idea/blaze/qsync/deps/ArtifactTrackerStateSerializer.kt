@@ -112,6 +112,14 @@ class ArtifactTrackerStateSerializer {
           .build()
       }
 
+      is ProjectPath.ExternalRepositoryRelativeProjectPath -> {
+        return ArtifactTrackerProto.ProjectPath.newBuilder()
+          .setBase(ArtifactTrackerProto.ProjectPath.Base.EXTERNAL_REPOSITORY)
+          .setExternalRepository(projectPath.externalRepositoryName)
+          .setPath(projectPath.relativePath.toString())
+          .build()
+      }
+
       is ProjectRelativeProjectPath -> {
         return ArtifactTrackerProto.ProjectPath.newBuilder()
           .setBase(ArtifactTrackerProto.ProjectPath.Base.PROJECT)

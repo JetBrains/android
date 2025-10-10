@@ -17,6 +17,7 @@ package com.google.idea.blaze.base.qsync;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.idea.blaze.qsync.project.QuerySyncProjectDirectory.*;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -227,7 +228,8 @@ public class ProjectLoaderImpl implements ProjectLoader {
 
     Path ideProjectBasePath = Paths.get(checkNotNull(project.getBasePath()));
     ProjectPath.Resolver projectPathResolver =
-        ProjectPath.Resolver.create(workspaceRoot.path(), ideProjectBasePath);
+      ProjectPath.Resolver.create(workspaceRoot.path(), ideProjectBasePath,
+                                  ideProjectBasePath.resolve(EXTERNAL_REPOSITORIES.getDirectoryName()));
 
     final var projectTransformRegistry = new ArrayList<ProjectProtoUpdateOperation>();
     SnapshotHolder snapshotHolder = QuerySyncManager.getInstance(project).getSnapshotHolder();
@@ -238,7 +240,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
         workspaceRoot, latestProjectDef, snapshotHolder, buildSystem, vcsHandler, artifactCache, handledRules);
 
     // This directory is later used without being configured.
-    projectDirectoryConfigurator.configureDirectory(QuerySyncProjectDirectory.BAZEL_ARTIFACTS);
+    projectDirectoryConfigurator.configureDirectory(BAZEL_ARTIFACTS);
 
     ArtifactTracker<BlazeContext> artifactTracker;
     RenderJarArtifactTracker renderJarArtifactTracker;
@@ -251,7 +253,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
         QuerySync.ATTACH_DEP_SRCJARS::getValue));
     NewArtifactTracker<BlazeContext> tracker =
         new NewArtifactTracker<>(
-            projectDirectoryConfigurator.configureDirectory(QuerySyncProjectDirectory.BAZEL_SYSTEM),
+            projectDirectoryConfigurator.configureDirectory(BAZEL_SYSTEM),
             artifactCache,
             // don't pass the composed transform directly as it's not fully constructed yet:
             t -> getRequiredArtifactMetadata(projectTransformRegistry, t),
