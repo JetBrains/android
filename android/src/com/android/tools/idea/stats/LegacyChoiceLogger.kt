@@ -20,6 +20,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.UserSentiment
 import com.google.wireless.android.sdk.stats.UserSentiment.SatisfactionLevel.UNKNOWN_SATISFACTION_LEVEL
 import com.google.wireless.android.sdk.stats.UserSentiment.SatisfactionLevel.VERY_SATISFIED_VALUE
+import com.google.wireless.android.sdk.stats.SentimentSurveyEvent
 
 object LegacyChoiceLogger : ChoiceLogger {
   override fun log(name: String, result: Int) {
@@ -27,7 +28,7 @@ object LegacyChoiceLogger : ChoiceLogger {
                   .firstOrNull { it.number == VERY_SATISFIED_VALUE - result }
                 ?: UNKNOWN_SATISFACTION_LEVEL
 
-    logEvent(level)
+    logEvents(level, SentimentSurveyEvent.Type.TYPE_INVOKED)
   }
 
   override fun log(name: String, result: List<Int>) {
@@ -37,15 +38,23 @@ object LegacyChoiceLogger : ChoiceLogger {
   }
 
   override fun cancel(name: String) {
-    logEvent(UNKNOWN_SATISFACTION_LEVEL)
+    logEvents(UNKNOWN_SATISFACTION_LEVEL, SentimentSurveyEvent.Type.TYPE_CANCELLED)
   }
 
-  private fun logEvent(level: UserSentiment.SatisfactionLevel) {
+  private fun logEvents(level: UserSentiment.SatisfactionLevel, type: SentimentSurveyEvent.Type) {
     UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
       kind = AndroidStudioEvent.EventKind.USER_SENTIMENT
       userSentiment = UserSentiment.newBuilder().apply {
         state = UserSentiment.SentimentState.POPUP_QUESTION
         this.level = level
+      }.build()
+    })
+
+    UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
+      kind = AndroidStudioEvent.EventKind.SENTIMENT_SURVEY_EVENT
+      sentimentSurveyEvent = SentimentSurveyEvent.newBuilder().apply {
+        this.type = type
+        surveyType = SentimentSurveyEvent.SurveyType.SURVEY_TYPE_IN_PRODUCT
       }.build()
     })
   }
