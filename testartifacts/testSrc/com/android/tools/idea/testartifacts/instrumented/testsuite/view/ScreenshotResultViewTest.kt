@@ -18,7 +18,6 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -31,14 +30,10 @@ import org.mockito.MockedStatic
 import org.mockito.Mockito
 import java.awt.Component
 import java.awt.Container
-import java.awt.Dimension
-import java.awt.Font
-import java.awt.image.BufferedImage
 import java.util.ArrayDeque
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
-import javax.imageio.ImageIO
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JScrollPane
@@ -165,14 +160,5 @@ class ScreenshotResultViewTest {
       }
     }
     return null
-  }
-
-  /**
-   * Finds an [ActionButton] in a component hierarchy by its action's text.
-   */
-  private fun findActionButton(container: Container, actionText: String): ActionButton? {
-    return findComponent(container) { button: ActionButton ->
-      button.action.templatePresentation.text == actionText
-    }
   }
 }
