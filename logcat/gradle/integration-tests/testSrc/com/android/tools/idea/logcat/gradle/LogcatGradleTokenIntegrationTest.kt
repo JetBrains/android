@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.logcat.gradle
 
-import com.android.testutils.truth.PathSubject.paths
+import com.android.tools.idea.gradle.project.sync.snapshots.replaceContent
 import com.android.tools.idea.logcat.LogcatR8MappingsToken
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
-import com.intellij.util.io.exists
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -40,6 +39,7 @@ class LogcatGradleTokenIntegrationTest() {
   fun testGetR8MappingForApkFile() {
     projectRule.loadProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION) { rootFolder ->
       File(rootFolder, "gradle.properties").appendText("\nandroid.r8.gradual.support=true")
+      updateMinSdk(rootFolder)
       File(rootFolder, "app/build.gradle")
         .appendText("\nandroid.buildTypes.release.optimization.enable = true")
     }
@@ -56,6 +56,7 @@ class LogcatGradleTokenIntegrationTest() {
   fun testGetMultipleR8MappingForApkFile() {
     projectRule.loadProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION) { rootFolder ->
       File(rootFolder, "gradle.properties").appendText("\nandroid.r8.gradual.support=true")
+      updateMinSdk(rootFolder)
       File(rootFolder, "app/build.gradle")
         .appendText(
           "\nandroid.buildTypes.release.optimization.enable = true" +
@@ -69,6 +70,15 @@ class LogcatGradleTokenIntegrationTest() {
 
     val mappingsPartitionFiles = LogcatR8MappingsToken.getR8PartitionMappings(project)
     checkListPath(mappingsPartitionFiles, 2, "mapping.prt")
+  }
+
+  private fun updateMinSdk(rootFolder: File) {
+    File(rootFolder, "app/build.gradle").replaceContent {
+      // make sure minSdk is >=21 as Gradual R8 Required
+      val firstMatch: MatchResult? = ("minSdkVersion \\d+".toRegex().find(it))
+      assertThat(firstMatch).isNotNull()
+      it.replace(firstMatch!!.value, "minSdkVersion 21")
+    }
   }
 
   private fun checkListPath(paths: List<Path>, size: Int, name: String) {
