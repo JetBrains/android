@@ -167,7 +167,6 @@ class NlSurfaceBuilder(
 
   private var _screenViewProvider: ScreenViewProvider? = null
   private var _setDefaultScreenViewProvider = false
-  private var _waitForRenderBeforeRestoringZoom = false
 
   private var _visualLintIssueProviderFactory:
     (DesignSurface<LayoutlibSceneManager>) -> VisualLintIssueProvider =
@@ -178,15 +177,6 @@ class NlSurfaceBuilder(
   /** Allows customizing the [SurfaceLayoutOption]. */
   fun setLayoutOption(layoutOption: SurfaceLayoutOption): NlSurfaceBuilder {
     surfaceLayoutOption = layoutOption
-    return this
-  }
-
-  /**
-   * The surface will wait for other events (for example preview rendering) before trying to restore
-   * zoom.
-   */
-  fun waitForRenderBeforeRestoringZoom(restoreZoomSynchronously: Boolean): NlSurfaceBuilder {
-    _waitForRenderBeforeRestoringZoom = restoreZoomSynchronously
     return this
   }
 
@@ -322,7 +312,6 @@ class NlSurfaceBuilder(
         _zoomControlsPolicy,
         _supportedActionsProvider,
         _shouldRenderErrorsPanel,
-        _waitForRenderBeforeRestoringZoom,
         _visualLintIssueProviderFactory,
         nlDesignSurfacePositionableContentLayoutManager,
       )

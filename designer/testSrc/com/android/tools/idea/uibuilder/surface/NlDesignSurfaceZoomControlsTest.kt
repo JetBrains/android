@@ -138,6 +138,13 @@ class NlDesignSurfaceZoomControlsTest {
         .withComponentRegistrar(NlComponentRegistrar)
         .build()
 
+    // Whenever we call NlDesignSurface for the first time we call DesignSurface.setModel(..),
+    // which:
+    // * Adds the model
+    // * Request to render the surface and wait
+    // * Tries to restore the previous zoom or apply zoom-to-fit if now previous zoom where stored
+    // Ideally we should call setModels(...) insted, but when we use FakeUi the SceneManagers aren't
+    // correctly added in the surface.
     val newSceneManager = surface.addModelsWithoutRender(listOf(model)).single()
     newSceneManager.requestRenderAndWait()
 
@@ -166,6 +173,10 @@ class NlDesignSurfaceZoomControlsTest {
     delayUntilCondition(100, 2.seconds) {
       fakeUi.findAllComponents<SceneViewPeerPanel>().count() == 2
     }
+
+    // Try to restore the zoom
+    surface.restoreZoomOrZoomToFit()
+    delayUntilCondition(10, 100.seconds) { !surface.zoomController.canZoomToFit() }
 
     // Create VisualLintService early to avoid it being created at the time of project disposal
     VisualLintService.getInstance(androidProjectRule.project)

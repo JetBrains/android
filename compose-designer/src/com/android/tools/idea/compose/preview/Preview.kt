@@ -813,7 +813,7 @@ class ComposePreviewRepresentation(
       var lastMode: PreviewMode? = null
 
       previewModeManager.mode.collect {
-        surface.resetZoomToFitNotifier(false)
+        surface.zoomController.resetZoomToFitSettings(false, surface.size)
 
         (it.selected as? PsiComposePreviewElementInstance).let { element ->
           composePreviewFlowManager.setSingleFilter(element)
@@ -827,8 +827,9 @@ class ComposePreviewRepresentation(
           isPreviewModeChanging.set(true)
           // A mode change requires recalculating zoom-to-fit, so the zoom notifier is reset.
           // However, a resize of the surface is not expected for all mode changes.
-          surface.resetZoomToFitNotifier(
-            shouldWaitForResize = it.expectResizeOnEnter(lastMode, project)
+          surface.zoomController.resetZoomToFitSettings(
+            shouldWaitForResize = it.expectResizeOnEnter(lastMode, project),
+            surface.size,
           )
           onEnter(it)
         } else {
@@ -1080,7 +1081,7 @@ class ComposePreviewRepresentation(
       if (isPreviewModeChanging.getAndSet(false)) {
         launch(Dispatchers.EDT) {
           if (!surface.restorePreviousScale()) {
-            surface.notifyZoomToFit()
+            surface.zoomController.zoomToFit()
           }
         }
       }
@@ -1176,7 +1177,7 @@ class ComposePreviewRepresentation(
 
     if (previewModeManager.mode.value.isFocus) {
       // We need to get rid of the flickering when switching tabs in focus tabs b/287484743
-      withContext(Dispatchers.EDT) { surface.notifyZoomToFit() }
+      withContext(Dispatchers.EDT) { surface.zoomController.zoomToFit() }
     }
 
     composePreviewFlowManager.updateRenderedPreviews(showingPreviewElements)

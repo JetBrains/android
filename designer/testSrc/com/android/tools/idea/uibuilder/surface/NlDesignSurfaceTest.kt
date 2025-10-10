@@ -474,7 +474,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     assertEquals(designSurface.zoomController.scale, designSurface.zoomController.minScale)
 
     // Zoom to fit will move again to original scale
-    designSurface.zoomController.zoomToFit()
+    designSurface.zoomController.zoom(ZoomType.FIT)
     assertEquals(designSurface.zoomController.scale, origScale)
 
     // Zoom to actual will have a scale of 1.0 (100% of scale)

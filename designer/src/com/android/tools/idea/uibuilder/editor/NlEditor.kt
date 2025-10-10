@@ -72,7 +72,6 @@ class NlEditor(file: VirtualFile, project: Project, fileType: DesignerEditorFile
             }
           }
           .setSupportedActions(LAYOUT_EDITOR_SUPPORTED_ACTIONS)
-          .waitForRenderBeforeRestoringZoom(true)
           .build()
       },
       NlComponentRegistrar,

@@ -17,6 +17,7 @@ package com.android.tools.adtui
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.surface.SurfaceScale
+import java.awt.Dimension
 
 /** Applies zoom changes to a [Zoomable] surface. */
 interface ZoomController : Zoomable {
@@ -66,9 +67,24 @@ interface ZoomController : Zoomable {
   }
 
   /**
-   * Applies zoom to fit.
+   * Call this method whenever a surface changes its size or gets recreated. Notifies the
+   * [ZoomController] that the surface has changed its size. This method is used to keep consistent
+   * the calculation of the [zoomToFit] which requires an updated size.
    *
-   * @return True if it is successfully applied, false otherwise.
+   * @param shouldWaitForResize If true, the zoom to fit will be applied after the surface has been
+   *   resized.
+   * @param surfaceSize The current size of the surface.
+   */
+  fun resetZoomToFitSettings(shouldWaitForResize: Boolean = true, surfaceSize: Dimension)
+
+  /**
+   * Applies zoom-to-fit safely by synchronizing with its surface to prevent race conditions.
+   *
+   * This function avoids calculating an incorrect scale by ensuring the content and surface sizes
+   * are resolved before applying the zoom. Note that [resetZoomToFitSettings] must be called when
+   * the surface is resized or re-created.
+   *
+   * @return True if the zoom-to-fit was successfully applied, false otherwise.
    */
   fun zoomToFit(): Boolean
 
