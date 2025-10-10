@@ -17,7 +17,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
     "//libraries/guava",
-    "@lib//:kotlinx-collections-immutable",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
     "//android/android-common:common",
     "//android/android:core",
     "//android/deploy",

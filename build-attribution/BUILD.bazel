@@ -22,7 +22,7 @@ jvm_library(
     "@lib//:jna",
     "@lib//:kotlin-stdlib",
     "//platform/observable",
-    "@lib//:kotlinx-collections-immutable",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
     "@lib//:protobuf",
     "@lib//:kotlinc-lombok-compiler-plugin-provided",
     "//android/adt-ui",

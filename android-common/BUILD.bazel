@@ -58,7 +58,7 @@ jvm_library(
     "//plugins/kotlin/base/plugin",
     "//plugins/kotlin/core",
     "//plugins/kotlin/base/facet",
-    "@lib//:kotlinx-datetime-jvm",
+    "//libraries/kotlinx/datetime",
     "//android/server-flags",
     "@lib//:protobuf",
   ]
@@ -83,7 +83,7 @@ jvm_library(
     "//libraries/guava",
     "@lib//:kotlin-test",
     "@lib//:kotlinx-coroutines-test",
-    "@lib//:kotlinx-datetime-jvm",
+    "//libraries/kotlinx/datetime",
     "@lib//:truth",
     "//libraries/mockito",
     "//platform/core-api:core",

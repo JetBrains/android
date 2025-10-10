@@ -141,7 +141,7 @@ jvm_library(
     "//platform/util:util-ui",
     "//platform/eel-provider",
     "//android/gradle-declarative-lang-ide",
-    "@lib//:kotlinx-datetime-jvm",
+    "//libraries/kotlinx/datetime",
     "//android/gradle-declarative-lang-flags",
   ]
 )

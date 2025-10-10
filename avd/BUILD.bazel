@@ -24,7 +24,7 @@ jvm_library(
   deps = [
     "//libraries/guava",
     "@lib//:kotlin-stdlib",
-    "@lib//:kotlinx-collections-immutable",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
     "@lib//:protobuf",
     "@lib//:studio-platform-provided",
     "//android/android-adb:adb",
@@ -57,7 +57,7 @@ jvm_library(
   deps = [
     "//libraries/guava",
     "@lib//:kotlin-stdlib",
-    "@lib//:kotlinx-collections-immutable",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
     "@lib//:protobuf",
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",

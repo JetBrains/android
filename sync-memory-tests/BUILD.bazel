@@ -27,7 +27,7 @@ jvm_library(
     "@lib//:junit4",
     "@lib//:javax-inject",
     "@lib//:kotlinx-coroutines-core",
-    "@lib//:kotlinx-datetime-jvm",
+    "//libraries/kotlinx/datetime",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/android-common:common",
     "//android/android:core",

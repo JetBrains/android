@@ -22,7 +22,7 @@ jvm_library(
     "//platform/extensions",
     "//platform/lang-api:lang",
     "//platform/lang-impl",
-    "@lib//:kotlinx-datetime-jvm",
+    "//libraries/kotlinx/datetime",
     "//platform/refactoring",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
   ]
@@ -50,7 +50,7 @@ jvm_library(
     "@lib//:mockito-kotlin",
     "//platform/lang-api:lang",
     "//platform/lang-impl",
-    "@lib//:kotlinx-datetime-jvm",
+    "//libraries/kotlinx/datetime",
     "//platform/refactoring",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",

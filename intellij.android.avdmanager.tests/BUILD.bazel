@@ -40,7 +40,7 @@ jvm_library(
     "//android/intellij.android.testutils:testutils_test_lib",
     "//platform/platform-util-io:ide-util-io",
     "//platform/util-ex",
-    "@lib//:kotlinx-datetime-jvm",
+    "//libraries/kotlinx/datetime",
     "//java/testFramework",
   ]
 )

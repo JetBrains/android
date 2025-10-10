@@ -19,7 +19,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "//libraries/guava",
     "@lib//:kotlinx-coroutines-core",
-    "@lib//:kotlinx-collections-immutable",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
     "//android/adt-ui-compose",
     "//android/android-common:common",
     "//android/wizard",

@@ -29,7 +29,7 @@ jvm_library(
     "//libraries/guava",
     "@lib//:truth",
     "@lib//:kotlinx-coroutines-core",
-    "@lib//:kotlinx-collections-immutable",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
     "//android/adt-ui-compose",
     "//android/adt-ui-compose:adt-ui-compose_test_lib",
     "//android/android:core",

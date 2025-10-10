@@ -26,7 +26,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "//libraries/guava",
-    "@lib//:stream_ex",
+    "//libraries/stream",
     "//libraries/classgraph",
     "//libraries/commons/lang3",
     "//libraries/fastutil",
@@ -36,7 +36,7 @@ jvm_library(
     "@lib//:kotlin-gradle-plugin-idea-provided",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlin-tooling-core-provided",
-    "@lib//:kotlinx-collections-immutable",
+    "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
     "@lib//:kotlinx-coroutines-core",
     "//libraries/kotlin/reflect",
     "@lib//:protobuf",
