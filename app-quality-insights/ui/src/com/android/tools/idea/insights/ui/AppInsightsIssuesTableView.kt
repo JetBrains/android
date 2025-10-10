@@ -44,6 +44,8 @@ import com.intellij.util.containers.Convertor
 import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.TimerUtil
 import com.intellij.util.ui.UIUtil
+import io.grpc.Status
+import io.grpc.StatusException
 import java.awt.Dimension
 import java.awt.event.MouseListener
 import javax.swing.JComponent
@@ -223,12 +225,28 @@ class AppInsightsIssuesTableView(
                   handleRevertibleException(issues)
                 }
                 else -> {
-                  table.tableEmptyText.apply {
-                    clear()
-                    appendText(
-                      issues.message ?: "An unknown failure occurred",
-                      EMPTY_STATE_TITLE_FORMAT,
-                    )
+                  val cause = issues.cause
+                  if (cause is StatusException) {
+                    if (cause.status.code == Status.Code.FAILED_PRECONDITION) {
+                      table.tableEmptyText.apply {
+                        clear()
+                        // Too many results. Choose a shorter time range or add other filters.
+                        appendText("Too many results.", EMPTY_STATE_TEXT_FORMAT)
+                        appendLine(
+                          "Choose a shorter time range or add other filters.",
+                          EMPTY_STATE_TEXT_FORMAT,
+                          null,
+                        )
+                      }
+                    }
+                  } else {
+                    table.tableEmptyText.apply {
+                      clear()
+                      appendText(
+                        issues.message ?: "An unknown failure occurred",
+                        EMPTY_STATE_TITLE_FORMAT,
+                      )
+                    }
                   }
                 }
               }

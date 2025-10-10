@@ -51,6 +51,7 @@ import com.android.tools.idea.vitals.TEST_CONNECTION_3
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.TestActionEvent
@@ -64,6 +65,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JProgressBar
 import kotlin.math.roundToInt
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -427,6 +429,40 @@ class VitalsTabTest {
       controllerRule.client.completeFetchInsightCallWith(LoadingState.Ready(DEFAULT_AI_INSIGHT))
       state = controllerRule.consumeNext()
       assertThat(state.currentInsight).isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT))
+    }
+
+  @Test
+  fun `test failed precondition is replaced by empty state`() =
+    runBlocking(Dispatchers.EDT) {
+      controllerRule.consumeInitialState(
+        LoadingState.Ready(
+          IssueResponse(
+            listOf(ISSUE1),
+            listOf(DEFAULT_FETCHED_VERSIONS),
+            listOf(DEFAULT_FETCHED_DEVICES),
+            listOf(DEFAULT_FETCHED_OSES),
+            DEFAULT_FETCHED_PERMISSIONS,
+          )
+        )
+      )
+
+      val tab = createTab()
+      val fakeUi = FakeUi(tab)
+
+      controllerRule.controller.refresh()
+      controllerRule.client.completeIssuesCallWithPreconditionFailed()
+
+      val tableView = fakeUi.findComponent<AppInsightsIssuesTableView.IssuesTableView>()!!
+      delayUntilCondition(200) { !tableView.isLoading() }
+
+      assertThat(tableView.emptyText.toString())
+        .isEqualTo(
+          """
+        Too many results.
+        Choose a shorter time range or add other filters.
+      """
+            .trimIndent()
+        )
     }
 
   private fun JBTabbedPane.getComponentAtIdx(idx: Int) =

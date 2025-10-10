@@ -39,6 +39,7 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.runInEdtAndWait
+import io.grpc.Status
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.event.HyperlinkListener
 import kotlinx.coroutines.CoroutineScope
@@ -315,6 +316,12 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
 
   suspend fun completeIssuesCallWith(value: LoadingState.Done<IssueResponse>) {
     topIssuesCall.completeWith(value)
+  }
+
+  suspend fun completeIssuesCallWithPreconditionFailed() {
+    completeIssuesCallWith(
+      LoadingState.UnknownFailure("failure", Status.FAILED_PRECONDITION.asException())
+    )
   }
 
   override suspend fun getIssueVariants(request: IssueRequest, issueId: IssueId) =
