@@ -331,7 +331,7 @@ class StudioRendererPanel(
       if (!interceptClicks) return
       val modelCoordinates =
         toModelCoordinates(Point2D.Double(x.toDouble(), y.toDouble())) ?: return
-      val views = renderModel.findNodesAt(modelCoordinates.x, modelCoordinates.y)
+      val views = renderModel.rightClickNode(modelCoordinates.x, modelCoordinates.y)
       showViewContextMenu(
         views = views.toList(),
         inspectorModel = renderModel.inspectorModel,

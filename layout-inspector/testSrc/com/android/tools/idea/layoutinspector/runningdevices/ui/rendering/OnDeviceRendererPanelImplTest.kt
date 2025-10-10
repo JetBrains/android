@@ -495,6 +495,8 @@ class OnDeviceRendererPanelImplTest {
     fakeUi.mouse.moveTo(42, 42)
     withContext(Dispatchers.EDT) { fakeUi.layoutAndDispatchEvents() }
 
+    assertThat(inspectorModel.selection).isNull()
+
     val rightClickEvent =
       buildUserInputEventProto(
         rootId = ROOT,
