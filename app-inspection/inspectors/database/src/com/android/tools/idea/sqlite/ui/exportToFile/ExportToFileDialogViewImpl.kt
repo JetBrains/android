@@ -19,7 +19,11 @@ import com.android.tools.idea.io.IdeFileUtils
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.Delimiter
-import com.android.tools.idea.sqlite.model.Delimiter.*
+import com.android.tools.idea.sqlite.model.Delimiter.COMMA
+import com.android.tools.idea.sqlite.model.Delimiter.SEMICOLON
+import com.android.tools.idea.sqlite.model.Delimiter.SPACE
+import com.android.tools.idea.sqlite.model.Delimiter.TAB
+import com.android.tools.idea.sqlite.model.Delimiter.VERTICAL_BAR
 import com.android.tools.idea.sqlite.model.ExportDialogParams
 import com.android.tools.idea.sqlite.model.ExportDialogParams.ExportDatabaseDialogParams
 import com.android.tools.idea.sqlite.model.ExportDialogParams.ExportQueryResultsDialogParams
@@ -33,6 +37,7 @@ import com.android.tools.idea.sqlite.model.ExportRequest.ExportDatabaseRequest
 import com.android.tools.idea.sqlite.model.ExportRequest.ExportQueryResultsRequest
 import com.android.tools.idea.sqlite.model.ExportRequest.ExportTableRequest
 import com.android.tools.idea.sqlite.model.isInMemoryDatabase
+import com.android.tools.idea.sqlite.ui.exportToFile.IOUtils.endsWithSeparatorChar
 import com.intellij.CommonBundle
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
@@ -58,8 +63,11 @@ import javax.swing.JComponent
 import javax.swing.JRadioButton
 import javax.swing.JTextField
 import javax.swing.event.DocumentEvent
+import kotlin.io.path.Path
 import kotlin.io.path.exists
+import kotlin.io.path.extension
 import kotlin.io.path.isDirectory
+import kotlin.io.path.pathString
 
 /** @see ExportToFileDialogView */
 class ExportToFileDialogViewImpl(val project: Project, private val params: ExportDialogParams) :
@@ -334,14 +342,16 @@ class ExportToFileDialogViewImpl(val project: Project, private val params: Expor
         !showConfirmOverwriteDialog(project, dstPath)
     )
       return null
-
+    val path =
+      dstPath.takeIf { it.extension.isNotEmpty() }
+        ?: Path.of("${dstPath.pathString}.${selectedFormatExtension()}")
     // return as ExportInstructions
     return when (params) {
-      is ExportDatabaseDialogParams -> ExportDatabaseRequest(params.srcDatabase, format, dstPath)
+      is ExportDatabaseDialogParams -> ExportDatabaseRequest(params.srcDatabase, format, path)
       is ExportTableDialogParams ->
-        ExportTableRequest(params.srcDatabase, params.srcTable, format, dstPath)
+        ExportTableRequest(params.srcDatabase, params.srcTable, format, path)
       is ExportQueryResultsDialogParams ->
-        ExportQueryResultsRequest(params.srcDatabase, params.query, format, dstPath)
+        ExportQueryResultsRequest(params.srcDatabase, params.query, format, path)
     }
   }
 
