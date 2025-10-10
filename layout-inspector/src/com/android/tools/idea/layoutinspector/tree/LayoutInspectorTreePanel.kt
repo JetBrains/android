@@ -191,8 +191,8 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
         maxInt = { inspectorModel?.maxRecomposition?.count ?: 0 },
         minInt = { 0 },
         headerRenderer = createCountsHeader(),
-        actionEnabled = { item -> isShowRecompositionDetailsEnabled(item.view) },
-        action = { item, _, _ -> showRecompositionDetails(item.view) },
+        actionEnabled = { item -> isStateReadsEnabledForNode(item.view) },
+        action = { item, _, _ -> showStateReadsForNode(item.view) },
       )
 
     val recompositionChildCountColumn =
@@ -694,15 +694,17 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     updateRecompositionColumnVisibility()
   }
 
-  private fun isShowRecompositionDetailsEnabled(view: ViewNode): Boolean {
+  private fun isStateReadsEnabledForNode(view: ViewNode): Boolean {
     return StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_STATE_READS.get() &&
       layoutInspector.hasCapability(Capability.CAN_OBSERVE_RECOMPOSE_STATE_READS) &&
       view.recompositions.count > 0 &&
-      LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
+      LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled &&
+      view is ComposeViewNode &&
+      inspectorModel?.stateReadsModel?.isNodeObserved(view) == true
   }
 
-  private fun showRecompositionDetails(view: ViewNode) {
-    if (isShowRecompositionDetailsEnabled(view)) {
+  private fun showStateReadsForNode(view: ViewNode) {
+    if (isStateReadsEnabledForNode(view)) {
       inspectorModel?.stateReadsNode = view
     }
   }

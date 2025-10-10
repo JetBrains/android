@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
+import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.stateinspection.StateReadProvider
-import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 
 /** The max number of [composable,recompositions] to keep state reads for. */
@@ -35,9 +37,9 @@ private const val MAX_CACHE_SIZE = 2000
 class RecompositionStateReadCache(
   private val client: ComposeLayoutInspectorClient,
   private val model: InspectorModel,
-  private val scope: CoroutineScope,
-  private val treeSettings: TreeSettings,
+  parentScope: CoroutineScope,
 ) : StateReadProvider {
+  private val scope = parentScope.createChildScope()
   private val cache = LruCache()
   private var pendingRequest: Key? = null
   private val modificationListener =
@@ -64,21 +66,21 @@ class RecompositionStateReadCache(
         }
       }
     }
-  private val stateReadNodeListener =
-    InspectorModel.StateReadsNodeListener {
-      if (!treeSettings.observeStateReadsForAll) {
-        scope.launch { client.updateSettings(keepRecompositionCounts = true) }
-      }
-    }
 
   init {
     model.addModificationListener(modificationListener)
-    model.addStateReadsNodeListener(stateReadNodeListener)
+    scope.launch {
+      // The ComposeInspectorClient will send an updateSettings command to the agent during creation
+      // with the initial observedForStateReads value of None. There is no need to send it again.
+      model.stateReadsModel.observedForStateReads.drop(1).collect {
+        client.updateSettings(keepRecompositionCounts = true)
+      }
+    }
   }
 
   fun disconnect() {
     model.removeModificationListener(modificationListener)
-    model.removeStateReadsNodeListener(stateReadNodeListener)
+    scope.cancel()
   }
 
   override suspend fun requestRecompositionStateReads(
