@@ -212,6 +212,7 @@ import com.intellij.util.ThrowableConsumer
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.containers.MultiMap
 import com.intellij.util.messages.MessageBusConnection
+import com.intellij.workspaceModel.core.fileIndex.WorkspaceFileIndexContributor
 import com.intellij.workspaceModel.core.fileIndex.impl.WorkspaceFileIndexImpl
 import com.intellij.workspaceModel.ide.impl.jps.serialization.DelayedProjectSynchronizer
 import kotlinx.coroutines.future.asCompletableFuture
@@ -222,8 +223,6 @@ import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.base.externalSystem.findAll
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.idea.core.script.k1.dependencies.KotlinScriptWorkspaceFileIndexContributor
-import org.jetbrains.kotlin.idea.core.script.shared.SCRIPT_DEFINITIONS_SOURCES
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtension
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtensions
 import org.jetbrains.plugins.gradle.model.ExternalProject
@@ -252,7 +251,7 @@ data class AndroidProjectModels(
   val androidProject: IdeAndroidProjectImpl,
   val variants: Collection<IdeVariantCoreImpl>,
   val ndkModel: NdkModel?,
-  val declaredDependencies: IdeDeclaredDependenciesImpl
+  val declaredDependencies: IdeDeclaredDependenciesImpl,
 )
 
 typealias AndroidProjectBuilderCore = (
@@ -261,7 +260,7 @@ typealias AndroidProjectBuilderCore = (
   rootProjectBasePath: File,
   moduleBasePath: File,
   agpVersion: String,
-  internedModels: InternedModels
+  internedModels: InternedModels,
 ) -> AndroidProjectModels
 
 sealed class ModuleModelBuilder {
@@ -280,7 +279,7 @@ data class AndroidModuleModelBuilder(
   override val agpVersion: String? = null,
   val projectBuilder: AndroidProjectBuilderCore,
   val selectedBuildVariant: String,
-  val selectedAbiVariant: String? = null
+  val selectedAbiVariant: String? = null,
 ) : ModuleModelBuilder() {
   constructor (gradlePath: String, selectedBuildVariant: String, projectBuilder: AndroidProjectBuilder)
     : this(gradlePath, null, null, selectedBuildVariant, projectBuilder)
@@ -290,7 +289,7 @@ data class AndroidModuleModelBuilder(
     gradleVersion: String? = null,
     agpVersion: String? = null,
     selectedBuildVariant: String,
-    projectBuilder: AndroidProjectBuilder
+    projectBuilder: AndroidProjectBuilder,
   )
     : this(gradlePath, groupId = null, version = null, gradleVersion, agpVersion, projectBuilder.build(), selectedBuildVariant,
            selectedAbiVariant = null)
@@ -305,7 +304,7 @@ data class JavaModuleModelBuilder(
   override val version: String? = null,
   override val gradleVersion: String? = null,
   val buildable: Boolean = true,
-  val isBuildSrc: Boolean = false
+  val isBuildSrc: Boolean = false,
 ) : ModuleModelBuilder() {
 
   init {
@@ -552,7 +551,7 @@ data class AndroidProjectBuilder(
     copy(androidModuleDependencyList = androidModuleDependencyList)
 
   fun withAndroidLibraryDependencyList(
-    androidLibraryDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidLibraryDependency>
+    androidLibraryDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidLibraryDependency>,
   ) = copy(androidLibraryDependencyList = androidLibraryDependencyList)
 
   fun withJavaLibraryDependencyList(javaLibraryDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<JavaLibraryDependency>) =
@@ -567,7 +566,7 @@ data class AndroidProjectBuilder(
   fun withNdkModel(ndkModel: AndroidProjectStubBuilder.() -> V2NdkModel?) =
     copy(ndkModel = ndkModel)
 
-  fun withNamespace(namespace: String) = copy(namespace = {namespace})
+  fun withNamespace(namespace: String) = copy(namespace = { namespace })
 
 
   fun build(): AndroidProjectBuilderCore =
@@ -577,7 +576,7 @@ data class AndroidProjectBuilder(
       rootProjectBasePath: File,
       moduleBasePath: File,
       agpVersion: String,
-      internedModels: InternedModels
+      internedModels: InternedModels,
     ): AndroidProjectModels {
       val builder = object : AndroidProjectStubBuilder {
         override val agpVersion: String = agpVersion
@@ -620,11 +619,15 @@ data class AndroidProjectBuilder(
         override fun androidModuleDependencies(variant: String): List<AndroidModuleDependency> = androidModuleDependencyList(variant)
         override fun androidLibraryDependencies(variant: String): List<AndroidLibraryDependency> =
           androidLibraryDependencyList(variant)
+
         override fun javaLibraryDependencies(variant: String): List<JavaLibraryDependency> =
           javaLibraryDependencyList(variant)
 
         override fun mainArtifact(variant: String): IdeAndroidArtifactCoreImpl = mainArtifactStub(variant)
-        override fun deviceTestArtifacts(variant: String, applicationId: String?): List<IdeAndroidArtifactCoreImpl> = deviceTestArtifactsStub(
+        override fun deviceTestArtifacts(
+          variant: String,
+          applicationId: String?,
+        ): List<IdeAndroidArtifactCoreImpl> = deviceTestArtifactsStub(
           variant, applicationId)
 
         override fun hostTestArtifacts(variant: String): List<IdeJavaArtifactCoreImpl> = hostTestArtifactsStub(variant)
@@ -686,7 +689,8 @@ fun AndroidProjectStubBuilder.createMainSourceProviderForDefaultTestProjectStruc
 }
 
 fun AndroidProjectStubBuilder.buildMainSourceProviderStub(): IdeSourceProviderImpl =
-  sourceProvider(ARTIFACT_NAME_MAIN, moduleBasePath.resolve("src/main"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
+  sourceProvider(ARTIFACT_NAME_MAIN, moduleBasePath.resolve("src/main"), includeRenderScriptSources, includeAidlSources,
+                 includeShadersSources)
 
 fun AndroidProjectStubBuilder.extraSourceProvider(name: String, relative: String): IdeExtraSourceProviderImpl =
   IdeExtraSourceProviderImpl(
@@ -711,10 +715,12 @@ fun AndroidProjectStubBuilder.buildDebugSourceProviderStub(): IdeSourceProviderI
   sourceProvider("debug", moduleBasePath.resolve("src/debug"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
 
 fun AndroidProjectStubBuilder.buildAndroidTestDebugSourceProviderStub(): IdeSourceProviderImpl =
-  sourceProvider("androidTestDebug", moduleBasePath.resolve("src/androidTestDebug"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
+  sourceProvider("androidTestDebug", moduleBasePath.resolve("src/androidTestDebug"), includeRenderScriptSources, includeAidlSources,
+                 includeShadersSources)
 
 fun AndroidProjectStubBuilder.buildTestDebugSourceProviderStub(): IdeSourceProviderImpl =
-  sourceProvider("testDebug", moduleBasePath.resolve("src/testDebug"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
+  sourceProvider("testDebug", moduleBasePath.resolve("src/testDebug"), includeRenderScriptSources, includeAidlSources,
+                 includeShadersSources)
 
 fun AndroidProjectStubBuilder.buildReleaseSourceProviderStub(): IdeSourceProviderImpl =
   sourceProvider("release", moduleBasePath.resolve("src/release"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
@@ -939,7 +945,7 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
                          variant = variant,
                          lintJar = null,
                          sourceSet = IdeModuleWellKnownSourceSet.MAIN
-                       ).let {internedModels.internModuleLibrary(LibraryIdentity.fromIdeModel(it)) {it} },
+                       ).let { internedModels.internModuleLibrary(LibraryIdentity.fromIdeModel(it)) { it } },
                        dependencies = listOf()
                      )
                    )
@@ -996,18 +1002,18 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
     dependencies = toIdeModuleDependencies(androidModuleDependencies(variant).orEmpty()) +
                    listOf(
                      IdeDependencyCoreImpl(
-                         IdePreResolvedModuleLibraryImpl(
-                           buildId = buildId,
-                           projectPath = gradleProjectPath,
-                           variant = variant,
-                           lintJar = null,
-                           sourceSet = IdeModuleWellKnownSourceSet.MAIN
-                         ).let {internedModels.internModuleLibrary(LibraryIdentity.fromIdeModel(it)) {it} },
+                       IdePreResolvedModuleLibraryImpl(
+                         buildId = buildId,
+                         projectPath = gradleProjectPath,
+                         variant = variant,
+                         lintJar = null,
+                         sourceSet = IdeModuleWellKnownSourceSet.MAIN
+                       ).let { internedModels.internModuleLibrary(LibraryIdentity.fromIdeModel(it)) { it } },
                        dependencies = listOf()
                      )
                    )
   ),
-  mockablePlatformJar: File? = null
+  mockablePlatformJar: File? = null,
 ): IdeJavaArtifactCoreImpl {
   return IdeJavaArtifactCoreImpl(
     name = IdeArtifactName.UNIT_TEST,
@@ -1042,12 +1048,12 @@ fun AndroidProjectStubBuilder.buildScreenshotTestArtifactStub(
                          variant = variant,
                          lintJar = null,
                          sourceSet = IdeModuleWellKnownSourceSet.MAIN
-                       ).let {internedModels.internModuleLibrary(LibraryIdentity.fromIdeModel(it)) {it} },
+                       ).let { internedModels.internModuleLibrary(LibraryIdentity.fromIdeModel(it)) { it } },
                        dependencies = listOf()
                      )
                    )
   ),
-  mockablePlatformJar: File? = null
+  mockablePlatformJar: File? = null,
 ): IdeJavaArtifactCoreImpl {
   return IdeJavaArtifactCoreImpl(
     name = IdeArtifactName.SCREENSHOT_TEST,
@@ -1074,14 +1080,13 @@ private fun AndroidProjectStubBuilder.toIdeModuleDependencies(androidModuleDepen
   androidModuleDependencies.map {
     IdeDependencyCoreImpl(
 
-        IdePreResolvedModuleLibraryImpl(
-          projectPath = it.moduleGradlePath,
-          buildId = this.buildId,
-          variant = it.variant,
-          lintJar = null,
-          sourceSet = IdeModuleWellKnownSourceSet.MAIN
-        ).let {internedModels.internModuleLibrary(LibraryIdentity.fromIdeModel(it)) {it} }
-      ,
+      IdePreResolvedModuleLibraryImpl(
+        projectPath = it.moduleGradlePath,
+        buildId = this.buildId,
+        variant = it.variant,
+        lintJar = null,
+        sourceSet = IdeModuleWellKnownSourceSet.MAIN
+      ).let { internedModels.internModuleLibrary(LibraryIdentity.fromIdeModel(it)) { it } },
       dependencies = listOf()
     )
   }
@@ -1092,14 +1097,13 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
   val dependenciesStub = buildDependenciesStub(
     dependencies = listOf(
       IdeDependencyCoreImpl(
-          IdePreResolvedModuleLibraryImpl(
-            buildId = buildId,
-            projectPath = gradleProjectPath,
-            variant = variant,
-            lintJar = null,
-            sourceSet = IdeModuleWellKnownSourceSet.MAIN
-          ).let{internedModels.internModuleLibrary(LibraryIdentity.fromIdeModel(it)) {it} }
-        ,
+        IdePreResolvedModuleLibraryImpl(
+          buildId = buildId,
+          projectPath = gradleProjectPath,
+          variant = variant,
+          lintJar = null,
+          sourceSet = IdeModuleWellKnownSourceSet.MAIN
+        ).let { internedModels.internModuleLibrary(LibraryIdentity.fromIdeModel(it)) { it } },
         dependencies = listOf()
       )
     )
@@ -1323,7 +1327,7 @@ fun AndroidProjectStubBuilder.buildNdkModelStub(): V2NdkModel {
 }
 
 fun AndroidProjectStubBuilder.buildDependenciesStub(
-  dependencies: List<IdeDependencyCoreImpl> = listOf()
+  dependencies: List<IdeDependencyCoreImpl> = listOf(),
 ): IdeDependenciesCoreImpl = IdeDependenciesCoreDirect(dependencies)
 
 /**
@@ -1332,7 +1336,7 @@ fun AndroidProjectStubBuilder.buildDependenciesStub(
 fun setupTestProjectFromAndroidModel(
   project: Project,
   rootProjectBasePath: File,
-  vararg moduleBuilders: ModuleModelBuilder
+  vararg moduleBuilders: ModuleModelBuilder,
 ) = setupTestProjectFromAndroidModel(project, rootProjectBasePath, setupAllVariants = false, moduleBuilders = moduleBuilders)
 
 /**
@@ -1342,7 +1346,7 @@ fun setupTestProjectFromAndroidModel(
   project: Project,
   rootProjectBasePath: File,
   setupAllVariants: Boolean = false,
-  vararg moduleBuilders: ModuleModelBuilder
+  vararg moduleBuilders: ModuleModelBuilder,
 ) {
   if (moduleBuilders.none { it.gradlePath == ":" }) {
     error(
@@ -1407,7 +1411,7 @@ fun setupTestProjectFromAndroidModel(
 fun updateTestProjectFromAndroidModel(
   project: Project,
   rootProjectBasePath: File,
-  vararg moduleBuilders: ModuleModelBuilder
+  vararg moduleBuilders: ModuleModelBuilder,
 ) {
   setupTestProjectFromAndroidModelCore(project, rootProjectBasePath, moduleBuilders, setupAllVariants = false,
                                        cacheExistingVariants = false)
@@ -1421,7 +1425,7 @@ fun updateTestProjectFromAndroidModel(
 fun switchTestProjectVariantsFromAndroidModel(
   project: Project,
   rootProjectBasePath: File,
-  vararg moduleBuilders: ModuleModelBuilder
+  vararg moduleBuilders: ModuleModelBuilder,
 ) {
   setupTestProjectFromAndroidModelCore(project, rootProjectBasePath, moduleBuilders, setupAllVariants = false, cacheExistingVariants = true)
   GradleSyncStateHolder.getInstance(project).syncSkipped(null)
@@ -1658,7 +1662,7 @@ private fun createAndroidModuleDataNode(
   ndkModel: NdkModel?,
   selectedVariantName: String,
   selectedAbiName: String?,
-  mappingRecorder: MappingRecorder
+  mappingRecorder: MappingRecorder,
 ): DataNode<ModuleData> {
 
   val moduleDataNode = createGradleModuleDataNode(
@@ -1796,7 +1800,7 @@ private fun createJavaModuleDataNode(
   moduleBasePath: File,
   buildable: Boolean,
   isBuildSrc: Boolean,
-  mappingRecorder: MappingRecorder
+  mappingRecorder: MappingRecorder,
 ): DataNode<ModuleData> {
 
   val moduleDataNode = createGradleModuleDataNode(
@@ -1925,7 +1929,7 @@ private fun createGradleModuleDataNode(
   groupId: String?,
   version: String?,
   imlBasePath: File,
-  moduleBasePath: File
+  moduleBasePath: File,
 ): DataNode<ModuleData> {
   val moduleDataNode = DataNode<ModuleData>(
     ProjectKeys.MODULE,
@@ -2158,7 +2162,7 @@ fun GradleIntegrationTest.prepareGradleProject(
   testProjectPath: String,
   name: String,
   agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
-  ndkVersion: String? = null
+  ndkVersion: String? = null,
 ): File {
   val testProjectAbsolutePath: File = resolveTestDataPath(testProjectPath)
   val additionalRepositories: Collection<File> = getAdditionalRepos()
@@ -2178,7 +2182,7 @@ internal fun IntegrationTestEnvironment.prepareGradleProject(
   additionalRepositories: Collection<File>,
   name: String,
   ndkVersion: String?,
-  syncReady: Boolean = true
+  syncReady: Boolean = true,
 ): File {
   val projectPath = nameToPath(name)
   if (projectPath.exists()) throw IllegalArgumentException("Additional projects cannot be opened under the test name: $name")
@@ -2187,13 +2191,13 @@ internal fun IntegrationTestEnvironment.prepareGradleProject(
     testProjectAbsolutePath,
     projectPath
   ) { projectRoot ->
-      AndroidGradleTests.defaultPatchPreparedProject(
-        projectRoot,
-        resolvedAgpVersion,
-        ndkVersion,
-        syncReady,
-        *additionalRepositories.toTypedArray()
-      )
+    AndroidGradleTests.defaultPatchPreparedProject(
+      projectRoot,
+      resolvedAgpVersion,
+      ndkVersion,
+      syncReady,
+      *additionalRepositories.toTypedArray()
+    )
   }
   if (System.getenv("SYNC_BASED_TESTS_DEBUG_OUTPUT")?.lowercase(Locale.getDefault()) == "y") {
     println("Test project ${testProjectAbsolutePath.name} prepared at '$projectPath'")
@@ -2219,7 +2223,7 @@ data class OpenPreparedProjectOptions @JvmOverloads constructor(
   val disableKtsRelatedIndexing: Boolean = false,
   val reportProjectSizeUsage: Boolean = false,
   val overrideProjectGradleJdkPath: File? = null,
-  val onProjectCreated: Project.() -> Unit = {}
+  val onProjectCreated: Project.() -> Unit = {},
 )
 
 fun OpenPreparedProjectOptions.withoutKtsRelatedIndexing(): OpenPreparedProjectOptions = copy(disableKtsRelatedIndexing = true)
@@ -2234,7 +2238,7 @@ fun OpenPreparedProjectOptions.withoutKtsRelatedIndexing(): OpenPreparedProjectO
 fun <T> IntegrationTestEnvironment.openPreparedProject(
   name: String,
   options: OpenPreparedProjectOptions = OpenPreparedProjectOptions(),
-  action: (Project) -> T
+  action: (Project) -> T,
 ): T {
   return openPreparedProject(nameToPath(name), options, action)
 }
@@ -2242,7 +2246,7 @@ fun <T> IntegrationTestEnvironment.openPreparedProject(
 private fun <T> openPreparedProject(
   projectPath: File,
   options: OpenPreparedProjectOptions,
-  action: (Project) -> T
+  action: (Project) -> T,
 ): T {
   // Use per-project code style settings so we never modify the IDE defaults.
   CodeStyleSettingsManager.getInstance().USE_PER_PROJECT_SETTINGS = true;
@@ -2475,7 +2479,7 @@ private fun setupDataNodesForSelectedVariant(
   buildId: @SystemIndependent String,
   gradleAndroidModels: List<GradleAndroidModelData>,
   projectDataNode: DataNode<ProjectData>,
-  libraryResolver: IdeLibraryModelResolver
+  libraryResolver: IdeLibraryModelResolver,
 ) {
   val moduleNodes = ExternalSystemApiUtil.findAll(projectDataNode, ProjectKeys.MODULE)
   val moduleIdToDataMap = createGradleProjectPathToModuleDataMap(buildId, moduleNodes)
@@ -2502,7 +2506,7 @@ private fun setupDataNodesForSelectedVariant(
 
 private fun createGradleProjectPathToModuleDataMap(
   buildId: @SystemIndependent String,
-  moduleNodes: Collection<DataNode<ModuleData>>
+  moduleNodes: Collection<DataNode<ModuleData>>,
 ): Map<GradleSourceSetProjectPath, ModuleData> {
   return moduleNodes
     .flatMap { moduleDataNode ->
@@ -2526,7 +2530,7 @@ private fun createGradleProjectPathToModuleDataMap(
 fun injectBuildOutputDumpingBuildViewManager(
   project: Project,
   disposable: Disposable,
-  eventHandler: (BuildEvent) -> Unit = {}
+  eventHandler: (BuildEvent) -> Unit = {},
 ) {
   val listeners = CopyOnWriteArrayList<BuildProgressListener>()
   project.replaceService(
@@ -2588,7 +2592,7 @@ fun injectSyncOutputDumper(
   project: Project,
   disposable: Disposable,
   outputHandler: Project.(String) -> Unit,
-  syncExceptionHandler: Project.(Exception) -> Unit
+  syncExceptionHandler: Project.(Exception) -> Unit,
 ) {
   val projectId = ExternalSystemTaskId.getProjectId(project)
   ExternalSystemProgressNotificationManager.getInstance().addNotificationListener(
@@ -2607,10 +2611,14 @@ fun injectSyncOutputDumper(
   )
 }
 
-fun <T> Project.buildAndWait(eventHandler: (BuildEvent) -> Unit = {}, buildStarted: () -> Unit = {}, invoker: (GradleBuildInvoker) -> ListenableFuture<T>): T {
+fun <T> Project.buildAndWait(
+  eventHandler: (BuildEvent) -> Unit = {},
+  buildStarted: () -> Unit = {},
+  invoker: (GradleBuildInvoker) -> ListenableFuture<T>,
+): T {
   val gradleBuildInvoker = GradleBuildInvoker.getInstance(this)
   val disposable = Disposer.newDisposable()
-  val listener =  object: ProjectSystemBuildManager.BuildListener {
+  val listener = object : ProjectSystemBuildManager.BuildListener {
     override fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) = buildStarted()
   }
   messageBus.connect(disposable).subscribe(PROJECT_SYSTEM_BUILD_TOPIC, listener)
@@ -2638,9 +2646,12 @@ fun <T> Project.buildAndWait(eventHandler: (BuildEvent) -> Unit = {}, buildStart
   }
 }
 
-class GradleBuildResultWithEvents<T: GradleBuildResult>(val result: T, val events: List<BuildEvent>): GradleBuildResult by result
+class GradleBuildResultWithEvents<T : GradleBuildResult>(val result: T, val events: List<BuildEvent>) : GradleBuildResult by result
 
-fun <T: GradleBuildResult> Project.buildAndAssertSuccess(expectSuccess: Boolean = true, invoker: (GradleBuildInvoker) -> ListenableFuture<T>) : GradleBuildResultWithEvents<T> {
+fun <T : GradleBuildResult> Project.buildAndAssertSuccess(
+  expectSuccess: Boolean = true,
+  invoker: (GradleBuildInvoker) -> ListenableFuture<T>,
+): GradleBuildResultWithEvents<T> {
   val buildEvents = ContainerUtil.createConcurrentList<BuildEvent>()
   val allBuildEventsProcessedLatch = CountDownLatch(1)
   // Build
@@ -2691,10 +2702,14 @@ private fun Project.maybeOutputDiagnostics() {
 
 fun disableKtsIndexing(project: Project, disposable: Disposable) {
   val ep = WorkspaceFileIndexImpl.EP_NAME
-  val filteredExtensions = ep.extensionList.filter { it !is KotlinScriptWorkspaceFileIndexContributor }
-  ExtensionTestUtil.maskExtensions(ep, filteredExtensions, disposable)
-
-  if (KotlinPluginModeProvider.isK2Mode()) {
-    SCRIPT_DEFINITIONS_SOURCES.getPoint(project).unregisterExtensions({ _, _ -> false }, false)
+  val contributorPredicate: (WorkspaceFileIndexContributor<*>) -> Boolean = {
+    if (KotlinPluginModeProvider.isK1Mode()) {
+      it is org.jetbrains.kotlin.idea.core.script.k1.dependencies.KotlinScriptWorkspaceFileIndexContributor
+    } else {
+      it is org.jetbrains.kotlin.idea.core.script.k2.KotlinScriptWorkspaceFileIndexContributor
+    }
   }
+  val filteredExtensions = ep.extensionList.filter { !contributorPredicate(it) }
+
+  ExtensionTestUtil.maskExtensions(ep, filteredExtensions, disposable)
 }
