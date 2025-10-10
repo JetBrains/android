@@ -107,13 +107,16 @@ message ProjectPath {
   enum Base {
     UNSPECIFIED = 0;
     WORKSPACE = 1;
+    EXTERNAL_REPOSITORY = 4;
     PROJECT = 2;
     ABSOLUTE = 3;
   }
 
+  Base base = 2;
+  // name of the external repository.
+  string external_repository = 4;
   // path to the content root, relative to base.
   string path = 1;
-  Base base = 2;
   // inner path within the content root. Only relevant for jar files.
   string inner_path = 3;
 }

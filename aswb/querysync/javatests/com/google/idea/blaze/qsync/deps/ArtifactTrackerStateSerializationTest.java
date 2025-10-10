@@ -154,7 +154,9 @@ public class ArtifactTrackerStateSerializationTest {
                 .builtInIncludeDirectories(
                     ImmutableList.of(
                       ProjectPath.projectRelative(Path.of("buildout/builtininclude")),
-                        ProjectPath.workspaceRelative(Path.of("src/builtininclude"))))
+                        ProjectPath.workspaceRelative(Path.of("src/builtininclude")),
+                        ProjectPath.externalRepositoryRelative("ndk", Path.of("src/ndk_builtininclude"))
+                      ))
                 .cOptions(ImmutableList.of("--copt1"))
                 .cppOptions(ImmutableList.of("--ccopt1"))
                 .build());

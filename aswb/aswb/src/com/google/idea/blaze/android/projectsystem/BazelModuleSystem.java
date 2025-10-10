@@ -17,6 +17,7 @@ package com.google.idea.blaze.android.projectsystem;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static com.google.idea.blaze.qsync.project.QuerySyncProjectDirectory.EXTERNAL_REPOSITORIES;
 import static java.util.Arrays.stream;
 
 import com.android.ide.common.repository.WellKnownMavenArtifactId;
@@ -131,13 +132,15 @@ public final class BazelModuleSystem implements AndroidModuleSystem, Registering
   BazelModuleSystem(Module module) {
     this.module = module;
     this.project = module.getProject();
+    Path ideProjectRoot = Path.of(
+      BlazeImportSettingsManager.getInstance(project)
+        .getImportSettings()
+        .getProjectDataDirectory());
     this.pathResolver =
         ProjectPath.Resolver.create(
             WorkspaceRoot.fromProject(project).path(),
-            Path.of(
-                BlazeImportSettingsManager.getInstance(project)
-                    .getImportSettings()
-                    .getProjectDataDirectory()));
+            ideProjectRoot,
+            ideProjectRoot.resolve(EXTERNAL_REPOSITORIES.getDirectoryName()));
     sampleDataDirectoryProvider = new BlazeSampleDataDirectoryProvider(module);
     isWorkspaceModule = module.getName().equals(BlazeDataStorage.WORKSPACE_MODULE_NAME);
   }

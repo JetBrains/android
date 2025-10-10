@@ -23,6 +23,7 @@ import com.google.idea.blaze.qsync.artifacts.BuildArtifact
 import com.google.idea.blaze.qsync.java.ArtifactTrackerProto
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectPath.Companion.absolute
+import com.google.idea.blaze.qsync.project.ProjectPath.Companion.externalRepositoryRelative
 import com.google.idea.blaze.qsync.project.ProjectPath.Companion.projectRelative
 import com.google.idea.blaze.qsync.project.ProjectPath.Companion.workspaceRelative
 import java.nio.file.Path
@@ -85,6 +86,7 @@ class ArtifactTrackerStateDeserializer(private val metadataFactory: ArtifactMeta
     return when (p.getBase()) {
       ArtifactTrackerProto.ProjectPath.Base.UNSPECIFIED -> throw IllegalStateException("Unexpected value: $p")
       ArtifactTrackerProto.ProjectPath.Base.WORKSPACE -> workspaceRelative(Path.of(p.getPath()))
+      ArtifactTrackerProto.ProjectPath.Base.EXTERNAL_REPOSITORY -> externalRepositoryRelative(p.getExternalRepository(), Path.of(p.getPath()))
       ArtifactTrackerProto.ProjectPath.Base.PROJECT -> projectRelative(Path.of(p.getPath()))
       ArtifactTrackerProto.ProjectPath.Base.ABSOLUTE -> absolute(Path.of(p.getPath()))
       ArtifactTrackerProto.ProjectPath.Base.UNRECOGNIZED -> throw IllegalStateException("Unexpected value: $p")
