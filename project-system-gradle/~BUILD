@@ -44,8 +44,6 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.common",
         # AI Plugin access to Gradle Project System functionality
         "//tools/vendor/google/ml/aiplugin/android/gradle:aiplugin.android.gradle",
-        # TODO(b/316555700), Kotlin Intrinsics deprecation schedule, AndroidModuleInfoProviderImpl
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions",
         # TODO(b/427148033), MigrateToCatalogProcessor
         "//tools/vendor/google/ml/aiplugin/experimental:aiplugin.experimental",
         # TODO(xof): investigate
@@ -122,6 +120,8 @@ iml_module(
         "//tools/adt/idea/gradle-dsl-flags:intellij.android.gradle.dsl.flags",
         "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
         "//tools/adt/idea/gradle-declarative-lang-flags:intellij.android.gradle.declarative.lang.flags",
+        "@intellij//:intellij.spellchecker",
+        "@intellij//:intellij.properties.backend.psi",
     ],
 )
 
@@ -608,6 +608,9 @@ iml_module(
         "//tools/adt/idea/gradle-declarative-lang-sync:intellij.android.gradle.declarative.lang.sync",
         "//tools/adt/idea/gradle-declarative-lang-flags:intellij.android.gradle.declarative.lang.flags",
         "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
+        "@intellij//:intellij.spellchecker",
+        "@intellij//:intellij.properties.backend.psi",
+        "//tools/adt/idea/.idea/libraries:equalsverifier",
     ],
     test_jvm_flags = ["-Didea.skip.indices.initialization=true"],
     test_resources = ["testResources"],
@@ -622,7 +625,6 @@ iml_module(
         "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.common",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions",
     ],
     # do not sort: must match IML order
     deps = [
@@ -780,6 +782,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.0",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.6.21",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.22",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_2.2.0",
         "@maven//:org.jetbrains.kotlin.kotlin-test-junit_" + KGP_VERSION_FOR_TESTS,
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.5.2",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.6.4",

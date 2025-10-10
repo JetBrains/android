@@ -697,6 +697,7 @@ jvm_library(
         "//platform/code-style-api:codeStyle_test_lib",
         "//platform/util/concurrency",
         "//platform/util/concurrency:concurrency_test_lib",
+        "@lib//:equalsverifier",
     ],
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.tests` end
