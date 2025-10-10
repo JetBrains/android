@@ -181,6 +181,10 @@ object FeatureSurveys {
 
   @VisibleForTesting
   object FeatureSurveyChoiceLogger : ChoiceLogger {
+    override fun log(name: String, result: Int) {
+      log(name, listOf(result))
+    }
+
     override fun log(name: String, result: List<Int>) {
       ChoiceLoggerImpl.log(name, result)
       featureSurveyInvoked(name, config.generalIntervalCompleted, config.specificIntervalCompleted)
