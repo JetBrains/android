@@ -54,7 +54,7 @@ class ScreenshotTestAllInPackageGradleConfigurationProducer: AllInPackageGradleC
                                     element: PsiPackage,
                                     chosenElements: List<PsiPackage>): List<TestTasksToRun> {
     val tasksToRun = mutableListOf<TestTasksToRun>()
-    val testFilter = "--tests \"${element.qualifiedName}*\""
+    val testFilter = "--tests \"${element.qualifiedName}.*\""
     val tasks = getScreenshotTestTaskNames(context) ?: return tasksToRun
     tasksToRun.add(TestTasksToRun(TasksToRun.Impl("screenshotTest", tasks), testFilter))
     return tasksToRun
