@@ -28,6 +28,8 @@ import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.artifacts.DigestMap;
 import com.google.idea.blaze.qsync.java.JavaTargetInfo;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Set;
 import javax.annotation.Nullable;
 
 /** Information about a project dependency that is calculated when the dependency is built. */
@@ -128,23 +130,23 @@ public abstract class JavaArtifactInfo {
 
     public abstract Builder setIsExternalDependency(boolean value);
 
-    public abstract Builder setJars(ImmutableList<BuildArtifact> value);
+    public abstract Builder setJars(List<BuildArtifact> value);
 
     public abstract ImmutableSet.Builder<BuildArtifact> jarsBuilder();
 
-    public abstract Builder setOutputJars(ImmutableList<BuildArtifact> value);
+    public abstract Builder setOutputJars(List<BuildArtifact> value);
 
     public abstract ImmutableSet.Builder<BuildArtifact> outputJarsBuilder();
 
     public abstract Builder setIdeAar(@Nullable BuildArtifact value);
 
-    public abstract Builder setGenSrcs(ImmutableList<BuildArtifact> value);
+    public abstract Builder setGenSrcs(List<BuildArtifact> value);
 
     public abstract Builder setGenSrcs(BuildArtifact... value);
 
-    public abstract Builder setSources(ImmutableSet<Path> value);
+    public abstract Builder setSources(Set<Path> value);
 
-    public abstract Builder setSrcJars(ImmutableSet<Path> value);
+    public abstract Builder setSrcJars(Set<Path> value);
 
     public abstract Builder setAndroidResourcesPackage(String value);
 

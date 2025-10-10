@@ -54,8 +54,8 @@ public class ArtifactTrackerStateSerializationTest {
     ArtifactTrackerStateDeserializer deserializer =
         new ArtifactTrackerStateDeserializer(new JavaArtifactMetadata.Factory());
     deserializer.visit(proto);
-    return ArtifactTracker.State.create(
-        deserializer.getBuiltDepsMap(), deserializer.getCcToolchainMap());
+    return ArtifactTracker.State.create(ImmutableMap.copyOf(deserializer.getBuiltDepsMap()),
+                                        ImmutableMap.copyOf(deserializer.getCcToolchainMap()));
   }
 
   @Test
