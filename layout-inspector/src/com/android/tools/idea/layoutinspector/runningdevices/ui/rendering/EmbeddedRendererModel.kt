@@ -217,6 +217,16 @@ class EmbeddedRendererModel(
     }
   }
 
+  /** Selects the node and returns the list of views at the given coordinates */
+  fun rightClickNode(
+    x: Double,
+    y: Double,
+    rootId: Long = inspectorModel.root.drawId,
+  ): List<ViewNode> {
+    selectNode(x, y, rootId)
+    return findNodesAt(x, y, rootId)
+  }
+
   fun setOverlay(image: ByteArray?) {
     _overlay.value = image
   }

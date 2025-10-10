@@ -535,6 +535,8 @@ class StudioRendererPanelTest {
     val fakeUi = FakeUi(renderer)
     fakeUi.render()
 
+    assertThat(model.inspectorModel.selection).isNull()
+
     // Right click on VIEW1 when system views are showing:
     fakeUi.mouse.click(
       deviceDisplayRectangle.x + 10,
@@ -542,6 +544,8 @@ class StudioRendererPanelTest {
       FakeMouse.Button.RIGHT,
     )
     latestPopup!!.assertSelectViewActionAndGotoDeclaration(ROOT, VIEW1)
+
+    assertThat(model.inspectorModel.selection?.drawId).isEqualTo(VIEW1)
   }
 
   @Test

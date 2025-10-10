@@ -164,6 +164,15 @@ class EmbeddedRendererModelTest {
   }
 
   @Test
+  fun testRightClickNode() = runTest {
+    val views = rendererModel.rightClickNode(15.0, 55.0, ROOT)
+    testScheduler.advanceUntilIdle()
+
+    assertThat(inspectorModel.selection).isEqualTo(rendererModel.inspectorModel[COMPOSE1])
+    assertThat(views.map { it.drawId }).isEqualTo(listOf(COMPOSE1, ROOT))
+  }
+
+  @Test
   fun testVisibleNodesChangeOnModelUpdates() = runTest {
     testScheduler.advanceUntilIdle()
 
