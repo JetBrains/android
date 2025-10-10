@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.DependencyConfigurationModelImpl.EXCLUDE;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.resolveElement;
 import static com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement.shouldInterpolate;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
@@ -29,11 +27,6 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyConfiguratio
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
-import com.android.tools.idea.gradle.dsl.model.ext.transforms.CompactToMapCatalogDependencyTransform;
-import com.android.tools.idea.gradle.dsl.model.ext.transforms.FakeElementTransform;
-import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
-import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.FakeElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
@@ -45,11 +38,8 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElem
 import com.google.common.collect.Lists;
 import com.intellij.psi.PsiElement;
 import java.util.List;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -364,166 +354,6 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
           configurationName, dslExpression, configurationElement, maintainer, platformMethodName);
       }
       return result.isValidDSL() ? result : null;
-    }
-  }
-
-  interface NotationStrategy {
-
-
-    boolean isValidDSL();
-
-    ResolvedPropertyModel name();
-
-    ResolvedPropertyModel group();
-
-    ResolvedPropertyModel version();
-
-    ResolvedPropertyModel classifier();
-
-    ResolvedPropertyModel extension();
-  }
-
-  static class MapNotationStrategy implements NotationStrategy {
-    @NotNull private GradleDslExpressionMap myDslElement;
-
-    MapNotationStrategy(@NotNull GradleDslExpressionMap dslElement) {
-      myDslElement = dslElement;
-    }
-
-    @Override
-    @NotNull
-    public ResolvedPropertyModel name() {
-      GradleDslLiteral module = myDslElement.getPropertyElement("module", GradleDslLiteral.class);
-      if (module != null) {
-        FakeElement element = new FakeArtifactElement(myDslElement,
-                                                      GradleNameElement.fake("name"),
-                                                      module,
-                                                      ArtifactDependencySpec::getName,
-                                                      ArtifactDependencySpecImpl::setName,
-                                                      false);
-        return GradlePropertyModelBuilder.create(element).addTransform(new FakeElementTransform()).buildResolved();
-      }
-      return GradlePropertyModelBuilder.create(myDslElement, "name").buildResolved();
-    }
-
-    @Override
-    public boolean isValidDSL() {
-      return StringUtils.isNotEmpty(name().valueAsString());
-    }
-
-    @Override
-    @NotNull
-    public ResolvedPropertyModel group() {
-      GradleDslLiteral module = myDslElement.getPropertyElement("module", GradleDslLiteral.class);
-      if (module != null) {
-        FakeElement element = new FakeArtifactElement(myDslElement,
-                                                      GradleNameElement.fake("group"),
-                                                      module,
-                                                      ArtifactDependencySpec::getGroup,
-                                                      ArtifactDependencySpecImpl::setGroup,
-                                                      false);
-        return GradlePropertyModelBuilder.create(element).addTransform(new FakeElementTransform()).buildResolved();
-      }
-      return GradlePropertyModelBuilder.create(myDslElement, "group").buildResolved();
-    }
-
-    @Override
-    @NotNull
-    public ResolvedPropertyModel version() {
-      return GradlePropertyModelBuilder.create(myDslElement, "version").buildResolved();
-    }
-
-    @Override
-    @NotNull
-    public ResolvedPropertyModel classifier() {
-      return GradlePropertyModelBuilder.create(myDslElement, "classifier").buildResolved();
-    }
-
-    @Override
-    @NotNull
-    public ResolvedPropertyModel extension() {
-      return GradlePropertyModelBuilder.create(myDslElement, "ext").buildResolved();
-    }
-  }
-
-  static class CompactNotationStrategy implements NotationStrategy {
-    @NotNull private GradleDslSimpleExpression myDslExpression;
-    private boolean mySetThrough;
-
-    CompactNotationStrategy(@NotNull GradleDslSimpleExpression dslExpression,
-                            boolean setThrough) {
-      myDslExpression = dslExpression;
-      mySetThrough = setThrough;
-    }
-
-    @NotNull
-    public ResolvedPropertyModel createModelFor(@NotNull String name,
-                                                @NotNull Function<ArtifactDependencySpec, String> getFunc,
-                                                @NotNull BiConsumer<ArtifactDependencySpecImpl, String> setFunc,
-                                                boolean canDelete,
-                                                PropertyTransform additionalTransformer
-    ) {
-      GradleDslSimpleExpression element = mySetThrough ? resolveElement(myDslExpression) : myDslExpression;
-      FakeElement fakeElement =
-        new FakeArtifactElement(element.getParent(), GradleNameElement.fake(name), element, getFunc, setFunc, canDelete);
-      GradlePropertyModelBuilder builder = GradlePropertyModelBuilder.create(fakeElement);
-      if (additionalTransformer != null) {
-        builder = builder.addTransform(additionalTransformer);
-      }
-      return builder.addTransform(new FakeElementTransform()).buildResolved();
-    }
-
-    @NotNull
-    public ResolvedPropertyModel createModelFor(@NotNull String name,
-                                                @NotNull Function<ArtifactDependencySpec, String> getFunc,
-                                                @NotNull BiConsumer<ArtifactDependencySpecImpl, String> setFunc,
-                                                boolean canDelete) {
-      return createModelFor(name, getFunc, setFunc, canDelete, null);
-    }
-
-
-    @Override
-    public boolean isValidDSL() {
-      String value = myDslExpression.getValue(String.class);
-      if (value == null || value.trim().isEmpty()) {
-        return false;
-      }
-      // Check if the notation is valid i.e. it has a name
-      return name().getValueType() != NONE;
-    }
-
-    @Override
-    @NotNull
-    public ResolvedPropertyModel name() {
-      return createModelFor("name", ArtifactDependencySpec::getName, ArtifactDependencySpecImpl::setName, false);
-    }
-
-    @Override
-    @NotNull
-    public ResolvedPropertyModel group() {
-      return createModelFor("group", ArtifactDependencySpec::getGroup, ArtifactDependencySpecImpl::setGroup, true);
-    }
-
-    @Override
-    @NotNull
-    public ResolvedPropertyModel version() {
-      return createModelFor("version",
-                            ArtifactDependencySpec::getVersion,
-                            ArtifactDependencySpecImpl::setVersion,
-                            true,
-                            new CompactToMapCatalogDependencyTransform());
-    }
-
-    @Override
-    @NotNull
-    public ResolvedPropertyModel classifier() {
-      return createModelFor("classifier", ArtifactDependencySpec::getClassifier, ArtifactDependencySpecImpl::setClassifier, true);
-    }
-
-    @Override
-    @NotNull
-    public ResolvedPropertyModel extension() {
-      return createModelFor("extension", ArtifactDependencySpec::getExtension, ArtifactDependencySpecImpl::setExtension, true);
     }
   }
 }
