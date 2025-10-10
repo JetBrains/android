@@ -645,17 +645,25 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
           useJunitEngine().apply {
             addInput("com.android.build.api.dsl.AgpTestSuiteInputParameters.TESTED_APKS")
             addIncludeEngine("journeys-test-engine")
-            addEngineDependency(
-              StudioFlags.JOURNEYS_WITH_GEMINI_TEST_SUITE_JUNIT_PLATFORM_LAUNCHER_DEP.get()
-            )
-            addEngineDependency(
-              StudioFlags.JOURNEYS_WITH_GEMINI_TEST_SUITE_JUNIT_PLATFORM_ENGINE_DEP.get()
-            )
-            addEngineDependency(
-              StudioFlags.JOURNEYS_WITH_GEMINI_TEST_SUITE_JOURNEYS_ENGINE_DEP.get()
-            )
           }
         }
+
+    // Configure the dependencies
+    projectBuildModel?.let {
+      val dependencyHelper = DependenciesHelper.withModel(it)
+      dependencyHelper.addTestSuiteEngineDependency(
+        testSuite,
+        StudioFlags.JOURNEYS_WITH_GEMINI_TEST_SUITE_JUNIT_PLATFORM_LAUNCHER_DEP.get()
+      )
+      dependencyHelper.addTestSuiteEngineDependency(
+        testSuite,
+        StudioFlags.JOURNEYS_WITH_GEMINI_TEST_SUITE_JUNIT_PLATFORM_ENGINE_DEP.get()
+      )
+      dependencyHelper.addTestSuiteEngineDependency(
+        testSuite,
+        StudioFlags.JOURNEYS_WITH_GEMINI_TEST_SUITE_JOURNEYS_ENGINE_DEP.get()
+      )
+    }
 
     // Add the target variant to the new (or existing) test suite
     if (targetVariant != null && testSuite.targets().none { it.name() == targetVariant }) {
