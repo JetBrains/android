@@ -101,7 +101,7 @@ class DesignAssetImporter {
   }
 
   /**
-   * Get the folder name the the qualifiers applied to the [designAsset]
+   * Get the folder name according to the qualifiers applied to the [designAsset]
    */
   private fun getFolderName(designAsset: DesignAsset): String {
     folderConfiguration.reset()

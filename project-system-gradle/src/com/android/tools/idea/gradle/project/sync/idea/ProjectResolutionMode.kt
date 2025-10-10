@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.idea
 /**
  * Describes the requested project resolver chain operating mode and its parameters.
  *
- * Note that the the requestor may/should additionally configure the chain to contain only a subset of the default resolvers.
+ * Note that the requestor may/should additionally configure the chain to contain only a subset of the default resolvers.
  */
 sealed class ProjectResolutionMode {
   class FetchNativeVariantsMode(

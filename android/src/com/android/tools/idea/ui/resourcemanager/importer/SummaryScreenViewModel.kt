@@ -102,7 +102,7 @@ class SummaryScreenViewModel(private val designAssetImporter: DesignAssetImporte
 
   /**
    * A map used to convenience when the user select a file from the [fileTreeModel]
-   * to get the the right [VirtualFile].
+   * to get the right [VirtualFile].
    */
   private var targetToSource: Map<String, VirtualFile> = emptyMap()
 

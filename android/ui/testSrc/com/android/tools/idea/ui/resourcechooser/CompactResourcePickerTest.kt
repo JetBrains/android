@@ -146,7 +146,7 @@ class CompactResourcePickerTest {
     val resourcePickerPanel = createAndWaitForResourcePickerPanel(listOf(ResourcePickerSources.ANDROID)) {}
     val resourceSourceComboBox = UIUtil.findComponentOfType(resourcePickerPanel, JComboBox::class.java)!!
 
-    // We set the the picker to only be able to show Android framework resources (no other options available)
+    // We set the picker to only be able to show Android framework resources (no other options available)
     assertEquals("Android", resourceSourceComboBox.model.selectedItem!!.toString())
     assertEquals(1, resourceSourceComboBox.model.size)
 
