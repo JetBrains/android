@@ -24,9 +24,11 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.api.android.testOptions.testSuites.TestSuiteModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.LibraryDeclarationModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.VersionDeclarationModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
@@ -69,6 +71,20 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
         }
       }
     }
+
+  override fun addTestSuiteEngineDependency(testSuiteModel: TestSuiteModel, dependency: String): Set<PsiFile> {
+    val compactNotationMatcher = object : DependencyMatcher {
+      override fun match(model: LibraryDeclarationModel) = model.compactNotation() == dependency
+      override fun match(model: ArtifactDependencyModel) = model.compactNotation() == dependency
+    }
+    return getOrAddDependencyToCatalog(projectModel, dependency, compactNotationMatcher) { alias, changedFiles ->
+      val reference = ReferenceTo(getCatalogModel().libraries().findProperty(alias), testSuiteModel.useJunitEngine())
+      if (!testSuiteModel.useJunitEngine().hasEngineDependency(reference)) {
+        testSuiteModel.useJunitEngine().addEngineDependency(reference)
+        changedFiles.addIfNotNull(testSuiteModel.useJunitEngine().psiElement?.containingFile)
+      }
+    }
+  }
 
   override fun updateDependencyVersion(dependency: Dependency,
                                        buildModel: GradleBuildModel) {

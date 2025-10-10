@@ -21,11 +21,14 @@ import com.android.tools.idea.gradle.dependencies.ExactDependencyMatcher
 import com.android.tools.idea.gradle.dependencies.GroupNameDependencyMatcher
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
 
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG
+import com.android.tools.idea.testing.TestProjectPaths.TEST_SUITES_VERSION_CATALOG
+import com.android.tools.idea.testing.TestProjectPaths.TEST_SUITES
 import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.testing.getTextForFile
 import com.google.common.truth.Truth.assertThat
@@ -233,6 +236,68 @@ class DependenciesHelperTest {
            {
              val buildFileContent = project.getTextForFile("app/build.gradle")
              assertThat(countMatches(buildFileContent,"api 'com.example.libs:lib2:1.0'")).isEqualTo(1)
+           })
+  }
+
+  @Test
+  fun testAddTestSuiteEngineDependencyWithCatalog() {
+    doTest(TEST_SUITES_VERSION_CATALOG,
+           { _, moduleModel, helper ->
+             val testSuiteModel = moduleModel.android().testOptions().suites().find { it.name() == "test" }!!
+             val updates = helper.addTestSuiteEngineDependency(testSuiteModel, "org.junit.platform:junit-platform-launcher:1.13.4")
+             assertThat(updates.size).isEqualTo(2)
+           },
+           {
+             val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
+             assertThat(catalogContent).contains("junit-platform-launcher = \"1.13.4\"")
+             assertThat(catalogContent).contains(
+               "{ group = \"org.junit.platform\", name = \"junit-platform-launcher\", version.ref = \"junit-platform-launcher\" }")
+             val buildFileContent = project.getTextForFile("app/build.gradle")
+             assertThat(buildFileContent).contains("enginesDependencies(libs.junit.platform.launcher)")
+           })
+  }
+
+  @Test
+  fun testAddTestSuiteEngineDependencyNoCatalog() {
+    doTest(TEST_SUITES,
+           { _, moduleModel, helper ->
+             val testSuiteModel = moduleModel.android().testOptions().suites().find { it.name() == "test" }!!
+             val updates = helper.addTestSuiteEngineDependency(testSuiteModel, "org.junit.platform:junit-platform-launcher:1.13.4")
+             assertThat(updates.size).isEqualTo(1)
+           },
+           {
+             val buildFileContent = project.getTextForFile("app/build.gradle.kts")
+             assertThat(buildFileContent).contains("enginesDependencies(\"org.junit.platform:junit-platform-launcher:1.13.4\")")
+           })
+  }
+
+  @Test
+  fun testAddDuplicatedTestSuiteEngineDependencyWithCatalog() {
+    doTest(TEST_SUITES_VERSION_CATALOG,
+           { _, moduleModel, helper ->
+             val testSuiteModel = moduleModel.android().testOptions().suites().find { it.name() == "test" }!!
+             val updates = helper.addTestSuiteEngineDependency(testSuiteModel, "junit:junit:4.12")
+             assertThat(updates.size).isEqualTo(0)
+           },
+           {
+             val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
+             assertThat(countMatches(catalogContent, "{ module = \"junit:junit\", version.ref = \"junit\" }")).isEqualTo(1)
+             val buildFileContent = project.getTextForFile("app/build.gradle")
+             assertThat(countMatches(buildFileContent, "enginesDependencies(libs.junit)")).isEqualTo(1)
+           })
+  }
+
+  @Test
+  fun testAddDuplicatedTestSuiteEngineDependencyNoCatalog() {
+    doTest(TEST_SUITES,
+           { _, moduleModel, helper ->
+             val testSuiteModel = moduleModel.android().testOptions().suites().find { it.name() == "test" }!!
+             val updates = helper.addTestSuiteEngineDependency(testSuiteModel, "junit:junit:4.12")
+             assertThat(updates.size).isEqualTo(0)
+           },
+           {
+             val buildFileContent = project.getTextForFile("app/build.gradle.kts")
+             assertThat(countMatches(buildFileContent, "enginesDependencies(\"junit:junit:4.12\")")).isEqualTo(1)
            })
   }
 
