@@ -159,7 +159,7 @@ class GenericFileFilter(private val project: Project, private val localFileSyste
                 val currentCandidate = findValidResult(i, 0, 0)
                 if (currentCandidate == null) {
                   /* This is not a valid path it means that continuing as a path no longer will result in a valid file, but this could be
-                     the the start of a new path. Need to move back up to 4 characters since the path could include a drive letter.
+                     the start of a new path. Need to move back up to 4 characters since the path could include a drive letter.
                    */
                   if ((i - 3) > pathStartIndex && line[i - 1] == ':' && line[i - 2] in 'A'..'Z' && line[i - 3].isWhitespace()) {
                     i -= 5

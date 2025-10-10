@@ -68,7 +68,7 @@ public final class ExtDslElement extends GradleDslBlockElement {
 
   @Override
   public void setPsiElement(@Nullable PsiElement psiElement) {
-    // This makes sure the the PsiElement for the ExtDslElement is the first one declared in the file.
+    // This makes sure the PsiElement for the ExtDslElement is the first one declared in the file.
     // This allows all new ext elements to be added to the first ext block so to be more likely to be in scope for using fields.
     if (getPsiElement() == null || psiElement == null) {
       super.setPsiElement(psiElement);

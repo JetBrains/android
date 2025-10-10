@@ -138,7 +138,7 @@ public final class OverlayConfiguration {
   }
 
   /**
-   * Returns whether the the placeholder overlay is being displayed.
+   * Returns whether the placeholder overlay is being displayed.
    */
   public boolean isPlaceholderVisible() {
     return Objects.equals(myCurrentOverlayEntry, PLACEHOLDER_OVERLAY.getOverlayEntry());

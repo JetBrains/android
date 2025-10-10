@@ -264,7 +264,7 @@ private class OverflowingTabbedPaneUI : DarculaTabbedPaneUI() {
     hiddenTab.clear()
     val lastTabRect = rects[tabCount - 1]
 
-    // If the the tabs area is greater than the the tabPane width
+    // If the tabs area is greater than the tabPane width
     if (lastTabRect.x + lastTabRect.width > tabPane.width) {
       val selectedRect = rects[selectedIndex]
       val availableWidth = tabPane.width - overflowButton.preferredSize.width
