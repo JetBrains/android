@@ -19,6 +19,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.concurrency.AppExecutorUtil
 import org.junit.After
@@ -30,10 +31,14 @@ import org.mockito.MockedStatic
 import org.mockito.Mockito
 import java.awt.Component
 import java.awt.Container
+import java.awt.image.BufferedImage
 import java.util.ArrayDeque
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
+import javax.imageio.ImageIO
+import javax.swing.ImageIcon
+import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JScrollPane
@@ -140,7 +145,131 @@ class ScreenshotResultViewTest {
     assertThat(viewportView.icon).isNull()
   }
 
-  //TODO (b/440892989): Add more test cases
+  @Test
+  fun diffPlaceholderChangesBasedOnTestResult() = runInEdtAndWait {
+    // Case 1: Test failed, placeholder should indicate no diff image
+    view.testFailed = true
+    view.diffImagePath = "invalid/path.png"
+    view.updateView()
+
+    val diffPanelFailed = view.diffImagePanel
+    val scrollPaneFailed = findComponent<JScrollPane>(diffPanelFailed)!!
+    PlatformTestUtil.waitWithEventsDispatching("Viewport view was not set", { scrollPaneFailed.viewport.view != null }, 5)
+    val placeholderFailed = scrollPaneFailed.viewport.view as JLabel
+    assertThat(placeholderFailed.text).isEqualTo("No Diff Image")
+
+    // Case 2: Test passed, placeholder should indicate no difference
+    view.testFailed = false
+    view.updateView() // updateView re-triggers the load
+
+    val diffPanelPassed = view.diffImagePanel
+    val scrollPanePassed = findComponent<JScrollPane>(diffPanelPassed)!!
+    PlatformTestUtil.waitWithEventsDispatching("Viewport view was not set", { scrollPanePassed.viewport.view != null }, 5)
+    val placeholderPassed = scrollPanePassed.viewport.view as JLabel
+    assertThat(placeholderPassed.text).isEqualTo("No Difference")
+  }
+
+  @Test
+  fun zoomActionsAreDisabledWhenNoImageIsPresent() = runInEdtAndWait {
+    val imagePanel = view.newImagePanel
+    imagePanel.setImage(null) // Ensure no image is set
+
+    // --- Access actions directly via properties ---
+    val zoomIn = imagePanel.zoomInAction
+    val zoomOut = imagePanel.zoomOutAction
+    val actualSize = imagePanel.oneToOneAction
+    val fitContent = imagePanel.fitToScreenAction
+    val grid = imagePanel.toggleGridViewAction
+
+    val event = TestActionEvent.createTestEvent()
+    zoomIn.update(event)
+    assertThat(event.presentation.isEnabled).isFalse()
+
+    zoomOut.update(event)
+    assertThat(event.presentation.isEnabled).isFalse()
+
+    actualSize.update(event)
+    assertThat(event.presentation.isEnabled).isFalse()
+
+    fitContent.update(event)
+    assertThat(event.presentation.isEnabled).isFalse()
+
+    grid.update(event)
+    assertThat(event.presentation.isEnabled).isFalse()
+  }
+
+  @Test
+  fun zoomInActionIncreasesScale() = runInEdtAndWait {
+    val imagePanel = view.newImagePanel
+    val image = BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB)
+    imagePanel.setImage(image)
+    imagePanel.currentScale = 1.0 // Start at 1:1
+
+    val zoomIn = imagePanel.zoomInAction
+    zoomIn.actionPerformed(TestActionEvent.createTestEvent())
+
+    assertThat(imagePanel.currentScale).isGreaterThan(1.0)
+  }
+
+  @Test
+  fun zoomOutActionDecreasesScale() = runInEdtAndWait {
+    val imagePanel = view.newImagePanel
+    val image = BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB)
+    imagePanel.setImage(image)
+    imagePanel.currentScale = 1.0 // Start at 1:1
+
+    val zoomOut = imagePanel.zoomOutAction
+    zoomOut.actionPerformed(TestActionEvent.createTestEvent())
+
+    assertThat(imagePanel.currentScale).isLessThan(1.0)
+  }
+
+  @Test
+  fun actualSizeActionResetsScaleToOne() = runInEdtAndWait {
+    val imagePanel = view.newImagePanel
+    val image = BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB)
+    imagePanel.setImage(image)
+    imagePanel.currentScale = 1.5 // Start at a different scale
+
+    val actualSize = imagePanel.oneToOneAction
+    actualSize.actionPerformed(TestActionEvent.createTestEvent())
+
+    assertThat(imagePanel.currentScale).isEqualTo(1.0)
+  }
+
+  @Test
+  fun fitToScreenActionEnablesAutoFit() = runInEdtAndWait {
+    val imagePanel = view.newImagePanel
+    val image = BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB)
+    imagePanel.setImage(image)
+    imagePanel.isAutoFitting = false // Ensure it's off initially
+
+    val fitToScreen = imagePanel.fitToScreenAction
+    fitToScreen.actionPerformed(TestActionEvent.createTestEvent())
+
+    assertThat(imagePanel.isAutoFitting).isTrue()
+  }
+
+  @Test
+  fun gridActionTogglesGridVisibility() = runInEdtAndWait {
+    val imagePanel = view.newImagePanel
+    val image = BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB)
+    imagePanel.setImage(image)
+
+    val gridAction = imagePanel.toggleGridViewAction
+    val event = TestActionEvent.createTestEvent()
+
+    // Initially not selected
+    assertThat(gridAction.isSelected(event)).isFalse()
+
+    // Toggle on
+    gridAction.setSelected(event, true)
+    assertThat(gridAction.isSelected(event)).isTrue()
+
+    // Toggle off
+    gridAction.setSelected(event, false)
+    assertThat(gridAction.isSelected(event)).isFalse()
+  }
 
   /**
    * Iteratively searches a container to find the first component of a given type
