@@ -23,19 +23,30 @@ import com.google.wireless.android.sdk.stats.UserSentiment.SatisfactionLevel.VER
 
 object LegacyChoiceLogger : ChoiceLogger {
   override fun log(name: String, result: Int) {
-    val value = UserSentiment.SatisfactionLevel.values()
+    val level = UserSentiment.SatisfactionLevel.entries
                   .firstOrNull { it.number == VERY_SATISFIED_VALUE - result }
                 ?: UNKNOWN_SATISFACTION_LEVEL
 
+    logEvent(level)
+  }
+
+  override fun log(name: String, result: List<Int>) {
+    result.firstOrNull()?.let {
+      log(name, it)
+    }
+  }
+
+  override fun cancel(name: String) {
+    logEvent(UNKNOWN_SATISFACTION_LEVEL)
+  }
+
+  private fun logEvent(level: UserSentiment.SatisfactionLevel) {
     UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
       kind = AndroidStudioEvent.EventKind.USER_SENTIMENT
       userSentiment = UserSentiment.newBuilder().apply {
         state = UserSentiment.SentimentState.POPUP_QUESTION
-        level = value
+        this.level = level
       }.build()
     })
-  }
-
-  override fun log(name: String, result: List<Int>) {
   }
 }

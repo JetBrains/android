@@ -20,6 +20,10 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.SurveyResponse
 
 object ChoiceLoggerImpl : ChoiceLogger {
+  override fun log(name: String, result: Int) {
+    log(name, listOf(result))
+  }
+
   override fun log(name: String, result: List<Int>) {
     UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
       kind = AndroidStudioEvent.EventKind.SURVEY_RESPONSE
@@ -28,5 +32,9 @@ object ChoiceLoggerImpl : ChoiceLogger {
         addAllResponses(result)
       }.build()
     })
+  }
+
+  override fun cancel(name: String) {
+    log(name, emptyList())
   }
 }
