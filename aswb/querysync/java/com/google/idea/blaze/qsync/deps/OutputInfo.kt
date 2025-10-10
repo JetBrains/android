@@ -22,7 +22,10 @@ import com.google.devtools.build.lib.view.proto.Deps
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.artifact.OutputArtifact
 import com.google.idea.blaze.qsync.java.JavaTargetInfo.JavaArtifacts
+import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcCompilationInfo
+import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcTargetInfo
+import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcToolchainInfo
 import java.nio.file.Path
 import java.util.logging.Logger
 import org.jetbrains.annotations.TestOnly
@@ -31,8 +34,8 @@ import org.jetbrains.annotations.TestOnly
 interface OutputInfo {
   val javaArtifactInfo: Map<Label, JavaArtifacts>
   val compileJdeps: Map<Label, Deps.Dependencies>
-  val ccCompilationInfo: List<CcCompilationInfo>
-
+  val ccTargets: Map<Label, CcTargetInfo>
+  val ccToolchains: Map<String, CcToolchainInfo>
   val jars: List<OutputArtifact>
   val aars: List<OutputArtifact>
   val generatedSources: List<OutputArtifact>
@@ -54,7 +57,8 @@ interface OutputInfo {
   data class Data(
     override val javaArtifactInfo: Map<Label, JavaArtifacts>,
     override val compileJdeps: Map<Label, Deps.Dependencies>,
-    override val ccCompilationInfo: List<CcCompilationInfo>,
+    override val ccTargets: Map<Label, CcTargetInfo>,
+    override val ccToolchains: Map<String, CcToolchainInfo>,
     private val artifacts: Map<OutputGroup, List<OutputArtifact>>,
     private val infoFileToLabel: Map<Path, Label>,
     override val exitCode: Int,
@@ -72,7 +76,7 @@ interface OutputInfo {
     override val generatedSources: List<OutputArtifact>
       get() = artifacts[OutputGroup.GENSRCS].orEmpty()
     override val isEmpty: Boolean
-      get() = artifacts.isEmpty() && ccCompilationInfo.isEmpty()
+      get() = artifacts.isEmpty() && ccTargets.isEmpty() && ccToolchains.isEmpty()
 
     override fun getDependencies(target: Label): List<Label> {
       return javaArtifactInfo[target]
@@ -101,7 +105,8 @@ interface OutputInfo {
       Data(
         javaArtifactInfo = emptyMap(),
         compileJdeps = emptyMap(),
-        ccCompilationInfo = emptyList(),
+        ccTargets = emptyMap(),
+        ccToolchains = emptyMap(),
         artifacts = emptyMap(),
         infoFileToLabel = emptyMap(),
         exitCode = 0,
@@ -145,7 +150,8 @@ interface OutputInfo {
         javaArtifactInfo = javaArtifacts.values.associateBy { Label.of(it.target) },
         compileJdeps = compileJdeps.entries
           .associate { (jdepsArtifactPathToTarget[it.key] ?: error("Unknown compileJdeps artifact path: ${it.key}")) to it.value },
-        ccCompilationInfo = ccInfo,
+        ccTargets = ccInfo.flatMap { it.targetsList }.associateBy { Label.of(it.label) },
+        ccToolchains = ccInfo.flatMap { it.toolchainsList }.associateBy { it.id },
         artifacts = allArtifacts.asMap().mapValues { it.value.toList() },
         infoFileToLabel = javaArtifacts.mapValues { Label.of(it.value.target) },
         exitCode = exitCode,
