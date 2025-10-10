@@ -25,7 +25,7 @@ import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
  *
  * Ideally in the future we want everything to be data classes here and remove the interfaces, but doing that incrementally is also fine.
  */
-data class IdeDependencies(
+class IdeDependencies(
   internal val classpath: IdeDependenciesCoreImpl,
   /** Utility method to provide easy access to a resolver without having to re-create one from the library table. */
   val resolver: IdeLibraryModelResolverImpl

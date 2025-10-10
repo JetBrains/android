@@ -167,9 +167,9 @@ data class IdeVariantCoreImpl(
   )
 }
 
-data class IdeVariantImpl(
+class IdeVariantImpl(
   private val core: IdeVariantCoreImpl,
-  private val resolver: IdeLibraryModelResolverImpl
+  resolver: IdeLibraryModelResolverImpl
 ) : IdeVariant, IdeVariantCore {
   override val minSdkVersion: IdeApiVersionImpl = core.minSdkVersion
   override val targetSdkVersion: IdeApiVersionImpl? = core.targetSdkVersion
@@ -209,4 +209,12 @@ data class IdeVariantImpl(
       }
     )
   }
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+    return core == (other as IdeVariantImpl).core
+  }
+
+  override fun hashCode(): Int = core.hashCode()
 }

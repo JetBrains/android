@@ -76,10 +76,11 @@ data class IdeJavaArtifactCoreImpl(
   )
 }
 
-data class IdeJavaArtifactImpl(
+class IdeJavaArtifactImpl(
   private val core: IdeJavaArtifactCoreImpl,
-  private val resolver: IdeLibraryModelResolverImpl
+  resolver: IdeLibraryModelResolverImpl
 ) : IdeJavaArtifact, IdeJavaArtifactCore {
+
   override val mockablePlatformJar: FileImpl? = core.mockablePlatformJar
   override val compileClasspathCore: IdeDependenciesCoreImpl = core.compileClasspathCore
   override val runtimeClasspathCore: IdeDependenciesCoreImpl = core.runtimeClasspathCore
@@ -97,4 +98,12 @@ data class IdeJavaArtifactImpl(
   override val bytecodeTransforms: List<IdeBytecodeTransformationImpl>? = core.bytecodeTransforms
   override val compileClasspath: IdeDependencies = IdeDependencies(core.compileClasspathCore, resolver)
   override val runtimeClasspath: IdeDependencies = IdeDependencies(core.runtimeClasspathCore, resolver)
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+    return core == (other as IdeJavaArtifactImpl).core
+  }
+
+  override fun hashCode(): Int = core.hashCode()
 }
