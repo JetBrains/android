@@ -291,10 +291,24 @@ class ScreenshotResultView {
     // that was preventing the scrollbars from appearing correctly.
     private val imageContainer = JPanel(BorderLayout())
 
-    private val toolbar: ActionToolbar
+    @VisibleForTesting
+    val toolbar: ActionToolbar
     private var originalImage: BufferedImage? = null
-    private var currentScale = 1.0
-    private var isAutoFitting = false
+    @VisibleForTesting
+    var currentScale = 1.0
+    @VisibleForTesting
+    var isAutoFitting = false
+
+    @VisibleForTesting
+    val zoomInAction = ZoomInAction()
+    @VisibleForTesting
+    val zoomOutAction = ZoomOutAction()
+    @VisibleForTesting
+    val oneToOneAction = OneToOneAction()
+    @VisibleForTesting
+    val fitToScreenAction = FitToScreenAction()
+    @VisibleForTesting
+    val toggleGridViewAction = ToggleGridViewAction()
 
     companion object {
       private const val MIN_SCALE = 0.1
@@ -303,7 +317,8 @@ class ScreenshotResultView {
     }
 
     // Toolbar actions
-    private inner class ZoomInAction : AnAction("Zoom In", null, AllIcons.General.ZoomIn) {
+    @VisibleForTesting
+    inner class ZoomInAction : AnAction("Zoom In", null, AllIcons.General.ZoomIn) {
       override fun actionPerformed(e: AnActionEvent) {
         isAutoFitting = false
         currentScale = (currentScale * ZOOM_FACTOR).coerceAtMost(MAX_SCALE)
@@ -314,7 +329,8 @@ class ScreenshotResultView {
       }
     }
 
-    private inner class ZoomOutAction : AnAction("Zoom Out", null, AllIcons.General.ZoomOut) {
+    @VisibleForTesting
+    inner class ZoomOutAction : AnAction("Zoom Out", null, AllIcons.General.ZoomOut) {
       override fun actionPerformed(e: AnActionEvent) {
         isAutoFitting = false
         currentScale = (currentScale / ZOOM_FACTOR).coerceAtLeast(MIN_SCALE)
@@ -325,7 +341,8 @@ class ScreenshotResultView {
       }
     }
 
-    private inner class OneToOneAction : AnAction("1:1", "Actual Size", AllIcons.General.ActualZoom) {
+    @VisibleForTesting
+    inner class OneToOneAction : AnAction("1:1", "Actual Size", AllIcons.General.ActualZoom) {
       override fun actionPerformed(e: AnActionEvent) {
         isAutoFitting = false
         currentScale = 1.0
@@ -334,7 +351,8 @@ class ScreenshotResultView {
       override fun update(e: AnActionEvent) { e.presentation.isEnabled = (originalImage != null) }
     }
 
-    private inner class FitToScreenAction : AnAction("Fit to Screen", "Fit image to screen", AllIcons.General.FitContent) {
+    @VisibleForTesting
+    inner class FitToScreenAction : AnAction("Fit to Screen", "Fit image to screen", AllIcons.General.FitContent) {
       override fun actionPerformed(e: AnActionEvent) {
         isAutoFitting = true
         fitToScreen()
@@ -342,7 +360,8 @@ class ScreenshotResultView {
       override fun update(e: AnActionEvent) { e.presentation.isEnabled = (originalImage != null) }
     }
 
-    private inner class ToggleGridViewAction : ToggleAction("Grid", "Toggle Grid Overlay", AllIcons.Graph.Grid) {
+    @VisibleForTesting
+    inner class ToggleGridViewAction : ToggleAction("Grid", "Toggle Grid Overlay", AllIcons.Graph.Grid) {
       private var selected = false
       override fun isSelected(e: AnActionEvent): Boolean = selected
       override fun setSelected(e: AnActionEvent, state: Boolean) {
@@ -361,12 +380,12 @@ class ScreenshotResultView {
       headerPanel.add(titleLabel, BorderLayout.NORTH)
 
       val actionGroup = DefaultActionGroup().apply {
-        add(ZoomInAction())
-        add(ZoomOutAction())
-        add(OneToOneAction())
-        add(FitToScreenAction())
+        add(zoomInAction)
+        add(zoomOutAction)
+        add(oneToOneAction)
+        add(fitToScreenAction)
         addSeparator()
-        add(ToggleGridViewAction())
+        add(toggleGridViewAction)
       }
       toolbar = ActionManager.getInstance().createActionToolbar("ScreenshotImageToolbar", actionGroup, true).apply {
         targetComponent = this@ImageWithToolbarPanel
