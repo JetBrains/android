@@ -321,7 +321,7 @@ class NavDesignSurfaceZoomControllerTest {
   }
 
   @Test
-  fun `test can zoom to fit`() {
+  fun `test can apply zoom-to-fit`() {
     // The content we want to show and the size of [NavDesignSurface] are the same.
     val contentDimension = Dimension(100, 500)
 
@@ -334,6 +334,7 @@ class NavDesignSurfaceZoomControllerTest {
     // Create the [ZoomController].
     val zoomController =
       createNavDesignSurfaceZoomController(navDesignSurfaceMock, { contentDimension })
+    zoomController.resetZoomToFitSettings(false, Dimension(200, 200))
 
     repeat(4) { zoomController.zoom(ZoomType.OUT) }
 
@@ -355,7 +356,7 @@ class NavDesignSurfaceZoomControllerTest {
   }
 
   @Test
-  fun `can zoom to fit`() {
+  fun `can call canZoomToFit() safely`() {
     // The content we want to show and the size of [NavDesignSurface] are the same.
     val contentDimension = Dimension(100, 500)
 
@@ -373,7 +374,17 @@ class NavDesignSurfaceZoomControllerTest {
 
     val zoomInScale = zoomController.scale
     assertTrue(zoomController.canZoomToFit())
-    assertTrue(zoomController.zoomToFit())
+    zoomController.zoomToFit()
+
+    // We can still zoom-to-fit because NavDesignSurface is not ready
+    assertTrue(zoomController.canZoomToFit())
+
+    // Notify the layout si created and the component resized.
+    zoomController.notifyLayoutCreatedForTest()
+    zoomController.notifyComponentResizedForTest()
+
+    // We expect zoom-to-fit to be applied
+    zoomController.zoomToFit()
 
     assertTrue(zoomController.scale < zoomInScale)
 

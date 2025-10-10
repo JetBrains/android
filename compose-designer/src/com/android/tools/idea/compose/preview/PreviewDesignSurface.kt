@@ -69,7 +69,6 @@ private fun createPreviewDesignSurfaceBuilder(
             RenderAsyncActionExecutor.RenderingTopic.COMPOSE_PREVIEW
         }
     }
-    .waitForRenderBeforeRestoringZoom(true)
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface, navigationHandler) }
     .setInteractionHandlerProvider { delegateInteractionHandler }
     .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }

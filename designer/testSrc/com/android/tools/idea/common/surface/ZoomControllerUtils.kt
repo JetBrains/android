@@ -43,14 +43,12 @@ fun createDesignSurfaceZoomControllerFake(
         }
       }
     }
-  return object :
-    DesignSurfaceZoomController(
-      designerAnalyticsManager = designerAnalyticsManager,
-      selectionModel = null,
-      scenesOwner = null,
-    ) {
-    override fun getFitScale() = fitScaleProvider()
-  }
+  return TestDesignSurfaceZoomController(
+    designerAnalyticsManager = designerAnalyticsManager,
+    selectionModel = null,
+    scenesOwner = null,
+    fitScaleProvider = fitScaleProvider,
+  )
 }
 
 fun createNlDesignSurfaceZoomController(

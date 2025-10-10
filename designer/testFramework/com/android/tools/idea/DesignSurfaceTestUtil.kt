@@ -176,6 +176,8 @@ object DesignSurfaceTestUtil {
 
       override fun getFitScale(): Double = 1.0
 
+      override fun resetZoomToFitSettings(shouldWaitForResize: Boolean, surfaceSize: Dimension) {}
+
       override fun zoom(type: ZoomType): Boolean {
         onZoom?.invoke(type)
         return true

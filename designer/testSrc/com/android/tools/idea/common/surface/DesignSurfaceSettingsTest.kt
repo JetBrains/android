@@ -19,6 +19,7 @@ import com.android.tools.adtui.ZoomController
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.BackedTestFile
 import com.intellij.openapi.application.runWriteAction
+import java.awt.Dimension
 import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestCase
 
@@ -249,6 +250,8 @@ class DesignSurfaceSettingsTest : AndroidTestCase() {
         override fun zoomToFit(): Boolean = true
 
         override fun getFitScale(): Double = 1.0
+
+        override fun resetZoomToFitSettings(shouldWaitForResize: Boolean, surfaceSize: Dimension) {}
 
         override fun zoom(type: ZoomType) = true
 

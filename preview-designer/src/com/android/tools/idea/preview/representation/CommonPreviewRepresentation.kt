@@ -274,7 +274,6 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
               delegate = NavigatingInteractionHandler(it, navigationHandler)
             }
           }
-          .waitForRenderBeforeRestoringZoom(true)
           .setDelegateUiDataProvider {
             it[PREVIEW_VIEW_MODEL_STATUS] = previewViewModel
             it[PreviewModeManager.KEY] = this@CommonPreviewRepresentation

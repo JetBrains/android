@@ -21,6 +21,7 @@ import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.compile.fast.isSuccess
+import com.android.tools.idea.common.surface.DesignSurfaceZoomController
 import com.android.tools.idea.common.surface.SceneViewPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.ComposePreviewFakeUiGradleRule
@@ -63,6 +64,12 @@ import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
+import java.awt.Point
+import java.awt.Rectangle
+import java.nio.file.Paths
+import java.util.concurrent.TimeUnit
+import kotlin.test.assertFails
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -74,12 +81,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Point
-import java.awt.Rectangle
-import java.nio.file.Paths
-import java.util.concurrent.TimeUnit
-import kotlin.test.assertFails
-import kotlin.time.Duration.Companion.seconds
 
 class ComposePreviewRepresentationGradleTest {
   @get:Rule
@@ -628,7 +629,9 @@ class ComposePreviewRepresentationGradleTest {
     }
     // FakeUi doesn't call the designSurface.resize() callback needed to call the [notifyZoomToFit]
     // when the render has finished. We need then to do notify the resize manually.
-    previewView.mainSurface.notifyComponentResizedForTest()
+    val surfaceSize = previewView.mainSurface.size
+    (previewView.mainSurface.zoomController as DesignSurfaceZoomController)
+      .notifyDesignSurfaceResized(surfaceSize.width, surfaceSize.height)
     delayUntilCondition(delayPerIterationMs = 250) {
       !previewView.mainSurface.zoomController.canZoomToFit()
     }
@@ -674,7 +677,9 @@ class ComposePreviewRepresentationGradleTest {
     delayUntilCondition(delayPerIterationMs = 500, timeout = 10.seconds) {
       composePreviewRepresentation.mode.value is PreviewMode.Focus
     }
-    previewView.mainSurface.notifyComponentResizedForTest()
+    val surfaceSize = previewView.mainSurface.size
+    (previewView.mainSurface.zoomController as DesignSurfaceZoomController)
+      .notifyDesignSurfaceResized(surfaceSize.width, surfaceSize.height)
     delayUntilCondition(delayPerIterationMs = 250) {
       !previewView.mainSurface.zoomController.canZoomToFit()
     }
@@ -696,8 +701,11 @@ class ComposePreviewRepresentationGradleTest {
       composePreviewRepresentation.setMode(PreviewMode.Focus(secondSelectedPreviewElement))
     }
 
-    previewView.mainSurface.notifyComponentResizedForTest()
-    previewView.mainSurface.notifyLayoutCreatedForTest()
+    (previewView.mainSurface.zoomController as DesignSurfaceZoomController)
+      .notifyDesignSurfaceResized(surfaceSize.width, surfaceSize.height)
+    (previewView.mainSurface.zoomController as DesignSurfaceZoomController)
+      .notifyDesignSurfaceResized(surfaceSize.width, surfaceSize.height)
+
     delayUntilCondition(delayPerIterationMs = 250) {
       !previewView.mainSurface.zoomController.canZoomToFit()
     }
@@ -729,7 +737,9 @@ class ComposePreviewRepresentationGradleTest {
     }
     // FakeUi doesn't call the designSurface.resize() callback needed to call the [notifyZoomToFit]
     // when the render has finished. We need then to do notify the resize manually.
-    previewView.mainSurface.notifyComponentResizedForTest()
+    val surfaceSize = previewView.mainSurface.size
+    (previewView.mainSurface.zoomController as DesignSurfaceZoomController)
+      .notifyDesignSurfaceResized(surfaceSize.width, surfaceSize.height)
     delayUntilCondition(delayPerIterationMs = 250) {
       !previewView.mainSurface.zoomController.canZoomToFit()
     }
