@@ -115,11 +115,10 @@ data class IdeAndroidArtifactCoreImpl(
   )
 }
 
-data class IdeAndroidArtifactImpl(
+class IdeAndroidArtifactImpl(
   private val core: IdeAndroidArtifactCoreImpl,
-  private val resolver: IdeLibraryModelResolverImpl
+  resolver: IdeLibraryModelResolverImpl
 ) : IdeAndroidArtifact, IdeAndroidArtifactCore  {
-
   override val name: IdeArtifactName = core.name
   override val compileTaskName: String? = core.compileTaskName
   override val assembleTaskName: String? = core.assembleTaskName
@@ -152,4 +151,12 @@ data class IdeAndroidArtifactImpl(
 
   override val compileClasspath: IdeDependencies = IdeDependencies(core.compileClasspathCore, resolver)
   override val runtimeClasspath: IdeDependencies = IdeDependencies(core.runtimeClasspathCore, resolver)
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+    return core == (other as IdeAndroidArtifactImpl).core
+  }
+
+  override fun hashCode(): Int = core.hashCode()
 }

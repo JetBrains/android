@@ -162,5 +162,6 @@
     <orderEntry type="module" module-name="intellij.kotlin.codeInsight.api" scope="TEST" />
     <orderEntry type="module" module-name="intellij.kotlin.projectWizard.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.gradle.java.toml" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="equalsverifier" level="project" />
   </component>
 </module>

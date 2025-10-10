@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.model.IdeDependenciesCore
 import com.android.tools.idea.gradle.model.IdeDependencyCore
 import com.android.tools.idea.gradle.model.IdeLibrary
 import java.io.Serializable
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * We need a sealed interface so that the model classes pass validation, we can't use the [IdeDependenciesCore] interface
@@ -40,8 +41,24 @@ data object ThrowingIdeDependencies : IdeDependenciesCoreImpl {
 
 data class IdeDependenciesCoreDirect(
   override val dependencies: List<IdeDependencyCoreImpl>,
+  private val hashCode: Int = computeHashCode(dependencies)
 ) : IdeDependenciesCoreImpl, Serializable {
+
+  @Suppress("unused") // Used by equality unit tests
+  private fun computeHashCode() = computeHashCode(dependencies)
+
   override fun lookup(ref: Int): IdeDependencyCoreImpl = dependencies[ref]
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as IdeDependenciesCoreDirect
+
+    return hashCode == other.hashCode && dependencies == other.dependencies
+  }
+
+  override fun hashCode() = hashCode
 }
 
 fun IdeDependenciesCore.lookupAll(indexes: List<Int>?): List<IdeDependencyCoreImpl>? {
@@ -52,8 +69,24 @@ data class IdeDependenciesCoreRef(
   val referee: IdeDependenciesCoreDirect,
   val index: Int,
   override val dependencies: List<IdeDependencyCoreImpl> = transitiveClosure(referee.lookup(index), referee),
+  // Just use dependencies as the other two fields are used to derive it
+  private val hashCode: Int = computeHashCode(dependencies)
 ) : IdeDependenciesCoreImpl, Serializable {
+  @Suppress("unused") // Used by equality unit tests
+  private fun computeHashCode() = computeHashCode(dependencies)
+
   override fun lookup(ref: Int): IdeDependencyCoreImpl = referee.lookup(ref)
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as IdeDependenciesCoreRef
+
+    return hashCode == other.hashCode && dependencies == other.dependencies
+  }
+
+  override fun hashCode() = hashCode
 }
 
 fun transitiveClosure(rootDependency: IdeDependencyCore, classpath: IdeDependenciesCoreDirect): List<IdeDependencyCoreImpl> {
@@ -72,3 +105,5 @@ fun transitiveClosure(rootDependency: IdeDependencyCore, classpath: IdeDependenc
 fun throwingIdeDependencies(): IdeDependenciesCoreImpl {
   return ThrowingIdeDependencies
 }
+
+private fun computeHashCode(dependencies: List<IdeDependencyCoreImpl>) = dependencies.hashCode()
