@@ -210,6 +210,7 @@ import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiManager
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager
+import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -222,6 +223,8 @@ import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.containers.MultiMap
 import com.intellij.util.messages.MessageBusConnection
+import com.intellij.workspaceModel.core.fileIndex.WorkspaceFileIndexContributor
+import com.intellij.workspaceModel.core.fileIndex.impl.WorkspaceFileIndexImpl
 import com.intellij.workspaceModel.ide.impl.jps.serialization.DelayedProjectSynchronizer
 import java.io.File
 import java.io.IOException
@@ -240,6 +243,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.base.externalSystem.findAll
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtension
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtensions
 import org.jetbrains.plugins.gradle.model.ExternalProject
@@ -3406,15 +3410,17 @@ private fun Project.maybeOutputDiagnostics() {
 }
 
 fun disableKtsIndexing(project: Project, disposable: Disposable) {
-  /* TODO(b/429975528): temporarily avoid disabling KTS indexing for IntelliJ 2025.2.
   val ep = WorkspaceFileIndexImpl.EP_NAME
-  val filteredExtensions = ep.extensionList.filter { it !is KotlinScriptWorkspaceFileIndexContributor }
-  ExtensionTestUtil.maskExtensions(ep, filteredExtensions, disposable)
-
-  if (KotlinPluginModeProvider.isK2Mode()) {
-    SCRIPT_DEFINITIONS_SOURCES.getPoint(project).unregisterExtensions({ _, _ -> false }, false)
+  val contributorPredicate: (WorkspaceFileIndexContributor<*>) -> Boolean = {
+    if (KotlinPluginModeProvider.isK1Mode()) {
+      it is org.jetbrains.kotlin.idea.core.script.k1.dependencies.KotlinScriptWorkspaceFileIndexContributor
+    } else {
+      it is org.jetbrains.kotlin.idea.core.script.k2.KotlinScriptWorkspaceFileIndexContributor
+    }
   }
-  */
+  val filteredExtensions = ep.extensionList.filter { !contributorPredicate(it) }
+
+  ExtensionTestUtil.maskExtensions(ep, filteredExtensions, disposable)
 }
 
 fun disableForcedAgpUpgradeDialog(project: Project, disposable: Disposable) {
