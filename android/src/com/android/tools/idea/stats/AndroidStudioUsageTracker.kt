@@ -414,9 +414,13 @@ object AndroidStudioUsageTracker {
   @OptIn(FlowPreview::class)
   fun requestUserSentiment() {
     val id = UUID.randomUUID().toString()
-    if (shouldShowBenchmarkSurvey()) {
-      logSentimentSurveyEvent(id, SentimentSurveyEvent.Type.TYPE_SCHEDULED)
+
+    val surveyType = when {
+      shouldShowBenchmarkSurvey() -> SentimentSurveyEvent.SurveyType.SURVEY_TYPE_BROWSER
+      else -> SentimentSurveyEvent.SurveyType.SURVEY_TYPE_IN_PRODUCT
     }
+
+    logSentimentSurveyEvent(id, SentimentSurveyEvent.Type.TYPE_SCHEDULED, surveyType)
 
     val scope = AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance())
     scope.launch(Dispatchers.EDT) {
@@ -424,8 +428,9 @@ object AndroidStudioUsageTracker {
         .debounce(timeout = IDLE_TIME_BEFORE_SHOWING_DIALOG.milliseconds)
         .first {
           val now = AnalyticsSettings.dateProvider.now()
+          logSentimentSurveyEvent(id, SentimentSurveyEvent.Type.TYPE_DISPLAYED, surveyType)
 
-          if (shouldShowBenchmarkSurvey()) {
+          if (surveyType == SentimentSurveyEvent.SurveyType.SURVEY_TYPE_BROWSER) {
             showBenchmarkSurveyDialog(id, now)
           }
           else {
@@ -457,7 +462,6 @@ object AndroidStudioUsageTracker {
       baseUrl
     }
 
-    logSentimentSurveyEvent(id, SentimentSurveyEvent.Type.TYPE_DISPLAYED)
     AnalyticsSettings.lastSentimentQuestionDate = now
 
     val ret = BenchmarkSurveyDialog().showAndGet()
@@ -474,17 +478,18 @@ object AndroidStudioUsageTracker {
       lastSentimentAnswerDate = null
     }
 
-    logSentimentSurveyEvent(id, type)
+    logSentimentSurveyEvent(id, type, SentimentSurveyEvent.SurveyType.SURVEY_TYPE_BROWSER)
     AnalyticsSettings.lastSentimentAnswerDate = lastSentimentAnswerDate
     AnalyticsSettings.saveSettings()
   }
 
-  private fun logSentimentSurveyEvent(id: String, type: SentimentSurveyEvent.Type) {
+  private fun logSentimentSurveyEvent(id: String, type: SentimentSurveyEvent.Type, surveyType: SentimentSurveyEvent.SurveyType) {
     UsageTracker.log(AndroidStudioEvent.newBuilder()
-                       .setKind(AndroidStudioEvent.EventKind.SENTIMENT_SURVEY_EVENT)
+                       .setKind(EventKind.SENTIMENT_SURVEY_EVENT)
                        .setSentimentSurveyEvent(SentimentSurveyEvent.newBuilder().apply {
                          this.id = id
                          this.type = type
+                         this.surveyType = surveyType
                        }))
   }
 
