@@ -41,7 +41,7 @@ public class AndroidActionGroupRemover extends ActionGroup {
    * Creates a new {@link AndroidActionGroupRemover}.
    *
    * @param delegate the action to hide/remove when having an open Gradle-based Android project.
-   * @param backupText the text to set in this action, in case the the delegate action does not have any text yet.
+   * @param backupText the text to set in this action, in case the delegate action does not have any text yet.
    */
   public AndroidActionGroupRemover(@NotNull ActionGroup delegate, @NotNull String backupText) {
     super(delegate.getTemplatePresentation().getTextWithMnemonic(), delegate.getTemplatePresentation().getDescription(),

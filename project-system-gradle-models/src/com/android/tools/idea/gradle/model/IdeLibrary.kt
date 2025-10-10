@@ -79,7 +79,7 @@ sealed interface IdeAndroidLibrary : IdeArtifactLibrary {
 
   /**
    * The list of jar files for runtime/packaging.
-   * This corresponds the the AAR main jar file and the localJars.
+   * This corresponds to the AAR main jar file and the localJars.
    */
   val runtimeJarFiles: List<File>
 

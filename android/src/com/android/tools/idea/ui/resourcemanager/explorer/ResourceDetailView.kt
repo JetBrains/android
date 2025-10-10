@@ -74,7 +74,7 @@ private val BACK_BUTTON_SIZE get() = JBUI.size(20)
 
 /**
  * A [JPanel] displaying the [DesignAsset]s composing the provided [designAssetSet].
- * When double clicking on the the [DesignAsset], it opens the corresponding file.
+ * When double clicking on the [DesignAsset], it opens the corresponding file.
  *
  * @param viewModel an existing instance of [ResourceExplorerListViewModel]
  * @param backCallback a callback that will be called to remove this view and show the previous one.

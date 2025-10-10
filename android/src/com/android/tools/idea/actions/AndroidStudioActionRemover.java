@@ -34,7 +34,7 @@ public abstract class AndroidStudioActionRemover extends AnAction {
    * Creates a new {@link AndroidStudioActionRemover}.
    *
    * @param delegate the action to hide/remove when having an open Android-model-based Android project.
-   * @param backupText the text to set in this action, in case the the delegate action does not have any text yet.
+   * @param backupText the text to set in this action, in case the delegate action does not have any text yet.
    */
   public AndroidStudioActionRemover(@NotNull AnAction delegate, @NotNull String backupText) {
     super(delegate.getTemplatePresentation().getTextWithMnemonic(), delegate.getTemplatePresentation().getDescription(),

@@ -232,7 +232,7 @@ class ResourceImportDialog(
   }
 
   /**
-   * Jump back to the import step and scroll the the end so the last added files are
+   * Jump back to the import step and scroll to the end so the last added files are
    * visible.
    */
   private fun jumpToImportStep() {

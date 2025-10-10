@@ -1362,7 +1362,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.SET_REFERENCE_VALUE_EXPECTED)
 
-    // Check the the reference has changed.
+    // Check the reference has changed.
     run {
       val propertyModel = buildModel.ext().findProperty("prop3")
       verifyPropertyModel(propertyModel, STRING_TYPE, "prop1", REFERENCE, REGULAR, 1)
