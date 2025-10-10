@@ -2,3 +2,7 @@ directories:
   cc1/project
 
 android_sdk_platform: android-34
+
+build_flags:
+  --android_platforms=//cc1:x86_64
+

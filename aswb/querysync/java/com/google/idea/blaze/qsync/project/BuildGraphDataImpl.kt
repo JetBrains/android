@@ -501,8 +501,7 @@ data class BuildGraphDataImpl(
    */
   override fun getTargetLanguages(targets: Set<Label>): Set<QuerySyncLanguage> {
     return targets
-      .asSequence()
-      .mapNotNull { storage.targetMap[it] }
+      .transitiveClosure()
       .flatMap { it.languages() }
       .toSet()
   }
@@ -631,6 +630,22 @@ data class BuildGraphDataImpl(
    */
   fun filterRedundantTargets(projectTargets: Collection<Label>): Set<Label> {
     return filterRedundantTargets(graph = { storage.targetMap[it]?.deps().orEmpty() }, starting = projectTargets.toSet())
+  }
+
+  private fun Collection<Label>.transitiveClosure(): Sequence<ProjectTarget> {
+    val seen = HashSet<Label>()
+    val queue = ArrayDeque(this)
+    return sequence {
+      while (!queue.isEmpty()) {
+        val target = queue.removeFirst()
+        val targetInfo = storage.targetMap[target] ?: continue
+        yield(targetInfo)
+        val dependencyTracking = getDependencyTrackingIncludeExternalDependencies(targetInfo)
+        if (dependencyTracking) {
+          queue.addAll(targetInfo.deps().filter { seen.add(it) })
+        }
+      }
+    }
   }
 
   companion object {
