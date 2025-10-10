@@ -31,8 +31,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.Referen
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewResource
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewString
-// TODO merge
-//import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeComposeLayoutInspector
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeComposeLayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeViewLayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.sendEvent
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
@@ -46,8 +45,7 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetPara
 // scattered.
 class FakeInspectorState(
   private val viewInspector: FakeViewLayoutInspector,
-  // TODO merge
-  //private val composeInspector: FakeComposeLayoutInspector,
+  private val composeInspector: FakeComposeLayoutInspector,
 ) {
 
   private val viewStrings =
@@ -855,10 +853,9 @@ class FakeInspectorState(
   fun createFakeViewTree() {
     viewInspector.interceptWhen({ it.hasStartFetchCommand() }) { command ->
       // Send all root IDs, which always happens before we send our first layout capture
-      // TODO merge
-      //viewInspector.connection.sendEvent {
-      //  rootsEventBuilder.apply { layoutTrees.forEach { tree -> addIds(tree.id) } }
-      //}
+      viewInspector.connection.sendEvent {
+        rootsEventBuilder.apply { layoutTrees.forEach { tree -> addIds(tree.id) } }
+      }
 
       layoutTrees.forEach { tree ->
         triggerLayoutCapture(
@@ -979,127 +976,121 @@ class FakeInspectorState(
     withSourceInformation: Boolean = true,
     latch: CommandLatch? = null,
   ) {
-    // TODO merge
-    //composeInspector.interceptWhen({ it.hasGetComposablesCommand() }) { command ->
-    //  latch?.incomingCommand()
-    //  LayoutInspectorComposeProtocol.Response.newBuilder()
-    //    .apply {
-    //      getComposablesResponseBuilder.apply {
-    //        if (command.getComposablesCommand.rootViewId == layoutTrees[0].id) {
-    //          addAllStrings(composeStrings)
-    //          addRoots(
-    //            when {
-    //              !withSemantics -> composableRootWithoutSemantics
-    //              !withSourceInformation -> composableRootWithoutSourceInformation
-    //              else -> composableRoot
-    //            }
-    //          )
-    //        }
-    //      }
-    //    }
-    //    .build()
-    //}
+    composeInspector.interceptWhen({ it.hasGetComposablesCommand() }) { command ->
+      latch?.incomingCommand()
+      LayoutInspectorComposeProtocol.Response.newBuilder()
+        .apply {
+          getComposablesResponseBuilder.apply {
+            if (command.getComposablesCommand.rootViewId == layoutTrees[0].id) {
+              addAllStrings(composeStrings)
+              addRoots(
+                when {
+                  !withSemantics -> composableRootWithoutSemantics
+                  !withSourceInformation -> composableRootWithoutSourceInformation
+                  else -> composableRoot
+                }
+              )
+            }
+          }
+        }
+        .build()
+    }
   }
 
   fun createFakeLargeComposeTree(latch: CommandLatch? = null) {
-    // TODO merge
-    //composeInspector.interceptWhen({ it.hasGetComposablesCommand() }) { command ->
-    //  latch?.incomingCommand()
-    //  LayoutInspectorComposeProtocol.Response.newBuilder()
-    //    .apply {
-    //      getComposablesResponseBuilder.apply {
-    //        if (command.getComposablesCommand.rootViewId == layoutTrees[0].id) {
-    //          addAllStrings(composeStrings)
-    //          val idValue = -300L
-    //          var node: ComposableNode? = null
-    //          for (i in 0..125) {
-    //            node =
-    //              ComposableNode.newBuilder()
-    //                .apply {
-    //                  id = idValue - i
-    //                  name = 8
-    //                  packageHash = 1
-    //                  filename = 3
-    //                  if (node != null) {
-    //                    addChildren(node)
-    //                  }
-    //                }
-    //                .build()
-    //          }
-    //          addRootsBuilder().apply {
-    //            viewId = 6
-    //            addNodes(node)
-    //          }
-    //        }
-    //      }
-    //    }
-    //    .build()
-    //}
+    composeInspector.interceptWhen({ it.hasGetComposablesCommand() }) { command ->
+      latch?.incomingCommand()
+      LayoutInspectorComposeProtocol.Response.newBuilder()
+        .apply {
+          getComposablesResponseBuilder.apply {
+            if (command.getComposablesCommand.rootViewId == layoutTrees[0].id) {
+              addAllStrings(composeStrings)
+              val idValue = -300L
+              var node: ComposableNode? = null
+              for (i in 0..125) {
+                node =
+                  ComposableNode.newBuilder()
+                    .apply {
+                      id = idValue - i
+                      name = 8
+                      packageHash = 1
+                      filename = 3
+                      if (node != null) {
+                        addChildren(node)
+                      }
+                    }
+                    .build()
+              }
+              addRootsBuilder().apply {
+                viewId = 6
+                addNodes(node)
+              }
+            }
+          }
+        }
+        .build()
+    }
   }
 
   fun createFakeComposeGetParameterResponse() {
-    // TODO merge
-    //composeInspector.interceptWhen({ it.hasGetParametersCommand() }) { command ->
-    //  getParametersRequestCount.compute(command.getParametersCommand.composableId) { _, prev ->
-    //    (prev ?: 0) + 1
-    //  }
-    //  LayoutInspectorComposeProtocol.Response.newBuilder()
-    //    .apply {
-    //      getParametersResponseBuilder.apply {
-    //        parameterGroups
-    //          .firstOrNull { it.composableId == command.getParametersCommand.composableId }
-    //          ?.let { group ->
-    //            assertThat(100L - command.getParametersCommand.anchorHash)
-    //              .isEqualTo(command.getParametersCommand.composableId)
-    //            addAllStrings(composeStrings)
-    //            parameterGroup = group
-    //          }
-    //      }
-    //    }
-    //    .build()
-    //}
+    composeInspector.interceptWhen({ it.hasGetParametersCommand() }) { command ->
+      getParametersRequestCount.compute(command.getParametersCommand.composableId) { _, prev ->
+        (prev ?: 0) + 1
+      }
+      LayoutInspectorComposeProtocol.Response.newBuilder()
+        .apply {
+          getParametersResponseBuilder.apply {
+            parameterGroups
+              .firstOrNull { it.composableId == command.getParametersCommand.composableId }
+              ?.let { group ->
+                assertThat(100L - command.getParametersCommand.anchorHash)
+                  .isEqualTo(command.getParametersCommand.composableId)
+                addAllStrings(composeStrings)
+                parameterGroup = group
+              }
+          }
+        }
+        .build()
+    }
   }
 
   fun createFakeComposeGetAllParameterResponse() {
-    // TODO merge
-    //composeInspector.interceptWhen({ it.hasGetAllParametersCommand() }) { command ->
-    //  LayoutInspectorComposeProtocol.Response.newBuilder()
-    //    .apply {
-    //      getAllParametersResponseBuilder.apply {
-    //        rootViewId = command.getAllParametersCommand.rootViewId
-    //        if (command.getAllParametersCommand.rootViewId == layoutTrees[0].id) {
-    //          addAllStrings(composeStrings)
-    //          addAllParameterGroups(parameterGroups)
-    //        }
-    //      }
-    //    }
-    //    .build()
-    //}
+    composeInspector.interceptWhen({ it.hasGetAllParametersCommand() }) { command ->
+      LayoutInspectorComposeProtocol.Response.newBuilder()
+        .apply {
+          getAllParametersResponseBuilder.apply {
+            rootViewId = command.getAllParametersCommand.rootViewId
+            if (command.getAllParametersCommand.rootViewId == layoutTrees[0].id) {
+              addAllStrings(composeStrings)
+              addAllParameterGroups(parameterGroups)
+            }
+          }
+        }
+        .build()
+    }
   }
 
   fun createFakeComposeGetParameterDetailResponses() {
-    // TODO merge
-    //composeInspector.interceptWhen({ it.hasGetParameterDetailsCommand() }) { command ->
-    //  LayoutInspectorComposeProtocol.Response.newBuilder()
-    //    .apply {
-    //      getParameterDetailsResponse =
-    //        parameterDetailsCommands[command.getParameterDetailsCommand]
-    //          ?: error("Unexpected command")
-    //    }
-    //    .build()
-    //}
+    composeInspector.interceptWhen({ it.hasGetParameterDetailsCommand() }) { command ->
+      LayoutInspectorComposeProtocol.Response.newBuilder()
+        .apply {
+          getParameterDetailsResponse =
+            parameterDetailsCommands[command.getParameterDetailsCommand]
+              ?: error("Unexpected command")
+        }
+        .build()
+    }
   }
 
   fun simulateComposeVersionWithoutUpdateSettingsCommand() {
-    // TODO merge
-    //composeInspector.interceptWhen({ it.hasUpdateSettingsCommand() }) {
-    //  LayoutInspectorComposeProtocol.Response.newBuilder()
-    //    .apply {
-    //      unknownCommandResponse =
-    //        LayoutInspectorComposeProtocol.UnknownCommandResponse.getDefaultInstance()
-    //    }
-    //    .build()
-    //}
+    composeInspector.interceptWhen({ it.hasUpdateSettingsCommand() }) {
+      LayoutInspectorComposeProtocol.Response.newBuilder()
+        .apply {
+          unknownCommandResponse =
+            LayoutInspectorComposeProtocol.UnknownCommandResponse.getDefaultInstance()
+        }
+        .build()
+    }
   }
 
   fun simulateNoHardwareAccelerationErrorFromStartCapturing() {
@@ -1134,39 +1125,37 @@ class FakeInspectorState(
     excludeConfiguration: Boolean = false,
   ) {
     val rootView = layoutTrees.first { it.id == rootId }
-    // TODO merge
-    //viewInspector.connection.sendEvent {
-    //  layoutEventBuilder.apply {
-    //    addAllStrings(viewStrings)
-    //    this.rootView =
-    //      LayoutInspectorViewProtocol.RootView.newBuilder().apply { node = rootView }.build()
-    //    if (!excludeConfiguration) {
-    //      configurationBuilder.apply {
-    //        density = Density.HIGH.dpiValue
-    //        fontScale = 1.5f
-    //      }
-    //      appContextBuilder.apply {
-    //        theme = ViewResource(208, 210, 223)
-    //        val display =
-    //          LayoutInspectorViewProtocol.Display.newBuilder()
-    //            .setId(0)
-    //            .setWidth(800)
-    //            .setHeight(1600)
-    //            .setOrientation(90)
-    //        addDisplayInfo(display)
-    //      }
-    //    }
-    //  }
-    //}
+    viewInspector.connection.sendEvent {
+      layoutEventBuilder.apply {
+        addAllStrings(viewStrings)
+        this.rootView =
+          LayoutInspectorViewProtocol.RootView.newBuilder().apply { node = rootView }.build()
+        if (!excludeConfiguration) {
+          configurationBuilder.apply {
+            density = Density.HIGH.dpiValue
+            fontScale = 1.5f
+          }
+          appContextBuilder.apply {
+            theme = ViewResource(208, 210, 223)
+            val display =
+              LayoutInspectorViewProtocol.Display.newBuilder()
+                .setId(0)
+                .setWidth(800)
+                .setHeight(1600)
+                .setOrientation(90)
+            addDisplayInfo(display)
+          }
+        }
+      }
+    }
     if (isLastCapture) {
-      // TODO merge
-      //viewInspector.connection.sendEvent {
-      //  propertiesEventBuilder.apply {
-      //    this.rootId = rootId
-      //    addAllStrings(viewStrings)
-      //    addAllPropertyGroups(propertyGroups[rootId])
-      //  }
-      //}
+      viewInspector.connection.sendEvent {
+        propertiesEventBuilder.apply {
+          this.rootId = rootId
+          addAllStrings(viewStrings)
+          addAllPropertyGroups(propertyGroups[rootId])
+        }
+      }
     }
   }
 }

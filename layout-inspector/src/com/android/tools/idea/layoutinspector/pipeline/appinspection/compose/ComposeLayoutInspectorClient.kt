@@ -34,7 +34,6 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.common.logDiagnostics
-import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
@@ -44,6 +43,9 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capabilit
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AttachErrorInfo
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.toAttachErrorInfo
+import com.android.tools.idea.layoutinspector.stateinspection.ObservedNodes.All
+import com.android.tools.idea.layoutinspector.stateinspection.ObservedNodes.None
+import com.android.tools.idea.layoutinspector.stateinspection.ObservedNodes.Some
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.Token
@@ -523,7 +525,7 @@ class ComposeLayoutInspectorClient(
 
   val parametersCache = ComposeParametersCache(this, model)
 
-  val recompositionStateReadsCache = RecompositionStateReadCache(this, model, scope, treeSettings)
+  val recompositionStateReadsCache = RecompositionStateReadCache(this, model, scope)
 
   /**
    * The caller will supply a running (increasing) number, that can be used to coordinate the
@@ -680,7 +682,7 @@ class ComposeLayoutInspectorClient(
   suspend fun updateSettings(keepRecompositionCounts: Boolean = false): UpdateSettingsResponse {
     lastGenerationReset = lastGeneration
     logDiagnostics(ComposeLayoutInspectorClient::class.java, "Sending: UpdateSettingsCommand")
-    val nodeForStateReads = model.stateReadsNode as? ComposeViewNode
+    val observations = model.stateReadsModel.observedForStateReads.value
     val maxStateReads = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_MAX_STATE_READS.get()
     val response =
       messenger.sendCommand {
@@ -690,13 +692,13 @@ class ComposeLayoutInspectorClient(
               includeRecomposeCounts = treeSettings.showRecompositions
               keepRecomposeCounts = keepRecompositionCounts
               stateReadSettingsBuilder.apply {
-                when {
-                  treeSettings.observeStateReadsForAll -> allBuilder.maxStateReads = maxStateReads
-                  nodeForStateReads != null -> {
-                    byIdBuilder.addComposableToObserve(nodeForStateReads.anchorHash)
+                when (observations) {
+                  None -> noneBuilder
+                  is All -> allBuilder.maxStateReads = maxStateReads
+                  is Some -> {
+                    byIdBuilder.addAllComposableToObserve(observations.nodes.map { it.anchorHash })
                     byIdBuilder.maxStateReads = maxStateReads
                   }
-                  else -> noneBuilder
                 }
               }
               delayParameterExtractions = true
