@@ -325,6 +325,7 @@ private fun ProjectPath.toPrintString(): String {
   return when (this) {
     is ProjectPath.ProjectRelativeProjectPath -> "<project>/$relativePath"
     is ProjectPath.WorkspaceRelativeProjectPath -> "<workspace>/$relativePath"
+    is ProjectPath.ExternalRepositoryRelativeProjectPath -> "@@$externalRepositoryName/$relativePath"
     is ProjectPath.AbsoluteProjectPath -> absolutePath.toString()
   }
 }

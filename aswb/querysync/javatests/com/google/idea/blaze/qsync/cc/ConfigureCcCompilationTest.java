@@ -157,7 +157,7 @@ public class ConfigureCcCompilationTest {
     CcCompilerSettings compilerSettings = sourceFile.getCompilerSettings();
     FlagResolver resolver =
         new FlagResolver(
-            ProjectPath.Resolver.create(Path.of("/workspace"), Path.of("/project")), false);
+            ProjectPath.Resolver.create(Path.of("/workspace"), Path.of("/project"), Path.of("/project/external")), false);
     assertThat(resolver.resolveAll(workspace.getFlagSets().get(compilerSettings.getFlagSetId())))
         .containsExactly(
             "-DDEBUG",

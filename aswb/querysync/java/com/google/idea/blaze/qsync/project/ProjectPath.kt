@@ -35,6 +35,13 @@ sealed interface ProjectPath: ProjectProtoModel {
   }
 
   @JvmRecord
+  data class ExternalRepositoryRelativeProjectPath(val externalRepositoryName: String, val relativePath: Path, override val innerPath: Path): ProjectPath{
+    override fun resolveChild(child: Path) = copy(relativePath = relativePath.resolve(child))
+    override fun withInnerJarPath(innerPath: Path) = copy(innerPath = innerPath)
+    override fun getTestValue(): String = testValue(relativePath, innerPath)
+  }
+
+  @JvmRecord
   data class ProjectRelativeProjectPath(val relativePath: Path, override val innerPath: Path): ProjectPath{
     override fun resolveChild(child: Path) = copy(relativePath = relativePath.resolve(child))
     override fun withInnerJarPath(innerPath: Path) = copy(innerPath = innerPath)
@@ -48,10 +55,12 @@ sealed interface ProjectPath: ProjectProtoModel {
     override fun getTestValue(): String = testValue(absolutePath, innerPath)
   }
 
-  class Resolver(val workspaceRoot: Path, val projectRoot: Path) {
+  class Resolver(val workspaceRoot: Path, val projectRoot: Path, val projectExternalRepositoriesRoot: Path) {
     fun resolve(projectPath: ProjectPath): Path {
       return when(projectPath) {
         is WorkspaceRelativeProjectPath -> workspaceRoot.resolve(projectPath.relativePath)
+        is ExternalRepositoryRelativeProjectPath ->
+          projectExternalRepositoriesRoot.resolve(projectPath.externalRepositoryName).resolve(projectPath.relativePath)
         is ProjectRelativeProjectPath -> projectRoot.resolve(projectPath.relativePath)
         is AbsoluteProjectPath -> projectPath.absolutePath
       }
@@ -59,7 +68,12 @@ sealed interface ProjectPath: ProjectProtoModel {
 
     companion object {
       @JvmStatic
-      fun create(workspaceRoot: Path, projectRoot: Path): Resolver = Resolver(workspaceRoot = workspaceRoot, projectRoot = projectRoot)
+      fun create(workspaceRoot: Path, projectRoot: Path, projectExternalRepositoriesRoot: Path): Resolver =
+        Resolver(
+          workspaceRoot = workspaceRoot,
+          projectRoot = projectRoot,
+          projectExternalRepositoriesRoot = projectExternalRepositoriesRoot
+        )
     }
   }
 
@@ -70,6 +84,11 @@ sealed interface ProjectPath: ProjectProtoModel {
     @JvmStatic
     fun workspaceRelative(relativePath: Path): WorkspaceRelativeProjectPath {
       return WorkspaceRelativeProjectPath(relativePath = relativePath, innerPath = Path.of(""))
+    }
+
+    @JvmStatic
+    fun externalRepositoryRelative(externalRepositoryName: String, relativePath: Path): ExternalRepositoryRelativeProjectPath {
+      return ExternalRepositoryRelativeProjectPath(externalRepositoryName, relativePath = relativePath, innerPath = Path.of(""))
     }
 
     @JvmStatic

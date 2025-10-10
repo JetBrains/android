@@ -59,8 +59,9 @@ class AddDependencySrcJarsTest {
   @Throws(IOException::class)
   fun createDirs() {
     workspaceRoot = tempDir.newFolder("workspace").toPath()
+    val projectDirPath = tempDir.newFolder("project").toPath()
     pathResolver =
-      ProjectPath.Resolver.create(workspaceRoot, tempDir.newFolder("project").toPath())
+      ProjectPath.Resolver.create(workspaceRoot, projectDirPath, projectDirPath.resolve(".external"))
   }
 
   @Test
