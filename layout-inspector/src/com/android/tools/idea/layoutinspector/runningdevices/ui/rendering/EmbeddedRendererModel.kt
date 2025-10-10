@@ -197,12 +197,12 @@ class EmbeddedRendererModel(
   }
 
   fun selectNode(x: Double, y: Double, rootId: Long = inspectorModel.root.drawId) {
-    val node = findNodeAt(x, y, rootId)
+    val node = findNodesAt(x, y, rootId).firstOrNull()
     inspectorModel.setSelection(node, SelectionOrigin.INTERNAL)
   }
 
   fun hoverNode(x: Double, y: Double, rootId: Long = inspectorModel.root.drawId) {
-    val node = findNodeAt(x, y, rootId)
+    val node = findNodesAt(x, y, rootId).firstOrNull()
     inspectorModel.hoveredNode = node
   }
 
@@ -238,18 +238,6 @@ class EmbeddedRendererModel(
    */
   fun setOverlayTransparency(alpha: Float) {
     _overlayAlpha.value = alpha
-  }
-
-  /** Returns the node, at the provided coordinates, that the user most likely want to select. */
-  private fun findNodeAt(x: Double, y: Double, rootId: Long): ViewNode? {
-    val nodes = findNodesAt(x, y, rootId)
-    val node =
-      if (treeSettings.hideSystemNodes) {
-        nodes.firstOrNull { it.hasChildComposeDrawModifier }
-      } else {
-        nodes.firstOrNull { it.hasComposeDrawModifier }
-      }
-    return node ?: nodes.firstOrNull()
   }
 
   /** Returns the list of visible nodes belonging to [rootId], at the provided coordinates. */
