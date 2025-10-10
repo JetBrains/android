@@ -294,32 +294,33 @@ class DesignSurfaceTest : LayoutTestCase() {
 
   fun testCanZoom() {
     val surface = TestDesignSurface(project, testRootDisposable)
+    val zoomController = surface.zoomController
 
     // Test min
-    surface.zoomController.setScale(0.0104)
-    assertFalse(surface.zoomController.canZoomOut())
-    surface.zoomController.setScale(0.11)
-    assertTrue(surface.zoomController.canZoomOut())
+    zoomController.setScale(0.0104)
+    assertFalse(zoomController.canZoomOut())
+    zoomController.setScale(0.11)
+    assertTrue(zoomController.canZoomOut())
 
     // Test max
-    surface.zoomController.setScale(9.996)
-    assertFalse(surface.zoomController.canZoomIn())
-    surface.zoomController.setScale(9.99)
-    assertTrue(surface.zoomController.canZoomIn())
+    zoomController.setScale(9.996)
+    assertFalse(zoomController.canZoomIn())
+    zoomController.setScale(9.99)
+    assertTrue(zoomController.canZoomIn())
 
     // Test some normal cases.
-    surface.zoomController.setScale(0.25)
-    surface.zoomController.canZoomIn()
-    surface.zoomController.canZoomOut()
-    surface.zoomController.setScale(0.5)
-    surface.zoomController.canZoomIn()
-    surface.zoomController.canZoomOut()
-    surface.zoomController.setScale(1.0)
-    surface.zoomController.canZoomIn()
-    surface.zoomController.canZoomOut()
-    surface.zoomController.setScale(2.0)
-    surface.zoomController.canZoomIn()
-    surface.zoomController.canZoomOut()
+    zoomController.setScale(0.25)
+    zoomController.canZoomIn()
+    zoomController.canZoomOut()
+    zoomController.setScale(0.5)
+    zoomController.canZoomIn()
+    zoomController.canZoomOut()
+    zoomController.setScale(1.0)
+    zoomController.canZoomIn()
+    zoomController.canZoomOut()
+    zoomController.setScale(2.0)
+    zoomController.canZoomIn()
+    zoomController.canZoomOut()
   }
 
   fun testSetScale() {
@@ -343,28 +344,28 @@ class DesignSurfaceTest : LayoutTestCase() {
         project = project,
         disposable = testRootDisposable,
         fitScaleProvider = { fitScaleValue },
-        waitForRenderBeforeZoomToFit = true,
       )
     surface.addModelsWithoutRender(listOf(model1))
+    val zoomController = surface.zoomController as TestDesignSurfaceZoomController
 
     // We try to notify that we are ready to apply zoom-to-fit with a bitwiseNumber of "1"
     // (NOTIFY_ZOOM_TO_FIT_INT_MASK).
-    surface.notifyZoomToFit()
-    surface.notifyZoomToFit()
-    surface.notifyZoomToFit()
+    zoomController.zoomToFit()
+    zoomController.zoomToFit()
+    zoomController.zoomToFit()
 
     // Zoom-to-fit shouldn't be applied if notifyZoomToFit doesn't have also a
     // bitwiseNumber of "2" (NOTIFY_COMPONENT_RESIZED_INT_MASK).
     assertEquals(1.0, surface.zoomController.scale)
-    surface.notifyComponentResizedForTest()
+    zoomController.notifyDesignSurfaceResized(surface.size.width, surface.size.height)
 
     // Zoom-to-fit shouldn't be applied if notifyZoomToFit doesn't have also a
     // bitwiseNumber of "4" (NOTIFY_LAYOUT_CREATED).
     assertEquals(1.0, surface.zoomController.scale)
-    surface.notifyLayoutCreatedForTest()
+    zoomController.notifyLayoutCreatedForTest()
 
     // We check that zoom-to-fit has been applied.
-    assertFalse(surface.zoomController.zoomToFit())
+    assertFalse(zoomController.zoomToFit())
   }
 
   fun testWaitRenderBeforeZoomToFit() {
@@ -376,7 +377,6 @@ class DesignSurfaceTest : LayoutTestCase() {
         project = project,
         disposable = testRootDisposable,
         fitScaleProvider = { fitScaleValue },
-        waitForRenderBeforeZoomToFit = true,
       )
     surface.addModelsWithoutRender(listOf(model1))
 
@@ -384,25 +384,26 @@ class DesignSurfaceTest : LayoutTestCase() {
     // "2"(NOTIFY_COMPONENT_RESIZED_INT_MASK).
     // We try to call notifyComponentResizedForTest multiple times to make sure the mask doesn't
     // change its value if multiple resize callbacks happens.
-    surface.notifyComponentResizedForTest()
-    surface.notifyComponentResizedForTest()
-    surface.notifyComponentResizedForTest()
+    val zoomController = surface.zoomController as TestDesignSurfaceZoomController
+    zoomController.notifyComponentResizedForTest()
+    zoomController.notifyComponentResizedForTest()
+    zoomController.notifyComponentResizedForTest()
 
     // Zoom-to-fit shouldn't be applied if notifyZoomToFit doesn't have also a
     // bitwiseNumber of "1" (NOTIFY_ZOOM_TO_FIT_INT_MASK).
-    assertEquals(1.0, surface.zoomController.scale)
-    surface.notifyZoomToFit()
+    assertEquals(1.0, zoomController.scale)
+    zoomController.zoomToFit()
 
     // Zoom-to-fit shouldn't be applied if notifyZoomToFit doesn't have also a
     // bitwiseNumber of "4" (NOTIFY_LAYOUT_CREATED).
-    assertEquals(1.0, surface.zoomController.scale)
-    surface.notifyLayoutCreatedForTest()
+    assertEquals(1.0, zoomController.scale)
+    zoomController.notifyLayoutCreatedForTest()
 
     // We check that zoom-to-fit has been applied.
-    assertFalse(surface.zoomController.zoomToFit())
+    assertFalse(zoomController.zoomToFit())
   }
 
-  fun testDoNotWaitToZoomToFit() {
+  fun testOnlyResizeDoNotApplyZoomToFit() {
     val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).buildWithoutSurface()
     val fitScaleValue = 1.78
 
@@ -411,11 +412,11 @@ class DesignSurfaceTest : LayoutTestCase() {
         project = project,
         disposable = testRootDisposable,
         fitScaleProvider = { fitScaleValue },
-        waitForRenderBeforeZoomToFit = false,
       )
     surface.addModelsWithoutRender(listOf(model1))
 
-    surface.notifyLayoutCreatedForTest()
+    val zoomController = surface.zoomController as TestDesignSurfaceZoomController
+    zoomController.notifyLayoutCreatedForTest()
 
     // Zoom-to-fit shouldn't be applied if notifyZoomToFit doesn't have also a
     // bitwiseNumber of "2" (NOTIFY_COMPONENT_RESIZED_INT_MASK).
@@ -425,12 +426,12 @@ class DesignSurfaceTest : LayoutTestCase() {
     // (NOTIFY_COMPONENT_RESIZED_INT_MASK).
     // We try to call notifyComponentResizedForTest multiple times to make sure the mask doesn't
     // change its value if multiple resize callbacks happens.
-    surface.notifyComponentResizedForTest()
-    surface.notifyComponentResizedForTest()
-    surface.notifyComponentResizedForTest()
+    zoomController.notifyComponentResizedForTest()
+    zoomController.notifyComponentResizedForTest()
+    zoomController.notifyComponentResizedForTest()
 
     // We check that zoom-to-fit has been applied.
-    assertFalse(surface.zoomController.zoomToFit())
+    assertTrue(surface.zoomController.zoomToFit())
   }
 
   fun testResetZoomToFitNotifier() {
@@ -442,72 +443,72 @@ class DesignSurfaceTest : LayoutTestCase() {
           project = project,
           disposable = testRootDisposable,
           fitScaleProvider = { fitScaleValue },
-          waitForRenderBeforeZoomToFit = true,
         )
         .apply { this.setSize(200, 400) }
     surface.addModelsWithoutRender(listOf(model1))
 
     // Notify layout creation and DesignSurface resize
-    surface.notifyLayoutCreatedForTest()
-    surface.notifyComponentResizedForTest()
+    val zoomController = surface.zoomController as TestDesignSurfaceZoomController
+    zoomController.notifyLayoutCreatedForTest()
+    zoomController.notifyComponentResizedForTest()
 
     // Notify zoom-to-fit a first time:
     // * Current mask takes the expected mask value
     // * Zoom-to-fit is applied
-    surface.notifyZoomToFit()
-    assertFalse(surface.zoomController.canZoomToFit())
-    assertEquals(fitScaleValue, surface.zoomController.scale)
+    zoomController.zoomToFit()
+    assertFalse(zoomController.canZoomToFit())
+    assertEquals(fitScaleValue, zoomController.scale)
 
     // Notify zoom-to-fit a second time current mask take ZOOM_TO_FIT_DONE_INT_MASK
-    surface.notifyZoomToFit()
+    zoomController.zoomToFit()
     // zoomToFit returns false because zoom-to-fit is already applied.
-    assertFalse(surface.zoomController.zoomToFit())
+    assertFalse(zoomController.zoomToFit())
 
     // Reset the zoom mask and change the zoom to a non zoom-to-fit value, we also wait for
     // DesignSurface resize.
-    surface.resetZoomToFitNotifier(shouldWaitForResize = true)
-    assertTrue(surface.zoomController.setScale(0.45))
+    zoomController.resetZoomToFitSettings(shouldWaitForResize = true, surface.size)
+    assertTrue(zoomController.setScale(0.45))
 
     // Simulate layout creations.
-    surface.notifyLayoutCreatedForTest()
+    zoomController.notifyLayoutCreatedForTest()
 
     // Scale is still not zoom-to-fit.
-    assertEquals(0.45, surface.zoomController.scale)
+    assertEquals(0.45, zoomController.scale)
 
     // Simulate layout resize.
-    surface.notifyComponentResizedForTest()
+    zoomController.notifyComponentResizedForTest()
 
     // Scale is still not zoom-to-fit.
-    assertEquals(0.45, surface.zoomController.scale)
+    assertEquals(0.45, zoomController.scale)
 
     // Notify zoom-to-fit a first time:
     // * Current mask takes the expected mask value
     // * Zoom-to-fit is applied
-    surface.notifyZoomToFit()
-    assertFalse(surface.zoomController.canZoomToFit())
-    assertEquals(fitScaleValue, surface.zoomController.scale)
+    zoomController.zoomToFit()
+    assertFalse(zoomController.canZoomToFit())
+    assertEquals(fitScaleValue, zoomController.scale)
 
     // Notify zoom-to-fit a second time current mask take ZOOM_TO_FIT_DONE_INT_MASK
-    surface.notifyZoomToFit()
+    zoomController.zoomToFit()
     // zoomToFit returns false because zoom-to-fit is already applied.
-    assertFalse(surface.zoomController.zoomToFit())
+    assertFalse(zoomController.zoomToFit())
 
     // Reset the zoom mask and change the zoom to a non zoom-to-fit value, we don't wait for
     // DesignSurface resize and the creation of DesignSurface layout creation
-    surface.resetZoomToFitNotifier(shouldWaitForResize = false)
-    assertTrue(surface.zoomController.setScale(0.45))
+    zoomController.resetZoomToFitSettings(shouldWaitForResize = false, surface.size)
+    assertTrue(zoomController.setScale(0.45))
 
     // Scale is still not zoom-to-fit.
-    assertEquals(0.45, surface.zoomController.scale)
+    assertEquals(0.45, zoomController.scale)
 
     // Notify zoom-to-fit:
     // * Current mask takes the expected mask value
     // * Zoom-to-fit is applied
-    surface.notifyZoomToFit()
-    assertFalse(surface.zoomController.canZoomToFit())
+    zoomController.zoomToFit()
+    assertFalse(zoomController.canZoomToFit())
 
     // Scale is now zoom-to-fit.
-    assertEquals(fitScaleValue, surface.zoomController.scale)
+    assertEquals(fitScaleValue, zoomController.scale)
   }
 
   fun testRemoveModelRemovesOldSelections() {
@@ -586,7 +587,6 @@ class TestDesignSurface(
     },
   testLayoutManager: TestLayoutManager = TestLayoutManager(disposable.createCoroutineScope()),
   fitScaleProvider: () -> Double = { 1.0 },
-  waitForRenderBeforeZoomToFit: Boolean = false,
 ) :
   DesignSurface<SceneManager>(
     project = project,
@@ -595,7 +595,6 @@ class TestDesignSurface(
     positionableLayoutManager = testLayoutManager,
     actionHandlerProvider = { TestActionHandler(it) },
     zoomControlsPolicy = ZoomControlsPolicy.VISIBLE,
-    waitForRenderBeforeZoomToFit = waitForRenderBeforeZoomToFit,
   ) {
 
   init {

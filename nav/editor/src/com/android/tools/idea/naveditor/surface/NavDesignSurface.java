@@ -170,8 +170,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
           new SinglePositionableContentLayoutManager(),
           (surface) -> new NavDesignSurfaceActionHandler((NavDesignSurface)surface),
           new DefaultSelectionModel(),
-          ZoomControlsPolicy.VISIBLE,
-          false);
+          ZoomControlsPolicy.VISIBLE);
     // TODO: add nav-specific issues
     // getIssueModel().addIssueProvider(new NavIssueProvider(project));
     myEditorPanel = editorPanel;

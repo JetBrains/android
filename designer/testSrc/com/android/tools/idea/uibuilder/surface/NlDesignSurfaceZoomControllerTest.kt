@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.surface.createNlDesignSurfaceZoomController
+import java.awt.Dimension
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
@@ -40,6 +41,7 @@ class NlDesignSurfaceZoomControllerTest {
   fun `test fit scale when fitScale is changed`() {
     // We assume the [PositionableLayoutManager] calculates 10.0 as a scale value to fit the panels
     val zoomController = createNlDesignSurfaceZoomController(fitScaleProvider = { 10.0 })
+    zoomController.resetZoomToFitSettings(false, Dimension(200, 200))
 
     // Expected scale is the one returned by the [PositionableLayoutManager]
     assertEquals(10.0, zoomController.getFitScale())
@@ -160,6 +162,7 @@ class NlDesignSurfaceZoomControllerTest {
   @Test
   fun `can zoom to fit`() {
     val zoomController = createNlDesignSurfaceZoomController()
+    zoomController.resetZoomToFitSettings(false, Dimension(200, 200))
 
     repeat(5) { zoomController.zoom(ZoomType.IN) }
 

@@ -103,7 +103,6 @@ internal constructor(
   zoomControlsPolicy: ZoomControlsPolicy,
   private val supportedActionsProvider: Supplier<ImmutableSet<NlSupportedActions>>,
   private val shouldRenderErrorsPanel: Boolean,
-  waitForRenderBeforeRestoringZoom: Boolean,
   issueProviderFactory: (DesignSurface<LayoutlibSceneManager>) -> VisualLintIssueProvider,
   nlDesignSurfacePositionableContentLayoutManager: NlDesignSurfacePositionableContentLayoutManager,
 ) :
@@ -116,7 +115,6 @@ internal constructor(
     actionHandlerProvider,
     selectionModel,
     zoomControlsPolicy,
-    waitForRenderBeforeRestoringZoom,
   ),
   NlDiagnosticKey {
 
