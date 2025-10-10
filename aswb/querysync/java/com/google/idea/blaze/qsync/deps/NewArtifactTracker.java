@@ -167,13 +167,11 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
       targetBuildInfoSet.addAll(getJavaTargetBuildInfo(outputInfo, digestMap));
     }
 
-    for (CcCompilationInfoOuterClass.CcCompilationInfo ccInfo : outputInfo.getCcCompilationInfo()) {
-      for (CcTargetInfo ccTarget : ccInfo.getTargetsList()) {
-        CcCompilationInfo artifactInfo = CcCompilationInfo.create(ccTarget, digestMap);
-        TargetBuildInfo targetInfo =
-            TargetBuildInfo.forCcTarget(artifactInfo, outputInfo.getBuildContext());
-        targetBuildInfoSet.add(targetInfo);
-      }
+    for (CcTargetInfo ccTarget : outputInfo.getCcTargets().values()) {
+      CcCompilationInfo artifactInfo = CcCompilationInfo.create(ccTarget, digestMap);
+      TargetBuildInfo targetInfo =
+          TargetBuildInfo.forCcTarget(artifactInfo, outputInfo.getBuildContext());
+      targetBuildInfoSet.add(targetInfo);
     }
     return targetBuildInfoSet.build();
   }
@@ -241,11 +239,9 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
   private static ImmutableList<CcToolchain> getCcToolchains(OutputInfo outputInfo) {
     ImmutableList.Builder<CcToolchain> toolchainList = ImmutableList.builder();
 
-    for (CcCompilationInfoOuterClass.CcCompilationInfo ccInfo : outputInfo.getCcCompilationInfo()) {
-      for (CcToolchainInfo proto : ccInfo.getToolchainsList()) {
-        CcToolchain toolchain = CcToolchain.create(proto);
-        toolchainList.add(toolchain);
-      }
+    for (CcToolchainInfo proto : outputInfo.getCcToolchains().values()) {
+      CcToolchain toolchain = CcToolchain.create(proto);
+      toolchainList.add(toolchain);
     }
     return toolchainList.build();
   }

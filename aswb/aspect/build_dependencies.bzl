@@ -420,6 +420,19 @@ def _get_followed_java_dependency_infos(
         if DependenciesInfo in dep and dep[DependenciesInfo].java_info_files
     }
 
+def _get_followed_cc_dependency_infos(
+        label,  # @unused
+        rule):
+    deps = []
+    for attr in FOLLOW_CC_ATTRIBUTES:
+        deps.extend(_get_dependency_attribute(rule, attr))
+
+    return {
+        str(dep[DependenciesInfo].label): dep[DependenciesInfo]  # NOTE: This handles duplicates.
+        for dep in deps
+        if DependenciesInfo in dep and dep[DependenciesInfo].cc_info_files
+    }
+
 def _collect_own_java_artifacts(
         target,
         ctx,
@@ -765,17 +778,20 @@ def _collect_java_dependencies_core_impl(
 
 def _collect_cc_dependencies_core_impl(target, ctx):
     cc_info = _collect_own_and_dependency_cc_info(target, ctx.rule)
-    if not cc_info:
+    dependency_infos = _get_followed_cc_dependency_infos(target.label, ctx.rule)
+    dep_cc_info_files = [info.cc_info_files for info in dependency_infos.values() if info.cc_info_files]
+    if not cc_info and not dep_cc_info_files:
         return None
     cc_info_files = []
-    cc_info_files = ([_write_cc_target_info(target.label, cc_info.compilation_info, ctx)] if cc_info.compilation_info else []) + \
-                    ([cc_info.cc_toolchain_info.file] if cc_info.cc_toolchain_info else [])
+    if cc_info:
+        cc_info_files = ([_write_cc_target_info(target.label, cc_info.compilation_info, ctx)] if cc_info.compilation_info else []) + \
+                        ([cc_info.cc_toolchain_info.file] if cc_info.cc_toolchain_info else [])
 
     return create_cc_dependencies_info(
-        cc_info_files = depset(cc_info_files),
-        cc_compilation_info = cc_info.compilation_info,
-        cc_headers = cc_info.gen_headers,
-        cc_toolchain_info = cc_info.cc_toolchain_info,
+        cc_info_files = depset(cc_info_files, transitive = dep_cc_info_files),
+        cc_compilation_info = cc_info.compilation_info if cc_info else None,
+        cc_headers = cc_info.gen_headers if cc_info else depset(),
+        cc_toolchain_info = cc_info.cc_toolchain_info if cc_info else None,
     )
 
 def _collect_cc_toolchain_info(target, ctx):
@@ -886,7 +902,7 @@ FOLLOW_JAVA_ATTRIBUTES = [
 ] + IDE_KOTLIN.follow_attributes
 
 FOLLOW_JAVA_PROTO_ATTRIBUTES = IDE_JAVA_PROTO.follow_attributes
-FOLLOW_CC_ATTRIBUTES = IDE_CC.follow_attributes
+FOLLOW_CC_ATTRIBUTES = _unique(IDE_CC.follow_attributes + ["deps"])
 
 FOLLOW_ADDITIONAL_ATTRIBUTES = ["runtime", "_toolchain"] + IDE_KOTLIN.follow_additional_attributes
 
