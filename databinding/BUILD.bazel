@@ -22,7 +22,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "//libraries/guava",
-    "@lib//:jcip",
+    "//libraries/jcip",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",

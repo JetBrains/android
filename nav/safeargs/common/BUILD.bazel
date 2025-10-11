@@ -17,7 +17,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "//libraries/guava",
     "@lib//:jaxb-api",
-    "@lib//:jcip",
+    "//libraries/jcip",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",

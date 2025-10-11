@@ -60,7 +60,7 @@ jvm_library(
     "//libraries/gson",
     "//libraries/http-client",
     "//libraries/icu4j",
-    "@lib//:jcip",
+    "//libraries/jcip",
     "@lib//:jna",
     "@lib//:kotlin-stdlib",
     "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
