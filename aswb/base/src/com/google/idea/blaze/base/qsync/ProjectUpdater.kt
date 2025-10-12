@@ -424,7 +424,6 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
             context,
             querySyncProject.workspaceRoot,
             module,
-            moduleSpec.androidResourceDirectories.map { it.relativePath.toString() }.toSet(),
             moduleSpec.androidSourcePackages.toSet() + moduleSpec.androidCustomPackages.toSet(),
             workspaceLanguageSettings
           )

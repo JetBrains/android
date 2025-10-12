@@ -34,7 +34,6 @@ interface BlazeQuerySyncPlugin {
     context: Context<*>,
     workspaceRoot: WorkspaceRoot,
     workspaceModule: Module,
-    androidResourceDirectories: Set<String>,
     androidSourcePackages: Set<String>,
     workspaceLanguageSettings: WorkspaceLanguageSettings
   ) = Unit
