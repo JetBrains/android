@@ -15,8 +15,6 @@
  */
 package com.google.idea.blaze.android.qsync
 
-import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder.Companion.create
-import com.android.tools.idea.projectsystem.ScopeType
 import com.google.common.util.concurrent.Futures
 import com.google.idea.blaze.android.projectsystem.BazelModuleSystem
 import com.google.idea.blaze.android.resources.BlazeLightResourceClassService
@@ -37,9 +35,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.LanguageLevelProjectExtension
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx
-import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.pom.java.LanguageLevel
-import java.io.File
 
 /** ASwB sync plugin.  */
 class BlazeAndroidQuerySyncPlugin : BlazeQuerySyncPlugin {
@@ -65,7 +61,6 @@ class BlazeAndroidQuerySyncPlugin : BlazeQuerySyncPlugin {
     context: Context<*>,
     workspaceRoot: WorkspaceRoot,
     workspaceModule: Module,
-    androidResourceDirectories: Set<String>,
     androidSourcePackages: Set<String>,
     workspaceLanguageSettings: WorkspaceLanguageSettings
   ) {
