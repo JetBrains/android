@@ -56,7 +56,6 @@ import java.awt.BorderLayout
 import java.awt.Dimension
 import java.util.Arrays
 import java.util.Locale
-import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.JButton
 import javax.swing.JComponent
@@ -201,15 +200,22 @@ class DetailsViewContentView(
     }
 
     rootPanel = JPanel(BorderLayout()).apply {
-      add(JPanel().apply {
-        layout = BoxLayout(this, BoxLayout.LINE_AXIS)
+      // The header panel now uses BorderLayout to ensure the button is always visible.
+      add(JPanel(BorderLayout()).apply {
         GuiUtils.setStandardLineBorderToPanel(this, 0, 0, 1, 0)
-        add(myDeviceTestResultLabel)
-        add(AndroidTestSuiteView.MyItemSeparator())
-        add(myTestResultLabel)
         border = JBUI.Borders.empty(10)
-        add(Box.createHorizontalGlue())
-        add(updateReferenceButton)
+
+        // The labels are placed in a sub-panel in the center.
+        // This allows them to take up the remaining space and truncate if necessary.
+        add(NonOpaquePanel().apply {
+          layout = BoxLayout(this, BoxLayout.LINE_AXIS)
+          add(myDeviceTestResultLabel)
+          add(AndroidTestSuiteView.MyItemSeparator())
+          add(myTestResultLabel)
+        }, BorderLayout.CENTER)
+
+        // The button is placed on the east side, which respects its preferred size.
+        add(updateReferenceButton, BorderLayout.EAST)
       }, BorderLayout.NORTH)
       add(tabs.component, BorderLayout.CENTER)
       minimumSize = Dimension()
