@@ -16,14 +16,25 @@
 package com.android.tools.idea.npw.platform
 
 import com.android.AndroidProjectTypes
+import com.android.AndroidProjectTypes.PROJECT_TYPE_APP
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_MAIN
+import com.android.tools.idea.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.impl.IdeJUnitEngineInfoImpl
+import com.android.tools.idea.gradle.model.impl.IdeTestSuiteImpl
+import com.android.tools.idea.gradle.model.impl.IdeTestSuiteTargetImpl
+import com.android.tools.idea.gradle.model.impl.IdeTestSuiteVariantTargetImpl
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.npw.actions.NewAndroidComponentAction
+import com.android.tools.idea.testartifacts.testsuite.TestSuiteTestUtils.createAssetsTestSuiteSource
+import com.android.tools.idea.testing.AndroidModuleModelBuilder
+import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.AndroidProjectRule.Companion.inMemory
+import com.android.tools.idea.testing.JavaModuleModelBuilder
+import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.TemplateConstraint
@@ -36,6 +47,7 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.Disposer
@@ -43,8 +55,10 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.util.ui.UIUtil
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
+import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.android.facet.AndroidFacet
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -55,31 +69,111 @@ class NewAndroidComponentActionTest {
   private lateinit var mySelectedAndroidFacet: AndroidFacet
   private lateinit var myActionEvent: AnActionEvent
 
-  @get:Rule var projectRule: AndroidProjectRule = inMemory()
+  @get:Rule
+  val projectRule =
+    AndroidProjectRule.withAndroidModels(
+        JavaModuleModelBuilder.rootModuleBuilder,
+        AndroidModuleModelBuilder(
+          gradlePath = ":app",
+          selectedBuildVariant = "debug",
+          projectBuilder =
+            AndroidProjectBuilder(
+              namespace = { "com.example.app" },
+              mainSourceProvider = {
+                IdeSourceProvider(
+                  name = ARTIFACT_NAME_MAIN,
+                  folder = moduleBasePath,
+                  manifestFile = "AndroidManifest.xml",
+                  javaDirectories = listOf("src/java"),
+                  kotlinDirectories = listOf("src/kotlin"),
+                  resourcesDirectories = emptyList(),
+                  aidlDirectories = emptyList(),
+                  renderscriptDirectories = emptyList(),
+                  resDirectories = listOf("res"),
+                  assetsDirectories = emptyList(),
+                  jniLibsDirectories = emptyList(),
+                  mlModelsDirectories = emptyList(),
+                  shadersDirectories = emptyList(),
+                  customSourceDirectories = emptyList(),
+                  baselineProfileDirectories = emptyList(),
+                )
+              },
+              testSuites = {
+                listOf(
+                  IdeTestSuiteImpl(
+                    name = "journeysTest",
+                    sources =
+                      listOf(
+                        createAssetsTestSuiteSource(
+                          testSuitePath = moduleBasePath.resolve("src/journeysTest")
+                        )
+                      ),
+                    junitEngineInfo =
+                      IdeJUnitEngineInfoImpl(includedEngines = setOf("journeys-test-engine")),
+                    targetedVariants = listOf("debug"),
+                  )
+                )
+              },
+              testSuiteArtifactsStub = { variant ->
+                when (variant) {
+                  "debug" ->
+                    listOf(
+                      IdeTestSuiteVariantTargetImpl(
+                        suiteName = "journeysTest",
+                        targetedVariantName = "debug",
+                        targets =
+                          listOf(
+                            IdeTestSuiteTargetImpl(
+                              targetName = "connectedTest",
+                              testTaskName = "journeysTestTaskName",
+                              targetedDevices = emptyList(),
+                            )
+                          ),
+                      )
+                    )
+                  else -> emptyList()
+                }
+              },
+            ),
+        ),
+      )
+      .onEdt()
 
   @Before
   fun setUp() {
-    val file = projectRule.fixture.addFileToProject("src/Test.kt", "fun a() {}").getVirtualFile()
+    val file = projectRule.fixture.addFileToProject("app/src/Test.kt", "fun a() {}").virtualFile
+    val module = ModuleUtilCore.findModuleForFile(file, projectRule.project)!!
 
-    mySelectedAndroidFacet = AndroidFacet.getInstance(projectRule.module)!!
-    AndroidModel.setForTests(mySelectedAndroidFacet, mock<AndroidModel>())
+    mySelectedAndroidFacet = setupFacetForModule(module)
+    myActionEvent = createTestActionEventForFile(file, module)
+
+    val presentation = Presentation()
+    presentation.setEnabled(false)
+  }
+
+  private fun setupFacetForModule(module: Module): AndroidFacet {
+    val facet = AndroidFacet.getInstance(module)!!
+    AndroidModel.setForTests(facet, mock<AndroidModel>())
 
     val mockAndroidModuleInfo = mock<AndroidModuleInfo>()
     whenever(mockAndroidModuleInfo.minSdkVersion).thenReturn(AndroidVersion(1, null))
     whenever(mockAndroidModuleInfo.buildSdkVersion).thenReturn(AndroidVersion(1, null))
 
-    StudioAndroidModuleInfo.setInstanceForTest(mySelectedAndroidFacet, mockAndroidModuleInfo)
+    StudioAndroidModuleInfo.setInstanceForTest(facet, mockAndroidModuleInfo)
 
+    return facet
+  }
+
+  private fun createTestActionEventForFile(
+    virtualFile: VirtualFile,
+    module: Module,
+  ): AnActionEvent {
     val dataContext =
       SimpleDataContext.builder()
-        .add<Module>(PlatformCoreDataKeys.MODULE, projectRule.module)
-        .add<VirtualFile?>(PlatformCoreDataKeys.VIRTUAL_FILE, file)
+        .add<Module>(PlatformCoreDataKeys.MODULE, module)
+        .add<VirtualFile?>(PlatformCoreDataKeys.VIRTUAL_FILE, virtualFile)
         .build()
-
-    val presentation = Presentation()
-    presentation.setEnabled(false)
-
-    myActionEvent = TestActionEvent.createTestEvent(dataContext)
+    return TestActionEvent.createTestEvent(dataContext)
   }
 
   @Test
@@ -176,13 +270,47 @@ class NewAndroidComponentActionTest {
       try {
         fakeUi.layoutAndDispatchEvents()
       } catch (_: InterruptedException) {}
-      Assert.assertNull(
+
+      // There should only be 3 compatible templates (_main_, debug, release) since the file is in
+      // the "app/src" directory and the templates without source roots  are filtered out.
+      val comboBox =
         fakeUi.findComponent(ComboBox::class.java) { combo: ComboBox<*> ->
           "ModuleTemplateCombo" == combo.getName()
         }
-      )
+      assertNotNull(comboBox)
+      assertThat(comboBox.itemCount).isEqualTo(3)
     }
 
     Disposer.dispose(modelWizard)
+  }
+
+  @Test
+  fun verifyTemplateDialog_journeys() {
+    val testSuiteFile =
+      projectRule.fixture.addFileToProject("app/src/journeysTest/test.journey.xml", "").virtualFile
+    val testSuiteModule = ModuleUtilCore.findModuleForFile(testSuiteFile, projectRule.project)!!
+
+    val facet = setupFacetForModule(testSuiteModule)
+    facet.configuration.projectType = PROJECT_TYPE_APP
+
+    val testEvent = createTestActionEventForFile(testSuiteFile, testSuiteModule)
+
+    val modelWizardReference = AtomicReference<ModelWizard>(null)
+    val action =
+      NewAndroidComponentAction(
+        Category.Other,
+        "Journey File", // Template name for Journey
+        0,
+        emptyList(),
+        { modelWizard, _, _ -> modelWizardReference.set(modelWizard) },
+      )
+
+    action.update(testEvent)
+    assertThat(testEvent.presentation.isEnabled).isTrue()
+
+    ApplicationManager.getApplication().invokeAndWait { action.actionPerformed(testEvent) }
+
+    assertTrue(modelWizardReference.get() != null)
+    Disposer.dispose(modelWizardReference.get())
   }
 }
