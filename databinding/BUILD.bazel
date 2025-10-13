@@ -117,6 +117,7 @@ jvm_library(
     "//android/android-common:common",
     "//android/android:core",
     "//android/databinding",
+    "//android/databinding:databinding_test_lib",
     "//android/jps-model",
     "//android/project-system",
     "//android/project-system-gradle:projectSystem-gradle",

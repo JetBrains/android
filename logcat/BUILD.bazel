@@ -83,7 +83,10 @@ jvm_library(
   name = "logcat-tests_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java", "testSrc/**/*.form"], allow_empty = True),
-  associates = ["//android/logcat"],
+  associates = [
+    "//android/logcat",
+    "//android/logcat:logcat_test_lib",
+  ],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
