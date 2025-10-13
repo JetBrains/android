@@ -48,7 +48,7 @@ class ArtifactDirectoryUpdateTest {
   lateinit var root: Path
   var workspaceRoot: Path? = null
   var cacheDir: Path? = null
-  var cache: MockArtifactCache? = null
+  lateinit var cache: MockArtifactCache
 
   @Before
   @Throws(Exception::class)
@@ -428,22 +428,22 @@ class ArtifactDirectoryUpdateTest {
   @Test
   fun computeFilesToDelete_filesDeleted() {
     val toDelete = ArtifactDirectoryUpdate.computeFilesToDelete(
-      paths("a", "b", "c").stream(),
-      paths("a", "b").stream()
+      paths("a", "b", "c"),
+      paths("a", "b")
     )
     Truth.assertThat(toDelete).isEqualTo(
-      paths("c")
+      paths("c").toList()
     )
   }
 
   @Test
   fun computeFilesToDelete_filesDeleted_parentsRemain() {
     val toDelete = ArtifactDirectoryUpdate.computeFilesToDelete(
-      paths("a", "a/b", "a/c", "a/d", "a/e", "e").stream(),
-      paths("a/b", "a/d", "e").stream()
+      paths("a", "a/b", "a/c", "a/d", "a/e", "e"),
+      paths("a/b", "a/d", "e")
     )
     Truth.assertThat(toDelete).isEqualTo(
-      paths("a/c", "a/e")
+      paths("a/c", "a/e").toList()
     )
   }
 
@@ -459,11 +459,11 @@ class ArtifactDirectoryUpdateTest {
         "d/e/f",
         "d/g",
         "d/g/h"
-      ).stream(),
-      paths("a", "d/e", "i").stream()
+      ),
+      paths("a", "d/e", "i")
     )
     Truth.assertThat(toDelete).isEqualTo(
-      paths("d/g", "d/g/h")
+      paths("d/g", "d/g/h").toList()
     )
   }
 
@@ -504,9 +504,9 @@ class ArtifactDirectoryUpdateTest {
   }
 
   companion object {
-    private fun paths(vararg paths: String): List<Path> {
+    private fun paths(vararg paths: String): Sequence<Path> {
       val dot = Path.of(".")
-      return paths.map { Path.of(it) }.map { dot.resolve(it) }
+      return paths.asSequence().map { Path.of(it) }.map { dot.resolve(it) }
     }
   }
 }
