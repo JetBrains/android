@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.logcat.devices
 
+import com.android.adblib.INFINITE_DURATION
 import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.tools.idea.logcat.message.LogcatMessage
+import com.android.tools.idea.logcat.service.LogcatService
 import com.android.tools.idea.ui.screenshot.ScreenshotParameters
 import com.google.gson.Gson
 import com.google.gson.JsonDeserializationContext
@@ -28,9 +31,11 @@ import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import java.lang.reflect.Type
 import java.nio.file.Path
+import java.time.Duration
+import kotlinx.coroutines.flow.Flow
 
 /** A representation of a device used by [DeviceComboBox]. */
-sealed class Device() {
+internal sealed class Device() {
   abstract val deviceId: String
   abstract val name: String
   abstract val serialNumber: String
@@ -202,6 +207,13 @@ sealed class Device() {
     }
   }
 }
+
+internal fun LogcatService.readLogcat(
+  device: Device,
+  duration: Duration = INFINITE_DURATION,
+  maxHistoryEntries: Int = Int.MAX_VALUE,
+): Flow<List<LogcatMessage>> =
+  readLogcat(device.serialNumber, device.apiLevel, duration, maxHistoryEntries)
 
 private val VERSION_TRAILING_ZEROS_REGEX = "(\\.0)+$".toRegex()
 
