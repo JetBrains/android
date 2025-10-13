@@ -1677,6 +1677,7 @@ android-studio/plugins/android/resources/app-inspection/database-inspector.jar
 android-studio/plugins/android/resources/app-inspection/layoutinspector-view-inspection.jar
 android-studio/plugins/android/resources/app-inspection/network-inspector.jar
 android-studio/plugins/android/resources/app-inspection/sqlite-inspection.jar
+android-studio/plugins/android/resources/device-art-resources/ai_glasses_device/default-background-1.png
 android-studio/plugins/android/resources/device-art-resources/automotive_1024/back.png
 android-studio/plugins/android/resources/device-art-resources/automotive_1024/fore.png
 android-studio/plugins/android/resources/device-art-resources/automotive_1024/layout

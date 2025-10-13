@@ -103,4 +103,7 @@ object FormFactors {
   const val AUTO = "Automotive"
   const val DESKTOP = "Desktop"
   const val XR = "XR"
+  const val XR_HEADSET = "XR Headset"
+  const val XR_GLASSES = "XR Glasses"
+  const val AI_GLASSES = "AI Glasses"
 }
