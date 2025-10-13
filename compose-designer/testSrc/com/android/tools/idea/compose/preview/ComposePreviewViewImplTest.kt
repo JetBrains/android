@@ -58,6 +58,8 @@ import com.android.tools.idea.util.androidFacet
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.intellij.codeInsight.daemon.impl.MockWolfTheProblemSolver
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.ApplicationManager
@@ -166,7 +168,15 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
   private lateinit var mainFileSmartPointer: SmartPsiElementPointer<PsiFile>
   private lateinit var previewView: ComposePreviewView
   private lateinit var fakeUi: FakeUi
-  private val fakeStudioBotActionFactory = FakeStudioBotActionFactory()
+  private val fakeStudioBotActionFactory =
+    object : FakeStudioBotActionFactory() {
+      var previewGeneratorAction: AnAction? =
+        object : AnAction() {
+          override fun actionPerformed(e: AnActionEvent) {}
+        }
+
+      override fun createPreviewGenerator(): AnAction? = previewGeneratorAction
+    }
 
   private val geminiPluginApi =
     object : GeminiPluginApi {
@@ -379,7 +389,7 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
   fun `empty preview state when preview generator is null`() {
     StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
     geminiPluginApi.contextAllowed = true
-    fakeStudioBotActionFactory.isNullPreviewGeneratorAction = true
+    fakeStudioBotActionFactory.previewGeneratorAction = null
     checkEmptyPreviewState(
       showAutoGenerateAction = false,
       showScreenshotToAction = StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.get(),
