@@ -15,50 +15,35 @@
  */
 package com.android.tools.idea.avd
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.input.TextFieldState
-import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.PointerIcon
-import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.testTag
-import com.android.tools.adtui.compose.LocalProject
 import com.android.tools.idea.adddevicedialog.FormFactors
 import com.android.tools.idea.avd.StorageCapacityFieldState.Empty
 import com.android.tools.idea.avd.StorageCapacityFieldState.LessThanMin
 import com.android.tools.idea.avd.StorageCapacityFieldState.Overflow
 import com.android.tools.idea.avd.StorageCapacityFieldState.Result
 import com.android.tools.idea.avd.StorageCapacityFieldState.Valid
-import com.intellij.openapi.fileChooser.FileChooser
-import com.intellij.openapi.fileChooser.FileChooserDescriptor
-import com.intellij.openapi.project.Project
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import icons.StudioIconsCompose
-import java.awt.Component
-import java.nio.file.FileSystem
-import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
-import org.jetbrains.jewel.bridge.LocalComponent
-import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.ui.Outline
 import org.jetbrains.jewel.ui.component.GroupHeader
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.RadioButtonRow
 import org.jetbrains.jewel.ui.component.Text
-import org.jetbrains.jewel.ui.component.TextField
-import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 @Composable
 internal fun StorageGroup(device: VirtualDevice, state: StorageGroupState) {
@@ -97,10 +82,10 @@ private fun ExpandedStorage(device: VirtualDevice, state: StorageGroupState) {
 
     InfoOutlineIcon(
       """
-        Custom: The amount of expanded storage available to store data on the AVD. We recommend at least 100 MB in order to use the camera in the emulator.
-        Existing image: Choose a file path to an existing expanded storage image. Using an existing image is useful when sharing data (pictures, media, files, etc.) between AVDs. 
-        None: No expanded storage on this AVD
-        """
+      Custom: The amount of expanded storage available to store data on the AVD. We recommend at least 100 MB in order to use the camera in the emulator.
+      Existing image: Choose a file path to an existing expanded storage image. Using an existing image is useful when sharing data (pictures, media, files, etc.) between AVDs.
+      None: No expanded storage on this AVD
+      """
         .trimIndent()
     )
   }
@@ -158,11 +143,11 @@ private fun ExpandedStorage(device: VirtualDevice, state: StorageGroupState) {
 
     val enabled = state.selectedRadioButton == ExpandedStorageRadioButton.EXISTING_IMAGE
 
-    ExistingImageField(
-      existingImage = state.existingImage,
-      errorMessage =
-        "The specified image must be a valid file"
-          .takeIf { enabled && device.expandedStorage == null },
+    FileInputField(
+      filePath = state.existingImage,
+      onPathUpdated = { state.existingImage = it },
+      descriptor = FileChooserDescriptorFactory.singleFile().withExtensionFilter("img"),
+      errorMessage = state.existingImageValidation.errorOrNull,
       enabled = enabled,
       modifier = Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
     )
@@ -208,68 +193,7 @@ private fun <E : Enum<E>> RadioButtonRow(
   RadioButtonRow(value.toString(), selectedValue == value, onClick, modifier, enabled)
 }
 
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun ExistingImageField(
-  existingImage: TextFieldState,
-  errorMessage: String?,
-  enabled: Boolean,
-  modifier: Modifier = Modifier,
-) {
-  Row(modifier) {
-    @OptIn(ExperimentalJewelApi::class) val component = LocalComponent.current
-    val project = LocalProject.current
-
-    ErrorTooltip(errorMessage) {
-      TextField(
-        existingImage,
-        Modifier.testTag("ExistingImageField"),
-        enabled,
-        outline = if (enabled && errorMessage != null) Outline.Error else Outline.None,
-        trailingIcon = {
-          Icon(
-            AllIconsKeys.General.OpenDisk,
-            null,
-            Modifier.padding(start = Padding.MEDIUM_LARGE)
-              .clickable(
-                enabled,
-                onClick = {
-                  val image = chooseFile(component, project)
-                  if (image != null) existingImage.setTextAndPlaceCursorAtEnd(image.toString())
-                },
-              )
-              .pointerHoverIcon(PointerIcon.Default),
-          )
-        },
-      )
-    }
-  }
-}
-
-private fun chooseFile(parent: Component, project: Project?): Path? {
-  val descriptor =
-    FileChooserDescriptor(
-        /* chooseFiles= */ true,
-        /* chooseFolders= */ false,
-        /* chooseJars= */ true,
-        /* chooseJarsAsFiles= */ true,
-        /* chooseJarContents= */ false,
-        /* chooseMultiple= */ false,
-      )
-      .withExtensionFilter("img")
-
-  val virtualFile = FileChooser.chooseFile(descriptor, parent, project, null) ?: return null
-
-  val path = virtualFile.toNioPath()
-  assert(Files.isRegularFile(path))
-
-  return path
-}
-
-internal class StorageGroupState(
-  private val device: VirtualDevice,
-  fileSystem: FileSystem = FileSystems.getDefault(),
-) {
+internal class StorageGroupState(private val device: VirtualDevice) {
   val internalStorage =
     StorageCapacityFieldState(
       requireNotNull(device.internalStorage),
@@ -282,7 +206,19 @@ internal class StorageGroupState(
   val custom =
     StorageCapacityFieldState(customValue(device), VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE)
 
-  val existingImage = TextFieldState(requireNotNull(device.expandedStorage).toTextFieldValue())
+  var existingImage by mutableStateOf((device.expandedStorage as? ExistingImage)?.path)
+
+  val existingImageValidation: Validation<Path> by derivedStateOf {
+    Validation.validateNotNull(existingImage) {
+      when {
+        it == null -> "No image specified"
+        !Files.exists(it) -> "The specified image does not exist"
+        !Files.isRegularFile(it) -> "The specified image must be a valid file"
+        !Files.isReadable(it) -> "The specified image is not readable"
+        else -> null
+      }
+    }
+  }
 
   val expandedStorageFlow = snapshotFlow {
     when (selectedRadioButton) {
@@ -291,8 +227,7 @@ internal class StorageGroupState(
         if (value == null) null else Custom(value.withMaxUnit())
       }
       ExpandedStorageRadioButton.EXISTING_IMAGE -> {
-        val value = fileSystem.getPath(existingImage.text.toString())
-        if (Files.isRegularFile(value)) ExistingImage(value) else null
+        existingImageValidation.mapValid { ExistingImage(it) }
       }
       ExpandedStorageRadioButton.NONE -> None
     }
@@ -313,8 +248,6 @@ internal class StorageGroupState(
         is Custom -> expandedStorage.value
         else -> StorageCapacity(512, StorageCapacity.Unit.MB)
       }
-
-    private fun ExpandedStorage.toTextFieldValue() = if (this is ExistingImage) toString() else ""
   }
 }
 

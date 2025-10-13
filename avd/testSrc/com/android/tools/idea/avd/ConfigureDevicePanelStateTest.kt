@@ -20,8 +20,6 @@ import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.google.common.truth.Truth.assertThat
-import java.nio.file.FileSystem
-import java.nio.file.FileSystems
 import java.nio.file.Path
 import kotlin.math.max
 import kotlinx.collections.immutable.ImmutableCollection
@@ -168,6 +166,5 @@ private fun configureDevicePanelState(
   device: VirtualDevice,
   skins: ImmutableCollection<Skin> = emptyList<Skin>().toImmutableList(),
   deviceNameValidator: DeviceNameValidator = DeviceNameValidator(emptySet()),
-  fileSystem: FileSystem = FileSystems.getDefault(),
   maxCpuCoreCount: Int = max(1, Runtime.getRuntime().availableProcessors() / 2),
-) = ConfigureDevicePanelState(device, skins, deviceNameValidator, fileSystem, maxCpuCoreCount)
+) = ConfigureDevicePanelState(device, skins, deviceNameValidator, maxCpuCoreCount)

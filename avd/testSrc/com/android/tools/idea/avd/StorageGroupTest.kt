@@ -184,11 +184,11 @@ class StorageGroupTest {
     // Act
     composeRule.onNodeWithText("Existing image").performClick()
 
-    composeRule.onNodeWithTag("ExistingImageField").lingerMouseHover(composeRule)
+    composeRule.onNodeWithTag("FileInputField").lingerMouseHover(composeRule)
 
     // Assert
     assertEquals(ExpandedStorageRadioButton.EXISTING_IMAGE, state.selectedRadioButton)
-    composeRule.onNodeWithText("The specified image must be a valid file").assertIsDisplayed()
+    composeRule.onNodeWithText("No image specified").assertIsDisplayed()
     assertThat(device.expandedStorage).isNull()
   }
 
