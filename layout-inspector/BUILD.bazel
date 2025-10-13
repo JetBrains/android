@@ -280,6 +280,7 @@ jvm_library(
     "//android/app-inspection/api",
     "//android/app-inspection/api:api_test_lib",
     "//android/app-inspection/ide",
+    "//android/app-inspection/ide:ide_test_lib",
     "//android/app-inspection/inspector/api",
     "//android/app-inspection/inspector/api:api_test_lib",
     "//android/artwork",
