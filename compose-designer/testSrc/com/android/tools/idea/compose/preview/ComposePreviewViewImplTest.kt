@@ -36,6 +36,7 @@ import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigatio
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
 import com.android.tools.idea.compose.preview.util.FakeStudioBotActionFactory
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.editors.build.RenderingBuildStatus
 import com.android.tools.idea.editors.build.RenderingBuildStatusManager
@@ -50,6 +51,7 @@ import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
@@ -65,6 +67,8 @@ import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.project.Project
@@ -78,6 +82,7 @@ import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.registerExtension
 import com.intellij.testFramework.registerOrReplaceServiceInstance
+import com.intellij.testFramework.replaceService
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JLabel
@@ -260,6 +265,14 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
     """
             .trimIndent(),
         )
+
+      // Use the real FileEditorManager to open the multipreview representation editor
+      project.replaceService(
+        FileEditorManager::class.java,
+        FileEditorManagerImpl(project, project.coroutineScope),
+        projectRule.fixture.testRootDisposable,
+      )
+      FileEditorManager.getInstance(project).openFile(psiMainFile.virtualFile, true, true)
 
       val navigationHandler = ComposePreviewNavigationHandler()
       val interactionHandler = NopInteractionHandler
@@ -446,6 +459,31 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
     geminiPluginApi.contextAllowed = false
     StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.override(true)
     checkEmptyPreviewState(showAutoGenerateAction = false, showScreenshotToAction = false)
+  }
+
+  // Regression test for b/450783824
+  @Test
+  fun `empty preview state with hidden and disabled preview generation action, preview generation flag is enabled`() {
+    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.overrideForTest(
+      true,
+      projectRule.testRootDisposable,
+    )
+    geminiPluginApi.contextAllowed = true
+
+    val disabledAndHiddenAction =
+      object : AnAction() {
+        override fun update(e: AnActionEvent) {
+          e.presentation.isEnabledAndVisible = false
+        }
+
+        override fun actionPerformed(e: AnActionEvent) {}
+      }
+    fakeStudioBotActionFactory.previewGeneratorAction = disabledAndHiddenAction
+
+    checkEmptyPreviewState(
+      showAutoGenerateAction = false,
+      showScreenshotToAction = StudioFlags.COMPOSE_PREVIEW_SCREENSHOT_TO_CODE.get(),
+    )
   }
 
   private fun checkEmptyPreviewState(

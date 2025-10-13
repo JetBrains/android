@@ -23,15 +23,20 @@ import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
+import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import javax.swing.Icon
 
 /**
- * Creates an [ActionData] to invoke the given [AnAction].
+ * Creates an [ActionData] to invoke the given [AnAction]. The method returns `null` if the action
+ * is not enabled and visible.
  *
  * @param action the [AnAction] to be invoked when the action is performed
  * @param psiFilePointer a [SmartPsiElementPointer] to the file containing the preview
@@ -39,34 +44,65 @@ import javax.swing.Icon
  * @param text the text to be displayed for the action
  * @param icon the [Icon] to be displayed for the action
  */
-internal fun createPreviewActionData(
+internal suspend fun createPreviewActionData(
   action: AnAction,
   psiFilePointer: SmartPsiElementPointer<PsiFile>,
   mainSurface: DesignSurface<*>,
   text: String,
   icon: Icon?,
-): ActionData {
+): ActionData? {
+  val event = previewActionEvent(action, psiFilePointer, mainSurface) ?: return null
+  try {
+    ProgressManager.checkCanceled()
+    smartReadAction(psiFilePointer.project) { action.update(event) }
+    if (!event.presentation.isEnabledAndVisible) return null
+  } catch (e: ProcessCanceledException) {
+    throw e
+  } catch (_: Exception) {
+    return null
+  }
+
   return ActionData(text, icon) {
-    val psiFile = psiFilePointer.element ?: return@ActionData
-    val selectedEditor =
-      (FileEditorManager.getInstance(psiFile.project).selectedEditor as? TextEditorWithPreview)
-        ?.editor ?: return@ActionData
-    val dataContext =
-      SimpleDataContext.builder()
-        .add(CommonDataKeys.PSI_FILE, psiFile)
-        .add(CommonDataKeys.EDITOR, selectedEditor)
-        .add(CommonDataKeys.PROJECT, psiFile.project)
-        .add(DESIGN_SURFACE, mainSurface)
-        .build()
-    val event =
-      AnActionEvent.createEvent(
-        action,
-        dataContext,
-        null,
-        ActionPlaces.UNKNOWN,
-        ActionUiKind.NONE,
-        null,
-      )
+    val event = previewActionEvent(action, psiFilePointer, mainSurface) ?: return@ActionData
     action.actionPerformed(event)
   }
+}
+
+/**
+ * Creates an [AnActionEvent] with a custom data context for a given [psiFilePointer] and
+ * [mainSurface].
+ *
+ * @see previewActionDataContext
+ */
+private fun previewActionEvent(
+  action: AnAction,
+  psiFilePointer: SmartPsiElementPointer<PsiFile>,
+  mainSurface: DesignSurface<*>,
+): AnActionEvent? {
+  val dataContext = previewActionDataContext(psiFilePointer, mainSurface) ?: return null
+  return AnActionEvent.createEvent(
+    action,
+    dataContext,
+    null,
+    ActionPlaces.UNKNOWN,
+    ActionUiKind.NONE,
+    null,
+  )
+}
+
+/** Creates a custom [DataContext] from a given [psiFilePointer] and [mainSurface]. */
+private fun previewActionDataContext(
+  psiFilePointer: SmartPsiElementPointer<PsiFile>,
+  mainSurface: DesignSurface<*>,
+): DataContext? {
+  val psiFile = psiFilePointer.element ?: return null
+  val selectedEditor =
+    (FileEditorManager.getInstance(psiFile.project).selectedEditor as? TextEditorWithPreview)
+      ?.editor ?: return null
+  return SimpleDataContext.builder()
+    .add(CommonDataKeys.PSI_FILE, psiFile)
+    .add(CommonDataKeys.EDITOR, selectedEditor)
+    .add(CommonDataKeys.PROJECT, psiFile.project)
+    .add(DESIGN_SURFACE, mainSurface)
+    .build()
 }
