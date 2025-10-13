@@ -21,7 +21,7 @@ import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.ge
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_REFACTOR_MODULE_RENAMED;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
+import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelUtilsKt.android;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;

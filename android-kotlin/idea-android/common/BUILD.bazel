@@ -25,6 +25,7 @@ jvm_library(
     "//android/intellij.android.compose-common:compose-common",
     "//android/android:core",
     "//android/gradle-dsl",
+    "//android/gradle-dsl-android",
     "//android/jps-model",
     "//android/project-system",
     "//android/render-resources",

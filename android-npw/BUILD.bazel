@@ -83,6 +83,7 @@ jvm_library(
     "//android/artwork-compose",
     "//android/adt-ui-compose",
     "//platform/forms_rt:java-guiForms-rt",
+    "//android/gradle-dsl-android",
   ],
   plugins = ["@lib//:compose-plugin"]
 )
@@ -184,6 +185,7 @@ jvm_library(
     "//platform/util-rt:util-rt_test_lib",
     "//platform/util:util-ui",
     "//xml/dom-openapi:dom",
+    "//android/gradle-dsl-android",
     "@lib//:mockito-kotlin",
     "//plugins/kotlin/gradle/gradle-tooling/impl",
     "//plugins/kotlin/gradle/gradle-tooling/impl:impl_test_lib",

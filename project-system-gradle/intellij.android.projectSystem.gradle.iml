@@ -77,6 +77,7 @@
     <orderEntry type="module" module-name="intellij.gradle.toolingExtension" />
     <orderEntry type="module" module-name="intellij.gradle.toolingExtension.impl" />
     <orderEntry type="module" module-name="intellij.gradle.toolingExtension.tests" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.android" />
     <orderEntry type="module" module-name="intellij.groovy" />
     <orderEntry type="module" module-name="intellij.groovy.psi" />
     <orderEntry type="module" module-name="intellij.java" />

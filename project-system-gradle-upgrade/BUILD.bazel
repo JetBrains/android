@@ -150,6 +150,7 @@ jvm_library(
     "//platform/util:util-ui",
     "//plugins/kotlin/base/util",
     "//plugins/kotlin/base/util:util_test_lib",
+    "//android/gradle-dsl-android",
   ],
   runtime_deps = [":projectSystem-gradle-upgrade-tests"]
 )

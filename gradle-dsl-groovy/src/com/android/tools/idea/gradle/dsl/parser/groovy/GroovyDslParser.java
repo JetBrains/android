@@ -32,7 +32,6 @@ import static com.intellij.psi.util.PsiTreeUtil.getNextSiblingOfType;
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
-import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt;
@@ -98,7 +97,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.types.GrCodeReferenceElement;
  * <p>
  * <p>It parses any general application statements or assigned statements in the .gradle file directly and stores them as key value pairs
  * in the {@link GradleBuildModelImpl}. For every closure block section like {@code android{}}, it will create block elements like
- * {@link AndroidModelImpl}. See {@link GradlePropertiesDslElement#getChildPropertiesElementDescription(String)} for the mapping from
+ * {@code AndroidModelImpl}. See {@code GradlePropertiesDslElement#getChildPropertiesElementDescription(String)} for the mapping from
  * names to the block elements currently supported by this parser.
  */
 public class GroovyDslParser extends GroovyDslNameConverter implements GradleDslParser {

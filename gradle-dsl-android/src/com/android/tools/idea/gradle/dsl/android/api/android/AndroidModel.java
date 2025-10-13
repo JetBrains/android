@@ -13,9 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.api.android;
+package com.android.tools.idea.gradle.dsl.android.api.android;
 
 import com.android.tools.idea.gradle.dsl.api.ExternalNativeBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AaptOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.AdbOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidResourcesModel;
+import com.android.tools.idea.gradle.dsl.api.android.BuildFeaturesModel;
+import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
+import com.android.tools.idea.gradle.dsl.api.android.CompileOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.CompileSdkPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.android.ComposeOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.DataBindingModel;
+import com.android.tools.idea.gradle.dsl.api.android.DependenciesInfoModel;
+import com.android.tools.idea.gradle.dsl.api.android.DexOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.InstallationModel;
+import com.android.tools.idea.gradle.dsl.api.android.JacocoModel;
+import com.android.tools.idea.gradle.dsl.api.android.KotlinOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.LintModel;
+import com.android.tools.idea.gradle.dsl.api.android.LintOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.PackagingOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
+import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
+import com.android.tools.idea.gradle.dsl.api.android.SourceSetModel;
+import com.android.tools.idea.gradle.dsl.api.android.SplitsModel;
+import com.android.tools.idea.gradle.dsl.api.android.TestCoverageModel;
+import com.android.tools.idea.gradle.dsl.api.android.TestOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.UseLibrariesModel;
+import com.android.tools.idea.gradle.dsl.api.android.ViewBindingModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import java.util.List;

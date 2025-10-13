@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.model.android;
+package com.android.tools.idea.gradle.dsl.android.model.android;
 
-import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.android.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.ViewBindingModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
-import com.android.tools.idea.gradle.dsl.parser.android.ViewBindingDslElement;
+import com.android.tools.idea.gradle.dsl.android.parser.android.ViewBindingDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion;
 import org.jetbrains.annotations.NonNls;

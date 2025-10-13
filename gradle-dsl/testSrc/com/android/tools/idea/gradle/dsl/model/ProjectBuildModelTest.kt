@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.I
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
-import com.android.tools.idea.gradle.dsl.model.android.android
+import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradlePropertiesFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile

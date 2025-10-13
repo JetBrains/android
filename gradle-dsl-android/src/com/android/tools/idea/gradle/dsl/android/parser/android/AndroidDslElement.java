@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser.android;
+package com.android.tools.idea.gradle.dsl.android.parser.android;
 
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.AIDL_PACKAGED_LIST;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.ASSET_PACKS;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.BUILD_TOOLS_VERSION;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.COMPILE_SDK_EXTENSION;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.COMPILE_SDK_MINOR;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.COMPILE_SDK_VERSION;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.DEFAULT_PUBLISH_CONFIG;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.DYNAMIC_FEATURES;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.FLAVOR_DIMENSIONS;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.GENERATE_PURE_SPLITS;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.NAMESPACE;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.NDK_VERSION;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.PUBLISH_NON_DEFAULT;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.RESOURCE_PREFIX;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.TARGET_PROJECT_PATH;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.TEST_NAMESPACE;
+import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.AIDL_PACKAGED_LIST;
+import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.ASSET_PACKS;
+import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.BUILD_TOOLS_VERSION;
+import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.COMPILE_SDK_EXTENSION;
+import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.COMPILE_SDK_MINOR;
+import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.COMPILE_SDK_VERSION;
+import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.DEFAULT_PUBLISH_CONFIG;
+import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.DYNAMIC_FEATURES;
+import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.FLAVOR_DIMENSIONS;
+import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.GENERATE_PURE_SPLITS;
+import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.NAMESPACE;
+import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.NDK_VERSION;
+import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.PUBLISH_NON_DEFAULT;
+import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.RESOURCE_PREFIX;
+import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.TARGET_PROJECT_PATH;
+import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.TEST_NAMESPACE;
 import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES_DCL;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.atLeast;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
@@ -44,6 +44,31 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanti
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.AndroidResourcesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.BuildFeaturesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.CompileOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.CompileSdkBlockDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.ComposeOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.DataBindingDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.DefaultConfigDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.DependenciesInfoDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.InstallationDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.JacocoDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.KotlinOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.LintDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.PackagingOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.SigningConfigsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.TestCoverageDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;

@@ -27,11 +27,11 @@ import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.AAPT_OPTIONS_RE
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.AAPT_OPTIONS_REMOVE_LAST_ELEMENT;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.AAPT_OPTIONS_REMOVE_ONE_ELEMENT;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.AAPT_OPTIONS_REMOVE_ONE_ELEMENT_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
+import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelUtilsKt.android;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AaptOptionsModel;
-import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.android.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
 import org.junit.Test;
