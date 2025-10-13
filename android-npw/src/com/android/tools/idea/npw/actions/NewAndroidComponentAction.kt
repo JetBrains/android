@@ -31,6 +31,7 @@ import com.android.tools.idea.npw.project.getModuleTemplates
 import com.android.tools.idea.npw.project.getPackageForPath
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep
 import com.android.tools.idea.npw.template.TemplateResolver
+import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testartifacts.testsuite.runconfiguration.TestSuiteUtils
 import com.android.tools.idea.wizard.model.ModelWizard
@@ -188,15 +189,16 @@ constructor(
       assert(targetDirectory != null)
     }
     val activityDescription = e.presentation.text // e.g. "Empty Activity", "Tabbed Activity"
+
     // TODO(qumeric): always show all available templates but preselect a good default
     val moduleTemplates =
-      facet.getModuleTemplates(targetDirectory).filter {
-        // Do not allow to create Android Components from the templates into source sets without a
-        // source root.
-        // This will filter out androidTest and unit tests source sets.
-        it.paths.getSrcDirectory(null) != null
-      }
+      getModuleTemplates(
+        facet,
+        targetDirectory,
+        includeTemplatesWithoutSourceRoot = isJourneysTemplate,
+      )
     assert(moduleTemplates.isNotEmpty())
+
     val initialPackageSuggestion =
       if (targetDirectory == null) facet.getModuleSystem().getPackageName()
       else facet.getPackageForPath(moduleTemplates, targetDirectory)
@@ -254,6 +256,25 @@ constructor(
 
     showWizardDialog(wizardBuilder.build(), dialogTitle, module.project)
     e.dataContext.getData(CREATED_FILES)?.addAll(templateModel.createdFiles)
+  }
+
+  private fun getModuleTemplates(
+    facet: AndroidFacet,
+    targetDirectory: VirtualFile?,
+    includeTemplatesWithoutSourceRoot: Boolean,
+  ): List<NamedModuleTemplate> {
+    val templates = facet.getModuleTemplates(targetDirectory)
+
+    return if (includeTemplatesWithoutSourceRoot) {
+      templates
+    } else {
+      templates.filter {
+        // Do not allow to create Android Components from the templates into source sets without a
+        // source root.
+        // This will filter out androidTest and unit tests source sets.
+        it.paths.getSrcDirectory(null) != null
+      }
+    }
   }
 
   /**

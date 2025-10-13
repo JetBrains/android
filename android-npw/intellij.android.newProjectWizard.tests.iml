@@ -101,5 +101,6 @@
     <orderEntry type="module" module-name="intellij.android.ml-api" />
     <orderEntry type="module" module-name="intellij.platform.concurrency" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.lang" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.tests" scope="TEST" />
   </component>
 </module>
