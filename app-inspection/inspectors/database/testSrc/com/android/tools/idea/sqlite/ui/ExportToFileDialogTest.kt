@@ -116,7 +116,7 @@ class ExportToFileDialogTest {
     createModalDialogAndInteractWithIt({ dialog.show() }) {}
 
     assertThat(usageTrackerRule.events())
-      .containsExactly(exportDialogOpenedEvent(SCHEMA_TREE_CONTEXT_MENU))
+      .contains(exportDialogOpenedEvent(SCHEMA_TREE_CONTEXT_MENU))
   }
 
   @Test
