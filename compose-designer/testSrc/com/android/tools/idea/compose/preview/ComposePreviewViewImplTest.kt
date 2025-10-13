@@ -86,6 +86,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.android.compose.stubComposableAnnotation
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -235,16 +236,7 @@ class ComposePreviewViewImplTest(generatePreviewFlag: Boolean, screenshotToCodeF
         NamedIdeaSourceProviderBuilder.create("main", manifest.virtualFile.url).build(),
       )
 
-      fixture.addFileToProject(
-        "src/main/androidx/compose/runtime/Composable.kt",
-        // language=kotlin
-        """
-      package androidx.compose.runtime
-
-      annotation class Composable
-      """
-          .trimIndent(),
-      )
+      fixture.stubComposableAnnotation()
 
       val psiMainFile =
         fixture.addFileToProject(
