@@ -17,6 +17,7 @@ package com.android.tools.idea.avd
 
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.devices.CameraLocation
+import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceParser
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
@@ -28,7 +29,7 @@ import java.io.ByteArrayInputStream
 import java.nio.file.Path
 import org.mockito.kotlin.mock
 
-fun readTestDevices() =
+fun readTestDevices(): List<Device> =
   DeviceParser.parse(ByteArrayInputStream(testDeviceXml.encodeToByteArray())).values().toList()
 
 private const val testDeviceXml =
@@ -251,6 +252,33 @@ internal object TestDevices {
         name = "Wear OS Small Round"
         skin = wearOsSkin
         defaultSkin = wearOsSkin
+        frontCamera = AvdCamera.NONE
+        rearCamera = AvdCamera.NONE
+        speed = AvdNetworkSpeed.FULL
+        latency = AvdNetworkLatency.NONE
+        orientation = ScreenOrientation.PORTRAIT
+        defaultBoot = Boot.QUICK
+        internalStorage = StorageCapacity(2, StorageCapacity.Unit.GB)
+        expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB))
+        cpuCoreCount = 4
+        graphicsMode = GraphicsMode.AUTO
+        preferredAbi = null
+      }
+  }
+
+  internal fun aiGlasses(): VirtualDevice {
+    return VirtualDevice(
+        deviceProfile = mock(),
+        defaultRam = StorageCapacity(512, StorageCapacity.Unit.MB),
+        defaultVmHeapSize = StorageCapacity(48, StorageCapacity.Unit.MB),
+        hasPlaystore = true,
+        isFoldable = false,
+        cameraLocations = emptyList(),
+        formFactor = FormFactors.AI_GLASSES,
+      )
+      .apply {
+        name = "AI Glasses"
+        environment = null
         frontCamera = AvdCamera.NONE
         rearCamera = AvdCamera.NONE
         speed = AvdNetworkSpeed.FULL
