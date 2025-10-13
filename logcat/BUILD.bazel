@@ -63,7 +63,13 @@ jvm_library(
   module_name = "intellij.android.logcat",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
-  resources = [":logcat_test_resources"]
+  resources = [":logcat_test_resources"],
+  runtime_deps = [
+    ":logcat",
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "//android/adt-ui:adt-ui_test_lib",
+  ]
 )
 ### auto-generated section `build intellij.android.logcat` end
 
