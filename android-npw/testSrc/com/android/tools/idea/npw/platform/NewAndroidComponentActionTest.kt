@@ -13,192 +13,176 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.platform;
+package com.android.tools.idea.npw.platform
 
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_FEATURE;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
-import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API;
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import com.android.AndroidProjectTypes
+import com.android.sdklib.AndroidVersion
+import com.android.sdklib.SdkVersionInfo
+import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.model.StudioAndroidModuleInfo
+import com.android.tools.idea.npw.actions.NewAndroidComponentAction
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.AndroidProjectRule.Companion.inMemory
+import com.android.tools.idea.wizard.model.ModelWizard
+import com.android.tools.idea.wizard.template.Category
+import com.android.tools.idea.wizard.template.TemplateConstraint
+import com.android.tools.module.AndroidModuleInfo
+import com.google.common.collect.ImmutableSet
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.TestActionEvent
+import com.intellij.util.ui.UIUtil
+import java.util.concurrent.atomic.AtomicReference
+import org.jetbrains.android.facet.AndroidFacet
+import org.junit.Assert
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
-import com.android.sdklib.AndroidVersion;
-import com.android.tools.adtui.swing.FakeUi;
-import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.model.StudioAndroidModuleInfo;
-import com.android.tools.idea.npw.actions.NewAndroidComponentAction;
-import com.android.tools.idea.projectsystem.TestProjectSystem;
-import com.android.tools.idea.testing.AndroidProjectRule;
-import com.android.tools.idea.wizard.model.ModelWizard;
-import com.android.tools.idea.wizard.template.Category;
-import com.android.tools.idea.wizard.template.TemplateConstraint;
-import com.android.tools.module.AndroidModuleInfo;
-import com.google.common.collect.ImmutableSet;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
-import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.ui.ComboBox;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.TestActionEvent;
-import com.intellij.util.ui.UIUtil;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.concurrent.atomic.AtomicReference;
-import kotlin.Unit;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+class NewAndroidComponentActionTest {
+  private lateinit var mySelectedAndroidFacet: AndroidFacet
+  private lateinit var myActionEvent: AnActionEvent
 
-public final class NewAndroidComponentActionTest {
-  private AnActionEvent myActionEvent;
-  private AndroidFacet mySelectedAndroidFacet;
-
-  @Rule
-  public AndroidProjectRule projectRule = AndroidProjectRule.inMemory();
+  @get:Rule var projectRule: AndroidProjectRule = inMemory()
 
   @Before
-  public void setUp() {
-    VirtualFile file = projectRule.getFixture().addFileToProject(
-      "src/Test.kt", "fun a() {}"
-    ).getVirtualFile();
+  fun setUp() {
+    val file = projectRule.fixture.addFileToProject("src/Test.kt", "fun a() {}").getVirtualFile()
 
-    mySelectedAndroidFacet = AndroidFacet.getInstance(projectRule.getModule());
-    assertNotNull(mySelectedAndroidFacet);
-    AndroidModel.setForTests(mySelectedAndroidFacet, mock(AndroidModel.class));
+    mySelectedAndroidFacet = AndroidFacet.getInstance(projectRule.module)!!
+    AndroidModel.setForTests(mySelectedAndroidFacet, mock<AndroidModel>())
 
-    AndroidModuleInfo mockAndroidModuleInfo = mock(AndroidModuleInfo.class);
-    when(mockAndroidModuleInfo.getMinSdkVersion()).thenReturn(new AndroidVersion(1));
-    when(mockAndroidModuleInfo.getBuildSdkVersion()).thenReturn(new AndroidVersion(1));
+    val mockAndroidModuleInfo = mock<AndroidModuleInfo>()
+    whenever(mockAndroidModuleInfo.minSdkVersion).thenReturn(AndroidVersion(1, null))
+    whenever(mockAndroidModuleInfo.buildSdkVersion).thenReturn(AndroidVersion(1, null))
 
-    StudioAndroidModuleInfo.setInstanceForTest(mySelectedAndroidFacet, mockAndroidModuleInfo);
+    StudioAndroidModuleInfo.setInstanceForTest(mySelectedAndroidFacet, mockAndroidModuleInfo)
 
-    DataContext dataContext = SimpleDataContext.builder()
-      .add(PlatformCoreDataKeys.MODULE, projectRule.getModule())
-      .add(PlatformCoreDataKeys.VIRTUAL_FILE, file)
-      .build();
+    val dataContext =
+      SimpleDataContext.builder()
+        .add<Module>(PlatformCoreDataKeys.MODULE, projectRule.module)
+        .add<VirtualFile?>(PlatformCoreDataKeys.VIRTUAL_FILE, file)
+        .build()
 
-    Presentation presentation = new Presentation();
-    presentation.setEnabled(false);
+    val presentation = Presentation()
+    presentation.setEnabled(false)
 
-    myActionEvent = TestActionEvent.createTestEvent(dataContext);
+    myActionEvent = TestActionEvent.createTestEvent(dataContext)
   }
 
   @Test
-  public void nonInstantAppPresentationShouldBeEnabled() {
-    new NewAndroidComponentAction(Category.Other, "templateName", 0).update(myActionEvent);
+  fun nonInstantAppPresentationShouldBeEnabled() {
+    NewAndroidComponentAction(Category.Other, "templateName", 0).update(myActionEvent)
 
-    assertThat(myActionEvent.getPresentation().isEnabled()).isTrue();
+    assertThat(myActionEvent.presentation.isEnabled).isTrue()
   }
 
   @Test
-  public void lowMinSdkApiPresentationShouldBeDisabled() {
-    new NewAndroidComponentAction(Category.Other, "templateName", HIGHEST_KNOWN_API + 1).update(myActionEvent);
+  fun lowMinSdkApiPresentationShouldBeDisabled() {
+    NewAndroidComponentAction(Category.Other, "templateName", SdkVersionInfo.HIGHEST_KNOWN_API + 1)
+      .update(myActionEvent)
 
-    assertThat(myActionEvent.getPresentation().isEnabled()).isFalse();
-    assertThat(myActionEvent.getPresentation().getText()).contains("Requires minSdk");
+    assertThat(myActionEvent.presentation.isEnabled).isFalse()
+    assertThat(myActionEvent.presentation.text).contains("Requires minSdk")
   }
 
   @Test
-  public void noAndroidXSupportPresentationShouldBeDisabled() {
-    Collection<TemplateConstraint> constraints = new ArrayList<>();
-    constraints.add(TemplateConstraint.AndroidX);
-    new NewAndroidComponentAction(Category.Other, "templateName", 0, constraints).update(myActionEvent);
+  fun noAndroidXSupportPresentationShouldBeDisabled() {
+    val constraints = listOf(TemplateConstraint.AndroidX)
+    NewAndroidComponentAction(Category.Other, "templateName", 0, constraints).update(myActionEvent)
 
-    assertThat(myActionEvent.getPresentation().isEnabled()).isFalse();
-    assertThat(myActionEvent.getPresentation().getText()).contains("Requires AndroidX support");
+    assertThat(myActionEvent.presentation.isEnabled).isFalse()
+    assertThat(myActionEvent.presentation.text).contains("Requires AndroidX support")
   }
 
   @Test
-  public void appTypePresentationShouldBeEnabledForIapp() {
-    mySelectedAndroidFacet.getConfiguration().setProjectType(PROJECT_TYPE_APP);
+  fun appTypePresentationShouldBeEnabledForIapp() {
+    mySelectedAndroidFacet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_APP
 
-    new NewAndroidComponentAction(Category.Other, "templateName", 0).update(myActionEvent);
+    NewAndroidComponentAction(Category.Other, "templateName", 0).update(myActionEvent)
 
-    assertThat(myActionEvent.getPresentation().isEnabled()).isTrue();
+    assertThat(myActionEvent.presentation.isEnabled).isTrue()
   }
 
   @Test
-  public void instantTypePresentationShouldBeDisabledForIapp() {
-    mySelectedAndroidFacet.getConfiguration().setProjectType(PROJECT_TYPE_INSTANTAPP);
+  fun instantTypePresentationShouldBeDisabledForIapp() {
+    mySelectedAndroidFacet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP
 
-    new NewAndroidComponentAction(Category.Other, "templateName", 0).update(myActionEvent);
+    NewAndroidComponentAction(Category.Other, "templateName", 0).update(myActionEvent)
 
-    assertThat(myActionEvent.getPresentation().isEnabled()).isFalse();
+    assertThat(myActionEvent.presentation.isEnabled).isFalse()
   }
 
   @Test
-  public void libraryTypePresentationShouldBeEnabledForIapp() {
-    mySelectedAndroidFacet.getConfiguration().setProjectType(PROJECT_TYPE_LIBRARY);
+  fun libraryTypePresentationShouldBeEnabledForIapp() {
+    mySelectedAndroidFacet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_LIBRARY
 
-    new NewAndroidComponentAction(Category.Other, "templateName", 0).update(myActionEvent);
+    NewAndroidComponentAction(Category.Other, "templateName", 0).update(myActionEvent)
 
-    assertThat(myActionEvent.getPresentation().isEnabled()).isTrue();
+    assertThat(myActionEvent.presentation.isEnabled).isTrue()
   }
 
   @Test
-  public void testTypePresentationShouldBeEnabledForIapp() {
-    mySelectedAndroidFacet.getConfiguration().setProjectType(PROJECT_TYPE_TEST);
+  fun testTypePresentationShouldBeEnabledForIapp() {
+    mySelectedAndroidFacet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_TEST
 
-    new NewAndroidComponentAction(Category.Other, "templateName", 0).update(myActionEvent);
+    NewAndroidComponentAction(Category.Other, "templateName", 0).update(myActionEvent)
 
-    assertThat(myActionEvent.getPresentation().isEnabled()).isTrue();
+    assertThat(myActionEvent.presentation.isEnabled).isTrue()
   }
 
   @Test
-  public void featureTypePresentationShouldBeEnabledForIapp() {
-    mySelectedAndroidFacet.getConfiguration().setProjectType(PROJECT_TYPE_FEATURE);
+  fun featureTypePresentationShouldBeEnabledForIapp() {
+    mySelectedAndroidFacet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_FEATURE
 
-    new NewAndroidComponentAction(Category.Other, "templateName", 0).update(myActionEvent);
+    NewAndroidComponentAction(Category.Other, "templateName", 0).update(myActionEvent)
 
-    assertThat(myActionEvent.getPresentation().isEnabled()).isTrue();
+    assertThat(myActionEvent.presentation.isEnabled).isTrue()
   }
 
   @Test
-  public void verifyTemplateDialog() {
-    TestProjectSystem testProjectSystem = new TestProjectSystem(projectRule.getProject());
-    testProjectSystem.useInTests();
+  fun verifyTemplateDialog() {
+    mySelectedAndroidFacet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_APP
 
-    mySelectedAndroidFacet.getConfiguration().setProjectType(PROJECT_TYPE_FEATURE);
-
-    AtomicReference<ModelWizard> modelWizardReference = new AtomicReference<>(null);
-    NewAndroidComponentAction action = new NewAndroidComponentAction(
-      Category.Other,
-      "Empty Activity",
-      0,
-      ImmutableSet.of(),
-      (modelWizard, dialogTitle, project) -> {
-        modelWizardReference.set(modelWizard);
-        return Unit.INSTANCE;
+    val modelWizardReference = AtomicReference<ModelWizard?>(null)
+    val action =
+      NewAndroidComponentAction(Category.Other, "Empty Activity", 0, ImmutableSet.of()) {
+        modelWizard: ModelWizard?,
+        _: String?,
+        _: Project? ->
+        modelWizardReference.set(modelWizard)
       }
-      );
-    action.update(myActionEvent);
-    assertThat(myActionEvent.getPresentation().isEnabled()).isTrue();
+    action.update(myActionEvent)
+    assertThat(myActionEvent.presentation.isEnabled).isTrue()
 
-    ApplicationManager.getApplication().invokeAndWait(() -> action.actionPerformed(myActionEvent));
-    ModelWizard modelWizard = modelWizardReference.get();
-    assertNotNull(modelWizard);
+    ApplicationManager.getApplication().invokeAndWait { action.actionPerformed(myActionEvent) }
+    val modelWizard = checkNotNull(modelWizardReference.get())
 
-    UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
-      modelWizard.getContentPanel().setSize(640, 480);
-      FakeUi fakeUi = new FakeUi(modelWizard.getContentPanel(), 1.0f, false, projectRule.getTestRootDisposable());
+    UIUtil.invokeAndWaitIfNeeded {
+      modelWizard.contentPanel.setSize(640, 480)
+      val fakeUi = FakeUi(modelWizard.contentPanel, 1.0, false, projectRule.testRootDisposable)
       try {
-        fakeUi.layoutAndDispatchEvents();
-      }
-      catch (InterruptedException ignored) {
-      }
-      assertNull(fakeUi.findComponent(ComboBox.class, (combo) -> "ModuleTemplateCombo".equals(combo.getName())));
-    });
+        fakeUi.layoutAndDispatchEvents()
+      } catch (_: InterruptedException) {}
+      Assert.assertNull(
+        fakeUi.findComponent(ComboBox::class.java) { combo: ComboBox<*> ->
+          "ModuleTemplateCombo" == combo.getName()
+        }
+      )
+    }
 
-    Disposer.dispose(modelWizard);
+    Disposer.dispose(modelWizard)
   }
 }
