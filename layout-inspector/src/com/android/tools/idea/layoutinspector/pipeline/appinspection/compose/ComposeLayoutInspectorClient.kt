@@ -693,7 +693,7 @@ class ComposeLayoutInspectorClient(
               keepRecomposeCounts = keepRecompositionCounts
               stateReadSettingsBuilder.apply {
                 when (observations) {
-                  None -> noneBuilder
+                  is None -> noneBuilder
                   is All -> allBuilder.maxStateReads = maxStateReads
                   is Some -> {
                     byIdBuilder.addAllComposableToObserve(observations.nodes.map { it.anchorHash })

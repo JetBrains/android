@@ -78,10 +78,6 @@ class InspectorModel(
     fun onHover(oldNode: ViewNode?, newNode: ViewNode?)
   }
 
-  fun interface StateReadsNodeListener {
-    fun onSelection(node: ViewNode?)
-  }
-
   fun interface AttachStageListener {
     fun update(state: DynamicLayoutInspectorErrorInfo.AttachErrorState)
   }
@@ -98,9 +94,6 @@ class InspectorModel(
   val connectionListeners = ListenerCollection.createWithDirectExecutor<ConnectionListener>()
   @VisibleForTesting
   val hoverListeners = ListenerCollection.createWithDirectExecutor<HoverListener>()
-  @VisibleForTesting
-  val stateReadsNodeListeners =
-    ListenerCollection.createWithDirectExecutor<StateReadsNodeListener>()
   @VisibleForTesting
   val attachStageListeners = ListenerCollection.createWithDirectExecutor<AttachStageListener>()
 
@@ -133,14 +126,6 @@ class InspectorModel(
     Delegates.observable(null as ViewNode?) { _, old, new ->
       if (new != old) {
         hoverListeners.forEach { it.onHover(old, new) }
-      }
-    }
-
-  /** The node currently selected for viewing recomposition state reads. */
-  var stateReadsNode: ViewNode? by
-    Delegates.observable(null as ViewNode?) { _, old, new ->
-      if (new != null || old != null) {
-        stateReadsNodeListeners.forEach { it.onSelection(new) }
       }
     }
 
@@ -313,7 +298,7 @@ class InspectorModel(
   }
 
   private fun resetRecompositionCounters() {
-    stateReadsNode = null
+    stateReadsModel.stopShowingStateReads()
     maxRecomposition.reset()
     maxHighlight = 0f
     updateAll { node -> (node as? ComposeViewNode)?.resetRecomposeCounts() }
@@ -385,9 +370,6 @@ class InspectorModel(
         if (hoveredNode?.parentSequence?.lastOrNull() !== root) {
           hoveredNode = null
         }
-        if (stateReadsNode?.parentSequence?.lastOrNull() !== root) {
-          stateReadsNode = null
-        }
         lastGeneration = generation
         idLookup.clear()
         val allNodes = root.flatten().toSet()
@@ -445,14 +427,6 @@ class InspectorModel(
 
   fun removeHoverListener(listener: HoverListener) {
     hoverListeners.remove(listener)
-  }
-
-  fun addStateReadsNodeListener(listener: StateReadsNodeListener) {
-    stateReadsNodeListeners.add(listener)
-  }
-
-  fun removeStateReadsNodeListener(listener: StateReadsNodeListener) {
-    stateReadsNodeListeners.remove(listener)
   }
 
   fun addAttachStageListener(listener: AttachStageListener) {

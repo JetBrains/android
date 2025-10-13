@@ -335,7 +335,7 @@ class LayoutInspectorManagerTest {
       }
     }
 
-    assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(5)
+    assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(6)
     assertThat(layoutInspector.processModel?.selectedProcessListeners).hasSize(3)
 
     fakeToolWindowManager.setSelectedContent(tab2)
@@ -352,7 +352,7 @@ class LayoutInspectorManagerTest {
       }
     }
 
-    assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(5)
+    assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(6)
     assertThat(layoutInspector.processModel?.selectedProcessListeners).hasSize(3)
 
     verifyUiRemoved(tab1)
@@ -360,7 +360,7 @@ class LayoutInspectorManagerTest {
 
     fakeToolWindowManager.setSelectedContent(tab1)
 
-    assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(5)
+    assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(6)
     assertThat(layoutInspector.processModel?.selectedProcessListeners).hasSize(3)
 
     verifyUiInjected<StudioRendererPanel>(tab1)
@@ -371,7 +371,7 @@ class LayoutInspectorManagerTest {
     verifyUiRemoved(tab1)
     assertThat(layoutInspector.deviceModel?.selectedDevice).isNull()
 
-    assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(5)
+    assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(6)
     assertThat(layoutInspector.processModel?.selectedProcessListeners).hasSize(3)
 
     verifyUiInjected<StudioRendererPanel>(tab2)

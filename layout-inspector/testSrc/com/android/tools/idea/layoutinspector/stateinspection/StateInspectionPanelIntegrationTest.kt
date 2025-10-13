@@ -27,6 +27,7 @@ import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.COMPOSE2
 import com.android.tools.idea.layoutinspector.model.COMPOSE3
+import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.FakeInspectorStateReads
@@ -184,7 +185,7 @@ class StateInspectionPanelIntegrationTest {
     model.update(window, listOf(ROOT), 0)
     val panel = createStateInspectionPanel(inspectorRule.inspector, projectRule.testRootDisposable)
     panel.size = Dimension(800, 600)
-    model.stateReadsNode = model[COMPOSE1]
+    model.stateReadsModel.requestStateReadFor(model[COMPOSE1] as ComposeViewNode)
     return panel
   }
 }

@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
-import com.android.tools.idea.layoutinspector.model.ComposeViewNode
+import com.android.tools.idea.layoutinspector.stateinspection.StateReadKey
 
 /** A result from a state read request. */
 class RecomposeStateReadResult(
-  /** The [ComposeViewNode] composable these state reads are for. */
-  val node: ComposeViewNode,
-  /** The recomposition these reads are for. */
-  val recomposition: Int,
-  /** The state reads for this [node] and [recomposition]. */
+  /** The composable and recomposition these state reads are for. */
+  val key: StateReadKey,
+  /** The state reads for this [key]. */
   val reads: List<RecomposeStateReadData>,
   /** There are state reads available to go back. */
   val hasStateReadsForPreviousRecomposition: Boolean = false,
