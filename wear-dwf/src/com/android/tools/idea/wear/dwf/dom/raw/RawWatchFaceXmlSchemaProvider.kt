@@ -20,7 +20,9 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.MergedManifestSnapshotComputeListener
+import com.android.tools.idea.projectsystem.AndroidModuleSystem.Type
 import com.android.tools.idea.projectsystem.getAndroidFacets
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.stats.ManifestMergerStatsTracker.MergeResult
@@ -137,8 +139,9 @@ private class RawWatchFaceXmlSchemaUpdater private constructor(val project: Proj
 
   private fun Project.getDeclarativeWatchFaceFiles() =
     getAndroidFacets()
+      .filter { it.getModuleSystem().type == Type.TYPE_APP }
       .flatMap { facet ->
-        StudioResourceRepositoryManager.getProjectResources(facet).getResources(
+        StudioResourceRepositoryManager.getModuleResources(facet).getResources(
           ResourceNamespace.RES_AUTO,
           ResourceType.RAW,
         ) {
