@@ -18,7 +18,7 @@ package com.android.tools.idea.logcat.actions
 import com.android.adblib.AdbSession
 import com.android.adblib.activityManager
 import com.android.adblib.connectedDevicesTracker
-import com.android.adblib.serialNumber
+import com.android.adblib.device
 import com.android.adblib.tools.debugging.JdwpProcess
 import com.android.adblib.tools.debugging.appProcessTracker
 import com.android.adblib.tools.debugging.getOrNull
@@ -75,9 +75,8 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) :
     device: Device,
   ): JdwpProcess? {
     val adbSession = AdbLibService.getSession(project)
-    val connectedDevices = adbSession.connectedDevicesTracker.connectedDevices.value
     val connectedDevice =
-      connectedDevices.find { it.serialNumber == device.serialNumber } ?: return null
+      adbSession.connectedDevicesTracker.device(device.serialNumber) ?: return null
 
     val processes =
       when (device.sdk >= 31) {
