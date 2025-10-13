@@ -17,14 +17,5 @@ package com.android.tools.idea.layoutinspector.stateinspection
 
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 
-/** Provides state reads */
-internal interface StateReadProvider {
-
-  /**
-   * Requests state reads for the [composable] at this [recomposition].
-   *
-   * @param composable for which the state reads are requested for
-   * @param recomposition for which the state reads are requested for
-   */
-  suspend fun requestRecompositionStateReads(composable: ComposeViewNode, recomposition: Int)
-}
+/** Specifies a [composable] and a [recomposition] which identifies a set of state reads. */
+data class StateReadKey(val composable: ComposeViewNode, val recomposition: Int)

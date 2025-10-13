@@ -19,10 +19,11 @@ import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.stateinspection.StateReadProvider
+import com.android.tools.idea.layoutinspector.stateinspection.StateReadKey
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 
 /** The max number of [composable,recompositions] to keep state reads for. */
@@ -38,7 +39,7 @@ class RecompositionStateReadCache(
   private val client: ComposeLayoutInspectorClient,
   private val model: InspectorModel,
   parentScope: CoroutineScope,
-) : StateReadProvider {
+) {
   private val scope = parentScope.createChildScope()
   private val cache = LruCache()
   private var pendingRequest: Key? = null
@@ -50,9 +51,9 @@ class RecompositionStateReadCache(
         isStructuralChange: Boolean,
       ) {
         val pending = pendingRequest ?: return
-        val composable = model.stateReadsNode as? ComposeViewNode
+        val composable = model.stateReadsModel.stateReadRequested.value?.composable
         if (composable == null || composable.anchorHash != pending.anchorHash) {
-          // The composable from the pending request is no longer being observed:
+          // The composable from the pending request is no longer the requested node.
           pendingRequest = null
           return
         }
@@ -76,6 +77,11 @@ class RecompositionStateReadCache(
         client.updateSettings(keepRecompositionCounts = true)
       }
     }
+    scope.launch {
+      model.stateReadsModel.stateReadRequested.filterNotNull().collect { key ->
+        requestRecompositionStateReads(key.composable, key.recomposition)
+      }
+    }
   }
 
   fun disconnect() {
@@ -83,7 +89,7 @@ class RecompositionStateReadCache(
     scope.cancel()
   }
 
-  override suspend fun requestRecompositionStateReads(
+  private suspend fun requestRecompositionStateReads(
     composable: ComposeViewNode,
     recomposition: Int,
   ) {
@@ -91,7 +97,11 @@ class RecompositionStateReadCache(
     val node = lookup(key) ?: fetchDataFor(key) ?: cache.closest(key)
     val result =
       node?.let {
-        RecomposeStateReadResult(composable, node.recomposition, node.reads, node.prev != null)
+        RecomposeStateReadResult(
+          StateReadKey(composable, node.recomposition),
+          node.reads,
+          node.prev != null,
+        )
       }
     model.stateReadsModel.stateReads.emit(result)
     if (result == null) {

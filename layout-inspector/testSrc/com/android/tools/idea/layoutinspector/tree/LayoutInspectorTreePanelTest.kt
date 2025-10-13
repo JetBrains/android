@@ -67,6 +67,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewNod
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewResource
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewString
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.sendEvent
+import com.android.tools.idea.layoutinspector.stateinspection.StateReadKey
 import com.android.tools.idea.layoutinspector.ui.FakeRenderSettings
 import com.android.tools.idea.layoutinspector.util.DECOR_VIEW
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
@@ -1169,12 +1170,12 @@ class LayoutInspectorTreePanelTest {
     val bounds = table.getCellRect(row, 1, true)
     ui.mouse.click(bounds.centerX.toInt(), bounds.centerY.toInt())
     // Expect no state reads selected since the node is not being observed:
-    assertThat(model.stateReadsNode).isNull()
+    assertThat(model.stateReadsModel.stateReadRequested.value).isNull()
 
     model.stateReadsModel.observeNode(compose1)
     ui.mouse.click(bounds.centerX.toInt(), bounds.centerY.toInt())
     // Expect state reads selected for compose1:
-    assertThat(model.stateReadsNode).isEqualTo(compose1)
+    assertThat(model.stateReadsModel.stateReadRequested.value).isEqualTo(StateReadKey(compose1, 7))
   }
 
   private fun setToolContext(tree: LayoutInspectorTreePanel, inspector: LayoutInspector) {

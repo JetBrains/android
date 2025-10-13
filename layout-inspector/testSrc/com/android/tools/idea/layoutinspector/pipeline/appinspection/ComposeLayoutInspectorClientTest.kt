@@ -61,6 +61,7 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.Att
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.ui.UIUtil
 import java.net.UnknownHostException
@@ -134,7 +135,7 @@ class ComposeLayoutInspectorClientTest {
   @Test
   fun testClientCreation() = runBlocking {
     val artifactService = mock<InspectorArtifactService>()
-    val messenger = mock<AppInspectorMessenger>()
+    val messenger = createMessenger()
     whenever(artifactService.getOrResolveInspectorArtifact(any(), any()))
       .thenReturn(Paths.get("/foo/bar"))
     ApplicationManager.getApplication()
@@ -142,8 +143,6 @@ class ComposeLayoutInspectorClientTest {
     val apiServices = mock<AppInspectionApiServices>()
     whenever(apiServices.launchInspector(any())).thenReturn(messenger)
     val target = mock<AppInspectionTarget>()
-    whenever(messenger.sendRawCommand(any()))
-      .thenReturn(UnknownCommandResponse.getDefaultInstance().toByteArray())
     whenever(target.getLibraryVersions(any()))
       .thenReturn(listOf(LibraryCompatibilityInfo(mock(), Status.COMPATIBLE, "1.3.0", "")))
     whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name))
@@ -155,7 +154,7 @@ class ComposeLayoutInspectorClientTest {
   @Test
   fun testClientCreationReportsUnknownError() = runBlocking {
     val artifactService = mock<InspectorArtifactService>()
-    val messenger = mock<AppInspectorMessenger>()
+    val messenger = createMessenger()
     whenever(artifactService.getOrResolveInspectorArtifact(any(), any()))
       .thenReturn(Paths.get("/foo/bar"))
     ApplicationManager.getApplication()
@@ -165,8 +164,6 @@ class ComposeLayoutInspectorClientTest {
       throw AppInspectionLaunchException("launch error")
     }
     val target = mock<AppInspectionTarget>()
-    whenever(messenger.sendRawCommand(any()))
-      .thenReturn(UnknownCommandResponse.getDefaultInstance().toByteArray())
     whenever(target.getLibraryVersions(any()))
       .thenReturn(listOf(LibraryCompatibilityInfo(mock(), Status.COMPATIBLE, "1.3.0", "")))
     whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name))
@@ -492,9 +489,7 @@ class ComposeLayoutInspectorClientTest {
       .thenReturn(comp("1.2.0"))
       .thenReturn(comp("1.3.0"))
       .thenReturn(comp("1.3.0-alpha01"))
-    val messenger = mock<AppInspectorMessenger>()
-    whenever(messenger.sendRawCommand(any()))
-      .thenReturn(UnknownCommandResponse.getDefaultInstance().toByteArray())
+    val messenger = createMessenger()
     val apiServices = mock<AppInspectionApiServices>()
     whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name))
       .thenReturn(target)
@@ -600,6 +595,14 @@ class ComposeLayoutInspectorClientTest {
       )
   }
 
+  private suspend fun createMessenger(): AppInspectorMessenger {
+    val messenger = mock<AppInspectorMessenger>()
+    whenever(messenger.scope).thenReturn(projectRule.testRootDisposable.createCoroutineScope())
+    whenever(messenger.sendRawCommand(any()))
+      .thenReturn(UnknownCommandResponse.getDefaultInstance().toByteArray())
+    return messenger
+  }
+
   private suspend fun checkLaunch(
     apiServices: AppInspectionApiServices,
     expectedMessage: String,
@@ -624,6 +627,7 @@ class ComposeLayoutInspectorClientTest {
         { errorCode = it },
         isRunningFromSources,
       )
+    Disposer.register(projectRule.testRootDisposable) { client?.disconnect() }
     if (expectClient) {
       assertThat(client).isNotNull()
     } else {
