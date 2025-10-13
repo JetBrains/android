@@ -56,7 +56,6 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.android-material" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.jps.model" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.layoutlib" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.lint" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.lint.common" scope="TEST" />
@@ -96,5 +95,6 @@
     <orderEntry type="module" module-name="intellij.libraries.compose.runtime.desktop" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.compose" />
     <orderEntry type="module" module-name="intellij.android.ml-api" />
+    <orderEntry type="module" module-name="intellij.android.jps.model" scope="TEST" />
   </component>
 </module>

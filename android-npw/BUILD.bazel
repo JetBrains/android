@@ -153,7 +153,6 @@ jvm_library(
     "//android/adt-ui:adt-ui_test_lib",
     "//android/android-material",
     "//android/gradle-dsl",
-    "//android/jps-model",
     "//android/layoutlib",
     "//android/android-lint:lint",
     "//android/lint:lint-common",
@@ -194,6 +193,7 @@ jvm_library(
     "//android/adt-ui-compose",
     "//android/adt-ui-compose:adt-ui-compose_test_lib",
     "//android/ml-api",
+    "//android/jps-model",
   ],
   runtime_deps = [":newProjectWizard-tests"],
   plugins = ["@lib//:compose-plugin"]
