@@ -53,6 +53,7 @@ import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.DeviceItem
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.FileItem
+import com.android.tools.idea.logcat.devices.readLogcat
 import com.android.tools.idea.logcat.files.LogcatFileData
 import com.android.tools.idea.logcat.files.LogcatFileIo
 import com.android.tools.idea.logcat.files.safeGetFilter

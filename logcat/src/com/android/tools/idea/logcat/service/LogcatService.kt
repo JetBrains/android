@@ -17,7 +17,6 @@ package com.android.tools.idea.logcat.service
 
 import com.android.adblib.INFINITE_DURATION
 import com.android.sdklib.AndroidApiLevel
-import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
@@ -41,13 +40,6 @@ interface LogcatService {
     duration: Duration = INFINITE_DURATION,
     maxHistoryEntries: Int = Int.MAX_VALUE,
   ): Flow<List<LogcatMessage>>
-
-  fun readLogcat(
-    device: Device,
-    duration: Duration = INFINITE_DURATION,
-    maxHistoryEntries: Int = Int.MAX_VALUE,
-  ): Flow<List<LogcatMessage>> =
-    readLogcat(device.serialNumber, device.apiLevel, duration, maxHistoryEntries)
 
   suspend fun clearLogcat(serialNumber: String)
 
