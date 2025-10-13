@@ -67,8 +67,9 @@ private fun KaSession.renderValueParameters(
   append(")")
 }
 
+@OptIn(KaExperimentalApi::class)
 private fun KaSession.isRequired(valueParamSymbol: KaValueParameterSymbol): Boolean =
-  !valueParamSymbol.hasDefaultValue
+  !valueParamSymbol.hasDeclaredDefaultValue
 
 internal fun KaSession.isRequiredTrailingLambda(valueParamSymbol: KaValueParameterSymbol): Boolean {
   // Since vararg is not a function type parameter, we have to return false for a parameter with a
