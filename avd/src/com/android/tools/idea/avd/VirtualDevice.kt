@@ -197,8 +197,8 @@ internal data class Custom(val value: StorageCapacity) : ExpandedStorage() {
   override fun toString() = value.toString()
 }
 
-internal data class ExistingImage(private val value: Path) : ExpandedStorage() {
-  override fun toString() = value.toString()
+internal data class ExistingImage(val path: Path) : ExpandedStorage() {
+  override fun toString() = path.toString()
 }
 
 internal object None : ExpandedStorage() {

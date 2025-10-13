@@ -132,7 +132,7 @@ internal fun WizardPageScope.ConfigurationPage(
             it.isSupported()
           }
       }
-      val state = ConfigureDevicePanelState(device, skins, deviceNameValidator, fileSystem)
+      val state = ConfigureDevicePanelState(device, skins, deviceNameValidator)
       val defaultSkin = resolveDefaultSkin(device, sdkHandler, fileSystem)
       if (imageWasNotSet) {
         state.initDeviceSkins(defaultSkin)

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avd
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
@@ -39,14 +40,13 @@ import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.VendorDevices
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.testutils.file.createInMemoryFileSystem
+import com.android.tools.adtui.compose.LocalFileSystem
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.adtui.compose.utils.lingerMouseHover
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.android.utils.NullLogger
 import com.google.common.truth.Truth.assertThat
-import java.nio.file.FileSystem
-import java.nio.file.FileSystems
 import java.nio.file.Files
 import kotlin.math.max
 import kotlinx.collections.immutable.ImmutableCollection
@@ -153,18 +153,24 @@ class AdditionalSettingsPanelTest {
 
     val fileSystem = createInMemoryFileSystem()
 
-    val state = configureDevicePanelState(device, fileSystem = fileSystem)
+    val state = configureDevicePanelState(device)
     val initialExpandedStorage = device.expandedStorage
 
     val mySdCardFileImg = fileSystem.getPath(System.getProperty("user.home"), "mySdCardFile.img")
     Files.createDirectories(mySdCardFileImg.parent)
     Files.createFile(mySdCardFileImg)
 
-    rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
+    rule.setContent {
+      provideCompositionLocals {
+        CompositionLocalProvider(LocalFileSystem provides fileSystem) {
+          AdditionalSettingsPanel(state)
+        }
+      }
+    }
 
     // Act
     rule.onNodeWithTag("ExistingImageRadioButton").performClick()
-    rule.onNodeWithTag("ExistingImageField").performTextReplacement(mySdCardFileImg.toString())
+    rule.onNodeWithTag("FileInputField").performTextReplacement(mySdCardFileImg.toString())
     rule.waitForIdle()
 
     // Assert
@@ -358,9 +364,8 @@ private fun configureDevicePanelState(
   device: VirtualDevice,
   skins: ImmutableCollection<Skin> = emptyList<Skin>().toImmutableList(),
   deviceNameValidator: DeviceNameValidator = DeviceNameValidator(emptySet()),
-  fileSystem: FileSystem = FileSystems.getDefault(),
   maxCpuCoreCount: Int = max(1, Runtime.getRuntime().availableProcessors() / 2),
-) = ConfigureDevicePanelState(device, skins, deviceNameValidator, fileSystem, maxCpuCoreCount)
+) = ConfigureDevicePanelState(device, skins, deviceNameValidator, maxCpuCoreCount)
 
 private fun SemanticsNodeInteractionsProvider.onRamTextField() =
   onNodeWithTag("RamRow").onChildren().filterToOne(hasSetTextAction())
