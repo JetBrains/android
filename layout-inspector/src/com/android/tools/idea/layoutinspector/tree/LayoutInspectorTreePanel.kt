@@ -352,7 +352,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       interactions.setColumnVisibility(3, show)
       if (!show) {
         // When recompositions are hidden we want to stop showing recomposition details as well.
-        inspectorModel?.stateReadsNode = null
+        inspectorModel?.stateReadsModel?.stopShowingStateReads()
       }
     }
   }
@@ -705,7 +705,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
   private fun showStateReadsForNode(view: ViewNode) {
     if (isStateReadsEnabledForNode(view)) {
-      inspectorModel?.stateReadsNode = view
+      inspectorModel?.stateReadsModel?.requestStateReadFor(view as ComposeViewNode)
     }
   }
 

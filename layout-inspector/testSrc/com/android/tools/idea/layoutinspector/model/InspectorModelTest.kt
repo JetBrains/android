@@ -269,7 +269,6 @@ class InspectorModelTest {
     var isModified = false
     model.setSelection(model[VIEW3], SelectionOrigin.INTERNAL)
     model.hoveredNode = model[VIEW3]
-    model.stateReadsNode = model[VIEW3]
     model.addModificationListener { _, _, structuralChange -> isModified = structuralChange }
 
     val newWindow =
@@ -283,7 +282,6 @@ class InspectorModelTest {
     assertThat(isModified).isTrue()
     assertThat(model.selection).isNull()
     assertThat(model.hoveredNode).isNull()
-    assertThat(model.stateReadsNode).isNull()
 
     val newNodes = model.root.flattenedList().associateBy { it.drawId }
     assertThat(newNodes.keys.plus(VIEW3)).containsExactlyElementsIn(origNodes.keys)
@@ -309,7 +307,6 @@ class InspectorModelTest {
     var isModified = false
     model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
     model.hoveredNode = model[VIEW1]
-    model.stateReadsNode = model[VIEW1]
     model.addModificationListener { _, _, structuralChange -> isModified = structuralChange }
 
     val newWindow =
@@ -332,7 +329,6 @@ class InspectorModelTest {
     assertThat(isModified).isTrue()
     assertThat(model.selection).isNull()
     assertThat(model.hoveredNode).isNull()
-    assertThat(model.stateReadsNode).isNull()
 
     assertThat(model[ROOT]).isSameAs(origNodes[ROOT])
     assertThat(model[VIEW2]).isSameAs(origNodes[VIEW2])
@@ -843,19 +839,6 @@ class InspectorModelTest {
       observedNewWindows.add(new)
     }
     assertThat(observedNewWindows).isEqualTo(model.windows.values.toList())
-
-    // Recomposition
-    val observedRecompositionNodes = mutableListOf<ViewNode?>()
-    model.addStateReadsNodeListener { node -> observedRecompositionNodes.add(node) }
-
-    model.stateReadsNode = compose1
-    assertThat(observedRecompositionNodes).containsExactly(compose1)
-
-    model.stateReadsNode = null
-    assertThat(observedRecompositionNodes).containsExactly(compose1, null)
-
-    model.stateReadsNode = compose2
-    assertThat(observedRecompositionNodes).containsExactly(compose1, null, compose2)
 
     // Connection
     model.updateConnection(DisconnectedClient)
