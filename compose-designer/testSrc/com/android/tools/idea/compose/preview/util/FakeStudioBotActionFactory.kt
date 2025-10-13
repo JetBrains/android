@@ -20,9 +20,7 @@ import com.android.tools.idea.compose.preview.ComposeStudioBotActionFactory
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
-
-  var isNullPreviewGeneratorAction = false
+open class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
 
   private fun fakeAction(text: String): AnAction {
     return object : AnAction(text) {
@@ -30,8 +28,7 @@ class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
     }
   }
 
-  override fun createPreviewGenerator() =
-    if (isNullPreviewGeneratorAction) null else fakeAction("previewGenerator")
+  override fun createPreviewGenerator(): AnAction? = fakeAction("previewGenerator")
 
   override fun transformPreviewAction() = fakeAction("transformPreview")
 
