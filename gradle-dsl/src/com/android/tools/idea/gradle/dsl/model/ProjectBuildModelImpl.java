@@ -35,7 +35,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.impl.source.PostprocessReformattingAspect;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -115,7 +114,8 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
     if(!file.getName().equals(FN_BUILD_GRADLE_DECLARATIVE)) return null;
 
     GradleBuildFile dslFile = myBuildModelContext.getOrCreateBuildFile(file, false);
-    return new GradleDeclarativeBuildModelImpl(dslFile);
+    return GradleDeclarativeBuildModelProvider.EP.getExtensionList().stream()
+             .map(provider -> provider.createModel(dslFile)).filter(Objects::nonNull).findFirst().orElse(null);
   }
 
   /**
@@ -146,13 +146,15 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
   @Override
   @Nullable
   public GradleDeclarativeSettingsModel getDeclarativeSettingsModel() {
-    if(!isDeclarativeStudioSupportEnabled()) return null;
+    if (!isDeclarativeStudioSupportEnabled()) return null;
     VirtualFile virtualFile = getProjectSettingsFile();
     if (virtualFile == null) return null;
-    if(!virtualFile.getName().equals(FN_SETTINGS_GRADLE_DECLARATIVE)) return null;
+    if (!virtualFile.getName().equals(FN_SETTINGS_GRADLE_DECLARATIVE)) return null;
 
     GradleSettingsFile settingsFile = myBuildModelContext.getOrCreateSettingsFile(virtualFile);
-    return new GradleDeclarativeSettingsModelImpl(settingsFile);
+
+    return GradleDeclarativeSettingsModelProvider.EP.getExtensionList().stream()
+      .map(provider -> provider.createModel(settingsFile)).filter(Objects::nonNull).findFirst().orElse(null);
   }
 
   @Nullable

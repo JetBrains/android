@@ -17,7 +17,8 @@ package com.android.tools.idea.gradle.dependencies
 
 import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.Companion.defaultInsertionConfig
 import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.MatchedStrategy
-import com.android.tools.idea.gradle.dsl.api.AndroidDeclarativeType
+import com.android.tools.idea.gradle.dsl.android.api.android.AndroidGradleDeclarativeBuildModel
+import com.android.tools.idea.gradle.dsl.android.api.android.AndroidDeclarativeType
 import com.android.tools.idea.gradle.dsl.api.BasePluginsModel
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeSettingsModel
@@ -167,18 +168,24 @@ class DeclarativePluginsInserter(private val projectModel: ProjectBuildModel) : 
 
   private fun addModuleComponent(plugin: EcosystemPlugin, buildModel: GradleBuildModel): Set<PsiFile> {
     val changedFiles = mutableSetOf<PsiFile>()
-    val declarativeBuildModel = projectModel.getDeclarativeModuleBuildModel(buildModel.virtualFile)
+    val declarativeBuildModel = projectModel.getDeclarativeModuleBuildModel(buildModel.virtualFile) as? AndroidGradleDeclarativeBuildModel
+
+    if (declarativeBuildModel == null) {
+      log.warn("Module '${buildModel.virtualFile.path}' is a declarative module but not an Android module.")
+      return changedFiles
+    }
+
     val type = when (plugin) {
       EcosystemPlugin.APPLICATION -> AndroidDeclarativeType.APPLICATION
       EcosystemPlugin.LIBRARY -> AndroidDeclarativeType.LIBRARY
     }
-    return declarativeBuildModel?.let { model ->
+    return declarativeBuildModel.let { model ->
       if (model.existingAndroidElement() == null) {
         model.createAndroidElement(type)
         changedFiles.addIfNotNull(model.psiFile)
       }
       changedFiles
-    } ?: changedFiles
+    }
   }
 
   private fun getEcosystemPlugin(plugin: String): EcosystemPlugin? =

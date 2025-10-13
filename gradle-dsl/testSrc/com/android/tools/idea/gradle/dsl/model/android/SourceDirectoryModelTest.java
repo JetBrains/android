@@ -19,11 +19,12 @@ import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_DIRECTOR
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_ENTRIES_REMOVE_AND_APPLY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_ENTRIES_REPLACE_AND_APPLY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_TEXT;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelUtilsKt.android;
+import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelUtilsKt.android;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.android.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.SourceSetModel;
 import com.android.tools.idea.gradle.dsl.api.android.sourceSets.SourceDirectoryModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;

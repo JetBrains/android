@@ -56,6 +56,7 @@ iml_module(
         "//tools/adt/idea/intellij.android.compose-common",
         "//tools/adt/idea/android:intellij.android.core",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl",
+        "//tools/adt/idea/gradle-dsl-android:intellij.android.gradle.dsl.android",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
         "//prebuilts/r8",

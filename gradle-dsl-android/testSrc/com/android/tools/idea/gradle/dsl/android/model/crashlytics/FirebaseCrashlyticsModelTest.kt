@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.dsl.android.model.crashlytics
 
 import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.TestFileName
-import com.android.tools.idea.gradle.dsl.model.android.android
+import com.android.tools.idea.gradle.dsl.android.model.android.android
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Test
 import java.io.File

@@ -92,6 +92,7 @@
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.toml" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.declarative" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.groovy" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.android" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.kotlin.gradle.tooling.impl" />
     <orderEntry type="module" module-name="intellij.gradle" scope="TEST" />

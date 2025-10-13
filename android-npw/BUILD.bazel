@@ -93,6 +93,7 @@ jvm_library(
         "//android/artwork-compose",
         "//android/adt-ui-compose",
         "//platform/forms_rt:java-guiForms-rt",
+        "//android/gradle-dsl-android",
     ],
 )
 
@@ -171,6 +172,7 @@ jvm_library(
         "//android/artwork-compose:artwork-compose_test_lib",
         "//android/adt-ui-compose:adt-ui-compose_test_lib",
         "//platform/forms_rt:java-guiForms-rt_test_lib",
+        "//android/gradle-dsl-android:gradle-dsl-android_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.newProjectWizard` end
@@ -343,6 +345,8 @@ jvm_library(
         "//platform/util:util-ui_test_lib",
         "//xml/dom-openapi:dom",
         "//xml/dom-openapi:dom_test_lib",
+        "//android/gradle-dsl-android",
+        "//android/gradle-dsl-android:gradle-dsl-android_test_lib",
         "@lib//:mockito-kotlin",
         "//plugins/kotlin/gradle/gradle-tooling/impl",
         "//plugins/kotlin/gradle/gradle-tooling/impl:impl_test_lib",

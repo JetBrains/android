@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.dsl.parser.declarative
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
-import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement
-import com.android.tools.idea.gradle.dsl.parser.android.DeclarativeAndroidDslElement
+import com.android.tools.idea.gradle.dsl.android.parser.android.AndroidDslElement
+import com.android.tools.idea.gradle.dsl.android.parser.android.DeclarativeAndroidDslElement
 import com.android.tools.idea.gradle.dsl.parser.compareWithExpectedPsi
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement

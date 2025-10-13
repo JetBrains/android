@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.model.android;
+package com.android.tools.idea.gradle.dsl.android.model.android;
 
 import static com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement.AAPT_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement.ADB_OPTIONS;
@@ -44,7 +44,7 @@ import static com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElem
 import static com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement.SPLITS;
 import static com.android.tools.idea.gradle.dsl.parser.android.TestCoverageDslElement.TEST_COVERAGE;
 import static com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement.TEST_OPTIONS;
-import static com.android.tools.idea.gradle.dsl.parser.android.ViewBindingDslElement.VIEW_BINDING;
+import static com.android.tools.idea.gradle.dsl.android.parser.android.ViewBindingDslElement.VIEW_BINDING;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.BOOLEAN;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET;
@@ -54,7 +54,7 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyTy
 import com.android.tools.idea.gradle.dsl.api.ExternalNativeBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AaptOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.AdbOptionsModel;
-import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.android.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidResourcesModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildFeaturesModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
@@ -81,9 +81,34 @@ import com.android.tools.idea.gradle.dsl.api.android.ViewBindingModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.android.AaptOptionsModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.AdbOptionsModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.AndroidResourcesModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.CompileOptionsModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.ComposeOptionsModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.DataBindingModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.DependenciesInfoModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.DexOptionsModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.ExternalNativeBuildModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.InstallationModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.JacocoModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.KotlinOptionsModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.LintModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.PackagingOptionsModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.SigningConfigModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.SourceSetModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.SplitsModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.TestCoverageModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.TestOptionsModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.UseLibrariesModelImpl;
+import com.android.tools.idea.gradle.dsl.android.model.android.ViewBindingModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement;
-import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
+import com.android.tools.idea.gradle.dsl.android.parser.android.AndroidDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidResourcesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.BuildFeaturesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement;
@@ -110,7 +135,7 @@ import com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.TestCoverageDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement;
-import com.android.tools.idea.gradle.dsl.parser.android.ViewBindingDslElement;
+import com.android.tools.idea.gradle.dsl.android.parser.android.ViewBindingDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion;

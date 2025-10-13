@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.android.model
 
+import com.android.tools.idea.gradle.dsl.android.api.android.AndroidGradleDeclarativeBuildModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 
-abstract class AndroidGradleFileModelTestCase: GradleFileModelTestCase("tools/adt/idea/gradle-dsl-android/testData/parser")
+abstract class AndroidGradleFileModelTestCase: GradleFileModelTestCase("tools/adt/idea/gradle-dsl-android/testData/parser") {
+  override fun getGradleDeclarativeBuildModel(): AndroidGradleDeclarativeBuildModel {
+    return super.getGradleDeclarativeBuildModel() as AndroidGradleDeclarativeBuildModel
+  }
+}

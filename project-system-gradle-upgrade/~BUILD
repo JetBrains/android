@@ -43,6 +43,7 @@ iml_module(
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model",
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl",
+        "//tools/adt/idea/gradle-dsl-android:intellij.android.gradle.dsl.android",
         "//tools/adt/idea/.idea/libraries:mockito",
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/base/testutils:studio.android.sdktools.testutils",

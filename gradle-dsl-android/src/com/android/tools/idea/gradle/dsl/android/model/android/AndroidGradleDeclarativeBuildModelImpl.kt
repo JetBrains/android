@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.model
+package com.android.tools.idea.gradle.dsl.android.model.android
 
-import com.android.tools.idea.gradle.dsl.api.AndroidDeclarativeType
-import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeBuildModel
-import com.android.tools.idea.gradle.dsl.api.android.AndroidDeclarativeModel
+import com.android.tools.idea.gradle.dsl.android.api.android.AndroidGradleDeclarativeBuildModel
+import com.android.tools.idea.gradle.dsl.android.api.android.AndroidDeclarativeModel
+import com.android.tools.idea.gradle.dsl.android.api.android.AndroidDeclarativeType
+import com.android.tools.idea.gradle.dsl.android.parser.android.AndroidDslElement.ANDROID_APP
+import com.android.tools.idea.gradle.dsl.android.parser.android.AndroidDslElement.ANDROID_LIBRARY
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
-import com.android.tools.idea.gradle.dsl.model.android.AndroidDeclarativeModelImpl
-import com.android.tools.idea.gradle.dsl.model.android.android
-import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_APP
-import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_LIBRARY
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 
-class GradleDeclarativeBuildModelImpl(val gradleBuildFile: GradleBuildFile): GradleBuildModelImpl(gradleBuildFile), GradleDeclarativeBuildModel {
+class AndroidGradleDeclarativeBuildModelImpl(val gradleBuildFile: GradleBuildFile): GradleBuildModelImpl(gradleBuildFile),
+                                                                                    AndroidGradleDeclarativeBuildModel {
   override fun existingAndroidElement(): AndroidDeclarativeType? {
     return try {
       when (android().fullyQualifiedName) {
@@ -41,7 +41,8 @@ class GradleDeclarativeBuildModelImpl(val gradleBuildFile: GradleBuildFile): Gra
 
   override fun createAndroidElement(type: AndroidDeclarativeType): AndroidDeclarativeModel =
     when (type) {
-      AndroidDeclarativeType.APPLICATION ->  AndroidDeclarativeModelImpl(gradleBuildFile.ensurePropertyElement(ANDROID_APP))
+      AndroidDeclarativeType.APPLICATION -> AndroidDeclarativeModelImpl(
+        gradleBuildFile.ensurePropertyElement(ANDROID_APP))
       AndroidDeclarativeType.LIBRARY -> AndroidDeclarativeModelImpl(gradleBuildFile.ensurePropertyElement(ANDROID_LIBRARY))
     }
 

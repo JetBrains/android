@@ -82,6 +82,7 @@ jvm_library(
         "//plugins/kotlin/base/facet",
         "//platform/lang-api:lang",
         "//platform/util/concurrency",
+        "//android/gradle-dsl-android",
     ],
 )
 
@@ -156,6 +157,7 @@ jvm_library(
         "//plugins/kotlin/base/facet:facet_test_lib",
         "//platform/lang-api:lang_test_lib",
         "//platform/util/concurrency:concurrency_test_lib",
+        "//android/gradle-dsl-android:gradle-dsl-android_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.psd` end
@@ -221,14 +223,16 @@ jvm_library(
         "@lib//:kotlinc-kotlin-compiler-common",
         "//android/adt-testutils",
         "//android/adt-testutils:adt-testutils_test_lib",
+        "//android/gradle-dsl",
+        "//android/gradle-dsl:gradle-dsl_test_lib",
+        "//android/gradle-dsl-android",
+        "//android/gradle-dsl-android:gradle-dsl-android_test_lib",
         "//android/android-common:common",
         "//android/android-common:common_test_lib",
         "//android/android:core",
         "//android/android:core_test_lib",
         "//android/android:core-tests",
         "//android/android:core-tests_test_lib",
-        "//android/gradle-dsl",
-        "//android/gradle-dsl:gradle-dsl_test_lib",
         "//android/gradle-dsl:gradle-dsl-testutils",
         "//android/gradle-dsl:gradle-dsl-testutils_test_lib",
         "//android/observable",
