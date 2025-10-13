@@ -122,7 +122,7 @@ class GradleBlockModelDefaultsTest : GradleFileModelTestCase() {
     assertThrows(
       java.lang.IllegalArgumentException::class.java,
       "Block model for interface com.android.tools.idea.gradle.dsl.model.MyNestedDslModel is" +
-      " not registered in class com.android.tools.idea.gradle.dsl.model.SoftwareTypesModelImpl"
+      " not registered in class com.android.tools.idea.gradle.dsl.android.model.android.AndroidSoftwareTypesModelImpl"
     ) { defaults.getModel(MyNestedDslModel::class.java) }
   }
 

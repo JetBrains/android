@@ -16,7 +16,7 @@
 package com.android.tools.idea.templates.diff.activity
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.dsl.model.android.android
+import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.templates.diff.LintReportParser
 import com.android.tools.idea.templates.diff.TemplateDiffTestUtils
 import com.android.tools.idea.templates.diff.TemplateDiffTestUtils.getPinnedAgpVersion

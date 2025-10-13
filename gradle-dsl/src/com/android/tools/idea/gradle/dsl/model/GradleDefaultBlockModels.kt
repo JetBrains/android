@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.dsl.model
 
 import com.android.tools.idea.gradle.dsl.api.BuildScriptModel
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
-import com.android.tools.idea.gradle.dsl.api.android.AndroidDeclarativeModel
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationsModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel
@@ -26,7 +25,6 @@ import com.android.tools.idea.gradle.dsl.api.java.JavaModel
 import com.android.tools.idea.gradle.dsl.api.kotlin.KotlinModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel
-import com.android.tools.idea.gradle.dsl.model.android.AndroidDeclarativeModelImpl
 import com.android.tools.idea.gradle.dsl.model.build.BuildScriptModelImpl
 import com.android.tools.idea.gradle.dsl.model.build.EmptyBuildScriptModel
 import com.android.tools.idea.gradle.dsl.model.configurations.ConfigurationsModelImpl
@@ -44,7 +42,6 @@ import com.android.tools.idea.gradle.dsl.model.repositories.EmptyRepositoriesMod
 import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModelImpl
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.DECLARATIVE
-import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement
 import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement
 import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement

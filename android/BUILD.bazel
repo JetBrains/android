@@ -345,6 +345,7 @@ jvm_library(
     "//xml/xml-psi-api:psi",
     "//xml/xml-analysis-api:analysis",
     "//plugins/kotlin/code-insight/api",
+    "//android/gradle-dsl-android",
     "//android/android/editing/documentation",
     "//android/android/editing/documentation:documentation_test_lib",
     "//platform/execution",

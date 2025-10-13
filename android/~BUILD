@@ -655,6 +655,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models",
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl",
+        "//tools/adt/idea/gradle-dsl-android:intellij.android.gradle.dsl.android",
         "//tools/analytics-library/shared:analytics-shared",
         "//tools/adt/idea/lint:intellij.lint",
         "//tools/adt/idea/.idea/libraries:mockito",

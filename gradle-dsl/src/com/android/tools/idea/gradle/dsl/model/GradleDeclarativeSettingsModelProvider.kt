@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,15 @@
 package com.android.tools.idea.gradle.dsl.model
 
 import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeSettingsModel
-import com.android.tools.idea.gradle.dsl.api.SoftwareTypesModel
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile
-import com.android.tools.idea.gradle.dsl.parser.settings.DefaultsDslElement
+import com.intellij.openapi.extensions.ExtensionPointName
 
-class GradleDeclarativeSettingsModelImpl(parsedModel: GradleSettingsFile): GradleSettingsModelImpl(parsedModel), GradleDeclarativeSettingsModel {
-  override fun defaults(): SoftwareTypesModel {
-    val defaultsDslElement = myGradleSettingsFile.ensurePropertyElement(DefaultsDslElement.DEFAULTS_DSL_ELEMENT)
-    return SoftwareTypesModelImpl(defaultsDslElement)
+interface GradleDeclarativeSettingsModelProvider {
+  fun createModel(dslFile: GradleSettingsFile): GradleDeclarativeSettingsModel?
+
+  companion object{
+    @JvmField
+    val EP: ExtensionPointName<GradleDeclarativeSettingsModelProvider> =
+      ExtensionPointName.Companion.create("com.android.tools.idea.gradle.dsl.gradleDeclarativeSettingsModelProvider")
   }
 }

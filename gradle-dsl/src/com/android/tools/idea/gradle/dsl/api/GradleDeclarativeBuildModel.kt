@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,4 @@
  */
 package com.android.tools.idea.gradle.dsl.api
 
-import com.android.tools.idea.gradle.dsl.api.android.AndroidDeclarativeModel
-
-enum class AndroidDeclarativeType {
-  APPLICATION, LIBRARY // More to come as soon as AGP ecosystem plugin has support of other AGP project types: test, dynamic feature etc.
-}
-
-interface GradleDeclarativeBuildModel : GradleBuildModel {
-  fun existingAndroidElement(): AndroidDeclarativeType?
-  fun createAndroidElement(type: AndroidDeclarativeType): AndroidDeclarativeModel
-}
+interface GradleDeclarativeBuildModel : GradleBuildModel

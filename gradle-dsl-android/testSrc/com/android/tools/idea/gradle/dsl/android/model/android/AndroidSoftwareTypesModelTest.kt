@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.model.android
+package com.android.tools.idea.gradle.dsl.android.model.android
 
 import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dsl.TestFileName
-import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase
+import com.android.tools.idea.gradle.dsl.android.api.android.AndroidSoftwareTypesModel
 import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
 import com.google.common.truth.Truth.assertThat
+import java.io.File
 import org.jetbrains.annotations.SystemDependent
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import java.io.File
 
-class SoftwareTypesModelTest : GradleFileModelTestCase() {
+class AndroidSoftwareTypesModelTest : AndroidGradleFileModelTestCase() {
 
   @Before
   override fun before() {
@@ -48,7 +49,7 @@ class SoftwareTypesModelTest : GradleFileModelTestCase() {
     writeToSettingsFile(TestFile.ANDROID_BLOCKS_WITH_STATEMENTS)
 
     val buildModel = gradleDeclarativeSettingsModel
-    val defaults = buildModel.defaults()
+    val defaults = buildModel.defaults() as AndroidSoftwareTypesModel
     assertNotNull(defaults)
 
     val androidLibrary = defaults.androidLibrary()
@@ -63,7 +64,7 @@ class SoftwareTypesModelTest : GradleFileModelTestCase() {
   @Test
   fun testCreateAndroidAppAndLibraryBlocksFromScratch() {
     val buildModel = gradleDeclarativeSettingsModel
-    val defaults = buildModel.defaults()
+    val defaults = buildModel.defaults() as AndroidSoftwareTypesModel
     assertNotNull(defaults)
 
    defaults.androidLibrary().let { library ->
@@ -80,16 +81,15 @@ class SoftwareTypesModelTest : GradleFileModelTestCase() {
 
     applyChanges(buildModel)
     buildModel.reparse()
-
-    assertEquals("buildToolsVersion", 22, buildModel.defaults().androidLibrary().buildToolsVersion())
-    assertEquals("buildToolsVersion", 21, buildModel.defaults().androidApp().buildToolsVersion())
+    assertEquals("buildToolsVersion", 22, (buildModel.defaults() as AndroidSoftwareTypesModel).androidLibrary().buildToolsVersion())
+    assertEquals("buildToolsVersion", 21, (buildModel.defaults() as AndroidSoftwareTypesModel).androidApp().buildToolsVersion())
   }
 
   @Test
   fun testRemoveAndroidAppAndLibraryBlocks() {
     writeToSettingsFile(TestFile.ANDROID_BLOCKS_WITH_STATEMENTS)
     val buildModel = gradleDeclarativeSettingsModel
-    val defaults = buildModel.defaults()
+    val defaults = buildModel.defaults() as AndroidSoftwareTypesModel
     assertNotNull(defaults)
 
     defaults.androidLibrary().delete()

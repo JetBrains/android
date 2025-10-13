@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser.android
+package com.android.tools.idea.gradle.dsl.android.api.android;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
+import org.jetbrains.annotations.NotNull;
 
-class DeclarativeAndroidDslElement(parent: GradleDslElement, name: GradleNameElement): AndroidDslElement(parent, name) {
-  override fun isInsignificantIfEmpty(): Boolean = false
+public interface AndroidDeclarativeModel extends AndroidModel {
+  @NotNull
+  DependenciesModel dependencies();
 }

@@ -19,6 +19,7 @@ jvm_library(
     "@lib//:jetbrains-annotations",
     "//platform/core-api:core",
     "//android/gradle-dsl",
+    "//libraries/guava",
   ]
 )
 ### auto-generated section `build intellij.android.gradle.dsl.android` end
@@ -54,6 +55,9 @@ jvm_library(
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/gradle-dsl:gradle-dsl-testutils_test_lib",
     "@lib//:junit4",
+    "@lib//:truth",
+    "//android/gradle-declarative-lang-flags",
+    "//android/gradle-dsl-flags",
   ],
   runtime_deps = [":gradle-dsl-android-tests"]
 )
