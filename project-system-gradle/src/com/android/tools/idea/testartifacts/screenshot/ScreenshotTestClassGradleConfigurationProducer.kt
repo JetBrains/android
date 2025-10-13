@@ -21,10 +21,13 @@ import com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExte
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiElement
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
+import org.jetbrains.kotlin.asJava.toLightMethods
+import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 import org.jetbrains.plugins.gradle.util.TasksToRun
@@ -43,16 +46,44 @@ class ScreenshotTestClassGradleConfigurationProducer: TestClassGradleConfigurati
 
   override fun doIsConfigurationFromContext(configuration: GradleRunConfiguration, context: ConfigurationContext): Boolean {
     val location = context.location ?: return false
-    val psiClass = getPsiParentsOfType(location.psiElement, PsiClass::class.java, false).firstOrNull()?:
-                   getPsiParentsOfType(location.psiElement, PsiClassOwner::class.java, false).firstOrNull()?.classes?.firstOrNull() ?: return false
+    val myModule = AndroidUtils.getAndroidModule(context) ?: return false
+    val facet = AndroidFacet.getInstance(myModule) ?: return false
+    if (!isScreenshotTestSourceSet(location, facet)) return false
 
-    val androidModule = AndroidUtils.getAndroidModule(context) ?: return false
-    val androidFacet = AndroidFacet.getInstance(androidModule) ?: return false
-    if (!isScreenshotTestSourceSet(location, androidFacet)) return false
-    if (!isClassDeclarationWithPreviewTestAnnotatedMethods(psiClass, visitedAnnotation)) return false
+    val expectedTasks: List<String>
 
-    val configurationTaskNames = configuration.settings.taskNames
-    return configurationTaskNames == taskNamesWithFilter(context, psiClass)
+    // Case 1: Context is a Kotlin file (e.g., right-click in Project view).
+    if (location.psiElement is KtFile) {
+      val ktFile = location.psiElement as KtFile
+      val qualifiedNames = mutableSetOf<String>()
+
+      ktFile.classes.forEach { psiClass ->
+        if (isClassDeclarationWithPreviewTestAnnotatedMethods(psiClass, visitedAnnotation)) {
+          psiClass.qualifiedName?.let { qualifiedNames.add(it) }
+        }
+      }
+      val hasTopLevelTests = ktFile.declarations.any { declaration ->
+        (declaration as? KtNamedFunction)?.toLightMethods()?.any { method ->
+          isMethodDeclarationPreviewTestAnnotated(method, visitedAnnotation)
+        } == true
+      }
+      if (hasTopLevelTests) {
+        qualifiedNames.add(ktFile.javaFileFacadeFqName.asString())
+      }
+
+      if (qualifiedNames.isEmpty()) {
+        return false
+      }
+      expectedTasks = taskNamesWithFilter(context, qualifiedNames.toList())
+    }
+    // Case 2: Context is inside the editor or on a class.
+    else {
+      val psiClass = getPsiParentsOfType(location.psiElement, PsiClass::class.java, false).firstOrNull() ?: return false
+      if (!isClassDeclarationWithPreviewTestAnnotatedMethods(psiClass, visitedAnnotation)) return false
+      expectedTasks = taskNamesWithFilter(context, listOfNotNull(psiClass.qualifiedName))
+    }
+
+    return configuration.settings.taskNames == expectedTasks
   }
 
   override fun getAllTestsTaskToRun(context: ConfigurationContext,
@@ -85,30 +116,61 @@ class ScreenshotTestClassGradleConfigurationProducer: TestClassGradleConfigurati
     }
 
     val project = context.project ?: return false
-    val candidates = sequence<PsiClass> {
-      // First, looks up parents of PsiClass from the context location.
-      yieldAll(getPsiParentsOfType(location.psiElement, PsiClass::class.java, false))
 
-      // If there are no PsiClass ancestors of the context location, find PsiClassOwner ancestors and
-      // look up their classes. We don't search recursively so nested classes may be overlooked.
-      // For instance, if there are two top-level classes A and B in a file, the class B has a nested
-      // class C with @RunWith annotation, and the context location is at the class A, the class C is
-      // not discovered.
-      getPsiParentsOfType(location.psiElement, PsiClassOwner::class.java, false).forEach { classOwner ->
-        yieldAll(classOwner.classes.iterator())
+    // Case 1: Context is a Kotlin file (e.g., right-click in Project view).
+    if (location.psiElement is KtFile) {
+      val ktFile = location.psiElement as KtFile
+      val qualifiedNames = mutableSetOf<String>()
+
+      // Collect all classes in the file that have screenshot tests.
+      ktFile.classes.forEach { psiClass ->
+        if (isClassDeclarationWithPreviewTestAnnotatedMethods(psiClass, visitedAnnotation)) {
+          psiClass.qualifiedName?.let { qualifiedNames.add(it) }
+        }
       }
-    }
-    return candidates.any { psiClass ->
-      if (!isClassDeclarationWithPreviewTestAnnotatedMethods(psiClass, visitedAnnotation)) return false
-      sourceElementRef.set(psiClass)
+
+      // Also check for top-level functions.
+      val hasTopLevelTests = ktFile.declarations.any { declaration ->
+        (declaration as? KtNamedFunction)?.toLightMethods()?.any { method ->
+          isMethodDeclarationPreviewTestAnnotated(method, visitedAnnotation)
+        } == true
+      }
+      if (hasTopLevelTests) {
+        qualifiedNames.add(ktFile.javaFileFacadeFqName.asString())
+      }
+
+      if (qualifiedNames.isEmpty()) {
+        return false
+      }
+
+      // A representative PsiElement is required by the base producer.
+      // We'll use the first class in the file, or the file itself if no classes exist.
+      val representativeElement = ktFile.classes.firstOrNull() ?: ktFile
+      sourceElementRef.set(representativeElement)
+
       configuration.settings.externalProjectPath = project.basePath
-      configuration.name = suggestConfigurationName(context, psiClass, emptyList())
-      configuration.settings.taskNames = taskNamesWithFilter(context, psiClass)
+      configuration.name = "Screenshot Tests in ${ktFile.name}"
+      configuration.settings.taskNames = taskNamesWithFilter(context, qualifiedNames.toList())
       return true
     }
+    // Case 2: Context is inside the editor or on a class.
+    else {
+      val psiClass = getPsiParentsOfType(location.psiElement, PsiClass::class.java, false).firstOrNull()
+      if (psiClass != null && isClassDeclarationWithPreviewTestAnnotatedMethods(psiClass, visitedAnnotation)) {
+        sourceElementRef.set(psiClass)
+        configuration.settings.externalProjectPath = project.basePath
+        configuration.name = suggestConfigurationName(context, psiClass, emptyList())
+        configuration.settings.taskNames = taskNamesWithFilter(context, listOfNotNull(psiClass.qualifiedName))
+        return true
+      }
+    }
+
+    return false
   }
 
-  private fun taskNamesWithFilter(context: ConfigurationContext, psiClass: PsiClass): List<String> {
-    return getScreenshotTestTaskNames(context)!! + "--tests" + "\"${psiClass.qualifiedName}\""
+  private fun taskNamesWithFilter(context: ConfigurationContext, qualifiedNames: List<String>): List<String> {
+    val baseTasks = getScreenshotTestTaskNames(context) ?: return emptyList()
+    val testFilters = qualifiedNames.flatMap { listOf("--tests", "\"$it\"") }
+    return baseTasks + testFilters
   }
 }
