@@ -2322,7 +2322,7 @@ public final class StudioFlags {
     new IntFlag(STUDIOBOT, "conversations.per.hour",
                 "AI conversations per hour",
                 "AI conversations per hour",
-                120);
+                500);
 
   public static final Flag<Integer> STUDIOBOT_GENERATIONS_PER_HOUR =
     new IntFlag(STUDIOBOT, "generations.per.hour",
