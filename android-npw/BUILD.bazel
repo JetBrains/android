@@ -194,6 +194,7 @@ jvm_library(
     "//android/adt-ui-compose:adt-ui-compose_test_lib",
     "//android/ml-api",
     "//android/jps-model",
+    "//android/project-system-gradle:projectSystem-gradle-tests_test_lib",
   ],
   runtime_deps = [":newProjectWizard-tests"],
   plugins = ["@lib//:compose-plugin"]
