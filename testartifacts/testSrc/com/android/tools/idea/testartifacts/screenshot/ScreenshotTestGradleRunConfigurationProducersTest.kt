@@ -56,6 +56,7 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
   private val EMPTY_CLASS = "app/src/screenshotTest/java/com/example/application/MyEmptyClass.kt"
   private val NO_PREVIEWS = "app/src/screenshotTest/java/com/example/application/NoPreviewsClass.kt"
   private val TOP_LEVEL = "app/src/screenshotTest/java/com/example/application/MyScreenshotTestTopLevel.kt"
+  private val MIXED_TESTS_FILE = "app/src/screenshotTest/java/com/example/application/MyFileWithMixedTests.kt"
 
   @Before
   fun setUp() {
@@ -79,6 +80,42 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])
     assertEquals("--tests", runConfiguration.settings.taskNames[1])
     assertEquals("\"com.example.application.MyScreenshotTest\"", runConfiguration.settings.taskNames[2])
+  }
+
+  @Test
+  fun testConfigurationFromFile_includesClassAndTopLevelTests() {
+    val project = projectRule.project
+    // Get the PsiFile for the test file.
+    val psiFile = TestConfigurationTestingUtil.getPsiElement(project, MIXED_TESTS_FILE, false)
+    val context = TestConfigurationTestingUtil.createContext(project, psiFile)
+    val runConfiguration = context.configuration?.configuration as? GradleRunConfiguration
+
+    requireNotNull(runConfiguration) { "Run configuration should not be null for file context" }
+
+    assertEquals("Screenshot Tests in MyFileWithMixedTests.kt", runConfiguration.name)
+    assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
+    assertEquals(true, runConfiguration.isRunAsTest)
+
+    val taskNames = runConfiguration.settings.taskNames
+    assertThat(taskNames).contains(":app:validateDebugScreenshotTest")
+
+    // Check that we have the correct number of task arguments.
+    // 1 for the task, plus 2 for each "--tests" filter (2 filters total) = 5.
+    assertThat(taskNames).hasSize(5)
+
+    // Drop the base task and chunk the remaining arguments into pairs like [--tests, "filter"].
+    val testFilters = taskNames.drop(1)
+      .chunked(2)
+      .filter { it.size == 2 && it[0] == "--tests" }
+      .map { it[1] }
+
+    // Verify that we have exactly the two expected filters.
+    val expectedFilters = listOf(
+      "\"com.example.application.MyClassInMixedFile\"",
+      "\"com.example.application.MyFileWithMixedTestsKt\""
+    )
+    assertThat(testFilters).hasSize(expectedFilters.size)
+    assertThat(testFilters).containsAllIn(expectedFilters)
   }
 
   @Test
@@ -473,6 +510,29 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
 
     """.trimIndent())
 
+    // File with both a top-level test and a test in a class
+    createRelativeFileWithContent(MIXED_TESTS_FILE,
+                                  """
+    package com.example.application
+
+    import androidx.compose.runtime.Composable
+    import androidx.compose.ui.tooling.preview.Preview
+    import com.android.tools.screenshot.PreviewTest
+
+    @PreviewTest
+    @Preview
+    @Composable
+    fun TopLevelTestInMixedFile() {
+    }
+
+    class MyClassInMixedFile {
+      @PreviewTest
+      @Preview
+      @Composable
+      fun ClassTestInMixedFile() {
+      }
+    }
+    """.trimIndent())
   }
 
   private fun stubPreviewTestAnnotation() {
