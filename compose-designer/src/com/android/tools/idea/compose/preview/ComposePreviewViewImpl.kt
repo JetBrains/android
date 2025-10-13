@@ -20,7 +20,6 @@ import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.surface.DesignSurface
@@ -36,7 +35,6 @@ import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
-import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.preview.focus.FocusModeProperty
 import com.android.tools.idea.preview.mvvm.PreviewRepresentationView
 import com.android.tools.idea.rendering.tokens.requestBuildArtifactsForRendering
@@ -50,9 +48,7 @@ import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileEditor
-import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
@@ -76,8 +72,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
-import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
 private const val COMPOSE_PREVIEW_DOC_URL = "https://d.android.com/jetpack/compose/preview"
 
@@ -457,25 +451,6 @@ internal class ComposePreviewViewImpl(
   private suspend fun createGeneratePreviewsActionData(): ActionData? {
     val previewGeneratorFactory = getComposeStudioBotActionFactory() ?: return null
 
-    try {
-      ProgressManager.checkCanceled()
-      val hasComposables = readAction {
-        psiFilePointer.element
-          ?.collectDescendantsOfType<KtNamedFunction>()
-          ?.flatMap { it.annotationEntries }
-          ?.any { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME) } == true
-      }
-      if (!hasComposables) {
-        // Don't show the action if there are no Composables in the file
-        return null
-      }
-    } catch (e: ProcessCanceledException) {
-      throw e
-    } catch (e: Exception) {
-      log.debug("Failed to check if there are Composables in the file", e)
-      return null
-    }
-
     return previewGeneratorFactory.createPreviewGenerator()?.let {
       createPreviewActionData(
         it,
@@ -488,7 +463,7 @@ internal class ComposePreviewViewImpl(
   }
 
   /** Creates an [ActionData] to invoke an action that generates code from a screenshot. */
-  private fun createScreenshotToCodeActionData(): ActionData? {
+  private suspend fun createScreenshotToCodeActionData(): ActionData? {
     val factory = getComposeStudioBotActionFactory() ?: return null
 
     return factory.screenshotToCodeAction().let {
