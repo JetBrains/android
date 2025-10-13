@@ -51,15 +51,17 @@ class SceneViewErrorsPanel(
   enum class Style {
     /** The panel is not visible */
     HIDDEN,
+
     /** The panel is showing and is opaque */
     SOLID,
+
     /** The panel is showing and is translucent */
     TRANSLUCENT,
   }
 
   private val height =
     if (StudioFlags.COMPOSE_RENDER_ERROR_FIX_WITH_AI.get()) EXTENDED_HEIGHT else DEFAULT_HEIGHT
-  private val size = JBUI.size(150, height)
+  private val size = JBUI.size(120, height)
   private val label =
     JBLabel(ERROR_LABEL_CONTENT).apply {
       foreground = Gray._119
