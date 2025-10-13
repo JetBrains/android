@@ -2401,6 +2401,7 @@ Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/dat
 Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/layoutinspector-view-inspection.jar
 Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/network-inspector.jar
 Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/sqlite-inspection.jar
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/ai_glasses_device/default-background-1.png
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/automotive_1024/back.png
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/automotive_1024/fore.png
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/automotive_1024/layout

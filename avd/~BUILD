@@ -8,6 +8,9 @@ iml_module(
     kotlin_use_compose = True,
     resources = ["resources"],
     test_class = "com.android.tools.idea.avd.AvdTestSuite",
+    test_data = [
+        "//tools/adt/idea/artwork:device-art-resources-bundle",
+    ],
     # do not sort: must match IML order
     test_deps = [
         "@intellij//:test-framework",

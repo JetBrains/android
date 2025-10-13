@@ -75,7 +75,16 @@ private val formFactorComparator: Comparator<String> =
     }
     .then(naturalOrder())
 
-val FormFactor = DeviceAttribute("Form Factor", comparator = formFactorComparator) { it.formFactor }
+val FormFactor =
+  DeviceAttribute("Form Factor", comparator = formFactorComparator) {
+    // The device profile needs to distinguish headset and glasses, but the table UI doesn't.
+    when (it.formFactor) {
+      FormFactors.AI_GLASSES,
+      FormFactors.XR_HEADSET,
+      FormFactors.XR_GLASSES -> FormFactors.XR
+      else -> it.formFactor
+    }
+  }
 
 internal fun <V : Comparable<V>> DeviceAttribute(name: String, value: (DeviceProfile) -> V) =
   DeviceAttribute(name, Comparator.naturalOrder(), value)

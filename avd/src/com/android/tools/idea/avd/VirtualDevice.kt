@@ -65,6 +65,8 @@ internal class VirtualDevice(
   var name: String by mutableStateOf("")
   var image: ISystemImage? by mutableStateOf(null)
   var skin: Skin by mutableStateOf(NoSkin.INSTANCE)
+  var avdFolder: Path? by mutableStateOf(null)
+  var environment: Path? by mutableStateOf(null)
   var frontCamera: AvdCamera by mutableStateOf(AvdCamera.NONE)
   var rearCamera: AvdCamera by mutableStateOf(AvdCamera.NONE)
   var speed: AvdNetworkSpeed by mutableStateOf(EmulatedProperties.DEFAULT_NETWORK_SPEED)
@@ -121,6 +123,8 @@ internal class VirtualDevice(
     name = avdBuilder.displayName
     image = avdBuilder.systemImage
     skin = avdBuilder.skin.toSkin()
+    avdFolder = avdBuilder.avdFolder
+    environment = avdBuilder.environment
     frontCamera = avdBuilder.frontCamera
     rearCamera = avdBuilder.backCamera
     speed = avdBuilder.networkSpeed
@@ -159,6 +163,7 @@ internal fun AvdBuilder.copyFrom(device: VirtualDevice) {
 
   sdCard = requireNotNull(device.expandedStorage).toSdCard()
   skin = device.skin.toAvdSkin()
+  environment = device.environment
 
   screenOrientation = device.orientation
   cpuCoreCount = device.cpuCoreCount
