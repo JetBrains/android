@@ -33,6 +33,8 @@ import com.android.tools.profiler.proto.Transport
 import com.android.tools.profilers.ModelStage
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.tasks.TaskEventTrackerUtils.trackTaskFinished
+import com.android.tools.profilers.tasks.TaskFinishedState
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -78,6 +80,9 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
     toggleLeakCanaryLogcatTracking(profilers.session, enable = false, endSession = true)
     deregisterLeakCanaryListeners()
     profilers.updater.unregister(this)
+
+    // Track the successful completion of the user-initiated leakCanary recording task.
+    trackTaskFinished(profilers, true, TaskFinishedState.COMPLETED)
   }
 
   fun setIsRecording(isRecording: Boolean) {
@@ -221,6 +226,9 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers) : ModelSt
     if (_leaks.value.isNotEmpty()) {
       onLeakSelection(_leaks.value.first())
     }
+
+    // Track the successful completion of loading a past Leak Canary session.
+    trackTaskFinished(profilers, false, TaskFinishedState.COMPLETED)
   }
 
   private fun getAllLeakCanaryEvents(session: Common.Session,
