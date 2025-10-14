@@ -35,6 +35,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElem
 import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
+import com.intellij.psi.PsiElement
 
 class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyModel,
                                   private val internalMinorModel: ResolvedPropertyModel? = null,
@@ -235,5 +236,9 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
 
   override fun toString(): String {
     return internalModel.toString()
+  }
+
+  override fun getRepresentativeContainedPsiElement(): PsiElement? {
+    return internalModel.representativeContainedPsiElement
   }
 }
