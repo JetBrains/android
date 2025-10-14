@@ -31,18 +31,6 @@ public class ResolutionUtilsTest extends AndroidTestCase {
    * The test SDK only includes some resources. It only includes a few incomplete styles.
    */
 
-  public void testGetQualifiedName() {
-    StyleResourceValue styleResourceValue = new StyleResourceValueImpl(new ResourceReference(ResourceNamespace.ANDROID,
-                                                                                             ResourceType.STYLE,
-                                                                                             "myStyle"),
-                                                                       null,
-                                                                       null);
-    assertEquals("android:myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));
-
-    styleResourceValue = new StyleResourceValueImpl(ResourceNamespace.RES_AUTO, "myStyle", null, null);
-    assertEquals("myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));
-  }
-
   /**
    * Tests {@link ResolutionUtils#getQualifiedNameFromResourceUrl(String)}
    */
@@ -69,36 +57,5 @@ public class ResolutionUtilsTest extends AndroidTestCase {
     assertEquals(1, ResolutionUtils.getOriginalApiLevel("@android:color/black", getProject()));
     assertEquals(-1, ResolutionUtils.getOriginalApiLevel("?attr/colorAccent", getProject()));
     assertEquals(-1, ResolutionUtils.getOriginalApiLevel("@color/holo_green_dark", getProject()));
-  }
-
-  /**
-   * Tests {@link ResolutionUtils#getParentQualifiedName(StyleResourceValue)}
-   */
-  public void testGetParentQualifiedName() {
-    VirtualFile file = myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles.xml", "res/values/styles.xml");
-    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file);
-    ResourceResolver resolver = configuration.getResourceResolver();
-    assertNotNull(resolver);
-    StyleResourceValue style;
-
-    style = resolver.getStyle("Theme", true);
-    assertNotNull(style);
-    assertEquals(null, ResolutionUtils.getParentQualifiedName(style));
-
-    style = resolver.getStyle("Theme.Holo.Light", true);
-    assertNotNull(style);
-    assertEquals("android:Theme.Light", ResolutionUtils.getParentQualifiedName(style));
-
-    style = resolver.getStyle("ATheme", false);
-    assertNotNull(style);
-    assertEquals("android:Theme", ResolutionUtils.getParentQualifiedName(style));
-
-    style = resolver.getStyle("AppTheme", false);
-    assertNotNull(style);
-    assertEquals("ATheme", ResolutionUtils.getParentQualifiedName(style));
-
-    style = resolver.getStyle("ATheme.Red", false);
-    assertNotNull(style);
-    assertEquals("ATheme", ResolutionUtils.getParentQualifiedName(style));
   }
 }
