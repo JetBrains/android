@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.visual
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomToFitAction
-import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.common.error.IssueListener
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.model.NlComponent
@@ -27,21 +26,62 @@ import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.uibuilder.editor.NlActionManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
+import com.google.common.primitives.Ints
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys.CONTEXT_COMPONENT
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.icons.RgbImageFilterSupplier
 import icons.StudioIcons
 import java.awt.Color
 import java.awt.event.MouseEvent
+import java.awt.image.RGBImageFilter
+import java.util.function.Supplier
 import javax.swing.BoxLayout
 import javax.swing.BoxLayout.Y_AXIS
+import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlin.math.abs
+
+private fun colorDistanceToOrange(color: Color): Int =
+  Ints.max(
+    abs(color.red - Color.ORANGE.red),
+    abs(color.green - Color.ORANGE.green),
+    abs(color.blue - Color.ORANGE.blue),
+  )
+
+/**
+ * Generate an icon based on the [WARNING_INLINE] icon, where orange pixels are replaced by [color]
+ * and all other pixels are made transparent
+ */
+fun getVisualizationWarningIcon(color: Color) =
+  IconLoader.createLazy(
+    object : Supplier<Icon> {
+      private val cache = mutableMapOf<Int, Icon>()
+
+      @Suppress("UnstableApiUsage")
+      override fun get(): Icon =
+        cache.getOrPut(color.rgb) {
+          IconLoader.filterIcon(
+            StudioIcons.Common.WARNING_INLINE,
+            object : RgbImageFilterSupplier {
+              override fun getFilter(): RGBImageFilter =
+                object : RGBImageFilter() {
+                  override fun filterRGB(x: Int, y: Int, rgb: Int) =
+                    if (colorDistanceToOrange(Color(rgb, true)) > 50) 0
+                    else (rgb or 0xffffff) and color.rgb
+                }
+            },
+          )
+        }
+    }
+  )
 
 class VisualizationActionManager(
   surface: NlDesignSurface,
@@ -72,18 +112,13 @@ class VisualizationActionManager(
 
   override fun getSceneViewRightBar(sceneView: SceneView): JComponent {
     val warningIcon =
-      object :
-        JBLabel(
-          ColoredIconGenerator.generateColoredIcon(
-            StudioIcons.Common.WARNING_INLINE,
-            JBColor.background(),
-          )
-        ) {
+      object : JBLabel(getVisualizationWarningIcon(JBColor.background())) {
         private val issueListener = IssueListener { issue ->
           if (issue is VisualLintRenderIssue) {
             isVisible = issue.shouldHighlight(sceneView.sceneManager.model)
             toolTipText = issue.summary
-          } else {
+          }
+          else {
             isVisible = false
           }
         }
@@ -101,7 +136,7 @@ class VisualizationActionManager(
 
         override fun isVisible(): Boolean {
           return super.isVisible() &&
-            IssuePanelService.getInstance(sceneView.surface.project).isIssuePanelVisible()
+                 IssuePanelService.getInstance(sceneView.surface.project).isIssuePanelVisible()
         }
       }
     return JPanel().apply {
