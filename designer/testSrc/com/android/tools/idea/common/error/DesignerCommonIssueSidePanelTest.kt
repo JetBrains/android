@@ -33,6 +33,9 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.profile.codeInspection.ui.DescriptionEditorPane
 import com.intellij.testFramework.TestActionEvent
@@ -114,7 +117,7 @@ class DesignerCommonIssueSidePanelTest {
     // Creating panel with action that captures the virtual file
     var capturedFile: VirtualFile? = null
     val panel =
-      DesignerCommonIssueSidePanel(rule.project, rule.testRootDisposable) { _ ->
+      DesignerCommonIssueSidePanel(rule.project, rule.testRootDisposable) {
         object : AnAction() {
           override fun actionPerformed(e: AnActionEvent) {
             capturedFile = e.getData(CommonDataKeys.VIRTUAL_FILE)
@@ -218,10 +221,12 @@ class DesignerCommonIssueSidePanelTest {
     var currentVisualLintIssue: VisualLintRenderIssue? = null
     var currentActionEvent: AnActionEvent? = null
     val panel =
-      DesignerCommonIssueSidePanel(rule.project, rule.testRootDisposable) { issue ->
+      DesignerCommonIssueSidePanel(rule.project, rule.testRootDisposable) {
         object : AnAction(expectedActionText) {
           override fun actionPerformed(e: AnActionEvent) {
             currentActionEvent = e
+            val issueNode = e.getData(PlatformDataKeys.SELECTED_ITEM) as? IssueNode
+            val issue = issueNode?.issue as? VisualLintRenderIssue
             assertTrue(
               "The provided issue is not of type VisualLintRenderIssue. Issue: $issue",
               issue is VisualLintRenderIssue,
@@ -245,13 +250,22 @@ class DesignerCommonIssueSidePanelTest {
       assertEquals(expectedActionText, fixWithAiActionButton.templateText)
 
       // Simulate a click and verify the action handler receives the expected issue.
-      val expectedActionEvent = TestActionEvent.createTestEvent(fixWithAiActionButton)
+      val expectedActionEvent =
+        createTestEvent(expectedVisualLintRenderIssue, fixWithAiActionButton)
       fixWithAiActionButton.actionPerformed(expectedActionEvent)
       assertEquals(expectedVisualLintRenderIssue, currentVisualLintIssue)
       assertEquals(expectedActionEvent, currentActionEvent)
     } else {
       assertNull(actionToolbar)
     }
+  }
+
+  private fun createTestEvent(issue: VisualLintRenderIssue, action: AnAction): AnActionEvent {
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(PlatformCoreDataKeys.SELECTED_ITEM, IssueNode(null, issue, null))
+        .build()
+    return TestActionEvent.createTestEvent(action, dataContext)
   }
 
   private fun createIssueNode(issue: VisualLintRenderIssue): IssueNode =

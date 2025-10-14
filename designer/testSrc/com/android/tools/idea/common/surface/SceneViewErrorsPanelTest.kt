@@ -16,7 +16,6 @@
 package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueFixActionProvider
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -125,7 +124,7 @@ class SceneViewErrorsPanelTest {
       }
     val issueFixActionProvider =
       object : IssueFixActionProvider {
-        override fun getAiActions(issue: Issue): List<AnAction> {
+        override fun getAiActions(): List<AnAction> {
           return listOf(testAction)
         }
       }
@@ -148,7 +147,6 @@ class SceneViewErrorsPanelTest {
     assertTrue(toolbar.actions.any { it.templatePresentation.text == "Fix with AI" })
   }
 
-
   @Test
   fun testAiFixButtonIsNotAvailableWhenFlagIsOff() {
     StudioFlags.COMPOSE_RENDER_ERROR_FIX_WITH_AI.override(false)
@@ -158,7 +156,7 @@ class SceneViewErrorsPanelTest {
       }
     val issueFixActionProvider =
       object : IssueFixActionProvider {
-        override fun getAiActions(issue: Issue): List<AnAction> {
+        override fun getAiActions(): List<AnAction> {
           return listOf(testAction)
         }
       }

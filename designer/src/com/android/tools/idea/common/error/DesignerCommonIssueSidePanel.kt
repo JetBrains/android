@@ -65,7 +65,7 @@ import javax.swing.event.HyperlinkListener
 class DesignerCommonIssueSidePanel(
   private val project: Project,
   parentDisposable: Disposable,
-  private val fixWithAiActionProvider: (Issue) -> AnAction?,
+  private val fixWithAiActionProvider: () -> AnAction?,
 ) : JPanel(BorderLayout()), Disposable {
 
   private val splitter = OnePixelSplitter(true, 0.5f, 0.1f, 0.9f)
@@ -114,7 +114,7 @@ class DesignerCommonIssueSidePanel(
 private class DesignerCommonIssueDetailPanel(
   private val project: Project,
   private val issue: Issue,
-  private val fixWithAiActionProvider: (Issue) -> AnAction?,
+  private val fixWithAiActionProvider: () -> AnAction?,
 ) : JPanel(BorderLayout()), UiDataProvider {
 
   init {
@@ -247,7 +247,7 @@ private class DesignerCommonIssueDetailPanel(
   }
 
   private fun addFixWithAiButton(panel: JPanel, offSetBottom: Boolean) {
-    fixWithAiActionProvider(issue)?.let {
+    fixWithAiActionProvider()?.let {
       val actionToolbar = createToolbar(panel, it)
       val toolbarWrapper =
         JPanel(FlowLayout(FlowLayout.LEFT, 0, 0)).apply {

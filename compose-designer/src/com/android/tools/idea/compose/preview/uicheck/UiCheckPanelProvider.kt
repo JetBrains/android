@@ -16,13 +16,11 @@
 package com.android.tools.idea.compose.preview.uicheck
 
 import com.android.tools.idea.common.error.DesignerCommonIssuePanel
-import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.error.NotSuppressedFilter
 import com.android.tools.idea.common.error.UICheckNodeFactory
 import com.android.tools.idea.compose.preview.ComposeStudioBotActionFactory
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanelProvider
@@ -79,13 +77,12 @@ class UiCheckPanelProvider(
   }
 
   /**
-   * Fixes the given [issue] using StudioBot if it is a VisualLintRenderIssue. The [issue] is
-   * expected to be an accessibility issue found in the UI Check Panel.
-   *
-   * @param issue The [Issue] to fix.
+   * Returns an [AnAction] that fixes the Visual Lint issues using StudioBot. The issue to be fixed
+   * is provided via DataContext, and it's expected to be an accessibility issue found in the UI
+   * Check Panel.
    */
-  private fun fixWithAiActionProvider(issue: Issue): AnAction? {
-    if (StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.get() && issue is VisualLintRenderIssue)
+  private fun fixWithAiActionProvider(): AnAction? {
+    if (StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.get())
       return ComposeStudioBotActionFactory.EP_NAME.extensionList
         .firstOrNull()
         ?.fixVisualLintIssuesAction()
