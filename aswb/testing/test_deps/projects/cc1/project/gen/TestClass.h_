@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
-#include "cc_genhdr/project/TestClass.h"
+#pragma once
+#include <string>
 
-TestClass::TestClass() { testString = "test"; }
+const int one = 1;
+const std::string suffix = "suffix";
