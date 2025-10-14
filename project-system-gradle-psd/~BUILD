@@ -184,7 +184,6 @@ maven_repository(
         "@maven//:com.google.jimfs.jimfs_1.1",
         "@maven//:com.google.truth.truth_0.44",
         "@maven//:com.linkedin.testbutler.test-butler-app_1.3.1",
-        "@maven//:com.sun.activation.javax.activation_1.2.0",
         "@maven//:commons-lang.commons-lang_2.4",
         "@maven//:commons-logging.commons-logging_1.1.1",
         "@maven//:org.codehaus.mojo.animal-sniffer-annotations_1.17",

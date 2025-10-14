@@ -289,7 +289,6 @@ maven_repository(
         "@maven//:com.google.protobuf.protobuf-javalite_4.28.2",  # XR template
         "@maven//:com.squareup.okio.okio-jvm_3.0.0",
         "@maven//:com.squareup.okio.okio_3.4.0",
-        "@maven//:com.sun.activation.javax.activation_1.2.0",
         "@maven//:commons-lang.commons-lang_2.4",
         "@maven//:io.ktor.ktor-client-content-negotiation-jvm_2.3.2",
         "@maven//:io.ktor.ktor-client-content-negotiation_2.3.2",

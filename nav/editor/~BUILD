@@ -98,7 +98,6 @@ maven_repository(
         "@maven//:android.arch.navigation.navigation-fragment_1.0.0",
         "@maven//:androidx.navigation.navigation-fragment_2.3.5",
         "@maven//:com.google.jimfs.jimfs_1.1",
-        "@maven//:com.sun.activation.javax.activation_1.2.0",
         "@maven//:javax.inject.javax.inject_1",
         "@maven//:junit.junit_4.12",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",

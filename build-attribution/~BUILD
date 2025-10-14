@@ -160,7 +160,6 @@ maven_repository(
         "@maven//:com.google.errorprone.error_prone_annotations_2.3.2",
         "@maven//:com.google.guava.guava_19.0",
         "@maven//:com.google.jimfs.jimfs_1.1",
-        "@maven//:com.sun.activation.javax.activation_1.2.0",
         "@maven//:commons-lang.commons-lang_2.4",
         "@maven//:de.undercouch.gradle-download-task_4.0.2",
         "@maven//:org.codehaus.mojo.animal-sniffer-annotations_1.17",
