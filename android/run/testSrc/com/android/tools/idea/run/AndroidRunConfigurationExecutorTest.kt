@@ -78,6 +78,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.common.ThreadLeakTracker
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import kotlinx.coroutines.runBlocking
@@ -148,6 +149,8 @@ class AndroidRunConfigurationExecutorTest {
       whenever(mockBackupManager.getRestoreRunConfigSection(any()))
         .thenReturn(FakeBackupManager().getRestoreRunConfigSection(projectRule.project))
     }
+
+    IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project);
   }
 
   @Test
