@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.theme;
 
 import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX;
 import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX_LEN;
-import static com.android.SdkConstants.PREFIX_ANDROID;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -43,11 +42,8 @@ import com.android.xml.AttrNameSplitter;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import com.android.tools.dom.attrs.AttributeDefinition;
 import com.android.tools.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -92,39 +88,12 @@ public class ResolutionUtils {
     return url.namespace != null ? url.namespace + ':' + url.name : url.name;
   }
 
-  /**
-   * Returns the style name, including the appropriate namespace.
-   */
-  @NotNull
-  public static String getQualifiedStyleName(@NotNull StyleResourceValue style) {
-    String name = style.getName();
-    return style.isFramework() ? PREFIX_ANDROID + name : name;
-  }
-
-  /**
-   * Returns the name of the attr for this item, including the appropriate namespace.
-   */
-  @NotNull
-  public static String getQualifiedItemAttrName(@NotNull StyleItemResourceValue item) {
-    ResourceReference attr = item.getAttr();
-    return attr != null ? attr.getRelativeResourceUrl(ResourceNamespace.TODO()).getQualifiedName() : item.getAttrName();
-  }
-
   @Nullable
   public static ConfiguredThemeEditorStyle getThemeEditorStyle(@NotNull Configuration configuration,
                                                                @NotNull ResourceReference styleReference) {
     ResourceResolver resolver = configuration.getResourceResolver();
     StyleResourceValue style = resolver.getStyle(styleReference);
     return style == null ? null : new ConfiguredThemeEditorStyle(configuration, style);
-  }
-
-  @Nullable
-  public static AttributeDefinition getAttributeDefinition(@NotNull Module module, @NotNull ResourceReference attr) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    assert facet != null : String.format("Module %s is not an Android module", module.getName());
-
-    AttributeDefinitions definitions = ModuleResourceManagers.getInstance(facet).getLocalResourceManager().getAttributeDefinitions();
-    return definitions.getAttrDefinition(attr);
   }
 
   /**
@@ -194,45 +163,6 @@ public class ResolutionUtils {
       }
       return apiLookup.getFieldVersions("android/R$" + resUrl.type, RClassNaming.getFieldNameByResourceName(resUrl.name)).min();
     }
-  }
-
-  @Nullable/*if this style doesn't have parent*/
-  public static String getParentQualifiedName(@NotNull StyleResourceValue style) {
-    ResourceReference parent = style.getParentStyle();
-    if (parent == null) {
-      return null;
-    }
-
-    return parent.getRelativeResourceUrl(ResourceNamespace.TODO()).getQualifiedName();
-  }
-
-  @NotNull
-  public static Collection<StyleItemResourceValue> getThemeAttributes(@NotNull ResourceResolver resolver, final @NotNull String themeUrl) {
-    Map<String, StyleItemResourceValue> allItems = new HashMap<>();
-    String themeName = getQualifiedNameFromResourceUrl(themeUrl);
-    do {
-      StyleResourceValue theme = resolver.getStyle(AttrNameSplitter.findLocalName(themeName), themeName.startsWith(PREFIX_ANDROID));
-      if (theme == null) {
-        break;
-      }
-      Collection<StyleItemResourceValue> themeItems = theme.getDefinedItems();
-      for (StyleItemResourceValue item : themeItems) {
-        String itemName = getQualifiedItemAttrName(item);
-        if (!allItems.containsKey(itemName)) {
-          allItems.put(itemName, item);
-        }
-      }
-
-      themeName = getParentQualifiedName(theme);
-    } while (themeName != null);
-
-    return allItems.values();
-  }
-
-  @Nullable/*if we can't work out the type, e.g a 'reference' with a '@null' value or enum*/
-  public static ResourceType getAttrType(@NotNull StyleItemResourceValue item, @NotNull Configuration configuration) {
-    ResourceResolver resolver = configuration.getResourceResolver();
-    return getAttrType(item, resolver);
   }
 
   @Nullable

@@ -234,28 +234,6 @@ public class ThemeResolver {
   }
 
   /**
-   * @deprecated Use {@link #getTheme(ResourceReference)}.
-   */
-  @Deprecated
-  @Nullable
-  public ConfiguredThemeEditorStyle getTheme(@NotNull String themeName) {
-    ResourceReference styleReference = ResolutionUtils.getStyleReference(themeName);
-    return myThemesByStyle.get(styleReference);
-  }
-
-  /**
-   * Returns the configured theme given a style reference.
-   *
-   * @param styleReference the reference to the style to get the theme for
-   * @return the theme, or null if there is no theme matching the style reference
-   */
-  @Nullable
-  public ConfiguredThemeEditorStyle getTheme(@NotNull ResourceReference styleReference) {
-    assert styleReference.getResourceType() == ResourceType.STYLE;
-    return myThemesByStyle.get(styleReference);
-  }
-
-  /**
    * Returns the list of themes available from the module passed Configuration comes from and all its dependencies.
    */
   @NotNull
@@ -277,10 +255,6 @@ public class ThemeResolver {
   @NotNull
   public ImmutableList<ConfiguredThemeEditorStyle> getFrameworkThemes() {
     return myFrameworkThemes;
-  }
-
-  public int getThemesCount() {
-    return myFrameworkThemes.size() + myExternalLibraryThemes.size() + myLocalThemes.size();
   }
 
   /**
