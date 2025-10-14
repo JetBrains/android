@@ -434,6 +434,7 @@ class ConfigureTemplateParametersStep(
     parametersPanel.removeAll()
     parameterRows.clear()
     userValues.clear()
+    parameters.forEach { it.reset() }
     Disposer.dispose(this)
   }
 
