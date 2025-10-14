@@ -167,8 +167,8 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
     syncStats.gradleTimeMs = if (syncSetupStartedTimeStamp >= 0) syncSetupStartedTimeStamp - syncStartedTimeStamp else -1
     syncStats.trigger = trigger ?: GradleSyncStats.Trigger.TRIGGER_UNKNOWN
     syncStats.syncType = syncType ?: GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_UNKNOWN
-    syncStats.usesBuildGradle = buildFileTypes.contains(SdkConstants.DOT_GRADLE)
-    syncStats.usesBuildGradleKts = buildFileTypes.contains(SdkConstants.DOT_KTS)
+    syncStats.usesBuildGradle = buildFileTypes.contains(GradleProjectSystemUtil.BuildFileType.GROOVY)
+    syncStats.usesBuildGradleKts = buildFileTypes.contains(GradleProjectSystemUtil.BuildFileType.KOTLIN_SCRIPT)
     syncStats.versionCatalogDetectorState = GradleVersionCatalogDetector.getInstance(project).versionCatalogDetectorResultIfAvailable.state
     if (rootProjectPath != null) {
       syncStats.updateUserRequestedParallelSyncMode(project, rootProjectPath)

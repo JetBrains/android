@@ -94,6 +94,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -405,14 +406,20 @@ public class GradleProjectSystemUtil {
     return BuildScriptUtil.findGradleBuildFile(dirPath);
   }
 
+  public enum BuildFileType {
+    GROOVY,
+    KOTLIN_SCRIPT,
+    DECLARATIVE,
+  }
+
   /**
    * Given a project, return what types of build files are used.
    *
    * @param   project Project to analyse
-   * @return  A set containing values from {{@link{DOT_GRADLE}, {@link{DOT_KTS}}
+   * @return  A set containing values from {@link BuildFileType}
    */
-  public static Set<String> projectBuildFilesTypes(@NotNull Project project) {
-    HashSet<String> result = new HashSet<>();
+  public static Set<BuildFileType> projectBuildFilesTypes(@NotNull Project project) {
+    EnumSet<BuildFileType> result = EnumSet.noneOf(BuildFileType.class);
     addBuildFileType(result, getGradleBuildFilePath(getBaseDirPath(project)));
     ReadAction.run(() -> {
       for(Module module : ModuleManager.getInstance(project).getModules()) {
@@ -422,17 +429,17 @@ public class GradleProjectSystemUtil {
     return result;
   }
 
-  private static void addBuildFileType(@NotNull HashSet<String> result, @Nullable File buildFile) {
+  private static void addBuildFileType(@NotNull Set<BuildFileType> result, @Nullable File buildFile) {
     if (buildFile != null) {
       String buildFileName = buildFile.getName().toLowerCase(Locale.getDefault());
       if (buildFileName.endsWith(DOT_GRADLE)) {
-        result.add(DOT_GRADLE);
+        result.add(BuildFileType.GROOVY);
       }
       else if (buildFileName.endsWith(DOT_KTS)) {
-        result.add(DOT_KTS);
+        result.add(BuildFileType.KOTLIN_SCRIPT);
       }
       else if (DeclarativeStudioSupport.isEnabled() && buildFileName.endsWith(DOT_DECLARATIVE)) {
-        result.add(DOT_DECLARATIVE);
+        result.add(BuildFileType.DECLARATIVE);
       }
     }
   }
