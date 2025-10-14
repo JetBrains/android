@@ -19,6 +19,7 @@ import com.android.manifmerger.ManifestMerger2;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.Token;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import org.jetbrains.android.facet.AndroidFacet;
 
 public interface MergedManifestInfoToken<P extends AndroidProjectSystem> extends Token {
   ExtensionPointName<MergedManifestInfoToken<AndroidProjectSystem>>
@@ -35,5 +36,5 @@ public interface MergedManifestInfoToken<P extends AndroidProjectSystem> extends
    * @param invoker
    * @return the modified invoker
    */
-  ManifestMerger2.Invoker withProjectSystemFeatures(P projectSystem, ManifestMerger2.Invoker invoker);
+  ManifestMerger2.Invoker withProjectSystemFeatures(P projectSystem, ManifestMerger2.Invoker invoker, AndroidFacet facet);
 }
