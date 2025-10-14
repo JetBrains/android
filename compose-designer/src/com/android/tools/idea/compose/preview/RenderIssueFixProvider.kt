@@ -23,14 +23,14 @@ class RenderIssueFixProvider : IssueFixActionProvider {
   /**
    * Returns a list of AI-powered fix actions for the given [Issue].
    *
-   * This implementation uses the [ComposeStudioBotActionFactory] to create a fix action for a Compose
-   * render issue.
+   * This implementation uses the [ComposeStudioBotActionFactory] to create a fix action for a
+   * Compose render issue.
    */
-  override fun getAiActions(issue: Issue): List<AnAction> {
+  override fun getAiActions(): List<AnAction> {
     return listOfNotNull(
       ComposeStudioBotActionFactory.EP_NAME.extensionList
         .firstOrNull()
-        ?.fixComposeRenderIssueAction(listOf(issue))
+        ?.fixComposeRenderIssueAction()
     )
   }
 }

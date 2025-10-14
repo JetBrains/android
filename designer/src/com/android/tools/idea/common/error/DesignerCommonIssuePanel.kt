@@ -81,7 +81,7 @@ class DesignerCommonIssuePanel(
   nodeFactoryProvider: () -> NodeFactory,
   issueFilter: DesignerCommonIssueProvider.Filter,
   private val emptyMessageProvider: suspend () -> String,
-  fixWithAiActionProvider: (Issue) -> AnAction? = { null },
+  fixWithAiActionProvider: () -> AnAction? = { null },
   private val onContentPopulated: (Content) -> Unit = {},
 ) : SimpleToolWindowPanel(vertical), ProblemsViewTab, Disposable {
 

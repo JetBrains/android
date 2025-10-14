@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.common.error.Issue
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.extensions.ExtensionPointName
 
@@ -33,7 +32,7 @@ interface ComposeStudioBotActionFactory {
   fun fixVisualLintIssuesAction(): AnAction?
 
   /** An action to fix render issues in Compose Previews. */
-  fun fixComposeRenderIssueAction(renderIssues: List<Issue>): AnAction?
+  fun fixComposeRenderIssueAction(): AnAction?
 
   /**
    * Dropdown action to list Gemini agent-based actions that are not specific to a single existing

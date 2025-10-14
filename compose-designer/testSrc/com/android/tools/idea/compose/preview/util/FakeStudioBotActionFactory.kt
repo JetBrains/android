@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.util
 
-import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.compose.preview.ComposeStudioBotActionFactory
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -34,8 +33,7 @@ open class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
 
   override fun fixVisualLintIssuesAction() = fakeAction("fixVisualLintIssues")
 
-  override fun fixComposeRenderIssueAction(renderIssues: List<Issue>): AnAction? =
-    fakeAction("fixComposeRender")
+  override fun fixComposeRenderIssueAction() = fakeAction("fixComposeRender")
 
   override fun previewAgentsDropDownAction(): AnAction = fakeAction("previewAgents")
 

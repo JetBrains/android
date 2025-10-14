@@ -105,7 +105,7 @@ class SceneViewErrorsPanel(
     val issues = errorProvider()?.map { toIssue(it) } ?: emptyList()
 
     if (issues.isNotEmpty()) {
-      fixWithAiActionProvider(issues.first())?.let { action ->
+      fixWithAiActionProvider()?.let { action ->
         action.templatePresentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
         fixWithAiActionGroup.add(action)
       }
