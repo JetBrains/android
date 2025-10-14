@@ -18,6 +18,7 @@ package com.android.tools.idea.adblib
 import com.android.adblib.DeviceConnectionType
 import com.android.adblib.DeviceState
 import com.android.adblib.deviceInfo
+import com.android.adblib.waitUntilState
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.SetChange
@@ -126,7 +127,7 @@ class DeviceCableMonitor : ProjectActivity {
       // cancelled when device is disconnected, but we still get cancelled
       // if project is closed.
       connectedDevice.session.scope.launch {
-        connectedDevice.deviceInfoFlow.first { it.deviceState == DeviceState.DISCONNECTED }
+        connectedDevice.waitUntilState(DeviceState.DISCONNECTED)
         notification.expire()
       }
     }
