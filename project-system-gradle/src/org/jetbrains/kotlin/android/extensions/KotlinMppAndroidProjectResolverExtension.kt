@@ -36,6 +36,7 @@ import com.intellij.openapi.externalSystem.model.project.LibraryPathType
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import com.intellij.openapi.roots.DependencyScope
 import org.gradle.tooling.model.idea.IdeaModule
 import org.jetbrains.kotlin.android.models.KotlinModelConverter
 import org.jetbrains.kotlin.android.models.KotlinModelConverter.Companion.getJavaSourceDirectories
@@ -57,12 +58,15 @@ import org.jetbrains.kotlin.idea.projectModel.KotlinTarget
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
+import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinResolvedBinaryDependency
+import org.jetbrains.kotlin.idea.gradleJava.configuration.mpp.addDependency
 
 class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverExtension {
   private val modelConverter = KotlinModelConverter()
 
   private val sourceSetResolver = KotlinMppAndroidSourceSetResolver()
-  private val sourceSetDependenciesMap = mutableMapOf<String, MutableMap<String, Set<LibraryReference>>>()
+  private val sourceSetCompileDependencies = mutableMapOf<String, MutableMap<String, Set<LibraryReference>>>()
+  private val sourceSetRuntimeDependencies = mutableMapOf<String, MutableMap<String, Set<LibraryReference>>>()
 
   private var sourceSetDataNodeMap: Map<KotlinSourceSetModuleId, DataNode<GradleSourceSetData>>? = null
 
@@ -96,16 +100,39 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
     }.putIfAbsent(androidCompilation.type, Pair(kotlinCompilation, androidCompilation))
   }
 
+  override fun beforePopulateSourceSetDependencies(context: Context,
+                                                   sourceSetDataNode: DataNode<GradleSourceSetData>,
+                                                   sourceSet: KotlinSourceSet,
+                                                   dependencies: Set<IdeaKotlinDependency>): KotlinMppGradleProjectResolverExtension.Result {
+    val compileDependenciesMap = dependencies.compileDependenciesMap
+    val runtimeDependenciesMap = dependencies.runtimeDependenciesMap
+    val runtimeOnlyDependenciesMap = runtimeDependenciesMap - compileDependenciesMap.keys
+
+    // Ensure proper scope is defined for runtime only dependencies to avoid taking them into account for IDE highlight syntax
+    // and leading to potential compilation errors
+    runtimeOnlyDependenciesMap.values.forEach { dependency ->
+      sourceSetDataNode.addDependency(dependency).forEach { addedDependency ->
+        addedDependency.data.scope = DependencyScope.RUNTIME
+      }
+    }
+    return super.beforePopulateSourceSetDependencies(context, sourceSetDataNode, sourceSet, dependencies)
+  }
+
   override fun afterPopulateSourceSetDependencies(context: Context,
                                                   sourceSetDataNode: DataNode<GradleSourceSetData>,
                                                   sourceSet: KotlinSourceSet,
                                                   dependencies: Set<IdeaKotlinDependency>,
                                                   dependencyNodes: List<DataNode<out AbstractDependencyData<*>>>) {
-    if (sourceSet.extras[androidSourceSetKey] != null) {
-      val sourceSetDependenciesMap = sourceSetDependenciesMap.getOrPut(context.moduleDataNode.data.id) { mutableMapOf() }
-      sourceSetDependenciesMap.putIfAbsent(sourceSet.name, dependencies.mapNotNull { modelConverter.recordDependency(it) }.toSet())
-    }
+    val compileDependenciesMap = dependencies.compileDependenciesMap
+    val runtimeDependenciesMap = dependencies.runtimeDependenciesMap
 
+    if (sourceSet.extras[androidSourceSetKey] != null) {
+      val sourceSetCompileDependenciesMap = sourceSetCompileDependencies.getOrPut(context.moduleDataNode.data.id) { mutableMapOf() }
+      val sourceSetRuntimeDependenciesMap = sourceSetRuntimeDependencies.getOrPut(context.moduleDataNode.data.id) { mutableMapOf() }
+
+      sourceSetCompileDependenciesMap.putIfAbsent(sourceSet.name, compileDependenciesMap.values.mapNotNull { modelConverter.recordDependency(it) }.toSet())
+      sourceSetRuntimeDependenciesMap.putIfAbsent(sourceSet.name, runtimeDependenciesMap.values.mapNotNull { modelConverter.recordDependency(it) }.toSet())
+    }
     // TODO(KTIJ-28110): This is a workaround for an issue in the kotlin IDE plugin, after we resolve dependencies from a kmp module on an
     //  android module to the appropriate sourceSet by [KotlinAndroidProjectArtifactDependencyResolver], the kotlin IDE plugin is still not
     //  able to map the dependency sourceSet to the gradle sourceSet data node. Here we add these dependencies manually as a workaround
@@ -122,8 +149,8 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
 
       // Kotlin Ide plugin did add the dependency already.
       if (dependencyNodes.any {
-        it.data is ModuleDependencyData && (it.data as ModuleDependencyData).target.id == dependencyModuleId.toString()
-      }) {
+          it.data is ModuleDependencyData && (it.data as ModuleDependencyData).target.id == dependencyModuleId.toString()
+        }) {
         return@forEach
       }
 
@@ -211,7 +238,8 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
       val androidTarget = context.mppModel.targets.find { it.extras[androidTargetKey] != null } ?: return
       val targetInfo = androidTarget.extras[androidTargetKey] ?: return
       val compilationInfo = compilationModelMap[context.moduleDataNode.data.id] ?: return
-      val sourceSetDependencies = sourceSetDependenciesMap[context.moduleDataNode.data.id] ?: return
+      val sourceSetCompileDependencies = sourceSetCompileDependencies[context.moduleDataNode.data.id] ?: return
+      val sourceSetRuntimeDependencies = sourceSetRuntimeDependencies[context.moduleDataNode.data.id] ?: return
 
       modelConverter.maybeCreateLibraryTable(
         context.projectDataNode
@@ -231,7 +259,8 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
         moduleNode = context.moduleDataNode,
         targetInfo = targetInfo,
         compilationInfoMap = compilationInfo,
-        sourceSetDependenciesMap = sourceSetDependencies
+        sourceSetCompileDependenciesMap = sourceSetCompileDependencies,
+        sourceSetRuntimeDependenciesMap = sourceSetRuntimeDependencies
       )
     } finally { // cleanup
 
@@ -248,7 +277,8 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
         }
       }
       compilationModelMap.remove(context.moduleDataNode.data.id)
-      sourceSetDependenciesMap.remove(context.moduleDataNode.data.id)
+      sourceSetCompileDependencies.remove(context.moduleDataNode.data.id)
+      sourceSetRuntimeDependencies.remove(context.moduleDataNode.data.id)
       sourceSetDataNodeMap = null
     }
   }
@@ -304,7 +334,8 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
     moduleNode: DataNode<ModuleData>,
     targetInfo: AndroidTarget,
     compilationInfoMap: Map<CompilationType, Pair<KotlinCompilation, AndroidCompilation>>,
-    sourceSetDependenciesMap: Map<String, Set<LibraryReference>>
+    sourceSetCompileDependenciesMap: Map<String, Set<LibraryReference>>,
+    sourceSetRuntimeDependenciesMap: Map<String, Set<LibraryReference>>,
   ): GradleAndroidModelData {
     val moduleName = moduleNode.data.internalName
     val rootModulePath = FilePaths.stringToFile(moduleNode.data.linkedExternalProjectPath)
@@ -314,10 +345,27 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
       rootModulePath,
       targetInfo,
       compilationInfoMap,
-      sourceSetDependenciesMap
+      sourceSetCompileDependenciesMap,
+      sourceSetRuntimeDependenciesMap
     )
     moduleNode.createChild(AndroidProjectKeys.ANDROID_MODEL, kotlinAndroidModel)
 
     return kotlinAndroidModel
+  }
+
+  private val Set<IdeaKotlinDependency>.compileDependenciesMap
+    get() = dependenciesMapByBinaryType(IdeaKotlinBinaryDependency.KOTLIN_COMPILE_BINARY_TYPE)
+
+  private val Set<IdeaKotlinDependency>.runtimeDependenciesMap
+    get() = dependenciesMapByBinaryType("KOTLIN_RUNTIME")
+
+  private fun Set<IdeaKotlinDependency>.dependenciesMapByBinaryType(
+    binaryType: String
+  ): Map<String, IdeaKotlinDependency> {
+    return this
+      .filter { dependency ->
+        (dependency as? IdeaKotlinResolvedBinaryDependency)?.let {
+          it.binaryType == binaryType } ?: true }
+      .associateBy { it.coordinates.toString() }
   }
 }
