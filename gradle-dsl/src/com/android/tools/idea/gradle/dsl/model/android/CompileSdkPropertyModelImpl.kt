@@ -117,7 +117,11 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
     dslElement
   ), ResolvedPropertyModel {
     val sdkBlockModel = CompileSdkBlockModelImpl(dslElement)
-    override fun getValueType(): ValueType = ValueType.CUSTOM
+    override fun getValueType(): ValueType =
+      if (sdkBlockModel.getVersion() == null)
+        ValueType.NONE
+      else
+        ValueType.CUSTOM
     override fun getResultModel(): GradlePropertyModel = PropertyUtil.resolveModel(this)
     override fun toString(): String {
       return this.javaClass.simpleName + "[Version=" + sdkBlockModel.getVersion()?.toHash()+"]"

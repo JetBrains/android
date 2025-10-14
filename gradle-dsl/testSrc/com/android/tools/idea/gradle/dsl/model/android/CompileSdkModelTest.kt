@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.android.CompileSdkReleaseModel
 import com.android.tools.idea.gradle.dsl.api.android.CompileSdkPreviewModel
 import com.android.tools.idea.gradle.dsl.api.android.CompileSdkAddonModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.google.common.truth.Truth.assertThat
@@ -290,6 +291,30 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
     val config = compileSdkVersion.toCompileSdkConfig()
     config!!.setReleaseVersion(35,0, null)
     assertThat(compileSdkVersion.toString()).contains("Version=android-35")
+  }
+
+  @Test
+  fun testCompileSdkValueType() {
+    val buildModel = initTest(TestFile.EMPTY_ANDROID_BLOCK)
+
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    val compileSdkVersion = android.compileSdkVersion()
+
+    assertThat(compileSdkVersion).isNotNull()
+
+    val value = compileSdkVersion.getRawValue(GradlePropertyModel.OBJECT_TYPE)?.toString()
+    assertThat(value).isNull()
+    // for null value - type is NONE
+    assertThat(compileSdkVersion.valueType).isEqualTo(ValueType.NONE)
+
+    val config = compileSdkVersion.toCompileSdkConfig()
+    config!!.setReleaseVersion(35,0, null)
+    val newValue = compileSdkVersion.getRawValue(GradlePropertyModel.OBJECT_TYPE)?.toString()
+    assertThat(newValue).isNotNull()
+    // for non null value - it's CUSTOM
+    assertThat(compileSdkVersion.valueType).isEqualTo(ValueType.CUSTOM)
   }
 
   @Test
