@@ -86,7 +86,7 @@ class LiveEditServiceImpl(val project: Project,
 
   private val LOGGER = LiveEditLogger("LiveEditService")
 
-  private val notifications = LiveEditNotifications(project)
+  private val notifications = LiveEditNotifications()
 
   private val deployMonitor: LiveEditProjectMonitor
 
@@ -252,7 +252,7 @@ class LiveEditServiceImpl(val project: Project,
   }
 
   override fun notifyLiveEditAvailability(device: IDevice) {
-    notifications.notifyLiveEditAvailability(device)
+    notifications.notifyLiveEditAvailability(project, device)
   }
 
   private fun isLiveEditable(runProfile: RunProfile, executor: com.intellij.execution.Executor): Boolean {
