@@ -171,7 +171,6 @@ maven_repository(
         "@maven//:com.google.android.material.material_1.8.0",
         "@maven//:com.google.auto.value.auto-value_1.6.2",
         "@maven//:com.google.jimfs.jimfs_1.1",
-        "@maven//:com.sun.activation.javax.activation_1.2.0",
         "@maven//:commons-lang.commons-lang_2.4",
         "@maven//:org.codehaus.mojo.animal-sniffer-annotations_1.17",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_" + KOTLIN_VERSION_FOR_TESTS,
