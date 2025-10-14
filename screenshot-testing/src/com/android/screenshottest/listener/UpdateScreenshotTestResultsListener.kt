@@ -15,17 +15,27 @@
  */
 package com.android.screenshottest.listener
 
+import com.android.screenshottest.ui.UpdateReferenceImagesDialog
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
+import com.intellij.openapi.application.ApplicationManager
 
-class UpdateScreenshotTestResultsListener : AndroidTestResultListener {
+/**
+ * A listener that receives screenshot test results and passes them to the UI dialog.
+ *
+ * @param dialog The dialog to update with the test results.
+ */
+class UpdateScreenshotTestResultsListener(private val dialog: UpdateReferenceImagesDialog) : AndroidTestResultListener {
+
   override fun onTestCaseStarted(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase) {
-    TODO("Not yet implemented")
+    dialog.onTestCaseStarted(testCase.className, testCase.methodName)
   }
 
   override fun onTestCaseFinished(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase) {
-    TODO("Not yet implemented")
+    ApplicationManager.getApplication().invokeLater {
+      dialog.onTestCaseFinished(testCase.className, testCase.methodName, testCase.additionalTestArtifacts["PreviewScreenshot.newImagePath"])
+    }
   }
 }

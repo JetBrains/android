@@ -97,52 +97,80 @@ class UpdateReferenceImagesDialog(
     }
   }
 
-  /**
-   * testResults map stores the mapping of preview configuration with their full image paths.
-   * For eg: MyTest.GreetingPreview_{heightDp=20, locale=fr, showBackground=true}=.../app/build/outputs/screenshotTest-results/preview/debug/rendered/MyTest/GreetingPreview_465a9f91_0.png
-   *
-   * We need the mapping to map each of the preview annotations to their respective images. Once
-   * the gradle test task has the callback mechanism implemented we won't need this.
-   *
-   * TODO (b/449792632): To implement the callback mechanism
-   */
-  fun onBuildFinished(testResults: Map<String, String>) {
+  fun onTestCaseStarted(testClass: String, testId: String) {
     ApplicationManager.getApplication().invokeLater {
-      val handledTestIds = mutableSetOf<String>()
+      val fullyQualifiedTestId = "$testClass.$testId"
 
-      multipreviewNodeMap.forEach { (testIdPattern, parentNode) ->
-        val functionNamePrefix = testIdPattern.substringBefore("_[{")
-        val matchingResults = testResults.filterKeys { it.startsWith(functionNamePrefix) }
+      val standardPanel = imagePanelMap[fullyQualifiedTestId]
+      if (standardPanel != null) {
+        return@invokeLater
+      }
 
-        parentNode.removeAllChildren()
+      val originalFunction = previewFunctions.find { function ->
+        testId.startsWith(function.name!!)
+      }
 
-        if (matchingResults.isNotEmpty()) {
-          val function = previewFunctions.find { it.name == parentNode.userObject.toString() }
-          if (function != null) {
-            populateMultipreviewNode(function, matchingResults, handledTestIds)
-          } else {
-            logger.warn("Could not find KtNamedFunction for multipreview node: ${parentNode.userObject}")
-          }
-        } else {
-          parentNode.add(CheckedTreeNode("No previews found for this test.").apply { isEnabled = false })
+      if (originalFunction == null) {
+        logger.warn("onMultipreviewTestCaseStarted: Could not find original function for testId: $testId")
+        return@invokeLater
+      }
+
+      val multipreviewIdentifier = getIdentifier(PreviewDetails(originalFunction, null, emptyList(), null))
+      val parentNode = multipreviewNodeMap[multipreviewIdentifier]
+
+      if (parentNode != null) {
+        //  On the very first result for this multipreview, clear the "Running tests..." placeholder.
+        val firstChild = parentNode.firstChild as? CheckedTreeNode
+        if (firstChild != null && (firstChild.userObject as? PreviewDetails)?.testId == multipreviewIdentifier) {
+          parentNode.removeAllChildren()
         }
+
+        val allAnnotations = findPreviewAnnotations(originalFunction)
+        val composableFunction = findComposableCall(originalFunction)
+
+        val baseDisplayName = testId.substringAfter(originalFunction.name!!, "Preview")
+          .replace(Regex("[\\[\\]_{}]"), " ").trim()
+        val finalDisplayName = if (baseDisplayName.isNotEmpty()) baseDisplayName else "Parameter ${parentNode.childCount + 1}"
+
+        val details = PreviewDetails(originalFunction, allAnnotations.firstOrNull(), allAnnotations, composableFunction, finalDisplayName, fullyQualifiedTestId)
+        val newPanel = PreviewItemPanel(previewData = details, onImageLoaded = { onImageLoadedSuccessfully() })
+        val childNode = CheckedTreeNode(details).apply { isChecked = parentNode.isChecked }
+
+        // Add the new panel to the map so it can be found when the test finishes.
+        imagePanelMap[fullyQualifiedTestId] = newPanel
+        parentNode.add(childNode)
+
+        // Refresh the tree UI to show the newly added node.
         (tree.model as DefaultTreeModel).reload(parentNode)
         tree.expandPath(TreePath(parentNode.path))
+        updateRightPane(tree)
+      } else {
+        logger.warn("onTestCaseStarted: Could not map testId to a known multipreview placeholder: $testId")
       }
-
-      imagePanelMap.forEach { (testId, panel) ->
-        if (testId !in handledTestIds) {
-          val imagePath = testResults[testId]
-          if (imagePath != null) {
-            panel.loadImage(imagePath, testId)
-          } else {
-            panel.showError("Test did not run or produce an image.")
-          }
-        }
-      }
-      updateRightPane(tree)
     }
   }
+
+  fun onTestCaseFinished(testClass: String, testId: String, imagePath: String?) {
+    ApplicationManager.getApplication().invokeLater {
+      val fullyQualifiedTestId = "$testClass.$testId"
+
+      val standardPanel = imagePanelMap[fullyQualifiedTestId]
+      if (standardPanel != null) {
+        if(imagePath !=null) {
+          standardPanel.loadImage(imagePath, fullyQualifiedTestId)
+        }
+        else {
+          standardPanel.showError("Test did not produce an image")
+        }
+        updateRightPane(tree)
+        return@invokeLater
+      } else {
+        logger.warn("Received a result that could not be mapped to any known placeholder: $fullyQualifiedTestId")
+      }
+    }
+  }
+
+
 
   private fun populateMultipreviewNode(
     function: KtNamedFunction,
