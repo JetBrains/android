@@ -20,6 +20,8 @@ import java.io.BufferedOutputStream
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import java.io.PrintStream
+import java.nio.file.Path
+import java.time.Instant
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
@@ -94,6 +96,8 @@ private object Dumpers {
     String::class to SimpleValueFormatter,
     Boolean::class to SimpleValueFormatter,
     Label::class to SimpleValueFormatter,
+    Path::class to SimpleValueFormatter,
+    Instant::class to SimpleValueFormatter,
     ProjectPath::class to ProjectPathValueFormatter,
     ProjectPath.ProjectRelativeProjectPath::class to ProjectPathValueFormatter,
     ProjectPath.WorkspaceRelativeProjectPath::class to ProjectPathValueFormatter,
