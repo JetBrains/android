@@ -80,7 +80,7 @@ class GradleUtilAndroidGradleTest {
     }
     ) { project ->
       assertTrue(
-        GradleProjectSystemUtil.projectBuildFilesTypes(project).contains(SdkConstants.DOT_KTS))
+        GradleProjectSystemUtil.projectBuildFilesTypes(project).contains(GradleProjectSystemUtil.BuildFileType.KOTLIN_SCRIPT))
     }
   }
 
@@ -89,7 +89,7 @@ class GradleUtilAndroidGradleTest {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
       assertFalse(
-        GradleProjectSystemUtil.projectBuildFilesTypes(project).contains(SdkConstants.DOT_KTS))
+        GradleProjectSystemUtil.projectBuildFilesTypes(project).contains(GradleProjectSystemUtil.BuildFileType.KOTLIN_SCRIPT))
     }
   }
 

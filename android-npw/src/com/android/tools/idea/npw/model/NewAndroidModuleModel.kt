@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.model
 
-import com.android.SdkConstants.DOT_KTS
 import com.android.annotations.concurrency.WorkerThread
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.plugin.AgpVersions
@@ -313,7 +312,8 @@ private fun FormFactor.toModuleRenderingLoggingEvent() =
   }
 
 internal fun Project.hasKtsUsage(): Boolean {
-  return GradleProjectSystemUtil.projectBuildFilesTypes(this).contains(DOT_KTS)
+  return GradleProjectSystemUtil.projectBuildFilesTypes(this)
+    .contains(GradleProjectSystemUtil.BuildFileType.KOTLIN_SCRIPT)
 }
 
 internal fun Project.isViewBindingSupported(): ViewBindingSupport {
