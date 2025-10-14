@@ -160,35 +160,37 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
 
   private fun findMapping(applicationId: String, mapId: String): Result {
     val mappingsFiles =
-      LogcatR8MappingsToken.getR8TextMappings(project).ifEmpty {
-        val modules = getModuleCandidates(applicationId)
-        if (modules.isEmpty()) {
-          return Error(MODULES_NOT_FOUND)
-        }
-
-        val moduleDirs =
-          modules.mapNotNull {
-            it.getModuleSystem().getHolderModule().guessModuleDir()?.toNioPath()
+      LogcatR8MappingsToken.getR8Mappings(project)
+        .map { it.text }
+        .ifEmpty {
+          val modules = getModuleCandidates(applicationId)
+          if (modules.isEmpty()) {
+            return Error(MODULES_NOT_FOUND)
           }
-        if (moduleDirs.isEmpty()) {
-          return Error(MODULE_DIR_NOT_FOUND)
+
+          val moduleDirs =
+            modules.mapNotNull {
+              it.getModuleSystem().getHolderModule().guessModuleDir()?.toNioPath()
+            }
+          if (moduleDirs.isEmpty()) {
+            return Error(MODULE_DIR_NOT_FOUND)
+          }
+          val buildDirs =
+            moduleDirs.mapNotNull { it.resolve(BUILD_DIR).takeIf { path -> path.isDirectory() } }
+          if (buildDirs.isEmpty()) {
+            return Error(BUILD_DIR_NOT_FOUND)
+          }
+          val mappingsDirs =
+            buildDirs.mapNotNull { it.resolve(MAPPINGS_DIR).takeIf { path -> path.isDirectory() } }
+          if (mappingsDirs.isEmpty()) {
+            return Error(MAPPINGS_DIR_NOT_FOUND)
+          }
+          val mappingsFiles = mappingsDirs.flatMap { it.findMappingFiles() }
+          if (mappingsFiles.isEmpty()) {
+            return Error(MAPPINGS_FILE_NOT_FOUND)
+          }
+          mappingsFiles
         }
-        val buildDirs =
-          moduleDirs.mapNotNull { it.resolve(BUILD_DIR).takeIf { path -> path.isDirectory() } }
-        if (buildDirs.isEmpty()) {
-          return Error(BUILD_DIR_NOT_FOUND)
-        }
-        val mappingsDirs =
-          buildDirs.mapNotNull { it.resolve(MAPPINGS_DIR).takeIf { path -> path.isDirectory() } }
-        if (mappingsDirs.isEmpty()) {
-          return Error(MAPPINGS_DIR_NOT_FOUND)
-        }
-        val mappingsFiles = mappingsDirs.flatMap { it.findMappingFiles() }
-        if (mappingsFiles.isEmpty()) {
-          return Error(MAPPINGS_FILE_NOT_FOUND)
-        }
-        mappingsFiles
-      }
 
     val mappingsById = mappingsFiles.filter { it.exists() }.associateByNotNull { it.getMapId() }
     if (mappingsById.isEmpty()) {
