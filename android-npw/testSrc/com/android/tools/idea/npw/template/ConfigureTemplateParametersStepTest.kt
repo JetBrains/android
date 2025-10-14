@@ -37,6 +37,7 @@ import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.TestSuiteWidget
 import com.android.tools.idea.wizard.template.WizardUiContext
+import com.android.tools.idea.wizard.template.impl.other.files.journeyFile.journeyFileTemplate
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.MENU_GALLERY
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestUtil
@@ -225,6 +226,68 @@ class ConfigureTemplateParametersStepTest {
     templateModel.testSuiteName.set("anotherName")
     myInvokeStrategy.updateAllSteps()
     assertEquals("anotherName", fakeUI.findComponent<JTextField>()!!.text)
+  }
+
+  @Test
+  @RunsInEdt
+  fun parameterValuesAreResetWhenTemplateIsShownAgain() {
+    val moduleTemplates = facet.getModuleTemplates(null)
+    val template = journeyFileTemplate
+    val templateModel =
+      fromFacet(
+        facet,
+        "",
+        facet.getModuleTemplates(null)[0],
+        "New activity",
+        DefaultProjectSyncInvoker(),
+        true,
+        MENU_GALLERY,
+        testSuiteNameSuggestion = "mySuggestedSuite",
+      )
+    templateModel.newTemplate = template
+
+    // Create and show the wizard
+    var modelWizard = createTemplateWizard(templateModel, moduleTemplates)
+    var fakeUI = FakeUi(modelWizard.contentPanel, createFakeWindow = true)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    PlatformTestUtil.waitForAllBackgroundActivityToCalmDown()
+
+    val journeyNameTextField = fakeUI.findAllComponents<JTextField>()[1]
+    assertNotNull(journeyNameTextField)
+    assertEquals("My first Journey", journeyNameTextField.text)
+
+    // Simulate user changing the value
+    journeyNameTextField.text = "New Journey name"
+    myInvokeStrategy.updateAllSteps()
+
+    // Dispose the current wizard
+    Disposer.dispose(modelWizard)
+
+    // Create a new template model using the same template
+    val newTemplateModel =
+      fromFacet(
+        facet,
+        "",
+        facet.getModuleTemplates(null)[0],
+        "New activity",
+        DefaultProjectSyncInvoker(),
+        true,
+        MENU_GALLERY,
+        testSuiteNameSuggestion = "mySuggestedSuite",
+      )
+    newTemplateModel.newTemplate = template
+
+    // Re-create and show the wizard with the new template model
+    modelWizard = createTemplateWizard(newTemplateModel, moduleTemplates)
+    fakeUI = FakeUi(modelWizard.contentPanel, createFakeWindow = true)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    PlatformTestUtil.waitForAllBackgroundActivityToCalmDown()
+    myInvokeStrategy.updateAllSteps()
+
+    val newJourneyTestNameTextField = fakeUI.findAllComponents<JTextField>()[1]
+    assertNotNull(newJourneyTestNameTextField)
+    // Verify that the value is reset to the default value
+    assertEquals("My first Journey", newJourneyTestNameTextField.text)
   }
 
   private fun createTemplate(
