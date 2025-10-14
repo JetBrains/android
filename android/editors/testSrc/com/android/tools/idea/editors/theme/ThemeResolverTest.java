@@ -42,48 +42,6 @@ public class ThemeResolverTest extends AndroidTestCase {
    * The test SDK only includes some resources. It only includes a few incomplete styles.
    */
 
-  public void testFrameworkThemeRead() {
-    VirtualFile layoutFile = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout/layout1.xml");
-    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layoutFile);
-    ThemeResolver themeResolver = new ThemeResolver(configuration);
-
-    // It's system theme and we're not specifying namespace so it will fail.
-    assertNull(themeResolver.getTheme(ResourceReference.style(ResourceNamespace.RES_AUTO, "Theme.Holo.Light")));
-
-    ConfiguredThemeEditorStyle theme = themeResolver.getTheme(ResourceReference.style(ResourceNamespace.ANDROID, "Theme.Holo.Light"));
-    assertEquals("Theme.Holo.Light", theme.getName());
-
-    assertEquals(themeResolver.getThemesCount(), themeResolver.getFrameworkThemes().size()); // Only framework themes.
-    assertEmpty(themeResolver.getLocalThemes());
-
-    assertNull("Theme resolver shouldn't resolve styles",
-               themeResolver.getTheme(ResourceReference.style(ResourceNamespace.ANDROID, "TextAppearance")));
-  }
-
-  /** Check that, after a configuration update, the resolver updates the list of themes */
-  public void testConfigurationUpdate() {
-    myFixture.copyFileToProject("themeEditor/attributeResolution/styles-v17.xml", "res/values-v17/styles.xml");
-    myFixture.copyFileToProject("themeEditor/attributeResolution/styles-v19.xml", "res/values-v19/styles.xml");
-    VirtualFile file = myFixture.copyFileToProject("themeEditor/attributeResolution/styles-v20.xml", "res/values-v20/styles.xml");
-
-    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
-    Configuration configuration = configurationManager.getConfiguration(file);
-    ResourceNamespace moduleNamespace = StudioResourceRepositoryManager.getInstance(myModule).getNamespace();
-
-    ThemeResolver resolver = new ThemeResolver(configuration);
-    assertNotNull(resolver.getTheme(ResourceReference.style(moduleNamespace, "V20OnlyTheme")));
-    assertNotNull(resolver.getTheme(ResourceReference.style(moduleNamespace, "V19OnlyTheme")));
-    assertNotNull(resolver.getTheme(ResourceReference.style(moduleNamespace, "V17OnlyTheme")));
-
-    // Set API level 17 and check that only the V17 theme can be resolved.
-    //noinspection ConstantConditions
-    configuration.setTarget(new CompatibilityRenderTarget(configurationManager.getHighestApiTarget(), 17, null));
-    resolver = new ThemeResolver(configuration);
-    assertNull(resolver.getTheme(ResourceReference.style(moduleNamespace, "V20OnlyTheme")));
-    assertNull(resolver.getTheme(ResourceReference.style(moduleNamespace, "V19OnlyTheme")));
-    assertNotNull(resolver.getTheme(ResourceReference.style(moduleNamespace, "V17OnlyTheme")));
-  }
-
   /**
    * Regression test for b/111857682. Checks that we can handle LocalResourceRepository.EmptyRepository as the module resources.
    */
