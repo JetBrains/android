@@ -59,16 +59,16 @@ class AddDependencyAarsTest {
     val original = syncer.sync(TestData.ANDROID_LIB_QUERY)
 
     val addAars =
-      AddDependencyAars(original.queryData().projectDefinition(), aarPackageMetadata)
+      AddDependencyAars(original.queryData.projectDefinition(), aarPackageMetadata)
 
     val update =
-      ProjectProtoUpdate(original.project())
+      ProjectProtoUpdate(original.project)
 
-    addAars.update(update, original.graph(), ArtifactTracker.State.EMPTY, NoopContext())
+    addAars.update(update, original.graph, ArtifactTracker.State.EMPTY, NoopContext())
     val newProject = update.build()
 
-    Truth.assertThat(newProject.libraries).isEqualTo(original.project().libraries)
-    Truth.assertThat(newProject.modules).isEqualTo(original.project().modules)
+    Truth.assertThat(newProject.libraries).isEqualTo(original.project.libraries)
+    Truth.assertThat(newProject.modules).isEqualTo(original.project.modules)
     Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys).isEmpty()
   }
 
@@ -78,14 +78,14 @@ class AddDependencyAarsTest {
     val original = syncer.sync(TestData.ANDROID_LIB_QUERY)
 
     val addAars =
-      AddDependencyAars(original.queryData().projectDefinition(), aarPackageMetadata)
+      AddDependencyAars(original.queryData.projectDefinition(), aarPackageMetadata)
 
     val update =
-      ProjectProtoUpdate(original.project())
+      ProjectProtoUpdate(original.project)
 
     addAars.update(
       update,
-      original.graph(),
+      original.graph,
       ArtifactTracker.State.forTargets(
         TargetBuildInfo.forJavaTarget(
           JavaArtifactInfo.empty(Label.of("//path/to:dep")).toBuilder()
@@ -108,7 +108,7 @@ class AddDependencyAarsTest {
     )
     val newProject = update.build()
 
-    Truth.assertThat(newProject.libraries).isEqualTo(original.project().libraries)
+    Truth.assertThat(newProject.libraries).isEqualTo(original.project.libraries)
     Truth.assertThat(
       newProject.modules.singleOrNull()?.androidExternalLibraries?.singleOrNull()
     )
@@ -148,14 +148,14 @@ class AddDependencyAarsTest {
     val original = syncer.sync(TestData.ANDROID_LIB_QUERY)
 
     val addAars =
-      AddDependencyAars(original.queryData().projectDefinition(), aarPackageMetadata)
+      AddDependencyAars(original.queryData.projectDefinition(), aarPackageMetadata)
 
     val update =
-      ProjectProtoUpdate(original.project())
+      ProjectProtoUpdate(original.project)
 
     addAars.update(
       update,
-      original.graph(),
+      original.graph,
       ArtifactTracker.State.forJavaArtifacts(
         DependencyBuildContext.create("", buildTimestamp),
         ImmutableList.of(
@@ -173,7 +173,7 @@ class AddDependencyAarsTest {
     )
     val newProject = update.build()
 
-    Truth.assertThat(newProject.libraries).isEqualTo(original.project().libraries)
+    Truth.assertThat(newProject.libraries).isEqualTo(original.project.libraries)
     Truth.assertThat(
       newProject.modules.singleOrNull()?.androidExternalLibraries?.singleOrNull()?.packageName
     ).isEmpty()

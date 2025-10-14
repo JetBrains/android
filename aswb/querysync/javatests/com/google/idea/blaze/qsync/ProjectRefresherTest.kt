@@ -112,7 +112,7 @@ class ProjectRefresherTest {
     Truth.assertThat(update).isInstanceOf(NoopProjectRefresh::class.java)
     Truth.assertThat(update.createPostQuerySyncData(QuerySummary.EMPTY))
       .isEqualTo(
-        existingProject.queryData()
+        existingProject.queryData
           .toBuilder()
           .setVcsState(Optional.of(vcsState))
           .build()

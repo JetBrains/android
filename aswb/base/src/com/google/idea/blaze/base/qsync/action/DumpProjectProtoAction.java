@@ -35,7 +35,7 @@ public class DumpProjectProtoAction extends BlazeProjectAction implements DumbAw
     try {
       Path dest = Files.createTempFile("project-dump", ".yaml");
       try (OutputStream out = MoreFiles.asByteSink(dest).openBufferedStream()) {
-        formatTo(snapshot.project(), out);
+        formatTo(snapshot.getProject(), out);
       }
       qsm.notifyWarning("Wrote project proto", dest.toString());
       FileEditorManager.getInstance(project).openFile(VfsUtil.findFileByIoFile(dest.toFile(), true), true);

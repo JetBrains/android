@@ -52,13 +52,13 @@ class SnapshotHolderTest {
     holder.setCurrent(
       BlazeContext.create(),
       readonlyQuerySyncProjectStub,
-      QuerySyncProjectSnapshot.EMPTY.toBuilder()
+      QuerySyncProjectSnapshot.EMPTY.copy(
         // Change something in the project.
-        .project(
+        project =
           ProjectProto.Project.Builder()
             .also { it.activeLanguages.add(QuerySyncLanguage.JVM) }.build()
-        )
-        .build()
+
+      )
     )
     assertThat(notified).isTrue()
   }
@@ -73,7 +73,7 @@ class SnapshotHolderTest {
     holder.setCurrent(
       BlazeContext.create(),
       readonlyQuerySyncProjectStub,
-      QuerySyncProjectSnapshot.EMPTY.toBuilder().project(project()).build()
+      QuerySyncProjectSnapshot.EMPTY.copy(project = project())
     )
 
     var notified = false
@@ -81,11 +81,11 @@ class SnapshotHolderTest {
     holder.setCurrent(
       BlazeContext.create(),
       readonlyQuerySyncProjectStub,
-      QuerySyncProjectSnapshot.EMPTY.toBuilder()
-        .queryData(PostQuerySyncData.EMPTY.toBuilder().setBazelVersion(Optional.of("1.2.3")).build())
-        .artifactState(ArtifactTracker.State.forJavaLabels(Label.of("//a/b/c:d")))
-        .project(project())
-        .build()
+      QuerySyncProjectSnapshot.EMPTY.copy(
+        queryData = PostQuerySyncData.EMPTY.toBuilder().setBazelVersion(Optional.of("1.2.3")).build(),
+        artifactState = ArtifactTracker.State.forJavaLabels(Label.of("//a/b/c:d")),
+        project = project(),
+      )
     )
     assertThat(notified).isFalse()
   }

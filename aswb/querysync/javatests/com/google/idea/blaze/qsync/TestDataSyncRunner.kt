@@ -67,11 +67,12 @@ class TestDataSyncRunner(
         projectDefinition = projectDefinition
       )
     val project = converter.createProject(buildGraphData)
-    return QuerySyncProjectSnapshot.builder()
-      .queryData(pqsd)
-      .graph(BlazeQueryParser(querySummary, context, ImmutableSet.of()).parse())
-      .artifactState(ArtifactTracker.State.EMPTY)
-      .project(project)
-      .build()
+    return QuerySyncProjectSnapshot(
+      queryData = pqsd,
+      graph = BlazeQueryParser(querySummary, context, ImmutableSet.of()).parse(),
+      artifactState = ArtifactTracker.State.EMPTY,
+      project = project,
+      incompleteTargets = emptySet(),
+    )
   }
 }

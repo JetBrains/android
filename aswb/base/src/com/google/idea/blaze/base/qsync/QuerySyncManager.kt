@@ -220,7 +220,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
           it.projectDefinition != loader.loadProjectDefinition(currentProjectViewSet).definition
         }
       ?: runCatching { loader.loadProject() }.getOrElse { throw BuildException("Failed to load project", it) }
-    val existingQueryData = currentSnapshot.getOrNull()?.queryData()
+    val existingQueryData = currentSnapshot.getOrNull()?.queryData
                             ?: runCatching { readSnapshotFromDisk(context) }
                               .getOrElse {
                                 context.output(PrintOutput("Failed to read snapshot from disk. Error: ${it.message}"))
@@ -480,9 +480,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   ) {
     val queryInstant = Clock.System.now()
     val coreSyncResult = assertProjectLoaded().syncCore(context, postQuerySyncData)
-    updateCurrentSnapshot(context) {
-      it.applySyncResult(coreSyncResult)
-    }
+    updateCurrentSnapshot(context) { applySyncResult(coreSyncResult) }
     lastQueryInstant = queryInstant
   }
 
@@ -502,8 +500,8 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   ) {
     val newSnapshot: QuerySyncProjectSnapshot = currentSnapshot.orElse(QuerySyncProjectSnapshot.EMPTY)
     val newArtifactState = loadedProject?.artifactTracker?.stateSnapshot ?: ArtifactTracker.State.EMPTY
-    if (lastProjectUpdateFromSnapshot.queryData() == newSnapshot.queryData() &&
-        lastProjectUpdateFromSnapshot.graph() == newSnapshot.graph() &&
+    if (lastProjectUpdateFromSnapshot.queryData == newSnapshot.queryData &&
+        lastProjectUpdateFromSnapshot.graph == newSnapshot.graph &&
         lastProjectUpdateFromArtifactState == newArtifactState
     ) {
       context.output(PrintOutput("No changes found. Not updating the project structure."))
@@ -511,17 +509,17 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     }
     val loadedProject = assertProjectLoaded()
     val snapshot = currentSnapshot.getOrDefault(QuerySyncProjectSnapshot.EMPTY)
-    val result = loadedProject.createProjectStructure(context, snapshot.queryData(), snapshot.graph())
+    val result = loadedProject.createProjectStructure(context, snapshot.queryData, snapshot.graph)
     val updatedSnapshot = onNewSnapshot(
       context,
       loadedProject,
-      QuerySyncProjectSnapshot
-        .builder()
-        .artifactState(result.artifactState)
-        .queryData(snapshot.queryData())
-        .graph(snapshot.graph())
-        .project(result.projectStructure)
-        .build()
+      QuerySyncProjectSnapshot(
+        artifactState = result.artifactState,
+        queryData = snapshot.queryData,
+        graph = snapshot.graph,
+        project = result.projectStructure,
+        incompleteTargets = emptySet()
+      )
     )
     lastProjectUpdateFromArtifactState = newArtifactState
     lastProjectUpdateFromSnapshot = updatedSnapshot
@@ -531,7 +529,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   private fun onNewSnapshot(context: BlazeContext, project: QuerySyncProject, newSnapshot: QuerySyncProjectSnapshot): QuerySyncProjectSnapshot {
     // update the artifact store for the new snapshot
     var newSnapshot = newSnapshot
-    val newArtifactDirectoriesSnapshot = newSnapshot.project().artifactDirectories
+    val newArtifactDirectoriesSnapshot = newSnapshot.project.artifactDirectories
     val result = artifactStore.update(newArtifactDirectoriesSnapshot, context)
     if (!result.incompleteTargets.isEmpty()) {
       val limit = 20
@@ -547,7 +545,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       }
     }
     // update the snapshot with any missing artifacts:
-    newSnapshot = newSnapshot.toBuilder().incompleteTargets(result.incompleteTargets).build()
+    newSnapshot = newSnapshot.copy(incompleteTargets = result.incompleteTargets)
 
     snapshotHolder.setCurrent(context, project, newSnapshot)
     try {
@@ -573,7 +571,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   private fun writeToDisk(snapshot: QuerySyncProjectSnapshot) {
     AtomicFileWriter.create(getSnapshotFilePath(ideProject)).use { writer ->
       GZIPOutputStream(writer.outputStream).use { zip ->
-        val message = SnapshotSerializer().visit(snapshot.queryData()).toProto()
+        val message = SnapshotSerializer().visit(snapshot.queryData).toProto()
         val codedOutput = CodedOutputStream.newInstance(zip, 1024 * 1024)
         message.writeTo(codedOutput)
         codedOutput.flush()
@@ -714,11 +712,13 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       loadedProject.runCatching { loadedProject.artifactTracker.clear() }
         .getOrElse<Unit, Unit> { throw BuildException("Failed to clear dependency info", it) }
       updateCurrentSnapshot(context) {
-        it.queryData(PostQuerySyncData.EMPTY)
-        it.graph(BuildGraphData.EMPTY)
-        it.artifactState(ArtifactTracker.State.EMPTY)
-        it.project(ProjectProto.Project.getDefaultInstance())
-        it.incompleteTargets(ImmutableSet.of())
+        copy(
+          queryData = PostQuerySyncData.EMPTY,
+          graph = BuildGraphData.EMPTY,
+          artifactState = ArtifactTracker.State.EMPTY,
+          project = ProjectProto.Project.getDefaultInstance(),
+          incompleteTargets = emptySet(),
+        )
       }
       syncStatsScope(context) { context ->
         syncQueryData(context, postQuerySyncData = null)
@@ -732,8 +732,10 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       loadedProject.runCatching { loadedProject.artifactTracker.clear() }
         .getOrElse { throw BuildException("Failed to clear dependency info", it) }
       updateCurrentSnapshot(context) {
-        it.queryData(PostQuerySyncData.EMPTY)
-        it.graph(BuildGraphData.EMPTY)
+        copy(
+          queryData= PostQuerySyncData.EMPTY,
+          graph = BuildGraphData.EMPTY,
+        )
       }
     }
   }
@@ -872,17 +874,13 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   }
 }
 
-fun QuerySyncProjectSnapshot.update(mutator: (QuerySyncProjectSnapshot.Builder) -> Unit): QuerySyncProjectSnapshot {
-  val builder = this.toBuilder()
-  mutator(builder)
-  return builder.build()
+fun QuerySyncManager.updateCurrentSnapshot(context: BlazeContext, mutator: QuerySyncProjectSnapshot.() -> QuerySyncProjectSnapshot) {
+  snapshotHolder.setCurrent(context, assertProjectLoaded(), currentSnapshot.orElse(QuerySyncProjectSnapshot.EMPTY).mutator())
 }
 
-fun QuerySyncManager.updateCurrentSnapshot(context: BlazeContext, mutator: (QuerySyncProjectSnapshot.Builder) -> Unit) {
-  snapshotHolder.setCurrent(context, assertProjectLoaded(), currentSnapshot.orElse(QuerySyncProjectSnapshot.EMPTY).update(mutator))
-}
-
-fun QuerySyncProjectSnapshot.Builder.applySyncResult(coreSyncResult: QuerySyncProject.CoreSyncResult) {
-  queryData(coreSyncResult.postQuerySyncData)
-  graph(coreSyncResult.graph)
+fun QuerySyncProjectSnapshot.applySyncResult(coreSyncResult: QuerySyncProject.CoreSyncResult): QuerySyncProjectSnapshot {
+  return copy(
+    queryData = coreSyncResult.postQuerySyncData,
+    graph = coreSyncResult.graph,
+  )
 }

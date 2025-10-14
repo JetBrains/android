@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.bazel.BazelVersion;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
-import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.ideinfo.TargetMap;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.BlazeVersionData;
@@ -32,7 +31,6 @@ import com.google.idea.blaze.base.sync.workspace.ArtifactLocationDecoder;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.blaze.qsync.project.ProjectTarget;
-import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import com.intellij.openapi.diagnostic.Logger;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -78,7 +76,7 @@ public class QuerySyncProjectData implements BlazeProjectData {
   @Override
   public ProjectTarget getBuildTarget(Label label) {
     return blazeProject
-        .map(it -> it.graph().getProjectTarget(com.google.idea.blaze.common.Label.of(label.toString())))
+        .map(it -> it.getGraph().getProjectTarget(com.google.idea.blaze.common.Label.of(label.toString())))
         .orElse(null);
   }
 
@@ -91,7 +89,7 @@ public class QuerySyncProjectData implements BlazeProjectData {
    */
   public Collection<ProjectTarget> getReverseDeps(Path sourcePath) {
     return blazeProject
-        .map(QuerySyncProjectSnapshot::graph)
+        .map(QuerySyncProjectSnapshot::getGraph)
         .map(graph -> graph.getReverseDepsForSource(sourcePath))
         .orElse(ImmutableList.of());
   }
@@ -106,7 +104,7 @@ public class QuerySyncProjectData implements BlazeProjectData {
 
     ImmutableSet<LanguageClass> projectLanguages =
         blazeProject
-            .map(p -> p.project().getActiveLanguages())
+            .map(p -> p.getProject().getActiveLanguages())
             .map(LanguageClasses::fromQuerySync)
             .orElse(ImmutableSet.of());
 
@@ -135,7 +133,7 @@ public class QuerySyncProjectData implements BlazeProjectData {
     logger.warn("Usage of legacy getBlazeVersionData");
     BlazeVersionData.Builder data = BlazeVersionData.builder();
     blazeProject
-        .flatMap(p -> p.queryData().vcsState())
+        .flatMap(p -> p.getQueryData().vcsState())
         .map(q -> q.upstreamRevision)
         .ifPresent(
             revision -> {
@@ -146,7 +144,7 @@ public class QuerySyncProjectData implements BlazeProjectData {
               }
             });
     blazeProject
-        .flatMap(p -> p.queryData().bazelVersion())
+        .flatMap(p -> p.getQueryData().bazelVersion())
         .ifPresent(version -> data.setBazelVersion(BazelVersion.parseVersion(version)));
 
     return data.build();

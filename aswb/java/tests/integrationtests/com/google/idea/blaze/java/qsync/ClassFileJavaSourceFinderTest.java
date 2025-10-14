@@ -17,9 +17,6 @@ package com.google.idea.blaze.java.qsync;
 
 import static com.google.common.truth.PathSubject.paths;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
@@ -132,9 +129,7 @@ public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTe
                 Path.of("blaze-out/k8/bin/com/test/libtest.jar"), Label.of("//com/test:test"))))
             .build()));
     when(querySyncManager.getCurrentSnapshot()).thenReturn(
-      Optional.of(QuerySyncProjectSnapshot.EMPTY.toBuilder()
-                    .artifactState(artifactState)
-                    .build()));
+      Optional.of(QuerySyncProjectSnapshot.EMPTY.withArtifactState(artifactState)));
 
     PsiElement navElement = djsf.findSourceFile();
     assertThat(navElement).isNotNull();
@@ -172,9 +167,7 @@ public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTe
                 Path.of("blaze-out/k8/bin/com/test/libtest.jar"), Label.of("//com/test:test"))))
             .build()));
     when(querySyncManager.getCurrentSnapshot()).thenReturn(
-      Optional.of(QuerySyncProjectSnapshot.EMPTY.toBuilder()
-                    .artifactState(artifactState)
-                    .build()));
+      Optional.of(QuerySyncProjectSnapshot.EMPTY.withArtifactState(artifactState)));
 
     PsiElement navElement = djsf.findSourceFile();
     assertThat(navElement).isNotNull();

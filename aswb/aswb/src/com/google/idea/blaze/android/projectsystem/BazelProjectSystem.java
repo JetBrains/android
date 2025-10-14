@@ -129,7 +129,7 @@ public class BazelProjectSystem implements AndroidProjectSystem {
           if (querySyncProject.isEmpty()) return createSourceProvidersForLegacyModule(facet);
           final var data = querySyncManager.getCurrentSnapshot();
           if (data.isEmpty()) return createSourceProvidersForLegacyModule(facet);
-          final var androidResourceDirectories = data.get().project().getModules().stream().flatMap(it -> it.getAndroidResourceDirectories().stream())
+          final var androidResourceDirectories = data.get().getProject().getModules().stream().flatMap(it -> it.getAndroidResourceDirectories().stream())
             .map(it -> it.relativePath().toString())
             .toList();
           var androidResourceDirectoryFiles =

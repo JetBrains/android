@@ -44,19 +44,19 @@ public class ProjectStatsLogger {
             scope -> {
               scope
                   .getProjectInfoStatsBuilder()
-                  .setLanguagesActive(ImmutableSet.copyOf(instance.queryData().projectDefinition().getLanguageClasses()))
+                  .setLanguagesActive(ImmutableSet.copyOf(instance.getQueryData().projectDefinition().getLanguageClasses()))
                   .setBlazeProjectFiles(
                       projectViewSet.listScalarItems(ImportSection.KEY).stream()
                           .map(WorkspacePath::asPath)
                           .collect(toImmutableSet()))
-                  .setProjectTargetCount(instance.graph().getProjectSupportedTargetCountForStatsOnly())
-                  .setExternalDependencyCount(instance.graph().getExternalDependencyCountForStatsOnly());
+                  .setProjectTargetCount(instance.getGraph().getProjectSupportedTargetCountForStatsOnly())
+                  .setExternalDependencyCount(instance.getGraph().getExternalDependencyCountForStatsOnly());
               scope
                   .getDependenciesInfoStatsBuilder()
-                  .setTargetMapSize(instance.graph().getTargetMapSizeForStatsOnly())
-                  .setLibraryCount(instance.project().getLibraries().size())
+                  .setTargetMapSize(instance.getGraph().getTargetMapSizeForStatsOnly())
+                  .setLibraryCount(instance.getProject().getLibraries().size())
                   .setJarCount(
-                      instance.artifactState().targets().stream()
+                      instance.getArtifactState().targets().stream()
                           .map(TargetBuildInfo::javaInfo)
                           .flatMap(Optional::stream)
                           .map(JavaArtifactInfo::jars)

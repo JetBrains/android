@@ -304,8 +304,8 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
       MoreFiles.asByteSource(getBundledAspectPath("build_dependencies_deps.bzl")));
 
     // Aspects for Android support
-    if (snapshotHolder.getCurrent().map(it -> it.queryData().querySummary().getAllBuildIncludedFiles().contains(RULES_ANDROID_RULES_BZL1) ||
-                                              it.queryData().querySummary().getAllBuildIncludedFiles().contains(RULES_ANDROID_RULES_BZL2))
+    if (snapshotHolder.getCurrent().map(it -> it.getQueryData().querySummary().getAllBuildIncludedFiles().contains(RULES_ANDROID_RULES_BZL1) ||
+                                              it.getQueryData().querySummary().getAllBuildIncludedFiles().contains(RULES_ANDROID_RULES_BZL2))
       .orElse(false)) {
       files.put(
         "build_dependencies_android_deps.bzl",
@@ -323,7 +323,7 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
     }
 
     // Aspects for Java and ImlModule support
-    if (snapshotHolder.getCurrent().map(it -> it.queryData().querySummary().getAllBuildIncludedFiles()
+    if (snapshotHolder.getCurrent().map(it -> it.getQueryData().querySummary().getAllBuildIncludedFiles()
       .contains(STUDIO_IML_MODULE_RULE)).orElse(false)) {
       files.put(
         "build_dependencies_java_deps.bzl",
