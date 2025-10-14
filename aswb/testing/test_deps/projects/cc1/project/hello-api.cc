@@ -1,6 +1,7 @@
 #include "hello-api.h"
 
 #include <string>
+#include "cc1/project/gen/TestClass-g.h"
 
 // A C++ function that returns an architecture-specific message.
 // This is the C++ function that we're going to wrap in a Java method.
@@ -38,6 +39,6 @@ HelloJniMessage()
 #else
 #define ABI "unknown"
 #endif
-  return "Hello from JNI !  Compiled with ABI " ABI;
+  return "Hello from JNI !  Compiled with ABI " ABI + suffix;
 #undef ABI
 }

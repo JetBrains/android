@@ -6,7 +6,10 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
     name = "cc1",
     srcs = ["TestClass.cc"],
-    hdrs = ["TestClass.h"],
+    hdrs = [
+        "TestClass.h",
+        "//cc1/project/gen:generated_header",
+    ],
     linkopts = ["-llog"],
 )
 

@@ -16,9 +16,11 @@
 
 #pragma once
 #include <string>
+#include "cc1/project/gen/TestClass-g.h"
 
 class TestClass {
   std::string testString;
+  int value = one;
 
  public:
   TestClass();
