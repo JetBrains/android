@@ -157,33 +157,31 @@ class ProjectProto {
   data class BuildArtifact(val digest: String): ProjectProtoModel
 
   data class CcWorkspace(
-    val contexts: List<CcCompilationContext>,
+    val targets: Map<Label, CcTarget>,
     val flagSets: Map<String, CcCompilerFlagSet>,
   ): ProjectProtoModel {
-    class Builder(
-      val contexts: MutableList<CcCompilationContext> = mutableListOf(),
-      val flagSets: MutableMap<String, CcCompilerFlagSet> = mutableMapOf(),
-    ) {
-      fun putFlagSets(id: String, flagSet: CcCompilerFlagSet) {
-        flagSets[id] = flagSet
-      }
-
-      fun build(): CcWorkspace = CcWorkspace(contexts.toList(), flagSets.toMap())
-    }
-
-    val isEmpty: Boolean get() = contexts.isEmpty() && flagSets.isEmpty()
-    fun toBuilder(): Builder = Builder(contexts.toMutableList(), flagSets.toMutableMap())
+    val isEmpty: Boolean get() = targets.values.all { it.isEssentiallyEmpty() } && flagSets.isEmpty()
 
     companion object {
       @JvmStatic
-      fun getDefaultInstance(): CcWorkspace = CcWorkspace(listOf(), mapOf())
+      fun getDefaultInstance(): CcWorkspace = CcWorkspace(mapOf(), mapOf())
     }
+  }
+
+  data class CcTarget(
+    val target: Label,
+    val sources: Map<ProjectPath.WorkspaceRelativeProjectPath, CcSourceFile>,
+    val contexts: Map<String, CcCompilationContext>,
+  ): ProjectProtoModel {
+    /**
+     * Whether there is anything analyzable in this target.
+     */
+    fun isEssentiallyEmpty(): Boolean = contexts.isEmpty()
   }
 
   data class CcCompilationContext(
     val id: String,
     val humanReadableName: String,
-    val sources: List<CcSourceFile>,
     val languageToCompilerSettings: Map<CcLanguage, CcCompilerSettings>,
   ): ProjectProtoModel
 
@@ -205,7 +203,6 @@ class ProjectProto {
   data class CcSourceFile(
     val workspacePath: ProjectPath.WorkspaceRelativeProjectPath,
     val language: CcLanguage,
-    val compilerSettings: CcCompilerSettings,
   ): ProjectProtoModel
 
   enum class CcLanguage { C, CPP, OBJ_C, OBJ_CPP }

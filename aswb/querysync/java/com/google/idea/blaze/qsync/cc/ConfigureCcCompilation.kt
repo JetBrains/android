@@ -15,9 +15,6 @@
  */
 package com.google.idea.blaze.qsync.cc
 
-import com.google.common.base.Preconditions
-import com.google.common.collect.ImmutableListMultimap
-import com.google.common.collect.Multimap
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.exception.BuildException
@@ -60,7 +57,7 @@ class ConfigureCcCompilation(
   }
 
   /* Map from toolchain ID -> language -> flags for that toolchain & language. */
-  private val toolchainLanguageFlags: MutableMap<String, Multimap<CcLanguage, CcCompilerFlag>> = hashMapOf()
+  private val toolchainLanguageFlags: MutableMap<String, Map<CcLanguage, List<CcCompilerFlag>>> = hashMapOf()
 
   /* Map of unique sets of compiler flags to an ID to identify them.
    * We do this as the downstream code turns each set of flags into a CidrCompilerSwitches instance
@@ -94,18 +91,9 @@ class ConfigureCcCompilation(
       val commonFlags =
         toolchain.builtInIncludeDirectories().map { makePathFlag("-I", it) }
 
-      toolchainLanguageFlags.put(
-        toolchain.id(),
-        ImmutableListMultimap.builder<CcLanguage, CcCompilerFlag>()
-          .putAll(
-            CcLanguage.C,
-            commonFlags + toolchain.cOptions().map { makeStringFlag(it, "") }
-          )
-          .putAll(
-            CcLanguage.CPP,
-            commonFlags + toolchain.cppOptions().map { makeStringFlag(it, "") }
-          )
-          .build()
+      toolchainLanguageFlags[toolchain.id()] = mapOf(
+        CcLanguage.C to commonFlags + toolchain.cOptions().map { makeStringFlag(it, "") },
+        CcLanguage.CPP to commonFlags + toolchain.cppOptions().map { makeStringFlag(it, "") }
       )
     }
 
@@ -117,9 +105,10 @@ class ConfigureCcCompilation(
         // no-longer-present targets, but that will be a lot more work. For now, just ensure we
         // don't crash.
         ?: return
-      val toolchain =
-        Preconditions.checkNotNull(
-          artifactState.ccToolchainMap().get(ccInfo.toolchainId()), ccInfo.toolchainId())!!
+      val toolchain = artifactState.ccToolchainMap()[ccInfo.toolchainId()] ?: let {
+        context.output(PrintOutput.error("Cannot find toolchain with id: '${ccInfo.toolchainId()}' referred to from ${ccInfo.target()}"))
+        return@visitTarget
+      }
 
       val targetFlags =
         buildList {
@@ -131,41 +120,38 @@ class ConfigureCcCompilation(
           addAll(ccInfo.frameworkIncludeDirectories().map { p -> makePathFlag("-F", p) })
         }
 
-      // TODO(mathewi): The handling of flag sets here is not optimal, since we recalculate an
-      //  identical flag set for each source of the same language, then immediately de-dupe them in
-      //  the addFlagSet call. For large flag sets this may be slow.
       val srcs = buildGraph.getTargetSources(ccInfo.target(), *SourceType.all())
         .mapNotNull { srcPath ->
           val lang = getLanguage(srcPath) ?: return@mapNotNull null
           CcSourceFile(
             workspacePath = ProjectPath.workspaceRelative(srcPath),
             language = lang,
-            compilerSettings =
-              CcCompilerSettings(
-                compilerExecutablePath = toolchain.compilerExecutable(),
-                flagSetId = addFlagSet(targetFlags + toolchainLanguageFlags[toolchain.id()]?.get(lang).orEmpty()))
-            )
+          )
         }
 
-      val targetContext =
-        CcCompilationContext(
-          id = ccInfo.target().toString() + "%" + toolchain.targetGnuSystemName(),
-          humanReadableName = ccInfo.target().toString() + " - " + toolchain.targetGnuSystemName(),
-          sources = srcs,
-          languageToCompilerSettings =
-            toolchainLanguageFlags[toolchain.id()]?.asMap()?.entries?.associate {
-              it.key to CcCompilerSettings(
-                compilerExecutablePath = toolchain.compilerExecutable(),
-                flagSetId = addFlagSet(it.value)
-              )
-            }
-              .orEmpty()
+      workspaceUpdater.target(ccInfo.target()) {
+        srcs.forEach {
+          addSourceFile(it)
+        }
+        val targetContext =
+          CcCompilationContext(
+            id = ccInfo.target().toString() + "%" + toolchain.targetGnuSystemName(),
+            humanReadableName = ccInfo.target().toString() + " - " + toolchain.targetGnuSystemName(),
+            languageToCompilerSettings =
+              toolchainLanguageFlags[toolchain.id()]?.entries?.associate {
+                it.key to CcCompilerSettings(
+                  compilerExecutablePath = toolchain.compilerExecutable(),
+                  flagSetId = addFlagSet(it.value + targetFlags)
+                )
+              }
+                .orEmpty(),
           )
-      workspaceUpdater.addContexts(targetContext)
+        addContext(targetContext)
 
-      val headersDir = update.artifactDirectory(ArtifactDirectories.GEN_CC_HEADERS) {
-        for (artifact in ccInfo.genHeaders()) {
-          addIfNewer(artifact.artifactPath(), artifact, buildContext)
+        update.artifactDirectory(ArtifactDirectories.GEN_CC_HEADERS) {
+          for (artifact in ccInfo.genHeaders()) {
+            addIfNewer(artifact.artifactPath(), artifact, buildContext)
+          }
         }
       }
     }
