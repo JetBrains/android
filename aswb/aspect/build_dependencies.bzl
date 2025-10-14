@@ -686,11 +686,14 @@ def _get_cc_toolchain_dependency_info(rule):
 
 def _collect_own_and_dependency_cc_info(target, rule):
     dependency_info = _get_cc_toolchain_dependency_info(rule)
-    compilation_context = IDE_CC.compilation_context(target)
     cc_toolchain_info = None
-    if dependency_info:
+    if dependency_info and dependency_info.cc_toolchain_info:
         cc_toolchain_info = dependency_info.cc_toolchain_info
+    if not cc_toolchain_info:
+        # The IDE cannot analyze targets without a toolchain (normally _untransitioned, cc_proto etc.).
+        return None
 
+    compilation_context = IDE_CC.compilation_context(target)
     gen_headers = depset()
     compilation_info = None
     if compilation_context:
@@ -708,9 +711,9 @@ def _collect_own_and_dependency_cc_info(target, rule):
             ),
             framework_include_directory = compilation_context.framework_includes.to_list(),
             gen_headers = gen_headers.to_list(),
-            toolchain_id = cc_toolchain_info.id if cc_toolchain_info else None,
+            toolchain_id = cc_toolchain_info.id,
         )
-    if not compilation_info and not cc_toolchain_info:
+    if not compilation_info:
         return None
     return struct(
         compilation_info = compilation_info,
