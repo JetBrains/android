@@ -112,6 +112,24 @@ class ConstrainedImageFactoryTest {
     myFactory.getImage(Int.MAX_VALUE, Int.MAX_VALUE)
     assert(fakeImageFactory.getImageCalls.size == 19)
     assert(fakeImageFactory.getImageCalls.last() == 128 to 128)
+
+    // Empty image is unexpected, but should not cause errors like division by 0
+    myFactory.getImage(0, 0)
+    assert(fakeImageFactory.getImageCalls.size == 20)
+    assert(fakeImageFactory.getImageCalls.last() == 1 to 1)
+
+    // Negative dimensions are unexpected, but should be treated gracefully
+    myFactory.getImage(2, -2)
+    assert(fakeImageFactory.getImageCalls.size == 21)
+    assert(fakeImageFactory.getImageCalls.last() == 2 to 1)
+
+    myFactory.getImage(-2, 2)
+    assert(fakeImageFactory.getImageCalls.size == 22)
+    assert(fakeImageFactory.getImageCalls.last() == 1 to 2)
+
+    myFactory.getImage(-2, -2)
+    assert(fakeImageFactory.getImageCalls.size == 23)
+    assert(fakeImageFactory.getImageCalls.last() == 1 to 1)
   }
 }
 
