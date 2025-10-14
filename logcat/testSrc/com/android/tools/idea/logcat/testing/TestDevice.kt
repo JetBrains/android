@@ -120,17 +120,16 @@ private fun makeAvdInfo(
 ): AvdInfo {
   val basePath = Path.of("/tmp/fake_avds")
   return AvdInfo(
-    basePath.resolve("${avdName}.ini"),
-    basePath.resolve("${avdName}.avd"),
-    null,
-    mapOf(
-      ConfigKey.DEVICE_MANUFACTURER to manufacturer,
-      ConfigKey.DEVICE_NAME to model,
-      ConfigKey.TARGET to AndroidTargetHash.getPlatformHashString(androidVersion),
-      ConfigKey.ABI_TYPE to Abi.ARM64_V8A.toString(),
-      ConfigKey.DISPLAY_NAME to avdName,
-    ),
-    null,
-    AvdInfo.AvdStatus.OK,
+    iniFile = basePath.resolve("${avdName}.ini"),
+    dataFolderPath = basePath.resolve("${avdName}.avd"),
+    systemImage = null,
+    properties =
+      mapOf(
+        ConfigKey.DEVICE_MANUFACTURER to manufacturer,
+        ConfigKey.DEVICE_NAME to model,
+        ConfigKey.TARGET to AndroidTargetHash.getPlatformHashString(androidVersion),
+        ConfigKey.ABI_TYPE to Abi.ARM64_V8A.toString(),
+        ConfigKey.DISPLAY_NAME to avdName,
+      ),
   )
 }

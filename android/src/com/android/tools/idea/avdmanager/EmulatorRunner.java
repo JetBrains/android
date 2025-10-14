@@ -22,7 +22,6 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.tools.analytics.CommonMetricsData;
 import com.android.tools.analytics.UsageTracker;
-import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AvdLaunchEvent;
 import com.google.wireless.android.sdk.stats.AvdLaunchEvent.AvdClass;
@@ -96,8 +95,7 @@ public class EmulatorRunner {
     if (avdInfo == null) {
       return AvdClass.UNKNOWN_AVD_CLASS;
     }
-    // TODO merge
-    ImmutableList<IdDisplay> tags = null;//avdInfo.getTags();
+    List<IdDisplay> tags = avdInfo.getTags();
     if (SystemImageTags.isTvImage(tags)) {
       return AvdClass.TV;
     }

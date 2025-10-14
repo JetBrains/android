@@ -16,7 +16,6 @@
 package com.android.tools.idea.avdmanager
 
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.sdklib.internal.avd.AvdInfo.AvdStatus
 import com.android.testutils.FakeProcessHandle
 import com.android.tools.idea.avdmanager.EmulatorLogListener.Severity
 import com.android.tools.idea.testing.executeCapturingLoggedErrorsAndWarnings
@@ -43,12 +42,9 @@ class EmulatorProcessHandlerTest {
     val avdId = "Pixel_9_API_34"
     val avd =
       AvdInfo(
-        avdDir.resolve("$avdId.ini"),
-        avdDir.resolve("$avdId.avd"),
-        null,
-        null,
-        null,
-        AvdStatus.OK,
+        iniFile = avdDir.resolve("$avdId.ini"),
+        dataFolderPath = avdDir.resolve("$avdId.avd"),
+        systemImage = null,
       )
     val commandLine =
       "/users/user/Android/Sdk/emulator/emulator -avd $avdId -qt-hide-window -grpc-use-token"
