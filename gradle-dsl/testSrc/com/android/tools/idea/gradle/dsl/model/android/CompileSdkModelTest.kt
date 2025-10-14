@@ -277,6 +277,22 @@ class CompileSdkModelTest: GradleFileModelTestCase() {
   }
 
   @Test
+  fun testCompileSdkVersionToString() {
+    val buildModel = initTest(TestFile.EMPTY_ANDROID_BLOCK)
+
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    val compileSdkVersion = android.compileSdkVersion()
+
+    assertThat(compileSdkVersion).isNotNull()
+    assertThat(compileSdkVersion.toString()).contains("Version=null")
+    val config = compileSdkVersion.toCompileSdkConfig()
+    config!!.setReleaseVersion(35,0, null)
+    assertThat(compileSdkVersion.toString()).contains("Version=android-35")
+  }
+
+  @Test
   fun testReadUpdateCompileSdkValuesWithOldApi() {
     val buildModel = initTest(TestFile.EMPTY_ANDROID_BLOCK)
 

@@ -119,6 +119,9 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
     val sdkBlockModel = CompileSdkBlockModelImpl(dslElement)
     override fun getValueType(): ValueType = ValueType.CUSTOM
     override fun getResultModel(): GradlePropertyModel = PropertyUtil.resolveModel(this)
+    override fun toString(): String {
+      return this.javaClass.simpleName + "[Version=" + sdkBlockModel.getVersion()?.toHash()+"]"
+    }
   }
 
   override fun toCompileSdkConfig(): CompileSdkBlockModel? {
