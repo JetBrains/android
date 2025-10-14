@@ -413,7 +413,7 @@ public final class MergedManifestInfo {
       MergedManifestInfoToken.EP_NAME.getExtensionList().stream()
         .filter(t -> t.isApplicable(projectSystem))
         .findFirst();
-    maybeToken.ifPresent(token -> token.withProjectSystemFeatures(projectSystem, manifestMergerInvoker));
+    maybeToken.ifPresent(token -> token.withProjectSystemFeatures(projectSystem, manifestMergerInvoker, facet));
 
     return manifestMergerInvoker.merge();
   }

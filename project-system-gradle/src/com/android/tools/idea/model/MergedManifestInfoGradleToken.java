@@ -15,26 +15,29 @@
  */
 package com.android.tools.idea.model;
 
+import com.android.ide.common.repository.AgpVersion;
 import com.android.manifmerger.ManifestMerger2;
-import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModelKt;
 import com.android.tools.idea.projectsystem.GradleToken;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
-import com.intellij.openapi.project.Project;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.Nullable;
 
 public class MergedManifestInfoGradleToken implements MergedManifestInfoToken<GradleProjectSystem>, GradleToken {
 
   @Override
-  public ManifestMerger2.Invoker withProjectSystemFeatures(GradleProjectSystem projectSystem, ManifestMerger2.Invoker invoker) {
-    if (!isVersionAtLeast7_4_0(projectSystem.getProject())) {
+  public ManifestMerger2.Invoker withProjectSystemFeatures(GradleProjectSystem projectSystem, ManifestMerger2.Invoker invoker, AndroidFacet facet) {
+    if (!isVersionAtLeast7_4_0(facet)) {
       invoker.withFeatures(ManifestMerger2.Invoker.Feature.DISABLE_STRIP_LIBRARY_TARGET_SDK);
     }
     return invoker;
   }
 
-  private static boolean isVersionAtLeast7_4_0(Project project) {
-    AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.findFromModel(project);
-    return androidPluginInfo != null &&
-           androidPluginInfo.getPluginVersion() != null &&
-           androidPluginInfo.getPluginVersion().isAtLeast(7, 4, 0);
+  private static boolean isVersionAtLeast7_4_0(AndroidFacet facet) {
+    @Nullable GradleModuleModel model = GradleModuleModelKt.getGradleModuleModel(facet.getModule());
+    return model != null &&
+           model.getAgpVersion() != null &&
+           AgpVersion.parse(model.getAgpVersion()).isAtLeast(7, 4, 0);
   }
 }
