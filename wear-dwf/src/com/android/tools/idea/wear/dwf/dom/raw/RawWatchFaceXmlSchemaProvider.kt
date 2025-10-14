@@ -33,8 +33,6 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.ProjectActivity
-import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtilCore
@@ -64,6 +62,8 @@ class RawWatchfaceXmlSchemaProvider() : XmlSchemaProvider() {
 
   override fun getSchema(url: @NonNls String, module: Module?, baseFile: PsiFile): XmlFile? {
     if (module == null) return null
+    // We only want to initialize the service on demand when a declarative watch face file is opened
+    RawWatchFaceXmlSchemaUpdater.initializeService(module.project)
     val (schemaVersion, isFallback) =
       CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module) ?: return null
 
@@ -80,13 +80,6 @@ class RawWatchfaceXmlSchemaProvider() : XmlSchemaProvider() {
   override fun isAvailable(file: XmlFile) =
     StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.get() &&
       isDeclarativeWatchFaceFile(file)
-}
-
-/** [StartupActivity] that activates [RawWatchFaceXmlSchemaUpdater] */
-private class RawWatchFaceXmlSchemaUpdaterStartupActivity : ProjectActivity {
-  override suspend fun execute(project: Project) {
-    project.service<RawWatchFaceXmlSchemaUpdater>()
-  }
 }
 
 /**
@@ -148,4 +141,8 @@ private class RawWatchFaceXmlSchemaUpdater private constructor(val project: Proj
         }
       }
       .mapNotNull { it.getSourceAsVirtualFile() }
+
+  companion object {
+    fun initializeService(project: Project) = project.service<RawWatchFaceXmlSchemaUpdater>()
+  }
 }
