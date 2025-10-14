@@ -27,11 +27,11 @@ private val EP_NAME =
 interface IssueFixActionProvider {
   companion object {
     /** Returns all the AI fix actions from the running extensions. */
-    fun getAiActions(issue: Issue): List<AnAction> {
-      return EP_NAME.extensionList.flatMap { it.getAiActions(issue) }
+    fun getAiActions(): List<AnAction> {
+      return EP_NAME.extensionList.flatMap { it.getAiActions() }
     }
   }
 
-  /** Returns the AI fix actions for the given [issue]. */
-  fun getAiActions(issue: Issue): List<AnAction>
+  /** Returns the AI fix actions. */
+  fun getAiActions(): List<AnAction>
 }
