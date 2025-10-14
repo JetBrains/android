@@ -45,10 +45,11 @@ class LogcatGradleTokenIntegrationTest() {
     }
     val project = projectRule.project
     projectRule.invokeTasks(":app:assembleRelease")
-    val mappingsTextFiles = LogcatR8MappingsToken.getR8TextMappings(project)
+    val mappings = LogcatR8MappingsToken.getR8Mappings(project)
+    val mappingsTextFiles = mappings.map { it.text }
     checkListPath(mappingsTextFiles, 1, "mapping.txt")
 
-    val mappingsPartitionFiles = LogcatR8MappingsToken.getR8PartitionMappings(project)
+    val mappingsPartitionFiles = mappings.mapNotNull { it.partitioned }
     checkListPath(mappingsPartitionFiles, 1, "mapping.prt")
   }
 
@@ -65,10 +66,11 @@ class LogcatGradleTokenIntegrationTest() {
     }
     val project = projectRule.project
     projectRule.invokeTasks(":app:assembleRelease")
-    val mappingsTextFiles = LogcatR8MappingsToken.getR8TextMappings(project)
+    val mappings = LogcatR8MappingsToken.getR8Mappings(project)
+    val mappingsTextFiles = mappings.map { it.text }
     checkListPath(mappingsTextFiles, 2, "mapping.txt")
 
-    val mappingsPartitionFiles = LogcatR8MappingsToken.getR8PartitionMappings(project)
+    val mappingsPartitionFiles = mappings.mapNotNull { it.partitioned }
     checkListPath(mappingsPartitionFiles, 2, "mapping.prt")
   }
 

@@ -19,6 +19,7 @@ import com.android.testutils.TestResources
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatR8MappingsToken
+import com.android.tools.idea.logcat.LogcatR8MappingsToken.R8Mappings
 import com.android.tools.idea.logcat.util.logcatEvents
 import com.android.tools.idea.logcat.util.waitForCondition
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
@@ -40,6 +41,7 @@ import com.intellij.util.io.createParentDirectories
 import com.intellij.util.io.delete
 import java.nio.file.Path
 import kotlin.io.path.fileSize
+import kotlin.io.path.pathString
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
 import kotlin.test.fail
@@ -308,7 +310,9 @@ class AutoProguardMessageRewriterTest {
 
   private fun registerLogcatR8MappingsTokenExtension(path: Path) {
     val element: LogcatR8MappingsToken<AndroidProjectSystem> =
-      FakeLogcatR8MappingsToken(listOf(path))
+      FakeLogcatR8MappingsToken(
+        listOf(R8Mappings(path, Path.of(path.pathString.replace(".txt", ".prt"))))
+      )
     val extensionsToAdd: List<LogcatR8MappingsToken<AndroidProjectSystem>> = listOf(element)
     ExtensionTestUtil.addExtensions(
       LogcatR8MappingsToken.EP_NAME,
@@ -317,13 +321,9 @@ class AutoProguardMessageRewriterTest {
     )
   }
 
-  private class FakeLogcatR8MappingsToken(private val mappings: List<Path>) :
+  private class FakeLogcatR8MappingsToken(private val mappings: List<R8Mappings>) :
     LogcatR8MappingsToken<AndroidProjectSystem> {
-    override fun getR8TextMappings(projectSystem: AndroidProjectSystem): List<Path> = mappings
-
-    override fun getR8PartitionMappings(projectSystem: AndroidProjectSystem): List<Path> {
-      TODO("Not yet implemented")
-    }
+    override fun getR8Mappings(projectSystem: AndroidProjectSystem): List<R8Mappings> = mappings
 
     override fun isApplicable(projectSystem: AndroidProjectSystem) = true
   }

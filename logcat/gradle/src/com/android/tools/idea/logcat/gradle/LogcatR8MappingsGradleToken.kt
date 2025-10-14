@@ -19,18 +19,20 @@ import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.logcat.LogcatR8MappingsToken
+import com.android.tools.idea.logcat.LogcatR8MappingsToken.R8Mappings
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.intellij.openapi.module.ModuleManager
-import java.nio.file.Path
 
 class LogcatR8MappingsGradleToken : LogcatR8MappingsToken<GradleProjectSystem>, GradleToken {
-  override fun getR8TextMappings(projectSystem: GradleProjectSystem): List<Path> {
-    return projectSystem.getMainArtifacts().mapNotNull { it.mappingR8TextFile?.toPath() }
-  }
-
-  override fun getR8PartitionMappings(projectSystem: GradleProjectSystem): List<Path> {
-    return projectSystem.getMainArtifacts().mapNotNull { it.mappingR8PartitionFile?.toPath() }
+  override fun getR8Mappings(projectSystem: GradleProjectSystem): List<R8Mappings> {
+    return projectSystem.getMainArtifacts().mapNotNull {
+      // Without at least a text mapping file, we can't use it
+      when (val textFile = it.mappingR8TextFile) {
+        null -> null
+        else -> R8Mappings(textFile.toPath(), it.mappingR8PartitionFile?.toPath())
+      }
+    }
   }
 
   private fun GradleProjectSystem.getMainArtifacts(): List<IdeAndroidArtifactCore> =

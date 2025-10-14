@@ -24,9 +24,9 @@ import com.intellij.openapi.project.Project
 import java.nio.file.Path
 
 interface LogcatR8MappingsToken<P : AndroidProjectSystem> : Token {
-  fun getR8TextMappings(projectSystem: P): List<Path>
+  fun getR8Mappings(projectSystem: P): List<R8Mappings>
 
-  fun getR8PartitionMappings(projectSystem: P): List<Path>
+  data class R8Mappings(val text: Path, val partitioned: Path?)
 
   companion object {
     val EP_NAME =
@@ -35,24 +35,13 @@ interface LogcatR8MappingsToken<P : AndroidProjectSystem> : Token {
       )
 
     /**
-     * Return list of R8 mappings files in text representation. Some files may not exist if user did
-     * no build corresponding variant
+     * Return list of R8 mappings. Some files may not exist if user did not build corresponding
+     * variant.
      */
     @JvmStatic
-    fun getR8TextMappings(project: Project): List<Path> {
+    fun getR8Mappings(project: Project): List<R8Mappings> {
       val projectSystem = project.getProjectSystem()
-      return projectSystem.getTokenOrNull(EP_NAME)?.getR8TextMappings(projectSystem) ?: listOf()
-    }
-
-    /**
-     * Return list of R8 mappings files in binary representation. Some files may not exist if user
-     * did no build corresponding variant
-     */
-    @JvmStatic
-    fun getR8PartitionMappings(project: Project): List<Path> {
-      val projectSystem = project.getProjectSystem()
-      return projectSystem.getTokenOrNull(EP_NAME)?.getR8PartitionMappings(projectSystem)
-        ?: listOf()
+      return projectSystem.getTokenOrNull(EP_NAME)?.getR8Mappings(projectSystem) ?: listOf()
     }
   }
 }
