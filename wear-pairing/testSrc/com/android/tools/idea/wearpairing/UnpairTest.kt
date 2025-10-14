@@ -48,11 +48,10 @@ class UnpairTest {
     mapOf(ConfigKey.TAG_ID to "android-wear", ConfigKey.TARGET to "android-28")
   private val avdWearInfo =
     AvdInfo(
-      Paths.get("ini"),
-      Paths.get("id2"),
-      Mockito.mock(ISystemImage::class.java),
-      wearPropertiesMap,
-      null,
+      iniFile = Paths.get("ini"),
+      dataFolderPath = Paths.get("id2"),
+      systemImage = Mockito.mock(ISystemImage::class.java),
+      properties = wearPropertiesMap,
     )
   private val wearDevice =
     PairingDevice(
