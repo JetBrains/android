@@ -68,13 +68,13 @@ class SnapshotHolder {
   fun getBugreportFiles(): Map<String, ByteSource> {
     val instance = synchronized(lock) { currentInstance }
     return ImmutableMap.of(
-      "projectProto",
+      "projectProto.yaml",
       instance?.let {
         runCatching {
           val tmpFile = Files.createTempFile("ProjectProto", ".yaml")
           it.project.formatTo(Files.newOutputStream(tmpFile))
           asByteSource(tmpFile.toFile())
-        }.getOrNull()
+        }.getOrElse { throwable -> ByteSource.wrap(throwable.toString().toByteArray()) }
       } ?: ByteSource.empty()
     )
   }
