@@ -27,7 +27,9 @@ class ConstrainedImageFactory(
   private val delegate: IImageFactory,
 ) : IImageFactory {
   override fun getImage(width: Int, height: Int): BufferedImage {
-    val wantedImageSize: Long = width.toLong() * height.toLong()
+    // Convert toLong to avoid Int overflow, and take max with 1 to avoid division by zero and
+    // other potential problems if unexpected non-positive dimensions are passed.
+    val wantedImageSize: Long = maxOf(1, width.toLong() * height.toLong())
     // First adjust dimensions according to quality multiplier. Each dimension is scaled using
     // `sqrt(quality)`, so that  the whole image is scaled with `quality` as a consequence.
     val quality = qualityProvider().toDouble().coerceIn(1e-6, 1.0)
