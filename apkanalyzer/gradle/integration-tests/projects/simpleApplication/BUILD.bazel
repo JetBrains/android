@@ -29,7 +29,6 @@ maven_repository(
         "@maven//:com.google.auto.value.auto-value_1.6.2",
         "@maven//:com.google.code.findbugs.jsr305_1.3.9",
         "@maven//:com.google.guava.guava_19.0",
-        "@maven//:com.sun.activation.javax.activation_1.2.0",
         "@maven//:commons-io.commons-io_2.4",
         "@maven//:commons-lang.commons-lang_2.4",
         "@maven//:org.codehaus.mojo.animal-sniffer-annotations_1.17",

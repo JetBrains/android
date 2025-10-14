@@ -95,7 +95,6 @@ maven_repository(
         "@maven//:com.google.auto.value.auto-value_1.6.2",
         "@maven//:com.google.errorprone.error_prone_annotations_2.3.2",
         "@maven//:com.google.jimfs.jimfs_1.1",
-        "@maven//:com.sun.activation.javax.activation_1.2.0",
         "@maven//:commons-lang.commons-lang_2.4",
         "@maven//:javax.inject.javax.inject_1",
         "@maven//:junit.junit_4.12",
