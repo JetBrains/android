@@ -97,15 +97,15 @@ public class DependencyTrackerImpl implements DependencyTracker {
                                  RequestedTargets requestedTargets,
                                  DependencyBuildRequest request) throws IOException, BuildException {
     BuildDepsStatsScope.fromContext(context)
-        .ifPresent(stats -> stats.setBuildTargets(requestedTargets.buildTargets()));
+        .ifPresent(stats -> stats.setBuildTargets(requestedTargets.targetsToBuild()));
     OutputInfo outputInfo =
         builder.build(
             context,
-            requestedTargets.buildTargets(),
-            request.getOutputGroups(snapshot.getGraph().getTargetLanguages(requestedTargets.buildTargets())));
+            requestedTargets.targetsToBuild(),
+            request.getOutputGroups(snapshot.getGraph().getTargetLanguages(requestedTargets.targetsToBuild())));
     reportErrorsAndWarnings(context, snapshot, outputInfo);
 
-    artifactTracker.update(requestedTargets.expectedDependencyTargets(), outputInfo, context);
+    artifactTracker.update(requestedTargets.requiredTargets(), outputInfo, context);
   }
 
   private void reportErrorsAndWarnings(

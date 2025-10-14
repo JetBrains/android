@@ -23,6 +23,6 @@ import com.google.idea.blaze.common.Label
  */
 @JvmRecord
 data class RequestedTargets(
-  val buildTargets: Set<Label>,
-  val expectedDependencyTargets: Set<Label>
+  val targetsToBuild: Set<Label>,
+  val requiredTargets: Set<Label>
 )
