@@ -73,14 +73,14 @@ class AddProjectGenSrcJarsTest {
       )
 
     val javaDeps =
-      AddProjectGenSrcJars(original.queryData().projectDefinition(), innerPathsMetadata)
+      AddProjectGenSrcJars(original.queryData.projectDefinition(), innerPathsMetadata)
 
     val update =
-      ProjectProtoUpdate(original.project())
-    javaDeps.update(update, original.graph(), artifactState, NoopContext())
+      ProjectProtoUpdate(original.project)
+    javaDeps.update(update, original.graph, artifactState, NoopContext())
     val newProject = update.build()
-    Truth.assertThat(newProject.libraries).isEqualTo(original.project().libraries)
-    Truth.assertThat(newProject.modules).isEqualTo(original.project().modules)
+    Truth.assertThat(newProject.libraries).isEqualTo(original.project.libraries)
+    Truth.assertThat(newProject.modules).isEqualTo(original.project.modules)
     Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys).isEmpty()
   }
 
@@ -114,13 +114,13 @@ class AddProjectGenSrcJarsTest {
       )
 
     val javaDeps =
-      AddProjectGenSrcJars(original.queryData().projectDefinition(), innerPathsMetadata)
+      AddProjectGenSrcJars(original.queryData.projectDefinition(), innerPathsMetadata)
 
     val update =
-      ProjectProtoUpdate(original.project())
-    javaDeps.update(update, original.graph(), artifactState, NoopContext())
+      ProjectProtoUpdate(original.project)
+    javaDeps.update(update, original.graph, artifactState, NoopContext())
     val newProject = update.build()
-    Truth.assertThat(newProject.libraries).isEqualTo(original.project().libraries)
+    Truth.assertThat(newProject.libraries).isEqualTo(original.project.libraries)
     val workspace = newProject.modules[0]
     // check our assumptions:
     Truth.assertThat(workspace.name).isEqualTo(".workspace")
@@ -172,13 +172,13 @@ class AddProjectGenSrcJarsTest {
       )
 
     val javaDeps =
-      AddProjectGenSrcJars(original.queryData().projectDefinition(), innerPathsMetadata)
+      AddProjectGenSrcJars(original.queryData.projectDefinition(), innerPathsMetadata)
 
     val update =
-      ProjectProtoUpdate(original.project())
-    javaDeps.update(update, original.graph(), artifactState, NoopContext())
+      ProjectProtoUpdate(original.project)
+    javaDeps.update(update, original.graph, artifactState, NoopContext())
     val newProject = update.build()
-    Truth.assertThat(newProject.libraries).isEqualTo(original.project().libraries)
+    Truth.assertThat(newProject.libraries).isEqualTo(original.project.libraries)
     val workspace = newProject.modules[0]
     // check our assumptions:
     Truth.assertThat(workspace.name).isEqualTo(".workspace")
@@ -225,13 +225,13 @@ class AddProjectGenSrcJarsTest {
       )
 
     val javaDeps =
-      AddProjectGenSrcJars(original.queryData().projectDefinition(), innerPathsMetadata)
+      AddProjectGenSrcJars(original.queryData.projectDefinition(), innerPathsMetadata)
 
     val update =
-      ProjectProtoUpdate(original.project())
-    javaDeps.update(update, original.graph(), artifactState, NoopContext())
+      ProjectProtoUpdate(original.project)
+    javaDeps.update(update, original.graph, artifactState, NoopContext())
     val newProject = update.build()
-    Truth.assertThat(newProject.libraries).isEqualTo(original.project().libraries)
+    Truth.assertThat(newProject.libraries).isEqualTo(original.project.libraries)
     val workspace = newProject.modules[0]
     // check our assumptions:
     Truth.assertThat(workspace.name).isEqualTo(".workspace")

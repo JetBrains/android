@@ -51,7 +51,7 @@ class BuildDependenciesForProjectAction : BlazeProjectAction() {
       return
     }
 
-    val externalDeps = snapshot.graph().externalDependencyCountForStatsOnly
+    val externalDeps = snapshot.graph.externalDependencyCountForStatsOnly
     logger.warn("Total external deps: $externalDeps")
     if (externalDeps > EXTERNAL_DEPS_WARNING_THRESHOLD) {
       if (!WarningDialog(project).showAndGet()) {

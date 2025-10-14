@@ -90,7 +90,7 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
     querySyncProject: ReadonlyQuerySyncProject,
     graph: QuerySyncProjectSnapshot,
   ) {
-    val newProjectProtoSnapshot = graph.project()
+    val newProjectProtoSnapshot = graph.project
     if (lastProjectProtoSnapshot == newProjectProtoSnapshot) {
       context.output(PrintOutput.output("IDE project structure up-to-date"))
       return

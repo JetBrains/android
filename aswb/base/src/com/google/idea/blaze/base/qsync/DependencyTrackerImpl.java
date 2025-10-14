@@ -86,8 +86,8 @@ public class DependencyTrackerImpl implements DependencyTracker {
   private RequestedTargets getRequestedTargets(
       QuerySyncProjectSnapshot snapshot, DependencyBuildRequest request) {
     return switch (request.requestType) {
-      case MULTIPLE_TARGETS -> snapshot.graph().computeRequestedTargets(request.targets);
-      case WHOLE_PROJECT -> snapshot.graph().computeWholeProjectTargets(projectDefinition);
+      case MULTIPLE_TARGETS -> snapshot.getGraph().computeRequestedTargets(request.targets);
+      case WHOLE_PROJECT -> snapshot.getGraph().computeWholeProjectTargets(projectDefinition);
       case FILE_PREVIEWS -> new RequestedTargets(request.targets, ImmutableSet.of());
     };
   }
@@ -102,7 +102,7 @@ public class DependencyTrackerImpl implements DependencyTracker {
         builder.build(
             context,
             requestedTargets.buildTargets(),
-            request.getOutputGroups(snapshot.graph().getTargetLanguages(requestedTargets.buildTargets())));
+            request.getOutputGroups(snapshot.getGraph().getTargetLanguages(requestedTargets.buildTargets())));
     reportErrorsAndWarnings(context, snapshot, outputInfo);
 
     artifactTracker.update(requestedTargets.expectedDependencyTargets(), outputInfo, context);
@@ -119,7 +119,7 @@ public class DependencyTrackerImpl implements DependencyTracker {
     }
 
     if (!outputInfo.getTargetsWithErrors().isEmpty()) {
-      ProjectDefinition projectDefinition = snapshot.queryData().projectDefinition();
+      ProjectDefinition projectDefinition = snapshot.getQueryData().projectDefinition();
       context.setHasWarnings();
       ImmutableListMultimap<Boolean, Label> targetsByInclusion =
           Multimaps.index(outputInfo.getTargetsWithErrors(), projectDefinition::isIncluded);

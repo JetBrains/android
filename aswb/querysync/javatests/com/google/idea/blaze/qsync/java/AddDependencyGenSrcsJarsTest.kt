@@ -66,21 +66,21 @@ class AddDependencyGenSrcsJarsTest {
   @Throws(Exception::class)
   fun no_deps_built() {
     val addGenSrcJars =
-      AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata)
+      AddDependencyGenSrcsJars(original.queryData.projectDefinition(), innerRootsMetadata)
     no_deps_built(addGenSrcJars)
   }
 
   @Throws(Exception::class)
   private fun no_deps_built(addGenSrcJars: AddDependencyGenSrcsJars) {
     val update =
-      ProjectProtoUpdate(original.project())
+      ProjectProtoUpdate(original.project)
 
-    addGenSrcJars.update(update, original.graph(), ArtifactTracker.State.EMPTY, NoopContext())
+    addGenSrcJars.update(update, original.graph, ArtifactTracker.State.EMPTY, NoopContext())
 
     val newProject = update.build()
 
-    Truth.assertThat(newProject.libraries).isEqualTo(original.project().libraries)
-    Truth.assertThat(newProject.modules).isEqualTo(original.project().modules)
+    Truth.assertThat(newProject.libraries).isEqualTo(original.project.libraries)
+    Truth.assertThat(newProject.modules).isEqualTo(original.project.modules)
     Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys).isEmpty()
   }
 
@@ -88,7 +88,7 @@ class AddDependencyGenSrcsJarsTest {
   @Throws(Exception::class)
   fun project_gensrcs_ignored() {
     val addGenSrcJars =
-      AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata)
+      AddDependencyGenSrcsJars(original.queryData.projectDefinition(), innerRootsMetadata)
     project_gensrcs_ignored(addGenSrcJars)
   }
 
@@ -113,14 +113,14 @@ class AddDependencyGenSrcsJarsTest {
       )
 
     val update =
-      ProjectProtoUpdate(original.project())
-    addGenSrcJars.update(update, original.graph(), artifactState, NoopContext())
+      ProjectProtoUpdate(original.project)
+    addGenSrcJars.update(update, original.graph, artifactState, NoopContext())
     val newProject = update.build()
 
     Mockito.verify<BuildArtifactCache?>(cache, Mockito.never()).get(ArgumentMatchers.any())
 
-    Truth.assertThat(newProject.libraries).isEqualTo(original.project().libraries)
-    Truth.assertThat(newProject.modules).isEqualTo(original.project().modules)
+    Truth.assertThat(newProject.libraries).isEqualTo(original.project.libraries)
+    Truth.assertThat(newProject.modules).isEqualTo(original.project.modules)
     Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys).isEmpty()
   }
 
@@ -128,7 +128,7 @@ class AddDependencyGenSrcsJarsTest {
   @Throws(Exception::class)
   fun external_gensrcs_added() {
     val addGenSrcJars =
-      AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata)
+      AddDependencyGenSrcsJars(original.queryData.projectDefinition(), innerRootsMetadata)
     external_gensrcs_added(
       addGenSrcJars,
       ProjectProto.Library(
@@ -172,8 +172,8 @@ class AddDependencyGenSrcsJarsTest {
       )
 
     val update =
-      ProjectProtoUpdate(original.project())
-    addGenSrcJars.update(update, original.graph(), artifactState, NoopContext())
+      ProjectProtoUpdate(original.project)
+    addGenSrcJars.update(update, original.graph, artifactState, NoopContext())
     val newProject = update.build()
 
     Truth.assertThat(newProject.libraries.values).containsExactly(*expectedLibraries)
@@ -184,7 +184,7 @@ class AddDependencyGenSrcsJarsTest {
   @Throws(Exception::class)
   fun no_metadata_present() {
     val addGenSrcJars =
-      AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata)
+      AddDependencyGenSrcsJars(original.queryData.projectDefinition(), innerRootsMetadata)
     no_metadata_present(
       addGenSrcJars,
       ProjectProto.Library(
@@ -222,8 +222,8 @@ class AddDependencyGenSrcsJarsTest {
       )
 
     val update =
-      ProjectProtoUpdate(original.project())
-    addGenSrcJars.update(update, original.graph(), artifactState, NoopContext())
+      ProjectProtoUpdate(original.project)
+    addGenSrcJars.update(update, original.graph, artifactState, NoopContext())
     val newProject = update.build()
 
     Truth.assertThat(newProject.libraries.values).containsExactly(*expectedLibraries)
