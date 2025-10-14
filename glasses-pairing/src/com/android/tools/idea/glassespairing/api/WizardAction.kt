@@ -13,25 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.glassespairing
+package com.android.tools.idea.glassespairing.api
 
-import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.AndroidStartupActivity
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 
-/** Class to manage Glasses AVDs pairing with Phone AVDs. */
-@Service(Service.Level.APP)
-class GlassesPairingManager {
-  class GlassesPairingManagerStartupActivity : AndroidStartupActivity {
-    @UiThread
-    override fun runActivity(project: Project, disposable: Disposable) {}
-  }
+interface WizardAction {
+  fun closeAndStartAvd(project: Project?) {}
 
-  companion object {
-    @JvmStatic
-    fun getInstance(): GlassesPairingManager = service()
-  }
+  fun restart(project: Project?) {}
 }

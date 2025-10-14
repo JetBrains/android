@@ -1,14 +1,31 @@
 ### auto-generated section `build intellij.android.glasses-pairing` start
-load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
+
+resourcegroup(
+  name = "glasses-pairing_resources",
+  srcs = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
 
 jvm_library(
   name = "glasses-pairing",
   module_name = "intellij.android.glasses-pairing",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
+  resources = [":glasses-pairing_resources"],
   deps = [
     "@lib//:kotlin-stdlib",
+    "//platform/util",
     "//platform/core-api:core",
+    "//platform/projectModel-api:projectModel",
+    "//android/android-adb:adb",
+    "//android/adt-ui",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/observable",
+    "//android/project-system",
+    "@lib//:studio-platform-provided",
   ]
 )
 
@@ -19,8 +36,20 @@ jvm_library(
   associates = [":glasses-pairing"],
   deps = [
     "@lib//:kotlin-stdlib",
+    "//platform/util",
     "//platform/core-api:core",
+    "//platform/projectModel-api:projectModel",
     "@lib//:junit4",
+    "//android/android-adb:adb",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/observable",
+    "//android/observable:observable_test_lib",
+    "//android/project-system",
+    "@lib//:studio-platform-provided",
   ]
 )
 ### auto-generated section `build intellij.android.glasses-pairing` end

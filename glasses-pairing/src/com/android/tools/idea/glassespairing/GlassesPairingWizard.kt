@@ -15,23 +15,5 @@
  */
 package com.android.tools.idea.glassespairing
 
-import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.AndroidStartupActivity
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.service
-import com.intellij.openapi.project.Project
-
-/** Class to manage Glasses AVDs pairing with Phone AVDs. */
-@Service(Service.Level.APP)
-class GlassesPairingManager {
-  class GlassesPairingManagerStartupActivity : AndroidStartupActivity {
-    @UiThread
-    override fun runActivity(project: Project, disposable: Disposable) {}
-  }
-
-  companion object {
-    @JvmStatic
-    fun getInstance(): GlassesPairingManager = service()
-  }
+class GlassesPairingWizard {
 }
