@@ -33,6 +33,7 @@ import com.google.idea.blaze.qsync.project.ProjectProto.CcCompilerFlagSet;
 import com.google.idea.blaze.qsync.project.ProjectProto.CcCompilerSettings;
 import com.google.idea.blaze.qsync.project.ProjectProto.CcLanguage;
 import com.google.idea.blaze.qsync.project.ProjectProto.CcSourceFile;
+import com.google.idea.blaze.qsync.project.ProjectProto.CcTarget;
 import com.google.idea.blaze.qsync.project.ProjectProto.CcWorkspace;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.WriteAction;
@@ -84,8 +85,14 @@ public class CcProjectModelUpdateOperation implements Disposable {
   /** Visit a {@link CcWorkspace} proto. Should be called from a background thread. */
   public void visitWorkspace(CcWorkspace proto) {
     visitSwitchesMap(proto.getFlagSets());
-    for (CcCompilationContext compilationContext : proto.getContexts()) {
-      visitCompilationContext(compilationContext);
+    for (CcTarget target : proto.getTargets().values()) {
+      visitTarget(target);
+    }
+  }
+
+  private void visitTarget(CcTarget target) {
+    for (ProjectProto.CcCompilationContext context : target.getContexts().values()) {
+      visitCompilationContext(target, context);
     }
   }
 
@@ -96,13 +103,13 @@ public class CcProjectModelUpdateOperation implements Disposable {
     }
   }
 
-  private void visitCompilationContext(CcCompilationContext ccCc) {
+  private void visitCompilationContext(CcTarget target, CcCompilationContext ccCc) {
     OCResolveConfiguration.ModifiableModel config =
         modifiableOcWorkspace.addConfiguration(ccCc.getId(), ccCc.getHumanReadableName());
 
     visitLanguageCompilerSettingsMap(ccCc.getLanguageToCompilerSettings(), config);
-    for (CcSourceFile source : ccCc.getSources()) {
-      visitSourceFile(source, config);
+    for (CcSourceFile source : target.getSources().values()) {
+      visitSourceFile(ccCc, source, config);
     }
     resolveConfigs.put(ccCc.getId(), config);
   }
@@ -127,9 +134,16 @@ public class CcProjectModelUpdateOperation implements Disposable {
     }
   }
 
-  private void visitSourceFile(CcSourceFile source, OCResolveConfiguration.ModifiableModel config) {
+  private void visitSourceFile(CcCompilationContext compilationContext, CcSourceFile source, OCResolveConfiguration.ModifiableModel config) {
+    CcCompilerSettings compilerSettings = compilationContext.getLanguageToCompilerSettings().get(source.getLanguage());
+    if (compilerSettings == null) {
+      // If we get a new file without fetching configs we may end up with a new language if populated lazily.  This will practically never
+      // happen as there are just C and CPP and in the presence of both toolchains both are always populated.
+      logger.error(String.format("No compiler setting for %s in context %s", source.getLanguage(), compilationContext.getId()));
+      return;
+    }
     CidrCompilerSwitches switches =
-        checkNotNull(compilerSwitches.get(source.getCompilerSettings().getFlagSetId()));
+        checkNotNull(compilerSwitches.get(compilerSettings.getFlagSetId()));
     if (!CppSupportChecker.isSupportedCppConfiguration(
         switches, pathResolver.resolve(ProjectPath.WORKSPACE_ROOT))) {
       // Ignore the file if it's not supported by the current IDE.
@@ -147,7 +161,7 @@ public class CcProjectModelUpdateOperation implements Disposable {
     perSourceCompilerSettings.setCompilerSwitches(switches);
     perSourceCompilerSettings.setCompiler(
         ClangCompilerKind.INSTANCE,
-        getCompilerExecutable(source.getCompilerSettings()),
+        getCompilerExecutable(compilerSettings),
         compilerWorkingDir);
   }
 
