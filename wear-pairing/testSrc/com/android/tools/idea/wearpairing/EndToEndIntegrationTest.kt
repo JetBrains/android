@@ -56,7 +56,12 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
   private val wearPropertiesMap =
     mapOf(ConfigKey.TAG_ID to "android-wear", ConfigKey.TARGET to "android-28")
   private val avdWearInfo =
-    AvdInfo(Paths.get("ini"), Paths.get("folder"), mock<ISystemImage>(), wearPropertiesMap, null)
+    AvdInfo(
+      iniFile = Paths.get("ini"),
+      dataFolderPath = Paths.get("folder"),
+      systemImage = mock<ISystemImage>(),
+      properties = wearPropertiesMap,
+    )
 
   override fun setUp() {
     // Studio Icons must be of type CachedImageIcon for image asset

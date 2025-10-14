@@ -64,7 +64,12 @@ class WearPairingManagerTest {
   private val wearPropertiesMap =
     mapOf(ConfigKey.TAG_ID to "android-wear", ConfigKey.TARGET to "android-28")
   private val avdWearInfo =
-    AvdInfo(Paths.get("ini"), Paths.get("id2"), mock<ISystemImage>(), wearPropertiesMap, null)
+    AvdInfo(
+      iniFile = Paths.get("ini"),
+      dataFolderPath = Paths.get("id2"),
+      systemImage = mock<ISystemImage>(),
+      properties = wearPropertiesMap,
+    )
 
   private lateinit var pairingManager: WearPairingManager
 
@@ -294,11 +299,9 @@ class WearPairingManagerTest {
       )
     val avdPhoneInfo =
       AvdInfo(
-        Paths.get("ini"),
-        Paths.get(phoneDevice.deviceID),
-        mock<ISystemImage>(),
-        mapOf(),
-        null,
+        iniFile = Paths.get("ini"),
+        dataFolderPath = Paths.get(phoneDevice.deviceID),
+        systemImage = mock<ISystemImage>(),
       )
     val phoneIDevice =
       phoneDevice.buildIDevice(avdInfo = avdPhoneInfo) { request ->

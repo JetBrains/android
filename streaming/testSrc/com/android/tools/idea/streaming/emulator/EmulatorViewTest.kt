@@ -1031,7 +1031,7 @@ class EmulatorViewTest {
     val messageBus = ApplicationManager.getApplication().messageBus
     val avdFolder = view.emulator.emulatorConfig.avdFolder
     val iniFile = avdFolder.resolveSibling(avdFolder.fileName.toString().substringBefore(".") + ".ini")
-    val avd = AvdInfo(iniFile, avdFolder, null, null, null, AvdStatus.OK)
+    val avd = AvdInfo(iniFile = iniFile, dataFolderPath = avdFolder, systemImage = null)
 
     messageBus.syncPublisher(EmulatorLogListener.TOPIC).messageLogged(avd, EmulatorLogListener.Severity.WARNING, true, "Attention!")
     waitForCondition(2.seconds) { notificationHolderPanel.findDescendant<EditorNotificationPanel>() != null }

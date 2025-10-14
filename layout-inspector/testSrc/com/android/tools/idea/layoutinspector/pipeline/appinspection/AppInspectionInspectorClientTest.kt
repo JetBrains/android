@@ -1311,11 +1311,10 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
       properties[ConfigKey.TAG_DISPLAY] = tag.display
     }
     return AvdInfo(
-      Paths.get("/android/avds/myAvd-${apiLevel}.ini"),
-      Paths.get("/android/avds/myAvd-${apiLevel}.avd"),
-      systemImage,
-      properties,
-      null,
+      iniFile = Paths.get("/android/avds/myAvd-${apiLevel}.ini"),
+      dataFolderPath = Paths.get("/android/avds/myAvd-${apiLevel}.avd"),
+      systemImage = systemImage,
+      properties = properties,
     )
   }
 
