@@ -21,24 +21,16 @@ import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.execution.impl.RunManagerImpl
-import com.android.screenshottest.ScreenshotTestBuildSystemAdapter
 import com.android.screenshottest.ui.UpdateReferenceImagesDialog
-import com.android.screenshottest.util.TestResultParser
 import com.android.screenshottest.listener.UpdateScreenshotTestResultsListener
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.ui.components.JBLabel
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.util.PsiTreeUtil
-import java.io.File
-import javax.swing.JComponent
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -60,6 +52,9 @@ class UpdateReferenceImagesAction : AnAction(
   override fun actionPerformed(e: AnActionEvent) {
     val context = ConfigurationContext.getFromEvent(e)
     val project = context.project ?: return
+    val module = context.module ?: return
+    val psiFile = context.location?.psiElement?.containingFile as? KtFile ?: return
+    val previewFunctions = findPreviewTestFunctions(psiFile)
 
     val validateRunconfigSettings = context.createConfigurationsFromContext()?.firstOrNull()?.configurationSettings
                            ?: return
@@ -68,46 +63,11 @@ class UpdateReferenceImagesAction : AnAction(
     updateRunconfigSettings.isActivateToolWindowBeforeRun = false
     val executor = ExecutorRegistry.getInstance().getExecutorById(DefaultRunExecutor.EXECUTOR_ID) ?: return
 
-    // TODO: b/450486195 - Integrate Listener with UpdateReferenceImagesDialog and replace this placeholder DialogWrapper.
-    val dialog = object : DialogWrapper(project) {
-      init {
-        title = "Add/Update Reference Images"
-        init()
-      }
-      override fun createCenterPanel(): JComponent = JBLabel("Running tests")
-    }
+    val dialog = UpdateReferenceImagesDialog(project, previewFunctions, module, context.psiLocation)
 
-    project.messageBus.connect(dialog.disposable).subscribe(AndroidTestSuiteView.ANDROID_TEST_SUITE_TOPIC, UpdateScreenshotTestResultsListener())
+    project.messageBus.connect(dialog.disposable).subscribe(AndroidTestSuiteView.ANDROID_TEST_SUITE_TOPIC, UpdateScreenshotTestResultsListener(dialog))
     ExecutionUtil.runConfiguration(updateRunconfigSettings, executor)
-  }
-
-  private fun onTaskFinished(module: Module, dialog: UpdateReferenceImagesDialog) {
-    ApplicationManager.getApplication().invokeLater {
-      LOG.info("Screenshot 'validate' task finished. Refreshing VFS before parsing results.")
-
-      val projectSystem = ScreenshotTestBuildSystemAdapter.EP_NAME.extensionList.firstOrNull()
-      if (projectSystem == null) {
-        LOG.error("ScreenshotTestBuildSystemAdapter extension not found. Cannot refresh VFS.")
-        dialog.onBuildFinished(TestResultParser.parse(module))
-        return@invokeLater
-      }
-
-      val modulePathStr = projectSystem.getLinkedExternalProjectPath(module)
-      if (modulePathStr == null) {
-        LOG.error("Could not get module project path for ${module.name}. Cannot refresh VFS.")
-        dialog.onBuildFinished(TestResultParser.parse(module))
-        return@invokeLater
-      }
-
-      val buildDir = File(modulePathStr, "build")
-      val screenshotOutputDir = buildDir.resolve("outputs/screenshotTest-results/preview")
-
-      LocalFileSystem.getInstance().refreshIoFiles(listOf(screenshotOutputDir), true, true) {
-        LOG.info("VFS refresh complete. Parsing test results.")
-        val testResults = TestResultParser.parse(module)
-        dialog.onBuildFinished(testResults)
-      }
-    }
+    dialog.show()
   }
 
   @VisibleForTesting
