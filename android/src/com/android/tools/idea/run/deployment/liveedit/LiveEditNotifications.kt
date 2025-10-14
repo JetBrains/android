@@ -32,11 +32,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.Strings
 import org.jetbrains.android.util.AndroidBundle
 
-internal class LiveEditNotifications(val project: Project) {
+internal class LiveEditNotifications() {
   // If we haven't let the user know yet that LE is available, do it once per project.
   private var shouldNotifyProjectOfLiveEdit = true
 
-  internal fun notifyLiveEditAvailability(device: IDevice) {
+  internal fun notifyLiveEditAvailability(project: Project, device: IDevice) {
     if (!shouldNotifyProjectOfLiveEdit) {
       return
     }
@@ -49,7 +49,7 @@ internal class LiveEditNotifications(val project: Project) {
         "Push code edits to the device without rerunning the app${
           if (Strings.isEmpty(shortcut)) ""
           else " ($shortcut)"
-        }.${getBuildSystemRequirements().let { if (Strings.isEmpty(it)) "" else "<br>$it" }}",
+        }.${getBuildSystemRequirements(project).let { if (Strings.isEmpty(it)) "" else "<br>$it" }}",
         NotificationType.INFORMATION)
       .also {
         if (LiveEditProjectMonitor.supportLiveEdits(device)) {
@@ -81,7 +81,7 @@ internal class LiveEditNotifications(val project: Project) {
   }
 
   // Checks if the build system supports the necessary functionality for desugaring.
-  private fun getBuildSystemRequirements(): String {
+  private fun getBuildSystemRequirements(project: Project): String {
     if (project.getAndroidFacets().isEmpty()) {
       return ""
     }
