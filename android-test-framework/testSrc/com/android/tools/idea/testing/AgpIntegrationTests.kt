@@ -222,3 +222,10 @@ private fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String = when (
 private fun AgpVersionSoftwareEnvironmentDescriptor.gradleSuffix(): String {
   return gradleVersion?.let { "Gradle_${it}_" }.orEmpty()
 }
+
+/**
+ * Returns the built-in Kotlin version associated with the AGP version.
+ */
+fun AgpVersionSoftwareEnvironmentDescriptor.getBuiltInKotlinVersion(): String? {
+  return if (agpVersion == null) "2.2.10" else null
+}
