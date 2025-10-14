@@ -71,9 +71,6 @@ abstract class SupportedAnimationManager(
    */
   data class FrozenState(val isFrozen: Boolean = false, val frozenAt: Int = 0)
 
-  /** The current offset (in milliseconds) for shifting the animation timeline. */
-  val offset = MutableStateFlow(0)
-
   /** Represents the current frozen state of the animation. */
   val frozenState = MutableStateFlow(FrozenState(false))
 
