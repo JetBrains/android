@@ -103,7 +103,11 @@ data class QuerySyncProjectSnapshot(
     val incompleteTargets: Set<Label> = incompleteTargets
     return projectTargets
       .map { target ->
-        graph.getExternalDependencies(listOf(target)).filter { !syncedTargets.contains(it) || incompleteTargets.contains(it) }.toSet()
+        graph
+          .computeRequestedTargets(listOf(target))
+          .requiredTargets
+          .filter { !syncedTargets.contains(it) || incompleteTargets.contains(it) }
+          .toSet()
       }
       .minByOrNull { it.size }
       .orEmpty()

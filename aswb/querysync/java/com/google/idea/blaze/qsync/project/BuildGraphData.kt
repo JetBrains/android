@@ -151,12 +151,6 @@ interface BuildGraphData {
   fun getTargetLanguages(targets: Set<Label>): Set<QuerySyncLanguage>
 
   /**
-   * Traverses the dependency graph starting from `projectTargets` and returns the first level of dependencies which are either not in
-   * the project scope or must be built as they are not directly supported by the IDE.
-   */
-  fun getExternalDependencies(projectTargets: Collection<Label>): Set<Label>
-
-  /**
    * Calculates the [RequestedTargets] for a project target.
    */
   fun computeRequestedTargets(projectTargets: Collection<Label>): RequestedTargets

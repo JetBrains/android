@@ -130,7 +130,7 @@ public class BuildGraphDataImplTest {
     assertThat(graph.getAndroidSourceFiles()).isEmpty();
     assertThat(graph.getSourceFileOwners(TESTDATA_ROOT.resolve("nodeps/TestClassNoDeps.java")))
         .containsExactly(Label.of("//" + TESTDATA_ROOT + "/nodeps:nodeps"));
-    assertThat(graph.getExternalDependencies(ImmutableList.of(Label.of("//" + TESTDATA_ROOT + "/nodeps:nodeps"))))
+    assertThat(getRequiredTargets(graph, ImmutableList.of(Label.of("//" + TESTDATA_ROOT + "/nodeps:nodeps"))))
         .isEmpty();
     assertThat(graph.getProjectTarget(Label.of("//" + TESTDATA_ROOT + "/nodeps:nodeps")).languages())
         .containsExactly(QuerySyncLanguage.JVM);
@@ -145,7 +145,7 @@ public class BuildGraphDataImplTest {
                 ImmutableSet.of())
             .parseForTesting();
     assertThat(
-            graph.getExternalDependencies(ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("externaldep:externaldep")))))
+      getRequiredTargets(graph, ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("externaldep:externaldep")))))
         .containsExactly(TestData.JAVA_LIBRARY_NO_DEPS_QUERY.getAssumedOnlyLabel());
   }
 
@@ -161,7 +161,7 @@ public class BuildGraphDataImplTest {
     assertThat(graph.storage.getSourceFileLabels())
         .contains(Label.of("//" + TESTDATA_ROOT + "/nodeps:TestClassNoDeps.java"));
     assertThat(
-            graph.getExternalDependencies(ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("internaldep:internaldep")))))
+      getRequiredTargets(graph, ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("internaldep:internaldep")))))
         .isEmpty();
   }
 
@@ -177,7 +177,7 @@ public class BuildGraphDataImplTest {
     assertThat(graph.storage.getSourceFileLabels())
         .contains(Label.of("//" + TESTDATA_ROOT + "/externaldep:TestClassExternalDep.java"));
     assertThat(
-            graph.getExternalDependencies(ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("transitivedep:transitivedep")))))
+      getRequiredTargets(graph, ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("transitivedep:transitivedep")))))
         .containsExactly(TestData.JAVA_LIBRARY_NO_DEPS_QUERY.getAssumedOnlyLabel());
   }
 
@@ -189,10 +189,10 @@ public class BuildGraphDataImplTest {
                 NOOP_CONTEXT,
                 ImmutableSet.of())
             .parseForTesting();
-    assertThat(graph.getExternalDependencies(ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("protodep:protodep")))))
+    assertThat(getRequiredTargets(graph, ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("protodep:protodep")))))
         .containsExactly(
             Label.of("//" + TESTDATA_ROOT + "/protodep:proto_java_proto"));
-    assertThat(graph.getExternalDependencies(ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("protodep:indirect_protodep")))))
+    assertThat(getRequiredTargets(graph, ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("protodep:indirect_protodep")))))
         .containsExactly(
             Label.of("//" + TESTDATA_ROOT + "/protodep:indirect_proto_java_proto"));
 
@@ -293,10 +293,10 @@ public class BuildGraphDataImplTest {
             Label.of("//" + TESTDATA_ROOT + "/multitarget:nodeps"),
             Label.of("//" + TESTDATA_ROOT + "/multitarget:externaldep"));
     assertThat(
-            graph.getExternalDependencies(ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("multitarget:externaldep")))))
+      getRequiredTargets(graph, ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("multitarget:externaldep")))))
         .contains(Label.of("@@maven//:com.google.guava.guava"));
     assertThat(
-            graph.getExternalDependencies(ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("multitarget:nodeps")))))
+      getRequiredTargets(graph, ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("multitarget:nodeps")))))
         .isEmpty();
   }
 
@@ -308,7 +308,7 @@ public class BuildGraphDataImplTest {
             .parseForTesting();
     Path sourceFile = TESTDATA_ROOT.resolve("exports/TestClassUsingExport.java");
     assertThat(graph.getJavaSourceFiles()).containsExactly(sourceFile);
-    assertThat(graph.getExternalDependencies(ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("exports:exports")))))
+    assertThat(getRequiredTargets(graph, ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("exports:exports")))))
         .containsExactly(Label.of("@@maven//:com.google.guava.guava"));
   }
 
@@ -329,7 +329,7 @@ public class BuildGraphDataImplTest {
         .containsExactly(TESTDATA_ROOT.resolve("android/TestAndroidClass.java"));
     assertThat(graph.getSourceFileOwners(TESTDATA_ROOT.resolve("android/TestAndroidClass.java")))
         .containsExactly(Label.of("//" + TESTDATA_ROOT + "/android:android"));
-    assertThat(graph.getExternalDependencies(ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("android:android")))))
+    assertThat(getRequiredTargets(graph, ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("android:android")))))
         .isEmpty();
   }
 
@@ -350,7 +350,7 @@ public class BuildGraphDataImplTest {
         .containsExactly(TESTDATA_ROOT.resolve("aidl/TestAndroidAidlClass.java"));
     assertThat(graph.getAndroidSourceFiles())
         .containsExactly(TESTDATA_ROOT.resolve("aidl/TestAndroidAidlClass.java"));
-    assertThat(graph.getExternalDependencies(ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("aidl:aidl")))))
+    assertThat(getRequiredTargets(graph, ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("aidl:aidl")))))
         .containsExactly(Label.of("//" + TESTDATA_ROOT + "/aidl:aidl"));
   }
 
@@ -388,7 +388,7 @@ public class BuildGraphDataImplTest {
         .containsExactly(Label.of("//" + TESTDATA_ROOT + "/filegroup:filegroup"));
     assertThat(graph.getSourceFileOwners(subgroupSourceFile))
         .containsExactly(Label.of("//" + TESTDATA_ROOT + "/filegroup:filegroup"));
-    assertThat(graph.getExternalDependencies(ImmutableList.of(Label.of("//" + TESTDATA_ROOT + "/filegroup:filegroup"))))
+    assertThat(getRequiredTargets(graph, ImmutableList.of(Label.of("//" + TESTDATA_ROOT + "/filegroup:filegroup"))))
         .containsExactly(Label.of("@@maven//:com.google.guava.guava"));
   }
 
@@ -407,7 +407,7 @@ public class BuildGraphDataImplTest {
     assertThat(graph.getAndroidSourceFiles()).isEmpty();
     assertThat(graph.getSourceFileOwners(TESTDATA_ROOT.resolve("cc/TestClass.cc")))
         .containsExactly(Label.of("//" + TESTDATA_ROOT + "/cc:cc"));
-    assertThat(graph.getExternalDependencies(ImmutableList.of(Label.of("//" + TESTDATA_ROOT + "/cc:cc")))).isEmpty();
+    assertThat(getRequiredTargets(graph, ImmutableList.of(Label.of("//" + TESTDATA_ROOT + "/cc:cc")))).isEmpty();
     assertThat(graph.getProjectTarget(Label.of("//" + TESTDATA_ROOT + "/cc:cc")).languages())
         .containsExactly(QuerySyncLanguage.CC);
   }
@@ -465,9 +465,9 @@ public class BuildGraphDataImplTest {
                         .getOnlySourcePath()
                         .resolve(Path.of("TestClassExternalDep.java")))
                 .getUnambiguousTargets());
-    assertThat(targets.buildTargets())
+    assertThat(targets.targetsToBuild())
         .containsExactly(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY.getAssumedOnlyLabel());
-    assertThat(targets.expectedDependencyTargets())
+    assertThat(targets.requiredTargets())
         .containsExactly(TestData.JAVA_LIBRARY_NO_DEPS_QUERY.getAssumedOnlyLabel());
   }
 
@@ -490,7 +490,7 @@ public class BuildGraphDataImplTest {
                         .getOnlySourcePath()
                         .resolve(Path.of("BUILD")))
                 .getUnambiguousTargets());
-    assertThat(targets.buildTargets())
+    assertThat(targets.targetsToBuild())
         .containsExactly(
             TestData.JAVA_LIBRARY_MULTI_TARGETS
                 .getAssumedOnlyLabel()
@@ -500,7 +500,7 @@ public class BuildGraphDataImplTest {
               .siblingWithName("nodeps"));
     String expected = "@@maven//:com.google.guava.guava";
     expected = "@@maven//:com.google.guava.guava";
-    assertThat(targets.expectedDependencyTargets()).containsExactly(Label.of(expected));
+    assertThat(targets.requiredTargets()).containsExactly(Label.of(expected));
   }
 
   @Test
@@ -519,9 +519,9 @@ public class BuildGraphDataImplTest {
                         .getOnlySourcePath()
                         .resolve(Path.of("BUILD")))
                 .getUnambiguousTargets());
-    assertThat(targets.buildTargets())
+    assertThat(targets.targetsToBuild())
         .containsExactly(TestData.JAVA_LIBRARY_NESTED_PACKAGE.getAssumedOnlyLabel());
-    assertThat(targets.expectedDependencyTargets())
+    assertThat(targets.requiredTargets())
         .containsExactly(Label.of("@@maven//:com.google.guava.guava"));
   }
 
@@ -539,13 +539,13 @@ public class BuildGraphDataImplTest {
                 .getProjectTargets(
                     TestData.JAVA_LIBRARY_NESTED_PACKAGE.getOnlySourcePath())
                 .getUnambiguousTargets());
-    assertThat(targets.buildTargets())
+    assertThat(targets.targetsToBuild())
         .containsExactly(
             TestData.JAVA_LIBRARY_NESTED_PACKAGE.getAssumedOnlyLabel(),
             TestData.JAVA_LIBRARY_NESTED_PACKAGE
                 .getAssumedOnlyLabel()
                 .siblingWithPathAndName("inner:inner"));
-    assertThat(targets.expectedDependencyTargets())
+    assertThat(targets.requiredTargets())
         .containsExactly(
             Label.of("@@maven//:com.google.guava.guava"),
             Label.of("@@maven//:com.google.code.gson.gson"));
@@ -563,9 +563,9 @@ public class BuildGraphDataImplTest {
                 .getProjectTargets(
                     TestData.CC_EXTERNAL_DEP_QUERY.getOnlySourcePath().resolve("TestClass.cc"))
                 .getUnambiguousTargets());
-    assertThat(targets.buildTargets())
+    assertThat(targets.targetsToBuild())
         .containsExactly(TestData.CC_EXTERNAL_DEP_QUERY.getAssumedOnlyLabel());
-    assertThat(targets.expectedDependencyTargets()).isEmpty();
+    assertThat(targets.requiredTargets()).isEmpty();
   }
 
   private Set<String> filterRedundantTargets(
@@ -658,5 +658,9 @@ public class BuildGraphDataImplTest {
                 .stream()
                 .map(ProjectTarget::label))
         .containsExactlyElementsIn(TestData.JAVA_LIBRARY_NO_DEPS_QUERY.getAssumedLabels());
+  }
+
+  private Set<Label> getRequiredTargets(BuildGraphData graph, Collection<Label> forTargets) {
+    return graph.computeRequestedTargets(forTargets).requiredTargets();
   }
 }

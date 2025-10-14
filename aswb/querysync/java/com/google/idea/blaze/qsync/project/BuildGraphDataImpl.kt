@@ -511,7 +511,7 @@ data class BuildGraphDataImpl(
    * of dependencies which are either not in the project scope or must be built as they are not
    * directly supported by the IDE.
    */
-  override fun getExternalDependencies(projectTargets: Collection<Label>): Set<Label> {
+  private fun getTargetsRequiredFor(projectTargets: Collection<Label>): Set<Label> {
     val externalDeps = mutableSetOf<Label>()
     val seen = HashSet<Label>(projectTargets)
     val queue = ArrayDeque(projectTargets)
@@ -541,15 +541,15 @@ data class BuildGraphDataImpl(
   /**
    * Calculates the [RequestedTargets] for a project target.
    *
-   * @return Requested targets. The [RequestedTargets.buildTargets] will match the parameter
-   * given; the [RequestedTargets.expectedDependencyTargets] will be determined by the
+   * @return Requested targets. The [RequestedTargets.targetsToBuild] will match the parameter
+   * given; the [RequestedTargets.requiredTargets] will be determined by the
    * [.getDependencyTrackingIncludeExternalDependencies] of the targets
    * given.
    */
   override fun computeRequestedTargets(projectTargets: Collection<Label>): RequestedTargets {
     val filteredProjectTargets = filterRedundantTargets(filterContributingTargets(projectTargets))
-    val externalDeps = getExternalDependencies(filteredProjectTargets)
-    return RequestedTargets(filteredProjectTargets, externalDeps)
+    val requiredTargets = getTargetsRequiredFor(filteredProjectTargets)
+    return RequestedTargets(filteredProjectTargets, requiredTargets)
   }
 
   private fun filterContributingTargets(projectTargets: Collection<Label>): Collection<Label> {
