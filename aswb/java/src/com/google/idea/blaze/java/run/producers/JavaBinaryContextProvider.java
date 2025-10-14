@@ -28,7 +28,6 @@ import com.google.idea.blaze.base.model.primitives.LanguageClass;
 import com.google.idea.blaze.base.model.primitives.RuleType;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
-import com.google.idea.blaze.base.qsync.QuerySyncProject;
 import com.google.idea.blaze.base.run.producers.BinaryContextProvider;
 import com.google.idea.blaze.base.run.testmap.FilteredTargetMap;
 import com.google.idea.blaze.base.settings.Blaze;
@@ -123,7 +122,7 @@ public class JavaBinaryContextProvider implements BinaryContextProvider {
     BuildGraphData buildGraphData =
       QuerySyncManager.getInstance(project)
             .getCurrentSnapshot()
-            .map(QuerySyncProjectSnapshot::graph)
+            .map(QuerySyncProjectSnapshot::getGraph)
             .orElse(null);
     if (buildGraphData == null) {
       return null;

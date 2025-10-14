@@ -69,7 +69,7 @@ class AddDependencySrcJarsTest {
   fun no_deps_built() {
     val addSrcJars =
       AddDependencySrcJars(
-        original.queryData().projectDefinition(),
+        original.queryData.projectDefinition(),
         pathResolver!!,
         SrcJarInnerPathFinder(PackageStatementParser())
       )
@@ -79,14 +79,14 @@ class AddDependencySrcJarsTest {
   @Throws(Exception::class)
   private fun no_deps_built(addSrcJars: AddDependencySrcJars) {
     val update =
-      ProjectProtoUpdate(original.project())
+      ProjectProtoUpdate(original.project)
 
-    addSrcJars.update(update, original.graph(), ArtifactTracker.State.EMPTY, NoopContext())
+    addSrcJars.update(update, original.graph, ArtifactTracker.State.EMPTY, NoopContext())
 
     val newProject = update.build()
 
-    Truth.assertThat(newProject.libraries).isEqualTo(original.project().libraries)
-    Truth.assertThat(newProject.modules).isEqualTo(original.project().modules)
+    Truth.assertThat(newProject.libraries).isEqualTo(original.project.libraries)
+    Truth.assertThat(newProject.modules).isEqualTo(original.project.modules)
     Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys).isEmpty()
   }
 
@@ -95,7 +95,7 @@ class AddDependencySrcJarsTest {
   fun external_srcjar_added() {
     val addSrcJars =
       AddDependencySrcJars(
-        original.queryData().projectDefinition(),
+        original.queryData.projectDefinition(),
         pathResolver!!,
         SrcJarInnerPathFinder(PackageStatementParser())
       )
@@ -133,9 +133,9 @@ class AddDependencySrcJarsTest {
       )
 
     val update =
-      ProjectProtoUpdate(original.project())
+      ProjectProtoUpdate(original.project)
 
-    addSrcJars.update(update, original.graph(), artifactState, NoopContext())
+    addSrcJars.update(update, original.graph, artifactState, NoopContext())
 
     val newProject = update.build()
 

@@ -154,7 +154,7 @@ class QuerySyncProject(
     return snapshotHolder()
       ?.let { snapshot ->
         workspaceRelativePaths
-          .map { path -> snapshot.graph().getProjectTargets(path) }
+          .map { path -> snapshot.graph.getProjectTargets(path) }
           .toSet()
       }.orEmpty()
   }
@@ -162,7 +162,7 @@ class QuerySyncProject(
   /** Returns the set of targets with direct dependencies on `targets`.  */
   fun getTargetsDependingOn(targets: Set<Label>): Set<Label> {
     val snapshot = snapshotHolder.current.orElseThrow()
-    return snapshot.graph().getSameLanguageTargetsDependingOn(targets)
+    return snapshot.graph.getSameLanguageTargetsDependingOn(targets)
   }
 
   /** Returns workspace-relative paths of modified files, according to the VCS  */
@@ -178,7 +178,7 @@ class QuerySyncProject(
       val snapshot = snapshotHolder.current.orElseThrow()
       vcsState =
         snapshot
-          .queryData()
+          .queryData
           .vcsState()
           .orElseThrow(
             Supplier { BuildException("No VCS state, cannot calculate affected targets") })
@@ -298,14 +298,14 @@ class QuerySyncProject(
 
     // Check known source files.
     val workspaceRelative = workspaceRoot.path().relativize(absolutePath)
-    if (snapshotHolder()?.graph()?.sourceFileToLabel(workspaceRelative) != null) {
+    if (snapshotHolder()?.graph?.sourceFileToLabel(workspaceRelative) != null) {
       return Optional.of<Boolean>(false)
     }
 
     val snapshotPath =
       snapshotHolder
         .current
-        .flatMap { it.queryData().vcsState() }
+        .flatMap { it.queryData.vcsState() }
         .flatMap { it.workspaceSnapshotPath }
 
     return snapshotPath.map { !it.resolve(workspaceRelative).toFile().exists() }
@@ -325,7 +325,7 @@ class QuerySyncProject(
   override fun dependsOnAnyOf_DO_NOT_USE_BROKEN(target: Label, deps: Set<Label>): Boolean {
     return snapshotHolder
       .current
-      .map { it.graph() }
+      .map { it.graph }
       .map { it.dependsOnAnyOf_DO_NOT_USE_BROKEN(target, deps) }
       .orElse(false)
   }

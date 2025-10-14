@@ -475,7 +475,7 @@ public final class BazelModuleSystem implements AndroidModuleSystem, Registering
       ProjectProto.Project projectProto =
           QuerySyncManager.getInstance(project)
               .getCurrentSnapshot()
-              .map(QuerySyncProjectSnapshot::project)
+              .map(QuerySyncProjectSnapshot::getProject)
               .orElse(null);
       if (projectProto == null) {
         return ImmutableList.of();

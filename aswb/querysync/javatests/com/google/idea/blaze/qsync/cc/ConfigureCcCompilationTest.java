@@ -88,10 +88,10 @@ public class ConfigureCcCompilationTest {
   @Test
   public void empty() throws Exception {
     QuerySyncProjectSnapshot original = syncRunner.sync(TestData.CC_LIBRARY_QUERY);
-    ProjectProtoUpdate update = new ProjectProtoUpdate(original.project());
+    ProjectProtoUpdate update = new ProjectProtoUpdate(original.getProject());
     ConfigureCcCompilation ccConfig =
         new ConfigureCcCompilation(ArtifactTracker.State.EMPTY, update);
-    ccConfig.update(original.graph(), context);
+    ccConfig.update(original.getGraph(), context);
     ProjectProto.Project project = update.build();
     assertThat(project.getCcWorkspace()).isEqualTo(CcWorkspace.getDefaultInstance());
   }
@@ -99,7 +99,7 @@ public class ConfigureCcCompilationTest {
   @Test
   public void basics() throws Exception {
     QuerySyncProjectSnapshot original = syncRunner.sync(TestData.CC_LIBRARY_QUERY);
-    ProjectProtoUpdate update = new ProjectProtoUpdate(original.project());
+    ProjectProtoUpdate update = new ProjectProtoUpdate(original.getProject());
 
     Label ccTargetLabel = getOnlyElement(TestData.CC_LIBRARY_QUERY.getAssumedLabels());
     CcCompilationInfo compilationInfo =
@@ -140,7 +140,7 @@ public class ConfigureCcCompilationTest {
 
     ConfigureCcCompilation ccConfig =
         new ConfigureCcCompilation(toArtifactState(compilationInfo), update);
-    ccConfig.update(original.graph(), context);
+    ccConfig.update(original.getGraph(), context);
 
     ProjectProto.Project project = update.build();
 
@@ -225,7 +225,7 @@ public class ConfigureCcCompilationTest {
   @Test
   public void multi_srcs_share_flagset() throws Exception {
     QuerySyncProjectSnapshot original = syncRunner.sync(TestData.CC_MULTISRC_QUERY);
-    ProjectProtoUpdate update = new ProjectProtoUpdate(original.project());
+    ProjectProtoUpdate update = new ProjectProtoUpdate(original.getProject());
     Path pkgPath = getOnlyElement(TestData.CC_MULTISRC_QUERY.getRelativeSourcePaths());
     ImmutableList<Label> labels =
         ImmutableList.of(
@@ -257,7 +257,7 @@ public class ConfigureCcCompilationTest {
             .build();
 
     ConfigureCcCompilation ccConfig = new ConfigureCcCompilation(toArtifactState(ccCi), update);
-    ccConfig.update(original.graph(), context);
+    ccConfig.update(original.getGraph(), context);
 
     ProjectProto.Project project = update.build();
 

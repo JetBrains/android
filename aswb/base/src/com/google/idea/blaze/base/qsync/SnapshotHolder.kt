@@ -51,7 +51,7 @@ class SnapshotHolder {
       val listenersCopy = this.listeners.toList()
       return@synchronized {
         // Runs unlocked.
-        if (existingInstance?.project() != newInstance.project()) {
+        if (existingInstance?.project != newInstance.project) {
           for (l in listenersCopy) {
             l.onNewProjectStructure(context, querySyncProject, newInstance)
           }
@@ -72,7 +72,7 @@ class SnapshotHolder {
       instance?.let {
         runCatching {
           val tmpFile = Files.createTempFile("ProjectProto", ".yaml")
-          it.project().formatTo(Files.newOutputStream(tmpFile))
+          it.project.formatTo(Files.newOutputStream(tmpFile))
           asByteSource(tmpFile.toFile())
         }.getOrNull()
       } ?: ByteSource.empty()
@@ -82,7 +82,7 @@ class SnapshotHolder {
   @TestOnly
   fun clearProjectStructureForTesting() {
     synchronized(lock) {
-      currentInstance = currentInstance?.toBuilder()?.project(ProjectProto.Project.getDefaultInstance())?.build()
+      currentInstance = currentInstance?.copy(project = ProjectProto.Project.getDefaultInstance())
     }
   }
 }

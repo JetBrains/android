@@ -51,7 +51,7 @@ public class NoopProjectRefresh implements RefreshOperation {
 
   @Override
   public PostQuerySyncData createPostQuerySyncData(QuerySummary output) {
-    return latestProjectSnapshotSupplier.get().queryData().toBuilder()
+    return latestProjectSnapshotSupplier.get().getQueryData().toBuilder()
         .setVcsState(currentVcsState)
         .setBazelVersion(bazelVersion)
         .build();
