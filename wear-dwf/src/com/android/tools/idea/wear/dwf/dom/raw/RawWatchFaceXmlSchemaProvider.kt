@@ -122,11 +122,9 @@ private class RawWatchFaceXmlSchemaUpdater private constructor(val project: Proj
 
   override fun snapshotCreationEnded(token: Any, duration: Duration, result: MergeResult) {
     if (result != MergeResult.SUCCESS) return
-
-    val declarativeWatchFaceFiles = project.getDeclarativeWatchFaceFiles()
-    if (declarativeWatchFaceFiles.isEmpty()) return
-
-    ApplicationManager.getApplication().invokeLaterOnWriteThread {
+    ApplicationManager.getApplication().invokeLater {
+      val declarativeWatchFaceFiles = project.getDeclarativeWatchFaceFiles()
+      if (declarativeWatchFaceFiles.isEmpty()) return@invokeLater
       // reparse the files for the caches to be dropped and the schemas recomputed with
       // the latest merged manifest
       FileContentUtilCore.reparseFiles(declarativeWatchFaceFiles)
