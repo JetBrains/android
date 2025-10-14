@@ -67,8 +67,16 @@ class ProjectProtoUpdate(existingProject: ProjectProto.Project) {
    * A CcWorkspace holds configuration of native targets.
    */
   interface CcWorkspaceUpdater {
-    fun addContexts(compilationContext: ProjectProto.CcCompilationContext)
-    fun putFlagSets(flagSetId: String, build: ProjectProto.CcCompilerFlagSet)
+    fun target(target: Label, updater: CcTargetUpdater.() -> Unit)
+    fun putFlagSets(flagSetId: String, flagSet: ProjectProto.CcCompilerFlagSet)
+  }
+
+  /**
+   * A CcTarget represents a native build target that may have different configurations (compilation contexts).
+   */
+  interface CcTargetUpdater {
+    fun addSourceFile(file: ProjectProto.CcSourceFile)
+    fun addContext(context: ProjectProto.CcCompilationContext)
   }
 
   /**
@@ -148,17 +156,33 @@ class ProjectProtoUpdate(existingProject: ProjectProto.Project) {
   }
 
   fun ccWorkspace(updater: CcWorkspaceUpdater.() -> Unit) {
-    val ccWorkspaceBuilder = project.ccWorkspace.toBuilder()
+    val targets = project.ccWorkspace.targets.toMutableMap()
+    val flagSets = project.ccWorkspace.flagSets.toMutableMap()
     object: CcWorkspaceUpdater {
-      override fun addContexts(compilationContext: ProjectProto.CcCompilationContext) {
-        ccWorkspaceBuilder.contexts += compilationContext
+      override fun target(
+        target: Label,
+        updater: CcTargetUpdater.() -> Unit,
+      ) {
+        val existing = targets[target]
+        val sources = existing?.sources?.toMutableMap() ?: mutableMapOf()
+        val contexts = existing?.contexts?.toMutableMap() ?: mutableMapOf()
+        object: CcTargetUpdater {
+          override fun addSourceFile(file: ProjectProto.CcSourceFile) {
+            sources[file.workspacePath] = file
+          }
+
+          override fun addContext(context: ProjectProto.CcCompilationContext) {
+            contexts[context.id] = context
+          }
+        }.updater()
+        targets[target] = ProjectProto.CcTarget(target, sources, contexts)
       }
 
-      override fun putFlagSets(flagSetId: String, build: ProjectProto.CcCompilerFlagSet) {
-        ccWorkspaceBuilder.putFlagSets(flagSetId, build)
+      override fun putFlagSets(flagSetId: String, flagSet: ProjectProto.CcCompilerFlagSet) {
+        flagSets[flagSetId] = flagSet
       }
     }.updater()
-    project.ccWorkspace = ccWorkspaceBuilder.build()
+    project.ccWorkspace = ProjectProto.CcWorkspace(targets.toMap(), flagSets.toMap())
   }
 
   fun artifactDirectory(path: ProjectPath.ProjectRelativeProjectPath, updater: ArtifactDirectoryUpdater.() -> Unit) {
@@ -196,7 +220,7 @@ class ProjectProtoUpdate(existingProject: ProjectProto.Project) {
   }
 
   fun build(): ProjectProto.Project {
-    if (project.ccWorkspace.contexts.isNotEmpty()) {
+    if (project.ccWorkspace.targets.isNotEmpty()) {
       project.activeLanguages += QuerySyncLanguage.CC
     }
     return project.build()
