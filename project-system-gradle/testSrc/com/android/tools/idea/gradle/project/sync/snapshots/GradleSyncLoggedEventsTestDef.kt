@@ -23,6 +23,7 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.sync.internal.KOTLIN_VERSION_FOR_TESTS
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.ModelVersion
+import com.android.tools.idea.testing.getBuiltInKotlinVersion
 import com.google.common.truth.Truth.assertThat
 import com.google.protobuf.TextFormat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -209,7 +210,9 @@ data class GradleSyncLoggedEventsTestDef(
         namePrefix = "kotlin_versions",
         testProject = TestProject.SIMPLE_APPLICATION_VERSION_CATALOG
       ) { events ->
-        assertThat(events.dumpKotlinVersions(agpVersion.kotlinVersion)).isEqualTo("")
+        assertThat(events.dumpKotlinVersions(agpVersion.getBuiltInKotlinVersion())).isEqualTo("""
+            |kotlin version: KOTLIN_VERSION_FOR_TESTS
+        """.trimMargin())
       }
     )
 

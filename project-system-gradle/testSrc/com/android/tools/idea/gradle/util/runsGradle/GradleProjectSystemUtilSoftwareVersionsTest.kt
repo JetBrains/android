@@ -64,7 +64,7 @@ class GradleProjectSystemUtilSoftwareVersionsTest {
 
   @Test
   fun testNotKotlinProject() {
-    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
+    val preparedProject = projectRule.prepareTestProject(TestProject.PURE_JAVA_PROJECT)
     preparedProject
       .open { project ->
         val kotlinVersionInUse = KotlinGradleProjectSystemUtil.getKotlinVersionsInUse(project, project.basePath!!)?.firstOrNull()?.toString()

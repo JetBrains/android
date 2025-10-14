@@ -89,9 +89,12 @@ class DexDisabledIssueCheckerIntegrationTest {
     val gradlePropertiesFile = project.baseDir.findChild("gradle.properties")!!
     runWriteAction {
       val existingContent = gradlePropertiesFile.contentsToByteArray().toString(Charsets.UTF_8)
+      // The built-in Kotlin plugin, enabled by default in AGP 9.0+, does not support JVM target 7. Disable
+      // it to allow this test to run with Java 7.
       gradlePropertiesFile.setBinaryContent((existingContent + "\n" + """
           org.gradle.java.installations.paths=${TestUtils.getJava17Jdk().toString().replace("\\", "/")}
           android.uniquePackageNames=false
+          android.builtInKotlin=false
       """.trimIndent()).toByteArray(Charsets.UTF_8))
     }
 

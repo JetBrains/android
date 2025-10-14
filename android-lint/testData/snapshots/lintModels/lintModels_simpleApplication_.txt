@@ -58,6 +58,8 @@ MODULE                        : project.app
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     com.google.guava:guava        : null => com.google.guava:guava:19.0
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
                     android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
@@ -92,6 +94,9 @@ MODULE                        : project.app
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     com.google.guava:guava        : null => com.google.guava:guava:19.0
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
         TestArtifact
@@ -133,6 +138,8 @@ MODULE                        : project.app
                     com.google.guava:guava        : null => com.google.guava:guava:19.0
                     junit:junit                   : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
                     android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
@@ -170,6 +177,9 @@ MODULE                        : project.app
                     com.google.guava:guava        : null => com.google.guava:guava:19.0
                     junit:junit                   : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/app/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : google.simpleapplication.test
@@ -223,6 +233,8 @@ MODULE                        : project.app
                 org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                 org.hamcrest:hamcrest-integration       : null => org.hamcrest:hamcrest-integration:1.3
                 org.hamcrest:hamcrest-library : null => org.hamcrest:hamcrest-library:1.3
+                org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
                 artifacts::app                : null => :app@main
                 com.android.support.test.espresso:espresso-core   : null => com.android.support.test.espresso:espresso-core:3.0.2@aar
@@ -238,6 +250,9 @@ MODULE                        : project.app
                 org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                 org.hamcrest:hamcrest-integration       : null => org.hamcrest:hamcrest-integration:1.3
                 org.hamcrest:hamcrest-library : null => org.hamcrest:hamcrest-library:1.3
+                org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+        - ClassOutputs                : <ROOT>/app/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes [-]
         - ClassOutputs                : <ROOT>/app/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         MinSdkVersion                 : API 19
@@ -707,6 +722,14 @@ MODULE                        : project.app
                 - JarFiles                    : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
                 Identifier                    : org.hamcrest:hamcrest-library:1.3
                 ResolvedCoordinates           : org.hamcrest:hamcrest-library:1.3
+            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>)
+                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+            LintModelLibrary              : JavaLibrary(org.jetbrains:annotations:13.0)
+                - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                Identifier                    : org.jetbrains:annotations:13.0
+                ResolvedCoordinates           : org.jetbrains:annotations:13.0
 MODULE                        : project.app.androidTest
 MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
