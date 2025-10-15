@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.sync.AgpVersionsMismatch
 import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncError
 import com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors
+import com.android.tools.idea.gradle.project.sync.errors.AgpUpgradeQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
@@ -142,11 +143,12 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
       preparedProject = preparedProject,
       verifyBuildIssue = { _, buildIssue ->
         expect.that(buildIssue).isNotNull()
-        expect.that(buildIssue.quickFixes.size).isEqualTo(1)
+        expect.that(buildIssue.quickFixes.size).isEqualTo(2)
         expect.that(buildIssue.description)
           .contains("The project is using an incompatible preview version (AGP 7.1.0-beta01) of the Android Gradle plugin.")
-        expect.that(buildIssue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
-        expect.that((buildIssue.quickFixes[0] as OpenLinkQuickFix).link)
+        expect.that(buildIssue.quickFixes[0]).isInstanceOf(AgpUpgradeQuickFix::class.java)
+        expect.that(buildIssue.quickFixes[1]).isInstanceOf(OpenLinkQuickFix::class.java)
+        expect.that((buildIssue.quickFixes[1] as OpenLinkQuickFix).link)
           .isEqualTo("https://developer.android.com/studio/preview/features#agp-previews")
       },
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.ANDROID_PLUGIN_VERSION_INCOMPATIBLE,
