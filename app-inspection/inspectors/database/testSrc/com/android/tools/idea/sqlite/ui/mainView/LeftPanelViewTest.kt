@@ -28,6 +28,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.ui.SimpleColoredComponent
 import java.awt.Component
 import java.awt.event.ActionEvent
 import javax.swing.JButton
@@ -108,6 +109,34 @@ class LeftPanelViewTest {
   }
 
   @Test
+  fun databaseNodeWithApiClassName() {
+    val view = LeftPanelView(inspectorView)
+    val tree = view.component.descendantByName<JTree>("left-panel-tree")
+
+    view.addDatabaseSchema(
+      ViewDatabase(SqliteDatabaseId.fromLiveDatabase("db", 1, apiClassName = "Foo"), true),
+      schema,
+      0,
+    )
+
+    assertThat(tree.getChildText(0)).isEqualTo("db Foo")
+  }
+
+  @Test
+  fun databaseNodeWithoutApiClassName() {
+    val view = LeftPanelView(inspectorView)
+    val tree = view.component.descendantByName<JTree>("left-panel-tree")
+
+    view.addDatabaseSchema(
+      ViewDatabase(SqliteDatabaseId.fromLiveDatabase("db", 1, apiClassName = null), true),
+      schema,
+      0,
+    )
+
+    assertThat(tree.getChildText(0)).isEqualTo("db")
+  }
+
+  @Test
   fun runSql_rootSelected() {
     val view = LeftPanelView(inspectorView)
     val runSqlButton = view.component.descendantByName<JButton>("run-sql-button")
@@ -177,3 +206,17 @@ private fun JTree.selectPath(db: SqliteDatabaseId?, table: String?) {
 
 private fun DefaultTreeModel.getChildren(parent: Any) =
   List(getChildCount(parent)) { getChild(parent, it) as DefaultMutableTreeNode }
+
+private fun JTree.getChildText(index: Int): String {
+  val component =
+    cellRenderer.getTreeCellRendererComponent(
+      this,
+      model.getChild(model.root, index),
+      false,
+      false,
+      false,
+      0,
+      false,
+    ) as SimpleColoredComponent
+  return component.getCharSequence(false).toString()
+}
