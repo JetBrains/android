@@ -27,6 +27,8 @@ import com.intellij.openapi.util.JDOMUtil
 import com.intellij.platform.workspace.jps.entities.FacetEntity
 import com.intellij.platform.workspace.jps.entities.FacetEntityTypeId
 import com.intellij.platform.workspace.jps.entities.FacetId
+import com.intellij.platform.workspace.jps.entities.ModifiableFacetEntity
+import com.intellij.platform.workspace.jps.entities.ModifiableModuleEntity
 import com.intellij.platform.workspace.jps.entities.ModuleEntity
 import com.intellij.platform.workspace.jps.entities.ModuleId
 import com.intellij.platform.workspace.jps.entities.modifyFacetEntity
@@ -38,7 +40,7 @@ import java.io.File
 
 internal fun SyncContributorAndroidProjectContext.createOrUpdateAndroidGradleFacet(
   storage: MutableEntityStorage,
-  moduleEntity: ModuleEntity.Builder
+  moduleEntity: ModifiableModuleEntity
 ) {
   val configuration = GradleFacet.getFacetType().createDefaultConfiguration().apply {
     LAST_KNOWN_AGP_VERSION = versions.agpVersionAsString
@@ -55,7 +57,7 @@ internal fun SyncContributorAndroidProjectContext.createOrUpdateAndroidGradleFac
 
 internal fun SyncContributorAndroidProjectContext.createOrUpdateAndroidFacet(
   storage: MutableEntityStorage,
-  moduleEntity: ModuleEntity.Builder
+  moduleEntity: ModifiableModuleEntity
 ) {
   val configuration = AndroidFacet.getFacetType().createDefaultConfiguration().apply {
     state.apply {
@@ -99,8 +101,8 @@ internal fun SyncContributorAndroidProjectContext.createOrUpdateAndroidFacet(
 private fun SyncContributorAndroidProjectContext.updateFacet(
   facetTypeId: FacetTypeId<*>,
   configuration: FacetConfiguration,
-  moduleEntity: ModuleEntity.Builder,
-  existingFacet: FacetEntity.Builder) {
+  moduleEntity: ModifiableModuleEntity,
+  existingFacet: ModifiableFacetEntity) {
   // Set external source for facet, as this is not serialized
   registerModuleAction(moduleEntity.name) { module ->
     val facet = FacetManager.getInstance(module).getFacetByType(facetTypeId) ?: return@registerModuleAction
@@ -121,7 +123,7 @@ private fun withExistingFacetFromStorageOrNewBuilder(
   storage: MutableEntityStorage,
   entitySource: EntitySource,
   facetId: FacetId,
-  facetUpdater: (facetEntity: FacetEntity.Builder) -> Unit
+  facetUpdater: (facetEntity: ModifiableFacetEntity) -> Unit
 ) {
   storage.resolve(facetId)?.let {
     storage.modifyFacetEntity(it, facetUpdater)

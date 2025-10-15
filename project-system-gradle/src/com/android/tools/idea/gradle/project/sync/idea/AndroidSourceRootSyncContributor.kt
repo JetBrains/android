@@ -46,6 +46,7 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.intellij.java.workspace.entities.JavaModuleSettingsEntity
 import com.intellij.java.workspace.entities.JavaResourceRootPropertiesEntity
 import com.intellij.java.workspace.entities.JavaSourceRootPropertiesEntity
+import com.intellij.java.workspace.entities.ModifiableJavaModuleSettingsEntity
 import com.intellij.java.workspace.entities.javaResourceRoots
 import com.intellij.java.workspace.entities.javaSettings
 import com.intellij.java.workspace.entities.javaSourceRoots
@@ -66,6 +67,9 @@ import com.intellij.platform.workspace.jps.entities.ContentRootEntity
 import com.intellij.platform.workspace.jps.entities.ExcludeUrlEntity
 import com.intellij.platform.workspace.jps.entities.ExternalSystemModuleOptionsEntity
 import com.intellij.platform.workspace.jps.entities.InheritedSdkDependency
+import com.intellij.platform.workspace.jps.entities.ModifiableContentRootEntity
+import com.intellij.platform.workspace.jps.entities.ModifiableModuleEntity
+import com.intellij.platform.workspace.jps.entities.ModifiableSourceRootEntity
 import com.intellij.platform.workspace.jps.entities.ModuleEntity
 import com.intellij.platform.workspace.jps.entities.ModuleId
 import com.intellij.platform.workspace.jps.entities.ModuleSourceDependency
@@ -454,7 +458,7 @@ internal class AndroidSourceRootSyncContributor : GradleSyncContributor {
   }
 }
 
-private fun SyncContributorAndroidProjectContext.setSdkForHolderModule(holderModuleEntity: ModuleEntity.Builder) {
+private fun SyncContributorAndroidProjectContext.setSdkForHolderModule(holderModuleEntity: ModifiableModuleEntity) {
   // Remove the existing SDK and replace it with the Android SDK (if it exists, otherwise just inherit the SDK)
   holderModuleEntity.dependencies.removeAll { it is InheritedSdkDependency || it is SdkDependency }
   holderModuleEntity.dependencies += sdk ?: InheritedSdkDependency
@@ -463,10 +467,10 @@ private fun SyncContributorAndroidProjectContext.setSdkForHolderModule(holderMod
 // helpers
 private fun SyncContributorAndroidProjectContext.getAllSourceSetModuleEntities(
   storage: EntityStorage,
-): Map<IdeArtifactName, ModuleEntity.Builder> {
+): Map<IdeArtifactName, ModifiableModuleEntity> {
   val allSourceSets = getAllSourceSetsFromModels()
 
-  val moduleEntitiesMap = mutableMapOf<String, ModuleEntity.Builder>()
+  val moduleEntitiesMap = mutableMapOf<String, ModifiableModuleEntity>()
   val mainSourceSetName = IdeArtifactName.MAIN.toWellKnownSourceSet().sourceSetName
   LOG.debug("Configuring module " + holderModuleEntity.name)
 
@@ -488,7 +492,7 @@ private fun SyncContributorAndroidProjectContext.getAllSourceSetModuleEntities(
   }
 }
 
-private fun SyncContributorAndroidProjectContext.linkModuleGroup(sourceSetModules: Map<IdeArtifactName, ModuleEntity.Builder>,
+private fun SyncContributorAndroidProjectContext.linkModuleGroup(sourceSetModules: Map<IdeArtifactName, ModifiableModuleEntity>,
   featureToAppMapping: Map<String, String?>
 ) {
   val projectDirectory = File (holderModuleEntity.exModuleOptions?.linkedProjectPath
@@ -521,7 +525,7 @@ private fun SyncContributorAndroidProjectContext.linkModuleGroup(sourceSetModule
 
 
 private fun SyncContributorAndroidProjectContext.getModuleGroup(
-  sourceSetModules: Map<IdeArtifactName, ModuleEntity.Builder>
+  sourceSetModules: Map<IdeArtifactName, ModifiableModuleEntity>
 ): LinkedAndroidGradleModuleGroup {
   val modulePointerManager = ModulePointerManager.getInstance(project)
   return LinkedAndroidGradleModuleGroup(
@@ -561,7 +565,7 @@ private fun removeOrphanedModules(
 
 /** Set up the javaSettings for the holder module. This does not set any compiler output paths as the holder modules don't have any. */
 private fun SyncContributorAndroidProjectContext.setJavaSettingsForHolderModule(
-  holderModuleEntity: ModuleEntity.Builder
+  holderModuleEntity: ModifiableModuleEntity
 ) {
   holderModuleEntity.javaSettings = JavaModuleSettingsEntity(
     inheritedCompilerOutput = false,
@@ -608,9 +612,9 @@ private fun SyncContributorProjectContext.createModuleOptionsEntity(source: Enti
 private fun SyncContributorAndroidProjectContext.findOrCreateModuleEntity(
   name: String,
   entitySource: AndroidGradleSourceSetEntitySource,
-  moduleEntitiesMap: MutableMap<String, ModuleEntity.Builder>,
+  moduleEntitiesMap: MutableMap<String, ModifiableModuleEntity>,
   productionModuleName: String?
-): ModuleEntity.Builder = moduleEntitiesMap.computeIfAbsent(name) {
+): ModifiableModuleEntity = moduleEntitiesMap.computeIfAbsent(name) {
   createModuleEntity(name, entitySource).also { moduleEntity ->
     // Use empty storage to look up facet because the facet doesn't exist when creating a module
     createOrUpdateAndroidFacet(MutableEntityStorage.create(), moduleEntity)
@@ -632,7 +636,7 @@ private fun SyncContributorAndroidProjectContext.createContentRootEntities(
   moduleName: String,
   entitySource: EntitySource,
   typeToDirsMap: Map<out ExternalSystemSourceType?, Set<File>>
-): List<ContentRootEntity.Builder> {
+): List<ModifiableContentRootEntity> {
   val contentRootEntities = CanonicalPathPrefixTree.createMap<Path>()
 
   return resolveContentRoots(typeToDirsMap).onEach {
@@ -651,7 +655,7 @@ private fun SyncContributorAndroidProjectContext.createContentRootEntity(
   entitySource: EntitySource,
   contentRootUrl: File,
   typeToDirsMap: Map<out ExternalSystemSourceType?, Set<File>>
-): ContentRootEntity.Builder {
+): ModifiableContentRootEntity {
   return ContentRootEntity(
       entitySource = entitySource,
       url = contentRootUrl.toVirtualFileUrl(),
@@ -697,7 +701,7 @@ private fun SyncContributorAndroidProjectContext.createContentRootEntity(
 private fun SyncContributorAndroidProjectContext.createJavaModuleSettingsEntity(
   entitySource: AndroidGradleSourceSetEntitySource,
   sourceSetArtifactName: IdeArtifactName
-): JavaModuleSettingsEntity.Builder {
+): ModifiableJavaModuleSettingsEntity {
   return JavaModuleSettingsEntity(
      inheritedCompilerOutput = false, excludeOutput = context.isDelegatedBuild, entitySource = entitySource) {
     val artifact = getSelectedVariantArtifact(sourceSetArtifactName)
@@ -713,7 +717,7 @@ private fun SyncContributorAndroidProjectContext.createSourceRootEntity(
   file: File,
   type: IExternalSystemSourceType,
   entitySource: EntitySource
-): SourceRootEntity.Builder = SourceRootEntity(
+): ModifiableSourceRootEntity = SourceRootEntity(
   url = file.toVirtualFileUrl(),
   rootTypeId = type.toSourceRootTypeId(),
   entitySource = entitySource
