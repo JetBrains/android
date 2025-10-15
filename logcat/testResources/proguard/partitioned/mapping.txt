@@ -1,3 +1,3 @@
 # Ensure we can't possible retrace with the text file by deleting all the mappings.
-# pg_map_id: MAP_ID
+# pg_map_id: correct-map-id
 
