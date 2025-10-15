@@ -129,21 +129,10 @@ interface AndroidModel {
 
   companion object {
     @JvmStatic
-    fun get(facet: AndroidFacet): AndroidModel? {
-      return facet.getModuleSystem().androidModel ?: if (ApplicationManager.getApplication().isUnitTestMode) {
-        // Also query the test model.
-        // Ideally we shouldn't allow this but many tests do this already and the migration off it is not straightforward.
-        facet.getUserData(ANDROID_MODEL_FOR_TESTS_ONLY_KEY)
-      } else {
-        null
-      }
-    }
+    fun get(facet: AndroidFacet): AndroidModel? = get(facet.module)
 
     @JvmStatic
-    fun get(module: Module): AndroidModel? {
-      val facet = AndroidFacet.getInstance(module)
-      return if (facet == null) null else get(facet)
-    }
+    fun get(module: Module): AndroidModel? = module.getModuleSystem().androidModel ?: getForTests(module)
 
     /* Test helper for setting Android model. Consider using [AndroidProjectRule] instead. */
     @JvmStatic
@@ -151,6 +140,14 @@ interface AndroidModel {
     fun setForTests(facet: AndroidFacet, androidModel: AndroidModel) {
        facet.putUserData(ANDROID_MODEL_FOR_TESTS_ONLY_KEY, androidModel)
     }
+
+    // Ideally we shouldn't allow this but many tests do this already and the migration off it is not straightforward.
+    private fun getForTests(module: Module) = if (ApplicationManager.getApplication().isUnitTestMode) {
+      AndroidFacet.getInstance(module)?.getUserData(ANDROID_MODEL_FOR_TESTS_ONLY_KEY)
+    } else {
+      null
+    }
+
 
     /**
      * Returns `true` if `facet` has been configured from and is kept in sync with an external model of the project.
