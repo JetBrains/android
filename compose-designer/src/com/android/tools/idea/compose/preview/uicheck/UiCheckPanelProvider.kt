@@ -85,7 +85,7 @@ class UiCheckPanelProvider(
     if (StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.get())
       return ComposeStudioBotActionFactory.EP_NAME.extensionList
         .firstOrNull()
-        ?.fixVisualLintIssuesAction()
+        ?.fixVisualLintIssuesAction(instance.methodFqn)
     return null
   }
 }
