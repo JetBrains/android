@@ -421,6 +421,8 @@ class ScreenshotResultView {
       if (image == null) {
         imageLabel.icon = null
         scrollPane.setViewportView(placeholderLabel)
+        // Explicitly update the toolbar actions to disable them for null images.
+        toolbar.updateActionsAsync()
       } else {
         scrollPane.setViewportView(imageContainer)
         // When a new image is set, always default to auto-fitting.
@@ -465,7 +467,7 @@ class ScreenshotResultView {
       }
       // After updating the image and scale, we should update the toolbar
       // to reflect the new enabled/disabled state of the zoom buttons.
-      toolbar.updateActionsImmediately()
+      toolbar.updateActionsAsync()
 
       // Revalidate the scroll pane directly to ensure it re-evaluates its viewport and scrollbars.
       scrollPane.revalidate()
