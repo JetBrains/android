@@ -36,9 +36,6 @@ import java.util.ArrayDeque
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
-import javax.imageio.ImageIO
-import javax.swing.ImageIcon
-import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JScrollPane
@@ -135,7 +132,7 @@ class ScreenshotResultViewTest {
     view.newImagePath = "invalid/path/does/not/exist.png"
     view.updateView()
 
-    val newImagePanel = view.newImagePanel
+    val newImagePanel = view.newImagePanelSingle
     val scrollPane = findComponent<JScrollPane>(newImagePanel)!!
     PlatformTestUtil.waitWithEventsDispatching("Viewport view was not set with placeholder", { scrollPane.viewport.view != null }, 5)
 
@@ -152,7 +149,7 @@ class ScreenshotResultViewTest {
     view.diffImagePath = "invalid/path.png"
     view.updateView()
 
-    val diffPanelFailed = view.diffImagePanel
+    val diffPanelFailed = view.diffImagePanelSingle
     val scrollPaneFailed = findComponent<JScrollPane>(diffPanelFailed)!!
     PlatformTestUtil.waitWithEventsDispatching("Viewport view was not set", { scrollPaneFailed.viewport.view != null }, 5)
     val placeholderFailed = scrollPaneFailed.viewport.view as JLabel
@@ -162,7 +159,7 @@ class ScreenshotResultViewTest {
     view.testFailed = false
     view.updateView() // updateView re-triggers the load
 
-    val diffPanelPassed = view.diffImagePanel
+    val diffPanelPassed = view.diffImagePanelSingle
     val scrollPanePassed = findComponent<JScrollPane>(diffPanelPassed)!!
     PlatformTestUtil.waitWithEventsDispatching("Viewport view was not set", { scrollPanePassed.viewport.view != null }, 5)
     val placeholderPassed = scrollPanePassed.viewport.view as JLabel
@@ -170,89 +167,135 @@ class ScreenshotResultViewTest {
   }
 
   @Test
-  fun zoomActionsAreDisabledWhenNoImageIsPresent() = runInEdtAndWait {
-    val imagePanel = view.newImagePanel
+  fun singleViewZoomActionsAreDisabledWhenNoImageIsPresent() = runInEdtAndWait {
+    val imagePanel = view.newImagePanelSingle
     imagePanel.setImage(null) // Ensure no image is set
 
-    // --- Access actions directly via properties ---
-    val zoomIn = imagePanel.zoomInAction
-    val zoomOut = imagePanel.zoomOutAction
-    val actualSize = imagePanel.oneToOneAction
-    val fitContent = imagePanel.fitToScreenAction
-    val grid = imagePanel.toggleGridViewAction
-
     val event = TestActionEvent.createTestEvent()
-    zoomIn.update(event)
+
+    imagePanel.zoomInAction.update(event)
     assertThat(event.presentation.isEnabled).isFalse()
 
-    zoomOut.update(event)
+    imagePanel.zoomOutAction.update(event)
     assertThat(event.presentation.isEnabled).isFalse()
 
-    actualSize.update(event)
+    imagePanel.oneToOneAction.update(event)
     assertThat(event.presentation.isEnabled).isFalse()
 
-    fitContent.update(event)
+    imagePanel.fitToScreenAction.update(event)
     assertThat(event.presentation.isEnabled).isFalse()
 
-    grid.update(event)
+    imagePanel.toggleGridViewAction.update(event)
     assertThat(event.presentation.isEnabled).isFalse()
   }
 
   @Test
+  fun commonZoomActionsAreDisabledWhenNoImageIsPresent() = runInEdtAndWait {
+    view.newImagePanel.setImage(null)
+    view.diffImagePanel.setImage(null)
+    view.refImagePanel.setImage(null)
+
+    val event = TestActionEvent.createTestEvent()
+
+    view.commonZoomInAction.update(event)
+    assertThat(event.presentation.isEnabled).isFalse()
+
+    view.commonZoomOutAction.update(event)
+    assertThat(event.presentation.isEnabled).isFalse()
+
+    view.commonOneToOneAction.update(event)
+    assertThat(event.presentation.isEnabled).isFalse()
+
+    view.commonFitToScreenAction.update(event)
+    assertThat(event.presentation.isEnabled).isFalse()
+
+    view.commonToggleGridViewAction.update(event)
+    assertThat(event.presentation.isEnabled).isFalse()
+  }
+
+  @Test
+  fun commonZoomInActionIncreasesScaleOnAllPanels() = runInEdtAndWait {
+    val image = BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB)
+    val panels = listOf(view.newImagePanel, view.diffImagePanel, view.refImagePanel)
+    panels.forEach {
+      it.setImage(image)
+      it.currentScale = 1.0
+    }
+
+    view.commonZoomInAction.actionPerformed(TestActionEvent.createTestEvent())
+
+    panels.forEach {
+      assertThat(it.currentScale).isGreaterThan(1.0)
+    }
+  }
+
+  @Test
+  fun commonZoomOutActionDecreasesScaleOnAllPanels() = runInEdtAndWait {
+    val image = BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB)
+    val panels = listOf(view.newImagePanel, view.diffImagePanel, view.refImagePanel)
+    panels.forEach {
+      it.setImage(image)
+      it.currentScale = 1.0
+    }
+
+    view.commonZoomOutAction.actionPerformed(TestActionEvent.createTestEvent())
+
+    panels.forEach {
+      assertThat(it.currentScale).isLessThan(1.0)
+    }
+  }
+
+  @Test
   fun zoomInActionIncreasesScale() = runInEdtAndWait {
-    val imagePanel = view.newImagePanel
+    val imagePanel = view.newImagePanelSingle
     val image = BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB)
     imagePanel.setImage(image)
     imagePanel.currentScale = 1.0 // Start at 1:1
 
-    val zoomIn = imagePanel.zoomInAction
-    zoomIn.actionPerformed(TestActionEvent.createTestEvent())
+    imagePanel.zoomInAction.actionPerformed(TestActionEvent.createTestEvent())
 
     assertThat(imagePanel.currentScale).isGreaterThan(1.0)
   }
 
   @Test
   fun zoomOutActionDecreasesScale() = runInEdtAndWait {
-    val imagePanel = view.newImagePanel
+    val imagePanel = view.newImagePanelSingle
     val image = BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB)
     imagePanel.setImage(image)
     imagePanel.currentScale = 1.0 // Start at 1:1
 
-    val zoomOut = imagePanel.zoomOutAction
-    zoomOut.actionPerformed(TestActionEvent.createTestEvent())
+    imagePanel.zoomOutAction.actionPerformed(TestActionEvent.createTestEvent())
 
     assertThat(imagePanel.currentScale).isLessThan(1.0)
   }
 
   @Test
   fun actualSizeActionResetsScaleToOne() = runInEdtAndWait {
-    val imagePanel = view.newImagePanel
+    val imagePanel = view.newImagePanelSingle
     val image = BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB)
     imagePanel.setImage(image)
     imagePanel.currentScale = 1.5 // Start at a different scale
 
-    val actualSize = imagePanel.oneToOneAction
-    actualSize.actionPerformed(TestActionEvent.createTestEvent())
+    imagePanel.oneToOneAction.actionPerformed(TestActionEvent.createTestEvent())
 
     assertThat(imagePanel.currentScale).isEqualTo(1.0)
   }
 
   @Test
   fun fitToScreenActionEnablesAutoFit() = runInEdtAndWait {
-    val imagePanel = view.newImagePanel
+    val imagePanel = view.newImagePanelSingle
     val image = BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB)
     imagePanel.setImage(image)
     imagePanel.isAutoFitting = false // Ensure it's off initially
 
-    val fitToScreen = imagePanel.fitToScreenAction
-    fitToScreen.actionPerformed(TestActionEvent.createTestEvent())
+    imagePanel.fitToScreenAction.actionPerformed(TestActionEvent.createTestEvent())
 
     assertThat(imagePanel.isAutoFitting).isTrue()
   }
 
   @Test
   fun gridActionTogglesGridVisibility() = runInEdtAndWait {
-    val imagePanel = view.newImagePanel
+    val imagePanel = view.newImagePanelSingle
     val image = BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB)
     imagePanel.setImage(image)
 
