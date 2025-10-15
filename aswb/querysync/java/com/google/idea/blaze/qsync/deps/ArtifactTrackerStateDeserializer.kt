@@ -22,10 +22,10 @@ import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
 import com.google.idea.blaze.qsync.java.ArtifactTrackerProto
 import com.google.idea.blaze.qsync.project.ProjectPath
-import com.google.idea.blaze.qsync.project.ProjectPath.Companion.absolute
-import com.google.idea.blaze.qsync.project.ProjectPath.Companion.externalRepositoryRelative
-import com.google.idea.blaze.qsync.project.ProjectPath.Companion.projectRelative
-import com.google.idea.blaze.qsync.project.ProjectPath.Companion.workspaceRelative
+import com.google.idea.blaze.qsync.project.ProjectPath.AbsoluteProjectPath
+import com.google.idea.blaze.qsync.project.ProjectPath.ExternalRepositoryRelativeProjectPath
+import com.google.idea.blaze.qsync.project.ProjectPath.ProjectRelativeProjectPath
+import com.google.idea.blaze.qsync.project.ProjectPath.WorkspaceRelativeProjectPath
 import java.nio.file.Path
 import java.time.Instant
 
@@ -83,13 +83,16 @@ class ArtifactTrackerStateDeserializer(private val metadataFactory: ArtifactMeta
   }
 
   private fun projectPathFrom(p: ArtifactTrackerProto.ProjectPath): ProjectPath {
+    val emptyPath = Path.of("")
     return when (p.getBase()) {
-      ArtifactTrackerProto.ProjectPath.Base.UNSPECIFIED -> throw IllegalStateException("Unexpected value: $p")
-      ArtifactTrackerProto.ProjectPath.Base.WORKSPACE -> workspaceRelative(Path.of(p.getPath()))
-      ArtifactTrackerProto.ProjectPath.Base.EXTERNAL_REPOSITORY -> externalRepositoryRelative(p.getExternalRepository(), Path.of(p.getPath()))
-      ArtifactTrackerProto.ProjectPath.Base.PROJECT -> projectRelative(Path.of(p.getPath()))
-      ArtifactTrackerProto.ProjectPath.Base.ABSOLUTE -> absolute(Path.of(p.getPath()))
-      ArtifactTrackerProto.ProjectPath.Base.UNRECOGNIZED -> throw IllegalStateException("Unexpected value: $p")
+      ArtifactTrackerProto.ProjectPath.Base.UNSPECIFIED, ArtifactTrackerProto.ProjectPath.Base.UNRECOGNIZED -> error("Unexpected value: $p")
+      ArtifactTrackerProto.ProjectPath.Base.WORKSPACE ->
+        WorkspaceRelativeProjectPath(Path.of(p.getPath()), innerPath = emptyPath)
+      ArtifactTrackerProto.ProjectPath.Base.EXTERNAL_REPOSITORY ->
+        ExternalRepositoryRelativeProjectPath(p.getExternalRepository(), relativePath = Path.of(p.getPath()), innerPath = emptyPath)
+      ArtifactTrackerProto.ProjectPath.Base.PROJECT ->
+        ProjectRelativeProjectPath(relativePath = Path.of(p.getPath()), innerPath = emptyPath)
+      ArtifactTrackerProto.ProjectPath.Base.ABSOLUTE -> AbsoluteProjectPath(absolutePath = Path.of(p.getPath()), innerPath = emptyPath)
     }
   }
 
@@ -101,8 +104,8 @@ class ArtifactTrackerStateDeserializer(private val metadataFactory: ArtifactMeta
       .setOutputJars(toArtifactList(proto.outputJarsList, owner))
       .setIdeAar(if (proto.hasIdeAar()) toArtifact(proto.ideAar, owner) else null)
       .setGenSrcs(toArtifactList(proto.genSrcsList, owner))
-      .setSources(proto.sourcesList.map { Path.of(it) }.toSet())
-      .setSrcJars(proto.srcJarsList.map { Path.of(it) }.toSet())
+      .setSources(proto.sourcesList.map { projectPathFrom(it) }.toSet())
+      .setSrcJars(proto.srcJarsList.map { projectPathFrom(it) }.toSet())
       .setAndroidResourcesPackage(proto.getAndroidResourcesPackage())
       .build()
   }

@@ -67,7 +67,7 @@ public class ArtifactDirectories {
     } else if (includePath.isAbsolute()) {
       return ProjectPath.absolute(includePath);
     } else {
-      return ProjectPath.WORKSPACE_ROOT.resolveChild(includePath);
+      return ProjectPath.workspaceRelative(includePath);
     }
   }
 }
