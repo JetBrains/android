@@ -51,7 +51,8 @@ interface DiagnosticsSummaryFileProvider {
       DefaultMetricsLogFileProvider,
       HeapReportProvider,
       ThreadDumpProvider,
-      UIFreezeProvider)
+      UIFreezeProvider,
+      AdbHostLogFileProvider)
 
     /*
        Build a list of FileInfo objects based on the specified providers. Each file info object will be resolved
