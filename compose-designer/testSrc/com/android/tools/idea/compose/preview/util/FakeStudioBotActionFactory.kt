@@ -31,7 +31,7 @@ open class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
 
   override fun transformPreviewAction() = fakeAction("transformPreview")
 
-  override fun fixVisualLintIssuesAction() = fakeAction("fixVisualLintIssues")
+  override fun fixVisualLintIssuesAction(methodFqn: String) = fakeAction("fixVisualLintIssues")
 
   override fun fixComposeRenderIssueAction() = fakeAction("fixComposeRender")
 

@@ -28,10 +28,18 @@ interface ComposeStudioBotActionFactory {
    */
   fun transformPreviewAction(): AnAction?
 
-  /** An action to fix visual lint issues found by UI Check for a Compose Preview. */
-  fun fixVisualLintIssuesAction(): AnAction?
+  /**
+   * An action to fix visual lint issues found by UI Check for a Compose Preview.
+   *
+   * @param methodFqn The fully qualified name of the composable method.
+   */
+  fun fixVisualLintIssuesAction(methodFqn: String): AnAction?
 
-  /** An action to fix render issues in Compose Previews. */
+  /**
+   * An action to fix render issues in Compose Previews.
+   *
+   * @param renderIssues The list of render issues to fix.
+   */
   fun fixComposeRenderIssueAction(): AnAction?
 
   /**
