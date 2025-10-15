@@ -396,9 +396,8 @@ iml_test(
     timeout = "long",
     data = live_edit_test_data + [
         "//prebuilts/studio/sdk:emulator",
-        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
+        "//prebuilts/studio/sdk:system_image_android-33_default",
         INTEGRATION_TEST_GRADLE_VERSION,
-        INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
     module = ":intellij.android.core.integration",
     tags = [
@@ -421,7 +420,7 @@ apply_changes_data = [
     "//prebuilts/studio/sdk:build-tools/33.0.1",
     "//prebuilts/studio/sdk:emulator",
     "//prebuilts/studio/sdk:platform-tools",
-    "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
+    "//prebuilts/studio/sdk:system_image_android-33_default",
     INTEGRATION_TEST_GRADLE_VERSION,
 ]
 
@@ -633,7 +632,7 @@ iml_test(
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/android-31",
-        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
+        "//prebuilts/studio/sdk:system_image_android-33_default",
     ],
     module = ":intellij.android.core.integration",
     tags = [
@@ -659,7 +658,7 @@ iml_test(
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/android-31",
-        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
+        "//prebuilts/studio/sdk:system_image_android-33_default",
     ],
     module = ":intellij.android.core.integration",
     tags = [
