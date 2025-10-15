@@ -19,6 +19,7 @@ import com.android.adblib.AdbFeatures
 import com.android.adblib.AdbSession
 import com.android.adblib.ServerStatus
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.adb.AdbHostLog
 import com.android.tools.idea.adb.AdbOptionsService
 import com.android.tools.idea.isAndroidEnvironment
 import com.google.wireless.android.sdk.stats.AdbServerStatus
@@ -42,15 +43,17 @@ class AdbServerStatusReporter(val statusReporter: (ServerStatus) -> Unit) : Proj
     val session = AdbLibService.getInstance(project).session
     session.scope.launch {
       runCatching {
-        retrieveServerStatus(session)?.let { serverStatus ->
-          statusReporter(serverStatus)
-          logger.info("ADB server logs can be found at: ${serverStatus.absoluteLogPath}")
+          retrieveServerStatus(session)?.let { serverStatus ->
+            AdbHostLog.getInstance(project).path = serverStatus.absoluteLogPath
+            statusReporter(serverStatus)
+            logger.info("ADB server logs can be found at: ${serverStatus.absoluteLogPath}")
+          }
         }
-      }.onFailure { e ->
-        if (e !is CancellationException) {
-          thisLogger().warn("Cannot report `AdbServerStatus` due to a problem with adb server", e)
+        .onFailure { e ->
+          if (e !is CancellationException) {
+            thisLogger().warn("Cannot report `AdbServerStatus` due to a problem with adb server", e)
+          }
         }
-      }
     }
   }
 
