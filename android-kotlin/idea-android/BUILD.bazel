@@ -117,7 +117,7 @@ jvm_library(
     "//plugins/kotlin/base/util",
     "//plugins/kotlin/base/util:util_test_lib",
     "//plugins/kotlin/completion/impl-shared:kotlin-completion-impl-shared",
-    "//plugins/kotlin/gradle/code-insight-common",
+    "//plugins/kotlin/gradle/code-insight-common:kotlin-gradle-codeInsight-common",
     "//plugins/kotlin/project-configuration",
     "//android/adt-testutils:adt-testutils_test_lib",
   ]

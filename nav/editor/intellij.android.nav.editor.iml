@@ -96,8 +96,8 @@
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
     <orderEntry type="module" module-name="intellij.xml.dom" />
     <orderEntry type="module" module-name="intellij.xml.psi" />
-    <orderEntry type="module" module-name="kotlin.base.project-structure" />
-    <orderEntry type="module" module-name="kotlin.base.util" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.projectStructure" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.util" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />

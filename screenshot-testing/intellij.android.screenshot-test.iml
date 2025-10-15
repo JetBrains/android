@@ -46,7 +46,7 @@
     <orderEntry type="module" module-name="intellij.platform.execution.impl" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="intellij.platform.uast" />
-    <orderEntry type="module" module-name="kotlin.base.util" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.util" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="module" module-name="intellij.platform.diff" />
     <orderEntry type="module" module-name="intellij.platform.images" />

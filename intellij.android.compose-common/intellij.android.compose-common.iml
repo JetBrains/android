@@ -29,9 +29,9 @@
     <orderEntry type="module" module-name="intellij.platform.lang.impl" />
     <orderEntry type="module" module-name="intellij.platform.projectModel" />
     <orderEntry type="module" module-name="intellij.platform.util" />
-    <orderEntry type="module" module-name="kotlin.base.plugin" />
-    <orderEntry type="module" module-name="kotlin.base.psi" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.plugin" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.psi" />
     <orderEntry type="module" module-name="kotlin.core" />
-    <orderEntry type="module" module-name="kotlin.code-insight.api" />
+    <orderEntry type="module" module-name="intellij.kotlin.codeInsight.api" />
   </component>
 </module>

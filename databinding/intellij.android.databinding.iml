@@ -52,7 +52,7 @@
     <orderEntry type="module" module-name="intellij.xml.dom.impl" />
     <orderEntry type="module" module-name="intellij.xml.psi" />
     <orderEntry type="module" module-name="intellij.xml.psi.impl" />
-    <orderEntry type="module" module-name="kotlin.base.project-structure" />
-    <orderEntry type="module" module-name="kotlin.base.util" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.projectStructure" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.util" />
   </component>
 </module>

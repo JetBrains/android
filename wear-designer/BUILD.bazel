@@ -105,7 +105,7 @@ jvm_library(
     "//plugins/kotlin/base/plugin:plugin_test_lib",
     "//plugins/kotlin/idea",
     "//android/android-kotlin/idea-android/k2",
-    "//plugins/kotlin/code-insight/inspections-k2:kotlin-code-insight-inspections-k2",
+    "//plugins/kotlin/code-insight/inspections-k2:kotlin-codeInsight-inspections",
     "//android/android-common:common",
     "//android/android:core-tests_test_lib",
     "//android/adt-ui",

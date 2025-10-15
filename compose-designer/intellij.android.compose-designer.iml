@@ -103,22 +103,22 @@
     <orderEntry type="module" module-name="intellij.platform.util.rt" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
     <orderEntry type="module" module-name="intellij.xml.psi" />
-    <orderEntry type="module" module-name="kotlin.base.analysis" />
-    <orderEntry type="module" module-name="kotlin.base.analysis-api.utils" />
-    <orderEntry type="module" module-name="kotlin.base.code-insight" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.analysis" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.analysis.utils" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.codeInsight" />
     <orderEntry type="module" module-name="kotlin.base.fe10.analysis" />
     <orderEntry type="module" module-name="kotlin.base.fe10.code-insight" />
-    <orderEntry type="module" module-name="kotlin.base.indices" />
-    <orderEntry type="module" module-name="kotlin.base.plugin" />
-    <orderEntry type="module" module-name="kotlin.base.psi" />
-    <orderEntry type="module" module-name="kotlin.base.util" />
-    <orderEntry type="module" module-name="kotlin.code-insight.api" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.indices" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.plugin" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.psi" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.util" />
+    <orderEntry type="module" module-name="intellij.kotlin.codeInsight.api" />
     <orderEntry type="module" module-name="kotlin.core" />
     <orderEntry type="module" module-name="kotlin.fir.frontend-independent" />
-    <orderEntry type="module" module-name="kotlin.highlighting.minimal" />
+    <orderEntry type="module" module-name="intellij.kotlin.highlighting.minimal" />
     <orderEntry type="module" module-name="kotlin.highlighting.shared" />
-    <orderEntry type="module" module-name="kotlin.jvm-debugger.base.util" />
-    <orderEntry type="module" module-name="kotlin.jvm-debugger.core" />
+    <orderEntry type="module" module-name="intellij.kotlin.jvm.debugger.base.util" />
+    <orderEntry type="module" module-name="intellij.kotlin.jvm.debugger.core" />
     <orderEntry type="module" module-name="intellij.java.impl" />
     <orderEntry type="module" module-name="intellij.platform.diff.impl" />
     <orderEntry type="module" module-name="intellij.android.preview-fast-compile" />

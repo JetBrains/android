@@ -110,6 +110,7 @@ jvm_library(
     "//android/inspectors-common/ui",
     "//android/inspectors-common/ui:ui_test_lib",
     "//android/logcat",
+    "//android/logcat:logcat-tests_test_lib",
     "//android/native-symbolizer",
     "//android/profilers",
     "//android/profilers:profilers_test_lib",

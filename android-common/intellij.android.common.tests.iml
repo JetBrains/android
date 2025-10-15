@@ -31,8 +31,8 @@
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.gradle.gradle-tooling.impl" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.base.plugin" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.gradle.tooling.impl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.plugin" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.editor.ui" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
     <orderEntry type="library" scope="TEST" name="protobuf" level="project" />

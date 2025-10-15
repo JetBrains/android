@@ -40,6 +40,6 @@
     <orderEntry type="module" module-name="intellij.platform.editor.ui" />
     <orderEntry type="module" module-name="intellij.platform.extensions" />
     <orderEntry type="module" module-name="intellij.platform.util" />
-    <orderEntry type="module" module-name="kotlin.code-insight.api" />
+    <orderEntry type="module" module-name="intellij.kotlin.codeInsight.api" />
   </component>
 </module>

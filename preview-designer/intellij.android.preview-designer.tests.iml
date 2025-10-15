@@ -47,7 +47,7 @@
     <orderEntry type="module" module-name="intellij.platform.ide.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core.tests" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.idea" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.base.plugin" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.plugin" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.frontback.psi.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.preview-fast-compile" scope="TEST" />

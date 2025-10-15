@@ -53,7 +53,7 @@
     <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.base" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.base.facet" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.facet" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="jaxb-api" level="project" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.core" />

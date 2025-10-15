@@ -17,6 +17,7 @@ jvm_library(
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
+    "//android/logcat:logcat-tests_test_lib",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//platform/core-api:core",
     "//platform/core-impl",

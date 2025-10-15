@@ -56,7 +56,7 @@
     <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.rt" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.base.util" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.util" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="RUNTIME" />
   </component>
 </module>

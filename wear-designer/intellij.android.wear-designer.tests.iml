@@ -38,16 +38,16 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.psi" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.base.plugin" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.plugin" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.idea" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.kotlin.idea.k2" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.code-insight.inspections.k2" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.codeInsight.inspections" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.rendering" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.designer.tests" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.code-insight.api" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.codeInsight.api" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.psi.impl" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.mockito" scope="TEST" />

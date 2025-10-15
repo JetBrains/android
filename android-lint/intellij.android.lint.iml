@@ -36,8 +36,8 @@
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-jps-common" level="project" />
     <orderEntry type="module" module-name="intellij.platform.editor.ui" />
     <orderEntry type="module" module-name="intellij.platform.jps.model" />
-    <orderEntry type="module" module-name="kotlin.base.psi" />
-    <orderEntry type="module" module-name="kotlin.base.util" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.psi" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.util" />
     <orderEntry type="module" module-name="intellij.android.analytics" />
     <orderEntry type="module" module-name="intellij.android.assistant" />
     <orderEntry type="module" module-name="intellij.android.common" />
@@ -87,10 +87,10 @@
     <orderEntry type="module" module-name="intellij.xml.dom" />
     <orderEntry type="module" module-name="intellij.xml.psi" />
     <orderEntry type="module" module-name="intellij.xml.psi.impl" />
-    <orderEntry type="module" module-name="kotlin.base.code-insight" />
-    <orderEntry type="module" module-name="kotlin.base.facet" />
-    <orderEntry type="module" module-name="kotlin.code-insight.impl-base" />
-    <orderEntry type="module" module-name="kotlin.code-insight.utils" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.codeInsight" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.facet" />
+    <orderEntry type="module" module-name="intellij.kotlin.codeInsight.shared" />
+    <orderEntry type="module" module-name="intellij.kotlin.codeInsight.utils" />
     <orderEntry type="module" module-name="intellij.jvm.analysis.impl" />
     <orderEntry type="module" module-name="intellij.xml.impl" />
   </component>

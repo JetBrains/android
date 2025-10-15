@@ -46,6 +46,6 @@
     <orderEntry type="module" module-name="intellij.platform.util.jdom" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
     <orderEntry type="module" module-name="intellij.xml.psi" />
-    <orderEntry type="module" module-name="kotlin.project-wizard.core" />
+    <orderEntry type="module" module-name="intellij.kotlin.projectWizard.core" />
   </component>
 </module>

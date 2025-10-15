@@ -39,7 +39,7 @@
     <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.psi.impl" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
-    <orderEntry type="module" module-name="kotlin.refactorings.move.k2" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.refactorings.move" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.guava" scope="TEST" />
   </component>

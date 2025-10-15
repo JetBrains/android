@@ -40,8 +40,8 @@
     <orderEntry type="module" module-name="intellij.platform.usageView" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.usageView.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.base.util" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.base.psi" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.util" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.psi" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.android.testutils" scope="TEST" />
   </component>

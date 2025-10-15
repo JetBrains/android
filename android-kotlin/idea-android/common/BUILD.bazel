@@ -57,7 +57,7 @@ jvm_library(
     "//plugins/kotlin/base/util",
     "//plugins/kotlin/code-insight/api",
     "//plugins/kotlin/frontend-independent",
-    "//plugins/kotlin/gradle/code-insight-common",
+    "//plugins/kotlin/gradle/code-insight-common:kotlin-gradle-codeInsight-common",
     "//plugins/kotlin/gradle/gradle",
     "//plugins/kotlin/jvm-debugger/evaluation",
     "//plugins/kotlin/project-configuration",

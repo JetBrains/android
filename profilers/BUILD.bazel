@@ -80,7 +80,6 @@ jvm_library(
     "//android/transport-database",
     "//android/transport-database:transport-database_test_lib",
     "//android/android-test-framework:testFramework_test_lib",
-    "//plugins/maven/artifact-resolver-m31:artifactResolver-m31",
     "//plugins/maven/maven-event-listener:server-eventListener",
     "//plugins/maven/maven-event-listener:server-eventListener_test_lib",
     "//platform/core-api:core",
@@ -95,6 +94,7 @@ jvm_library(
     "//platform/core-ui",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
+    ":plugins_maven_artifactResolver-m31_provided",
   ]
 )
 ### auto-generated section `build intellij.android.profilers` end

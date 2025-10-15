@@ -66,11 +66,11 @@
     <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.dom.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.psi" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.formatter.minimal" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.formatter.minimal" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.idea" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.refactorings.common" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.base.plugin" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.refactorings.k2" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.plugin" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.refactorings" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="javapoet" level="project" />
   </component>
 </module>

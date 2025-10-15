@@ -117,8 +117,8 @@
     <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.parser" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.psi" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.base.plugin" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.jvm-debugger.eval4j" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.plugin" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.jvm.debugger.eval4j" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.plugin" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.plugin.k1" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="RUNTIME" />
