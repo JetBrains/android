@@ -21,7 +21,7 @@ import com.intellij.openapi.project.Project
  * Data class for AI event stats.
  */
 data class AiEventStats(
-  val project: Project,
+  val project: Project?,
   val completionEvent: CompletionEventMetadata? = null,
   val transformEvent: TransformEventMetadata? = null,
   val chatBotEvent: ChatBotEventMetadata? = null,
