@@ -70,6 +70,8 @@ public class CcProjectModelUpdateOperation implements Disposable {
   private final Map<String, OCResolveConfiguration.ModifiableModel> resolveConfigs =
       Maps.newLinkedHashMap();
   private final File compilerWorkingDir;
+  public final ProjectPath.WorkspaceRelativeProjectPath WORKSPACE_ROOT =
+    new ProjectPath.WorkspaceRelativeProjectPath(Path.of(""), Path.of(""));
 
   CcProjectModelUpdateOperation(
       Context<?> context, OCWorkspace readonlyOcWorkspace, ProjectPath.Resolver pathResolver) {
@@ -79,7 +81,7 @@ public class CcProjectModelUpdateOperation implements Disposable {
     // TODO(mathewi) should we use clear=false here and do the diff instead?
     modifiableOcWorkspace = readonlyOcWorkspace.getModifiableModel(CLIENT_KEY, /* clear= */ true);
     modifiableOcWorkspace.setClientVersion(CLIENT_VERSION);
-    compilerWorkingDir = pathResolver.resolve(ProjectPath.WORKSPACE_ROOT).toFile();
+    compilerWorkingDir = pathResolver.resolve(WORKSPACE_ROOT).toFile();
   }
 
   /** Visit a {@link CcWorkspace} proto. Should be called from a background thread. */
@@ -145,14 +147,13 @@ public class CcProjectModelUpdateOperation implements Disposable {
     CidrCompilerSwitches switches =
         checkNotNull(compilerSwitches.get(compilerSettings.getFlagSetId()));
     if (!CppSupportChecker.isSupportedCppConfiguration(
-        switches, pathResolver.resolve(ProjectPath.WORKSPACE_ROOT))) {
+        switches, pathResolver.resolve(WORKSPACE_ROOT))) {
       // Ignore the file if it's not supported by the current IDE.
       return;
     }
     Path srcPath = pathResolver.resolve(source.getWorkspacePath());
     CLanguageKind language =
         getLanguageKind(source.getLanguage(), "Source file " + source.getWorkspacePath());
-    srcPath = pathResolver.resolve(ProjectPath.workspaceRelative(srcPath));
     if (!Files.exists(srcPath)) {
       logger.warn("Src file not found: " + srcPath);
     }
@@ -211,7 +212,7 @@ public class CcProjectModelUpdateOperation implements Disposable {
             e.getKey(),
             e.getValue(),
             toolEnvironment,
-            pathResolver.resolve(ProjectPath.WORKSPACE_ROOT).toString());
+            pathResolver.resolve(WORKSPACE_ROOT).toString());
       }
 
       // Compute all configurations. Block until complete.

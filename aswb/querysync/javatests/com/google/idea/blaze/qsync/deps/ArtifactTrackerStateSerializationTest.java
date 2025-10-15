@@ -94,8 +94,8 @@ public class ArtifactTrackerStateSerializationTest {
                                 "gensrcdigest",
                                 Path.of("/build/out/Generated.java"),
                                 Label.of("//my/package:target"))))
-                    .setSources(ImmutableSet.of(Path.of("/workspace/path/Source.java")))
-                    .setSrcJars(ImmutableSet.of(Path.of("/workspace/path/sources.srcjar")))
+                    .setSources(ImmutableSet.of(ProjectPath.workspaceRelativeForTests(Path.of("/workspace/path/Source.java"))))
+                    .setSrcJars(ImmutableSet.of(ProjectPath.workspaceRelativeForTests(Path.of("/workspace/path/sources.srcjar"))))
                     .setAndroidResourcesPackage("com.my.package")
                     .build(),
                 buildContext));
@@ -118,20 +118,20 @@ public class ArtifactTrackerStateSerializationTest {
                     .includeDirectories(
                         ImmutableList.of(
                           ProjectPath.projectRelative(Path.of("buildout/include")),
-                            ProjectPath.workspaceRelative(Path.of("src/include")),
+                            ProjectPath.workspaceRelativeForTests(Path.of("src/include")),
                           ProjectPath.absolute(Path.of("/usr/local/include"))))
                     .quoteIncludeDirectories(
                         ImmutableList.of(
                           ProjectPath.projectRelative(Path.of("buildout/qinclude")),
-                            ProjectPath.workspaceRelative(Path.of("src/qinclude"))))
+                            ProjectPath.workspaceRelativeForTests(Path.of("src/qinclude"))))
                     .systemIncludeDirectories(
                         ImmutableList.of(
                           ProjectPath.projectRelative(Path.of("buildout/sysinclude")),
-                            ProjectPath.workspaceRelative(Path.of("src/sysinclude"))))
+                            ProjectPath.workspaceRelativeForTests(Path.of("src/sysinclude"))))
                     .frameworkIncludeDirectories(
                         ImmutableList.of(
                           ProjectPath.projectRelative(Path.of("buildout/fwinclude")),
-                            ProjectPath.workspaceRelative(Path.of("src/fwinclude"))))
+                            ProjectPath.workspaceRelativeForTests(Path.of("src/fwinclude"))))
                     .genHeaders(
                         ImmutableList.of(
                             BuildArtifact.create(
@@ -148,13 +148,13 @@ public class ArtifactTrackerStateSerializationTest {
                 .id("my-toolchain")
                 .compiler("clangd")
                 .compilerExecutable(
-                    ProjectPath.WORKSPACE_ROOT.resolveChild(Path.of("path/to/clangd")))
+                    ProjectPath.workspaceRelativeForTests(Path.of("path/to/clangd")))
                 .cpu("armv8")
                 .targetGnuSystemName("gnu-linux-armv8")
                 .builtInIncludeDirectories(
                     ImmutableList.of(
                       ProjectPath.projectRelative(Path.of("buildout/builtininclude")),
-                        ProjectPath.workspaceRelative(Path.of("src/builtininclude")),
+                        ProjectPath.workspaceRelativeForTests(Path.of("src/builtininclude")),
                         ProjectPath.externalRepositoryRelative("ndk", Path.of("src/ndk_builtininclude"))
                       ))
                 .cOptions(ImmutableList.of("--copt1"))

@@ -153,11 +153,14 @@ public class ClassFileJavaSourceFinder {
       return ImmutableSet.of();
     }
 
+    final var pathResolver = querySyncManager.assertProjectLoaded().getProjectPathResolver();
+
     return snapshot
         .getArtifactIndex()
         .getInfoForJarArtifact(jarPath)
         .stream()
         .flatMap(it -> it.sources().stream())
+        .map(pathResolver::resolve)
         .collect(toImmutableSet());
   }
 

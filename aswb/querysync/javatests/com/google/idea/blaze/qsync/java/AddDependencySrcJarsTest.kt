@@ -116,7 +116,8 @@ class AddDependencySrcJarsTest {
       ProjectProto.Library(
         name = Label.of("//java/com/google/common/collect:collect"),
         classesJarList = emptyList(),
-        sourcesList = listOf(ProjectPath.workspaceRelative(Path.of("source/path/external.srcjar")).withInnerJarPath(Path.of("root")))
+        sourcesList = listOf(
+          ProjectPath.workspaceRelativeForTests(Path.of("source/path/external.srcjar")).withInnerJarPath(Path.of("root")))
       )
     )
   }
@@ -140,7 +141,7 @@ class AddDependencySrcJarsTest {
       ArtifactTracker.State.forJavaArtifacts(
         DependencyBuildContext.NONE,
         JavaArtifactInfo.empty(of("//java/com/google/common/collect:collect")).toBuilder()
-          .setSrcJars(ImmutableSet.of(Path.of("source/path/external.srcjar")))
+          .setSrcJars(setOf<ProjectPath>(ProjectPath.workspaceRelativeForTests(Path.of("source/path/external.srcjar"))))
           .build()
       )
 

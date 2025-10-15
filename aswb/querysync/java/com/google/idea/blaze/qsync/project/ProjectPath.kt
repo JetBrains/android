@@ -27,15 +27,21 @@ sealed interface ProjectPath: ProjectProtoModel {
   @TestOnly
   fun getTestValue(): String
 
+  sealed interface SourceCodeRepositoryRelativeProjectPath: ProjectPath
+
   @JvmRecord
-  data class WorkspaceRelativeProjectPath(val relativePath: Path, override val innerPath: Path): ProjectPath{
+  data class WorkspaceRelativeProjectPath(val relativePath: Path, override val innerPath: Path): SourceCodeRepositoryRelativeProjectPath {
     override fun resolveChild(child: Path) = copy(relativePath = relativePath.resolve(child))
     override fun withInnerJarPath(innerPath: Path) = copy(innerPath = innerPath)
     override fun getTestValue(): String = testValue(relativePath, innerPath)
   }
 
   @JvmRecord
-  data class ExternalRepositoryRelativeProjectPath(val externalRepositoryName: String, val relativePath: Path, override val innerPath: Path): ProjectPath{
+  data class ExternalRepositoryRelativeProjectPath(
+    val externalRepositoryName: String,
+    val relativePath: Path,
+    override val innerPath: Path,
+  ): SourceCodeRepositoryRelativeProjectPath {
     override fun resolveChild(child: Path) = copy(relativePath = relativePath.resolve(child))
     override fun withInnerJarPath(innerPath: Path) = copy(innerPath = innerPath)
     override fun getTestValue(): String = testValue(relativePath, innerPath)
@@ -78,11 +84,14 @@ sealed interface ProjectPath: ProjectProtoModel {
   }
 
   companion object {
-    @JvmField
-    val WORKSPACE_ROOT: WorkspaceRelativeProjectPath = WorkspaceRelativeProjectPath(relativePath = Path.of(""), innerPath = Path.of(""))
-
     @JvmStatic
     fun workspaceRelative(relativePath: Path): WorkspaceRelativeProjectPath {
+      return WorkspaceRelativeProjectPath(relativePath = relativePath, innerPath = Path.of(""))
+    }
+
+    @JvmStatic
+    @TestOnly
+    fun workspaceRelativeForTests(relativePath: Path): SourceCodeRepositoryRelativeProjectPath {
       return WorkspaceRelativeProjectPath(relativePath = relativePath, innerPath = Path.of(""))
     }
 
