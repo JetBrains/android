@@ -38,7 +38,9 @@ public abstract class ProjectTarget implements BuildTarget {
      * Regular sources, i.e. a java or kotlin file for a java target, a c or c++ file for a cc
      * target, etc.
      */
-    REGULAR,
+    REGULAR_JVM,
+    REGULAR_CC,
+    REGULAR_PROTO,
     ANDROID_RESOURCES,
     ANDROID_MANIFEST,
     CC_HEADERS,

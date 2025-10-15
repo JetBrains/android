@@ -407,7 +407,7 @@ data class BuildGraphDataImpl(
 
   /** Returns a list of all the java source files of the project, relative to the workspace root.  */
   override fun getJavaSourceFiles(): List<Path> {
-    return getSourceFilesByRuleKindAndType(RuleKinds::isJava, SourceType.REGULAR)
+    return getSourceFilesByRuleKindAndType(RuleKinds::isJava, SourceType.REGULAR_JVM)
   }
 
   override fun getSourceFilesByRuleKindAndType(
@@ -441,7 +441,7 @@ data class BuildGraphDataImpl(
    * workspace root.
    */
   override fun getAndroidSourceFiles(): List<Path> =
-    getSourceFilesByRuleKindAndType(RuleKinds::isAndroid, SourceType.REGULAR)
+    getSourceFilesByRuleKindAndType(RuleKinds::isAndroid, SourceType.REGULAR_JVM)
 
   override fun getAndroidResourceFiles(): List<Path> =
     getSourceFilesByRuleKindAndType(RuleKinds::isAndroid, SourceType.ANDROID_RESOURCES)
@@ -673,7 +673,13 @@ data class BuildGraphDataImpl(
   }
 }
 
-private val SUPPORTED_SOURCE_TYPES = setOf(SourceType.REGULAR, SourceType.ANDROID_RESOURCES, SourceType.ANDROID_MANIFEST)
+private val SUPPORTED_SOURCE_TYPES = setOf(
+  SourceType.REGULAR_JVM,
+  SourceType.REGULAR_CC,
+  SourceType.REGULAR_PROTO,
+  SourceType.ANDROID_RESOURCES,
+  SourceType.ANDROID_MANIFEST
+)
 
 /**
  * Traverse the graph defined by [edgeSelector] and return a sequence of values produced by [valueEmitter].
