@@ -143,6 +143,7 @@ data class IdeModelSnapshotComparisonTestDefinition(
       IdeModelSnapshotComparisonTestDefinition(TestProject.BUILD_CONFIG_AS_BYTECODE_ENABLED),
       IdeModelSnapshotComparisonTestDefinition(TestProject.TEST_STATIC_DIR),
       IdeModelSnapshotComparisonTestDefinition(TestProject.SIMPLE_APPLICATION_OPTIMIZATION_ENABLED),
+      IdeModelSnapshotComparisonTestDefinition(TestProject.SIMPLE_APPLICATION_OPTIMIZATION_ENABLED_OLD),
       IdeModelSnapshotComparisonTestDefinition(TestProject.TEST_SUITES)
     )
   }

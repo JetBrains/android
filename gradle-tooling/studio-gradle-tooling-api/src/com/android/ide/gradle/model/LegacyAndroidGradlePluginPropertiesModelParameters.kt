@@ -22,4 +22,5 @@ interface LegacyAndroidGradlePluginPropertiesModelParameters {
   var componentToApplicationIdMap: Boolean
   var namespace: Boolean
   var dataBinding: Boolean
+  var mappingFile: Boolean
 }
