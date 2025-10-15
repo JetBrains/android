@@ -51,7 +51,6 @@ embedded.emulator.hide.tool.window.name=COMPLETE:2024
 embedded.emulator.wrap.toolbar=COMPLETE:2024
 experimentalui.enabled=COMPLETE:2024
 firebasetestlab.direct.access.create.project=COMPLETE:2024
-firebasetestlab.direct.access.settings.page=COMPLETE:2023
 firebasetestlab.direct.access.show.oem.lab.devices=COMPLETE:2025
 firebasetestlab.direct.access=COMPLETE:2024
 google.login.combined.login.use.compose.flow=PREVIEW
