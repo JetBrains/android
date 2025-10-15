@@ -503,6 +503,25 @@ enum class TestProject(
     },
     switchVariant = TemplateBasedTestProject.VariantSelection(":app", "release")
   ),
+
+  SIMPLE_APPLICATION_OPTIMIZATION_ENABLED_OLD(
+    TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+    testName = "optimization_enabled_old",
+    isCompatibleWith = {
+      it == AgpVersionSoftwareEnvironmentDescriptor.AGP_73 ||
+      it == AgpVersionSoftwareEnvironmentDescriptor.AGP_8_13
+    },
+    patch = {
+      it.resolve("app/build.gradle").replaceContent { original ->
+        original.replace("minifyEnabled false", """
+         minifyEnabled true
+        """.trimIndent()
+        )
+      }
+    },
+    switchVariant = TemplateBasedTestProject.VariantSelection(":app", "release")
+  ),
+
   TEST_SUITES(
     TestProjectToSnapshotPaths.TEST_SUITES,
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT }

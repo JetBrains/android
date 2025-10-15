@@ -15,6 +15,8 @@
  */
 package com.android.ide.gradle.model
 
+import java.io.File
+
 /**
  * Model that fetches information from older versions of AGP of various properties which
  * were added to the returned models of newer AGPs, in order to simplify consuming code in
@@ -40,6 +42,7 @@ interface LegacyAndroidGradlePluginProperties {
   val androidTestNamespace: String?
   /** For AGP < 8.7, whether Android resource data binding is enabled. */
   val dataBindingEnabled: Boolean?
+  val mappingR8TextFiles: Map<String, File?>
   /**
    * Exceptions caught from trying to read the additional information from the model, which should be reported as sync warnings.
    */

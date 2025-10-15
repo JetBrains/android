@@ -23,6 +23,7 @@ import com.android.ide.gradle.model.builder.LegacyAndroidGradlePluginPropertiesM
 import com.android.ide.gradle.model.builder.LegacyAndroidGradlePluginPropertiesModelBuilder.VariantCollectionProvider.InstantAppFeature
 import com.android.ide.gradle.model.builder.LegacyAndroidGradlePluginPropertiesModelBuilder.VariantCollectionProvider.LibraryVariant
 import com.android.ide.gradle.model.impl.LegacyAndroidGradlePluginPropertiesImpl
+import java.io.File
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.Project
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
@@ -30,6 +31,10 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import java.lang.reflect.Method
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.getOrElse
+import kotlin.getOrThrow
+import org.gradle.api.file.FileCollection
+import org.gradle.api.provider.Provider
 
 /**
  * An injected Gradle tooling model builder to fetch information from legacy versions of the Android Gradle plugin
@@ -54,7 +59,42 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
     val applicationIdMap = fetchApplicationIds(parameters, project, problems)
     val (namespace, androidTestNamespace) = fetchNamespace(parameters, project, problems)
     val dataBindingEnabled = fetchIsDataBindingEnabled(parameters, project, problems)
-    return LegacyAndroidGradlePluginPropertiesImpl(applicationIdMap, namespace, androidTestNamespace, dataBindingEnabled, problems)
+    val mappingR8TextFiles = fetchMappingTextFiles(parameters, project, problems)
+    return LegacyAndroidGradlePluginPropertiesImpl(
+      applicationIdMap,
+      namespace,
+      androidTestNamespace,
+      dataBindingEnabled,
+      problems,
+      mappingR8TextFiles)
+  }
+
+  private fun fetchMappingTextFiles(parameters: LegacyAndroidGradlePluginPropertiesModelParameters, project: Project, problems: MutableList<Exception>): Map<String, File?> {
+    if (!parameters.mappingFile) return mapOf()
+    val extension = project.extensions.findByName("android") ?: return mapOf()
+    val mappingFiles = mutableMapOf<String, File?>()
+    for (variantCollectionProvider: VariantCollectionProvider in pluginType.variantCollectionProviders(extension)) {
+      if (!variantCollectionProvider.providesApplicationId) continue
+      val container = variantCollectionProvider.variants
+      for (variant in container) {
+        val variantName = variant.invokeMethod<String>("getName")
+        val mappingFileProvider = variant.javaClass.getMethodCached("getMappingFileProvider").runCatching {
+          getOrThrow().invoke(variant) as Provider<FileCollection>
+        }.getOrElse {
+          problems += RuntimeException(
+            "Failed to read mappingFile for ${variantName}.\n" +
+            it
+          )
+          null
+        } ?: continue
+        runCatching {
+          mappingFiles[variantName] =
+            // files still can fire missing value that we cannot check
+            if(mappingFileProvider.isPresent) mappingFileProvider.get().files.firstOrNull() else null
+        }
+      }
+    }
+    return mappingFiles
   }
 
   private fun fetchApplicationIds(parameters: LegacyAndroidGradlePluginPropertiesModelParameters, project: Project, problems: MutableList<Exception>): Map<String, String> {
