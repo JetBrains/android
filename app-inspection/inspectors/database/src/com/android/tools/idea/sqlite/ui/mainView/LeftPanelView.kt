@@ -61,6 +61,7 @@ import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.util.Locale
 import javax.swing.Icon
+import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
@@ -482,6 +483,10 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     private val colorTextAttributes =
       SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, JBColor.gray)
 
+    override fun formatToLabel(label: JLabel): JLabel {
+      return super.formatToLabel(label)
+    }
+
     override fun customizeCellRenderer(
       tree: JTree,
       value: Any?,
@@ -496,7 +501,12 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
         when (val userObject = value.userObject) {
           is ViewDatabase -> {
             val databaseId = userObject.databaseId
+            val apiClassName = databaseId.getApiClassName()
             append(databaseId.name)
+            if (apiClassName != null) {
+              append(" ${apiClassName.substringAfterLast('.')}", colorTextAttributes)
+            }
+
             when {
               !userObject.isOpen -> configure(LIVE_DB_CLOSED_ICON, "closed")
               databaseId !is LiveSqliteDatabaseId -> configure(FILE_DB_ICON)
@@ -504,7 +514,14 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
               databaseId.isReadOnly -> configure(LIVE_DB_ICON, "may be read-only")
               else -> configure(LIVE_DB_ICON)
             }
-            toolTipText = databaseId.path
+            toolTipText = buildString {
+              append("<html>")
+              append(databaseId.path)
+              if (apiClassName != null) {
+                append("<br>Opened with $apiClassName")
+              }
+              append("</html>")
+            }
           }
           is SqliteTable -> {
             icon =
@@ -560,3 +577,5 @@ internal fun Tree.getFirstSelectedDatabaseId(): SqliteDatabaseId? {
   }
   return null
 }
+
+private fun SqliteDatabaseId.getApiClassName() = (this as? LiveSqliteDatabaseId)?.apiClassName
