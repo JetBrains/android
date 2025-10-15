@@ -22,7 +22,6 @@ import com.google.devtools.build.lib.view.proto.Deps
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.artifact.OutputArtifact
 import com.google.idea.blaze.qsync.java.JavaTargetInfo.JavaArtifacts
-import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcCompilationInfo
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcTargetInfo
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcToolchainInfo
@@ -40,6 +39,7 @@ interface OutputInfo {
   val aars: List<OutputArtifact>
   val generatedSources: List<OutputArtifact>
   val allJavaArtifacts: Collection<OutputArtifact>
+  val ccGeneratedHeaders: List<OutputArtifact>
 
   val isEmpty: Boolean
   val exitCode: Int
@@ -75,6 +75,8 @@ interface OutputInfo {
       get() = artifacts[OutputGroup.AARS].orEmpty()
     override val generatedSources: List<OutputArtifact>
       get() = artifacts[OutputGroup.GENSRCS].orEmpty()
+    override val ccGeneratedHeaders: List<OutputArtifact>
+      get() = artifacts[OutputGroup.CC_GEN_HEADERS].orEmpty()
     override val isEmpty: Boolean
       get() = artifacts.isEmpty() && ccTargets.isEmpty() && ccToolchains.isEmpty()
 

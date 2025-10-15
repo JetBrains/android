@@ -102,7 +102,7 @@ def _package_dependencies_impl(target, ctx):
         qs_jdeps = _noneToEmpty(dep_info.compile_jdeps),
         qs_aars = _noneToEmpty(dep_info.aars),
         qs_gensrcs = _noneToEmpty(dep_info.gensrcs),
-        qs_cc_headers = _noneToEmpty(dep_info.cc_headers),
+        qs_cc_gen_headers = _noneToEmpty(dep_info.cc_gen_headers),
         qs_cc_info = cc_info_files,
     )]
 
@@ -145,7 +145,7 @@ DependenciesInfo = provider(
         "expand_sources": "boolean, true if the sources for this target should be expanded when it appears inside another rules srcs list",
         "cc_info_files": "a list of cc info files",
         "cc_compilation_info": "a structure containing info required to compile cc sources",
-        "cc_headers": "a depset of generated headers required to compile cc sources",
+        "cc_gen_headers": "a depset of generated headers required to compile cc sources",
         "cc_toolchain_info": "struct containing cc toolchain info, with keys file (the output file) and id (unique ID for the toolchain info, referred to from elsewhere)",
     },
 )
@@ -161,7 +161,7 @@ def create_dependencies_info(
         expand_sources = False,
         cc_info_files = depset(),
         cc_compilation_info = None,
-        cc_headers = depset(),
+        cc_gen_headers = depset(),
         cc_toolchain_info = None):
     """A helper function to create a DependenciesInfo provider instance."""
     return DependenciesInfo(
@@ -175,7 +175,7 @@ def create_dependencies_info(
         expand_sources = expand_sources,
         cc_info_files = cc_info_files,
         cc_compilation_info = cc_compilation_info,
-        cc_headers = cc_headers,
+        cc_gen_headers = cc_gen_headers,
         cc_toolchain_info = cc_toolchain_info,
     )
 
@@ -201,13 +201,13 @@ def create_java_dependencies_info(
 def create_cc_dependencies_info(
         cc_info_files = depset(),
         cc_compilation_info = None,
-        cc_headers = depset(),
+        cc_gen_headers = depset(),
         cc_toolchain_info = None):
     """A helper function to create a DependenciesInfo provider instance."""
     return struct(
         cc_info_files = cc_info_files,
         cc_compilation_info = cc_compilation_info,
-        cc_headers = cc_headers,
+        cc_gen_headers = cc_gen_headers,
         cc_toolchain_info = cc_toolchain_info,
     )
 
@@ -253,7 +253,7 @@ def merge_dependencies_info(
         expand_sources = java_dep_info.expand_sources if java_dep_info else None,
         cc_info_files = cc_dep_info.cc_info_files if cc_dep_info else None,
         cc_compilation_info = cc_dep_info.cc_compilation_info if cc_dep_info else None,
-        cc_headers = cc_dep_info.cc_headers if cc_dep_info else None,
+        cc_gen_headers = cc_dep_info.cc_gen_headers if cc_dep_info else None,
         cc_toolchain_info = cc_toolchain_dep_info.cc_toolchain_info if cc_toolchain_dep_info else None,
     )
     return merged
@@ -314,7 +314,7 @@ def _encode_cc_compilation_info_proto(label, cc_compilation_info):
                 quote_include_directories = cc_compilation_info.transitive_quote_include_directory,
                 system_include_directories = cc_compilation_info.transitive_system_include_directory,
                 framework_include_directories = cc_compilation_info.framework_include_directory,
-                gen_hdrs = _encode_file_list(cc_compilation_info.gen_headers),
+                gen_hdrs = _encode_file_list(cc_compilation_info.cc_gen_headers),
                 toolchain_id = cc_compilation_info.toolchain_id,
             ),
         ]),
@@ -684,7 +684,7 @@ def _get_cc_toolchain_dependency_info(rule):
         return cc_toolchain_target[DependenciesInfo]
     return None
 
-def _collect_own_and_dependency_cc_info(target, rule):
+def _collect_own_and_toolchain_cc_info(target, rule):
     dependency_info = _get_cc_toolchain_dependency_info(rule)
     cc_toolchain_info = None
     if dependency_info and dependency_info.cc_toolchain_info:
@@ -694,10 +694,10 @@ def _collect_own_and_dependency_cc_info(target, rule):
         return None
 
     compilation_context = IDE_CC.compilation_context(target)
-    gen_headers = depset()
+    cc_gen_headers = depset()
     compilation_info = None
     if compilation_context:
-        gen_headers = depset([f for f in compilation_context.headers.to_list() if not f.is_source])
+        cc_gen_headers = depset([f for f in compilation_context.headers.to_list() if not f.is_source])
 
         compilation_info = struct(
             transitive_defines = compilation_context.defines.to_list(),
@@ -710,14 +710,14 @@ def _collect_own_and_dependency_cc_info(target, rule):
                 )
             ),
             framework_include_directory = compilation_context.framework_includes.to_list(),
-            gen_headers = gen_headers.to_list(),
+            cc_gen_headers = cc_gen_headers.to_list(),
             toolchain_id = cc_toolchain_info.id,
         )
     if not compilation_info:
         return None
     return struct(
         compilation_info = compilation_info,
-        gen_headers = gen_headers,
+        cc_gen_headers = cc_gen_headers,
         cc_toolchain_info = cc_toolchain_info,
     )
 
@@ -780,7 +780,7 @@ def _collect_java_dependencies_core_impl(
     )
 
 def _collect_cc_dependencies_core_impl(target, ctx):
-    cc_info = _collect_own_and_dependency_cc_info(target, ctx.rule)
+    cc_info = _collect_own_and_toolchain_cc_info(target, ctx.rule)
     dependency_infos = _get_followed_cc_dependency_infos(target.label, ctx.rule)
     dep_cc_info_files = [info.cc_info_files for info in dependency_infos.values() if info.cc_info_files]
     if not cc_info and not dep_cc_info_files:
@@ -793,7 +793,7 @@ def _collect_cc_dependencies_core_impl(target, ctx):
     return create_cc_dependencies_info(
         cc_info_files = depset(cc_info_files, transitive = dep_cc_info_files),
         cc_compilation_info = cc_info.compilation_info if cc_info else None,
-        cc_headers = cc_info.gen_headers if cc_info else depset(),
+        cc_gen_headers = cc_info.cc_gen_headers if cc_info else depset(),
         cc_toolchain_info = cc_info.cc_toolchain_info if cc_info else None,
     )
 
