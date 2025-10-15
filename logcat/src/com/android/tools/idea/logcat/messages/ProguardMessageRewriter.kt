@@ -29,7 +29,7 @@ internal class ProguardMessageRewriter {
   private var retraceInfo by AtomicReference<RetraceInfo?>(null)
 
   fun loadProguardMap(path: Path) {
-    val builder = createRetracer(path)
+    val builder = createTextRetracer(path)
     // We prime the internal caches when we are asked to load the file rather than pay that price
     // while retracing the first exception.
     Retrace.run(builder.setStackTrace(emptyList()).setRetracedStackTraceConsumer {}.build())
