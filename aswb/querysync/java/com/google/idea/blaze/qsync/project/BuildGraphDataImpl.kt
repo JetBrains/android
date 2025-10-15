@@ -633,19 +633,13 @@ data class BuildGraphDataImpl(
   }
 
   private fun Collection<Label>.transitiveClosure(): Sequence<ProjectTarget> {
-    val seen = HashSet<Label>()
-    val queue = ArrayDeque(this)
-    return sequence {
-      while (!queue.isEmpty()) {
-        val target = queue.removeFirst()
-        val targetInfo = storage.targetMap[target] ?: continue
-        yield(targetInfo)
-        val dependencyTracking = getDependencyTrackingIncludeExternalDependencies(targetInfo)
-        if (dependencyTracking) {
-          queue.addAll(targetInfo.deps().filter { seen.add(it) })
-        }
+    return traverseDag(
+      valueEmitter = { storage.targetMap[it] },
+      edgeSelector = { _, targetInfo ->
+        val isKnownTargetWithTrackedDependencies = (targetInfo != null) && getDependencyTrackingIncludeExternalDependencies(targetInfo)
+        if (isKnownTargetWithTrackedDependencies) targetInfo.deps() else emptyList()
       }
-    }
+    )
   }
 
   companion object {
@@ -680,3 +674,25 @@ data class BuildGraphDataImpl(
 }
 
 private val SUPPORTED_SOURCE_TYPES = setOf(SourceType.REGULAR, SourceType.ANDROID_RESOURCES, SourceType.ANDROID_MANIFEST)
+
+/**
+ * Traverse the graph defined by [edgeSelector] and return a sequence of values produced by [valueEmitter].
+ */
+@VisibleForTesting
+inline fun <N, V> Collection<N>.traverseDag(
+  crossinline valueEmitter: (N) -> V?,
+  crossinline edgeSelector: (node: N, emittedValue: V?) -> Collection<N>,
+): Sequence<V> {
+  val seen = HashSet<N>(this)
+  val queue = ArrayDeque(this)
+  return sequence {
+    while (!queue.isEmpty()) {
+      val node = queue.removeFirst()
+      val value = valueEmitter(node)
+      if (value != null) {
+        yield(value)
+      }
+      queue.addAll(edgeSelector(node, value).filter { seen.add(it) })
+    }
+  }
+}
