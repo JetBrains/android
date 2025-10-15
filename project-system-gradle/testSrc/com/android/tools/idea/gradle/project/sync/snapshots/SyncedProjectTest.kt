@@ -295,6 +295,9 @@ abstract class SyncedProjectTest(
   fun testSimpleApplication_optimization_enabled() = testProject(TestProject.SIMPLE_APPLICATION_OPTIMIZATION_ENABLED)
 
   @Test
+  fun testSimpleApplication_optimization_enabled_old() = testProject(TestProject.SIMPLE_APPLICATION_OPTIMIZATION_ENABLED_OLD)
+
+  @Test
   fun testTestSuites() = testProject(TestProject.TEST_SUITES)
 
   override fun getTestDefs(testProject: TestProject): List<SyncedProjectTestDef> {

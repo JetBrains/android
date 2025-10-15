@@ -16,6 +16,7 @@
 package com.android.ide.gradle.model.impl
 
 import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
+import java.io.File
 
 data class LegacyAndroidGradlePluginPropertiesImpl(
   override val componentToApplicationIdMap: Map<String, String>,
@@ -23,4 +24,5 @@ data class LegacyAndroidGradlePluginPropertiesImpl(
   override val androidTestNamespace: String?,
   override val dataBindingEnabled: Boolean?,
   override val problems: List<Exception>,
+  override val mappingR8TextFiles: Map<String, File?>,
 ) : LegacyAndroidGradlePluginProperties
