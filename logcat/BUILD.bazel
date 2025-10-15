@@ -66,7 +66,6 @@ jvm_library(
   resources = [":logcat_test_resources"],
   runtime_deps = [
     ":logcat",
-    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "//android/adt-ui:adt-ui_test_lib",
   ]

@@ -74,10 +74,8 @@ jvm_library(
   resources = [":databinding_test_resources"],
   runtime_deps = [
     ":databinding",
-    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:layoutlib",
-    "@lib//:kotlinc-kotlin-compiler-common-provided",
     "//android/analytics:analytics_test_lib",
     "//platform/util-rt:util-rt_test_lib",
     "//plugins/kotlin/base/project-structure:project-structure_test_lib",
