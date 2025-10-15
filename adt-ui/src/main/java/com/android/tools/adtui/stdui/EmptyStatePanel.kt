@@ -27,6 +27,7 @@ import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.UIUtilities
 import java.awt.BorderLayout
 import java.awt.Color
+import java.awt.event.InputEvent
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -34,7 +35,7 @@ import org.jetbrains.annotations.TestOnly
 
 class UrlData(val text: String, val url: String)
 
-class ActionData(val text: String, val icon: Icon? = null, val callback: () -> Unit)
+class ActionData(val text: String, val icon: Icon? = null, val callback: (InputEvent) -> Unit)
 
 sealed class Chunk
 
