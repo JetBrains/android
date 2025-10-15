@@ -46,6 +46,7 @@ interface ConfigurationDependencyDetails extends DependencyDetails {
       );
       ui.setName("configuration");
       ui.setSelectedItem(dependency.getConfigurationName());
+      ui.removeItem(""); // Do not display empty string choice for configurations.
       panel.add(ui);
       dependency.getParent().add(new PsModule.DependenciesChangeListener() {
         @Override
