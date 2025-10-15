@@ -30,6 +30,6 @@ enum class OutputGroup(
   GENSRCS("qs_gensrcs", usedBySymbolResolution = true),
   ARTIFACT_INFO_FILE("qs_info"),
   JDEPS("qs_jdeps"),
-  CC_HEADERS("qs_cc_headers", usedBySymbolResolution = true),
+  CC_GEN_HEADERS("qs_cc_gen_headers", usedBySymbolResolution = true),
   CC_INFO_FILE("qs_cc_info");
 }

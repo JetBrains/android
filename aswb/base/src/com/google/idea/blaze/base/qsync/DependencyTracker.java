@@ -103,7 +103,7 @@ public interface DependencyTracker {
           }
         }
         case CC -> {
-          consumer.accept(OutputGroup.CC_HEADERS);
+          consumer.accept(OutputGroup.CC_GEN_HEADERS);
           consumer.accept(OutputGroup.CC_INFO_FILE);
         }
       }
