@@ -19,7 +19,10 @@ package com.android.tools.idea.logcat.messages
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatR8MappingsToken
+import com.android.tools.idea.logcat.LogcatR8MappingsToken.R8Mappings
 import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.Error
+import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.Mapping
+import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.PartitionedMapping
 import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.Reason.BUILD_DIR_NOT_FOUND
 import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.Reason.MAPPINGS_DIR_NOT_FOUND
 import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.Reason.MAPPINGS_FILE_NOT_FOUND
@@ -27,7 +30,7 @@ import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result
 import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.Reason.MATCHING_MAPPING_NOT_FOUND
 import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.Reason.MODULES_NOT_FOUND
 import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.Reason.MODULE_DIR_NOT_FOUND
-import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.Success
+import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.TextMapping
 import com.android.tools.idea.logcat.util.LOGGER
 import com.android.tools.idea.logcat.util.LogcatUsageTracker
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -137,16 +140,19 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
         rescheduleCachePurge()
         return retracer.copy(isCached = true)
       }
-      val result = findMapping(applicationId, id)
-      if (result is Error) {
-        LogcatUsageTracker.logRetrace(result.reason.toString())
-        return null
+      return when (val result = findMapping(applicationId, id)) {
+        is Error -> {
+          LogcatUsageTracker.logRetrace(result.reason.toString())
+          null
+        }
+        is Mapping -> {
+          val mappings = result.path
+          val builder = result.createRetracer()
+          autoRetracer = AutoRetracer(id, builder, mappings, false)
+          rescheduleCachePurge()
+          autoRetracer
+        }
       }
-      val mappings = (result as Success).path
-      val builder = createRetracer(mappings)
-      autoRetracer = AutoRetracer(id, builder, mappings, false)
-      rescheduleCachePurge()
-      return autoRetracer
     }
   }
 
@@ -160,44 +166,46 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
 
   private fun findMapping(applicationId: String, mapId: String): Result {
     val mappingsFiles =
-      LogcatR8MappingsToken.getR8Mappings(project)
-        .map { it.text }
-        .ifEmpty {
-          val modules = getModuleCandidates(applicationId)
-          if (modules.isEmpty()) {
-            return Error(MODULES_NOT_FOUND)
-          }
-
-          val moduleDirs =
-            modules.mapNotNull {
-              it.getModuleSystem().getHolderModule().guessModuleDir()?.toNioPath()
-            }
-          if (moduleDirs.isEmpty()) {
-            return Error(MODULE_DIR_NOT_FOUND)
-          }
-          val buildDirs =
-            moduleDirs.mapNotNull { it.resolve(BUILD_DIR).takeIf { path -> path.isDirectory() } }
-          if (buildDirs.isEmpty()) {
-            return Error(BUILD_DIR_NOT_FOUND)
-          }
-          val mappingsDirs =
-            buildDirs.mapNotNull { it.resolve(MAPPINGS_DIR).takeIf { path -> path.isDirectory() } }
-          if (mappingsDirs.isEmpty()) {
-            return Error(MAPPINGS_DIR_NOT_FOUND)
-          }
-          val mappingsFiles = mappingsDirs.flatMap { it.findMappingFiles() }
-          if (mappingsFiles.isEmpty()) {
-            return Error(MAPPINGS_FILE_NOT_FOUND)
-          }
-          mappingsFiles
+      LogcatR8MappingsToken.getR8Mappings(project).ifEmpty {
+        val modules = getModuleCandidates(applicationId)
+        if (modules.isEmpty()) {
+          return Error(MODULES_NOT_FOUND)
         }
 
-    val mappingsById = mappingsFiles.filter { it.exists() }.associateByNotNull { it.getMapId() }
+        val moduleDirs =
+          modules.mapNotNull {
+            it.getModuleSystem().getHolderModule().guessModuleDir()?.toNioPath()
+          }
+        if (moduleDirs.isEmpty()) {
+          return Error(MODULE_DIR_NOT_FOUND)
+        }
+        val buildDirs =
+          moduleDirs.mapNotNull { it.resolve(BUILD_DIR).takeIf { path -> path.isDirectory() } }
+        if (buildDirs.isEmpty()) {
+          return Error(BUILD_DIR_NOT_FOUND)
+        }
+        val mappingsDirs =
+          buildDirs.mapNotNull { it.resolve(MAPPINGS_DIR).takeIf { path -> path.isDirectory() } }
+        if (mappingsDirs.isEmpty()) {
+          return Error(MAPPINGS_DIR_NOT_FOUND)
+        }
+        val mappingsFiles = mappingsDirs.flatMap { it.findMappingFiles() }
+        if (mappingsFiles.isEmpty()) {
+          return Error(MAPPINGS_FILE_NOT_FOUND)
+        }
+        mappingsFiles.map { R8Mappings(it, it.withExtension("prt")) }
+      }
+
+    val mappingsById =
+      mappingsFiles.filter { it.text.exists() }.associateByNotNull { it.text.getMapId() }
     if (mappingsById.isEmpty()) {
       return Error(MAPPINGS_HAVE_NO_MAP_ID)
     }
     val mapping = mappingsById[mapId] ?: return Error(MATCHING_MAPPING_NOT_FOUND)
-    return Success(mapping)
+    return when (mapping.partitioned?.exists() == true) {
+      true -> PartitionedMapping(mapping.partitioned)
+      false -> TextMapping(mapping.text)
+    }
   }
 
   override fun dispose() {}
@@ -223,7 +231,17 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
       MATCHING_MAPPING_NOT_FOUND,
     }
 
-    class Success(val path: Path) : Result()
+    sealed class Mapping(val path: Path) : Result() {
+      abstract fun createRetracer(): RetraceCommand.Builder
+    }
+
+    class TextMapping(path: Path) : Mapping(path) {
+      override fun createRetracer() = createTextRetracer(path)
+    }
+
+    class PartitionedMapping(path: Path) : Mapping(path) {
+      override fun createRetracer() = createPartitionedRetracer(path)
+    }
 
     class Error(val reason: Reason) : Result()
   }

@@ -17,12 +17,13 @@ package com.android.tools.idea.logcat.messages
 
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.util.LOGGER
+import com.android.tools.r8.retrace.PartitionMappingSupplier
 import com.android.tools.r8.retrace.ProguardMapProducer
 import com.android.tools.r8.retrace.ProguardMappingSupplier
 import com.android.tools.r8.retrace.Retrace
 import com.android.tools.r8.retrace.RetraceCommand
 import java.nio.file.Path
-import kotlin.io.path.readText
+import kotlin.io.path.nameWithoutExtension
 
 private val linkText = LogcatBundle.message("logcat.proguard.link.text")
 
@@ -55,11 +56,18 @@ internal fun RetraceCommand.Builder.rewrite(message: String): String {
   }
 }
 
-internal fun createRetracer(path: Path): RetraceCommand.Builder {
+internal fun createTextRetracer(path: Path): RetraceCommand.Builder {
   return RetraceCommand.builder()
     .setMappingSupplier(
       ProguardMappingSupplier.builder()
-        .setProguardMapProducer(ProguardMapProducer.fromString(path.readText()))
+        .setProguardMapProducer(ProguardMapProducer.fromPath(path))
         .build()
     )
 }
+
+internal fun createPartitionedRetracer(path: Path): RetraceCommand.Builder {
+  return RetraceCommand.builder().setMappingSupplier(PartitionMappingSupplier.fromPath(path))
+}
+
+internal fun Path.withExtension(extension: String) =
+  parent.resolve("$nameWithoutExtension.$extension")
