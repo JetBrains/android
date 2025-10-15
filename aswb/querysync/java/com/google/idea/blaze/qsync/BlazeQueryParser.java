@@ -119,7 +119,7 @@ public class BlazeQueryParser {
   }
 
   public BlazeQueryParser(
-      QuerySummary query, Context<?> context, ImmutableSet<String> handledRuleKinds) {
+      QuerySummary query, Context<?> context, Set<String> handledRuleKinds) {
     this.context = context;
     this.alwaysBuildRuleKinds = Sets.difference(ALWAYS_BUILD_RULE_KINDS, handledRuleKinds);
     this.query = query;
