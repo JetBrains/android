@@ -694,10 +694,10 @@ def _collect_own_and_toolchain_cc_info(target, rule):
         return None
 
     compilation_context = IDE_CC.compilation_context(target)
-    cc_gen_headers = depset()
+    cc_gen_headers = []
     compilation_info = None
     if compilation_context:
-        cc_gen_headers = depset([f for f in compilation_context.headers.to_list() if not f.is_source])
+        cc_gen_headers = [f for f in compilation_context.headers.to_list() if not f.is_source]
 
         compilation_info = struct(
             transitive_defines = compilation_context.defines.to_list(),
@@ -710,7 +710,7 @@ def _collect_own_and_toolchain_cc_info(target, rule):
                 )
             ),
             framework_include_directory = compilation_context.framework_includes.to_list(),
-            cc_gen_headers = cc_gen_headers.to_list(),
+            cc_gen_headers = cc_gen_headers,
             toolchain_id = cc_toolchain_info.id,
         )
     if not compilation_info:
@@ -783,9 +783,11 @@ def _collect_cc_dependencies_core_impl(target, ctx):
     cc_info = _collect_own_and_toolchain_cc_info(target, ctx.rule)
     dependency_infos = _get_followed_cc_dependency_infos(target.label, ctx.rule)
     dep_cc_info_files = [info.cc_info_files for info in dependency_infos.values() if info.cc_info_files]
-    if not cc_info and not dep_cc_info_files:
+    dep_cc_gen_headers = [info.cc_gen_headers for info in dependency_infos.values() if info.cc_gen_headers]
+    if not cc_info and not dep_cc_info_files and not dep_cc_gen_headers:
         return None
     cc_info_files = []
+    cc_gen_headers = cc_info.cc_gen_headers if cc_info else []
     if cc_info:
         cc_info_files = ([_write_cc_target_info(target.label, cc_info.compilation_info, ctx)] if cc_info.compilation_info else []) + \
                         ([cc_info.cc_toolchain_info.file] if cc_info.cc_toolchain_info else [])
@@ -793,7 +795,7 @@ def _collect_cc_dependencies_core_impl(target, ctx):
     return create_cc_dependencies_info(
         cc_info_files = depset(cc_info_files, transitive = dep_cc_info_files),
         cc_compilation_info = cc_info.compilation_info if cc_info else None,
-        cc_gen_headers = cc_info.cc_gen_headers if cc_info else depset(),
+        cc_gen_headers = depset(cc_gen_headers, transitive = dep_cc_gen_headers),
         cc_toolchain_info = cc_info.cc_toolchain_info if cc_info else None,
     )
 
