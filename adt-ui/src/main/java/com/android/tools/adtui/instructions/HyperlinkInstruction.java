@@ -22,6 +22,8 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.event.InputEvent;
+import java.util.function.Consumer;
 import javax.swing.JComponent;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
@@ -39,7 +41,7 @@ public final class HyperlinkInstruction extends RenderInstruction {
   @NotNull private final HyperlinkLabel myHyperlinkLabel;
   @NotNull private final Dimension mySize;
 
-  private HyperlinkInstruction(@NotNull Font font, @NotNull String text, @Nullable String url, @Nullable Runnable action) {
+  private HyperlinkInstruction(@NotNull Font font, @NotNull String text, @Nullable String url, @Nullable Consumer<InputEvent> action) {
     myHyperlinkLabel = new HyperlinkLabel(text);
     myHyperlinkLabel.setFont(font);
 
@@ -51,7 +53,7 @@ public final class HyperlinkInstruction extends RenderInstruction {
       myHyperlinkLabel.addHyperlinkListener(new HyperlinkListener() {
         @Override
         public void hyperlinkUpdate(HyperlinkEvent e) {
-          action.run();
+          action.accept(e.getInputEvent());
         }
       });
     }
@@ -66,7 +68,7 @@ public final class HyperlinkInstruction extends RenderInstruction {
     this(font, text, url, null);
   }
 
-  public HyperlinkInstruction(@NotNull Font font, @NotNull String text, @NotNull Runnable action) {
+  public HyperlinkInstruction(@NotNull Font font, @NotNull String text, @NotNull Consumer<InputEvent> action) {
     this(font, text, null, action);
   }
 

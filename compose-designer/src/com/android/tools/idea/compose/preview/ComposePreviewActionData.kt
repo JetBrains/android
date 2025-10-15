@@ -32,6 +32,7 @@ import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
+import java.awt.event.InputEvent
 import javax.swing.Icon
 
 /**
@@ -62,8 +63,9 @@ internal suspend fun createPreviewActionData(
     return null
   }
 
-  return ActionData(text, icon) {
-    val event = previewActionEvent(action, psiFilePointer, mainSurface) ?: return@ActionData
+  return ActionData(text, icon) { inputEvent ->
+    val event =
+      previewActionEvent(action, psiFilePointer, mainSurface, inputEvent) ?: return@ActionData
     action.actionPerformed(event)
   }
 }
@@ -78,6 +80,7 @@ private fun previewActionEvent(
   action: AnAction,
   psiFilePointer: SmartPsiElementPointer<PsiFile>,
   mainSurface: DesignSurface<*>,
+  inputEvent: InputEvent? = null,
 ): AnActionEvent? {
   val dataContext = previewActionDataContext(psiFilePointer, mainSurface) ?: return null
   return AnActionEvent.createEvent(
@@ -86,7 +89,7 @@ private fun previewActionEvent(
     null,
     ActionPlaces.UNKNOWN,
     ActionUiKind.NONE,
-    null,
+    inputEvent,
   )
 }
 
