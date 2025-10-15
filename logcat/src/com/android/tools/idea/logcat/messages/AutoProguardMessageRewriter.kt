@@ -19,48 +19,32 @@ package com.android.tools.idea.logcat.messages
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatR8MappingsToken
-import com.android.tools.idea.logcat.LogcatR8MappingsToken.R8Mappings
 import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.Error
 import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.Mapping
 import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.PartitionedMapping
-import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.Reason.BUILD_DIR_NOT_FOUND
-import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.Reason.MAPPINGS_DIR_NOT_FOUND
-import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.Reason.MAPPINGS_FILE_NOT_FOUND
 import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.Reason.MAPPINGS_HAVE_NO_MAP_ID
 import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.Reason.MATCHING_MAPPING_NOT_FOUND
-import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.Reason.MODULES_NOT_FOUND
-import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.Reason.MODULE_DIR_NOT_FOUND
+import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.Reason.NO_MAPPING_IN_PROJECT
 import com.android.tools.idea.logcat.messages.AutoProguardMessageRewriter.Result.TextMapping
 import com.android.tools.idea.logcat.util.LOGGER
 import com.android.tools.idea.logcat.util.LogcatUsageTracker
-import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.r8.retrace.RetraceCommand
 import com.android.utils.associateByNotNull
 import com.android.utils.text.dropPrefix
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level.PROJECT
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.guessModuleDir
-import com.intellij.openapi.project.modules
 import com.intellij.util.Alarm
-import com.intellij.util.io.directoryStreamIfExists
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.io.path.fileSize
-import kotlin.io.path.isDirectory
-import kotlin.io.path.isRegularFile
 import kotlin.io.path.useLines
 import kotlin.time.measureTimedValue
 import org.jetbrains.annotations.VisibleForTesting
 
 private val exceptionLinePattern = Regex("\n\\s*at .+\\(r8-map-id-(?<mapId>.+):\\d+\\)\n")
 
-private const val BUILD_DIR = "build"
-private const val MAPPINGS_DIR = "outputs/mapping"
-private const val MAPPINGS_FILE = "mapping.txt"
 private const val MAP_ID_PREFIX = "# pg_map_id: "
 
 /**
@@ -85,13 +69,12 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
     }
   }
 
-  fun rewrite(message: String, applicationId: String): String {
+  fun rewrite(message: String): String {
     if (StudioFlags.LOGCAT_AUTO_DEOBFUSCATE.get()) {
       try {
         val match = exceptionLinePattern.find(message) ?: return message
         val id = match.groups["mapId"]?.value ?: return message
-        val retracer =
-          getAutoRetracer(id, applicationId) ?: return message // tracked by getAutoRetracer
+        val retracer = getAutoRetracer(id) ?: return message // tracked by getAutoRetracer
 
         val (retraced, duration) =
           try {
@@ -116,31 +99,20 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
   }
 
   /**
-   * If we were able to determine the application id, restrict candidates to matching modules.
-   * Otherwise, check all modules.
-   */
-  private fun getModuleCandidates(applicationId: String): Collection<Module> {
-    return when (applicationId.startsWith("pid-")) {
-      true -> project.modules.asList()
-      false -> project.getProjectSystem().findModulesWithApplicationId(applicationId)
-    }
-  }
-
-  /**
    * If the current auto retraces matches the stacktrace id, we use it. Otherwise, we try to find a
    * matching mapping.txt based on the default project structure:
    * ```
    *    <module-dir>/build/outputs/mapping/<variant>/mapping.txt
    * ```
    */
-  private fun getAutoRetracer(id: String, applicationId: String): AutoRetracer? {
+  private fun getAutoRetracer(id: String): AutoRetracer? {
     synchronized(lock) {
       val retracer = autoRetracer
       if (retracer?.id == id) {
         rescheduleCachePurge()
         return retracer.copy(isCached = true)
       }
-      return when (val result = findMapping(applicationId, id)) {
+      return when (val result = findMapping(id)) {
         is Error -> {
           LogcatUsageTracker.logRetrace(result.reason.toString())
           null
@@ -164,38 +136,11 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
     )
   }
 
-  private fun findMapping(applicationId: String, mapId: String): Result {
-    val mappingsFiles =
-      LogcatR8MappingsToken.getR8Mappings(project).ifEmpty {
-        val modules = getModuleCandidates(applicationId)
-        if (modules.isEmpty()) {
-          return Error(MODULES_NOT_FOUND)
-        }
-
-        val moduleDirs =
-          modules.mapNotNull {
-            it.getModuleSystem().getHolderModule().guessModuleDir()?.toNioPath()
-          }
-        if (moduleDirs.isEmpty()) {
-          return Error(MODULE_DIR_NOT_FOUND)
-        }
-        val buildDirs =
-          moduleDirs.mapNotNull { it.resolve(BUILD_DIR).takeIf { path -> path.isDirectory() } }
-        if (buildDirs.isEmpty()) {
-          return Error(BUILD_DIR_NOT_FOUND)
-        }
-        val mappingsDirs =
-          buildDirs.mapNotNull { it.resolve(MAPPINGS_DIR).takeIf { path -> path.isDirectory() } }
-        if (mappingsDirs.isEmpty()) {
-          return Error(MAPPINGS_DIR_NOT_FOUND)
-        }
-        val mappingsFiles = mappingsDirs.flatMap { it.findMappingFiles() }
-        if (mappingsFiles.isEmpty()) {
-          return Error(MAPPINGS_FILE_NOT_FOUND)
-        }
-        mappingsFiles.map { R8Mappings(it, it.withExtension("prt")) }
-      }
-
+  private fun findMapping(mapId: String): Result {
+    val mappingsFiles = LogcatR8MappingsToken.getR8Mappings(project)
+    if (mappingsFiles.isEmpty()) {
+      return Error(NO_MAPPING_IN_PROJECT)
+    }
     val mappingsById =
       mappingsFiles.filter { it.text.exists() }.associateByNotNull { it.text.getMapId() }
     if (mappingsById.isEmpty()) {
@@ -222,13 +167,9 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
 
   private sealed class Result {
     enum class Reason {
-      MODULES_NOT_FOUND,
-      MODULE_DIR_NOT_FOUND,
-      BUILD_DIR_NOT_FOUND,
-      MAPPINGS_DIR_NOT_FOUND,
-      MAPPINGS_FILE_NOT_FOUND,
       MAPPINGS_HAVE_NO_MAP_ID,
       MATCHING_MAPPING_NOT_FOUND,
+      NO_MAPPING_IN_PROJECT,
     }
 
     sealed class Mapping(val path: Path) : Result() {
@@ -244,22 +185,6 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
     }
 
     class Error(val reason: Reason) : Result()
-  }
-}
-
-private fun Path.findMappingFiles(): List<Path> {
-  return buildList {
-    directoryStreamIfExists { paths ->
-      paths.forEach variant@{ variant ->
-        if (!variant.isDirectory()) {
-          return@variant
-        }
-        val mapping = variant.resolve(MAPPINGS_FILE)
-        if (mapping.isRegularFile()) {
-          add(mapping)
-        }
-      }
-    }
   }
 }
 

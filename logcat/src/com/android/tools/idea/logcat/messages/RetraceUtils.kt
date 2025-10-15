@@ -23,7 +23,6 @@ import com.android.tools.r8.retrace.ProguardMappingSupplier
 import com.android.tools.r8.retrace.Retrace
 import com.android.tools.r8.retrace.RetraceCommand
 import java.nio.file.Path
-import kotlin.io.path.nameWithoutExtension
 
 private val linkText = LogcatBundle.message("logcat.proguard.link.text")
 
@@ -68,6 +67,3 @@ internal fun createTextRetracer(path: Path): RetraceCommand.Builder {
 internal fun createPartitionedRetracer(path: Path): RetraceCommand.Builder {
   return RetraceCommand.builder().setMappingSupplier(PartitionMappingSupplier.fromPath(path))
 }
-
-internal fun Path.withExtension(extension: String) =
-  parent.resolve("$nameWithoutExtension.$extension")
