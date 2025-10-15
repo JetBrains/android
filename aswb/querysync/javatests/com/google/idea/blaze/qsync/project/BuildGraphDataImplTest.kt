@@ -820,6 +820,26 @@ class BuildGraphDataImplTest {
       .containsExactlyElementsIn(TestData.JAVA_LIBRARY_NO_DEPS_QUERY.assumedLabels)
   }
 
+
+  @Test
+  fun traverseDag() {
+    val graph = mapOf(
+      "a" to setOf("b", "c"),
+      "b" to setOf("c", "d"),
+      "c" to setOf("x"),
+      "d" to setOf("y"),
+      "x" to setOf("z"),
+      "y" to setOf("z"),
+      "z" to setOf(),
+    )
+    fun Collection<String>.traverseDag() = traverseDag(valueEmitter = { it }, edgeSelector = { n, v -> graph[n].orEmpty() }).toList()
+
+    expect.that(setOf("a", "b").traverseDag()).containsExactly("a", "b", "c", "d", "x", "y", "z").inOrder()
+    expect.that(setOf("a", "b").traverseDag()).isEqualTo(setOf("a").traverseDag())
+    expect.that(setOf("c").traverseDag()).containsExactly("c", "x", "z").inOrder()
+  }
+
+
   private fun getRequiredTargets(
     graph: BuildGraphData,
     forTargets: Collection<Label>
