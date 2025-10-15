@@ -214,8 +214,12 @@ class DetailsViewContentView(
           add(myTestResultLabel)
         }, BorderLayout.CENTER)
 
-        // The button is placed on the east side, which respects its preferred size.
-        add(updateReferenceButton, BorderLayout.EAST)
+        // The button is placed on the east side. It's wrapped in a NonOpaquePanel
+        // with a BorderLayout and placed at the NORTH to prevent it from stretching vertically
+        // when the label text wraps to a new line.
+        add(NonOpaquePanel(BorderLayout()).apply {
+          add(updateReferenceButton, BorderLayout.NORTH)
+        }, BorderLayout.EAST)
       }, BorderLayout.NORTH)
       add(tabs.component, BorderLayout.CENTER)
       minimumSize = Dimension()
