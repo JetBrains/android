@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.truth.Expect;
 import com.google.idea.blaze.base.TestData;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
+import com.google.idea.blaze.base.qsync.QuerySyncProject;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
@@ -31,6 +32,7 @@ import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
+import com.google.idea.blaze.qsync.project.ProjectPath;
 import com.google.idea.testing.EdtRule;
 import com.google.idea.testing.java.LightJavaCodeInsightFixtureTestCase4Concrete;
 import com.intellij.openapi.vfs.JarFileSystem;
@@ -60,22 +62,27 @@ public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTe
   @Rule public final MockitoRule mockito = MockitoJUnit.rule();
   @Rule public final TestData testData = new TestData();
   @Mock public QuerySyncManager querySyncManager;
-  @Mock public ArtifactTracker<?> artifactTracker;
+  @Mock public QuerySyncProject querySyncProject;
   public Path libraryArtifactAbsolutePath;
   public Path javaDepsAbsolutePath;
   public Path libraryArtifactPath;
   public Path projectAbsolutePath;
+  public Path workspaceAbsolutePath;
 
   @Before
   public void initJar() throws IOException {
     String localRelativeArtifactPath = "com/test/libtest.jar";
     final var testDataJar = testData.get(localRelativeArtifactPath);
+    workspaceAbsolutePath = testData.root;
     projectAbsolutePath = tempDir.newDirectory("project").toPath();
     javaDepsAbsolutePath = projectAbsolutePath.resolve(ArtifactDirectories.JAVADEPS.relativePath());
     libraryArtifactAbsolutePath = javaDepsAbsolutePath.resolve("blaze-out/k8/bin/" + localRelativeArtifactPath);
     libraryArtifactPath = javaDepsAbsolutePath.relativize(libraryArtifactAbsolutePath);
     Files.createDirectories(libraryArtifactAbsolutePath.getParent());
     Files.copy(Path.of(testDataJar), libraryArtifactAbsolutePath);
+    when(querySyncManager.assertProjectLoaded()).thenReturn(querySyncProject);
+    when(querySyncProject.getProjectPathResolver()).thenReturn(
+      new ProjectPath.Resolver(workspaceAbsolutePath, projectAbsolutePath, projectAbsolutePath.resolve(".external")));
   }
 
   @Test
@@ -99,7 +106,7 @@ public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTe
     ClsFileImpl psiClassFile = (ClsFileImpl) getFixture().getPsiManager().findFile(classFile);
     ClassFileJavaSourceFinder djsf =
         new ClassFileJavaSourceFinder(
-          getFixture().getProject(), querySyncManager, testData.root, Path.of("/"), psiClassFile);
+          getFixture().getProject(), querySyncManager, workspaceAbsolutePath, Path.of("/"), psiClassFile);
     expect.that(djsf.findSourceFile()).isNull();
   }
 
@@ -113,7 +120,7 @@ public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTe
         new ClassFileJavaSourceFinder(
           getFixture().getProject(),
           querySyncManager,
-          testData.root,
+          workspaceAbsolutePath,
           projectAbsolutePath,
           psiClassFile);
     ArtifactTracker.State artifactState =
@@ -122,7 +129,8 @@ public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTe
           JavaArtifactInfo.empty(Label.of("//com/test:test")).toBuilder()
             .setSources(
               ImmutableSet.of(
-                Path.of("com/test/Test.java"), Path.of("com/test/AnotherClass.java")))
+                ProjectPath.workspaceRelativeForTests(Path.of("com/test/Test.java")),
+                ProjectPath.workspaceRelativeForTests(Path.of("com/test/AnotherClass.java"))))
             .setJars(ImmutableList.of(
               BuildArtifact.create(
                 "digest-libtest.jar",
@@ -130,6 +138,7 @@ public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTe
             .build()));
     when(querySyncManager.getCurrentSnapshot()).thenReturn(
       Optional.of(QuerySyncProjectSnapshot.EMPTY.withArtifactState(artifactState)));
+
 
     PsiElement navElement = djsf.findSourceFile();
     assertThat(navElement).isNotNull();
@@ -149,7 +158,7 @@ public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTe
       new ClassFileJavaSourceFinder(
         getFixture().getProject(),
         querySyncManager,
-        testData.root,
+        workspaceAbsolutePath,
         projectAbsolutePath,
         psiClassFile);
     ArtifactTracker.State artifactState =
@@ -158,9 +167,9 @@ public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTe
           JavaArtifactInfo.empty(Label.of("//com/test:test")).toBuilder()
             .setSources(
               ImmutableSet.of(
-                Path.of("com/test/Test.java"),
-                Path.of("com/test/AnotherClass.java"),
-                Path.of("com/test2/Test.java")))
+                ProjectPath.workspaceRelativeForTests(Path.of("com/test/Test.java")),
+                ProjectPath.workspaceRelativeForTests(Path.of("com/test/AnotherClass.java")),
+                ProjectPath.workspaceRelativeForTests(Path.of("com/test2/Test.java"))))
             .setJars(ImmutableList.of(
               BuildArtifact.create(
                 "digest-libtest.jar",
@@ -185,7 +194,7 @@ public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTe
     ClsFileImpl psiClassFile = (ClsFileImpl) getFixture().getPsiManager().findFile(classFile);
     ClassFileJavaSourceFinder djsf =
         new ClassFileJavaSourceFinder(
-          getFixture().getProject(), querySyncManager, testData.root, Path.of("/"), psiClassFile);
+          getFixture().getProject(), querySyncManager, workspaceAbsolutePath, Path.of("/"), psiClassFile);
     PsiElement navElement = djsf.findSourceFile();
     assertThat(navElement).isNull();
   }

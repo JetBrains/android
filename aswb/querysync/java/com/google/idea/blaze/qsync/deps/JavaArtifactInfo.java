@@ -27,6 +27,7 @@ import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.artifacts.DigestMap;
 import com.google.idea.blaze.qsync.java.JavaTargetInfo;
+import com.google.idea.blaze.qsync.project.ProjectPath;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
@@ -64,9 +65,9 @@ public abstract class JavaArtifactInfo {
   public abstract ImmutableSet<BuildArtifact> genSrcs();
 
   /** Workspace relative sources for this dependency, extracted at dependency build time. */
-  public abstract ImmutableSet<Path> sources();
+  public abstract ImmutableSet<ProjectPath> sources();
 
-  public abstract ImmutableSet<Path> srcJars();
+  public abstract ImmutableSet<ProjectPath> srcJars();
 
   public abstract String androidResourcesPackage();
 
@@ -102,9 +103,9 @@ public abstract class JavaArtifactInfo {
         .setJars(BuildArtifact.fromProtos(proto.getJarsList(), digestMap, target))
         .setOutputJars(BuildArtifact.fromProtos(proto.getOutputJarsList(), digestMap, target))
         .setGenSrcs(BuildArtifact.fromProtos(proto.getGenSrcsList(), digestMap, target))
-        .setSources(proto.getSrcsList().stream().map(Interners::pathOf).collect(toImmutableSet()))
+        .setSources(proto.getSrcsList().stream().map(it -> ProjectPath.workspaceRelative(Interners.pathOf(it))).collect(toImmutableSet()))
         .setSrcJars(
-            proto.getSrcjarsList().stream().map(Interners::pathOf).collect(toImmutableSet()))
+            proto.getSrcjarsList().stream().map(it -> ProjectPath.workspaceRelative(Interners.pathOf(it))).collect(toImmutableSet()))
         .setAndroidResourcesPackage(proto.getAndroidResourcesPackage())
         .build();
   }
@@ -144,9 +145,9 @@ public abstract class JavaArtifactInfo {
 
     public abstract Builder setGenSrcs(BuildArtifact... value);
 
-    public abstract Builder setSources(Set<Path> value);
+    public abstract Builder setSources(Set<ProjectPath> value);
 
-    public abstract Builder setSrcJars(Set<Path> value);
+    public abstract Builder setSrcJars(Set<ProjectPath> value);
 
     public abstract Builder setAndroidResourcesPackage(String value);
 
