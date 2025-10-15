@@ -1837,14 +1837,6 @@ public final class StudioFlags {
       "Create a cloud project on logging in and authenticating Firebase"
     );
 
-  public static final Flag<Boolean> DIRECT_ACCESS_SETTINGS_PAGE =
-    new BooleanFlag(
-      FIREBASE_TEST_LAB,
-      "direct.access.settings.page",
-      "Device Streaming Settings Page",
-      "Show Device Streaming Settings Page"
-    );
-
   public static final Flag<String> DIRECT_ACCESS_ENDPOINT =
     new StringFlag(
       FIREBASE_TEST_LAB,
