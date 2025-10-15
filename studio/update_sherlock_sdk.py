@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import xml.etree.ElementTree as ET
+import zipfile
 from pathlib import Path
 from typing import List, Tuple, Dict, Any, Set
 
@@ -32,6 +33,137 @@ MANIFEST_TEMPLATE = "manifest_{}.xml"
 EXPECTED_ARTIFACTS: Set[str] = {SOURCES_ZIP, MAC_ARM_ZIP, MAC_X64_ZIP, LINUX_TAR, WIN_ZIP}
 SDK_TYPE = "IC"
 SHERLOCK_SUBDIR = "sherlock"
+GITHUB_REPO = "android-graphics/sherlock-platform"
+VERSION_XML_PATH = "idea/SherlockPlatformApplicationInfo.xml"
+NAMESPACE_URI = "http://jetbrains.org/intellij/schema/application-info"
+SHERLOCK_PLATFORM_SHA_METADATA_KEY = "tools/gpu-profiler/idea"
+
+
+def check_gh_auth() -> None:
+  """
+  Checks if the GitHub CLI is installed and authenticated.
+  Raises RuntimeError if not.
+  """
+  try:
+    subprocess.run(["gh", "auth", "status"], check=True, capture_output=True)
+  except subprocess.CalledProcessError:
+    sys.exit("Error: GitHub CLI (gh) is not authenticated. Please run 'gh auth login'.")
+  except FileNotFoundError:
+    sys.exit("Error: GitHub CLI (gh) not found. Please install it from https://cli.github.com/")
+
+
+# TODO: Eventually use bid for releases (v[bid]) and remove this method
+def get_version_from_local_xml(sdk_path: Path) -> str:
+  """
+  Extracts the version from SherlockPlatformApplicationInfo.xml within the resources.jar.
+  """
+  lib_dir = sdk_path / LINUX / SHERLOCK_SUBDIR / "lib"
+  if not lib_dir.exists():
+    raise FileNotFoundError(f"Could not find lib directory at {lib_dir}")
+
+  resources_jar_path = None
+  for jar_file in lib_dir.glob("*.jar"):
+    try:
+      with zipfile.ZipFile(jar_file, 'r') as zf:
+        if VERSION_XML_PATH in zf.namelist():
+          resources_jar_path = jar_file
+          break
+    except zipfile.BadZipFile:
+      print(f"Warning: Skipping non-zip file in lib dir: {jar_file}", file=sys.stderr)
+      continue
+
+  if not resources_jar_path:
+    raise FileNotFoundError(f"Could not find a JAR containing {VERSION_XML_PATH} in {lib_dir}")
+
+  try:
+    with zipfile.ZipFile(resources_jar_path, 'r') as zf:
+      with zf.open(VERSION_XML_PATH) as xml_file:
+        tree = ET.parse(xml_file)
+        root = tree.getroot()
+        version_element = root.find(f'{{{NAMESPACE_URI}}}version')
+        if version_element is not None:
+          major = version_element.get("major")
+          minor = version_element.get("minor")
+          patch = version_element.get("patch", default='0')
+          if major is not None and minor is not None:
+            version = f"{major}.{minor}.{patch}"
+            return version
+    raise ValueError("Version element not found in XML")
+  except ET.ParseError as e:
+    print(f"Error parsing XML content from {resources_jar_path}: {e}", file=sys.stderr)
+    raise
+  except KeyError:
+    # Should not happen due to the check above, but as a safeguard.
+    raise FileNotFoundError(f"{VERSION_XML_PATH} not found within {resources_jar_path}")
+
+
+def parse_sha_from_metadata(metadata_path: Path) -> str | None:
+  """
+  Parses the Sherlock source SHA from the METADATA file.
+  """
+  if not metadata_path.exists():
+    sys.exit(f"Error: METADATA file not found at {metadata_path}")
+  with open(metadata_path, 'r') as f:
+    for line in f:
+      if line.startswith(SHERLOCK_PLATFORM_SHA_METADATA_KEY):
+        return line.split(":", 1)[1].strip()
+  return None
+
+
+def upload_to_github_release(artifact_dir: Path, sdk_path: Path, tag_name: str, bid: str = None) -> None:
+  """
+  Creates a GitHub release and uploads artifacts using gh CLI.
+  """
+  result = subprocess.run(["gh", "api", f"repos/{GITHUB_REPO}/git/ref/tags/{tag_name}"], capture_output=True, text=True)
+  if result.returncode == 0:
+    print(f"Error: Tag {tag_name} already exists in {GITHUB_REPO}. Skipping release.", file=sys.stderr)
+    return
+
+  result = subprocess.run(["gh", "release", "view", tag_name, "--repo", GITHUB_REPO], capture_output=True, text=True)
+  if result.returncode == 0:
+    print(f"Error: Release for tag {tag_name} already exists in {GITHUB_REPO}. Skipping release.", file=sys.stderr)
+    return
+
+  metadata_path = sdk_path / "METADATA"
+  if bid:
+    sherlock_platform_sha = parse_sha_from_metadata(metadata_path)
+  else:
+    sherlock_platform_sha = "local_build"
+
+  release_notes = f"Android Build ID: {bid if bid else 'N/A'}\n"
+  if sherlock_platform_sha:
+    release_notes += f"Sherlock Platform source SHA: {sherlock_platform_sha}\n"
+
+  try:
+    subprocess.run([
+      "gh", "release", "create", tag_name,
+      "--repo", GITHUB_REPO,
+      "--title", tag_name,
+      "--notes", release_notes,
+      "--prerelease",
+      "--draft=false"
+    ], check=True, capture_output=True, text=True)
+    print(f"Release {tag_name} created successfully.")
+  except subprocess.CalledProcessError as e:
+    print(f"Error creating release {tag_name}: {e}", file=sys.stderr)
+    return
+
+  print(f"Uploading artifacts to release {tag_name}...")
+  artifacts_to_upload = [str(p) for p in artifact_dir.iterdir() if p.is_file()]
+  if not artifacts_to_upload:
+    print("No artifacts found to upload.")
+    return
+
+  try:
+    subprocess.run([
+      "gh", "release", "upload", tag_name,
+      "--repo", GITHUB_REPO,
+    ] + artifacts_to_upload, check=True, capture_output=True, text=True)
+    print("Artifacts uploaded successfully")
+  except subprocess.CalledProcessError as e:
+    print(f"Error uploading artifacts: {e}", file=sys.stderr)
+
+  print(f"GitHub release {tag_name} complete.")
 
 
 def check_sherlock_artifacts(dir_path: Path, include_manifest: bool = False, bid: str = "") -> List[str]:
@@ -46,7 +178,7 @@ def check_sherlock_artifacts(dir_path: Path, include_manifest: bool = False, bid
   if include_manifest and bid:
     expected.add(MANIFEST_TEMPLATE.format(bid))
 
-  found_files = [f for f in files if f in expected or f in EXPECTED_ARTIFACTS]
+  found_files = [f for f in files if f in expected]
 
   if len(found_files) < len(EXPECTED_ARTIFACTS):
     print("Warning: Missing some expected base artifacts.")
@@ -195,8 +327,8 @@ def extract_artifacts(download_dir: Path, found_files: List[str], prebuilts: Pat
           metadata[project.get("path")] = project.get("revision")
       except ET.ParseError as e:
         print(f"Warning: Could not parse manifest file {manifest_path}: {e}", file=sys.stderr)
-    elif bid:
-      print(f"Warning: Manifest file {manifest_path} not found in downloaded artifacts.")
+    else:
+      print("No manifest file found in artifact directory.")
 
   except Exception as e:
     raise Exception(f"Error during artifact processing: {e}")
@@ -245,41 +377,63 @@ def main() -> None:
   parser.add_argument("--workspace", default=str(Path(__file__).resolve().parents[4]),
                       help="Path to the root of the Android Studio source checkout.")
   parser.add_argument("--prebuilts_dir", default="prebuilts/studio/intellij-sdk", help="Path within workspace to store the SDKs.")
+  parser.add_argument("--release_to_github", action="store_true", help="Upload artifacts to a GitHub release.")
 
   args = parser.parse_args()
+
+  if args.release_to_github:
+    try:
+      check_gh_auth()
+    except RuntimeError as e:
+      sys.exit(f"GitHub auth check failed: {e}")
 
   workspace = Path(args.workspace).resolve()
   prebuilts = workspace / args.prebuilts_dir
   metadata = {}
   bid = args.download
+  artifact_dir = None
+  cleanup_artifact = False
 
   if bid:
     metadata["build_id"] = bid
   if args.path:
     metadata["local_path"] = str(Path(args.path).resolve())
 
-  if args.path:
-    artifact_dir = Path(args.path)
-    if not artifact_dir.is_dir():
-      sys.exit(f"Error: Provided --path is not a valid directory: {artifact_dir}")
-    print(f"Using local artifacts from: {artifact_dir}")
-    downloaded_files = check_sherlock_artifacts(artifact_dir)
-  else:
-    artifact_dir = download_ab_artifacts(bid)
-    downloaded_files = check_sherlock_artifacts(artifact_dir, include_manifest=True, bid=bid)
-
   try:
-    if not any(f in EXPECTED_ARTIFACTS for f in downloaded_files):
+    if args.path:
+      artifact_dir = Path(args.path)
+      if not artifact_dir.is_dir():
+        sys.exit(f"Error: Provided --path is not a valid directory: {artifact_dir}")
+      print(f"Using local artifacts from: {artifact_dir}")
+      artifacts = check_sherlock_artifacts(artifact_dir)
+    else:
+      artifact_dir = download_ab_artifacts(bid)
+      cleanup_artifact = True
+      artifacts = check_sherlock_artifacts(artifact_dir, include_manifest=True, bid=bid)
+
+    if not any(f in EXPECTED_ARTIFACTS for f in artifacts):
       sys.exit("No primary Sherlock artifacts found to process.")
 
-    sdk_path = extract_artifacts(artifact_dir, downloaded_files, prebuilts, metadata, bid=bid)
+    sdk_path = extract_artifacts(artifact_dir, artifacts, prebuilts, metadata, bid=bid)
     generate_spec(sdk_path)
 
     print("Sherlock SDK update complete.")
 
+    if args.release_to_github:
+      try:
+        version = get_version_from_local_xml(sdk_path)
+        tag_name = f"v{version}"
+        upload_to_github_release(artifact_dir, sdk_path, tag_name, bid)
+      except Exception as e:
+        print(f"Error during GitHub release: {e}", file=sys.stderr)
+
   except Exception as e:
     print(f"An error occurred: {e}", file=sys.stderr)
     sys.exit(1)
+  finally:
+    if not args.path and artifact_dir.exists():
+      print(f"Cleaning up temporary download directory: {artifact_dir}")
+      shutil.rmtree(artifact_dir)
 
 
 if __name__ == "__main__":
