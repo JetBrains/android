@@ -63,6 +63,7 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
+import java.awt.event.MouseEvent
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.ArrayBlockingQueue
@@ -83,6 +84,7 @@ import kotlinx.coroutines.withContext
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class TestAppInspectorTabProvider1 :
   AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID)
@@ -679,7 +681,7 @@ class AppInspectionViewTest {
           .isEqualTo(AppInspectionBundle.message("inspector.launch.restart"))
 
         setUpRelaunchingCommandHandler()
-        launch(uiDispatcher) { initialComponent.actionData.single()!!.callback() }
+        launch(uiDispatcher) { initialComponent.actionData.single()!!.callback(mock<MouseEvent>()) }
         val restartedComponent = tab.componentUpdates.first()
         assertThat(restartedComponent).isNotSameAs(initialComponent)
         assertThat(restartedComponent).isInstanceOf(TestAppInspectorTabComponent::class.java)

@@ -25,17 +25,18 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtilities
-import org.junit.Rule
-import org.junit.Test
 import java.awt.BorderLayout
 import java.awt.Cursor
+import java.awt.event.InputEvent
+import java.util.function.Consumer
 import javax.swing.JPanel
 import kotlin.math.roundToInt
+import org.junit.Rule
+import org.junit.Test
 
 @RunsInEdt
 class InstructionsPanelTest {
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   @Test
   fun testPanelRemovedFromParentWhenFadedOut() {
@@ -44,21 +45,28 @@ class InstructionsPanelTest {
     val easeOut = EaseOutModel(updater, FakeTimer.ONE_SECOND_IN_NS)
     val panel = JPanel(BorderLayout())
 
-    val instructions = InstructionsPanel.Builder(
-      TextInstruction(UIUtilities.getFontMetrics(panel, AdtUiUtils.DEFAULT_FONT), "InstructionsPanelTest"))
-      .setEaseOut(easeOut, { child -> panel.remove(child) })
-      .build()
+    val instructions =
+      InstructionsPanel.Builder(
+          TextInstruction(
+            UIUtilities.getFontMetrics(panel, AdtUiUtils.DEFAULT_FONT),
+            "InstructionsPanelTest",
+          )
+        )
+        .setEaseOut(easeOut, { child -> panel.remove(child) })
+        .build()
     panel.add(instructions, BorderLayout.CENTER)
 
     // After 1 second, fade out should start the next update.
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertThat(panel.components).asList().contains(instructions)
 
-    // 1st update would start lerping the fade ratio, but the instructions should still be in the hierarchy
+    // 1st update would start lerping the fade ratio, but the instructions should still be in the
+    // hierarchy
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertThat(panel.components).asList().contains(instructions)
 
-    // 2nd update would fade out the instructions completely, at which point the panel will be auto-removed.
+    // 2nd update would fade out the instructions completely, at which point the panel will be
+    // auto-removed.
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertThat(panel.components).asList().doesNotContain(instructions)
   }
@@ -70,14 +78,16 @@ class InstructionsPanelTest {
     val panel = JPanel(TabularLayout("Fit-"))
     val metrics = UIUtilities.getFontMetrics(panel, AdtUiUtils.DEFAULT_FONT)
 
-    val instructions = InstructionsPanel.Builder(
-      TextInstruction(metrics, "Line 1"),
-      NewRowInstruction(0),
-      HyperlinkInstruction(metrics.font, "Line 2", "www.google.com"),
-      NewRowInstruction(0),
-      TextInstruction(metrics, "Line 3"))
-      .setPaddings(0, 0)
-      .build()
+    val instructions =
+      InstructionsPanel.Builder(
+          TextInstruction(metrics, "Line 1"),
+          NewRowInstruction(0),
+          HyperlinkInstruction(metrics.font, "Line 2", "www.google.com"),
+          NewRowInstruction(0),
+          TextInstruction(metrics, "Line 3"),
+        )
+        .setPaddings(0, 0)
+        .build()
     panel.add(instructions, TabularLayout.Constraint(0, 0))
 
     val fakeUi = FakeUi(panel)
@@ -94,13 +104,15 @@ class InstructionsPanelTest {
     assertThat(instructionsComponent.cursor).isEqualTo(Cursor.getDefaultCursor())
 
     fakeUi.mouse.moveTo(20, yLine2Url)
-    assertThat(instructionsComponent.cursor).isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
+    assertThat(instructionsComponent.cursor)
+      .isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
 
     fakeUi.mouse.moveTo(20, yLine3Text)
     assertThat(instructionsComponent.cursor).isEqualTo(Cursor.getDefaultCursor())
 
     fakeUi.mouse.moveTo(20, yLine2Url)
-    assertThat(instructionsComponent.cursor).isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
+    assertThat(instructionsComponent.cursor)
+      .isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
 
     assertThat(fakeUi.mouse.focus).isNotNull()
     fakeUi.mouse.moveTo(Int.MAX_VALUE, Int.MAX_VALUE) // Force mouseExited event
@@ -108,7 +120,8 @@ class InstructionsPanelTest {
     assertThat(instructionsComponent.cursor).isEqualTo(Cursor.getDefaultCursor())
 
     fakeUi.mouse.moveTo(20, yLine2Url)
-    assertThat(instructionsComponent.cursor).isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
+    assertThat(instructionsComponent.cursor)
+      .isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
   }
 
   @Test
@@ -117,11 +130,12 @@ class InstructionsPanelTest {
     val metrics = UIUtilities.getFontMetrics(panel, AdtUiUtils.DEFAULT_FONT)
 
     var actionPerformed = false
-    val action = Runnable { actionPerformed = true }
+    val action = Consumer<InputEvent> { actionPerformed = true }
 
-    val instructions = InstructionsPanel.Builder(HyperlinkInstruction(metrics.font, "Hyperlink", action))
-      .setPaddings(0, 0)
-      .build()
+    val instructions =
+      InstructionsPanel.Builder(HyperlinkInstruction(metrics.font, "Hyperlink", action))
+        .setPaddings(0, 0)
+        .build()
     panel.add(instructions, TabularLayout.Constraint(0, 0))
 
     val fakeUi = FakeUi(panel)
@@ -133,7 +147,8 @@ class InstructionsPanelTest {
 
     fakeUi.mouse.moveTo(20, yHyperlink)
     val instructionsComponent = fakeUi.mouse.focus!!
-    assertThat(instructionsComponent.cursor).isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
+    assertThat(instructionsComponent.cursor)
+      .isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
 
     fakeUi.mouse.click(20, yHyperlink)
     assertThat(actionPerformed).isTrue()
@@ -144,12 +159,16 @@ class InstructionsPanelTest {
     val panel = JPanel(TabularLayout("Fit-"))
     val metrics = UIUtilities.getFontMetrics(panel, AdtUiUtils.DEFAULT_FONT)
 
-    val action = Runnable { }
+    val action = Consumer<InputEvent> {}
 
-    val instructions = InstructionsPanel.Builder(HyperlinkInstruction(metrics.font, "Hyperlink", action))
-      .setPaddings(0, 0)
-      .setCursorSetter { _, cursor -> panel.cursor = cursor; panel }
-      .build()
+    val instructions =
+      InstructionsPanel.Builder(HyperlinkInstruction(metrics.font, "Hyperlink", action))
+        .setPaddings(0, 0)
+        .setCursorSetter { _, cursor ->
+          panel.cursor = cursor
+          panel
+        }
+        .build()
     panel.add(instructions, TabularLayout.Constraint(0, 0))
 
     val fakeUi = FakeUi(panel)

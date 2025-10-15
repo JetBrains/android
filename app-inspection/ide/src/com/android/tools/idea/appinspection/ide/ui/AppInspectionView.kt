@@ -385,11 +385,9 @@ constructor(
           EmptyStatePanel(
             AppInspectionBundle.message("inspector.launch.error", provider.displayName),
             null,
-            ActionData(
-              AppInspectionBundle.message("inspector.launch.restart"),
-              null,
-              hyperlinkClicked(process, tabShell),
-            ),
+            ActionData(AppInspectionBundle.message("inspector.launch.restart"), null) {
+              hyperlinkClicked(process, tabShell)()
+            },
           )
         )
         ideServices.showNotification(
