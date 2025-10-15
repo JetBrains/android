@@ -60,6 +60,7 @@ import com.intellij.platform.workspace.jps.entities.LibraryId
 import com.intellij.platform.workspace.jps.entities.LibraryRoot
 import com.intellij.platform.workspace.jps.entities.LibraryRootTypeId
 import com.intellij.platform.workspace.jps.entities.LibraryTableId
+import com.intellij.platform.workspace.jps.entities.LibraryEntityBuilder
 import com.intellij.platform.workspace.jps.entities.ModuleDependency
 import com.intellij.platform.workspace.jps.entities.ModuleDependencyItem
 import com.intellij.platform.workspace.jps.entities.ModuleEntity
@@ -166,7 +167,7 @@ private class SyncContributorAndroidProjectDependenciesContext(
   fun File.toLibraryRootPath() = androidProjectContext.context.virtualFileUrl(this)
 
   /* Creates a library entity or find an existing one from storage, also counting any newly created ones. */
-  fun getOrCreateLibraryEntity(moduleName: String, libraryEntityProvider: () -> LibraryEntity.Builder): LibraryEntity {
+  fun getOrCreateLibraryEntity(moduleName: String, libraryEntityProvider: () -> LibraryEntityBuilder): LibraryEntity {
     val libraryEntityToBeAdded = libraryEntityProvider()
     fun lookup(tableId: LibraryTableId) = libraryIdToEntityMap[LibraryId(libraryEntityToBeAdded.name, tableId)]
     // Look up existing modules, reducing specificity of the table each time
